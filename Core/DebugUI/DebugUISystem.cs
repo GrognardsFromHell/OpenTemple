@@ -1,11 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.Scripting;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20.Actions;
@@ -20,7 +17,7 @@ namespace OpenTemple.Core.DebugUI
     {
         private readonly ImGuiRenderer _renderer;
 
-        private readonly WorldCamera _camera;
+        private readonly RenderingDevice _device;
 
         private bool _renderDebugOverlay;
 
@@ -32,12 +29,12 @@ namespace OpenTemple.Core.DebugUI
 
         private ImFontPtr _normalFont;
 
-        public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device, WorldCamera camera)
+        public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device)
         {
-            _camera = camera;
+            _device = device;
+
             var hwnd = mainWindow.NativeHandle;
-            var d3dDevice = device.mD3d11Device;
-            var context = device.mContext;
+            var context = device.Device.ImmediateContext;
 
             var guiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(guiContext);
@@ -46,7 +43,7 @@ namespace OpenTemple.Core.DebugUI
             AddRobotoFonts();
 
             _renderer = new ImGuiRenderer();
-            if (!_renderer.ImGui_ImplDX11_Init(hwnd, d3dDevice, context))
+            if (!_renderer.ImGui_ImplDX11_Init(hwnd, device.Device, context))
             {
                 throw new Exception("Unable to initialize IMGui!");
             }
@@ -76,7 +73,8 @@ namespace OpenTemple.Core.DebugUI
 
         public void NewFrame()
         {
-            _renderer.ImGui_ImplDX11_NewFrame((int) _camera.GetScreenWidth(), (int) _camera.GetScreenHeight());
+            var size = _device.GetBackBufferSize();
+            _renderer.ImGui_ImplDX11_NewFrame(size.Width, size.Height);
             ImGui.PushFont(_normalFont);
         }
 
@@ -139,9 +137,6 @@ namespace OpenTemple.Core.DebugUI
             {
                 height = (int) ImGui.GetWindowHeight();
 
-                var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
-                GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var loc);
-
                 _forceMainMenu = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
                 var anyMenuOpen = false;
@@ -186,27 +181,29 @@ namespace OpenTemple.Core.DebugUI
                         GameSystems.Anim.VerbosePartyLogging = verbosePartyLogging;
                     }
 
-                    var renderSectorDebug = Globals.GameLoop.GameRenderer.RenderSectorDebugInfo;
+                    var gameRenderer = UiSystems.GameView.GameRenderer;
+
+                    var renderSectorDebug = gameRenderer.RenderSectorDebugInfo;
                     if (ImGui.MenuItem("Sector Blocking Debug", null, ref renderSectorDebug))
                     {
-                        Globals.GameLoop.GameRenderer.RenderSectorDebugInfo = renderSectorDebug;
+                        gameRenderer.RenderSectorDebugInfo = renderSectorDebug;
                     }
 
-                    var renderSectorVisibility = Globals.GameLoop.GameRenderer.RenderSectorVisibility;
+                    var renderSectorVisibility = gameRenderer.RenderSectorVisibility;
                     if (ImGui.MenuItem("Sector Visibility", null, ref renderSectorVisibility))
                     {
-                        Globals.GameLoop.GameRenderer.RenderSectorVisibility = renderSectorVisibility;
+                        gameRenderer.RenderSectorVisibility = renderSectorVisibility;
                     }
 
-                    var pathFindingDebug = Globals.GameLoop.GameRenderer.DebugPathFinding;
+                    var pathFindingDebug = gameRenderer.DebugPathFinding;
                     if (ImGui.MenuItem("Debug Pathfinding", null, ref pathFindingDebug))
                     {
-                        Globals.GameLoop.GameRenderer.DebugPathFinding = pathFindingDebug;
+                        gameRenderer.DebugPathFinding = pathFindingDebug;
                     }
 
                     if (ImGui.BeginMenu("Line of Sight"))
                     {
-                        var fogDebugRenderer = Globals.GameLoop.GameRenderer.MapFogDebugRenderer;
+                        var fogDebugRenderer = gameRenderer.MapFogDebugRenderer;
                         var index = 0;
                         foreach (var partyMember in GameSystems.Party.PartyMembers)
                         {
@@ -242,13 +239,12 @@ namespace OpenTemple.Core.DebugUI
                 {
                     anyMenuOpen = true;
 
-                    if (ImGui.MenuItem("Game View"))
+                    if (GameViews.Primary != null)
                     {
-                        Globals.GameLoop.TakeScreenshot(
-                            "gameview.jpg",
-                            screenSize.Width,
-                            screenSize.Height
-                        );
+                        if (ImGui.MenuItem("Game View"))
+                        {
+                            GameViews.Primary.TakeScreenshot("gameview.jpg");
+                        }
                     }
 
                     ImGui.EndMenu();
@@ -276,7 +272,12 @@ namespace OpenTemple.Core.DebugUI
 
                 RenderCheatsMenu();
 
-                ImGui.Text($"X: {loc.locx} Y: {loc.locy}");
+                if (GameViews.Primary != null)
+                {
+                    var screenCenter = GameViews.Primary.CenteredOn;
+                    ImGui.Text($"X: {screenCenter.location.locx} Y: {screenCenter.location.locy}");
+                }
+
                 ImGui.End();
             }
         }

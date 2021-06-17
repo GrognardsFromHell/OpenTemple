@@ -153,8 +153,8 @@ namespace OpenTemple.Core.Ui.MainMenu
             });
             widgetDoc.GetButton("options-back").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
 
-            RepositionWidgets(Globals.UiManager.ScreenSize);
-            Globals.UiManager.OnScreenSizeChanged += RepositionWidgets;
+            RepositionWidgets(Globals.UiManager.CanvasSize);
+            Globals.UiManager.OnCanvasSizeChanged += RepositionWidgets;
 
             Hide(); // Hide everything by default
         }
@@ -336,12 +336,11 @@ namespace OpenTemple.Core.Ui.MainMenu
             if (enterMovie != 0)
             {
                 tpArgs.flags |= FadeAndTeleportFlags.play_movie;
-                tpArgs.movieFlags = 0;
                 tpArgs.movieId = enterMovie;
             }
 
             tpArgs.FadeInArgs.flags = FadeFlag.FadeIn;
-            tpArgs.FadeInArgs.color = new PackedLinearColorA(0, 0, 0, 255);
+            tpArgs.FadeInArgs.color = PackedLinearColorA.Black;
             tpArgs.FadeInArgs.fadeSteps = 64;
             tpArgs.FadeInArgs.transitionTime = 3.0f;
             var task = GameSystems.Teleport.FadeAndTeleport(in tpArgs);
@@ -387,7 +386,7 @@ namespace OpenTemple.Core.Ui.MainMenu
                 if (movieIdx < 0 || movieIdx >= movieIds.Count)
                     return;
                 var movieId = movieIds[movieIdx];
-                GameSystems.Movies.PlayMovieId(movieId, 0, 0);
+                GameSystems.Movies.PlayMovieId(movieId, 0);
             });
             doc.GetButton("cancel").SetClickHandler(() =>
             {

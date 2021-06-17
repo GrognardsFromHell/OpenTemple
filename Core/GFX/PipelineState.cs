@@ -24,10 +24,33 @@ namespace OpenTemple.Core.GFX
         }
     }
 
-    public class RasterizerState : PipelineState<RasterizerState, RasterizerSpec, SharpDX.Direct3D11.RasterizerState>
+    /// <summary>
+    /// Rasterizer state is special in that it contains a flag to indicate whether multisampling is enabled,
+    /// which we actually want to automatically set to true for multisampled render targets.
+    /// </summary>
+    public class RasterizerState : GpuResource<RasterizerState>
     {
-        public RasterizerState(RenderingDevice device, RasterizerSpec spec, SharpDX.Direct3D11.RasterizerState gpuObject) : base(device, spec, gpuObject)
+        public RasterizerSpec Spec { get; }
+
+        public SharpDX.Direct3D11.RasterizerState State { get; internal set; }
+
+        public SharpDX.Direct3D11.RasterizerState MultiSamplingState { get; internal set; }
+
+        public RasterizerState(RasterizerSpec spec,
+            SharpDX.Direct3D11.RasterizerState state,
+            SharpDX.Direct3D11.RasterizerState multiSamplingState)
         {
+            Spec = spec;
+            State = state;
+            MultiSamplingState = multiSamplingState;
+        }
+
+        protected override void FreeResource()
+        {
+            State?.Dispose();
+            State = null;
+            MultiSamplingState?.Dispose();
+            MultiSamplingState = null;
         }
     }
 

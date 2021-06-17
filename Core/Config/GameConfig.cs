@@ -71,10 +71,6 @@ namespace OpenTemple.Core.Config
 
         public bool newRaces { get; set; }
 
-        public int renderWidth { get; set; }
-
-        public int renderHeight { get; set; }
-
         public int ScrollSpeed { get; set; } = 3;
 
         public bool ScrollAcceleration { get; set; } = true;
@@ -184,5 +180,7 @@ namespace OpenTemple.Core.Config
 
         // Amount of point buy points available
         public int PointBuyBudget { get; set; } = 25;
+
+        public string DefaultUiFont { get; set; } = "Arial";
     }
 }

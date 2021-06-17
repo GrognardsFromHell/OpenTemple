@@ -130,9 +130,9 @@ namespace OpenTemple.Core.Systems.Script
                 // But since no BinkW movie actually uses soundtrack ids,
                 // just skip it.
                 if (soundId > 0) {
-                    GameSystems.Movies.PlayMovieId(movieId, 0, soundId);
+                    GameSystems.Movies.PlayMovieId(movieId, soundId);
                 } else {
-                    GameSystems.Movies.PlayMovieId(movieId, 0, 0);
+                    GameSystems.Movies.PlayMovieId(movieId, 0);
                 }
             } else if (soundId > 0) {
                 GameSystems.SoundGame.Sound(soundId);

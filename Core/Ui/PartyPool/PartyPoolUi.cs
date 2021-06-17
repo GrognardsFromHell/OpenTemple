@@ -101,7 +101,7 @@ namespace OpenTemple.Core.Ui.PartyPool
         public PartyPoolUi()
         {
             // TODO: Auto-resize to screen size
-            _container = new WidgetContainer(Globals.UiManager.ScreenSize);
+            _container = new WidgetContainer(Globals.UiManager.CanvasSize);
             _container.Visible = false;
             // Eat mouse clicks to prevent "walking around" on the shopmap
             _container.SetMouseMsgHandler(msg => true);

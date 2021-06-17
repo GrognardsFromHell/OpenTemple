@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.AAS
@@ -197,10 +198,9 @@ namespace OpenTemple.Core.AAS
             return state;
         }
 
-        public void Render(IAnimatedModel model, AnimatedModelParams animParams, IList<Light3d> lights,
+        public void Render(IGameViewport viewport, IAnimatedModel model, AnimatedModelParams animParams, IList<Light3d> lights,
             MdfRenderOverrides materialOverrides = null)
         {
-
             var renderData = GetOrCreateState(model);
 
             var materialIds = model.GetSubmeshes();
@@ -214,7 +214,7 @@ namespace OpenTemple.Core.AAS
                     continue;
                 }
 
-                material.Bind(mDevice, lights, materialOverrides);
+                material.Bind(viewport, mDevice, lights, materialOverrides);
 
                 // Do we have to recalculate the normals?
                 if (material.GetSpec().recalculateNormals) {
@@ -267,7 +267,9 @@ namespace OpenTemple.Core.AAS
             public Vector4 alpha;
         }
 
-        public void RenderGeometryShadow(IAnimatedModel model,
+        public void RenderGeometryShadow(
+            WorldCamera camera,
+            IAnimatedModel model,
             in AnimatedModelParams animParams,
             Light3d globalLight,
             float alpha)
@@ -278,7 +280,7 @@ namespace OpenTemple.Core.AAS
             mDevice.SetMaterial(mGeometryShadowMaterial);
 
             var globals = new ShadowGlobals();
-            globals.projMatrix = mDevice.GetCamera().GetViewProj();
+            globals.projMatrix = camera.GetViewProj();
             globals.globalLightDir = globalLight.dir;
             globals.offsetZ = new Vector4(animParams.offsetZ, 0, 0, 0);
             globals.alpha = new Vector4( alpha, 0, 0, 0 );
@@ -308,7 +310,8 @@ namespace OpenTemple.Core.AAS
             public Vector4  color;
         }
 
-        public void RenderShadowMapShadow(IList<IAnimatedModel> models,
+        public void RenderShadowMapShadow(IGameViewport viewport,
+            IList<IAnimatedModel> models,
             IList<AnimatedModelParams> modelParams,
             Vector3 center,
             float radius,
@@ -363,15 +366,17 @@ namespace OpenTemple.Core.AAS
 	        }
 		        
 	        if (softShadows) {
-		        mDevice.SetMaterial(mGaussBlurHor);
 		        mDevice.PushRenderTarget(mShadowTargetTmp, null);
-		        mShapeRenderer2d.DrawFullScreenQuad();
-		        mDevice.PopRenderTarget();
+                mDevice.SetMaterial(mGaussBlurHor);
+                mShapeRenderer2d.DrawFullScreenQuad();
+                // Explicitly unbind the input texture because it'll be briefly restored to the output by PopRenderTarget
+                mDevice.SetTexture(0, Textures.InvalidTexture);
+                mDevice.PopRenderTarget();
 
 		        mDevice.PushRenderTarget(mShadowTarget, null);
 		        mDevice.SetMaterial(mGaussBlurVer);
 		        mShapeRenderer2d.DrawFullScreenQuad();
-		        mDevice.PopRenderTarget();
+                mDevice.PopRenderTarget();
 	        }
 	        
 	        mDevice.PopRenderTarget();
@@ -389,7 +394,7 @@ namespace OpenTemple.Core.AAS
 	        corners[2].uv = new Vector2( 1, 1 );
 	        corners[3].uv = new Vector2( 1, 0 );
 
-	        mShapeRenderer3d.DrawQuad(corners, new PackedLinearColorA( 0xFFFFFFFF), mShadowTarget.Resource);
+	        mShapeRenderer3d.DrawQuad(viewport, corners, new PackedLinearColorA( 0xFFFFFFFF), mShadowTarget.Resource);
         }
 
         // Data to be stored for an AAS model so it can be rendered
@@ -442,7 +447,7 @@ namespace OpenTemple.Core.AAS
 
     public interface IAnimatedModelRenderer
     {
-        void Render(IAnimatedModel model,
+        void Render(IGameViewport viewport, IAnimatedModel model,
             AnimatedModelParams animParams,
             IList<Light3d> lights,
             MdfRenderOverrides materialOverrides = null);

@@ -1,0 +1,7 @@
+{
+    "script": {
+        "enabled": true,
+        "RspFilePath": "opentemple.rsp",
+        "defaultTargetFramework": "net5.0"
+    }
+}

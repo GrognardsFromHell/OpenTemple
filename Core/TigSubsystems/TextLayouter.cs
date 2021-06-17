@@ -22,7 +22,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         public TextLayouter(RenderingDevice device, ShapeRenderer2d shapeRenderer)
         {
-            mTextEngine = device.GetTextEngine();
+            mTextEngine = device.TextEngine;
             mRenderer = new FontRenderer(device);
             mShapeRenderer = shapeRenderer;
             mMapping = new FontsMapping();
@@ -239,7 +239,7 @@ namespace OpenTemple.Core.TigSubsystems
                 mShapeRenderer.DrawRectangleOutline(
                     topLeft,
                     bottomRight,
-                    new PackedLinearColorA(0, 0, 0, 255)
+                    PackedLinearColorA.Black
                 );
             }
         }

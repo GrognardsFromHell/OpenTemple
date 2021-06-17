@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Numerics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
@@ -17,7 +15,11 @@ using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
+using SharpDX;
+using Rectangle = System.Drawing.Rectangle;
+using Vector2 = System.Numerics.Vector2;
 
 namespace OpenTemple.Core.Systems
 {
@@ -1344,10 +1346,10 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001dab0)]
-        public Vector2 GetScreenPosOfObject(GameObjectBody obj)
+        public Vector2 GetScreenPosOfObject(IGameViewport viewport, GameObjectBody obj)
         {
             var worldLoc = obj.GetLocationFull().ToInches3D();
-            return Tig.RenderingDevice.GetCamera().WorldToScreenUi(worldLoc);
+            return viewport.WorldToScreen(worldLoc);
         }
 
         [TempleDllLocation(0x1001fcb0)]
@@ -1379,7 +1381,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10022bc0)]
-        public Rectangle GetObjectRect(GameObjectBody obj, ObjectRectFlags flags = default)
+        public Rectangle GetObjectRect(IGameViewport viewport, GameObjectBody obj, ObjectRectFlags flags = default)
         {
             // i & 8 seems to force
             if (!flags.HasFlag(ObjectRectFlags.IgnoreHidden) && IsHiddenByFlags(obj))
@@ -1387,7 +1389,7 @@ namespace OpenTemple.Core.Systems
                 return Rectangle.Empty;
             }
 
-            var screenPos = GetScreenPosOfObject(obj);
+            var screenPos = GetScreenPosOfObject(viewport, obj);
 
             var result = new Rectangle((int) screenPos.X, (int) screenPos.Y, 0, 0);
 
@@ -1492,14 +1494,25 @@ namespace OpenTemple.Core.Systems
             return damage;
         }
 
+        /// <summary>
+        /// Checks if the game object is visible in any viewport on screen.
+        /// </summary>
         public bool IsOnScreen(GameObjectBody obj)
         {
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
-            var rect = GameSystems.MapObject.GetObjectRect(obj, ObjectRectFlags.IgnoreHidden);
-            return (rect.Left < screenSize.Width
+            foreach (var gameView in GameViews.AllVisible)
+            {
+                var screenSize = gameView.Camera.ViewportSize;
+                var rect = GameSystems.MapObject.GetObjectRect(gameView, obj, ObjectRectFlags.IgnoreHidden);
+                if (rect.Left < screenSize.Width
                     && rect.Top < screenSize.Height
                     && 0 < rect.Right
-                    && 0 < rect.Bottom);
+                    && 0 < rect.Bottom)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

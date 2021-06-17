@@ -6,6 +6,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.Particles.Render;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems
 {
@@ -44,11 +45,9 @@ namespace OpenTemple.Core.Systems
             _rendererManager.Dispose();
         }
 
-        public void Render()
+        public void Render(IGameViewport viewport)
         {
             using var perfGroup = _renderingDevice.CreatePerfGroup("Particles");
-
-            var camera = _renderingDevice.GetCamera();
 
             _totalLastFrame = 0;
             _renderedLastFrame = 0;
@@ -59,11 +58,7 @@ namespace OpenTemple.Core.Systems
             {
                 _totalLastFrame++;
 
-                var screenBounds = partSys.GetScreenBounds();
-
-                if (!camera.IsBoxOnScreen(partSys.GetScreenPosAbs(),
-                    screenBounds.left, screenBounds.top,
-                    screenBounds.right, screenBounds.bottom))
+                if (!partSys.IsOnScreen(viewport))
                 {
                     continue;
                 }
@@ -85,12 +80,12 @@ namespace OpenTemple.Core.Systems
 
                     var type = emitter.GetSpec().GetParticleType();
                     var renderer = _rendererManager.GetRenderer(type);
-                    renderer.Render(emitter);
+                    renderer.Render(viewport, emitter);
                 }
 
                 if (Globals.Config.DebugPartSys)
                 {
-                    RenderDebugInfo(partSys);
+                    RenderDebugInfo(viewport, partSys);
                 }
             }
 
@@ -122,55 +117,56 @@ namespace OpenTemple.Core.Systems
             return sum / _renderTimes.Length;
         }
 
-        private void RenderDebugInfo(PartSys sys)
+        private void RenderDebugInfo(IGameViewport gameViewport, PartSys sys)
         {
-            var camera = _renderingDevice.GetCamera();
+            var camera = gameViewport.Camera;
 
-            var dx = camera.Get2dTranslation().X;
-            var dy = camera.Get2dTranslation().Y;
+            // TODO FIXME
+            // var dx = camera.Get2dTranslation().X;
+            // var dy = camera.Get2dTranslation().Y;
 
-            var screenX = dx - sys.GetScreenPosAbs().X;
-            var screenY = dy - sys.GetScreenPosAbs().Y;
-            var screenBounds = sys.GetScreenBounds();
-
-            screenX *= camera.GetScale();
-            screenY *= camera.GetScale();
-
-            screenX += camera.GetScreenWidth() * 0.5f;
-            screenY += camera.GetScreenHeight() * 0.5f;
-
-            var left = screenX + screenBounds.left;
-            var top = screenY + screenBounds.top;
-            var right = screenX + screenBounds.right;
-            var bottom = screenY + screenBounds.bottom;
-
-            var color = new PackedLinearColorA(0, 0, 255, 255);
-
-            Span<Line2d> lines = stackalloc Line2d[4]
-            {
-                new Line2d(new Vector2(left, top), new Vector2(right, top), color),
-                new Line2d(new Vector2(right, top), new Vector2(right, bottom), color),
-                new Line2d(new Vector2(right, bottom), new Vector2(left, bottom), color),
-                new Line2d(new Vector2(left, bottom), new Vector2(left, top), color)
-            };
-            _shapeRenderer2d.DrawLines(lines);
-
-            Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
-
-            var style = new TigTextStyle
-            {
-                field10 = 25,
-                textColor = new ColorRect(PackedLinearColorA.White)
-            };
-
-            var text = $"{sys.GetSpec().GetName()}";
-            var rect = Tig.Fonts.MeasureTextSize(text, style);
-
-            rect.X = (int) left;
-            rect.Y = (int) top;
-            Tig.Fonts.RenderText(text, rect, style);
-
-            Tig.Fonts.PopFont();
+            // var screenX = dx - sys.GetScreenPosAbs(gameViewport).X;
+            // var screenY = dy - sys.GetScreenPosAbs(gameViewport).Y;
+            // var screenBounds = sys.GetScreenBounds();
+            //
+            // screenX *= camera.GetScale();
+            // screenY *= camera.GetScale();
+            //
+            // screenX += camera.GetScreenWidth() * 0.5f;
+            // screenY += camera.GetScreenHeight() * 0.5f;
+            //
+            // var left = screenX + screenBounds.left;
+            // var top = screenY + screenBounds.top;
+            // var right = screenX + screenBounds.right;
+            // var bottom = screenY + screenBounds.bottom;
+            //
+            // var color = new PackedLinearColorA(0, 0, 255, 255);
+            //
+            // Span<Line2d> lines = stackalloc Line2d[4]
+            // {
+            //     new Line2d(new Vector2(left, top), new Vector2(right, top), color),
+            //     new Line2d(new Vector2(right, top), new Vector2(right, bottom), color),
+            //     new Line2d(new Vector2(right, bottom), new Vector2(left, bottom), color),
+            //     new Line2d(new Vector2(left, bottom), new Vector2(left, top), color)
+            // };
+            // _shapeRenderer2d.DrawLines(lines);
+            //
+            // Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
+            //
+            // var style = new TigTextStyle
+            // {
+            //     field10 = 25,
+            //     textColor = new ColorRect(PackedLinearColorA.White)
+            // };
+            //
+            // var text = $"{sys.GetSpec().GetName()}";
+            // var rect = Tig.Fonts.MeasureTextSize(text, style);
+            //
+            // rect.X = (int) left;
+            // rect.Y = (int) top;
+            // Tig.Fonts.RenderText(text, rect, style);
+            //
+            // Tig.Fonts.PopFont();
         }
     }
 }

@@ -2,14 +2,11 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Platform
 {
-    public delegate void MouseMoveHandler(int x, int y, int wheelDelta);
-
     public delegate bool WindowMsgFilter(uint msg, ulong wparam, long lparam);
 
     internal delegate IntPtr WndProc(IntPtr hWnd, uint msg, ulong wParam, long lParam);
@@ -23,6 +20,9 @@ namespace OpenTemple.Core.Platform
         private GCHandle _gcHandle;
 
         public IntPtr NativeHandle => _windowHandle;
+
+        // Used to determine whether a MouseEnter event should be emitted when a mouse event is received
+        private bool _mouseFocus;
 
         public MainWindow(WindowConfig config)
         {
@@ -44,6 +44,7 @@ namespace OpenTemple.Core.Platform
 
             RegisterWndClass();
             CreateHwnd();
+            UpdateUiCanvasSize();
         }
 
         public void Dispose()
@@ -96,7 +97,45 @@ namespace OpenTemple.Core.Platform
 
         private bool unsetClip = false;
 
+        public event Action<WindowEvent> OnInput;
+
         public event Action<Size> Resized;
+
+        public event Action Closed;
+
+        public SizeF UiCanvasSize { get; private set; }
+
+        private Size _uiCanvasTargetSize = new(1024, 768);
+
+        public Size UiCanvasTargetSize
+        {
+            get => _uiCanvasTargetSize;
+            set
+            {
+                if (value.Width <= 0 || value.Height <= 0)
+                {
+                    throw new ArgumentException("Cannot set target UI size to 0");
+                }
+
+                _uiCanvasTargetSize = value;
+                UpdateUiCanvasSize();
+            }
+        }
+
+        public event Action UiCanvasSizeChanged;
+
+        public float UiScale { get; private set; }
+
+        private void UpdateUiCanvasSize()
+        {
+            // Attempt to fit 1024x768 onto the backbuffer
+            var horScale = MathF.Max(1, _width / (float) _uiCanvasTargetSize.Width);
+            var verScale = MathF.Max(1, _height / (float) _uiCanvasTargetSize.Height);
+            UiScale = Math.Min(horScale, verScale);
+
+            UiCanvasSize = new SizeF(_width / UiScale, _height / UiScale);
+            UiCanvasSizeChanged?.Invoke();
+        }
 
         // Locks the mouse cursor to this window
         // if we're in the foreground
@@ -120,11 +159,6 @@ namespace OpenTemple.Core.Platform
 
                 ClipCursor(IntPtr.Zero);
             }
-        }
-
-        public void SetMouseMoveHandler(MouseMoveHandler handler)
-        {
-            mMouseMoveHandler = handler;
         }
 
         // Sets a filter that receives a chance at intercepting all window messages
@@ -172,7 +206,7 @@ namespace OpenTemple.Core.Platform
             }
         }
 
-        public void CreateHwnd()
+        private void CreateHwnd()
         {
             CreateWindowRectAndStyles(out var windowRect, out var style, out var styleEx);
 
@@ -202,6 +236,9 @@ namespace OpenTemple.Core.Platform
 
             // Store our this pointer in the window
             SetWindowLongPtr(_windowHandle, 0, GCHandle.ToIntPtr(_gcHandle));
+
+            // Enable notifications for WM_MOUSELEAVE
+            TrackWindowLeave(_windowHandle);
         }
 
         private void CreateWindowRectAndStyles(out RECT windowRect, out WindowStyles style, out WindowStylesEx styleEx)
@@ -265,8 +302,8 @@ namespace OpenTemple.Core.Platform
             return DefWindowProc(hWnd, msg, wparam, lparam);
         }
 
-        private int mousePosX = 0; // Replaces memory @ 10D25CEC
-        private int mousePosY = 0; // Replaces memory @ 10D25CF0
+        [TempleDllLocation(0x10D25CEC), TempleDllLocation(0x10D25CF0)]
+        private PointF mousePos;
 
         private IntPtr WndProc(IntPtr hWnd, uint msg, ulong wParam, long lParam)
         {
@@ -316,10 +353,11 @@ namespace OpenTemple.Core.Platform
 
                     break;
                 case WM_SIZE:
-                    Resized?.Invoke(new Size(
-                        WindowsMessageUtils.GetXParam(lParam),
-                        WindowsMessageUtils.GetYParam(lParam)
-                    ));
+                    // Update width/height with window client size
+                    _width = WindowsMessageUtils.GetWidthParam(lParam);
+                    _height = WindowsMessageUtils.GetHeightParam(lParam);
+                    Resized?.Invoke(Size);
+                    UpdateUiCanvasSize();
                     break;
                 case WM_ACTIVATEAPP:
                     IsInForeground = wParam == 1;
@@ -329,29 +367,53 @@ namespace OpenTemple.Core.Platform
                     return IntPtr.Zero;
                 case WM_CLOSE:
                     Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs(1)));
+                    Closed?.Invoke();
                     break;
                 case WM_QUIT:
                     Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs((int) wParam)));
+                    Closed?.Invoke();
                     break;
                 case WM_LBUTTONDOWN:
-                    Tig.Mouse.SetButtonState(MouseButton.LEFT, true);
+                    HandleMouseButtonEvent(WindowEventType.MouseDown, MouseButton.LEFT, hWnd, wParam, lParam);
                     break;
                 case WM_LBUTTONUP:
-                    Tig.Mouse.SetButtonState(MouseButton.LEFT, false);
+                    HandleMouseButtonEvent(WindowEventType.MouseUp, MouseButton.LEFT, hWnd, wParam, lParam);
                     break;
                 case WM_RBUTTONDOWN:
-                    Tig.Mouse.SetButtonState(MouseButton.RIGHT, true);
+                    HandleMouseButtonEvent(WindowEventType.MouseDown, MouseButton.RIGHT, hWnd, wParam, lParam);
                     break;
                 case WM_RBUTTONUP:
-                    Tig.Mouse.SetButtonState(MouseButton.RIGHT, false);
+                    HandleMouseButtonEvent(WindowEventType.MouseUp, MouseButton.RIGHT, hWnd, wParam, lParam);
                     break;
                 case WM_MBUTTONDOWN:
-                    Tig.Mouse.SetMmbReference();
-                    Tig.Mouse.SetButtonState(MouseButton.MIDDLE, true);
+                    HandleMouseButtonEvent(WindowEventType.MouseDown, MouseButton.MIDDLE, hWnd, wParam, lParam);
                     break;
                 case WM_MBUTTONUP:
-                    Tig.Mouse.ResetMmbReference();
-                    Tig.Mouse.SetButtonState(MouseButton.MIDDLE, false);
+                    HandleMouseButtonEvent(WindowEventType.MouseUp, MouseButton.MIDDLE, hWnd, wParam, lParam);
+                    break;
+                case WM_XBUTTONDOWN:
+                    switch (WindowsMessageUtils.GetXButton(wParam))
+                    {
+                        case 0:
+                            HandleMouseButtonEvent(WindowEventType.MouseDown, MouseButton.EXTRA1, hWnd, wParam, lParam);
+                            break;
+                        case 1:
+                            HandleMouseButtonEvent(WindowEventType.MouseDown, MouseButton.EXTRA2, hWnd, wParam, lParam);
+                            break;
+                    }
+
+                    break;
+                case WM_XBUTTONUP:
+                    switch (WindowsMessageUtils.GetXButton(wParam))
+                    {
+                        case 0:
+                            HandleMouseButtonEvent(WindowEventType.MouseUp, MouseButton.EXTRA1, hWnd, wParam, lParam);
+                            break;
+                        case 1:
+                            HandleMouseButtonEvent(WindowEventType.MouseUp, MouseButton.EXTRA2, hWnd, wParam, lParam);
+                            break;
+                    }
+
                     break;
                 case WM_SYSKEYDOWN:
                 case WM_KEYDOWN:
@@ -391,27 +453,118 @@ namespace OpenTemple.Core.Platform
                     Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs((char) wParam)));
                     break;
                 case WM_MOUSEWHEEL:
-                    UpdateMousePos(
-                        mousePosX,
-                        mousePosY,
-                        WindowsMessageUtils.GetWheelDelta(wParam)
-                    );
+                    HandleMouseWheelEvent(hWnd, wParam, lParam);
                     break;
                 case WM_MOUSEMOVE:
-                    mousePosX = WindowsMessageUtils.GetXParam(lParam);
-                    mousePosY = WindowsMessageUtils.GetYParam(lParam);
-                    UpdateMousePos(mousePosX, mousePosY, 0);
+                    HandleMouseMoveEvent(WindowEventType.MouseMove, hWnd, wParam, lParam);
                     break;
-            }
-
-            if (msg != WM_KEYDOWN)
-            {
-                UpdateMousePos(mousePosX, mousePosY, 0);
+                case WM_MOUSELEAVE:
+                    HandleMouseFocusEvent(false);
+                    break;
             }
 
             // Previously, ToEE called a global window proc here but it did nothing useful.
             return DefWindowProc(hWnd, msg, wParam, lParam);
         }
+
+        private void HandleMouseWheelEvent(IntPtr hWnd, ulong wParam, long lParam)
+        {
+            HandleMouseFocusEvent(true);
+            // Note that for mouse-wheel events, the mouse position is relative to the screen,
+            // not the client area
+            var windowPos = TranslateScreenToClient(
+                hWnd,
+                WindowsMessageUtils.GetXParam(lParam),
+                WindowsMessageUtils.GetYParam(lParam)
+            );
+            var uiPos = TranslateToUiCanvas(windowPos);
+            OnInput?.Invoke(new MouseWheelWindowEvent(
+                WindowEventType.Wheel,
+                this,
+                windowPos,
+                uiPos,
+                // 120 units is the "default" of one scroll wheel notch
+                WindowsMessageUtils.GetWheelDelta(wParam) / 120.0f
+            ));
+        }
+
+        private void HandleMouseMoveEvent(WindowEventType type, IntPtr hWnd, ulong wParam, long lParam)
+        {
+            HandleMouseFocusEvent(true);
+            var windowPos = new Point(
+                WindowsMessageUtils.GetXParam(lParam),
+                WindowsMessageUtils.GetYParam(lParam)
+            );
+            var uiPos = TranslateToUiCanvas(windowPos);
+            OnInput?.Invoke(new MouseWindowEvent(
+                type,
+                this,
+                windowPos,
+                uiPos
+            ));
+        }
+
+        private void HandleMouseButtonEvent(WindowEventType type, MouseButton button, IntPtr hWnd, ulong wParam,
+            long lParam)
+        {
+            HandleMouseFocusEvent(true);
+            var windowPos = new Point(
+                WindowsMessageUtils.GetXParam(lParam),
+                WindowsMessageUtils.GetYParam(lParam)
+            );
+            var uiPos = TranslateToUiCanvas(windowPos);
+            OnInput?.Invoke(new MouseWindowEvent(
+                type,
+                this,
+                windowPos,
+                uiPos
+            )
+            {
+                Button = button
+            });
+        }
+
+        private void HandleMouseFocusEvent(bool focus)
+        {
+            if (focus == _mouseFocus)
+            {
+                return;
+            }
+
+            _mouseFocus = focus;
+
+            var type = focus ? WindowEventType.MouseEnter : WindowEventType.MouseLeave;
+            OnInput?.Invoke(new MouseFocusEvent(type, this));
+
+            // Ensure we get a mouse-leave notification
+            TrackWindowLeave(_windowHandle);
+        }
+
+        /// <summary>
+        /// Translate from screen coordinates to the client coordinates of the window.
+        /// </summary>
+        private Point TranslateScreenToClient(IntPtr hWnd, int x, int y)
+        {
+            POINT p;
+            p.X = x;
+            p.Y = y;
+            ScreenToClient(hWnd, ref p);
+            return new Point(p.X, p.Y);
+        }
+
+        private void TrackWindowLeave(IntPtr hWnd)
+        {
+            var tme = new TRACKMOUSEEVENT(TMEFlags.TME_LEAVE, hWnd, 0);
+            if (!TrackMouseEvent(ref tme))
+            {
+                var err = Marshal.GetLastWin32Error();
+                Console.WriteLine(err);
+            }
+        }
+
+        private PointF TranslateToUiCanvas(int x, int y) => new(x / UiScale, y / UiScale);
+
+        private PointF TranslateToUiCanvas(Point p) => TranslateToUiCanvas(p.X, p.Y);
 
         [DllImport("kernel32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
         private static extern bool IsDebuggerPresent();
@@ -439,7 +592,9 @@ namespace OpenTemple.Core.Platform
         private const uint WM_RBUTTONUP = 0x0205;
         private const uint WM_SYSKEYDOWN = 0x0104;
         private const uint WM_SYSKEYUP = 0x0105;
-
+        private const uint WM_XBUTTONDOWN = 0x020B;
+        private const uint WM_XBUTTONUP = 0x020C;
+        private const uint WM_MOUSELEAVE = 0x02A3;
 
         private const uint SC_KEYMENU = 0xF100;
         private const uint SC_SCREENSAVE = 0xF140;
@@ -715,21 +870,17 @@ namespace OpenTemple.Core.Platform
         static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
 
-        private void UpdateMousePos(int xAbs, int yAbs, int wheelDelta)
-        {
-            mMouseMoveHandler?.Invoke(xAbs, yAbs, wheelDelta);
-        }
-
-
-        private MouseMoveHandler mMouseMoveHandler;
         private WindowMsgFilter mWindowMsgFilter;
 
         [DllImport("user32.dll")]
-        static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, ulong wParam, long lParam);
+        private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, ulong wParam, long lParam);
 
         [DllImport("user32.dll")]
-        static extern bool AdjustWindowRectEx(ref RECT lpRect, WindowStyles dwStyle,
+        private static extern bool AdjustWindowRectEx(ref RECT lpRect, WindowStyles dwStyle,
             bool bMenu, WindowStylesEx dwExStyle);
+
+        [DllImport("user32.dll")]
+        private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool UnregisterClass(string lpClassName, IntPtr hInstance);
@@ -779,6 +930,9 @@ namespace OpenTemple.Core.Platform
         [DllImport("user32.dll")]
         static extern int GetSystemMetrics(SystemMetric smIndex);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool TrackMouseEvent(ref TRACKMOUSEEVENT lpEventTrack);
+
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr CreateWindowEx(
             WindowStylesEx dwExStyle,
@@ -794,5 +948,4 @@ namespace OpenTemple.Core.Platform
             IntPtr hInstance,
             IntPtr lpParam);
     }
-
 }

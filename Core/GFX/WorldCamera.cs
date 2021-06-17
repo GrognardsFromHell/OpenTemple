@@ -1,5 +1,5 @@
+using System;
 using System.Drawing;
-using System.Linq.Expressions;
 using System.Numerics;
 using OpenTemple.Core.Location;
 
@@ -17,9 +17,9 @@ namespace OpenTemple.Core.GFX
             var screenY = dy - screenCenter.Y;
 
             // calculate viewport
-            float viewportRight = mScreenWidth * 0.5f / mScale;
+            float viewportRight = _viewportWidth * 0.5f;
             float viewportLeft = -viewportRight;
-            float viewportBottom = mScreenHeight * 0.5f / mScale;
+            float viewportBottom = _viewportHeight * 0.5f;
             float viewportTop = -viewportBottom;
 
             if (screenX + left >= viewportRight)
@@ -39,10 +39,10 @@ namespace OpenTemple.Core.GFX
 
         public Matrix4x4 GetViewProj()
         {
-            if (mDirty)
+            if (_dirty)
             {
                 Update();
-                mDirty = false;
+                _dirty = false;
             }
 
             return mViewProjection;
@@ -50,7 +50,7 @@ namespace OpenTemple.Core.GFX
 
         public Matrix4x4 GetProj()
         {
-            if (mDirty)
+            if (_dirty)
             {
                 Update();
             }
@@ -60,19 +60,14 @@ namespace OpenTemple.Core.GFX
 
         public void SetTranslation(float x, float y)
         {
-            mXTranslation = x;
-            mYTranslation = y;
-            mDirty = true;
-        }
-
-        public Vector2 GetTranslation()
-        {
-            return new Vector2(mXTranslation, mYTranslation);
+            _xTranslation = x;
+            _yTranslation = y;
+            _dirty = true;
         }
 
         public Vector2 Get2dTranslation()
         {
-            if (mDirty)
+            if (_dirty)
             {
                 Update();
             }
@@ -80,47 +75,23 @@ namespace OpenTemple.Core.GFX
             return mCurScreenOffset;
         }
 
-        public void SetScreenWidth(float width, float height)
+        public float GetViewportWidth()
         {
-            mScreenWidth = width;
-            mScreenHeight = height;
-            mDirty = true;
+            return _viewportWidth;
         }
 
-        public float GetScreenWidth()
+        public float GetViewportHeight()
         {
-            return mScreenWidth;
+            return _viewportHeight;
         }
 
-        public float GetScreenHeight()
-        {
-            return mScreenHeight;
-        }
-
-        public void SetScale(float scale)
-        {
-            mScale = scale;
-            mDirty = true;
-        }
-
-        public float GetScale()
-        {
-            return mScale;
-        }
-
-        public void SetIdentityTransform(bool enable)
-        {
-            mIdentityTransform = enable;
-            mDirty = true;
-        }
-
-        /**
-        * Transforms a world coordinate into the local coordinate
-        * space of the screen (in pixels).
-        */
+        /// <summary>
+        /// Transforms a world coordinate into the local coordinate
+        /// space of the screen (in pixels).
+        /// </summary>
         public Vector2 WorldToScreen(Vector3 worldPos)
         {
-            if (mDirty)
+            if (_dirty)
             {
                 Update();
             }
@@ -133,31 +104,40 @@ namespace OpenTemple.Core.GFX
             return screenPos;
         }
 
-        /**
-        * Transforms a world coordinate into the local coordinate
-        * space of the screen (in pixels).
-        */
+        /// <summary>
+        /// Transforms a world coordinate into the local coordinate
+        /// space of the screen (in pixels).
+        /// </summary>
         [TempleDllLocation(0x10029040)]
         public Vector2 WorldToScreenUi(Vector3 worldPos)
         {
-            var result = WorldToScreen(worldPos);
-            result.X *= -1;
-            result.Y *= -1;
+            if (_dirty)
+            {
+                Update();
+            }
 
-            // Move the origin to the top left instead of the center of the screen
-            result.X += mScreenWidth / 2;
-            result.Y += mScreenHeight / 2;
-
-            return result;
+            var result = worldPos.Project(
+                0,
+                0,
+                _viewportWidth,
+                _viewportHeight,
+                zNear,
+                zFar,
+                mViewProjection
+            );
+            return new Vector2(
+                result.X,
+                result.Y
+            );
         }
 
-        /**
-         * Transforms a screen coordinate relative to the upper left
-         * corner of the screen into a world position with y = 0.
-         */
+        /// <summary>
+        /// Transforms a screen coordinate relative to the upper left
+        /// corner of the screen into a world position with y = 0.
+        /// </summary>
         public Vector3 ScreenToWorld(float x, float y)
         {
-            if (mDirty)
+            if (_dirty)
             {
                 Update();
             }
@@ -167,8 +147,8 @@ namespace OpenTemple.Core.GFX
             var worldFar = screenVecFar.Unproject(
                 0,
                 0,
-                mScreenWidth,
-                mScreenHeight,
+                _viewportWidth,
+                _viewportHeight,
                 zNear,
                 zFar,
                 mProjection,
@@ -180,8 +160,8 @@ namespace OpenTemple.Core.GFX
             var worldClose = screenVecClose.Unproject(
                 0,
                 0,
-                mScreenWidth,
-                mScreenHeight,
+                _viewportWidth,
+                _viewportHeight,
                 zNear,
                 zFar,
                 mProjection,
@@ -203,12 +183,17 @@ namespace OpenTemple.Core.GFX
          */
         public Ray3d GetPickRay(float x, float y)
         {
+            if (_dirty)
+            {
+                Update();
+            }
+
             var screenVecFar = new Vector3(x, y, 0);
             var worldFar = screenVecFar.Unproject(
                 0,
                 0,
-                mScreenWidth,
-                mScreenHeight,
+                _viewportWidth,
+                _viewportHeight,
                 zNear,
                 zFar,
                 mProjection,
@@ -220,8 +205,8 @@ namespace OpenTemple.Core.GFX
             var worldClose = screenVecClose.Unproject(
                 0,
                 0,
-                mScreenWidth,
-                mScreenHeight,
+                _viewportWidth,
+                _viewportHeight,
                 zNear,
                 zFar,
                 mProjection,
@@ -245,10 +230,11 @@ namespace OpenTemple.Core.GFX
 
         // TODO: See if this can just be replaced by the proper version used below
         // This is equivalent to 10029570
+        [Obsolete]
         public Vector2 ScreenToTileLegacy(int x, int y)
         {
-            var tmpX = (x - mXTranslation) * 20 / locXY.INCH_PER_TILE; // * 0.70710677
-            var tmpY = (y - mYTranslation) / 0.7f * 20 / locXY.INCH_PER_TILE; // * 1.0101526 originally
+            var tmpX = (x - _xTranslation) * 20 / locXY.INCH_PER_TILE; // * 0.70710677
+            var tmpY = (y - _yTranslation) / 0.7f * 20 / locXY.INCH_PER_TILE; // * 1.0101526 originally
 
             return new Vector2(
                 tmpY - tmpX - locXY.INCH_PER_HALFTILE,
@@ -256,10 +242,10 @@ namespace OpenTemple.Core.GFX
             );
         }
 
-        public LocAndOffsets ScreenToTile(int screenX, int screenY)
+        public LocAndOffsets ScreenToTile(float screenX, float screenY)
         {
-            var tmpX = (int) ((screenX - mXTranslation) / 2);
-            var tmpY = (int) (((screenY - mYTranslation) / 2) / 0.7f);
+            var tmpX = (int) ((screenX - _xTranslation) / 2);
+            var tmpY = (int) (((screenY - _yTranslation) / 2) / 0.7f);
 
             var unrotatedX = tmpY - tmpX;
             var unrotatedY = tmpY + tmpX;
@@ -276,49 +262,25 @@ namespace OpenTemple.Core.GFX
             return result;
         }
 
-        // replaces 10028EC0
-        // Apparently used for townmap projection !
-        [TempleDllLocation(0x10028ec0)]
-        public Vector2 TileToWorld(locXY tilePos)
-        {
-            return new Vector2(
-                (tilePos.locy - tilePos.locx - 1) * 20,
-                (tilePos.locy + tilePos.locx) * 14
-            );
-        }
-
         public void CenterOn(float x, float y, float z)
         {
-            mDirty = true;
-            mXTranslation = 0;
-            mYTranslation = 0;
+            _dirty = true;
+            _xTranslation = 0;
+            _yTranslation = 0;
             Update();
 
             var targetScreenPos = WorldToScreen(new Vector3(x, y, z));
 
-            mXTranslation = targetScreenPos.X;
-            mYTranslation = targetScreenPos.Y;
-            mDirty = true;
+            _xTranslation = targetScreenPos.X;
+            _yTranslation = targetScreenPos.Y;
+            _dirty = true;
         }
 
-        public Matrix4x4 GetUiProjection()
-        {
-            if (mDirty)
-            {
-                Update();
-                mDirty = false;
-            }
-
-            return mUiProjection;
-        }
-
-        private float mXTranslation = 0.0f;
-        private float mYTranslation = 0.0f;
-        private float mScale = 1.0f;
-        private float mScreenWidth;
-        private float mScreenHeight;
-        private bool mDirty = true;
-        private bool mIdentityTransform = false;
+        private float _xTranslation;
+        private float _yTranslation;
+        private float _viewportWidth;
+        private float _viewportHeight;
+        private bool _dirty = true;
 
         // This is roughly 64 * PIXEL_PER_TILE (inches per tile to be precise)
         private const float zNear = -1814.2098860142813876543089825124f;
@@ -333,20 +295,15 @@ namespace OpenTemple.Core.GFX
         private Matrix4x4 mViewProjection;
         private Matrix4x4 mViewUntranslated;
         private Matrix4x4 mInvViewProjection;
-        private Matrix4x4 mUiProjection;
 
         private void Update()
         {
-            if (mIdentityTransform)
-            {
-                mViewProjection = Matrix4x4.Identity;
-                return;
-            }
-
-            var projection = CreateOrthographicLH(mScreenWidth / mScale,
-                mScreenHeight / mScale,
+            var projection = CreateOrthographicLH(
+                _viewportWidth,
+                _viewportHeight,
                 zNear,
-                zFar);
+                zFar
+            );
 
             mProjection = projection;
 
@@ -359,8 +316,8 @@ namespace OpenTemple.Core.GFX
             */
             var view = Matrix4x4.CreateRotationX(-0.77539754f); // Roughly 45° (but not exact)
 
-            var dxOrigin = -mScreenWidth * 0.5f;
-            var dyOrigin = -mScreenHeight * 0.5f;
+            var dxOrigin = -_viewportWidth * 0.5f;
+            var dyOrigin = -_viewportHeight * 0.5f;
             dyOrigin = dyOrigin * 20.0f / 14.0f;
             Vector2 transformOrigin =
                 Vector3.Transform(
@@ -372,8 +329,8 @@ namespace OpenTemple.Core.GFX
                 We apply the translation before rotating the camera down,
                 because otherwise the Z value is broken.
             */
-            var dx = mXTranslation - mScreenWidth * 0.5f;
-            var dy = mYTranslation - mScreenHeight * 0.5f;
+            var dx = _xTranslation - _viewportWidth * 0.5f;
+            var dy = _yTranslation - _viewportHeight * 0.5f;
             dy = dy * 20.0f / 14.0f;
             view = Matrix4x4.CreateTranslation(dx, 0, -dy) * view;
 
@@ -393,12 +350,7 @@ namespace OpenTemple.Core.GFX
 
             Matrix4x4.Invert(projection, out mInvViewProjection);
 
-            // Build a projection matrix that maps [0,w] and [0,h] to the screen.
-            // To be used for UI drawing
-            // TODO: We used a "LH" version here... what's equivalent?
-            mUiProjection = CreateOrthographicOffCenterLH(0, mScreenWidth, mScreenHeight, 0, 1, 0);
-
-            mDirty = false;
+            _dirty = false;
         }
 
         // Ported from XMMatrixOrthographicLH
@@ -432,41 +384,15 @@ namespace OpenTemple.Core.GFX
             return m;
         }
 
-        // Ported from XMMatrixOrthographicOffCenterLH
-        private static Matrix4x4 CreateOrthographicOffCenterLH(float ViewLeft,
-            float ViewRight,
-            float ViewBottom,
-            float ViewTop,
-            float NearZ,
-            float FarZ)
+        public Size ViewportSize
         {
-            float ReciprocalWidth = 1.0f / (ViewRight - ViewLeft);
-            float ReciprocalHeight = 1.0f / (ViewTop - ViewBottom);
-            float fRange = 1.0f / (FarZ - NearZ);
-
-            var m = new Matrix4x4();
-            m.M11 = ReciprocalWidth + ReciprocalWidth;
-            m.M12 = 0.0f;
-            m.M13 = 0.0f;
-            m.M14 = 0.0f;
-
-            m.M21 = 0.0f;
-            m.M22 = ReciprocalHeight + ReciprocalHeight;
-            m.M23 = 0.0f;
-            m.M24 = 0.0f;
-
-            m.M31 = 0.0f;
-            m.M32 = 0.0f;
-            m.M33 = fRange;
-            m.M34 = 0.0f;
-
-            m.M41 = -(ViewLeft + ViewRight) * ReciprocalWidth;
-            m.M42 = -(ViewTop + ViewBottom) * ReciprocalHeight;
-            m.M43 = -fRange * NearZ;
-            m.M44 = 1.0f;
-            return m;
+            get => new((int) GetViewportWidth(), (int) GetViewportHeight());
+            set
+            {
+                _viewportWidth = value.Width;
+                _viewportHeight = value.Height;
+                _dirty = true;
+            }
         }
-
-        public Size ScreenSize => new Size((int) GetScreenWidth(), (int) GetScreenHeight());
     }
 }

@@ -60,7 +60,7 @@ namespace OpenTemple.Core.Ui.Combat
             _portraitContainer = new WidgetContainer(
                 0,
                 0,
-                Globals.UiManager.ScreenSize.Width - 2,
+                Globals.UiManager.CanvasSize.Width - 2,
                 100 - 12
             );
 

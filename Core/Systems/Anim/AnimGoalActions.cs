@@ -231,7 +231,7 @@ namespace OpenTemple.Core.Systems.Anim
         [TempleDllLocation(0x100185e0)]
         public static bool GoalUnconcealAnimate(AnimSlot slot)
         {
-            //Logger.Debug("GSF 106 for {}, goal {}, flags {:x}, currentState {:x}", description.getDisplayName(slot.animObj), animGoalTypeNames[slot.pCurrentGoal.goalType], (uint)slot.flags, (uint)slot.currentState);
+            //Logger.Debug("GSF 106 for {0}, goal {1}, flags {2}, currentState {3}", description.getDisplayName(slot.animObj), animGoalTypeNames[slot.pCurrentGoal.goalType], (uint)slot.flags, (uint)slot.currentState);
             var obj = slot.param1.obj;
             Trace.Assert(slot.param1.obj != null);
 
@@ -358,7 +358,7 @@ namespace OpenTemple.Core.Systems.Anim
         [TempleDllLocation(0x10012c80)]
         public static bool GoalSlotFlagSet8If4AndNotSetYet(AnimSlot slot)
         {
-            //Logger.Debug("GSF83 for {}, current goal {} ({})", description.getDisplayName(slot.animObj), animGoalTypeNames[slot.pCurrentGoal.goalType], slot.currentGoal);
+            //Logger.Debug("GSF83 for {0}, current goal {1} ({2})", description.getDisplayName(slot.animObj), animGoalTypeNames[slot.pCurrentGoal.goalType], slot.currentGoal);
             var flags = slot.flags;
             if (flags.HasFlag(AnimSlotFlag.UNK3) && !flags.HasFlag(AnimSlotFlag.UNK4))
             {
@@ -1480,7 +1480,6 @@ namespace OpenTemple.Core.Systems.Anim
                             if (teleport.movieId != 0)
                             {
                                 teleport.flags |= FadeAndTeleportFlags.play_movie;
-                                teleport.movieFlags = 0;
                             }
                         }
 

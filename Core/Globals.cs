@@ -30,9 +30,7 @@ namespace OpenTemple.Core
         public static WidgetButtonStyles WidgetButtonStyles { get; set; }
 
         public static UiAssets UiAssets { get; set; }
-
-        public static GameView MainGameView { get; set; }
-
     }
 
+    // TODO: Expand this into an actual manager
 }

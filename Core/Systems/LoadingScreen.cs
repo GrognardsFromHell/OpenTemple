@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -16,7 +18,9 @@ namespace OpenTemple.Core.Systems
         private readonly UiRectangle _barBorder;
         private readonly UiRectangle _barFilled;
         private readonly UiRectangle _barUnfilled;
+        private readonly TextStyle _textStyle;
 
+        private readonly IMainWindow _mainWindow;
         private readonly RenderingDevice _device;
         private WidgetImage _imageFile;
         public string Message { get; set; }
@@ -24,7 +28,6 @@ namespace OpenTemple.Core.Systems
 
         private bool _messagesLoaded;
         private float _progress;
-        private int _resizeListener;
 
         public float Progress
         {
@@ -36,8 +39,9 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public LoadingScreen(RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
+        public LoadingScreen(IMainWindow mainWindow, RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
         {
+            _mainWindow = mainWindow;
             _device = device;
             _barBorder = new UiRectangle(shapeRenderer2d);
             _barUnfilled = new UiRectangle(shapeRenderer2d);
@@ -49,14 +53,21 @@ namespace OpenTemple.Core.Systems
             _barUnfilled.SetColor(0xFF1C324E);
             _barFilled.SetColor(0xFF1AC3FF);
 
-            _resizeListener = device.AddResizeListener((x, y) => Layout());
+            _textStyle = new TextStyle()
+            {
+                fontFace = Globals.Config.DefaultUiFont,
+                pointSize = 10
+            };
+
+            _mainWindow.UiCanvasSizeChanged += Layout;
+            Layout();
         }
 
         public void Dispose()
         {
             _imageFile?.Dispose();
             _imageFile = null;
-            _device.RemoveResizeListener(_resizeListener);
+            _mainWindow.UiCanvasSizeChanged -= Layout;
         }
 
         public void SetMessageId(int messageId)
@@ -92,6 +103,7 @@ namespace OpenTemple.Core.Systems
             }
 
             _device.BeginFrame();
+            _device.BeginDraw();
             _imageFile.Render();
             _barBorder.Render();
             _barUnfilled.Render();
@@ -103,23 +115,24 @@ namespace OpenTemple.Core.Systems
                 style.kerning = 1;
                 style.tracking = 3;
 
-                var extents = new Rectangle();
-                extents.X = _barBorder.GetX();
-                extents.Y = _barBorder.GetY() + BarHeight + 5;
+                var extents = new Rectangle {X = _barBorder.GetX(), Y = _barBorder.GetY() + BarHeight + 5};
 
-                Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
-
-                Tig.Fonts.RenderText(Message, extents, style);
-
-                Tig.Fonts.PopFont();
+                _device.TextEngine.RenderText(
+                    extents,
+                    _textStyle,
+                    Message
+                );
             }
 
+            _device.EndDraw();
             _device.Present();
+
+            Tig.SystemEventPump.PumpSystemEvents();
         }
 
         private void Layout()
         {
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            var screenSize = _mainWindow.UiCanvasSize;
             var centerX = screenSize.Width / 2.0f;
             var centerY = screenSize.Height / 2.0f;
 
@@ -157,10 +170,9 @@ namespace OpenTemple.Core.Systems
         }
     }
 
-
-/*
-	Draws a rectangle on screen.
-*/
+    /// <summary>
+    /// Draws a rectangle on screen.
+    /// </summary>
     internal class UiRectangle
     {
         private readonly PackedLinearColorA[] _colors = new PackedLinearColorA[4];

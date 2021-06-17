@@ -13,12 +13,22 @@ namespace OpenTemple.Core.TigSubsystems
         {
         }
 
-        public void SetMouseMoveHandler(MouseMoveHandler handler)
-        {
-        }
+        public event Action<WindowEvent> OnInput;
 
         public event Action<Size> Resized;
 
+        public event Action Closed;
+
         public WindowConfig WindowConfig { get; set; }
+
+        public void InvokeClosed()
+        {
+            Closed?.Invoke();
+        }
+
+        public Size UiCanvasTargetSize { get; set; }
+        public SizeF UiCanvasSize { get; set; }
+        public event Action UiCanvasSizeChanged;
+        public float UiScale { get; set; }
     }
 }

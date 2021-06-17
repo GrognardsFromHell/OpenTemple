@@ -5,6 +5,12 @@ namespace OpenTemple.Core.Config
     public class RenderingConfig
     {
         /// <summary>
+        /// Scaling factor for the rendering resolution relative to the
+        /// actual pixel size of the output surface.
+        /// </summary>
+        public float RenderScale { get; set; } = 1.0f;
+
+        /// <summary>
         /// Enables Multisample Anti-Aliasing.
         /// </summary>
         public bool IsAntiAliasing { get; set; }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+#nullable enable
+
 namespace OpenTemple.Core.IO
 {
     public interface IFileSystem
@@ -22,6 +24,8 @@ namespace OpenTemple.Core.IO
         byte[] ReadBinaryFile(string path);
 
         IMemoryOwner<byte> ReadFile(string path);
+
+        bool TryGetRealPath(string path, out string realPath);
     }
 
 }

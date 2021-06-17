@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using SharpDX.Mathematics.Interop;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.MaterialDefinitions;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.GFX.RenderMaterials
@@ -53,213 +55,231 @@ namespace OpenTemple.Core.GFX.RenderMaterials
 
         public MdfMaterial GetSpec() => mSpec;
 
-        public void Bind(RenderingDevice device, IList<Light3d> lights, MdfRenderOverrides overrides = null)
+        public void Bind(IGameViewport viewport, RenderingDevice device, IList<Light3d> lights,
+            MdfRenderOverrides overrides = null)
         {
             device.SetMaterial(mDeviceMaterial);
 
-            BindShader(device, lights, overrides);
+            BindShader(viewport, device, lights, overrides);
         }
 
-        private void BindShader(RenderingDevice device,
-	        IList<Light3d> lights,
+        private void BindShader([MaybeNull] IGameViewport viewport,
+            RenderingDevice device,
+            IList<Light3d> lights,
             MdfRenderOverrides overrides)
         {
+            // Fill out the globals for the shader
+            var globals = new MdfGlobalConstants();
 
-		// Fill out the globals for the shader
-		MdfGlobalConstants globals = new MdfGlobalConstants();
+            Matrix4x4 viewProj;
+            if (overrides != null && overrides.uiProjection)
+            {
+                viewProj = device.UiProjection;
+            }
+            else
+            {
+                viewProj = viewport?.Camera.GetViewProj() ?? device.UiProjection;
+            }
 
-		Matrix4x4 viewProj;
-		if (overrides != null && overrides.uiProjection) {
-			viewProj = device.GetCamera().GetUiProjection();
-		} else {
-			viewProj = device.GetCamera().GetViewProj();
-		}
+            // Should we use a separate world matrix?
+            if (overrides != null && overrides.useWorldMatrix)
+            {
+                // Build a world * view * proj matrix
+                var worldViewProj = overrides.worldMatrix * viewProj;
+                globals.viewProj = worldViewProj;
+            }
+            else
+            {
+                globals.viewProj = viewProj;
+            }
 
-		// Should we use a separate world matrix?
-		if (overrides != null && overrides.useWorldMatrix) {
-			// Build a world * view * proj matrix
-			var worldViewProj = overrides.worldMatrix *viewProj;
-			globals.viewProj = worldViewProj;
-		} else
-		{
-			globals.viewProj = viewProj;
-		}
+            // Set material diffuse color for shader
+            Vector4 color;
+            // TODO: This is a bug, it should check overrideDiffuse
+            if (overrides != null && overrides.overrideColor != default)
+            {
+                color = overrides.overrideColor.ToRGBA();
+            }
+            else
+            {
+                color = new PackedLinearColorA(mSpec.diffuse).ToRGBA();
+            }
 
-		// Set material diffuse color for shader
-		Vector4 color;
-		// TODO: This is a bug, it should check overrideDiffuse
-		if (overrides != null && overrides.overrideColor != default) {
-			 color = overrides.overrideColor.ToRGBA();
-		} else
-		{
-			color = new PackedLinearColorA(mSpec.diffuse).ToRGBA();
-		}
+            globals.matDiffuse = color;
+            if (overrides != null && overrides.alpha != 1.0f)
+            {
+                globals.matDiffuse.W *= overrides.alpha;
+            }
 
-		globals.matDiffuse = color;
-		if (overrides != null && overrides.alpha != 1.0f) {
-			globals.matDiffuse.W *= overrides.alpha;
-		}
+            // Set time for UV animation in minutes as a floating point number
+            var timeInSec = (float) (device.GetLastFrameStart() - device.GetDeviceCreated()).Seconds;
+            globals.uvAnimTime.X = timeInSec / 60.0f;
+            // Clamp to [0, 1]
+            if (globals.uvAnimTime.X > 1)
+            {
+                globals.uvAnimTime.X -= MathF.Floor(globals.uvAnimTime.X);
+            }
 
-		// Set time for UV animation in minutes as a floating point number
-		var timeInSec = (float) (device.GetLastFrameStart() - device.GetDeviceCreated()).Seconds;
-		globals.uvAnimTime.X = timeInSec / 60.0f;
-		// Clamp to [0, 1]
-		if (globals.uvAnimTime.X > 1) {
-			globals.uvAnimTime.X -= MathF.Floor(globals.uvAnimTime.X);
-		}
+            // Swirl is more complicated due to cos/sin involvement
+            // This means speedU is in "full rotations every 60 seconds" . RPM
+            var uvRotations = globals.UvRotations;
+            for (var i = 0; i < mSpec.samplers.Count; ++i)
+            {
+                var sampler = mSpec.samplers[i];
+                if (sampler.uvType != MdfUvType.Swirl)
+                {
+                    continue;
+                }
 
-		// Swirl is more complicated due to cos/sin involvement
-		// This means speedU is in "full rotations every 60 seconds" . RPM
-		var uvRotations = globals.UvRotations;
-		for (var i = 0; i < mSpec.samplers.Count; ++i) {
-			var sampler = mSpec.samplers[i];
-			if (sampler.uvType != MdfUvType.Swirl) {
-				continue;
-			}
-			ref var uvRot = ref uvRotations[i];
-			uvRot.X = MathF.Cos(sampler.speedU * globals.uvAnimTime.X * MathF.PI * 2) * 0.1f;
-			uvRot.Y = MathF.Sin(sampler.speedV * globals.uvAnimTime.X * MathF.PI * 2) * 0.1f;
-		}
+                ref var uvRot = ref uvRotations[i];
+                uvRot.X = MathF.Cos(sampler.speedU * globals.uvAnimTime.X * MathF.PI * 2) * 0.1f;
+                uvRot.Y = MathF.Sin(sampler.speedV * globals.uvAnimTime.X * MathF.PI * 2) * 0.1f;
+            }
 
-		if (!mSpec.notLit) {
-			var ignoreLighting = overrides != null && overrides.ignoreLighting;
-			BindVertexLighting(ref globals, lights, ignoreLighting);
-		}
+            if (!mSpec.notLit)
+            {
+                var ignoreLighting = overrides != null && overrides.ignoreLighting;
+                BindVertexLighting(ref globals, lights, ignoreLighting);
+            }
 
-		device.SetVertexShaderConstants(0, ref globals);
+            device.SetVertexShaderConstants(0, ref globals);
         }
 
         private void BindVertexLighting(ref MdfGlobalConstants globals,
             IList<Light3d> lights,
             bool ignoreLighting)
         {
+            const int MaxLights = 8;
 
-			const int MaxLights = 8;
+            if (lights.Count > MaxLights)
+            {
+                // TODO THIS SUCKS
+                var limitedLights = new Light3d[MaxLights];
+                for (int i = 0; i < limitedLights.Length; i++)
+                {
+                    limitedLights[i] = lights[i];
+                }
 
-			if (lights.Count > MaxLights) {
-				// TODO THIS SUCKS
-				var limitedLights = new Light3d[MaxLights];
-				for (int i = 0; i < limitedLights.Length; i++)
-				{
-					limitedLights[i] = lights[i];
-				}
+                lights = limitedLights;
+            }
 
-				lights = limitedLights;
-			}
+            // To make indexing in the HLSL shader more efficient, we sort the
+            // lights here in the following order: directional, point lights, spot lights
 
-			// To make indexing in the HLSL shader more efficient, we sort the
-			// lights here in the following order: directional, point lights, spot lights
+            var directionalCount = 0;
+            var pointCount = 0;
+            var spotCount = 0;
 
-			var directionalCount = 0;
-			var pointCount = 0;
-			var spotCount = 0;
+            var lightDir = globals.LightDir;
+            var lightDiffuse = globals.LightDiffuse;
+            var lightSpecular = globals.LightSpecular;
+            var lightAmbient = globals.LightAmbient;
+            var lightPos = globals.LightPos;
+            var lightRange = globals.LightRange;
+            var lightAttenuation = globals.LightAttenuation;
+            var lightSpot = globals.LightSpot;
 
-			var lightDir = globals.LightDir;
-			var lightDiffuse = globals.LightDiffuse;
-			var lightSpecular = globals.LightSpecular;
-			var lightAmbient = globals.LightAmbient;
-			var lightPos = globals.LightPos;
-			var lightRange = globals.LightRange;
-			var lightAttenuation = globals.LightAttenuation;
-			var lightSpot = globals.LightSpot;
+            // In order to not have to use a different shader, we instead
+            // opt for using a diffuse light with ambient 1,1,1,1
+            if (ignoreLighting)
+            {
+                directionalCount = 1;
+                lightDir[0] = Vector4.Zero;
+                lightDiffuse[0] = Vector4.Zero;
+                lightSpecular[0] = Vector4.Zero;
 
-			// In order to not have to use a different shader, we instead
-			// opt for using a diffuse light with ambient 1,1,1,1
-			if (ignoreLighting) {
-				directionalCount = 1;
-				lightDir[0] = Vector4.Zero;
-				lightDiffuse[0] = Vector4.Zero;
-				lightSpecular[0] = Vector4.Zero;
+                lightAmbient[0] = new Vector4(1, 1, 1, 0);
+            }
+            else
+            {
+                // Count the number of lights of each type
+                foreach (var light in lights)
+                {
+                    switch (light.type)
+                    {
+                        case Light3dType.Directional:
+                            ++directionalCount;
+                            break;
+                        case Light3dType.Point:
+                            ++pointCount;
+                            break;
+                        case Light3dType.Spot:
+                            ++spotCount;
+                            break;
+                        default:
+                            continue;
+                    }
+                }
 
-				lightAmbient[0] = new Vector4(1, 1, 1, 0);
-			} else {
-				// Count the number of lights of each type
-				foreach (var light in lights)
-				{
-					switch (light.type)
-					{
-						case Light3dType.Directional:
-							++directionalCount;
-							break;
-						case Light3dType.Point:
-							++pointCount;
-							break;
-						case Light3dType.Spot:
-							++spotCount;
-							break;
-						default:
-							continue;
-					}
-				}
+                var pointFirstIdx = directionalCount;
+                var spotFirstIdx = pointFirstIdx + pointCount;
 
-				var pointFirstIdx = directionalCount;
-				var spotFirstIdx = pointFirstIdx + pointCount;
+                directionalCount = 0;
+                pointCount = 0;
+                spotCount = 0;
 
-				directionalCount = 0;
-				pointCount = 0;
-				spotCount = 0;
+                foreach (var light in lights)
+                {
+                    int lightIdx;
+                    switch (light.type)
+                    {
+                        case Light3dType.Directional:
+                            lightIdx = directionalCount++;
+                            break;
+                        case Light3dType.Point:
+                            lightIdx = pointFirstIdx + pointCount++;
+                            break;
+                        case Light3dType.Spot:
+                            lightIdx = spotFirstIdx + spotCount++;
+                            break;
+                        default:
+                            continue;
+                    }
 
-				foreach (var light in lights) {
-					int lightIdx;
-					switch (light.type)
-					{
-						case Light3dType.Directional:
-							lightIdx = directionalCount++;
-							break;
-						case Light3dType.Point:
-							lightIdx = pointFirstIdx + pointCount++;
-							break;
-						case Light3dType.Spot:
-							lightIdx = spotFirstIdx + spotCount++;
-							break;
-						default:
-							continue;
-					}
+                    lightPos[lightIdx].X = light.pos.X;
+                    lightPos[lightIdx].Y = light.pos.Y;
+                    lightPos[lightIdx].Z = light.pos.Z;
 
-					lightPos[lightIdx].X = light.pos.X;
-					lightPos[lightIdx].Y = light.pos.Y;
-					lightPos[lightIdx].Z = light.pos.Z;
+                    lightDir[lightIdx].X = light.dir.X;
+                    lightDir[lightIdx].Y = light.dir.Y;
+                    lightDir[lightIdx].Z = light.dir.Z;
 
-					lightDir[lightIdx].X = light.dir.X;
-					lightDir[lightIdx].Y = light.dir.Y;
-					lightDir[lightIdx].Z = light.dir.Z;
+                    lightAmbient[lightIdx].X = light.ambient.R;
+                    lightAmbient[lightIdx].Y = light.ambient.G;
+                    lightAmbient[lightIdx].Z = light.ambient.B;
+                    lightAmbient[lightIdx].W = 0;
 
-					lightAmbient[lightIdx].X = light.ambient.R;
-					lightAmbient[lightIdx].Y = light.ambient.G;
-					lightAmbient[lightIdx].Z = light.ambient.B;
-					lightAmbient[lightIdx].W = 0;
+                    lightDiffuse[lightIdx].X = light.color.R;
+                    lightDiffuse[lightIdx].Y = light.color.G;
+                    lightDiffuse[lightIdx].Z = light.color.B;
+                    lightDiffuse[lightIdx].W = 0;
 
-					lightDiffuse[lightIdx].X = light.color.R;
-					lightDiffuse[lightIdx].Y = light.color.G;
-					lightDiffuse[lightIdx].Z = light.color.B;
-					lightDiffuse[lightIdx].W = 0;
+                    lightSpecular[lightIdx].X = light.color.R;
+                    lightSpecular[lightIdx].Y = light.color.G;
+                    lightSpecular[lightIdx].Z = light.color.B;
+                    lightSpecular[lightIdx].W = 0;
 
-					lightSpecular[lightIdx].X = light.color.R;
-					lightSpecular[lightIdx].Y = light.color.G;
-					lightSpecular[lightIdx].Z = light.color.B;
-					lightSpecular[lightIdx].W = 0;
+                    lightRange[lightIdx].X = light.range;
 
-					lightRange[lightIdx].X = light.range;
+                    lightAttenuation[lightIdx].X = 0;
+                    lightAttenuation[lightIdx].Y = 0;
+                    lightAttenuation[lightIdx].Z = 4.0f / (light.range * light.range);
+                    var phiRad = Angles.ToRadians(light.phi);
+                    lightSpot[lightIdx].X = MathF.Cos(phiRad * 0.6f * 0.5f);
+                    lightSpot[lightIdx].Y = MathF.Cos(phiRad * 0.5f);
+                    lightSpot[lightIdx].Z = 1;
+                }
+            }
 
-					lightAttenuation[lightIdx].X = 0;
-					lightAttenuation[lightIdx].Y = 0;
-					lightAttenuation[lightIdx].Z = 4.0f / (light.range * light.range);
-					var phiRad = Angles.ToRadians(light.phi);
-					lightSpot[lightIdx].X = MathF.Cos(phiRad * 0.6f * 0.5f);
-					lightSpot[lightIdx].Y = MathF.Cos(phiRad * 0.5f);
-					lightSpot[lightIdx].Z = 1;
-				}
-			}
+            globals.bSpecular = new RawInt4((mSpec.specular != 0) ? 1 : 0, 0, 0, 0);
+            globals.fMaterialPower = new Vector4(mSpec.specularPower, 0, 0, 0);
 
-			globals.bSpecular = new RawInt4((mSpec.specular != 0) ? 1 : 0, 0, 0, 0);
-			globals.fMaterialPower = new Vector4(mSpec.specularPower, 0, 0, 0);
+            // Set the specular color
+            globals.matSpecular = new PackedLinearColorA(mSpec.specular).ToRGBA();
 
-			// Set the specular color
-			globals.matSpecular = new PackedLinearColorA(mSpec.specular).ToRGBA();
-
-			globals.lightCount.X = directionalCount;
-			globals.lightCount.Y = globals.lightCount.X + pointCount;
-			globals.lightCount.Z = globals.lightCount.Y + spotCount;
+            globals.lightCount.X = directionalCount;
+            globals.lightCount.Y = globals.lightCount.X + pointCount;
+            globals.lightCount.Z = globals.lightCount.Y + spotCount;
         }
     }
 

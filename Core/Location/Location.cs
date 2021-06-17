@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Utils;
@@ -106,6 +107,7 @@ namespace OpenTemple.Core.Location
             return new locXY(tileX, tileY);
         }
 
+        [Pure]
         public Vector3 ToInches3D(float offsetX = 0, float offsetY = 0, float offsetZ = 0)
         {
             return new Vector3(
@@ -281,6 +283,7 @@ namespace OpenTemple.Core.Location
             NormalizeAxis(ref off_y, ref location.locy);
         }
 
+        [Pure]
         public Vector3 ToInches3D(float offsetZ = 0)
         {
             return location.ToInches3D(off_x, off_y, offsetZ);

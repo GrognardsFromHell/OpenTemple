@@ -1,4 +1,5 @@
 using System.Numerics;
+using OpenTemple.Core.Ui;
 using OpenTemple.Particles;
 
 namespace OpenTemple.Core.Particles
@@ -75,13 +76,9 @@ Interface for external functionality required by the particle systems.
         bool GetBonePos(object obj, int boneIdx, out Vector3 pos);
 
         /// <summary>
-        /// Gets the point in screen coordinates for a given woorld coordinate.
+        /// Checks if the given box (in screen space) is visible or not, given that
+        /// the box is centered on the world position.
         /// </summary>
-        void WorldToScreen(Vector3 worldPos, out Vector2 screenPos);
-
-        /// <summary>
-        /// Checks if the given box (in screen space) is visible or not.
-        /// </summary>
-        bool IsBoxVisible(Vector2 screenPos, Box2d box);
+        bool IsBoxVisible(IGameViewport viewport, Vector3 worldPos, Box2d box);
     }
 }

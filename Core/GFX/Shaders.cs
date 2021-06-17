@@ -26,21 +26,21 @@ namespace OpenTemple.Core.GFX
 
             var shaderDesc = reflector.Description;
 
-            Logger.Info("Vertex Shader '{}' has {} constant buffers:", Name, shaderDesc.ConstantBuffers);
+            Logger.Info("Vertex Shader '{0}' has {1} constant buffers:", Name, shaderDesc.ConstantBuffers);
 
             for (var i = 0; i < shaderDesc.ConstantBuffers; i++)
             {
                 var cbufferDesc = reflector.GetConstantBuffer(i);
                 var bufferDesc = cbufferDesc.Description;
 
-                Logger.Info("  Constant Buffer #{} '{}'", i, bufferDesc.Name);
+                Logger.Info("  Constant Buffer #{0} '{1}'", i, bufferDesc.Name);
 
                 for (var j = 0; j < bufferDesc.VariableCount; j++)
                 {
                     var variable = cbufferDesc.GetVariable(j);
                     var variableDesc = variable.Description;
 
-                    Logger.Info("    {} @ {}", variableDesc.Name, variableDesc.StartOffset);
+                    Logger.Info("    {0} @ {1}", variableDesc.Name, variableDesc.StartOffset);
                 }
             }
         }
@@ -80,7 +80,7 @@ namespace OpenTemple.Core.GFX
         {
             FreeResource();
 
-            mDeviceShader = new SharpDX.Direct3D11.VertexShader(_device.mD3d11Device, mCompiledShader);
+            mDeviceShader = new SharpDX.Direct3D11.VertexShader(_device.Device, mCompiledShader);
             if (_device.IsDebugDevice())
             {
                 mDeviceShader.DebugName = Name;
@@ -89,12 +89,12 @@ namespace OpenTemple.Core.GFX
 
         public override void Bind()
         {
-            _device.mContext.VertexShader.SetShader(mDeviceShader, null, 0);
+            _device.Context.VertexShader.SetShader(mDeviceShader, null, 0);
         }
 
         public override void Unbind()
         {
-            _device.mContext.VertexShader.SetShader(null, null, 0);
+            _device.Context.VertexShader.SetShader(null, null, 0);
         }
     }
 
@@ -111,7 +111,7 @@ namespace OpenTemple.Core.GFX
         {
             FreeResource();
 
-            mDeviceShader = new SharpDX.Direct3D11.PixelShader(_device.mD3d11Device, mCompiledShader);
+            mDeviceShader = new SharpDX.Direct3D11.PixelShader(_device.Device, mCompiledShader);
             if (_device.IsDebugDevice())
             {
                 mDeviceShader.DebugName = Name;
@@ -120,12 +120,12 @@ namespace OpenTemple.Core.GFX
 
         public override void Bind()
         {
-            _device.mContext.PixelShader.SetShader(mDeviceShader, null, 0);
+            _device.Context.PixelShader.SetShader(mDeviceShader, null, 0);
         }
 
         public override void Unbind()
         {
-            _device.mContext.PixelShader.SetShader(null, null, 0);
+            _device.Context.PixelShader.SetShader(null, null, 0);
         }
     }
 

@@ -30,7 +30,7 @@ void MemorizeSpell(int spellEnum) {
         return;
     }
 
-    var classCode = GameSystems.Spell.GetSpellClass(Stat.level_wizard);
+    var classCode = SpellSystem.GetSpellClass(Stat.level_wizard);
     var level = spellEntry.SpellLevelForSpellClass(classCode);
 
     var spellsPerDay = GameSystems.Spell.GetSpellsPerDay(leader).Find(spd => spd.ClassCode == classCode);

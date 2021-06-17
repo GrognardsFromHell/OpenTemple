@@ -195,9 +195,9 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x10B3D6B4)]
         [TempleDllLocation(0x1009a710)]
-        public static void RenderTurnBasedUI()
+        public static void RenderTurnBasedUI(IGameViewport viewport)
         {
-            UiSystems.TB.Render();
+            UiSystems.TB.Render(viewport);
         }
 
         [TempleDllLocation(0x1009ac20)]

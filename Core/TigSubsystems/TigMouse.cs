@@ -47,8 +47,6 @@ namespace OpenTemple.Core.TigSubsystems
 
         private bool mMouseOutsideWnd = false;
 
-        private Point mMmbReference = new Point(-1, -1);
-
         [TempleDllLocation(0x10D2558C)]
         private ResourceRef<ITexture> _iconUnderCursor;
 
@@ -202,24 +200,6 @@ namespace OpenTemple.Core.TigSubsystems
             }
 
             throw new ArgumentOutOfRangeException();
-        }
-
-        public void SetMmbReference()
-        {
-            if (mMmbReference.X == -1 && mMmbReference.Y == -1)
-            {
-                mMmbReference = GetPos();
-            }
-        }
-
-        public Point GetMmbReference()
-        {
-            return mMmbReference;
-        }
-
-        public void ResetMmbReference()
-        {
-            mMmbReference = new Point(-1, -1);
         }
 
         public void ShowCursor()

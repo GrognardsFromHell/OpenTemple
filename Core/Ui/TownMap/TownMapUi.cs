@@ -515,7 +515,12 @@ namespace OpenTemple.Core.Ui.TownMap
 
         private void CenterOn(locXY position)
         {
-            var centerOnPos = Tig.RenderingDevice.GetCamera().TileToWorld(position);
+            if (GameViews.Primary == null)
+            {
+                return;
+            }
+
+            var centerOnPos = TownMapContent.TileToWorld(position);
 
             var zoomx2 = 2 * _mapContent.Zoom;
             _mapContent.XTranslation = centerOnPos.X - _townMapWorldRect.X - _mapContent.Width / zoomx2;

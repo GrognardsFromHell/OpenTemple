@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.GFX
@@ -241,7 +242,7 @@ namespace OpenTemple.Core.GFX
         }
 
 
-        private void BindLineMaterial(PackedLinearColorA color, bool occludedOnly = false)
+        private void BindLineMaterial(IGameViewport viewport, PackedLinearColorA color, bool occludedOnly = false)
         {
             if (occludedOnly)
             {
@@ -253,18 +254,18 @@ namespace OpenTemple.Core.GFX
             }
 
             Shape3dGlobals globals;
-            globals.viewProj = _device.GetCamera().GetViewProj();
+            globals.viewProj = viewport.Camera.GetViewProj();
             globals.colors = color.ToRGBA();
 
             _device.SetVertexShaderConstants(0, ref globals);
         }
 
-        private void BindQuadMaterial(PackedLinearColorA color, ITexture texture)
+        private void BindQuadMaterial(IGameViewport viewport, PackedLinearColorA color, ITexture texture)
         {
             _device.SetMaterial(_quadMaterial);
 
             Shape3dGlobals globals;
-            globals.viewProj = _device.GetCamera().GetViewProj();
+            globals.viewProj = viewport.Camera.GetViewProj();
             globals.colors = color.ToRGBA();
 
             _device.SetVertexShaderConstants(0, ref globals);
@@ -273,20 +274,21 @@ namespace OpenTemple.Core.GFX
         }
 
 
-        public void DrawQuad(ReadOnlySpan<ShapeVertex3d> corners,
+        public void DrawQuad(IGameViewport viewport,
+            ReadOnlySpan<ShapeVertex3d> corners,
             PackedLinearColorA color,
             ITexture texture)
         {
             _discVertexBuffer.Resource.Update(corners);
             _discBufferBinding.Resource.Bind();
 
-            BindQuadMaterial(color, texture);
+            BindQuadMaterial(viewport, color, texture);
 
             _device.SetIndexBuffer(_discIndexBuffer);
             _device.DrawIndexed(PrimitiveType.TriangleList, 4, 2 * 3);
         }
 
-        public void DrawQuad(ReadOnlySpan<ShapeVertex3d> corners,
+        public void DrawQuad(IGameViewport viewport, ReadOnlySpan<ShapeVertex3d> corners,
             IMdfRenderMaterial material,
             PackedLinearColorA color)
         {
@@ -296,14 +298,14 @@ namespace OpenTemple.Core.GFX
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.overrideDiffuse = true;
             overrides.overrideColor = color;
-            material.Bind(_device, null, overrides);
+            material.Bind(viewport, _device, null, overrides);
 
             _device.SetIndexBuffer(_discIndexBuffer);
             _device.DrawIndexed(PrimitiveType.TriangleList, 4, 2 * 3);
         }
 
         [TempleDllLocation(0x10107050)]
-        public void DrawDisc(Vector3 center,
+        public void DrawDisc(IGameViewport viewport, Vector3 center,
             float rotation,
             float radius,
             IMdfRenderMaterial material)
@@ -336,13 +338,14 @@ namespace OpenTemple.Core.GFX
 
             _discVertexBuffer.Resource.Update<ShapeVertex3d>(vertices);
             _discBufferBinding.Resource.Bind();
-            material.Bind(_device, null);
+            material.Bind(viewport, _device, null);
 
             _device.SetIndexBuffer(_discIndexBuffer);
             _device.DrawIndexed(PrimitiveType.TriangleList, 16, 8 * 3);
         }
 
-        public void DrawLine(Vector3 from,
+        public void DrawLine(IGameViewport viewport,
+            Vector3 from,
             Vector3 to,
             PackedLinearColorA color)
         {
@@ -354,12 +357,13 @@ namespace OpenTemple.Core.GFX
 
             _lineVertexBuffer.Resource.Update<Vector3>(positions);
             _lineBinding.Resource.Bind();
-            BindLineMaterial(color);
+            BindLineMaterial(viewport, color);
 
             _device.Draw(PrimitiveType.LineList, 2);
         }
 
-        public void DrawLineWithoutDepth(Vector3 from,
+        public void DrawLineWithoutDepth(IGameViewport viewport,
+            Vector3 from,
             Vector3 to,
             PackedLinearColorA color)
         {
@@ -371,10 +375,10 @@ namespace OpenTemple.Core.GFX
 
             _lineVertexBuffer.Resource.Update<Vector3>(positions);
             _lineBinding.Resource.Bind();
-            BindLineMaterial(color);
+            BindLineMaterial(viewport, color);
             _device.Draw(PrimitiveType.LineList, 2);
 
-            BindLineMaterial(color, true);
+            BindLineMaterial(viewport, color, true);
             _device.Draw(PrimitiveType.LineList, 2);
         }
 
@@ -383,7 +387,7 @@ namespace OpenTemple.Core.GFX
         // Draw the 3d bounding cylinder of the object
         private static readonly PackedLinearColorA CylinderDiffuse = PackedLinearColorA.OfFloats(0, 1.0f, 0, 0.5f);
 
-        public void DrawCylinder(Vector3 pos, float radius, float height)
+        public void DrawCylinder(IGameViewport viewport, Vector3 pos, float radius, float height)
         {
             float x = pos.X;
             float y = pos.Y;
@@ -399,13 +403,13 @@ namespace OpenTemple.Core.GFX
             to.Y = y + height;
             to.Z = from.Z;
 
-            DrawLine(from, to, CylinderDiffuse);
+            DrawLine(viewport, from, to, CylinderDiffuse);
 
             from.X = x - scaledRadius;
             from.Z = z + scaledRadius;
             to.X = from.X;
             to.Z = from.Z;
-            DrawLine(from, to, CylinderDiffuse);
+            DrawLine(viewport, from, to, CylinderDiffuse);
 
             /*
             Draw the circle on top and on the bottom
@@ -424,7 +428,7 @@ namespace OpenTemple.Core.GFX
                 to.X = x + MathF.Cos(nextRot) * radius;
                 to.Y = y;
                 to.Z = z - MathF.Sin(nextRot) * radius;
-                DrawLine(from, to, CylinderDiffuse);
+                DrawLine(viewport, from, to, CylinderDiffuse);
 
                 // This is the top cap
                 from.X = x + MathF.Cos(rot) * radius;
@@ -433,7 +437,7 @@ namespace OpenTemple.Core.GFX
                 to.X = x + MathF.Cos(nextRot) * radius;
                 to.Y = y + height;
                 to.Z = z - MathF.Sin(nextRot) * radius;
-                DrawLine(from, to, CylinderDiffuse);
+                DrawLine(viewport, from, to, CylinderDiffuse);
             }
         }
 
@@ -441,7 +445,8 @@ namespace OpenTemple.Core.GFX
             occludedOnly means that the circle will only draw
             in already occluded areas (based on depth buffer)
         */
-        public void DrawFilledCircle(Vector3 center,
+        public void DrawFilledCircle(IGameViewport viewport,
+            Vector3 center,
             float radius,
             PackedLinearColorA borderColor,
             PackedLinearColorA fillColor,
@@ -470,12 +475,12 @@ namespace OpenTemple.Core.GFX
             _circleVertexBuffer.Resource.Update<Vector3>(positions);
             _circleBinding.Resource.Bind();
 
-            BindLineMaterial(borderColor, occludedOnly);
+            BindLineMaterial(viewport, borderColor, occludedOnly);
 
             // The first vertex is the center vertex, so we skip it for line drawing
             _device.Draw(PrimitiveType.LineStrip, CircleSegments + 1, 1);
 
-            BindLineMaterial(fillColor, occludedOnly);
+            BindLineMaterial(viewport, fillColor, occludedOnly);
 
             _device.SetIndexBuffer(_circleIndexBuffer);
 

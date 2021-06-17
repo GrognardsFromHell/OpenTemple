@@ -50,7 +50,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x101068a0)]
-        public void Render(Vector3 aoeCenter, Vector3 casterPos, float aoeRadius)
+        public void Render(IGameViewport viewport, Vector3 aoeCenter, Vector3 casterPos, float aoeRadius)
         {
             Span<IntgameVertex> vertices = stackalloc IntgameVertex[4];
 
@@ -127,7 +127,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _bufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_indexBuffer);
 
-            _material.Resource.Bind(_device, new List<Light3d>());
+            _material.Resource.Bind(viewport, _device, new List<Light3d>());
 
             _device.DrawIndexed(
                 PrimitiveType.TriangleList,

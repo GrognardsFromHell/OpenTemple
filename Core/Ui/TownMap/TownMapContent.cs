@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Numerics;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
@@ -440,7 +441,7 @@ namespace OpenTemple.Core.Ui.TownMap
         private Point ProjectWorldToView(locXY location)
         {
             // This projects the tile into the x,y space of the town map
-            var townMapPos = Tig.RenderingDevice.GetCamera().TileToWorld(location);
+            var townMapPos = TileToWorld(location);
 
             // This makes it relative to the provided town map tiles
             var x = (townMapPos.X - MapBoundingBox.Left - XTranslation) * Zoom;
@@ -630,6 +631,17 @@ namespace OpenTemple.Core.Ui.TownMap
                 Tig.Mouse.PopCursorLock();
                 _zooming = false;
             }
+        }
+
+        // replaces 10028EC0
+        // Apparently used for townmap projection !
+        [TempleDllLocation(0x10028ec0)]
+        public static Vector2 TileToWorld(locXY tilePos)
+        {
+            return new (
+                (tilePos.locy - tilePos.locx - 1) * 20,
+                (tilePos.locy + tilePos.locx) * 14
+            );
         }
     }
 

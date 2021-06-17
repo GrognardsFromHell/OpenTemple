@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.SaveGames;
@@ -159,8 +160,8 @@ namespace OpenTemple.Core
             }
             SaveGameInfoWriter.Write(filename + displayName + ".gsi", saveInfo);
 
-            Globals.GameLoop.TakeScreenshot(Path.Join(filename + "l.jpg"), 256, 192);
-            Globals.GameLoop.TakeScreenshot(Path.Join(filename + "s.jpg"), 64, 48);
+            GameViews.Primary?.TakeScreenshot(Path.Join(filename + "l.jpg"), new Size(256, 192));
+            GameViews.Primary?.TakeScreenshot(Path.Join(filename + "s.jpg"), new Size(64, 48));
 
             Logger.Info("Saved in {0}ms", sw.ElapsedMilliseconds);
 

@@ -12,7 +12,9 @@ namespace OpenTemple.Core.Platform
     public enum MouseButton : uint {
         LEFT = 0,
         RIGHT = 1,
-        MIDDLE = 2
+        MIDDLE = 2,
+        EXTRA1 = 3,
+        EXTRA2 = 4
     };
 
     public enum MessageType : uint {

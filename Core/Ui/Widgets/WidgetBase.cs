@@ -232,10 +232,10 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 int containerWidth = mParent != null
                     ? mParent.Width
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
+                    : Globals.UiManager.CanvasSize.Width;
                 int containerHeight = mParent != null
                     ? mParent.Height
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+                    : Globals.UiManager.CanvasSize.Height;
                 SetSize(new Size(containerWidth, containerHeight));
             }
 
@@ -243,7 +243,7 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 int containerWidth = mParent != null
                     ? mParent.Width
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
+                    : Globals.UiManager.CanvasSize.Width;
                 int x = (containerWidth - Width) / 2;
                 if (x != X)
                 {
@@ -255,7 +255,7 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 int containerHeight = mParent != null
                     ? mParent.Height
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+                    : Globals.UiManager.CanvasSize.Height;
                 int y = (containerHeight - Height) / 2;
                 if (y != Y)
                 {
@@ -404,8 +404,12 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public void SetSize(Size size)
         {
-            Width = size.Width;
-            Height = size.Height;
+            if (size.Width != Width || size.Height != Height)
+            {
+                Width = size.Width;
+                Height = size.Height;
+                OnSizeChanged();
+            }
         }
 
         public Size GetSize()
@@ -611,6 +615,10 @@ namespace OpenTemple.Core.Ui.Widgets
         }
 
         public virtual void OnUpdateTime(TimePoint timeMs)
+        {
+        }
+
+        protected virtual void OnSizeChanged()
         {
         }
 

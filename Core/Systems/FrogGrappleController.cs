@@ -9,6 +9,7 @@ using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems
@@ -53,7 +54,10 @@ namespace OpenTemple.Core.Systems
                 .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
         }
 
-        public void AdvanceAndRender(GameObjectBody giantFrog,
+        // TODO: Separate logic+rendering
+        public void AdvanceAndRender(
+            IGameViewport viewport,
+            GameObjectBody giantFrog,
             AnimatedModelParams animParams,
             IAnimatedModel model,
             IList<Light3d> lights,
@@ -210,7 +214,7 @@ namespace OpenTemple.Core.Systems
             var tongueDir = worldMatrixFrog.GetRow(2).ToVector3();
             var tonguePos = worldMatrixFrog.GetRow(3).ToVector3();
 
-            RenderTongue(grappleState, tongueDir, tongueUp, tongueRight, tonguePos, lights, alpha);
+            RenderTongue(viewport, grappleState, tongueDir, tongueUp, tongueRight, tonguePos, lights, alpha);
         }
 
         public bool IsGiantFrog(GameObjectBody obj)
@@ -269,7 +273,9 @@ namespace OpenTemple.Core.Systems
             mIndexBuffer = mDevice.CreateIndexBuffer(indices);
         }
 
-        private void RenderTongue(GrappleState grappleState,
+        private void RenderTongue(
+            IGameViewport viewport,
+            GrappleState grappleState,
             in Vector3 tongueDir,
             in Vector3 tongueUp,
             in Vector3 tongueRight,
@@ -327,7 +333,7 @@ namespace OpenTemple.Core.Systems
             mBufferBinding.Bind();
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.alpha = alpha;
-            mTongueMaterial.Resource.Bind(mDevice, lights, overrides);
+            mTongueMaterial.Resource.Bind(viewport, mDevice, lights, overrides);
             mDevice.SetIndexBuffer(mIndexBuffer);
 
             mDevice.DrawIndexed(

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SharpDX.DXGI;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.GFX.RenderMaterials;
 
@@ -295,7 +294,7 @@ namespace OpenTemple.Core.GFX
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.ignoreLighting = true;
             overrides.uiProjection = true;
-            material?.Bind(_device, Array.Empty<Light3d>(), overrides);
+            material?.Bind(null, _device, Array.Empty<Light3d>(), overrides);
 
             _device.SetDepthStencilState(noDepthState);
 
@@ -425,9 +424,9 @@ namespace OpenTemple.Core.GFX
             public Vector4 colors;
         };
 
-        /**
-         * Renders a circle/pie segment for use with the radial menu.
-           */
+        /// <summary>
+        /// Renders a circle/pie segment for use with the radial menu.
+        /// </summary>
         public void DrawPieSegment(int segments,
             int x, int y,
             float angleCenter, float angleWidth,
@@ -483,7 +482,7 @@ namespace OpenTemple.Core.GFX
             binding.Bind();
 
             PieSegmentGlobals globals;
-            globals.projMat = _device.GetCamera().GetUiProjection();
+            globals.projMat = _device.UiProjection;
             globals.colors = color1.ToRGBA();
             _device.SetVertexShaderConstants(0, ref globals);
 

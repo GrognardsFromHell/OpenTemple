@@ -24,6 +24,8 @@ namespace OpenTemple.Core.GameObject
 
         private long _objectId = 0;
 
+        public long UniqueObjectId => _objectId;
+
         /// <summary>
         /// Indicates that fields of type <see cref="ObjectFieldType.Obj"/> and <see cref="ObjectFieldType.ObjArray"/>
         /// do not store actual pointers, but rather the persistable IDs of those objects.
@@ -977,6 +979,13 @@ namespace OpenTemple.Core.GameObject
             }
 
             var count = GetInt32(countField);
+            var actualLength = GetArrayLength(indexField);
+            if (count != actualLength)
+            {
+                throw new CorruptSaveException($"The inventory on {this} is corrupted: {count} in count-field," +
+                                               $" but item-field has {actualLength} entries");
+            }
+
             for (var i = 0; i < count; ++i)
             {
                 var item = GetObject(indexField, i);

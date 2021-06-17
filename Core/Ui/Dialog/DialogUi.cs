@@ -78,8 +78,8 @@ namespace OpenTemple.Core.Ui.Dialog
 
             CreateWidgets();
 
-            Globals.UiManager.OnScreenSizeChanged += UpdatePosition;
-            UpdatePosition(Globals.UiManager.ScreenSize);
+            Globals.UiManager.OnCanvasSizeChanged += UpdatePosition;
+            UpdatePosition(Globals.UiManager.CanvasSize);
         }
 
         [TempleDllLocation(0x10bec204)]

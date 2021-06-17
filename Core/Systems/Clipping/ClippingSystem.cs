@@ -8,6 +8,7 @@ using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.Clipping
@@ -160,7 +161,7 @@ namespace OpenTemple.Core.Systems.Clipping
         }
 
         [TempleDllLocation(0x100A4FB0)]
-        public void Render()
+        public void Render(WorldCamera camera)
         {
             using var perfGroup = _device.CreatePerfGroup("Clipping");
 
@@ -180,15 +181,13 @@ namespace OpenTemple.Core.Systems.Clipping
                 _device.SetMaterial(_material);
             }
 
-            var camera = _device.GetCamera();
-
             var globals = new ClippingGlobals();
             globals.viewProj = camera.GetViewProj();
 
             // For clipping purposes
             var screenCenterWorld = camera.ScreenToWorld(
-                camera.GetScreenWidth() * 0.5f,
-                camera.GetScreenHeight() * 0.5f
+                camera.GetViewportWidth() * 0.5f,
+                camera.GetViewportHeight() * 0.5f
             );
 
             foreach (var mesh in _clippingMeshes)
@@ -217,8 +216,8 @@ namespace OpenTemple.Core.Systems.Clipping
 
                     var maxScale = Math.Max(Math.Max(obj.scaleX, obj.scaleY), obj.scaleZ);
                     var scaledRadius = maxScale * mesh.BoundingSphereRadius;
-                    var culled = (distX > camera.GetScreenWidth() / 2.0f + scaledRadius
-                                  || distY > (camera.GetScreenHeight() / 2.0f) + scaledRadius);
+                    var culled = (distX > camera.GetViewportWidth() / 2.0f + scaledRadius
+                                  || distY > (camera.GetViewportHeight() / 2.0f) + scaledRadius);
 
                     if (culled)
                     {

@@ -407,7 +407,7 @@ namespace OpenTemple.Core.AAS
 		        var type = GetEventType(skelEvent.Type);
 		        if (!type.HasValue)
 		        {
-			        Debug.Print("Unknown animation type '{}' in {}", anim.Name, owner.skeleton.Path);
+			        Debug.Print("Unknown animation type '{0}' in {1}", anim.Name, owner.skeleton.Path);
 			        continue;
 		        }
 

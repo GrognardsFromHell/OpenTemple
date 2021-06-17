@@ -96,13 +96,13 @@ namespace OpenTemple.Core.Ui.Widgets
 
                 if (mCenterVertically)
                 {
-                    var metrics = Tig.RenderingDevice.GetTextEngine().MeasureText(mText);
+                    var metrics = Tig.RenderingDevice.TextEngine.MeasureText(mText);
                     area = new Rectangle(area.X,
                         area.Y + (area.Height - metrics.height) / 2,
                         area.Width, metrics.height);
                 }
 
-                Tig.RenderingDevice.GetTextEngine().RenderText(area, mText);
+                Tig.RenderingDevice.TextEngine.RenderText(area, mText);
             }
         }
 
@@ -119,7 +119,7 @@ namespace OpenTemple.Core.Ui.Widgets
             }
             else
             {
-                var textMetrics = Tig.RenderingDevice.GetTextEngine().MeasureText(mText);
+                var textMetrics = Tig.RenderingDevice.TextEngine.MeasureText(mText);
                 mPreferredSize.Width = textMetrics.width;
                 mPreferredSize.Height = textMetrics.height;
             }

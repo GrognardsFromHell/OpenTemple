@@ -198,13 +198,13 @@ namespace OpenTemple.Core.GFX
 				}
 
 				_inputLayout = new InputLayout(
-					_device.mD3d11Device,
+					_device.Device,
 					_shader.Resource.CompiledCode,
 					inputDesc.ToArray()
 					); 
 			}
 
-			_device.mContext.InputAssembler.InputLayout = _inputLayout;
+			_device.Context.InputAssembler.InputLayout = _inputLayout;
 
 			// Set the stream sources
 			var vertexBuffers = new List<Buffer>(16);
@@ -216,7 +216,7 @@ namespace OpenTemple.Core.GFX
 			}
 			var offsets = new int[16];
 
-			_device.mContext.InputAssembler.SetVertexBuffers(0, vertexBuffers.ToArray(), _strides, offsets);
+			_device.Context.InputAssembler.SetVertexBuffers(0, vertexBuffers.ToArray(), _strides, offsets);
         }
 
         internal static int GetElementSize(VertexElementType type)

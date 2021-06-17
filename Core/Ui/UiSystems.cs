@@ -10,6 +10,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Alert;
 using OpenTemple.Core.Ui.Camping;
@@ -44,6 +45,8 @@ namespace OpenTemple.Core.Ui
         private static readonly List<ISaveGameAwareUi> _saveSystems = new List<ISaveGameAwareUi>();
 
         public static MainMenuUi MainMenu { get; private set; }
+
+        public static GameView GameView { get; private set; }
 
         // UiMM is unused
 
@@ -129,6 +132,11 @@ namespace OpenTemple.Core.Ui
 
         public static void Startup(GameConfig config)
         {
+            GameView = Startup(new GameView(
+                Tig.MainWindow,
+                Tig.RenderingDevice,
+                Globals.Config.Rendering
+            ));
             Tooltip = Startup<TooltipUi>();
             SaveGame = Startup<SaveGameUi>();
             UtilityBar = Startup<UtilityBarUi>();
@@ -166,8 +174,11 @@ namespace OpenTemple.Core.Ui
 
         private static T Startup<T>() where T : new()
         {
-            var system = new T();
+            return Startup(new T());
+        }
 
+        private static T Startup<T>(T system)
+        {
             if (system is IDisposable disposable)
             {
                 _disposableSystems.Add(disposable);

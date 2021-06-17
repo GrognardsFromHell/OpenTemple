@@ -15,9 +15,7 @@ namespace OpenTemple.Core.Systems.Teleport
         public locXY destLoc;
         public int destMap;
         public int movieId;
-        public int movieFlags;
         public int movieId2;
-        public int movieFlags2;
         public FadeArgs FadeOutArgs;
         public FadeArgs FadeInArgs;
         public int soundId;
@@ -30,7 +28,7 @@ namespace OpenTemple.Core.Systems.Teleport
         {
             FadeOutArgs = new FadeArgs
             {
-                color = new PackedLinearColorA(0, 0, 0, 255)
+                color = PackedLinearColorA.Black
             }
         };
     }

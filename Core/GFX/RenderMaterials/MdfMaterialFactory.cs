@@ -6,6 +6,7 @@ using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.MaterialDefinitions;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.GFX.RenderMaterials
 {
@@ -313,7 +314,7 @@ namespace OpenTemple.Core.GFX.RenderMaterials
 
 	    public MdfMaterial GetSpec() => _spec;
 
-	    public void Bind(RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null)
+	    public void Bind(IGameViewport viewport, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null)
 	    {
 		    // Simply do nothing
 	    }

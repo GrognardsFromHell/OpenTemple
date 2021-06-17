@@ -21,6 +21,7 @@ using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.InGameSelect;
 using OpenTemple.Core.Utils;
 
@@ -4264,7 +4265,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x10097320)]
         [TemplePlusLocation("ui_intgame_turnbased.cpp:1044")]
-        public void HourglassUpdate(bool intgameAcquireOn, bool intgameSelectionConfirmed, bool showPathPreview)
+        public void HourglassUpdate(IGameViewport viewport, bool intgameAcquireOn, bool intgameSelectionConfirmed, bool showPathPreview)
         {
             float greenMoveLength = 0.0f;
             float totalMoveLength = 0.0f;
@@ -4462,7 +4463,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
                         if (action.d20ActType != D20ActionType.NONE)
                         {
                             var d20ActionDef = D20ActionDefs.GetActionDef(action.d20ActType);
-                            d20ActionDef.seqRenderFunc?.Invoke(action, previewFlags);
+                            d20ActionDef.seqRenderFunc?.Invoke(viewport, action, previewFlags);
                         }
                     }
                 }
@@ -4476,6 +4477,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             foreach (var aooIndicator in _aooIndicators)
             {
                 _aooIndicatorRenderer.Render(
+                    viewport,
                     aooIndicator.Location,
                     aooIndicator.Texture
                 );

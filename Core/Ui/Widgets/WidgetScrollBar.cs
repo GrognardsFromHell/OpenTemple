@@ -4,7 +4,7 @@ using OpenTemple.Core.Platform;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
-    class WidgetScrollBar : WidgetContainer
+    public class WidgetScrollBar : WidgetContainer
     {
         public WidgetScrollBar(Rectangle rectangle) : this()
         {

@@ -62,7 +62,9 @@ namespace OpenTemple.Core.Ui.InGameSelect
         private const float AnglePerSlice = 0.16981582f; // 2 * MathF.PI / 37 (because of 38 slices)
 
         [TempleDllLocation(0x10107610)]
-        public void Render(Vector3 centerPos,
+        public void Render(
+            IGameViewport viewport,
+            Vector3 centerPos,
             float factor,
             float radiusInch,
             IMdfRenderMaterial innerMaterial,
@@ -109,7 +111,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _fanBufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_fanIndexBuffer);
 
-            innerMaterial.Bind(_device, new List<Light3d>());
+            innerMaterial.Bind(viewport, _device, new List<Light3d>());
 
             _device.DrawIndexed(PrimitiveType.TriangleList, 39, FanIndices.Length);
 
@@ -145,7 +147,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _ringBufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_ringIndexBuffer);
 
-            outerMaterial.Bind(_device, new List<Light3d>());
+            outerMaterial.Bind(viewport, _device, new List<Light3d>());
 
             _device.DrawIndexed(PrimitiveType.TriangleList, 76, RingIndices.Length);
         }

@@ -44,14 +44,14 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             }
         }
 
-        internal override bool LeftMouseButtonClicked(MessageMouseArgs args)
+        internal override bool LeftMouseButtonClicked(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }
 
-        internal override bool LeftMouseButtonReleased(MessageMouseArgs args)
+        internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
-            MouseMoved(args);
+            MouseMoved(viewport, args);
 
             if (WallState == WallState.StartPoint)
             {
@@ -61,7 +61,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
 
             else if (WallState == WallState.EndPoint)
             {
-                var mouseLoc = GameSystems.Location.ScreenToLocPrecise(args.X, args.Y);
+                var mouseLoc = GameViews.Primary.ScreenToTile(args.X, args.Y);
                 var mouseLocTrim =
                     GameSystems.Location.TrimToLength(Result.location, mouseLoc, Picker.trimmedRangeInches);
                 _wallEndPoint = mouseLocTrim;
@@ -82,7 +82,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             return true;
         }
 
-        internal override bool MouseMoved(MessageMouseArgs args)
+        internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             ClearResults();
 
@@ -93,7 +93,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
                 return true;
             }
 
-            var mouseLoc = GameSystems.Location.ScreenToLocPrecise(args.X, args.Y);
+            var mouseLoc = GameViews.Primary.ScreenToTile(args.X, args.Y);
             Trace.Assert(Result.HasLocation);
 
             var maxRange = (float) (Picker.range * locXY.INCH_PER_FEET);
@@ -124,7 +124,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             return false;
         }
 
-        internal override bool RightMouseButtonReleased(MessageMouseArgs args)
+        internal override bool RightMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             ClearResults();
 

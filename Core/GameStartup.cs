@@ -7,6 +7,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Movies;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
@@ -17,15 +18,15 @@ using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core
 {
-    public class MainGame : IDisposable
+    public class GameStartup : IDisposable
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private readonly SingleInstanceCheck _singleInstanceCheck = new SingleInstanceCheck();
+        private readonly SingleInstanceCheck _singleInstanceCheck = new ();
 
         public string DataFolder { get; set; }
 
-        public bool Run()
+        public bool Startup()
         {
             var gameFolders = new GameFolders();
             Globals.GameFolders = gameFolders;
@@ -49,29 +50,28 @@ namespace OpenTemple.Core
             Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
             // Hides the cursor during loading
+#if !DEBUG
             Tig.Mouse.HideCursor();
+#endif
+
+            Globals.GameLoop = new GameLoop(
+                Tig.MessageQueue,
+                Tig.RenderingDevice,
+                Tig.DebugUI
+            );
+            Tig.MainWindow.Closed += Globals.GameLoop.Stop;
 
             GameSystems.Init();
 
             Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga");
 
-            Globals.UiManager = new UiManager();
+            Globals.UiManager = new UiManager(Tig.MainWindow);
             Globals.UiAssets = new UiAssets();
             Globals.WidgetTextStyles = new WidgetTextStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();
 
             UiSystems.Startup(config);
 
-            GameSystems.LoadModule("ToEE");
-
-            if (!config.SkipIntro)
-            {
-                GameSystems.Movies.PlayMovie("movies/introcinematic.bik", 0, 0, 0);
-            }
-
-            // Show the main menu
-            Tig.Mouse.ShowCursor();
-            UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
             return true;
         }
 
@@ -128,6 +128,19 @@ namespace OpenTemple.Core
         public void Dispose()
         {
             _singleInstanceCheck.Dispose();
+        }
+
+        public void EnterMainMenu()
+        {
+            GameSystems.LoadModule("ToEE");
+
+            if (!Globals.Config.SkipIntro)
+            {
+                MovieSystem.PlayMovie("movies/introcinematic.bik", null);
+            }
+
+            Tig.Mouse.ShowCursor();
+            UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
         }
     }
 }

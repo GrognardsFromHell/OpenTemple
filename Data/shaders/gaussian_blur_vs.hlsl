@@ -1,6 +1,8 @@
 
+// This MUST match the definition in gui_vs.hlsl
 struct VS_IN {
 	float4 pos : POSITION;
+	float4 diffuse : COLOR0;
 	float2 uv : TEXCOORD0;
 };
 

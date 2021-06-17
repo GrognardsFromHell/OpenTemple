@@ -29,6 +29,8 @@ using DeviceChild = SharpDX.Direct3D11.DeviceChild;
 using DXGIDevice = SharpDX.DXGI.Device;
 using MapFlags = SharpDX.DXGI.MapFlags;
 using Resource = SharpDX.Direct3D11.Resource;
+using Vector2 = SharpDX.Vector2;
+using Vector3 = System.Numerics.Vector3;
 
 namespace OpenTemple.Core.GFX
 {
@@ -51,7 +53,7 @@ namespace OpenTemple.Core.GFX
             mWindowHandle = mainWindow.NativeHandle;
             mShaders = new Shaders(fs, this);
             mTextures = new Textures(fs, this, 128 * 1024 * 1024);
-            this.debugDevice = debugDevice;
+            _debugDevice = debugDevice;
 
             mDxgiFactory = new Factory1();
 
@@ -89,14 +91,14 @@ namespace OpenTemple.Core.GFX
 
             try
             {
-                mD3d11Device = new D3D11Device(mAdapter, deviceFlags, requestedLevels);
-                mFeatureLevel = mD3d11Device.FeatureLevel;
-                mContext = mD3d11Device.ImmediateContext;
+                Device = new D3D11Device(mAdapter, deviceFlags, requestedLevels);
+                mFeatureLevel = Device.FeatureLevel;
+                _context = Device.ImmediateContext;
             }
             catch (SharpDXException e)
             {
                 // DXGI_ERROR_SDK_COMPONENT_MISSING
-                if (debugDevice && e.ResultCode.Code == 0x887A002D)
+                if (debugDevice && unchecked((uint) e.ResultCode.Code) == 0x887A002D)
                 {
                     throw new GfxException("To use the D3D debugging feature, you need to " +
                                            "install the corresponding Windows SDK component.");
@@ -110,11 +112,11 @@ namespace OpenTemple.Core.GFX
             if (debugDevice)
             {
                 // Retrieve the interface used to emit event groupings for debugging
-                annotation = mContext.QueryInterfaceOrNull<UserDefinedAnnotation>();
+                annotation = _context.QueryInterfaceOrNull<UserDefinedAnnotation>();
             }
 
             // Retrieve DXGI device
-            using DXGIDevice dxgiDevice = mD3d11Device.QueryInterfaceOrNull<DXGIDevice>();
+            using DXGIDevice dxgiDevice = Device.QueryInterfaceOrNull<DXGIDevice>();
             if (dxgiDevice == null)
             {
                 throw new GfxException("Couldn't retrieve DXGI device from D3D11 device.");
@@ -124,7 +126,7 @@ namespace OpenTemple.Core.GFX
             mDxgiFactory = dxgiAdapter.GetParent<Factory1>(); // Hang on to the DXGI factory used here
 
             // Create 2D rendering
-            textEngine = new TextEngine(mD3d11Device, debugDevice);
+            _textEngine = new TextEngine(Device, debugDevice);
 
             if (mWindowHandle != IntPtr.Zero)
             {
@@ -136,7 +138,7 @@ namespace OpenTemple.Core.GFX
                 mSwapChainDesc.SampleDescription.Count = 1;
                 mSwapChainDesc.IsWindowed = true; // As per the recommendation, we always create windowed
 
-                _swapChain = new SwapChain(mDxgiFactory, mD3d11Device, mSwapChainDesc);
+                _swapChain = new SwapChain(mDxgiFactory, Device, mSwapChainDesc);
 
                 // Get the backbuffer from the swap chain
                 using var backBufferTexture = _swapChain.GetBackBuffer<Texture2D>(0);
@@ -166,11 +168,13 @@ namespace OpenTemple.Core.GFX
 
             // This is only relevant if we are in windowed mode
             mainWindow.Resized += size => ResizeBuffers();
+            mainWindow.UiCanvasSizeChanged += () => UiCanvasSize = mainWindow.UiCanvasSize;
+            UiCanvasSize = mainWindow.UiCanvasSize;
         }
 
-        public bool BeginFrame()
+        public bool BeginDraw()
         {
-            if (mBeginSceneDepth++ > 0)
+            if (_drawDepth++ > 0)
             {
                 return true;
             }
@@ -178,25 +182,29 @@ namespace OpenTemple.Core.GFX
             ClearCurrentColorTarget(new LinearColorA(0, 0, 0, 1));
             ClearCurrentDepthTarget();
 
-            mLastFrameStart = TimePoint.Now;
-            ;
-
             return true;
         }
 
-        public bool Present()
+        public bool EndDraw()
         {
-            if (--mBeginSceneDepth > 0)
+            if (--_drawDepth > 0)
             {
                 return true;
             }
 
-            PresentForce();
-
             return true;
         }
 
-        public void PresentForce()
+        /// <summary>
+        /// Indicates that rendering a new frame is beginning.
+        /// </summary>
+        public void BeginFrame()
+        {
+            Debug.Assert(_drawDepth == 0);
+            _lastFrameStart = TimePoint.Now;
+        }
+
+        public void Present()
         {
             mTextures.FreeUnusedTextures();
 
@@ -205,7 +213,7 @@ namespace OpenTemple.Core.GFX
 
         public void Flush()
         {
-            mContext.Flush();
+            _context.Flush();
         }
 
         public void ClearCurrentColorTarget(LinearColorA color)
@@ -213,7 +221,7 @@ namespace OpenTemple.Core.GFX
             var target = GetCurrentRenderTargetColorBuffer();
 
             // Clear the current render target view
-            mContext.ClearRenderTargetView(target.RenderTargetView, color);
+            _context.ClearRenderTargetView(target.RenderTargetView, color);
         }
 
         public void ClearCurrentDepthTarget(bool clearDepth = true,
@@ -245,11 +253,11 @@ namespace OpenTemple.Core.GFX
                 return;
             }
 
-            mContext.ClearDepthStencilView(depthStencil.DsView, flags, depthValue,
+            _context.ClearDepthStencilView(depthStencil.DsView, flags, depthValue,
                 stencilValue);
         }
 
-        public TimePoint GetLastFrameStart() => mLastFrameStart;
+        public TimePoint GetLastFrameStart() => _lastFrameStart;
         public TimePoint GetDeviceCreated() => mDeviceCreated;
 
         public List<DisplayDevice> GetDisplayDevices()
@@ -337,7 +345,7 @@ namespace OpenTemple.Core.GFX
                 return;
             }
 
-            if (mRenderTargetStack.Count != 1)
+            if (_renderTargetStack.Count != 1)
             {
                 throw new InvalidOperationException("Cannot resize backbuffer while rendering is going on!");
             }
@@ -435,7 +443,7 @@ namespace OpenTemple.Core.GFX
         public ResourceRef<BlendState> CreateBlendState(BlendSpec spec)
         {
             // Check if we have a matching state already
-            if (blendStates.TryGetValue(spec, out var stateRef))
+            if (_blendStates.TryGetValue(spec, out var stateRef))
             {
                 return stateRef.CloneRef();
             }
@@ -473,10 +481,10 @@ namespace OpenTemple.Core.GFX
 
             targetDesc.RenderTargetWriteMask = writeMask;
 
-            var gpuState = new SharpDX.Direct3D11.BlendState(mD3d11Device, blendDesc);
+            var gpuState = new SharpDX.Direct3D11.BlendState(Device, blendDesc);
 
             stateRef = new ResourceRef<BlendState>(new BlendState(this, spec, gpuState));
-            blendStates[spec] = stateRef;
+            _blendStates[spec] = stateRef;
             return stateRef.CloneRef();
         }
 
@@ -508,7 +516,7 @@ namespace OpenTemple.Core.GFX
         public ResourceRef<DepthStencilState> CreateDepthStencilState(DepthStencilSpec spec)
         {
             // Check if we have a matching state already
-            if (depthStencilStates.TryGetValue(spec, out var stateRef))
+            if (_depthStencilStates.TryGetValue(spec, out var stateRef))
             {
                 return stateRef.CloneRef();
             }
@@ -521,17 +529,17 @@ namespace OpenTemple.Core.GFX
 
             depthStencilDesc.DepthComparison = ConvertComparisonFunc(spec.depthFunc);
 
-            var gpuState = new SharpDX.Direct3D11.DepthStencilState(mD3d11Device, depthStencilDesc);
+            var gpuState = new SharpDX.Direct3D11.DepthStencilState(Device, depthStencilDesc);
 
             stateRef = new ResourceRef<DepthStencilState>(new DepthStencilState(this, spec, gpuState));
-            depthStencilStates[spec] = stateRef;
+            _depthStencilStates[spec] = stateRef;
             return stateRef.CloneRef();
         }
 
         public ResourceRef<RasterizerState> CreateRasterizerState(RasterizerSpec spec)
         {
             // Check if we have a matching state already
-            if (rasterizerStates.TryGetValue(spec, out var stateRef))
+            if (_rasterizerStates.TryGetValue(spec, out var stateRef))
             {
                 return stateRef.CloneRef();
             }
@@ -557,12 +565,13 @@ namespace OpenTemple.Core.GFX
 
             rasterizerDesc.IsScissorEnabled = spec.scissor;
 
-            rasterizerDesc.IsMultisampleEnabled = antiAliasing;
+            var gpuState = new SharpDX.Direct3D11.RasterizerState(Device, rasterizerDesc);
 
-            var gpuState = new SharpDX.Direct3D11.RasterizerState(mD3d11Device, rasterizerDesc);
+            rasterizerDesc.IsMultisampleEnabled = true;
+            var multiSamplingGpuState = new SharpDX.Direct3D11.RasterizerState(Device, rasterizerDesc);
 
-            stateRef = new ResourceRef<RasterizerState>(new RasterizerState(this, spec, gpuState));
-            rasterizerStates[spec] = stateRef;
+            stateRef = new ResourceRef<RasterizerState>(new RasterizerState(spec, gpuState, multiSamplingGpuState));
+            _rasterizerStates[spec] = stateRef;
             return stateRef.CloneRef();
         }
 
@@ -581,7 +590,7 @@ namespace OpenTemple.Core.GFX
 
         public ResourceRef<SamplerState> CreateSamplerState(SamplerSpec spec)
         {
-            if (samplerStates.TryGetValue(spec, out var stateRef))
+            if (_samplerStates.TryGetValue(spec, out var stateRef))
             {
                 return stateRef.CloneRef();
             }
@@ -630,28 +639,39 @@ namespace OpenTemple.Core.GFX
             samplerDesc.AddressU = ConvertTextureAddress(spec.addressU);
             samplerDesc.AddressV = ConvertTextureAddress(spec.addressV);
 
-            var gpuState = new SharpDX.Direct3D11.SamplerState(mD3d11Device, samplerDesc);
+            var gpuState = new SharpDX.Direct3D11.SamplerState(Device, samplerDesc);
 
             stateRef = new ResourceRef<SamplerState>(new SamplerState(this, spec, gpuState));
-            samplerStates[spec] = stateRef;
+            _samplerStates[spec] = stateRef;
             return stateRef.CloneRef();
         }
 
         // Changes the current scissor rect to the given rectangle
         public void SetScissorRect(int x, int y, int width, int height)
         {
-            mContext.Rasterizer.SetScissorRectangle(x, y, x + width, y + height);
+            // x, y, width, height are in UI space
+            var size = _renderTargetStack.Peek().Size;
+            var hFactor = size.Width / _uiCanvasSize.Width;
+            var vFactor = size.Height / _uiCanvasSize.Height;
 
-            textEngine.SetScissorRect(x, y, width, height);
+            var left = (int) (x * hFactor);
+            var top = (int) (y * vFactor);
+            var right = (int) ((x + width) * hFactor);
+            var bottom = (int) ((y + height) * vFactor);
+
+            _context.Rasterizer.SetScissorRectangle(left, top, right, bottom);
+
+            // Text engine deals in UI space directly
+            _textEngine.SetScissorRect(x, y, width, height);
         }
 
         // Resets the scissor rect to the current render target's size
         public void ResetScissorRect()
         {
-            var size = mRenderTargetStack.Peek().colorBuffer.Resource.GetSize();
-            mContext.Rasterizer.SetScissorRectangle(0, 0, size.Width, size.Height);
+            var size = _renderTargetStack.Peek().Size;
+            _context.Rasterizer.SetScissorRectangle(0, 0, size.Width, size.Height);
 
-            textEngine.ResetScissorRect();
+            _textEngine.ResetScissorRect();
         }
 
         public ResourceRef<IndexBuffer> CreateEmptyIndexBuffer(int count, Format format = Format.R16_UInt,
@@ -666,7 +686,7 @@ namespace OpenTemple.Core.GFX
                 0
             );
 
-            var buffer = new Buffer(mD3d11Device, IntPtr.Zero, bufferDesc);
+            var buffer = new Buffer(Device, IntPtr.Zero, bufferDesc);
             if (debugName != null)
             {
                 SetDebugName(buffer, debugName);
@@ -688,7 +708,7 @@ namespace OpenTemple.Core.GFX
                 0
             );
 
-            var buffer = new Buffer(mD3d11Device, IntPtr.Zero, bufferDesc);
+            var buffer = new Buffer(Device, IntPtr.Zero, bufferDesc);
             if (debugName != null)
             {
                 SetDebugName(buffer, debugName);
@@ -739,14 +759,14 @@ namespace OpenTemple.Core.GFX
             textureDesc.CpuAccessFlags = CpuAccessFlags.Write;
             textureDesc.SampleDescription.Count = 1;
 
-            var textureNew = new Texture2D(mD3d11Device, textureDesc);
-
+            var textureNew = new Texture2D(Device, textureDesc);
+            SetDebugName(textureNew, "DynamicTexture");
 
             var resourceViewDesc = new ShaderResourceViewDescription();
             resourceViewDesc.Dimension = ShaderResourceViewDimension.Texture2D;
             resourceViewDesc.Texture2D.MipLevels = 1;
 
-            var resourceView = new ShaderResourceView(mD3d11Device, textureNew, resourceViewDesc);
+            var resourceView = new ShaderResourceView(Device, textureNew, resourceViewDesc);
 
             return new ResourceRef<DynamicTexture>(new DynamicTexture(this, textureNew, resourceView,
                 size, bytesPerPixel));
@@ -769,13 +789,14 @@ namespace OpenTemple.Core.GFX
             textureDesc.CpuAccessFlags = CpuAccessFlags.Read;
             textureDesc.SampleDescription.Count = 1;
 
-            var textureNew = new Texture2D(mD3d11Device, textureDesc);
+            var textureNew = new Texture2D(Device, textureDesc);
+            SetDebugName(textureNew, "DynamicStagingTexture");
 
             var resourceViewDesc = new ShaderResourceViewDescription();
             resourceViewDesc.Dimension = ShaderResourceViewDimension.Texture2D;
             resourceViewDesc.Texture2D.MipLevels = 1;
 
-            var resourceView = new ShaderResourceView(mD3d11Device, textureNew, resourceViewDesc);
+            var resourceView = new ShaderResourceView(Device, textureNew, resourceViewDesc);
 
             return new ResourceRef<DynamicTexture>(new DynamicTexture(this, textureNew, resourceView,
                 size, bytesPerPixel));
@@ -783,11 +804,11 @@ namespace OpenTemple.Core.GFX
 
         public void CopyRenderTarget(RenderTargetTexture renderTarget, DynamicTexture stagingTexture)
         {
-            mContext.CopyResource(renderTarget.Texture, stagingTexture.mTexture);
+            _context.CopyResource(renderTarget.Texture, stagingTexture.mTexture);
         }
 
         public ResourceRef<RenderTargetTexture> CreateRenderTargetTexture(BufferFormat format, int width, int height,
-            bool multiSample = false)
+            MultiSampleSettings multiSample = default)
         {
             var size = new Size(width, height);
 
@@ -797,13 +818,13 @@ namespace OpenTemple.Core.GFX
             var sampleCount = 1;
             var sampleQuality = 0;
 
-            if (multiSample)
+            if (multiSample.IsEnabled)
             {
                 Logger.Info("using multisampling");
                 // If this is a multi sample render target, we cannot use it as a texture, or at least, we shouldn't
                 bindFlags = BindFlags.RenderTarget;
-                sampleCount = msaaSamples;
-                sampleQuality = msaaQuality;
+                sampleCount = multiSample.Samples;
+                sampleQuality = multiSample.Quality;
             }
             else
             {
@@ -822,23 +843,24 @@ namespace OpenTemple.Core.GFX
             textureDesc.SampleDescription.Count = sampleCount;
             textureDesc.SampleDescription.Quality = sampleQuality;
 
-            var texture = new Texture2D(mD3d11Device, textureDesc);
+            var texture = new Texture2D(Device, textureDesc);
+            SetDebugName(texture, "RenderTargetTexture");
 
             // Create the render target view of the backing buffer
             var rtViewDesc = new RenderTargetViewDescription();
             rtViewDesc.Dimension = RenderTargetViewDimension.Texture2D;
             rtViewDesc.Texture2D.MipSlice = 0;
 
-            if (multiSample)
+            if (multiSample.IsEnabled)
             {
                 rtViewDesc.Dimension = RenderTargetViewDimension.Texture2DMultisampled;
             }
 
-            var rtView = new RenderTargetView(mD3d11Device, texture, rtViewDesc);
+            var rtView = new RenderTargetView(Device, texture, rtViewDesc);
 
             var srvTexture = texture;
             Texture2D resolvedTexture = null;
-            if (multiSample)
+            if (multiSample.IsEnabled)
             {
                 // We have to create another non-multisampled texture and use it for the SRV instead
 
@@ -847,7 +869,8 @@ namespace OpenTemple.Core.GFX
                 textureDesc.SampleDescription.Count = 1;
                 textureDesc.SampleDescription.Quality = 0;
 
-                resolvedTexture = new Texture2D(mD3d11Device, textureDesc);
+                resolvedTexture = new Texture2D(Device, textureDesc);
+                SetDebugName(resolvedTexture, "RenderTargetResolvedTexture");
                 srvTexture = resolvedTexture;
             }
 
@@ -855,10 +878,10 @@ namespace OpenTemple.Core.GFX
             resourceViewDesc.Dimension = ShaderResourceViewDimension.Texture2D;
             resourceViewDesc.Texture2D.MipLevels = 1;
 
-            var resourceView = new ShaderResourceView(mD3d11Device, srvTexture, resourceViewDesc);
+            var resourceView = new ShaderResourceView(Device, srvTexture, resourceViewDesc);
 
             return new ResourceRef<RenderTargetTexture>(new RenderTargetTexture(this, texture, rtView, resolvedTexture,
-                resourceView, size, multiSample));
+                resourceView, size, multiSample.IsEnabled));
         }
 
         public ResourceRef<RenderTargetTexture> CreateRenderTargetForNativeSurface(Texture2D surface)
@@ -872,7 +895,7 @@ namespace OpenTemple.Core.GFX
 
             // Create a render target view for rendering to the real backbuffer
             var backBufferView = new RenderTargetView(
-                mD3d11Device, surface, rtvDesc
+                Device, surface, rtvDesc
             );
 
             var size = new Size(surfaceDesc.Width, surfaceDesc.Height);
@@ -899,7 +922,7 @@ namespace OpenTemple.Core.GFX
 
             dxgiResource.Dispose();
 
-            var sharedResource = mD3d11Device.OpenSharedResource<Resource>(sharedHandle);
+            var sharedResource = Device.OpenSharedResource<Resource>(sharedHandle);
 
             var sharedTexture = sharedResource.QueryInterface<Texture2D>();
 
@@ -907,7 +930,7 @@ namespace OpenTemple.Core.GFX
         }
 
         public ResourceRef<RenderTargetDepthStencil> CreateRenderTargetDepthStencil(int width, int height,
-            bool multiSample = false)
+            MultiSampleSettings multiSample = default)
         {
             var descDepth = new Texture2DDescription();
             descDepth.Format = Format.D24_UNorm_S8_UInt;
@@ -918,29 +941,30 @@ namespace OpenTemple.Core.GFX
             descDepth.BindFlags = BindFlags.DepthStencil;
 
             // Enable multi sampling
-            if (multiSample)
+            if (multiSample.IsEnabled)
             {
-                descDepth.SampleDescription.Count = msaaSamples;
-                descDepth.SampleDescription.Quality = msaaQuality;
+                descDepth.SampleDescription.Count = multiSample.Samples;
+                descDepth.SampleDescription.Quality = multiSample.Quality;
             }
             else
             {
                 descDepth.SampleDescription.Count = 1;
             }
 
-            var texture = new Texture2D(mD3d11Device, descDepth);
+            var texture = new Texture2D(Device, descDepth);
+            SetDebugName(texture, "RenderTargetDepthStencilTexture");
 
             // Create the depth stencil view
             var depthStencilViewDesc = new DepthStencilViewDescription();
             depthStencilViewDesc.Dimension = DepthStencilViewDimension.Texture2D;
             depthStencilViewDesc.Format = descDepth.Format;
 
-            if (multiSample)
+            if (multiSample.IsEnabled)
             {
                 depthStencilViewDesc.Dimension = DepthStencilViewDimension.Texture2DMultisampled;
             }
 
-            var depthStencilView = new DepthStencilView(mD3d11Device, texture, depthStencilViewDesc);
+            var depthStencilView = new DepthStencilView(Device, texture, depthStencilViewDesc);
 
             var size = new Size(width, height);
             return new ResourceRef<RenderTargetDepthStencil>(
@@ -971,7 +995,7 @@ namespace OpenTemple.Core.GFX
             Buffer buffer;
             fixed (byte* dataPtr = data)
             {
-                buffer = new Buffer(mD3d11Device, (IntPtr) dataPtr, bufferDesc);
+                buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
             }
 
             if (debugName != null)
@@ -997,7 +1021,7 @@ namespace OpenTemple.Core.GFX
             Buffer buffer;
             fixed (ushort* dataPtr = data)
             {
-                buffer = new Buffer(mD3d11Device, (IntPtr) dataPtr, bufferDesc);
+                buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
             }
 
             if (debugName != null)
@@ -1008,7 +1032,8 @@ namespace OpenTemple.Core.GFX
             return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, Format.R16_UInt, data.Length));
         }
 
-        public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<int> data, bool immutable = true, string debugName = null)
+        public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<int> data, bool immutable = true,
+            string debugName = null)
         {
             var bufferDesc = new BufferDescription(
                 data.Length * sizeof(int),
@@ -1022,7 +1047,7 @@ namespace OpenTemple.Core.GFX
             Buffer buffer;
             fixed (int* dataPtr = data)
             {
-                buffer = new Buffer(mD3d11Device, (IntPtr) dataPtr, bufferDesc);
+                buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
             }
 
             if (debugName != null)
@@ -1071,12 +1096,8 @@ namespace OpenTemple.Core.GFX
             Matrix4x4 matrix;
             switch (semantic)
             {
-                case StandardSlotSemantic.ViewProjMatrix:
-                    matrix = mCamera.GetViewProj();
-                    SetVertexShaderConstants(startRegister, ref matrix);
-                    break;
                 case StandardSlotSemantic.UiProjMatrix:
-                    matrix = mCamera.GetUiProjection();
+                    matrix = UiProjection;
                     SetVertexShaderConstants(startRegister, ref matrix);
                     break;
             }
@@ -1087,12 +1108,8 @@ namespace OpenTemple.Core.GFX
             Span<Matrix4x4> matrix = stackalloc Matrix4x4[1];
             switch (semantic)
             {
-                case StandardSlotSemantic.ViewProjMatrix:
-                    matrix[0] = mCamera.GetViewProj();
-                    SetPixelShaderConstants<Matrix4x4>(startRegister, matrix);
-                    break;
                 case StandardSlotSemantic.UiProjMatrix:
-                    matrix[0] = mCamera.GetUiProjection();
+                    matrix[0] = UiProjection;
                     SetPixelShaderConstants<Matrix4x4>(startRegister, matrix);
                     break;
             }
@@ -1100,35 +1117,53 @@ namespace OpenTemple.Core.GFX
 
         public void SetRasterizerState(RasterizerState state)
         {
-            if (currentRasterizerState == state)
+            if (_currentRasterizerState == state)
             {
                 return; // Already set
             }
 
-            currentRasterizerState = state;
-            mContext.Rasterizer.State = state.GpuState;
+            _currentRasterizerState = state;
+            SetGpuRasterizerState();
+        }
+
+        /// <summary>
+        /// Sets the correct rasterizer state depending on whether the render target is multi-sampled or not.
+        /// </summary>
+        private void SetGpuRasterizerState()
+        {
+            if (_currentRasterizerState != null && _renderTargetStack.TryPeek(out var currentTarget))
+            {
+                if (currentTarget.IsMultiSampled)
+                {
+                    _context.Rasterizer.State = _currentRasterizerState.MultiSamplingState;
+                }
+                else
+                {
+                    _context.Rasterizer.State = _currentRasterizerState.State;
+                }
+            }
         }
 
         public void SetBlendState(BlendState state)
         {
-            if (currentBlendState == state)
+            if (_currentBlendState == state)
             {
                 return; // Already set
             }
 
-            currentBlendState = state;
-            mContext.OutputMerger.BlendState = state.GpuState;
+            _currentBlendState = state;
+            _context.OutputMerger.BlendState = state.GpuState;
         }
 
         public void SetDepthStencilState(DepthStencilState state)
         {
-            if (currentDepthStencilState == state)
+            if (_currentDepthStencilState == state)
             {
                 return; // Already set
             }
 
-            currentDepthStencilState = state;
-            mContext.OutputMerger.DepthStencilState = state.GpuState;
+            _currentDepthStencilState = state;
+            _context.OutputMerger.DepthStencilState = state.GpuState;
         }
 
         public void SetSamplerState(int samplerIdx, SamplerState state)
@@ -1141,7 +1176,7 @@ namespace OpenTemple.Core.GFX
 
             currentSamplerState[samplerIdx] = state;
 
-            mContext.PixelShader.SetSampler(samplerIdx, state.GpuState);
+            _context.PixelShader.SetSampler(samplerIdx, state.GpuState);
         }
 
         public void SetTexture(int slot, ITexture texture)
@@ -1156,7 +1191,7 @@ namespace OpenTemple.Core.GFX
                 {
                     var mDesc = rt.Texture.Description;
 
-                    mContext.ResolveSubresource(
+                    _context.ResolveSubresource(
                         rt.Texture,
                         0,
                         rt.ResolvedTexture,
@@ -1168,12 +1203,12 @@ namespace OpenTemple.Core.GFX
 
             // D3D11
             var resourceView = texture.GetResourceView();
-            mContext.PixelShader.SetShaderResource(slot, resourceView);
+            _context.PixelShader.SetShaderResource(slot, resourceView);
         }
 
         public void SetIndexBuffer(IndexBuffer indexBuffer)
         {
-            mContext.InputAssembler.SetIndexBuffer(indexBuffer.Buffer, indexBuffer.Format, 0);
+            _context.InputAssembler.SetIndexBuffer(indexBuffer.Buffer, indexBuffer.Format, 0);
         }
 
         public void Draw(PrimitiveType type, int vertexCount, int startVertex = 0)
@@ -1201,8 +1236,8 @@ namespace OpenTemple.Core.GFX
                     throw new GfxException("Unsupported primitive type");
             }
 
-            mContext.InputAssembler.PrimitiveTopology = primTopology;
-            mContext.Draw(vertexCount, startVertex);
+            _context.InputAssembler.PrimitiveTopology = primTopology;
+            _context.Draw(vertexCount, startVertex);
         }
 
         public void DrawIndexed(PrimitiveType type, int vertexCount, int indexCount, int startVertex = 0,
@@ -1231,8 +1266,8 @@ namespace OpenTemple.Core.GFX
                     throw new GfxException("Unsupported primitive type");
             }
 
-            mContext.InputAssembler.PrimitiveTopology = primTopology;
-            mContext.DrawIndexed(indexCount, startVertex, vertexBase);
+            _context.InputAssembler.PrimitiveTopology = primTopology;
+            _context.DrawIndexed(indexCount, startVertex, vertexBase);
         }
 
         /*
@@ -1319,7 +1354,7 @@ namespace OpenTemple.Core.GFX
             stagingDesc.SampleDescription.Count = 1;
             stagingDesc.SampleDescription.Quality = 0;
 
-            using var stagingTex = new Texture2D(mD3d11Device, stagingDesc);
+            using var stagingTex = new Texture2D(Device, stagingDesc);
             SetDebugName(stagingTex, "ScreenshotStagingTex");
 
             if (stretch)
@@ -1333,25 +1368,25 @@ namespace OpenTemple.Core.GFX
                 tmpDesc.Usage = ResourceUsage.Default;
                 tmpDesc.BindFlags = BindFlags.ShaderResource;
 
-                using var tmpTexture = new Texture2D(mD3d11Device, tmpDesc);
+                using var tmpTexture = new Texture2D(Device, tmpDesc);
                 SetDebugName(tmpTexture, "ScreenshotTmpTexture");
 
                 // Copy/resolve the current RT into the temp texture
                 if (currentTargetDesc.SampleDescription.Count > 1)
                 {
-                    mContext.ResolveSubresource(renderTarget.Texture, 0, tmpTexture, 0, tmpDesc.Format);
+                    _context.ResolveSubresource(renderTarget.Texture, 0, tmpTexture, 0, tmpDesc.Format);
                 }
                 else
                 {
                     // SharpDX just reversed these arguments. WTF.
-                    mContext.CopyResource(renderTarget.Texture, tmpTexture);
+                    _context.CopyResource(renderTarget.Texture, tmpTexture);
                 }
 
                 // Create the Shader Resource View that we can use to use the tmp texture for sampling in a shader
                 var srvDesc = new ShaderResourceViewDescription();
                 srvDesc.Dimension = ShaderResourceViewDimension.Texture2D;
                 srvDesc.Texture2D.MipLevels = 1;
-                var srv = new ShaderResourceView(mD3d11Device, tmpTexture, srvDesc);
+                var srv = new ShaderResourceView(Device, tmpTexture, srvDesc);
 
                 // Create our own wrapper so we can use the standard rendering functions
                 var tmpSize = new Size((int) currentTargetDesc.Width, (int) currentTargetDesc.Height);
@@ -1366,32 +1401,30 @@ namespace OpenTemple.Core.GFX
                 using var stretchedRt = CreateRenderTargetTexture(renderTarget.Format, width, height);
 
                 PushRenderTarget(stretchedRt.Resource, null);
-                ShapeRenderer2d renderer = new ShapeRenderer2d(this);
+                var renderer = new ShapeRenderer2d(this);
 
-                var w = (float) mCamera.GetScreenWidth();
-                var h = (float) mCamera.GetScreenHeight();
-                renderer.DrawRectangle(0, 0, w, h, tmpTexWrapper);
+                renderer.DrawRectangle(0, 0, width, height, tmpTexWrapper);
 
                 PopRenderTarget();
 
                 // Copy our stretchted RT to the staging resource
-                mContext.CopyResource(stretchedRt.Resource.Texture, stagingTex);
+                _context.CopyResource(stretchedRt.Resource.Texture, stagingTex);
             }
             else
             {
                 // Resolve multi sampling if necessary
                 if (currentTargetDesc.SampleDescription.Count > 1)
                 {
-                    mContext.ResolveSubresource(renderTarget.Texture, 0, stagingTex, 0, stagingDesc.Format);
+                    _context.ResolveSubresource(renderTarget.Texture, 0, stagingTex, 0, stagingDesc.Format);
                 }
                 else
                 {
-                    mContext.CopyResource(renderTarget.Texture, stagingTex);
+                    _context.CopyResource(renderTarget.Texture, stagingTex);
                 }
             }
 
             // Lock the resource and retrieve it
-            var mapped = mContext.MapSubresource(
+            var mapped = _context.MapSubresource(
                 stagingTex,
                 0,
                 SharpDX.Direct3D11.MapMode.Read,
@@ -1412,7 +1445,7 @@ namespace OpenTemple.Core.GFX
                     quality, mapped.RowPitch);
             }
 
-            mContext.UnmapSubresource(stagingTex, 0);
+            _context.UnmapSubresource(stagingTex, 0);
 
             // We have to write using tio or else it goes god knows where
             try
@@ -1427,7 +1460,7 @@ namespace OpenTemple.Core.GFX
 
         private void SetDebugName(DeviceChild obj, string name)
         {
-            if (debugDevice)
+            if (_debugDevice)
             {
                 obj.DebugName = name;
             }
@@ -1453,34 +1486,6 @@ namespace OpenTemple.Core.GFX
         public Textures GetTextures()
         {
             return mTextures;
-        }
-
-        public WorldCamera GetCamera()
-        {
-            return mCamera;
-        }
-
-        public void SetAntiAliasing(bool enable, int samples, int quality)
-        {
-            msaaQuality = quality;
-            msaaSamples = samples;
-
-            if (antiAliasing != enable)
-            {
-                antiAliasing = enable;
-
-                // Recreate all rasterizer states to set the multisampling flag accordingly
-                foreach (var entry in rasterizerStates)
-                {
-                    var gpuState = entry.Value;
-                    var gpuDesc = gpuState.Resource.GpuState.Description;
-
-                    gpuDesc.IsMultisampleEnabled = enable;
-
-                    entry.Value.Resource.GpuState.Dispose();
-                    entry.Value.Resource.GpuState = new SharpDX.Direct3D11.RasterizerState(mD3d11Device, gpuDesc);
-                }
-            }
         }
 
         public void UpdateBuffer<T>(VertexBuffer buffer, ReadOnlySpan<T> data) where T : struct
@@ -1518,12 +1523,12 @@ namespace OpenTemple.Core.GFX
         {
             var data = MapRaw(buffer.Buffer, buffer.Size, mode);
             var castData = MemoryMarshal.Cast<byte, TElement>(data);
-            return new MappedBuffer<TElement>(buffer.Buffer, mContext, castData, 0);
+            return new MappedBuffer<TElement>(buffer.Buffer, _context, castData, 0);
         }
 
         public void Unmap(VertexBuffer buffer)
         {
-            mContext.UnmapSubresource(buffer.Buffer, 0);
+            _context.UnmapSubresource(buffer.Buffer, 0);
         }
 
         // Index buffer memory mapping techniques
@@ -1531,30 +1536,30 @@ namespace OpenTemple.Core.GFX
         {
             var data = MapRaw(buffer.Buffer, buffer.Count * sizeof(ushort), mode);
             var castData = MemoryMarshal.Cast<byte, ushort>(data);
-            return new MappedBuffer<ushort>(buffer.Buffer, mContext, castData, 0);
+            return new MappedBuffer<ushort>(buffer.Buffer, _context, castData, 0);
         }
 
         public void Unmap(IndexBuffer buffer)
         {
-            mContext.UnmapSubresource(buffer.Buffer, 0);
+            _context.UnmapSubresource(buffer.Buffer, 0);
         }
 
         public unsafe MappedBuffer<byte> Map(DynamicTexture texture, MapMode mode = MapMode.Discard)
         {
             var mapMode = ConvertMapMode(mode);
 
-            var mapped = mContext.MapSubresource(texture.mTexture, 0, 0, mapMode, 0, out _);
+            var mapped = _context.MapSubresource(texture.mTexture, 0, 0, mapMode, 0, out _);
 
             var size = texture.GetSize().Height * mapped.RowPitch;
             var data = new Span<byte>((void*) mapped.DataPointer, size);
             var rowPitch = mapped.RowPitch;
 
-            return new MappedBuffer<byte>(texture.mTexture, mContext, data, rowPitch);
+            return new MappedBuffer<byte>(texture.mTexture, _context, data, rowPitch);
         }
 
         public void Unmap(DynamicTexture texture)
         {
-            mContext.UnmapSubresource(texture.mTexture, 0);
+            _context.UnmapSubresource(texture.mTexture, 0);
         }
 
         public const int MaxVsConstantBufferSize = 2048;
@@ -1598,7 +1603,6 @@ namespace OpenTemple.Core.GFX
 
             // Set the camera size to the size of the new render target
             var size = colorBuffer.GetSize();
-            mCamera.SetScreenWidth((float) size.Width, (float) size.Height);
 
             // Activate the render target on the device
             var rtv = colorBuffer.RenderTargetView;
@@ -1608,8 +1612,8 @@ namespace OpenTemple.Core.GFX
                 depthStencilView = depthStencilBuffer.DsView;
             }
 
-            mContext.OutputMerger.SetRenderTargets(depthStencilView, rtv);
-            textEngine.SetRenderTarget(colorBuffer.Texture);
+            _context.OutputMerger.SetRenderTargets(depthStencilView, rtv);
+            _textEngine.SetRenderTarget(colorBuffer.Texture);
 
             // Set the viewport accordingly
             var viewport = new RawViewportF();
@@ -1617,11 +1621,12 @@ namespace OpenTemple.Core.GFX
             viewport.Height = size.Height;
             viewport.MinDepth = 0.0f;
             viewport.MaxDepth = 1.0f;
-            mContext.Rasterizer.SetViewports(new[] {viewport}, 1);
+            _context.Rasterizer.SetViewports(new[] {viewport}, 1);
 
-            mRenderTargetStack.Push(new RenderTarget(colorBuffer, depthStencilBuffer));
+            _renderTargetStack.Push(new RenderTarget(colorBuffer, depthStencilBuffer));
 
             ResetScissorRect();
+            SetGpuRasterizerState();
         }
 
         public void PopRenderTarget()
@@ -1629,25 +1634,21 @@ namespace OpenTemple.Core.GFX
             // The last targt should NOT be popped, if the backbuffer was auto-pushed
             if (mBackBufferNew.Resource != null)
             {
-                Trace.Assert(mRenderTargetStack.Count > 1);
+                Trace.Assert(_renderTargetStack.Count > 1);
             }
 
-            var poppedTarget = mRenderTargetStack.Pop();
+            var poppedTarget = _renderTargetStack.Pop();
             poppedTarget.colorBuffer.Dispose();
             poppedTarget.depthStencilBuffer.Dispose();
 
-            if (mRenderTargetStack.Count == 0)
+            if (_renderTargetStack.Count == 0)
             {
-                mContext.OutputMerger.SetRenderTargets(null, new RenderTargetView[0]);
-                textEngine.SetRenderTarget(null);
+                _context.OutputMerger.SetRenderTargets(null, new RenderTargetView[0]);
+                _textEngine.SetRenderTarget(null);
                 return;
             }
 
-            var newTarget = mRenderTargetStack.Peek();
-
-            // Set the camera size to the size of the new render target
-            var size = newTarget.colorBuffer.Resource.GetSize();
-            mCamera.SetScreenWidth((float) size.Width, (float) size.Height);
+            var newTarget = _renderTargetStack.Peek();
 
             // Activate the render target on the device
             var rtv = newTarget.colorBuffer.Resource.RenderTargetView;
@@ -1657,28 +1658,30 @@ namespace OpenTemple.Core.GFX
                 depthStencilView = newTarget.depthStencilBuffer.Resource.DsView;
             }
 
-            mContext.OutputMerger.SetRenderTargets(depthStencilView, rtv);
-            textEngine.SetRenderTarget(newTarget.colorBuffer.Resource.Texture);
+            _context.OutputMerger.SetRenderTargets(depthStencilView, rtv);
+            _textEngine.SetRenderTarget(newTarget.colorBuffer.Resource.Texture);
 
             // Set the viewport accordingly
+            var size = newTarget.Size;
             var viewport = new RawViewportF();
             viewport.Width = size.Width;
             viewport.Height = size.Height;
             viewport.MinDepth = 0.0f;
             viewport.MaxDepth = 1.0f;
-            mContext.Rasterizer.SetViewports(new[] {viewport}, 1);
+            _context.Rasterizer.SetViewports(new[] {viewport}, 1);
 
             ResetScissorRect();
+            SetGpuRasterizerState();
         }
 
         public RenderTargetTexture GetCurrentRenderTargetColorBuffer()
         {
-            return mRenderTargetStack.Peek().colorBuffer.Resource;
+            return _renderTargetStack.Peek().colorBuffer.Resource;
         }
 
         public RenderTargetDepthStencil GetCurrentRenderTargetDepthStencilBuffer()
         {
-            return mRenderTargetStack.Peek().depthStencilBuffer.Resource;
+            return _renderTargetStack.Peek().depthStencilBuffer.Resource;
         }
 
         public int AddResizeListener(ResizeListener listener)
@@ -1688,7 +1691,7 @@ namespace OpenTemple.Core.GFX
             return newKey;
         }
 
-        public bool IsDebugDevice() => debugDevice;
+        public bool IsDebugDevice() => _debugDevice;
 
         /**
          * Emits the start of a rendering call group if the debug device is being used.
@@ -1715,21 +1718,21 @@ namespace OpenTemple.Core.GFX
         /// </summary>
         public void EndPerfGroup()
         {
-            if (debugDevice)
+            if (_debugDevice)
             {
                 annotation?.EndEvent();
             }
         }
 
-        public TextEngine GetTextEngine() => textEngine;
+        public TextEngine TextEngine => _textEngine;
 
         public void Dispose()
         {
             mD3d11Device1?.Dispose();
             mD3d11Device1 = null;
 
-            mD3d11Device?.Dispose();
-            mD3d11Device = null;
+            Device?.Dispose();
+            Device = null;
 
             mDxgiFactory?.Dispose();
             mDxgiFactory = null;
@@ -1765,7 +1768,7 @@ namespace OpenTemple.Core.GFX
 
         private unsafe void UpdateResource(Resource resource, ReadOnlySpan<byte> data)
         {
-            var mapped = mContext.MapSubresource(resource, 0, SharpDX.Direct3D11.MapMode.WriteDiscard,
+            var mapped = _context.MapSubresource(resource, 0, SharpDX.Direct3D11.MapMode.WriteDiscard,
                 0, out var stream);
 
             try
@@ -1775,7 +1778,7 @@ namespace OpenTemple.Core.GFX
             }
             finally
             {
-                mContext.UnmapSubresource(resource, 0);
+                _context.UnmapSubresource(resource, 0);
             }
         }
 
@@ -1796,7 +1799,7 @@ namespace OpenTemple.Core.GFX
             {
                 fixed (byte* rawDataPtr = rawData)
                 {
-                    return new Buffer(mD3d11Device, (IntPtr) rawDataPtr, bufferDesc);
+                    return new Buffer(Device, (IntPtr) rawDataPtr, bufferDesc);
                 }
             }
         }
@@ -1812,26 +1815,82 @@ namespace OpenTemple.Core.GFX
                 0
             );
 
-            return new Buffer(mD3d11Device, bufferDesc);
+            return new Buffer(Device, bufferDesc);
         }
 
         private void VSSetConstantBuffer(int slot, Buffer buffer)
         {
-            mContext.VertexShader.SetConstantBuffer(slot, buffer);
+            _context.VertexShader.SetConstantBuffer(slot, buffer);
         }
 
         private void PSSetConstantBuffer(int slot, Buffer buffer)
         {
-            mContext.PixelShader.SetConstantBuffer(slot, buffer);
+            _context.PixelShader.SetConstantBuffer(slot, buffer);
         }
 
         private unsafe Span<byte> MapRaw(Resource buffer, int bufferSize, MapMode mode)
         {
             var mapMode = ConvertMapMode(mode);
 
-            var mapped = mContext.MapSubresource(buffer, 0, mapMode, 0);
+            var mapped = _context.MapSubresource(buffer, 0, mapMode, 0);
 
             return new Span<byte>((void*) mapped.DataPointer, bufferSize);
+        }
+
+        private SizeF _uiCanvasSize;
+
+        private Matrix4x4 _uiProjection;
+
+        public ref Matrix4x4 UiProjection => ref _uiProjection;
+
+        /// <summary>
+        /// Sets the UI canvas size that will be used as the coordinate system by drawing operations that
+        /// refer to UI coordinates.
+        /// </summary>
+        public SizeF UiCanvasSize
+        {
+            get => _uiCanvasSize;
+            set
+            {
+                _uiCanvasSize = value;
+                _uiProjection = CreateOrthographicOffCenterLH(0, value.Width, value.Height, 0, 0, 1);
+                _textEngine.CanvasSize = value;
+            }
+        }
+
+        // Ported from XMMatrixOrthographicOffCenterLH
+        private static Matrix4x4 CreateOrthographicOffCenterLH(float ViewLeft,
+            float ViewRight,
+            float ViewBottom,
+            float ViewTop,
+            float NearZ,
+            float FarZ)
+        {
+            float ReciprocalWidth = 1.0f / (ViewRight - ViewLeft);
+            float ReciprocalHeight = 1.0f / (ViewTop - ViewBottom);
+            float fRange = 1.0f / (FarZ - NearZ);
+
+            var m = new Matrix4x4();
+            m.M11 = ReciprocalWidth + ReciprocalWidth;
+            m.M12 = 0.0f;
+            m.M13 = 0.0f;
+            m.M14 = 0.0f;
+
+            m.M21 = 0.0f;
+            m.M22 = ReciprocalHeight + ReciprocalHeight;
+            m.M23 = 0.0f;
+            m.M24 = 0.0f;
+
+            m.M31 = 0.0f;
+            m.M32 = 0.0f;
+            m.M33 = fRange;
+            m.M34 = 0.0f;
+
+            m.M41 = -(ViewLeft + ViewRight) * ReciprocalWidth;
+            m.M42 = -(ViewTop + ViewBottom) * ReciprocalHeight;
+            m.M43 = -fRange * NearZ;
+            m.M44 = 1.0f;
+            return m;
         }
 
         private Adapter1 GetAdapter(int index)
@@ -1839,7 +1898,7 @@ namespace OpenTemple.Core.GFX
             return mDxgiFactory.GetAdapter1(index);
         }
 
-        private int mBeginSceneDepth = 0;
+        private int _drawDepth = 0;
 
         private IntPtr mWindowHandle;
 
@@ -1849,27 +1908,33 @@ namespace OpenTemple.Core.GFX
         private Adapter1 mAdapter;
 
         // D3D11 device and related
-        internal D3D11Device mD3d11Device;
+        public D3D11Device Device { get; private set; }
         private SharpDX.Direct3D11.Device1 mD3d11Device1;
         private SwapChainDescription mSwapChainDesc;
         private SharpDX.DXGI.SwapChain _swapChain;
-        internal SharpDX.Direct3D11.DeviceContext mContext;
+        private SharpDX.Direct3D11.DeviceContext _context;
         private ResourceRef<RenderTargetTexture> mBackBufferNew;
         private ResourceRef<RenderTargetDepthStencil> mBackBufferDepthStencil;
+
+        internal SharpDX.Direct3D11.DeviceContext Context => _context;
 
         struct RenderTarget
         {
             public ResourceRef<RenderTargetTexture> colorBuffer;
             public ResourceRef<RenderTargetDepthStencil> depthStencilBuffer;
+            public bool IsMultiSampled { get; }
+            public Size Size => colorBuffer.Resource.GetSize();
 
             public RenderTarget(RenderTargetTexture colorBuffer, RenderTargetDepthStencil depthStencilBuffer)
             {
                 this.colorBuffer = default;
                 this.depthStencilBuffer = default;
+                IsMultiSampled = false;
 
                 if (colorBuffer != null)
                 {
                     this.colorBuffer = new ResourceRef<RenderTargetTexture>(colorBuffer);
+                    IsMultiSampled = colorBuffer.IsMultiSampled;
                 }
 
                 if (depthStencilBuffer != null)
@@ -1879,7 +1944,7 @@ namespace OpenTemple.Core.GFX
             }
         };
 
-        private Stack<RenderTarget> mRenderTargetStack = new Stack<RenderTarget>(16);
+        private Stack<RenderTarget> _renderTargetStack = new Stack<RenderTarget>(16);
 
         private FeatureLevel mFeatureLevel = FeatureLevel.Level_9_1;
 
@@ -1888,58 +1953,48 @@ namespace OpenTemple.Core.GFX
         private Buffer mVsConstantBuffer;
         private Buffer mPsConstantBuffer;
 
-        private Dictionary<int, ResizeListener> mResizeListeners = new Dictionary<int, ResizeListener>();
+        private Dictionary<int, ResizeListener> mResizeListeners = new();
         private int mResizeListenersKey = 0;
 
-        private List<IResourceLifecycleListener> mResourcesListeners = new List<IResourceLifecycleListener>();
+        private List<IResourceLifecycleListener> mResourcesListeners = new();
         private bool mResourcesCreated = false;
 
 
-        private TimePoint mLastFrameStart = TimePoint.Now;
+        private TimePoint _lastFrameStart = TimePoint.Now;
         private TimePoint mDeviceCreated = TimePoint.Now;
 
         private int mUsedSamplers = 0;
 
         private Shaders mShaders;
         private Textures mTextures;
-        private WorldCamera mCamera = new WorldCamera();
-
-        // Anti Aliasing Settings
-        private bool antiAliasing = false;
-        private int msaaSamples = 4;
-        private int msaaQuality = 0;
 
         // Caches for cursors
-        private Dictionary<string, IntPtr> cursorCache = new Dictionary<string, IntPtr>();
+        private Dictionary<string, IntPtr> cursorCache = new();
         private IntPtr currentCursor = IntPtr.Zero;
 
         // Caches for created device states
         private SamplerState[] currentSamplerState = new SamplerState[4];
 
-        private Dictionary<SamplerSpec, ResourceRef<SamplerState>> samplerStates =
-            new Dictionary<SamplerSpec, ResourceRef<SamplerState>>();
+        private readonly Dictionary<SamplerSpec, ResourceRef<SamplerState>> _samplerStates = new();
 
-        private DepthStencilState currentDepthStencilState = null;
+        private DepthStencilState _currentDepthStencilState;
 
-        private Dictionary<DepthStencilSpec, ResourceRef<DepthStencilState>> depthStencilStates =
-            new Dictionary<DepthStencilSpec, ResourceRef<DepthStencilState>>();
+        private readonly Dictionary<DepthStencilSpec, ResourceRef<DepthStencilState>> _depthStencilStates = new();
 
-        private BlendState currentBlendState = null;
+        private BlendState _currentBlendState;
 
-        private Dictionary<BlendSpec, ResourceRef<BlendState>> blendStates =
-            new Dictionary<BlendSpec, ResourceRef<BlendState>>();
+        private readonly Dictionary<BlendSpec, ResourceRef<BlendState>> _blendStates = new();
 
-        private RasterizerState currentRasterizerState = null;
+        private RasterizerState _currentRasterizerState;
 
-        private Dictionary<RasterizerSpec, ResourceRef<RasterizerState>> rasterizerStates =
-            new Dictionary<RasterizerSpec, ResourceRef<RasterizerState>>();
+        private readonly Dictionary<RasterizerSpec, ResourceRef<RasterizerState>> _rasterizerStates = new();
 
         // Debugging related
-        private bool debugDevice = false;
+        private readonly bool _debugDevice;
         private UserDefinedAnnotation annotation;
 
         // Text rendering (Direct2D integration)
-        private TextEngine textEngine;
+        private TextEngine _textEngine;
     }
 
     public delegate void ResizeListener(int w, int h);

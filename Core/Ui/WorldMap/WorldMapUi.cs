@@ -502,8 +502,7 @@ namespace OpenTemple.Core.Ui.WorldMap
             UiSystems.HideOpenedWindows(true);
             if (!_mainWindow.Visible)
             {
-                Globals.GameLoop.GameRenderer.DisableDrawing();
-                Globals.GameLoop.GameRenderer.DisableDrawing();
+                GameViews.DisableDrawing();
                 UiSystems.Party.Hide();
                 GameSystems.TimeEvent.PauseGameTime();
                 UiSystems.UtilityBar.Hide();
@@ -899,8 +898,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 Tig.Sound.FreeStream(_soundStream1);
                 Tig.Sound.FreeStream(_soundStream2);
                 _travelByDialogDestination = null;
-                Globals.GameLoop.GameRenderer.EnableDrawing();
-                Globals.GameLoop.GameRenderer.EnableDrawing();
+                GameViews.EnableDrawing();
                 UiSystems.Party.Show();
                 UiSystems.UtilityBar.Show();
                 GameSystems.TimeEvent.ResumeGameTime();
@@ -1082,7 +1080,6 @@ namespace OpenTemple.Core.Ui.WorldMap
                 {
                     teleportArgs.flags |= FadeAndTeleportFlags.play_movie;
                     teleportArgs.movieId = enterMovie;
-                    teleportArgs.movieFlags = 0;
                 }
 
                 teleportArgs.destMap = _teleportMapId;

@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
@@ -35,20 +34,28 @@ namespace OpenTemple.Core.Ui
 
     public class UiManager
     {
-        private List<WidgetContainer> _topLevelWidgets = new List<WidgetContainer>();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+        private List<WidgetContainer> _topLevelWidgets = new();
 
         private int maxZIndex = 0;
 
-        public Size ScreenSize => Tig.RenderingDevice.GetCamera().ScreenSize;
+        /// <summary>
+        /// The size in "virtual pixels" of the UI canvas.
+        /// </summary>
+        public Size CanvasSize => new Size(
+            (int) _mainWindow.UiCanvasSize.Width,
+            (int) _mainWindow.UiCanvasSize.Height
+        );
 
-        public event Action<Size> OnScreenSizeChanged;
+        public event Action<Size> OnCanvasSizeChanged;
 
         public IEnumerable<WidgetContainer> ActiveWindows => _topLevelWidgets;
 
         public UiManagerDebug Debug { get; }
 
         [TempleDllLocation(0x11E74384)]
-        private WidgetBase mMouseCaptureWidgetId;
+        private WidgetBase _mouseCaptureWidget;
 
         [TempleDllLocation(0x10301324)]
         private WidgetBase _currentMouseOverWidget;
@@ -71,18 +78,16 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x101f97e0)]
         public bool IsDragging { get; set; }
 
-        // TODO: Deregister!
-        private int _resizeListenerId;
+        private readonly IMainWindow _mainWindow;
 
-        public UiManager()
+        public UiManager(IMainWindow mainWindow)
         {
+            _mainWindow = mainWindow;
             _renderTooltipCallback = RenderTooltip;
             Debug = new UiManagerDebug(this);
-            _resizeListenerId = Tig.RenderingDevice.AddResizeListener((width, height) =>
-            {
-                var newSize = new Size(width, height);
-                OnScreenSizeChanged?.Invoke(newSize);
-            });
+            mainWindow.UiCanvasSizeChanged += () => OnCanvasSizeChanged?.Invoke(CanvasSize);
+
+            _mainWindow.OnInput += HandleInputEvent;
         }
 
         /*
@@ -169,9 +174,9 @@ namespace OpenTemple.Core.Ui
                 RefreshMouseOverState();
             }
 
-            if (IsAncestor(mMouseCaptureWidgetId, widget))
+            if (IsAncestor(_mouseCaptureWidget, widget))
             {
-                mMouseCaptureWidgetId = null;
+                _mouseCaptureWidget = null;
                 RefreshMouseOverState();
             }
 
@@ -257,15 +262,15 @@ namespace OpenTemple.Core.Ui
 
         public WidgetBase GetMouseCaptureWidget()
         {
-            return mMouseCaptureWidgetId;
+            return _mouseCaptureWidget;
         }
 
         [TempleDllLocation(0x101f9830)]
         public bool SetMouseCaptureWidget(WidgetBase widget)
         {
-            if (mMouseCaptureWidgetId == null)
+            if (_mouseCaptureWidget == null)
             {
-                mMouseCaptureWidgetId = widget;
+                _mouseCaptureWidget = widget;
                 return true;
             }
 
@@ -275,9 +280,9 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x101f9850)]
         public void UnsetMouseCaptureWidget(WidgetBase widget)
         {
-            if (mMouseCaptureWidgetId == widget)
+            if (_mouseCaptureWidget == widget)
             {
-                mMouseCaptureWidgetId = null;
+                _mouseCaptureWidget = null;
             }
         }
 
@@ -561,9 +566,9 @@ namespace OpenTemple.Core.Ui
         {
 
             // Handle if a widget requested mouse capture
-            if (mMouseCaptureWidgetId != null)
+            if (_mouseCaptureWidget != null)
             {
-                mMouseCaptureWidgetId.HandleMessage(msg);
+                _mouseCaptureWidget.HandleMessage(msg);
                 return true;
             }
 
@@ -601,6 +606,91 @@ namespace OpenTemple.Core.Ui
             }
 
             return false;
+        }
+
+        private void HandleInputEvent(WindowEvent e)
+        {
+            switch (e.Type)
+            {
+                case WindowEventType.MouseEnter:
+                    Tig.Mouse.MouseOutsideWndSet(false);
+                    break;
+                case WindowEventType.MouseLeave:
+                    Tig.Mouse.MouseOutsideWndSet(true);
+                    break;
+                case WindowEventType.MouseMove:
+                    HandleMouseMoveEvent((MouseWindowEvent) e);
+                    break;
+                case WindowEventType.MouseDown:
+                case WindowEventType.MouseUp:
+                    HandleMouseButtonEvent((MouseWindowEvent) e);
+                    break;
+                case WindowEventType.Wheel:
+                    HandleMouseWheelEvent((MouseWheelWindowEvent) e);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void HandleMouseMoveEvent(MouseWindowEvent evt)
+        {
+            Tig.Mouse.SetPos((int) evt.UiPos.X, (int) evt.UiPos.Y, 0);
+        }
+
+        private void HandleMouseButtonEvent(MouseWindowEvent evt)
+        {
+            Tig.Mouse.SetButtonState(evt.Button, evt.Type == WindowEventType.MouseDown);
+        }
+
+        private void HandleMouseWheelEvent(MouseWheelWindowEvent evt)
+        {
+            Tig.Mouse.SetPos((int) evt.UiPos.X, (int) evt.UiPos.Y, (int) (evt.Delta * 120));
+        }
+
+        private void OnMouseMove(PointF pos, int wheelDelta)
+        {
+            var x = pos.X;
+            var y = pos.Y;
+            var width = CanvasSize.Width;
+            var height = CanvasSize.Height;
+
+            // Account for a resized screen
+            if (x < 0 || y < 0 || x >= width || y >= height)
+            {
+                if (Globals.Config.Window.Windowed)
+                {
+                    if ((x > -7 && x < width + 7 && x > -7 && y < height + 7))
+                    {
+                        if (x < 0)
+                            x = 0;
+                        else if (x > width)
+                            x = width;
+                        if (y < 0)
+                            y = 0;
+                        else if (y > height)
+                            y = height;
+                        Tig.Mouse.MouseOutsideWndSet(false);
+                        // TODO: Switch all mouse positioning to floats
+                        Tig.Mouse.SetPos((int) x, (int) y, wheelDelta);
+                        return;
+                    }
+                    else
+                    {
+                        Tig.Mouse.MouseOutsideWndSet(true);
+                    }
+                }
+                else
+                {
+                    Logger.Info("Mouse outside resized window: {0},{1}, wheel: {2}", x, y, wheelDelta);
+                }
+
+                return;
+            }
+
+            Tig.Mouse.MouseOutsideWndSet(false);
+            // TODO: Switch all mouse positioning to floats
+            Tig.Mouse.SetPos((int) pos.X, (int) pos.Y, wheelDelta);
         }
 
     }
