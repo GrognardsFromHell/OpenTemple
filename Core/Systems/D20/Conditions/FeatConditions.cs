@@ -2271,25 +2271,44 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         {
             WeaponType itemWeaponType;
 
-            var condArg1 = (FeatId) evt.GetConditionArg1();
-            var condArg2 = (WeaponType) evt.GetConditionArg2();
+            var feat = (FeatId) evt.GetConditionArg1();
+            var featWeaponType = (WeaponType) evt.GetConditionArg2();
             var dispIo = evt.GetDispIoAttackBonus();
-            var v4 = dispIo;
-            var v5 = dispIo.attackPacket.GetWeaponUsed();
-            if (v5 != null)
+
+            var wpn = dispIo.attackPacket.GetWeaponUsed();
+            if (wpn != null)
             {
-                itemWeaponType = v5.GetWeaponType();
+                itemWeaponType = wpn.GetWeaponType();
+                if (itemWeaponType != featWeaponType)
+                {
+                    return;
+                }
             }
-            else
+            else // unarmed or ray
             {
-                itemWeaponType = WeaponType.unarmed_strike_medium_sized_being;
+                var flags = dispIo.attackPacket.flags;
+                var isRayAttack = ((flags & D20CAF.RANGED) != 0) && ((flags & D20CAF.TOUCH_ATTACK) != 0);
+                if (featWeaponType == WeaponType.ray)
+                {
+                    if (!isRayAttack)
+                        return;
+                }
+                else if (featWeaponType == WeaponType.unarmed_strike_medium_sized_being || featWeaponType == WeaponType.unarmed_strike_small_being )
+                {
+                    if (isRayAttack)
+                        return;
+                }
+                else
+                {
+                    return;
+                }
+                
             }
 
-            if (itemWeaponType == condArg2)
-            {
-                var featName = GameSystems.Feat.GetFeatName(condArg1);
-                v4.bonlist.AddBonus(1, 0, 114, featName);
-            }
+            
+
+            var featName = GameSystems.Feat.GetFeatName(feat);
+            dispIo.bonlist.AddBonus(1, 0, 114, featName);
         }
 
 
