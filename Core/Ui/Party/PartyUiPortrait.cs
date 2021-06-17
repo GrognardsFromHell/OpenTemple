@@ -5,6 +5,7 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Party
@@ -121,7 +122,14 @@ namespace OpenTemple.Core.Ui.Party
         [TempleDllLocation(0x10133770)]
         private void OnLevelUpClick()
         {
-            Stub.TODO();
+            if (GameSystems.Combat.IsCombatActive())
+                return;
+            if (GameSystems.Critter.IsDeadNullDestroyed(PartyMember))
+                return;
+
+            UiSystems.CharSheet.Hide(0);
+            UiSystems.CharSheet.State = CharInventoryState.LevelUp;
+            GameUiBridge.OpenInventory(PartyMember);
         }
 
         public void Dispose()

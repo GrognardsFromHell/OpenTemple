@@ -3,7 +3,7 @@ using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems;
-
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.DebugUI
 {
@@ -15,15 +15,14 @@ namespace OpenTemple.Core.DebugUI
 
         static bool isActive = false;
 
-        public static void Render()
+        public static void Render(IGameViewport viewport)
         {
             
             if (ImGui.Begin( "Debug Overlay", ref isActive)){
 
                 var mousePt = TigSubsystems.Tig.Mouse.GetPos();
 
-                var camera = TigSubsystems.Tig.RenderingDevice.GetCamera();
-                var worldCoord = camera.ScreenToTile(mousePt.X, mousePt.Y);
+                var worldCoord = viewport.ScreenToTile(mousePt.X, mousePt.Y);
                 ImGui.Text($"{worldCoord}");
                 ImGui.End();
             }
