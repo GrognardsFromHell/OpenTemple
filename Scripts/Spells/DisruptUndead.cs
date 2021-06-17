@@ -50,24 +50,7 @@ namespace Scripts.Spells
             spell.duration = 0;
             EndProjectileParticles(projectile);
             var target = spell.Targets[0];
-            // WF Ray fix added by Shiningted (& two lines below)
-            var has_it = 0;
-            var x = 0;
-            var y = 0;
-            if (spell.caster.HasFeat(FeatId.WEAPON_FOCUS_RAY))
-            {
-                // game.particles( "sp-summon monster I", game.party[0] )
-                has_it = 1;
-                x = spell.caster.GetBaseStat(Stat.dexterity);
-                y = x + 2;
-                if (spell.caster.HasFeat(FeatId.GREATER_WEAPON_FOCUS_RAY))
-                {
-                    y = y + 2;
-                }
-
-                spell.caster.SetBaseStat(Stat.dexterity, y);
-            }
-
+            
             if (target.Object.IsMonsterCategory(MonsterCategory.undead))
             {
                 // perform ranged touch attack
@@ -94,11 +77,7 @@ namespace Scripts.Spells
                 AttachParticles("Fizzle", target.Object);
             }
 
-            if (has_it == 1)
-            {
-                spell.caster.SetBaseStat(Stat.dexterity, x);
-            }
-
+            
             spell.RemoveTarget(target.Object);
             spell.EndSpell();
         }

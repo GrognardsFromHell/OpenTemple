@@ -47,24 +47,7 @@ namespace Scripts.Spells
         public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
         {
             Logger.Info("Scorching Ray OnEndProjectile");
-            // WF Ray fix added by Shiningted (& two lines below)
-            var has_it = 0;
-            var x = 0;
-            var y = 0;
-            if (spell.caster.HasFeat(FeatId.WEAPON_FOCUS_RAY))
-            {
-                // game.particles( "sp-summon monster I", game.party[0] )
-                has_it = 1;
-                x = spell.caster.GetBaseStat(Stat.dexterity);
-                y = x + 2;
-                if (spell.caster.HasFeat(FeatId.GREATER_WEAPON_FOCUS_RAY))
-                {
-                    y = y + 2;
-                }
-
-                spell.caster.SetBaseStat(Stat.dexterity, y);
-            }
-
+            
             var projectiles = Math.Min(3, (spell.casterLevel + 1) / 4);
             if (index_of_target < projectiles)
             {
@@ -100,11 +83,7 @@ namespace Scripts.Spells
 
             }
 
-            if (has_it == 1)
-            {
-                spell.caster.SetBaseStat(Stat.dexterity, x);
-            }
-
+           
             spell.RemoveProjectile(projectile);
             if ((spell.projectiles.Length == 0))
             {
