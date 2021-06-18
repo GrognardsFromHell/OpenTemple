@@ -85,7 +85,7 @@ namespace OpenTemple.Core.DebugUI
 
                 if (_renderDebugOverlay)
                 {
-                    DebugOverlay.Render();
+                    DebugOverlay.Render(GameViews.Primary);
                 }
 
                 if (_renderObjectTree)

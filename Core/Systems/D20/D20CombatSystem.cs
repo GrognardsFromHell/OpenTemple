@@ -1136,12 +1136,12 @@ namespace OpenTemple.Core.Systems.D20
                 return;
 
             // mirror image processing
-            if (tgt.HasCondition(SpellEffects.SpellMirrorImage))
+            var numMirrorImages = GameSystems.D20.D20QueryInt(tgt, D20DispatcherKey.QUE_Critter_Has_Mirror_Image);
+            if (numMirrorImages > 0)
             {
-                var spellId = GameSystems.D20.D20QueryWithObject(tgt, D20DispatcherKey.QUE_Critter_Has_Condition,
-                    SpellEffects.SpellMirrorImage);
+                int spellId = (int)GameSystems.D20.D20QueryReturnData(tgt, D20DispatcherKey.QUE_Critter_Has_Mirror_Image);
                 var spellPkt = GameSystems.Spell.GetActiveSpell(spellId);
-                var dice = new Dice(1, spellPkt.Targets.Length);
+                var dice = new Dice(1, 1 + numMirrorImages);
                 if (dice.Roll() != 1)
                 {
                     // mirror image nominally struck
