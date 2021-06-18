@@ -1,3 +1,5 @@
+using OpenTemple.Core.Ui.PartyCreation;
+using OpenTemple.Core.Ui.Widgets;
 using System;
 using System.Collections.Generic;
 
@@ -6,10 +8,18 @@ namespace OpenTemple.Core.Ui.CharSheet.LevelUp
     public class CharSheetLevelUpUi : IDisposable
     {
         [TempleDllLocation(0x102FA6C8)]
-        private List<ICharGenSystem> _levelUpSystems = new List<ICharGenSystem>();
+        private List<ICharEditorSystem> _levelUpSystems = new List<ICharEditorSystem>();
+
+        [TempleDllLocation(0x10BE9310)]
+        private WidgetContainer char_ui_main_nav_editor_window;
 
         [TempleDllLocation(0x10BE9970)]
-        private bool dword_10BE9970;
+        private bool freeze;
+
+        public CharSheetLevelUpUi()
+        {
+
+        }
 
         public void Dispose()
         {
@@ -21,21 +31,20 @@ namespace OpenTemple.Core.Ui.CharSheet.LevelUp
         {
             // TODO: part of the normal char_ui_show method
             Stub.TODO();
+
+
+
+            //char_ui_main_nav_editor_window
             /*
              * ui_widget_set_hidden(*(_DWORD *)(char_ui_main_nav_editor_window_widget + 12), 0);
                     ui_window_bring_to_front(*(_DWORD *)(char_ui_main_nav_editor_window_widget + 12));
                     v2 = *(_DWORD *)(char_ui_main_nav_editor_window_widget + 12);
                     ui_widget_set_hidden(v2, 0);
-                    char_creation_objId.id = objId;
-                    v3 = (char *)&chargen_systems_sheet[0].reset;
-                    do
-                    {
-                        if ( *(_DWORD *)v3 )
-                            (*(void (__cdecl **)(CharEditorSelectionPacket *))v3)(&chargen_packet);
-                        v3 += 44;
-                    }
-                    while ( (signed int)v3 < (signed int)&unk_102FA7F4 );
-                    dword_10BE9970 = 0;
+            */
+            ResetData(UiSystems.PCCreation.charEdSelPkt);
+            freeze = false;
+            /*
+                    
                     ui_widget_set_hidden(char_ui_levelup_window_id, 0);
                     ui_window_bring_to_front(char_ui_levelup_window_id);
                     if ( dword_10BE8D38 >= 0 )
@@ -58,7 +67,7 @@ namespace OpenTemple.Core.Ui.CharSheet.LevelUp
 
         public void Hide()
         {
-            dword_10BE9970 = true;
+            freeze = true;
 
             // TODO ui_widget_set_hidden(char_ui_levelup_window_id, 1);
             Stub.TODO();
@@ -77,6 +86,14 @@ namespace OpenTemple.Core.Ui.CharSheet.LevelUp
             foreach (var system in _levelUpSystems)
             {
                 system.ResetSystem();
+            }
+        }
+
+        public void ResetData(CharEditorSelectionPacket selPkt)
+        {
+            foreach (var system in _levelUpSystems)
+            {
+                system.Reset(selPkt);
             }
         }
     }

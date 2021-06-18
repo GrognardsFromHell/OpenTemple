@@ -404,6 +404,7 @@ namespace OpenTemple.Core.Ui.CharSheet
                     break;
                 case CharInventoryState.LevelUp:
                     CurrentPage = 9;
+                    UiSystems.PCCreation.charEditorObjHnd = obj;
                     LevelUp.Show();
                     break;
             }

@@ -1,8 +1,9 @@
+using OpenTemple.Core.Ui.PartyCreation;
 using System;
 
 namespace OpenTemple.Core.Ui.CharSheet
 {
-    public interface ICharGenSystem : IDisposable
+    public interface ICharEditorSystem : IDisposable
     {
         string Name { get; }
 
@@ -18,7 +19,7 @@ namespace OpenTemple.Core.Ui.CharSheet
 
         void Complete();
 
-        void Reset();
+        void Reset(CharEditorSelectionPacket selPkt);
 
         void Activate();
     }
