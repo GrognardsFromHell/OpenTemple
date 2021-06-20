@@ -254,8 +254,7 @@ namespace OpenTemple.Core.Ui
             {
                 X = state.x,
                 Y = state.y,
-                wheelDelta = state.field24,
-                flags = MouseEventFlag.PosChange
+                flags = MouseEventFlag.PosChange|MouseEventFlag.PosChangeSlow
             };
             TranslateMouseMessage(args);
         }
