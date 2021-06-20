@@ -30,9 +30,4 @@
         <EmbeddedResource Include="Utils\elfhashes.json" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Systems\AutoDiscovery" />
-        <Folder Include="Systems\D20\Conditions\TemplePlus\ItemEffects" />
-    </ItemGroup>
-
 </Project>
