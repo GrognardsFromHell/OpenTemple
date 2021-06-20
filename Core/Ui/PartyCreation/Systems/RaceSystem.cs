@@ -28,7 +28,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public RaceSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/race_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             for (var i = 0; i < 7; i++)
@@ -129,11 +129,11 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                     button.SetActive(_pkt.raceId.HasValue && _pkt.raceId.Value == subRaceId);
                     if (D20RaceSystem.IsBaseRace(subRaceId))
                     {
-                        button.SetText("COMMON");
+                        button.Text = "COMMON";
                     }
                     else
                     {
-                        button.SetText(GameSystems.Stat.GetRaceName(subRaceId).ToUpper());
+                        button.Text = GameSystems.Stat.GetRaceName(subRaceId).ToUpper();
                     }
                 }
                 else

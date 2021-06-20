@@ -9,16 +9,15 @@
     {
       "id": "charGenMinMaxHeightLabel",
       "fontFamily": "priory-12",
-      "foreground": "#ffffff",
-      "dropShadowBrush": "#000000",
-      "dropShadow": true,
-      "align": "right"
+      "color": "#ffffff",
+      "dropShadowColor": "#000000",
+      "textAlignment": "right"
     },
     {
       "id": "charGenCurrentHeightLabel",
       "fontFamily": "arial-bold-24",
-      "foreground": "#ffffff",
-      "dropShadowBrush": "#000000",
+      "color": "#ffffff",
+      "dropShadowColor": "#000000",
       "dropShadow": true
     }
   ],

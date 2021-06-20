@@ -38,13 +38,13 @@ namespace OpenTemple.Core.Ui.PartyPool
 
             _portrait = new WidgetImage();
             _portrait.FixedSize = new Size(51, 45);
-            _portrait.SetX(4);
-            _portrait.SetY(3);
+            _portrait.X = 4;
+            _portrait.Y = 3;
             AddContent(_portrait);
 
             _text = new WidgetText();
-            _text.SetX(57);
-            _text.SetStyleId("partyPoolSlot");
+            _text.X = 57;
+            _text.AddStyle("partyPoolSlot");
             _text.LegacyAdditionalTextColors = new[]
             {
                 new ColorRect(new PackedLinearColorA(255, 0, 0, 255)),
@@ -133,7 +133,7 @@ namespace OpenTemple.Core.Ui.PartyPool
                        + $"{genderText} {raceText}\n"
                        + $"{classColorMarker}{classText}{classSuffix}\n"
                        + $"{alignmentColorMarker}{alignmentText}{alignmentSuffix}\n";
-            _text.SetText(text);
+            _text.Text = text;
         }
     }
 

@@ -20,10 +20,10 @@ namespace OpenTemple.Core.Ui.WorldMap
             // 5px pulse over 250ms
             var pulse = (int) (MathF.Sin((float) TimePoint.Now.Milliseconds / 250.0f) * 5.0f) / 2;
 
-            _image.SetX(pulse);
-            _image.SetY(pulse);
-            _image.SetFixedWidth(Width - 2 * pulse);
-            _image.SetFixedHeight(Height - 2 * pulse);
+            _image.X = pulse;
+            _image.Y = pulse;
+            _image.FixedWidth = Width - 2 * pulse;
+            _image.FixedHeight = Height - 2 * pulse;
 
             base.Render();
         }

@@ -7,15 +7,15 @@
     {
       "id": "pcCreationStatBlockCaption",
       "fontFamily": "arial-bold-10",
-      "align": "center",
-      "paragraphAlign": "center",
-      "foreground": "#000000"
+      "textAlignment": "center",
+      "paragraphAlignment": "center",
+      "color": "#000000"
     },
     {
       "id": "pcCreationStatBlockLabel",
       "fontFamily": "arial-10",
-      "align": "center",
-      "paragraphAlign": "center"
+      "textAlignment": "center",
+      "paragraphAlignment": "center"
     }
   ],
   "content": [

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GFX;
@@ -156,19 +155,14 @@ namespace OpenTemple.Core.Ui.Widgets
         private readonly WidgetImage _selectedBg;
         private readonly WidgetImage _selectedRight;
 
-        private readonly WidgetLegacyText _label;
+        private readonly WidgetText _label;
 
         private readonly WidgetTabStyle _style;
 
         public bool Active { get; set; }
 
-        private static readonly TigTextStyle LabelStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-        {
-            shadowColor = new ColorRect(PackedLinearColorA.Black),
-            flags = TigTextStyleFlag.TTSF_DROP_SHADOW,
-            kerning = 1,
-            tracking = 3
-        };
+        private const string LargeLabelStyle = "tab-large";
+        private const string SmallLabelStyle = "tab-small";
 
         public WidgetTabButton(string label, WidgetTabStyle style)
         {
@@ -183,7 +177,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 _selectedBg = new WidgetImage("art/interface/logbook_ui/Tab-Tiled-Selected.tga");
                 _selectedRight = new WidgetImage("art/interface/logbook_ui/Tab-Right-Selected.tga");
 
-                _label = new WidgetLegacyText(label, PredefinedFont.ARIAL_12, LabelStyle);
+                _label = new WidgetText(label, LargeLabelStyle);
             }
             else
             {
@@ -194,7 +188,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 _selectedBg = new WidgetImage("ui/tabs/tab-small-active-middle.tga");
                 _selectedRight = new WidgetImage("ui/tabs/tab-small-active-right.tga");
 
-                _label = new WidgetLegacyText(label, PredefinedFont.ARIAL_10, LabelStyle);
+                _label = new WidgetText(label, SmallLabelStyle);
             }
 
             // Layout the content items
@@ -216,31 +210,31 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             left.FixedSize = left.GetPreferredSize();
             bg.FixedSize = new Size(label.GetPreferredSize().Width, bg.GetPreferredSize().Height);
-            bg.SetX(left.FixedSize.Width);
+            bg.X = left.FixedSize.Width;
             // The label offset was hardcoded before too
             if (_style == WidgetTabStyle.Large)
             {
-                label.SetX(bg.GetX() - 5);
-                label.SetY(5);
+                label.X = bg.X - 5;
+                label.Y = 5;
             }
             else
             {
-                label.SetX(bg.GetX());
-                label.SetY(1);
+                label.X = bg.X;
+                label.Y = 1;
             }
 
             right.FixedSize = right.GetPreferredSize();
-            right.SetX(bg.GetX() + bg.FixedSize.Width);
+            right.X = bg.X + bg.FixedSize.Width;
 
             return new Size(
-                right.GetX() + right.FixedSize.Width,
+                right.X + right.FixedSize.Width,
                 right.FixedSize.Height
             );
         }
 
         private void UpdateSelectedState()
         {
-            mContent.Clear();
+            _content.Clear();
             if (Active)
             {
                 AddContent(_selectedLeft);

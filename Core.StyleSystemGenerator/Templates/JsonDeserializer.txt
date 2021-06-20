@@ -1,0 +1,47 @@
+{{~func get_json_read_function(property)
+    case property.type.name
+      when "OpenTemple.Core.GFX.PackedLinearColorA"
+          "ReadColor"
+      else
+          "Read" + (property.type.name | string.capitalize)
+    end
+end~}}
+{{ include "GeneratedCodeAttribute.txt" }}
+public static partial class StyleJsonDeserializer {
+
+    ///<summary>
+    ///Tries to deserialize a style definition from the given JSON object.
+    ///</summary>
+    public static void DeserializeProperties(in JsonElement element, StyleDefinition definition) {
+        JsonElement propertyNode;
+        {{~for property in properties~}}
+        if (element.TryGetProperty("{{property.json_name}}", out propertyNode))
+        {
+            try {
+                definition.{{property.name}} = {{get_json_read_function property}}(propertyNode);
+            } catch (Exception e) {
+                throw new StyleParsingException("Failed to read property {{property.name}}: " + e);
+            }
+        }
+        {{~end~}}
+    }
+
+    // generate read methods for generated enumerations
+    {{for enum_type in enum_types}}
+    private static {{enum_type.name}}? Read{{enum_type.name}}(in JsonElement element)
+    {
+        if (element.ValueKind == JsonValueKind.Null) {
+            return null;
+        }
+
+        var value = element.GetString();
+        return value switch {
+        {{~for enum_literal in enum_type.literals~}}
+            "{{enum_literal.item1 | string.downcase}}" => {{enum_type.name}}.{{enum_literal.item1}},
+        {{~end~}}
+            _ => throw new Exception("Invalid value for {{enum_type.name}}: " + value)
+        };
+    }
+    {{end}}
+
+}

@@ -1,8 +1,23 @@
 {
+  "$schema": "../schemas/widget.json",
   "type": "container",
   "x": 10,
   "width": 291,
   "height": 357,
   "__styles": [
+    {
+      "id": "hp-text",
+      "textAlignment": "center",
+      "dropShadowColor": "#000000",
+      "backgroundColor": "rgba(17, 17, 17,153)"
+    },
+    {
+      "id": "hp-text-subdual",
+      "color": "#6666FF"
+    },
+    {
+      "id": "buffdebuff-tooltip",
+      "color": "rgb(153, 255, 153)"
+    }
   ]
 }

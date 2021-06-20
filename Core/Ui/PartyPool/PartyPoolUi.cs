@@ -107,7 +107,7 @@ namespace OpenTemple.Core.Ui.PartyPool
             _container.SetMouseMsgHandler(msg => true);
 
             var doc = WidgetDoc.Load("ui/party_pool.json");
-            var window = doc.TakeRootContainer();
+            var window = doc.GetRootContainer();
             _container.Add(window);
 
             _addRemoveButton = doc.GetButton("addRemoveButton");
@@ -167,7 +167,7 @@ namespace OpenTemple.Core.Ui.PartyPool
             // Begin Adventuring button, original render @ 0x1011c060, msg @ 0x1011fee0
             BeginAdventuringButton = new WidgetButton();
             BeginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
-            BeginAdventuringButton.SetText("#{pc_creation:408}\n#{pc_creation:409}");
+            BeginAdventuringButton.Text = "#{pc_creation:408}\n#{pc_creation:409}";
             BeginAdventuringButton.SetSize(new Size(151, 64));
             BeginAdventuringButton.Margins = new Margins(14, 10, 14, 10);
             // TODO: Reposition on screen size change
@@ -621,14 +621,14 @@ namespace OpenTemple.Core.Ui.PartyPool
         private void Update()
         {
             var alignmentName = GameSystems.Stat.GetAlignmentName(_alignment);
-            _partyAlignmentLabel.SetText("@1#{party_pool:1}@0 " + alignmentName);
+            _partyAlignmentLabel.Text = "@1#{party_pool:1}@0 " + alignmentName;
 
             UpdateCheckboxes();
             UpdateSlots();
             _portraits.Update();
 
             _addRemoveButton.SetStyle(AddButtonStyle);
-            _addRemoveButton.SetText(AddButtonLabel);
+            _addRemoveButton.Text = AddButtonLabel;
             _addRemoveButton.SetDisabled(true);
             _viewButton.SetDisabled(true);
             _renameButton.SetDisabled(true);
@@ -653,7 +653,7 @@ namespace OpenTemple.Core.Ui.PartyPool
             else if (_portraits.Selected != null)
             {
                 _addRemoveButton.SetStyle(RemoveButtonStyle);
-                _addRemoveButton.SetText(RemoveButtonLabel);
+                _addRemoveButton.Text = RemoveButtonLabel;
                 _addRemoveButton.SetDisabled(false);
             }
 
@@ -700,7 +700,7 @@ namespace OpenTemple.Core.Ui.PartyPool
             }).ToList();
 
             var hiddenSlots = Math.Max(0, _filteredPlayers.Count - _slots.Length);
-            _scrollBar.SetMax(hiddenSlots);
+            _scrollBar.Max = hiddenSlots;
 
             for (var i = 0; i < _slots.Length; i++)
             {

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Systems
@@ -18,7 +18,7 @@ namespace OpenTemple.Core.Systems
         private readonly UiRectangle _barBorder;
         private readonly UiRectangle _barFilled;
         private readonly UiRectangle _barUnfilled;
-        private readonly TextStyle _textStyle;
+        private readonly ComputedStyles _styles;
 
         private readonly IMainWindow _mainWindow;
         private readonly RenderingDevice _device;
@@ -41,6 +41,14 @@ namespace OpenTemple.Core.Systems
 
         public LoadingScreen(IMainWindow mainWindow, RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
         {
+            var styleResolver = new StyleResolver(Globals.Config.DefaultUiFont, 10, PackedLinearColorA.White);
+            _styles = styleResolver.Resolve(new[] {
+                new StyleDefinition()
+                {
+                    WordWrap = WordWrap.NoWrap
+                }
+            });
+
             _mainWindow = mainWindow;
             _device = device;
             _barBorder = new UiRectangle(shapeRenderer2d);
@@ -52,12 +60,6 @@ namespace OpenTemple.Core.Systems
             _barBorder.SetColor(0xFF808080);
             _barUnfilled.SetColor(0xFF1C324E);
             _barFilled.SetColor(0xFF1AC3FF);
-
-            _textStyle = new TextStyle()
-            {
-                fontFace = Globals.Config.DefaultUiFont,
-                pointSize = 10
-            };
 
             _mainWindow.UiCanvasSizeChanged += Layout;
             Layout();
@@ -119,7 +121,7 @@ namespace OpenTemple.Core.Systems
 
                 _device.TextEngine.RenderText(
                     extents,
-                    _textStyle,
+                    _styles,
                     Message
                 );
             }
@@ -139,7 +141,7 @@ namespace OpenTemple.Core.Systems
             var imageSize = _imageFile.GetPreferredSize();
             var imgX = (int) (centerX - imageSize.Width / 2.0f);
             var imgY = (int) (centerY - imageSize.Height / 2.0f);
-            _imageFile.SetContentArea(new Rectangle(new Point(imgX, imgY), imageSize));
+            _imageFile.SetBounds(new Rectangle(new Point(imgX, imgY), imageSize));
 
             var barY = imgY + 20 + imageSize.Height;
             var barX = (int) (centerX - BarWidth / 2.0f);

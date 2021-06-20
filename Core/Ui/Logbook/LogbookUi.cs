@@ -80,16 +80,16 @@ namespace OpenTemple.Core.Ui.Logbook
             _window.Visible = false;
 
             var background = new WidgetImage("art/interface/logbook_ui/whole_book.img");
-            background.SetY(25);
+            background.Y = 25;
             background.FixedSize = new Size(750, 420);
             _window.AddContent(background);
 
             var exitButton = new WidgetButton(new Rectangle(694, 393, 55, 52));
             exitButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/logbook_ui/exit_normal.tga",
-                hoverImagePath = "art/interface/logbook_ui/exit_hover.tga",
-                pressedImagePath = "art/interface/logbook_ui/exit_click.tga"
+                NormalImagePath = "art/interface/logbook_ui/exit_normal.tga",
+                HoverImagePath = "art/interface/logbook_ui/exit_hover.tga",
+                PressedImagePath = "art/interface/logbook_ui/exit_click.tga"
             }.UseDefaultSounds());
             exitButton.SetClickHandler(Hide);
             exitButton.Name = "logbook_ui_main_exit_butn";

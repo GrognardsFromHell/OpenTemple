@@ -43,8 +43,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
                     var spellName = GameSystems.Spell.GetSpellName(value.SpellEnum);
 
                     var styleId = !value.HasBeenUsed ? "char-spell-grey" : "char-spell-body";
-                    _spellName.SetStyleId(styleId);
-                    _spellName.SetText(spellName);
+                    _spellName.AddStyle(styleId);
+                    _spellName.Text = spellName;
                     _spellName.Visible = true;
 
                     OnMouseEnter += ShowSpellHelp;
@@ -73,8 +73,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             _spellName.Visible = false;
             AddContent(_spellName);
 
-            TooltipStyle = UiSystems.Tooltip.DefaultStyle;
-
             SetClickHandler(OnClicked);
         }
 
@@ -97,9 +95,9 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         public override bool HandleMouseMessage(MessageMouseArgs msg)
         {
             // Forward scroll wheel messages to the parent (which will forward it to the scrollbar)
-            if (mParent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+            if (_parent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
             {
-                return mParent.HandleMouseMessage(msg);
+                return _parent.HandleMouseMessage(msg);
             }
             return base.HandleMouseMessage(msg);
         }

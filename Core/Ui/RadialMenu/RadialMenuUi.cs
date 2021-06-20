@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -17,6 +18,8 @@ using OpenTemple.Core.Systems.RadialMenus;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Utils;
 using Vector3 = System.Numerics.Vector3;
 
@@ -42,7 +45,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
         [TempleDllLocation(0x102F95E0)]
         private readonly Dictionary<RadialMenuStandardNode, ResourceRef<ITexture>> _standardNodeIcons =
-            new Dictionary<RadialMenuStandardNode, ResourceRef<ITexture>>();
+            new();
 
         [TempleDllLocation(0x10be6cd0)]
         private readonly PackedLinearColorA[] _radMenuColors = new PackedLinearColorA[24];
@@ -52,6 +55,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
         [TempleDllLocation(0x10be67c4)]
         private int radMenuHeight => Globals.UiManager.CanvasSize.Height;
+
+        private readonly TextEngine _textEngine = Tig.RenderingDevice.TextEngine;
 
         [TempleDllLocation(0x1013d230)]
         public RadialMenuUi()
@@ -329,16 +334,17 @@ namespace OpenTemple.Core.Ui.RadialMenu
         {
             if (_assigningHotkey)
             {
-                var v2 = GameSystems.D20.Hotkeys.GetKeyDisplayName(_dikToBeHotkeyed);
-                var v3 = GameSystems.D20.Combat.GetCombatMesLine(191);
-                var text = $"{v3} '{v2}'";
+                var keyName = GameSystems.D20.Hotkeys.GetKeyDisplayName(_dikToBeHotkeyed);
+                var assignText = GameSystems.D20.Combat.GetCombatMesLine(191);
 
-                var metrics = new TigFontMetrics();
-                var style = UiSystems.InGameSelect.GetTextStyle();
-                Tig.Fonts.Measure(style, text, ref metrics);
+                var paragraph = new Paragraph() {
+                    Host = UiSystems.InGameSelect.TextHost
+                };
+                paragraph.AddStyle("radialmenu-hotkey");
+                paragraph.AppendContent($"{assignText} '{keyName}'");
+                using var layout = _textEngine.CreateTextLayout(paragraph, 0, 0);
 
-                var extents = new Rectangle(x + 32, y + 32, metrics.width, metrics.height);
-                Tig.Fonts.RenderText(text, extents, style);
+                _textEngine.RenderTextLayout(x + 32, y + 32, layout);
             }
         }
 
@@ -484,8 +490,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
             var activeRootNodeAngle = 0.0f;
 
             var screenPos = CurrentMenuCenterOnScreen;
-            int menuScreenX = (int) screenPos.X;
-            int menuScreenY = (int) screenPos.Y;
+            int menuScreenX = screenPos.X;
+            int menuScreenY = screenPos.Y;
             var currentNode = RadialMenus.GetCurrentNode();
 
             // Calculate the angles (sizes) of the nodes up front, since it only depends on the number
@@ -546,8 +552,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
         // TODO: Clean this up / refactor
         [TempleDllLocation(0x1013af70)]
-        public int sub_1013AF70 /*0x1013af70*/(int parentNodeIdx, float parentNodeAngle, int menuDepth, int width1pad,
-            int width2pad, int mouseX, int mouseY)
+        public int sub_1013AF70 /*0x1013af70*/(int parentNodeIdx, float parentNodeAngle, int menuDepth, float width1pad,
+            float width2pad, int mouseX, int mouseY)
         {
             int result;
 
@@ -557,14 +563,14 @@ namespace OpenTemple.Core.Ui.RadialMenu
             var v21 = 0;
             var currentNodeIdx = RadialMenus.GetCurrentNode();
             var screenPos = CurrentMenuCenterOnScreen;
-            int v27 = (int) screenPos.X;
-            int v28 = (int) screenPos.Y;
-            var v16 = (float) mouseX - (float) v27;
-            float v10 = (float) mouseY - (float) v28;
+            int v27 = screenPos.X;
+            int v28 = screenPos.Y;
+            var v16 = mouseX - (float) v27;
+            float v10 = mouseY - (float) v28;
             var distFromCenter = MathF.Sqrt(v10 * v10 + v16 * v16);
 
             var visibleChildCount = RadialMenuCountChildren(parentNodeIdx);
-            var radiusMin = (float) width1pad;
+            var radiusMin = width1pad;
             var widthPerChild = 16.0f / width1pad;
             var overallWidthHalf = visibleChildCount * widthPerChild * 0.5f;
             var radmenuX = parentNodeAngle - overallWidthHalf;
@@ -573,8 +579,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
             var childrenCount = RadialMenus.GetRadialActiveMenuNodeChildrenCount(parentNodeIdx);
 
-            int radiusMax = width1pad + 15;
-            int widthout2 = width2pad;
+            float radiusMax = width1pad + 15;
+            float widthout2 = width2pad;
             for (var v7 = 0; v7 < childrenCount; v7++)
             {
                 int childNodeIdx = RadialMenus.RadialMenuGetChild /*0x100f0890*/(parentNodeIdx, v7);
@@ -582,7 +588,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 {
                     RadialMenus.GetActiveRadMenuNodeRegardMorph /*0x100f08f0*/(childNodeIdx);
                     float v18 = widthPerChild * 0.5f;
-                    var childNodeSliceCenter = (float) v21 * widthPerChild + parentNodeAngle - overallWidthHalf + v18;
+                    var childNodeSliceCenter = v21 * widthPerChild + parentNodeAngle - overallWidthHalf + v18;
                     RadialMenuGetNodeWidth(parentNodeIdx, menuDepth, width1pad, width2pad,
                         out radiusMax, out widthout2, widthPerChild);
                     if (currentNodeIdx == childNodeIdx ||
@@ -746,36 +752,46 @@ namespace OpenTemple.Core.Ui.RadialMenu
             a2 = v15;
         }
 
-        private string GetNodeDisplayText(RadialMenuNode node)
+        private TextLayout GetNodeDisplayText(RadialMenuNode node)
         {
             // We're not always using a stringbuilder because for most entries, the text will be displayed as-is
-            var displayText = node.entry.text;
+            var displayText = new Paragraph();
+            displayText.AddStyle("radialmenu-text");
+            displayText.AppendContent(node.entry.text);
             if (node.entry.HasMinArg && node.entry.HasMaxArg)
             {
                 var maxarg = node.entry.maxArg;
                 var minarg = node.entry.minArg;
                 if (minarg >= maxarg)
                 {
-                    displayText += $" ({minarg}/{maxarg})";
+                    displayText.AppendContent($" ({minarg}/{maxarg})");
                 }
                 else
                 {
-                    displayText += $" (@1{minarg}@0/{maxarg})";
+                    displayText.AppendContent(" (");
+                    displayText.AppendContent($"{minarg}", new StyleDefinition()
+                    {
+                        Color = new PackedLinearColorA(255, 102, 102, 255)
+                    });
+                    displayText.AppendContent($"/{maxarg})");
                 }
             }
 
             var hotkeyLetter = GameSystems.D20.Hotkeys.GetHotkeyLetter(ref node.entry);
             if (hotkeyLetter != null)
             {
-                displayText += $" [{hotkeyLetter}]";
+                displayText.AppendContent($" [{hotkeyLetter}]");
             }
 
-            return displayText;
+            return _textEngine.CreateTextLayout(displayText,
+                0,
+                0
+            );
         }
 
         [TempleDllLocation(0x1013ac50)]
-        public void RadialMenuGetNodeWidth(int activeNodeIdx, int _280, int width1pad, int width2pad, out int widthout1,
-            out int widthout2, float widthfactor)
+        public void RadialMenuGetNodeWidth(int activeNodeIdx, int _280, float width1pad, float width2pad, out float widthout1,
+            out float widthout2, float widthfactor)
         {
             var style = new TigTextStyle();
             style.textColor = new ColorRect(PackedLinearColorA.White);
@@ -805,14 +821,9 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 }
 
                 var radEntry = RadialMenus.GetActiveRadMenuNodeRegardMorph(childNodeIdx);
-                var displayText = GetNodeDisplayText(radEntry);
+                using var displayText = GetNodeDisplayText(radEntry);
 
-                var metrics = new TigFontMetrics();
-                metrics.width = 0;
-                metrics.height = 20;
-                Tig.Fonts.Measure(style, displayText, ref metrics);
-
-                var expandedWidth = metrics.width + 4;
+                var expandedWidth = displayText.OverallWidth + 4;
 
                 var entryType = radEntry.entry.type;
                 if (entryType == RadialMenuEntryType.Toggle || entryType == RadialMenuEntryType.Choice)
@@ -820,11 +831,12 @@ namespace OpenTemple.Core.Ui.RadialMenu
                     expandedWidth += (int) (width1pad * widthfactor);
                 }
 
-                if ( width1pad != 0 && widthout1 < expandedWidth + width1pad )
+                if (width1pad != 0 && widthout1 < expandedWidth + width1pad)
                 {
                     widthout1 = expandedWidth + width1pad;
                 }
-                if ( width2pad != 0 && widthout2 < expandedWidth + width2pad )
+
+                if (width2pad != 0 && widthout2 < expandedWidth + width2pad)
                 {
                     widthout2 = expandedWidth + width2pad;
                 }
@@ -892,7 +904,6 @@ namespace OpenTemple.Core.Ui.RadialMenu
         [TempleDllLocation(0x1013dba0)]
         public void Render()
         {
-
             sub_1013C600();
             if (RadialMenus.GetCurrentNode() == -1)
             {
@@ -1083,11 +1094,11 @@ namespace OpenTemple.Core.Ui.RadialMenu
         }
 
         [TempleDllLocation(0x1013c230)]
-        private void RenderNodeChildren(int nodeIdx, int menuPosX, int menuPosY, int depth, float angle, int a6,
-            int a7)
+        private void RenderNodeChildren(int nodeIdx, int menuPosX, int menuPosY, int depth, float angle, float a6,
+            float a7)
         {
-            int widthout1 = 0;
-            int widthout2 = 0;
+            float widthout1 = 0;
+            float widthout2 = 0;
 
             var showChildrenOfNodeIdx = -1;
             var showChildrenAtAngle = angle;
@@ -1097,7 +1108,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
             var currentNodeIdx = RadialMenus.GetCurrentNode();
             var visibleChildren = RadialMenuCountChildren(nodeIdx);
             int centerVisibleChildNodeIdx = GetCenterVisibleChildNodeIdx(nodeIdx);
-            float wfactor = 16.0f / (float) a6;
+            float wfactor = 16.0f / a6;
 
             var halfNodeWidth = visibleChildren * wfactor * 0.5f;
             var sliceStart = angle - halfNodeWidth;
@@ -1199,7 +1210,6 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
                 var innerColorWithAlpha = new PackedLinearColorA(innerColor.R, innerColor.G, innerColor.B, alpha);
                 var outerColorWithAlpha = new PackedLinearColorA(outerColor.R, outerColor.G, outerColor.B, alpha);
-                var blackWithAlpha = new PackedLinearColorA(0, 0, 0, alpha);
 
                 Tig.ShapeRenderer2d.DrawPieSegment(
                     9, menuPosX, menuPosY, vxx, wfactor, v14, v37, widthout1, widthout2, innerColorWithAlpha,
@@ -1222,8 +1232,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
         /// This renders the node text and a potential checkbox.
         /// </summary>
         [TempleDllLocation(0x1013a580)]
-        public void RenderNodeContent(int outerOffset, int nodeIdx, int menuPosX, int menuPosY, float angleCenter,
-            float angleWidth, int innerRadius, int innerOffset, int outerRadius, int seventeen, int alpha)
+        public void RenderNodeContent(float outerOffset, int nodeIdx, int menuPosX, int menuPosY, float angleCenter,
+            float angleWidth, float innerRadius, float innerOffset, float outerRadius, int seventeen, int alpha)
         {
             var v11 = outerOffset;
             var v47 = false;
@@ -1232,7 +1242,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
             // TODO Does this mean it's rendering upside down...?
             // Center is between 90° and 270°
-            if (angleCenter > PI_HALF && angleCenter < MathF.PI + PI_HALF)
+            if (angleCenter is > PI_HALF and < MathF.PI + PI_HALF)
             {
                 var v13 = -a7a;
                 angleCenter -= MathF.PI;
@@ -1242,42 +1252,32 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 v47 = true;
             }
 
-            TigTextStyle style = new TigTextStyle();
-            style.textColor = new ColorRect(new PackedLinearColorA(255, 255, 255, (byte) alpha));
-            style.additionalTextColors = new[]
-            {
-                new ColorRect(new PackedLinearColorA(255, 102, 102, (byte) alpha))
-            };
-            style.flags = TigTextStyleFlag.TTSF_ROTATE_OFF_CENTER | TigTextStyleFlag.TTSF_ROTATE;
-            style.field2c = -1;
-            style.field0 = 0;
-            style.kerning = 2;
-            style.leading = 0;
-            style.tracking = 5;
-            style.rotation = angleCenter;
-            style.rotationCenterX = menuPosX;
-            style.rotationCenterY = menuPosY;
-            style.field24 = 0;
+            using var displayText = GetNodeDisplayText(node);
 
-            var metrics = new TigFontMetrics();
-            var displayText = GetNodeDisplayText(node);
-            Tig.Fonts.Measure(style, displayText, ref metrics);
-
-            Rectangle extents = new Rectangle();
-            extents.Y = innerOffset + menuPosY - metrics.height / 2;
-            extents.Height = metrics.height;
-            extents.Width = metrics.width;
-
+            float x;
+            var y = innerOffset + menuPosY - displayText.OverallHeight / 2;
             if (v47)
             {
-                extents.X = menuPosX + outerRadius - metrics.width;
+                x = menuPosX + outerRadius - displayText.OverallWidth;
             }
             else
             {
-                extents.X = menuPosX + a7a;
+                x = menuPosX + a7a;
             }
 
-            Tig.Fonts.RenderText(displayText, extents, style);
+            var options = TextRenderOptions.Default
+                .WithRotation(angleCenter, new Vector2(menuPosX, menuPosY));
+            if (alpha < 255)
+            {
+                options = options.WithOpacity(alpha / 255f);
+            }
+
+            _textEngine.RenderTextLayout(
+                x,
+                y,
+                displayText,
+                options
+            );
 
             var nodeType = node.entry.type;
             if (nodeType == RadialMenuEntryType.Toggle || nodeType == RadialMenuEntryType.Choice)
@@ -1296,10 +1296,10 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 corners[3].uv = Vector2.UnitY;
 
                 var v22 = angleWidth * 0.25f;
-                int a7c = a7b - (int) (a7b * angleWidth / 2.0f);
+                var a7c = a7b - (a7b * angleWidth / 2.0f);
                 if (v47)
                 {
-                    var v35 = (float) a7c;
+                    var v35 = a7c;
                     float v36 = (angleWidth * 0.5f + 1.0f) * v35;
                     var v39 = angleCenter - v22;
                     var v34 = angleCenter + v22;

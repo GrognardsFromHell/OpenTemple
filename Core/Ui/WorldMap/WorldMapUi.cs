@@ -137,7 +137,7 @@ namespace OpenTemple.Core.Ui.WorldMap
             var locations = WorldMapLocations.LoadFromJson("ui/worldmap_locations.json");
 
             var doc = WidgetDoc.Load("ui/worldmap_ui.json");
-            _mainWindow = doc.TakeRootContainer();
+            _mainWindow = doc.GetRootContainer();
             _mainWindow.Visible = false;
             _mainWindow.SetKeyStateChangeHandler(HandleShortcut);
             _mainWindow.OnHandleMessage += message =>
@@ -180,7 +180,6 @@ namespace OpenTemple.Core.Ui.WorldMap
             // Since we're on the worldmap, this button switches to the townmap
             _currentMapButton = doc.GetButton("currentMapButton");
             _currentMapButton.SetClickHandler(SwitchToTownMap);
-            _currentMapButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
 
             var centerOnParty = doc.GetButton("centerOnPartyButton");
             centerOnParty.SetClickHandler(() =>
@@ -289,8 +288,8 @@ namespace OpenTemple.Core.Ui.WorldMap
                         && !UiSystems.WorldMapRandomEncounter.IsActive)
                     {
                         var currentTrailDot = _trailDots[_currenTrailDotIndex];
-                        _lastTrailPos.X = currentTrailDot.GetX() + currentTrailDot.GetFixedWidth() / 2;
-                        _lastTrailPos.Y = currentTrailDot.GetY() + currentTrailDot.GetFixedHeight() / 2;
+                        _lastTrailPos.X = currentTrailDot.X + currentTrailDot.FixedWidth / 2;
+                        _lastTrailPos.Y = currentTrailDot.Y + currentTrailDot.FixedHeight / 2;
 
                         var terrain = GetTerrain(_lastTrailPos);
 
@@ -708,8 +707,8 @@ namespace OpenTemple.Core.Ui.WorldMap
                 {
                     var src = _trailDots[uiWorldMapInitialTrailDotIdx + i];
                     var dest = _trailDots[i];
-                    dest.SetX(src.GetX());
-                    dest.SetY(src.GetY());
+                    dest.X = src.X;
+                    dest.Y = src.Y;
                 }
             }
             else if (v50)
@@ -721,8 +720,8 @@ namespace OpenTemple.Core.Ui.WorldMap
                 {
                     var src = _trailDots[dotDelta + i];
                     var dest = _trailDots[i];
-                    dest.SetX(src.GetX());
-                    dest.SetY(src.GetY());
+                    dest.X = src.X;
+                    dest.Y = src.Y;
                 }
             }
         }
@@ -730,8 +729,8 @@ namespace OpenTemple.Core.Ui.WorldMap
         private void SetTrailDot(int index, int x, int y)
         {
             var trailDot = _trailDots[index];
-            trailDot.SetX(x - trailDot.GetFixedWidth() / 2);
-            trailDot.SetY(y - trailDot.GetFixedHeight() / 2);
+            trailDot.X = x - trailDot.FixedWidth / 2;
+            trailDot.Y = y - trailDot.FixedHeight / 2;
         }
 
         private void EnsureTrailDots(int count)
@@ -739,8 +738,8 @@ namespace OpenTemple.Core.Ui.WorldMap
             while (_trailDots.Count < count)
             {
                 var trailDot = new WidgetImage(TrailDotTexture);
-                trailDot.SetFixedWidth(trailDot.GetPreferredSize().Width);
-                trailDot.SetFixedHeight(trailDot.GetPreferredSize().Height);
+                trailDot.FixedWidth = trailDot.GetPreferredSize().Width;
+                trailDot.FixedHeight = trailDot.GetPreferredSize().Height;
                 trailDot.Visible = false;
                 _trailDotsContainer.AddContent(trailDot);
                 _trailDots.Add(trailDot);

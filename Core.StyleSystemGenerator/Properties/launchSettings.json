@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Generate": {
+      "workingDirectory": "$(ProjectDir)/../",
+      "commandName": "Project"
+    }
+  }
+}

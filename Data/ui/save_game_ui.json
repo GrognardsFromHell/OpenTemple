@@ -11,16 +11,16 @@
       "fontFamily": "arial-12",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "align": "center",
-      "paragraphAlign": "center",
-      "foreground": "#ffffff"
+      "textAlignment": "center",
+      "paragraphAlignment": "center",
+      "color": "#ffffff"
     },
     {
       "id": "loadGameSlot",
       "fontFamily": "priory-12",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "foreground": "#ffffff"
+      "color": "#ffffff"
     }
   ],
   "__buttonStyles": [

@@ -45,14 +45,14 @@ namespace OpenTemple.Core.Ui.SaveGame
             AddContent(_borderImage);
 
             _screenshot = new WidgetImage();
-            _screenshot.SetX(2);
-            _screenshot.SetY(2);
+            _screenshot.X = 2;
+            _screenshot.Y = 2;
             _screenshot.FixedSize = new Size(64, 48);
             AddContent(_screenshot);
 
             _label = new WidgetText("", "loadGameSlot");
-            _label.SetX(67);
-            _label.SetY(2);
+            _label.X = 67;
+            _label.Y = 2;
             _label.FixedSize = new Size(268, 48);
             AddContent(_label);
         }
@@ -119,11 +119,11 @@ namespace OpenTemple.Core.Ui.SaveGame
             {
                 if (_selected)
                 {
-                    _label.SetText(NewName + "|");
+                    _label.Text = NewName + "|";
                 }
                 else
                 {
-                    _label.SetText("#{savegame:3}");
+                    _label.Text = "#{savegame:3}";
                 }
 
                 return;
@@ -143,14 +143,14 @@ namespace OpenTemple.Core.Ui.SaveGame
             displayText.Append(info.GameTime.timeInDays + 1);
             displayText.Append('\n');
 
-            _label.SetText(displayText.ToString());
+            _label.Text = displayText.ToString();
         }
 
         private void UpdateNewSaveName()
         {
             if (!Selected)
             {
-                _label.SetText("#{savegame:3}");
+                _label.Text = "#{savegame:3}";
                 return;
             }
 
@@ -158,13 +158,13 @@ namespace OpenTemple.Core.Ui.SaveGame
 
             // Insert the caret
             var displayedText = NewName.Insert(CaretPosition, "|");
-            _label.SetText(displayedText);
+            _label.Text = displayedText;
 
             // This is _incredibly_ bad, but it's what vanilla ToEE did :-(
-            while (_label.GetPreferredSize().Width >= _label.GetFixedWidth())
+            while (_label.GetPreferredSize().Width >= _label.FixedWidth)
             {
                 displayedText = displayedText.Substring(1);
-                _label.SetText(displayedText);
+                _label.Text = displayedText;
             }
         }
 

@@ -1,9 +1,8 @@
 using System;
 using System.Drawing;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Stats
@@ -13,14 +12,25 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
         private readonly WidgetImage _downImage;
         private readonly WidgetImage _hoverImage;
 
-        private readonly WidgetLegacyText _label;
+        private readonly WidgetText _label;
 
-        private readonly WidgetLegacyText _tooltipLabel;
-
-        private readonly Func<GameObjectBody, string> _valueSupplier;
+        private readonly Func<GameObjectBody, InlineElement> _valueSupplier;
 
         public StatsValue(
             Func<GameObjectBody, string> valueSupplier,
+            Rectangle rect,
+            StatsUiTexture downImage,
+            StatsUiTexture hoverImage,
+            StatsUiParams uiParams) : this(obj => new SimpleInlineElement(valueSupplier(obj)),
+            rect,
+            downImage,
+            hoverImage,
+            uiParams)
+        {
+        }
+
+        public StatsValue(
+            Func<GameObjectBody, InlineElement> valueSupplier,
             Rectangle rect,
             StatsUiTexture downImage,
             StatsUiTexture hoverImage,
@@ -30,22 +40,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             _hoverImage = new WidgetImage(uiParams.TexturePaths[hoverImage]);
             _valueSupplier = valueSupplier;
 
-            _label = new WidgetLegacyText(
-                "",
-                uiParams.MoneyFont,
-                new TigTextStyle
-                {
-                    kerning = 1,
-                    tracking = 5,
-                    textColor = new ColorRect(PackedLinearColorA.White),
-                    additionalTextColors = new []
-                    {
-                        new ColorRect(new PackedLinearColorA(32, 255, 32, 255)),
-                        new ColorRect(new PackedLinearColorA(255, 32, 32, 255)),
-                        new ColorRect(new PackedLinearColorA(255, 51, 51, 255)),
-                    }
-                }
-            );
+            _label = new WidgetText("", "char-ui-stat-value");
             SetWidgetMsgHandler(msg =>
             {
                 if (msg.widgetEventType == TigMsgWidgetEvent.Exited)
@@ -57,20 +52,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 return false;
             });
 
-            var tooltipStyle = new TigTextStyle();
-            tooltipStyle.bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, 204));
-            tooltipStyle.shadowColor = new ColorRect(PackedLinearColorA.Black);
-            tooltipStyle.textColor = new ColorRect(PackedLinearColorA.White);
-            tooltipStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW
-                                 | TigTextStyleFlag.TTSF_BACKGROUND
-                                 | TigTextStyleFlag.TTSF_BORDER;
-            tooltipStyle.tracking = 2;
-            tooltipStyle.kerning = 2;
-
-            _tooltipLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_10, tooltipStyle);
+            TooltipText = UiSystems.Tooltip.GetString(6044);
         }
-
-        public string Tooltip { get; set; } = UiSystems.Tooltip.GetString(6044);
 
         protected override void Dispose(bool disposing)
         {
@@ -98,7 +81,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             if (renderImage != null)
             {
-                renderImage.SetContentArea(
+                renderImage.SetBounds(
                     new Rectangle(
                         contentArea.X,
                         contentArea.Y - 1,
@@ -110,7 +93,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             }
 
             var critter = UiSystems.CharSheet.CurrentCritter;
-            _label.Text = critter != null ? _valueSupplier(critter) : "";
+            _label.Content = critter != null ? _valueSupplier(critter) : null;
 
             var labelSize = _label.GetPreferredSize();
             // Center horizontally and vertically within the content area
@@ -121,21 +104,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 contentArea.Height = labelSize.Height
             );
 
-            _label.SetContentArea(labelArea);
+            _label.SetBounds(labelArea);
             _label.Render();
-        }
-
-        public override void RenderTooltip(int x, int y)
-        {
-            if (Tooltip != null)
-            {
-                _tooltipLabel.Text = Tooltip;
-
-                var preferredSize = _tooltipLabel.GetPreferredSize();
-                var contentArea = new Rectangle(x, y - preferredSize.Height, preferredSize.Width, preferredSize.Height);
-                _tooltipLabel.SetContentArea(contentArea);
-                _tooltipLabel.Render();
-            }
         }
     }
 }

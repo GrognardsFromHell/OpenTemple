@@ -1,38 +1,58 @@
+#nullable enable
+using System.Collections.Immutable;
 using System.Drawing;
+using OpenTemple.Core.Ui.FlowModel;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetTooltipRenderer
     {
-        private TooltipStyle _tooltipStyle = UiSystems.Tooltip.DefaultStyle;
-        private string _tooltipText;
-        private WidgetLegacyText _tooltipLabel;
+        private string _tooltipStyleId = "default-tooltip";
+        private InlineElement? _tooltipContent;
+        private WidgetText? _tooltipLabel;
 
         public bool AlignLeft { get; set; }
 
-        public TooltipStyle TooltipStyle
+        public string TooltipStyle
         {
-            get => _tooltipStyle;
+            get => _tooltipStyleId;
             set
             {
-                _tooltipStyle = value;
+                _tooltipStyleId = value;
                 UpdateTooltipLabel();
             }
         }
 
-        public string TooltipText
+        public string? TooltipText
         {
-            get => _tooltipText;
+            get => _tooltipContent?.TextContent;
             set
             {
-                _tooltipText = value;
+                if (value == null)
+                {
+                    _tooltipContent = null;
+                }
+                else
+                {
+                    _tooltipContent = new SimpleInlineElement(value);
+                }
+                UpdateTooltipLabel();
+            }
+        }
+
+        public InlineElement? TooltipContent
+        {
+            get => _tooltipContent;
+            set
+            {
+                _tooltipContent = value;
                 UpdateTooltipLabel();
             }
         }
 
         private void UpdateTooltipLabel()
         {
-            if (_tooltipStyle == null || _tooltipText == null)
+            if (_tooltipContent == null)
             {
                 _tooltipLabel = null;
                 return;
@@ -40,19 +60,23 @@ namespace OpenTemple.Core.Ui.Widgets
 
             if (_tooltipLabel == null)
             {
-                _tooltipLabel = new WidgetLegacyText(_tooltipText, _tooltipStyle.Font, _tooltipStyle.TextStyle);
+                _tooltipLabel = new WidgetText(_tooltipContent, _tooltipStyleId);
             }
             else
             {
-                _tooltipLabel.Text = _tooltipText;
+                _tooltipLabel.StyleIds = ImmutableList.Create(_tooltipStyleId);
+                _tooltipLabel.Content = _tooltipContent;
             }
         }
 
-
         public void Render(int x, int y)
         {
-            if (TooltipStyle != null && TooltipText != null)
+            if (_tooltipLabel != null)
             {
+                // Pre-seed the max width for the content
+                _tooltipLabel.SetBounds(new Rectangle(0, 0, 300, 300));
+                _tooltipLabel.InvalidateStyles();
+
                 var preferredSize = _tooltipLabel.GetPreferredSize();
                 var contentArea = new Rectangle(
                     x,
@@ -65,7 +89,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     contentArea.X -= preferredSize.Width;
                 }
                 UiSystems.Tooltip.ClampTooltipToScreen(ref contentArea);
-                _tooltipLabel.SetContentArea(contentArea);
+                _tooltipLabel.SetBounds(contentArea);
                 _tooltipLabel.Render();
             }
         }

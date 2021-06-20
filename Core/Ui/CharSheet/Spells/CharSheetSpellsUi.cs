@@ -35,7 +35,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         {
             var doc = WidgetDoc.Load("ui/char_spells.json");
 
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.ZIndex = 100050;
             Container.Name = "char_spells_ui_main_window";
 
@@ -144,11 +144,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             if (GameSystems.Spell.IsDomainSpell(classCode)
                 || GameSystems.Spell.GetCastingClass(classCode) != Stat.level_wizard)
             {
-                _spellsKnownHeader.SetText("#{char_ui_spells:4}"); // Known spells
+                _spellsKnownHeader.Text = "#{char_ui_spells:4}"; // Known spells
             }
             else
             {
-                _spellsKnownHeader.SetText("#{char_ui_spells:0}"); // Spellbook
+                _spellsKnownHeader.Text = "#{char_ui_spells:0}"; // Spellbook
             }
 
             var knownSpellsList = new KnownSpellsList(

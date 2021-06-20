@@ -21,9 +21,9 @@ namespace OpenTemple.Core.IO.Images
             var dest = result.data;
             foreach (var alpha in data)
             {
-                dest[offset++] = 0xFF;
-                dest[offset++] = 0xFF;
-                dest[offset++] = 0xFF;
+                dest[offset++] = alpha;
+                dest[offset++] = alpha;
+                dest[offset++] = alpha;
                 dest[offset++] = alpha;
             }
 

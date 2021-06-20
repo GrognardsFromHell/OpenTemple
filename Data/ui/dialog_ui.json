@@ -3,10 +3,48 @@
   "type": "container",
   "x": 0,
   "y": 0,
-  "width": 352,
-  "height": 311,
+  "width": 611,
+  "height": 292,
   "__styles": [
-
+    {
+      "id": "dialog-ui-text",
+      "fontFace": "Arial",
+      "fontSize": 10
+    },
+    {
+      "id": "dialog-ui-button-normal",
+      "color": "#00FF00"
+    },
+    {
+      "id": "dialog-ui-button-hover",
+      "color": "#99FF99"
+    },
+    {
+      "id": "dialog-ui-button-pressed",
+      "color": "#FFFFFF"
+    },
+    {
+      "id": "dialog-ui-button-skill-normal",
+      "color": "#E4CE3E"
+    },
+    {
+      "id": "dialog-ui-button-skill-hover",
+      "color": "#FEFE19"
+    },
+    {
+      "id": "dialog-ui-button-skill-pressed",
+      "color": "#FEFF00"
+    },
+    {
+      "id": "dialog-ui-line-player",
+      "inherit": "dialog-ui-text",
+      "color": "#666666"
+    },
+    {
+      "id": "dialog-ui-line-npc",
+      "inherit": "dialog-ui-text",
+      "color": "#FFFF00"
+    }
   ],
   "__buttonStyles": [
 

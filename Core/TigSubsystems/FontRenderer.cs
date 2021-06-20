@@ -23,10 +23,19 @@ namespace OpenTemple.Core.TigSubsystems
 
         private ResourceRef<Material> _material;
 
+        private ResourceRef<SamplerState> _sampler;
+
         public FontRenderer(RenderingDevice device)
         {
             _device = device;
             _material = CreateMaterial(device).Ref();
+            _sampler = device.CreateSamplerState(new SamplerSpec()
+            {
+                addressU = TextureAddress.Clamp,
+                addressV = TextureAddress.Clamp,
+                magFilter = TextureFilterType.Linear,
+                minFilter = TextureFilterType.Linear
+            });
             _callbacks = new ResourceLifecycleCallbacks(device, CreateResources, FreeResources);
 
             for (var i = 0; i < _fileState.Length; i++)
@@ -173,18 +182,22 @@ namespace OpenTemple.Core.TigSubsystems
                 // For some mysterious reason ToEE actually uses one pixel more to the left of the
                 // Glyph than is specified in the font file. That area should be transparent, but
                 // it means all rendered text is shifted one pixel more to the right than it should be.
-                float u1 = glyph.Rectangle.X - 1;
-                float v1 = glyph.Rectangle.Y - 1;
-                var u2 = u1 + glyph.Rectangle.Width + 1;
-                var v2 = v1 + glyph.Rectangle.Height + 1;
+                // NOTE: When using linear filtering, the adjacent char sometimes bleeds into the current one
+                //       To avoid this, instead of actually rendering this 1px offset, we just offset the
+                //       destination rectangle by (1,1) below.
+                float u1 = glyph.Rectangle.X;
+                float v1 = glyph.Rectangle.Y;
+                var u2 = u1 + glyph.Rectangle.Width;
+                var v2 = v1 + glyph.Rectangle.Height;
 
                 var state = _fileState[glyph.FontArtIndex];
 
+                // See big comment above for reasoning for the 1,1 offset
                 var destRect = new Rectangle(
-                    x,
-                    y + fontFace.BaseLine - glyph.BaseLineYOffset,
-                    glyph.Rectangle.Width + 1,
-                    glyph.Rectangle.Height + 1
+                    x + 1,
+                    y + fontFace.BaseLine - glyph.BaseLineYOffset + 1,
+                    glyph.Rectangle.Width,
+                    glyph.Rectangle.Height
                 );
 
                 x += style.kerning + glyph.WidthLine;
@@ -325,6 +338,7 @@ namespace OpenTemple.Core.TigSubsystems
         {
             _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
             _device.SetMaterial(_material);
+            _device.SetSamplerState(0, _sampler);
             _device.SetTexture(0, texture);
 
             var textureSize = texture.GetSize();

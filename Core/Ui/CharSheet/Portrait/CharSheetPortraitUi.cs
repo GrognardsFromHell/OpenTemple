@@ -90,8 +90,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
 
             _portraitImage = new WidgetImage();
             _portraitImage.FixedSize = uiParams.Portrait;
-            _portraitImage.SetX((uiParams.PortraitWindow.Width - uiParams.Portrait.Width) / 2);
-            _portraitImage.SetY((uiParams.PortraitWindow.Height - uiParams.Portrait.Height) / 2);
+            _portraitImage.X = (uiParams.PortraitWindow.Width - uiParams.Portrait.Width) / 2;
+            _portraitImage.Y = (uiParams.PortraitWindow.Height - uiParams.Portrait.Height) / 2;
             _portraitContainer.AddContent(_portraitImage);
 
             Container.Add(_portraitContainer);
@@ -112,8 +112,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
         private void AddPortraitFrame(PortraitUiParams uiParams, WidgetContainer container)
         {
             var backgroundImage = new WidgetImage(uiParams.TexturePaths[PortraitUiTexture.PortraitBorder]);
-            backgroundImage.SetFixedWidth(backgroundImage.GetPreferredSize().Width);
-            backgroundImage.SetFixedHeight(backgroundImage.GetPreferredSize().Height);
+            backgroundImage.FixedWidth = backgroundImage.GetPreferredSize().Width;
+            backgroundImage.FixedHeight = backgroundImage.GetPreferredSize().Height;
             container.AddContent(backgroundImage);
         }
 
@@ -141,14 +141,13 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             _miniatureButton.SetPos(uiParams.MiniatureButton.Location);
             _miniatureButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelNormal],
-                activatedImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelSelected],
-                pressedImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelPressed],
-                hoverImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelHover],
-                disabledImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelDisabled]
+                NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelNormal],
+                ActivatedImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelSelected],
+                PressedImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelPressed],
+                HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelHover],
+                DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelDisabled]
             });
             _miniatureButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Miniature);
-            _miniatureButton.TooltipStyle = UiSystems.Tooltip.GetStyle(uiParams.TooltipStyle);
             _miniatureButton.TooltipText = UiSystems.Tooltip.GetString(5000);
             Container.Add(_miniatureButton);
 
@@ -156,14 +155,13 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             _portraitButton.SetPos(uiParams.PortraitButton.Location);
             _portraitButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitNormal],
-                activatedImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitSelected],
-                pressedImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitPressed],
-                hoverImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitHover],
-                disabledImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitDisabled]
+                NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitNormal],
+                ActivatedImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitSelected],
+                PressedImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitPressed],
+                HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitHover],
+                DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitDisabled]
             });
             _portraitButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Portrait);
-            _portraitButton.TooltipStyle = UiSystems.Tooltip.GetStyle(uiParams.TooltipStyle);
             _portraitButton.TooltipText = UiSystems.Tooltip.GetString(5001);
             Container.Add(_portraitButton);
 
@@ -171,14 +169,13 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             _paperdollButton.SetPos(uiParams.PaperdollButton.Location);
             _paperdollButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollNormal],
-                activatedImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollSelected],
-                pressedImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollPressed],
-                hoverImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollHover],
-                disabledImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollDisabled]
+                NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollNormal],
+                ActivatedImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollSelected],
+                PressedImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollPressed],
+                HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollHover],
+                DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollDisabled]
             });
             _paperdollButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Paperdoll);
-            _paperdollButton.TooltipStyle = UiSystems.Tooltip.GetStyle(uiParams.TooltipStyle);
             _paperdollButton.TooltipText = UiSystems.Tooltip.GetString(5002);
             Container.Add(_paperdollButton);
         }
@@ -209,7 +206,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
         private void CreatePaperdollContainer(PortraitUiParams uiParams)
         {
             var widgetDoc = WidgetDoc.Load("ui/char_paperdoll.json");
-            _paperdollContainer = widgetDoc.TakeRootContainer();
+            _paperdollContainer = widgetDoc.GetRootContainer();
 
             // Create an equipslot widget for each slot that has a defined rectangle
             _slotWidgets = SlotWidgetIds.ToDictionary(

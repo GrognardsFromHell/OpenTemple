@@ -96,63 +96,63 @@ namespace OpenTemple.Core.Ui.Styles
                     }
 
                     buttonStyle = GetStyle(inheritId).Copy();
-                    buttonStyle.inherits = inheritId;
+                    buttonStyle.Inherits = inheritId;
                 }
                 else
                 {
                     buttonStyle = new WidgetButtonStyle();
                 }
 
-                buttonStyle.id = id;
+                buttonStyle.Id = id;
 
                 if (style.TryGetProperty("textStyle", out var textStyleNode))
                 {
-                    buttonStyle.textStyleId = textStyleNode.GetString();
+                    buttonStyle.TextStyleId = textStyleNode.GetString();
                 }
 
                 if (style.TryGetProperty("hoverTextStyle", out var hoverTextStyleNode))
                 {
-                    buttonStyle.hoverTextStyleId = hoverTextStyleNode.GetString();
+                    buttonStyle.HoverTextStyleId = hoverTextStyleNode.GetString();
                 }
 
                 if (style.TryGetProperty("pressedTextStyle", out var pressedTextStyleNode))
                 {
-                    buttonStyle.pressedTextStyleId = pressedTextStyleNode.GetString();
+                    buttonStyle.PressedTextStyleId = pressedTextStyleNode.GetString();
                 }
 
                 if (style.TryGetProperty("disabledTextStyle", out var disabledTextStyleNode))
                 {
-                    buttonStyle.disabledTextStyleId = disabledTextStyleNode.GetString();
+                    buttonStyle.DisabledTextStyleId = disabledTextStyleNode.GetString();
                 }
 
                 if (style.TryGetProperty("disabledImage", out var disabledImageNode))
                 {
-                    buttonStyle.disabledImagePath = disabledImageNode.GetString();
+                    buttonStyle.DisabledImagePath = disabledImageNode.GetString();
                 }
 
                 if (style.TryGetProperty("normalImage", out var normalImageNode))
                 {
-                    buttonStyle.normalImagePath = normalImageNode.GetString();
+                    buttonStyle.NormalImagePath = normalImageNode.GetString();
                 }
 
                 if (style.TryGetProperty("hoverImage", out var hoverImageNode))
                 {
-                    buttonStyle.hoverImagePath = hoverImageNode.GetString();
+                    buttonStyle.HoverImagePath = hoverImageNode.GetString();
                 }
 
                 if (style.TryGetProperty("pressedImage", out var pressedImageNode))
                 {
-                    buttonStyle.pressedImagePath = pressedImageNode.GetString();
+                    buttonStyle.PressedImagePath = pressedImageNode.GetString();
                 }
 
                 if (style.TryGetProperty("frameImage", out var frameImageNode))
                 {
-                    buttonStyle.frameImagePath = frameImageNode.GetString();
+                    buttonStyle.FrameImagePath = frameImageNode.GetString();
                 }
 
                 if (style.TryGetProperty("activatedImage", out var activatedImageNode))
                 {
-                    buttonStyle.activatedImagePath = activatedImageNode.GetString();
+                    buttonStyle.ActivatedImagePath = activatedImageNode.GetString();
                 }
 
                 if (style.TryGetProperty("defaultSounds", out var defaultSoundsNode))
@@ -165,22 +165,22 @@ namespace OpenTemple.Core.Ui.Styles
 
                 if (style.TryGetProperty("soundEnter", out var soundEnterNode))
                 {
-                    buttonStyle.soundEnter = soundEnterNode.GetInt32();
+                    buttonStyle.SoundEnter = soundEnterNode.GetInt32();
                 }
 
                 if (style.TryGetProperty("soundLeave", out var soundLeaveNode))
                 {
-                    buttonStyle.soundLeave = soundLeaveNode.GetInt32();
+                    buttonStyle.SoundLeave = soundLeaveNode.GetInt32();
                 }
 
                 if (style.TryGetProperty("soundDown", out var soundDownNode))
                 {
-                    buttonStyle.soundDown = soundDownNode.GetInt32();
+                    buttonStyle.SoundDown = soundDownNode.GetInt32();
                 }
 
                 if (style.TryGetProperty("soundClick", out var soundClickNode))
                 {
-                    buttonStyle.soundClick = soundClickNode.GetInt32();
+                    buttonStyle.SoundClick = soundClickNode.GetInt32();
                 }
 
                 if (_styles.ContainsKey(id))

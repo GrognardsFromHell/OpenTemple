@@ -11,7 +11,7 @@
       "fontFamily": "arial-10",
       "legacyTracking": 3,
       "legacyKerning": 1,
-      "foreground": "#ffffff",
+      "color": "#ffffff",
       "legacyExtraColors": [
         "#43586E"
       ]
@@ -19,7 +19,7 @@
     {
       "id": "domainSelectionTextGrey",
       "inherit": "domainSelectionText",
-      "foreground": "#5d5d5d"
+      "color": "#5d5d5d"
     }
   ],
   "__buttonStyles": [

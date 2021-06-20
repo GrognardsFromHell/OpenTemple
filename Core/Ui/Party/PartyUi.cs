@@ -135,7 +135,7 @@ namespace OpenTemple.Core.Ui.Party
         {
             var doc = WidgetDoc.Load("ui/party_ui.json");
 
-            _container = doc.TakeRootContainer();
+            _container = doc.GetRootContainer();
         }
 
         [TempleDllLocation(0x10134cb0)]

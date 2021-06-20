@@ -11,7 +11,7 @@ namespace OpenTemple.Core.Ui.Styles
     public static class JsonColorLoader
     {
         private static readonly Regex RgbaRegex =
-            new Regex(@"rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,(\d{1,3})\s*,\s*(\d{1,3})\s*\)");
+            new Regex(@"rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)");
 
         private static readonly Regex RgbRegex = new Regex(@"rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)");
 
@@ -19,7 +19,7 @@ namespace OpenTemple.Core.Ui.Styles
 
         public static PackedLinearColorA GetColor(this JsonElement element) => ParseColor(element.GetString());
 
-        private static PackedLinearColorA ParseColor(string colorSpec)
+        public static PackedLinearColorA ParseColor(string colorSpec)
         {
             var m = RgbaRegex.Match(colorSpec);
             if (m.Success)

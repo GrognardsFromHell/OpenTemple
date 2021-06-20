@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using OpenTemple.Core.Location;
@@ -389,6 +390,10 @@ namespace OpenTemple.Core.GFX
             get => new((int) GetViewportWidth(), (int) GetViewportHeight());
             set
             {
+                if (value.Width <= 0 || value.Height <= 0)
+                {
+                    throw new ArgumentException("Invalid viewport size: " + value);
+                }
                 _viewportWidth = value.Width;
                 _viewportHeight = value.Height;
                 _dirty = true;

@@ -1,24 +1,26 @@
+#nullable enable
+
 namespace OpenTemple.Core.Ui.Widgets
 {
     public sealed class WidgetButtonStyle
     {
-        public string id;
-        public string inherits;
-        public string normalImagePath;
-        public string activatedImagePath;
-        public string hoverImagePath;
-        public string pressedImagePath;
-        public string disabledImagePath;
-        public string frameImagePath;
+        public string? Id;
+        public string? Inherits;
+        public string? NormalImagePath;
+        public string? ActivatedImagePath;
+        public string? HoverImagePath;
+        public string? PressedImagePath;
+        public string? DisabledImagePath;
+        public string? FrameImagePath;
 
-        public string textStyleId;
-        public string hoverTextStyleId;
-        public string pressedTextStyleId;
-        public string disabledTextStyleId;
-        public int soundEnter = -1;
-        public int soundLeave = -1;
-        public int soundDown = -1;
-        public int soundClick = -1;
+        public string? TextStyleId;
+        public string? HoverTextStyleId;
+        public string? PressedTextStyleId;
+        public string? DisabledTextStyleId;
+        public int SoundEnter = -1;
+        public int SoundLeave = -1;
+        public int SoundDown = -1;
+        public int SoundClick = -1;
 
         public WidgetButtonStyle Copy()
         {
@@ -29,10 +31,10 @@ namespace OpenTemple.Core.Ui.Widgets
         [TempleDllLocation(0x101f9660)]
         public WidgetButtonStyle UseDefaultSounds()
         {
-            soundEnter = 3010;
-            soundLeave = 3011;
-            soundClick = 3013;
-            soundDown = 3012;
+            SoundEnter = 3010;
+            SoundLeave = 3011;
+            SoundClick = 3013;
+            SoundDown = 3012;
             return this;
         }
     }

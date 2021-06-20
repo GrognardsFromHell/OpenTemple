@@ -25,7 +25,7 @@ namespace OpenTemple.Core
 
         public static UiManager UiManager { get; set; }
 
-        public static WidgetTextStyles WidgetTextStyles { get; set; }
+        public static UiStyles UiStyles { get; set; }
 
         public static WidgetButtonStyles WidgetButtonStyles { get; set; }
 

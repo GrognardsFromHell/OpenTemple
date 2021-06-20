@@ -42,7 +42,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
         public ClericFeaturesUi()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/abilities_cleric_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             _worshipsLabel = doc.GetTextContent("worshipsLabel");
@@ -189,7 +189,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
                 var globalContentArea = widget.GetContentArea(true);
                 var localX = msg.X - globalContentArea.X;
                 var localY = msg.Y - globalContentArea.Y;
-                _draggedDomainLabel.SetText(widget.GetText());
+                _draggedDomainLabel.Text = widget.Text;
                 widget.Visible = false;
 
                 // This will draw the ability score being dragged under the mouse cursor
@@ -199,7 +199,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
                     point.Offset(-localX, -localY);
                     var contentArea = new Rectangle(point, widget.GetSize());
 
-                    _draggedDomainLabel.SetContentArea(contentArea);
+                    _draggedDomainLabel.SetBounds(contentArea);
                     _draggedDomainLabel.Render();
                 });
             }
@@ -239,20 +239,20 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
         {
             if (_pkt.domain1 != DomainId.None)
             {
-                _selectedDomain1.SetText(GameSystems.Spell.GetDomainName(_pkt.domain1));
+                _selectedDomain1.Text = GameSystems.Spell.GetDomainName(_pkt.domain1);
             }
             else
             {
-                _selectedDomain1.SetText("");
+                _selectedDomain1.Text = "";
             }
 
             if (_pkt.domain2 != DomainId.None)
             {
-                _selectedDomain2.SetText(GameSystems.Spell.GetDomainName(_pkt.domain2));
+                _selectedDomain2.Text = GameSystems.Spell.GetDomainName(_pkt.domain2);
             }
             else
             {
-                _selectedDomain2.SetText("");
+                _selectedDomain2.Text = "";
             }
 
             for (var i = 0; i < _availableDomainButtons.Count; i++)
@@ -266,7 +266,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
 
                 button.Visible = true;
                 var domain = _selectableDomains[i];
-                button.SetText(GameSystems.Spell.GetDomainName(domain));
+                button.Text = GameSystems.Spell.GetDomainName(domain);
                 if (IsDomainSelected(domain))
                 {
                     button.SetStyle("deityDomainButtonDisabled");
@@ -281,7 +281,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
         private void UpdateChannelingType()
         {
             var msgId = 18100 + (int) _pkt.deityId.GetValueOrDefault();
-            _channelingTypeLabel.SetText($"#{{pc_creation:{msgId}}}");
+            _channelingTypeLabel.Text = $"#{{pc_creation:{msgId}}}";
 
             _channelingPositiveButton.SetActive(_pkt.alignmentChoice == AlignmentChoice.Positive);
             _channelingNegativeButton.SetActive(_pkt.alignmentChoice == AlignmentChoice.Negative);
@@ -292,7 +292,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
         {
             var deityId = _pkt.deityId.GetValueOrDefault();
             var deityName = GameSystems.Deity.GetName(deityId);
-            _worshipsLabel.SetText("@1#{pc_creation:18000}@0 " + deityName);
+            _worshipsLabel.Text = "@1#{pc_creation:18000}@0 " + deityName;
 
             _selectableDomains.Clear();
             _selectableDomains.AddRange(GameSystems.Deity.GetDomains(deityId));

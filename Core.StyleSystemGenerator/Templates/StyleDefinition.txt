@@ -1,0 +1,26 @@
+{{ include "GeneratedCodeAttribute.txt" }}
+public sealed class StyleDefinition : IStyleDefinition {
+    {{~for property in properties~}}
+    private {{property.type.name}}? _{{property.variable_or_field}};
+    {{~end~}}
+
+    /// <summary>
+    /// This event is raised whenever a change is made to this style definition.
+    /// </summary>
+    public event Action OnChange;
+
+    {{~for property in properties~}}
+    public {{property.type.name}}? {{property.name}}
+    {
+        get => _{{property.variable_or_field}};
+        set
+        {
+            if (_{{property.variable_or_field}} != value)
+            {
+                _{{property.variable_or_field}} = value;
+                OnChange?.Invoke();
+            }
+        }
+    }
+    {{~end~}}
+}

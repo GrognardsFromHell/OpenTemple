@@ -115,9 +115,7 @@ namespace OpenTemple.Core.Ui
                         int x = screenXfromMouseEvent;
                         int y = screenYfromMouseEvent;
 
-                        var ttStyle = UiSystems.Tooltip.GetStyle(0);
-                        Tig.Fonts.PushFont(ttStyle.Font);
-
+                        Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
                         TigTextStyle ttTextStyle = new TigTextStyle();
                         ttTextStyle.kerning = 2;
                         ttTextStyle.tracking = 2;

@@ -1,33 +1,16 @@
 using System;
-using System.Linq;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Party
 {
     internal class PortraitButton : WidgetButtonBase
     {
-
-        private static readonly TigTextStyle HpTextStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-        {
-            flags = TigTextStyleFlag.TTSF_CENTER | TigTextStyleFlag.TTSF_DROP_SHADOW,
-            shadowColor = new ColorRect(PackedLinearColorA.Black),
-            bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, 153)),
-            kerning = 2,
-            tracking = 5,
-            additionalTextColors = new[]
-            {
-                // Used for subdual damage
-                new ColorRect(new PackedLinearColorA(0xFF6666FF)),
-            }
-        };
+        private readonly IStyleDefinition _hpTextSubdualStyle = Globals.UiStyles.Get("hp-text-subdual");
 
         private readonly GameObjectBody _obj;
 
@@ -37,7 +20,7 @@ namespace OpenTemple.Core.Ui.Party
 
         private WidgetImage _normalPortrait;
         private WidgetImage _greyPortrait;
-        private WidgetLegacyText _hpLabel;
+        private WidgetText _hpLabel;
         private WidgetImage _highlight;
         private WidgetImage _highlightHover;
         private WidgetImage _highlightPressed;
@@ -49,6 +32,8 @@ namespace OpenTemple.Core.Ui.Party
             _highlight = new WidgetImage("art/interface/party_ui/Highlight.tga");
             _highlightHover = new WidgetImage("art/interface/party_ui/Highlight-hover-on.tga");
             _highlightPressed = new WidgetImage("art/interface/party_ui/Highlight-pressed.tga");
+
+            AddStyle("hp-text");
         }
 
         [TempleDllLocation(0x10132850)]
@@ -82,20 +67,18 @@ namespace OpenTemple.Core.Ui.Party
 
             if (Globals.Config.ShowPartyHitPoints)
             {
-                if (_hpLabel == null)
-                {
-                    _hpLabel = new WidgetLegacyText("HP", PredefinedFont.ARIAL_10, HpTextStyle);
-                }
+                _hpLabel ??= new WidgetText();
 
-                var hpText = $"@0{hpCurrent}/{hpMax}";
+                var text = new ComplexInlineElement();
+                text.AppendContent($"{hpCurrent}/{hpMax}");
                 var subdualDamage = _obj.GetInt32(obj_f.critter_subdual_damage);
                 if (subdualDamage > 0)
                 {
-                    hpText += $"@1({subdualDamage})";
+                    text.AppendContent($"({subdualDamage})", _hpTextSubdualStyle);
                 }
 
-                _hpLabel.Text = hpText;
-                _hpLabel.SetY(Height - 12);
+                _hpLabel.Content = text;
+                _hpLabel.Y = Height - 12;
                 AddContent(_hpLabel);
             }
 

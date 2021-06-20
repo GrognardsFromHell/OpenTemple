@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "THIS SCHEMA IS AUTOMATICALLY GENERATED. DO NOT MODIFY IT MANUALLY.",
+  "$id": "https://json-schemas.opentemple.de/styles.json",
+  "type": "array",
+  "title": "A list of style definitions",
+  "items": {
+    "allOf": [
+      {
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "inherit": {
+            "type": "string"
+          }
+        }
+      }
+    ],
+    "$ref": "#/definitions/StyleDefinition"
+  },
+  "definitions": {
+    "StyleDefinition": {
+      "type": "object",
+      "title": "A style definition",
+      "properties": {
+        "backgroundColor": {
+          "type": "string",
+          "pattern": "(#[0-9a-fA-F]{6,8}|rgb\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\)|rgba\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\))"
+        },
+        "borderColor": {
+          "type": "string",
+          "pattern": "(#[0-9a-fA-F]{6,8}|rgb\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\)|rgba\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\))"
+        },
+        "borderWidth": {
+          "type": "number"
+        },
+        "marginTop": {
+          "type": "number"
+        },
+        "marginRight": {
+          "type": "number"
+        },
+        "marginBottom": {
+          "type": "number"
+        },
+        "marginLeft": {
+          "type": "number"
+        },
+        "paddingTop": {
+          "type": "number"
+        },
+        "paddingRight": {
+          "type": "number"
+        },
+        "paddingBottom": {
+          "type": "number"
+        },
+        "paddingLeft": {
+          "type": "number"
+        },
+        "hangingIndent": {
+          "type": "boolean"
+        },
+        "indent": {
+          "type": "number"
+        },
+        "tabStopWidth": {
+          "type": "number"
+        },
+        "textAlignment": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right",
+            "justified"
+          ]
+        },
+        "paragraphAlignment": {
+          "type": "string",
+          "enum": [
+            "near",
+            "far",
+            "center"
+          ]
+        },
+        "wordWrap": {
+          "type": "string",
+          "enum": [
+            "wrap",
+            "nowrap",
+            "emergencybreak",
+            "wholeword",
+            "character"
+          ]
+        },
+        "trimMode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "character",
+            "word"
+          ]
+        },
+        "trimmingSign": {
+          "type": "string",
+          "enum": [
+            "none",
+            "ellipsis"
+          ]
+        },
+        "fontFace": {
+          "type": "string"
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "color": {
+          "type": "string",
+          "pattern": "(#[0-9a-fA-F]{6,8}|rgb\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\)|rgba\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\))"
+        },
+        "underline": {
+          "type": "boolean"
+        },
+        "lineThrough": {
+          "type": "boolean"
+        },
+        "fontStretch": {
+          "type": "string",
+          "enum": [
+            "ultracondensed",
+            "extracondensed",
+            "condensed",
+            "semicondensed",
+            "normal",
+            "semiexpanded",
+            "expanded",
+            "extraexpanded",
+            "ultraexpanded"
+          ]
+        },
+        "fontStyle": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "italic",
+            "oblique"
+          ]
+        },
+        "fontWeight": {
+          "type": "string",
+          "enum": [
+            "thin",
+            "extralight",
+            "light",
+            "regular",
+            "medium",
+            "semibold",
+            "bold",
+            "extrabold",
+            "black",
+            "extrablack"
+          ]
+        },
+        "dropShadowColor": {
+          "type": "string",
+          "pattern": "(#[0-9a-fA-F]{6,8}|rgb\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\)|rgba\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\))"
+        },
+        "outlineColor": {
+          "type": "string",
+          "pattern": "(#[0-9a-fA-F]{6,8}|rgb\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\)|rgba\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\))"
+        },
+        "outlineWidth": {
+          "type": "number"
+        },
+        "kerning": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

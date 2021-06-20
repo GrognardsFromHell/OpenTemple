@@ -1,18 +1,19 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Utils;
+using OpenTemple.Core.Ui.Styles;
 using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
-    public class WidgetBase : IDisposable
+    public class WidgetBase : Styleable, IDisposable
     {
         public string Name { get; set; }
 
@@ -51,7 +52,7 @@ namespace OpenTemple.Core.Ui.Widgets
         }
 
         public WidgetBase([CallerFilePath]
-            string filePath = null, [CallerLineNumber]
+            string? filePath = null, [CallerLineNumber]
             int lineNumber = -1)
         {
             if (filePath != null)
@@ -64,7 +65,7 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             if (disposing)
             {
-                mParent?.Remove(this);
+                _parent?.Remove(this);
                 Globals.UiManager.RemoveWidget(this);
             }
         }
@@ -97,14 +98,14 @@ namespace OpenTemple.Core.Ui.Widgets
 
             UpdateLayout();
 
-            foreach (var content in mContent)
+            foreach (var content in _content)
             {
                 if (!content.Visible)
                 {
                     continue;
                 }
 
-                var contentRect = content.GetContentArea();
+                var contentRect = content.GetBounds();
                 contentRect.Intersect(contentArea);
 
                 if (contentRect.Contains(x, y))
@@ -130,9 +131,9 @@ namespace OpenTemple.Core.Ui.Widgets
 
             var contentArea = GetContentArea();
 
-            foreach (var content in mContent)
+            foreach (var content in _content)
             {
-                if (!content.Visible || !content.GetContentArea().IntersectsWith(contentArea))
+                if (!content.Visible || !content.GetBounds().IntersectsWith(contentArea))
                 {
                     continue;
                 }
@@ -150,7 +151,7 @@ namespace OpenTemple.Core.Ui.Widgets
             // Size to content
             if (contentArea.Width == 0 && contentArea.Height == 0)
             {
-                foreach (var content in mContent)
+                foreach (var content in _content)
                 {
                     var preferred = content.GetPreferredSize();
                     contentArea.Width = Math.Max(contentArea.Width, preferred.Width);
@@ -168,60 +169,60 @@ namespace OpenTemple.Core.Ui.Widgets
                 }
             }
 
-            foreach (var content in mContent)
+            foreach (var content in _content)
             {
                 if (!content.Visible)
                 {
                     continue;
                 }
 
-                Rectangle specificContentArea = contentArea;
+                var contentBounds = contentArea;
                 // Shift according to the content item positioning
-                if (content.GetX() != 0)
+                if (content.X != 0)
                 {
-                    specificContentArea.X += content.GetX();
-                    specificContentArea.Width -= content.GetX();
-                    if (specificContentArea.Width < 0)
+                    contentBounds.X += content.X;
+                    contentBounds.Width -= content.X;
+                    if (contentBounds.Width < 0)
                     {
-                        specificContentArea.Width = 0;
+                        contentBounds.Width = 0;
                     }
                 }
 
-                if (content.GetY() != 0)
+                if (content.Y != 0)
                 {
-                    specificContentArea.Y += content.GetY();
-                    specificContentArea.Height -= content.GetY();
-                    if (specificContentArea.Height < 0)
+                    contentBounds.Y += content.Y;
+                    contentBounds.Height -= content.Y;
+                    if (contentBounds.Height < 0)
                     {
-                        specificContentArea.Height = 0;
+                        contentBounds.Height = 0;
                     }
                 }
 
                 // If fixed width and height are used, the content area's width/height are overridden
-                if (content.GetFixedWidth() != 0)
+                if (content.FixedWidth != 0)
                 {
-                    specificContentArea.Width = content.GetFixedWidth();
+                    contentBounds.Width = content.FixedWidth;
                 }
 
-                if (content.GetFixedHeight() != 0)
+                if (content.FixedHeight != 0)
                 {
-                    specificContentArea.Height = content.GetFixedHeight();
+                    contentBounds.Height = content.FixedHeight;
                 }
 
                 // Shift according to scroll offset for content
                 if (ContentOffset != Point.Empty)
                 {
-                    specificContentArea.Offset(-ContentOffset.X, -ContentOffset.Y);
+                    contentBounds.Offset(-ContentOffset.X, -ContentOffset.Y);
                     // Cull the item when it's no longer visible at all
-                    if (!specificContentArea.IntersectsWith(contentArea))
+                    if (!contentBounds.IntersectsWith(contentArea))
                     {
                         continue;
                     }
                 }
 
-                if (content.GetContentArea() != specificContentArea)
+                if (content.GetBounds() != contentBounds)
                 {
-                    content.SetContentArea(specificContentArea);
+                    content.SetBounds(contentBounds);
                 }
             }
         }
@@ -230,19 +231,19 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             if (mSizeToParent)
             {
-                int containerWidth = mParent != null
-                    ? mParent.Width
+                int containerWidth = _parent != null
+                    ? _parent.Width
                     : Globals.UiManager.CanvasSize.Width;
-                int containerHeight = mParent != null
-                    ? mParent.Height
+                int containerHeight = _parent != null
+                    ? _parent.Height
                     : Globals.UiManager.CanvasSize.Height;
                 SetSize(new Size(containerWidth, containerHeight));
             }
 
             if (mCenterHorizontally)
             {
-                int containerWidth = mParent != null
-                    ? mParent.Width
+                int containerWidth = _parent != null
+                    ? _parent.Width
                     : Globals.UiManager.CanvasSize.Width;
                 int x = (containerWidth - Width) / 2;
                 if (x != X)
@@ -253,8 +254,8 @@ namespace OpenTemple.Core.Ui.Widgets
 
             if (mCenterVertically)
             {
-                int containerHeight = mParent != null
-                    ? mParent.Height
+                int containerHeight = _parent != null
+                    ? _parent.Height
                     : Globals.UiManager.CanvasSize.Height;
                 int y = (containerHeight - Height) / 2;
                 if (y != Y)
@@ -335,17 +336,26 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public void AddContent(WidgetContent content)
         {
-            mContent.Add(content);
+            content.Parent = this;
+            _content.Add(content);
         }
 
         public void RemoveContent(WidgetContent content)
         {
-            mContent.Remove(content);
+            if (_content.Remove(content))
+            {
+                content.Parent = null;
+            }
         }
 
         public void ClearContent()
         {
-            mContent.Clear();
+            foreach (var content in _content)
+            {
+                content.Parent = null;
+            }
+
+            _content.Clear();
         }
 
         public void Show()
@@ -360,7 +370,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public virtual void BringToFront()
         {
-            var parent = mParent;
+            var parent = _parent;
             if (parent != null)
             {
                 parent.Remove(this);
@@ -370,13 +380,13 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public void SetParent(WidgetContainer parent)
         {
-            Trace.Assert(mParent == null || mParent == parent || parent == null);
-            mParent = parent;
+            Trace.Assert(_parent == null || _parent == parent || parent == null);
+            _parent = parent;
         }
 
         public WidgetContainer GetParent()
         {
-            return mParent;
+            return _parent;
         }
 
         public Rectangle Rectangle
@@ -542,16 +552,16 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public Rectangle GetVisibleArea()
         {
-            if (mParent != null)
+            if (_parent != null)
             {
-                Rectangle parentArea = mParent.GetVisibleArea();
+                Rectangle parentArea = _parent.GetVisibleArea();
                 int parentLeft = parentArea.X;
                 int parentTop = parentArea.Y;
                 int parentRight = parentLeft + parentArea.Width;
                 int parentBottom = parentTop + parentArea.Height;
 
                 int clientLeft = parentArea.X + X;
-                int clientTop = parentArea.Y + Y - mParent.GetScrollOffsetY();
+                int clientTop = parentArea.Y + Y - _parent.GetScrollOffsetY();
                 int clientRight = clientLeft + Width;
                 int clientBottom = clientTop + Height;
 
@@ -632,7 +642,7 @@ namespace OpenTemple.Core.Ui.Widgets
             mAutoSizeHeight = enable;
         }
 
-        protected WidgetContainer mParent = null;
+        protected WidgetContainer? _parent = null;
         protected string mSourceURI;
         protected string mId;
         protected bool mCenterHorizontally = false;
@@ -646,8 +656,9 @@ namespace OpenTemple.Core.Ui.Widgets
         protected Func<MessageKeyStateChangeArgs, bool> mKeyStateChangeHandler;
         protected Func<MessageCharArgs, bool> mCharHandler;
 
-        protected List<WidgetContent> mContent = new List<WidgetContent>();
+        protected List<WidgetContent> _content = new List<WidgetContent>();
         private bool _visible = true;
+
 
         public virtual void RenderTooltip(int x, int y)
         {
@@ -656,6 +667,20 @@ namespace OpenTemple.Core.Ui.Widgets
         protected virtual void InvokeOnBeforeRender()
         {
             OnBeforeRender?.Invoke();
+        }
+
+        public override IStyleable? StyleParent => _parent;
+
+        public virtual bool HasPseudoClass(StylingState stylingState) => false;
+
+        protected override void OnStylesInvalidated()
+        {
+            base.OnStylesInvalidated();
+
+            foreach (var content in _content)
+            {
+                content.InvalidateStyles();
+            }
         }
     };
 }

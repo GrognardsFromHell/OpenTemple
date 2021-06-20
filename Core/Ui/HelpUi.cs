@@ -8,6 +8,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
@@ -54,7 +55,7 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x10be2e78)]
         private ScrollBox _bodyScrollBox;
 
-        private WidgetLegacyText _titleLabel;
+        private WidgetText _titleLabel;
 
         [TempleDllLocation(0x101317f0)]
         public HelpUi()
@@ -79,25 +80,16 @@ namespace OpenTemple.Core.Ui
             uiHelpWnd.AddContent(background);
 
             // This is the topic title displayed in the window's header bar
-            var titleStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-            {
-                flags = TigTextStyleFlag.TTSF_CENTER,
-                kerning = 1,
-                tracking = 3
-            };
-            _titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_12, titleStyle);
-            _titleLabel.SetX(25);
-            _titleLabel.SetY(10);
-            _titleLabel.FixedSize = new Size(410, 18);
+            _titleLabel = new WidgetText("", CommonStyles.DialogTitle) {X = 25, Y = 10, FixedSize = new Size(410, 18)};
             uiHelpWnd.AddContent(_titleLabel);
 
             uiHelpBackButton = new WidgetButton(new Rectangle(56, 443, 52, 19));
             uiHelpBackButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Unselected.tga",
-                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Hover.tga",
-                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Click.tga",
-                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Grey.tga"
+                NormalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Unselected.tga",
+                HoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Hover.tga",
+                PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Click.tga",
+                DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Grey.tga"
             });
             uiHelpBackButton.SetClickHandler(() => GameSystems.Help.NavigateBackward());
             uiHelpBackButton.Name = "help_back_button";
@@ -107,10 +99,10 @@ namespace OpenTemple.Core.Ui
             uiHelpForwardButton = new WidgetButton(new Rectangle(113, 443, 52, 19));
             uiHelpForwardButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Unselected.tga",
-                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Hover.tga",
-                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Click.tga",
-                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Grey.tga"
+                NormalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Unselected.tga",
+                HoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Hover.tga",
+                PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Click.tga",
+                DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Grey.tga"
             });
             uiHelpForwardButton.SetClickHandler(() => GameSystems.Help.NavigateForward());
             uiHelpForwardButton.Name = "help_forward_button";
@@ -120,10 +112,10 @@ namespace OpenTemple.Core.Ui
             uiHelpHomeButton = new WidgetButton(new Rectangle(170, 443, 52, 19));
             uiHelpHomeButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Unselected.tga",
-                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Hover.tga",
-                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Click.tga",
-                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Grey.tga"
+                NormalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Unselected.tga",
+                HoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Hover.tga",
+                PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Click.tga",
+                DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Grey.tga"
             });
             uiHelpHomeButton.SetClickHandler(() => GameSystems.Help.ShowTopic(GameSystems.Help.RootTopic.Id));
             uiHelpHomeButton.Name = "help_home_button";
@@ -133,10 +125,10 @@ namespace OpenTemple.Core.Ui
             uiHelpPrevButton = new WidgetButton(new Rectangle(227, 443, 52, 19));
             uiHelpPrevButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Unselected.tga",
-                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Hover.tga",
-                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Click.tga",
-                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Grey.tga"
+                NormalImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Unselected.tga",
+                HoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Hover.tga",
+                PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Click.tga",
+                DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Grey.tga"
             });
             uiHelpPrevButton.SetClickHandler(() => GameSystems.Help.NavigateToPreviousSibling());
             uiHelpPrevButton.Name = "help_prev_button";
@@ -146,10 +138,10 @@ namespace OpenTemple.Core.Ui
             uiHelpUpButton = new WidgetButton(new Rectangle(284, 443, 52, 19));
             uiHelpUpButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Unselected.tga",
-                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Hover.tga",
-                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Click.tga",
-                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Grey.tga"
+                NormalImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Unselected.tga",
+                HoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Hover.tga",
+                PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Click.tga",
+                DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Grey.tga"
             });
             uiHelpUpButton.SetClickHandler(() => GameSystems.Help.NavigateUp());
             uiHelpUpButton.Name = "help_up_button";
@@ -159,10 +151,10 @@ namespace OpenTemple.Core.Ui
             uiHelpNextButton = new WidgetButton(new Rectangle(341, 443, 52, 19));
             uiHelpNextButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Unselected.tga",
-                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Hover.tga",
-                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Click.tga",
-                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Grey.tga"
+                NormalImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Unselected.tga",
+                HoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Hover.tga",
+                PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Click.tga",
+                DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Grey.tga"
             });
             uiHelpNextButton.SetClickHandler(() => GameSystems.Help.NavigateToNextSibling());
             uiHelpNextButton.Name = "help_next_button";
@@ -172,10 +164,10 @@ namespace OpenTemple.Core.Ui
             uiHelpExitButton = new WidgetButton(new Rectangle(399, 445, 55, 52));
             uiHelpExitButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/HELP_UI/main_exit_button_Unselected.tga",
-                hoverImagePath = "art/interface/HELP_UI/main_exit_button_Hover.tga",
-                pressedImagePath = "art/interface/HELP_UI/main_exit_button_Click.tga",
-                disabledImagePath = "art/interface/HELP_UI/main_exit_button_Grey.tga"
+                NormalImagePath = "art/interface/HELP_UI/main_exit_button_Unselected.tga",
+                HoverImagePath = "art/interface/HELP_UI/main_exit_button_Hover.tga",
+                PressedImagePath = "art/interface/HELP_UI/main_exit_button_Click.tga",
+                DisabledImagePath = "art/interface/HELP_UI/main_exit_button_Grey.tga"
             });
             uiHelpExitButton.SetClickHandler(Hide);
             uiHelpExitButton.Name = "help_exit_button";

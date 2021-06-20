@@ -199,12 +199,12 @@ namespace OpenTemple.Core.Systems.Help
             while (i < text.Length)
             {
                 var remainingText = text.Slice(i);
-                if (LinkParser.ParseLink(remainingText, out var linkText, out var linkTarget, out var linkLength))
-                {
-                    SkipBytes(text, linkLength, ref startOfSegment, ref i, resultText);
-                    topic.Links.Add(BuildLink(id, linkText, linkTarget, resultText));
-                }
-                else if (remainingText.StartsWith(ChildrenPlaceholder))
+                // if (LinkParser.ParseLink(remainingText, out var linkText, out var linkTarget, out var linkLength))
+                // {
+                //     SkipBytes(text, linkLength, ref startOfSegment, ref i, resultText);
+                //     topic.Links.Add(BuildLink(id, linkText, linkTarget, resultText));
+                // }
+                /*else*/ if (remainingText.StartsWith(ChildrenPlaceholder))
                 {
                     SkipBytes(text, ChildrenPlaceholder.Length, ref startOfSegment, ref i, resultText);
                     AppendChildren(topic, resultText, false);
@@ -248,13 +248,7 @@ namespace OpenTemple.Core.Systems.Help
 
             foreach (var child in children)
             {
-                topic.Links.Add(BuildLink(
-                    topic.Id,
-                    Encoding.Default.GetBytes(child.Title),
-                    Encoding.Default.GetBytes(child.Id),
-                    resultText
-                ));
-                resultText.Append('\n');
+                resultText.AppendFormat("~{0}~[{1}]\n", child.Title, child.Id);
             }
         }
 
@@ -296,6 +290,26 @@ namespace OpenTemple.Core.Systems.Help
             {
                 Logger.Warn("Unknown link target '{0}' in topic '{1}'", linkTargetStr, topicId);
                 return default;
+            }
+        }
+
+        public bool TryParseLink(string topicId, ReadOnlySpan<char> linkTarget, out D20HelpLink helpLink)
+        {
+            if (linkTarget.StartsWith("TAG_"))
+            {
+                helpLink = CreateTopicLink(topicId, new string(linkTarget), "", new StringBuilder());
+                return true;
+            }
+            else if (linkTarget.StartsWith("ROLL_"))
+            {
+                var rollId = int.Parse(linkTarget.Slice("ROLL_".Length));
+                helpLink = CreateRollLink(rollId, "", new StringBuilder());
+                return true;
+            }
+            else
+            {
+                helpLink = default;
+                return false;
             }
         }
 

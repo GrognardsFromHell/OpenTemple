@@ -90,7 +90,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Feats
             // which is what I personally find more suitable to this list
             _featsToDisplay.AddRange(GameSystems.Feat.FeatListGet(critter));
             _scrollbar.SetValue(0);
-            _scrollbar.SetMax(Math.Max(0, _featsToDisplay.Count - _featButtons.Length));
+            _scrollbar.Max = Math.Max(0, _featsToDisplay.Count - _featButtons.Length);
 
             UpdateButtons();
             Container.Visible = true;

@@ -16,7 +16,6 @@ using SharpDX.Mathematics.Interop;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO;
-using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
@@ -27,10 +26,8 @@ using D3D11Device = SharpDX.Direct3D11.Device;
 using D3D11InfoQueue = SharpDX.Direct3D11.InfoQueue;
 using DeviceChild = SharpDX.Direct3D11.DeviceChild;
 using DXGIDevice = SharpDX.DXGI.Device;
-using MapFlags = SharpDX.DXGI.MapFlags;
 using Resource = SharpDX.Direct3D11.Resource;
-using Vector2 = SharpDX.Vector2;
-using Vector3 = System.Numerics.Vector3;
+using TextEngine = OpenTemple.Core.GFX.TextRendering.TextEngine;
 
 namespace OpenTemple.Core.GFX
 {
@@ -1853,42 +1850,21 @@ namespace OpenTemple.Core.GFX
             set
             {
                 _uiCanvasSize = value;
-                _uiProjection = CreateOrthographicOffCenterLH(0, value.Width, value.Height, 0, 0, 1);
+                _uiProjection = CreateUIProjection(value.Width, value.Height);
                 _textEngine.CanvasSize = value;
             }
         }
 
         // Ported from XMMatrixOrthographicOffCenterLH
-        private static Matrix4x4 CreateOrthographicOffCenterLH(float ViewLeft,
-            float ViewRight,
-            float ViewBottom,
-            float ViewTop,
-            float NearZ,
-            float FarZ)
+        private static Matrix4x4 CreateUIProjection(float width, float height)
         {
-            float ReciprocalWidth = 1.0f / (ViewRight - ViewLeft);
-            float ReciprocalHeight = 1.0f / (ViewTop - ViewBottom);
-            float fRange = 1.0f / (FarZ - NearZ);
-
             var m = new Matrix4x4();
-            m.M11 = ReciprocalWidth + ReciprocalWidth;
-            m.M12 = 0.0f;
-            m.M13 = 0.0f;
-            m.M14 = 0.0f;
+            m.M11 = 2 / width;
+            m.M22 = - 2 / height;
+            m.M33 = 1;
 
-            m.M21 = 0.0f;
-            m.M22 = ReciprocalHeight + ReciprocalHeight;
-            m.M23 = 0.0f;
-            m.M24 = 0.0f;
-
-            m.M31 = 0.0f;
-            m.M32 = 0.0f;
-            m.M33 = fRange;
-            m.M34 = 0.0f;
-
-            m.M41 = -(ViewLeft + ViewRight) * ReciprocalWidth;
-            m.M42 = -(ViewTop + ViewBottom) * ReciprocalHeight;
-            m.M43 = -fRange * NearZ;
+            m.M41 = -1f;
+            m.M42 = 1f;
             m.M44 = 1.0f;
             return m;
         }

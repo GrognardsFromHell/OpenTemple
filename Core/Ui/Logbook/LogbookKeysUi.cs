@@ -6,7 +6,6 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Startup;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;
@@ -17,15 +16,7 @@ namespace OpenTemple.Core.Ui.Logbook
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private const PredefinedFont CaptionFont = PredefinedFont.ARIAL_12;
-
-        private static readonly TigTextStyle CaptionTextStyle =
-            new TigTextStyle(new ColorRect(PackedLinearColorA.Black))
-            {
-                flags = TigTextStyleFlag.TTSF_TRUNCATE,
-                kerning = 1,
-                tracking = 3
-            };
+        private const string CaptionStyle = "logbook-keys-caption";
 
         [TempleDllLocation(0x102fede0)]
         private bool _showPopupForNewKey = true;
@@ -33,7 +24,7 @@ namespace OpenTemple.Core.Ui.Logbook
         [TempleDllLocation(0x10c4c698)]
         private readonly Dictionary<int, KeylogEntry> _keys = new Dictionary<int, KeylogEntry>();
 
-        private WidgetContainer _container;
+        public WidgetContainer Container { get; }
 
         [TempleDllLocation(0x10c4c4c8)]
         private WidgetScrollBar _scrollbar;
@@ -52,6 +43,8 @@ namespace OpenTemple.Core.Ui.Logbook
         {
             LoadKeys();
 
+            var doc = WidgetDoc.Load("ui/logbook/keys.json");
+            Container = doc.GetRootContainer();
             CreateWidgets();
 
             _keyAcquiredPopup = new LogbookKeyAcquiredPopup(_translations);
@@ -62,20 +55,17 @@ namespace OpenTemple.Core.Ui.Logbook
             };
         }
 
-        public WidgetContainer Container => _container;
-
         [TempleDllLocation(0x10198680)]
         private void CreateWidgets()
         {
             // Created @ 0x10198765
-            _container = new WidgetContainer(new Rectangle(64, 68, 648, 333));
-            _container.ZIndex = 100051;
-            _container.Name = "logbook_ui_keys_acquired_keys_window";
-            _container.Visible = false;
+            Container.ZIndex = 100051;
+            Container.Name = "logbook_ui_keys_acquired_keys_window";
+            Container.Visible = false;
 
             // Container for the scrollable list on the left
             var listContainer = new WidgetContainer(new Rectangle(0, 20, 283, 313));
-            _container.Add(listContainer);
+            Container.Add(listContainer);
 
             _scrollbar = new WidgetScrollBar(new Rectangle(269, 0, 13, 314));
             _scrollbar.SetValueChangeHandler(_ => Update());
@@ -108,31 +98,30 @@ namespace OpenTemple.Core.Ui.Logbook
             }
 
             _details = new LogbookKeyDetailsUi(_translations);
-            _container.Add(_details.Container);
+            Container.Add(_details.Container);
 
             // Add caption and outline for the list container
-            var listCaption = new WidgetLegacyText("  " + _translations.ListCaption, CaptionFont, CaptionTextStyle);
-            listCaption.SetX(listContainer.X - 3);
-            listCaption.SetY(listContainer.Y - listCaption.GetPreferredSize().Height - 8);
-            _container.AddContent(listCaption);
+            var listCaption = new WidgetText("  " + _translations.ListCaption, CaptionStyle);
+            listCaption.X = listContainer.X - 3;
+            listCaption.Y = listContainer.Y - listCaption.GetPreferredSize().Height - 8;
+            Container.AddContent(listCaption);
 
             var listOutline = new WidgetRectangle();
-            listOutline.SetX(listContainer.X);
-            listOutline.SetY(listContainer.Y);
+            listOutline.X = listContainer.X;
+            listOutline.Y = listContainer.Y;
             listOutline.FixedSize = listContainer.GetSize();
             listOutline.Pen = new PackedLinearColorA(0xFF909090);
             Container.AddContent(listOutline);
 
             // Add caption and outline for the details widget
-            var detailsCaption =
-                new WidgetLegacyText("  " + _translations.DetailCaption, CaptionFont, CaptionTextStyle);
-            detailsCaption.SetX(_details.Container.X - 3);
-            detailsCaption.SetY(_details.Container.Y - detailsCaption.GetPreferredSize().Height - 8);
-            _container.AddContent(detailsCaption);
+            var detailsCaption = new WidgetText("  " + _translations.DetailCaption, CaptionStyle);
+            detailsCaption.X = _details.Container.X - 3;
+            detailsCaption.Y = _details.Container.Y - detailsCaption.GetPreferredSize().Height - 8;
+            Container.AddContent(detailsCaption);
 
             var detailsOutline = new WidgetRectangle();
-            detailsOutline.SetX(_details.Container.X);
-            detailsOutline.SetY(_details.Container.Y);
+            detailsOutline.X = _details.Container.X;
+            detailsOutline.Y = _details.Container.Y;
             detailsOutline.FixedSize = _details.Container.GetSize();
             detailsOutline.Pen = new PackedLinearColorA(0xFF909090);
             Container.AddContent(detailsOutline);
@@ -204,7 +193,7 @@ namespace OpenTemple.Core.Ui.Logbook
             var acquiredKeys = _keys.Values.Where(k => k.IsAcquired).ToList();
 
             // set the scrollbar so it only scrolls for keys beyond 10
-            _scrollbar.SetMax(Math.Max(0, acquiredKeys.Count - 10));
+            _scrollbar.Max = Math.Max(0, acquiredKeys.Count - 10);
 
             // Set the shown key for each row
             var offset = _scrollbar.GetValue();
@@ -231,13 +220,14 @@ namespace OpenTemple.Core.Ui.Logbook
                 _details.Key = _rows[0].Key;
             }
 
-            _container.Visible = true;
+            Container.Visible = true;
+            Container.BringToFront();
         }
 
         [TempleDllLocation(0x10195480)]
         public void Hide()
         {
-            _container.Visible = false;
+            Container.Visible = false;
         }
 
         public void Dispose()

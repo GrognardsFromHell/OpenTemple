@@ -1,17 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.IO;
-using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Inventory
@@ -58,7 +52,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             Stub.TODO();
 
             var widgetDoc = WidgetDoc.Load("ui/char_inventory.json");
-            Widget = widgetDoc.TakeRootContainer();
+            Widget = widgetDoc.GetRootContainer();
 
             UseItemWidget = widgetDoc.GetWidget("useItemButton");
             DropItemWidget = widgetDoc.GetWidget("dropItemButton");
@@ -86,15 +80,13 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
         private void SetupTotalWeightWidgets(WidgetDoc widgetDoc)
         {
-            _totalWeightLabel = (WidgetButton) widgetDoc.GetButton("totalWeightLabel");
+            _totalWeightLabel = widgetDoc.GetButton("totalWeightLabel");
             _totalWeightLabel.SetClickHandler(ShowTotalWeightHelp);
-            _totalWeightLabel.TooltipStyle = UiSystems.Tooltip.GetStyle(0);
 
-            _totalWeightValue = (WidgetButton) widgetDoc.GetButton("totalWeightValue");
-            _totalWeightLabelDefaultStyle = _totalWeightValue.GetStyle().id;
+            _totalWeightValue = widgetDoc.GetButton("totalWeightValue");
+            _totalWeightLabelDefaultStyle = _totalWeightValue.GetStyle().Id;
             _totalWeightValue.SetClickHandler(ShowTotalWeightHelp);
             _totalWeightValue.OnBeforeRender += UpdateTotalWeight;
-            _totalWeightValue.TooltipStyle = UiSystems.Tooltip.GetStyle(0);
         }
 
         private static void ShowTotalWeightHelp()
@@ -161,13 +153,13 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
                     $"{textEncumbered} @2({textOverburdened})@0\n\n{textHeavy} ({textMin}/{textMax}): ({capacity}/{weightLimit})";
             }
 
-            if (_totalWeightValue.GetStyle().id != styleId)
+            if (_totalWeightValue.GetStyle().Id != styleId)
             {
                 _totalWeightValue.SetStyle(Globals.WidgetButtonStyles.GetStyle(styleId));
             }
 
             var totalWeight = GameSystems.Item.GetTotalCarriedWeight(critter);
-            _totalWeightValue.SetText(totalWeight.ToString(CultureInfo.InvariantCulture));
+            _totalWeightValue.Text = totalWeight.ToString(CultureInfo.InvariantCulture);
 
             // Update the tooltip also
             _totalWeightLabel.TooltipText = tooltipText;

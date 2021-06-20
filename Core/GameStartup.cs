@@ -67,7 +67,7 @@ namespace OpenTemple.Core
 
             Globals.UiManager = new UiManager(Tig.MainWindow);
             Globals.UiAssets = new UiAssets();
-            Globals.WidgetTextStyles = new WidgetTextStyles();
+            Globals.UiStyles = new UiStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();
 
             UiSystems.Startup(config);

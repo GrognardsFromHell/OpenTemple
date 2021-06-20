@@ -57,17 +57,41 @@ namespace OpenTemple.Core.Ui.Widgets
                             );
                         }
 
+                        if (contentJson.TryGetProperty("localStyles", out var localStylesNode))
+                        {
+                            StyleJsonDeserializer.DeserializeProperties(localStylesNode, image.LocalStyles);
+                        }
+
                         content = image;
                         break;
                     }
 
                     case "text":
                     {
-                        var text = contentJson.GetProperty("text").GetString();
-                        var styleId = contentJson.GetProperty("style").GetString();
                         var textContent = new WidgetText();
-                        textContent.SetStyleId(styleId);
-                        textContent.SetText(text);
+                        if (contentJson.TryGetProperty("style", out var styleIdNode))
+                        {
+                            if (styleIdNode.ValueKind != JsonValueKind.String)
+                            {
+                                throw new Exception("Style ID must be a string: " + styleIdNode);
+                            }
+                            textContent.AddStyle(styleIdNode.GetString()!);
+                        }
+
+                        if (contentJson.TryGetProperty("localStyles", out var localStylesNode))
+                        {
+                            StyleJsonDeserializer.DeserializeProperties(localStylesNode, textContent.LocalStyles);
+                        }
+
+                        if (contentJson.TryGetProperty("text", out var textNode))
+                        {
+                            if (textNode.ValueKind != JsonValueKind.String)
+                            {
+                                throw new Exception("text must be a string: " + textNode);
+                            }
+                            textContent.Text = textNode.GetString()!;
+                        }
+
                         textContent.SetCenterVertically(contentJson.GetBoolProp("centerVertically", false));
                         content = textContent;
                         break;
@@ -89,6 +113,11 @@ namespace OpenTemple.Core.Ui.Widgets
                             rect.Pen = penJson.GetColor();
                         }
 
+                        if (contentJson.TryGetProperty("localStyles", out var localStylesNode))
+                        {
+                            StyleJsonDeserializer.DeserializeProperties(localStylesNode, rect.LocalStyles);
+                        }
+
                         content = rect;
                         break;
                     }
@@ -100,22 +129,22 @@ namespace OpenTemple.Core.Ui.Widgets
                 // Generic properties
                 if (contentJson.TryGetProperty("x", out var xNode))
                 {
-                    content.SetX(xNode.GetInt32());
+                    content.X = xNode.GetInt32();
                 }
 
                 if (contentJson.TryGetProperty("y", out var yNode))
                 {
-                    content.SetY(yNode.GetInt32());
+                    content.Y = yNode.GetInt32();
                 }
 
                 if (contentJson.TryGetProperty("width", out var widthNode))
                 {
-                    content.SetFixedWidth(widthNode.GetInt32());
+                    content.FixedWidth = widthNode.GetInt32();
                 }
 
                 if (contentJson.TryGetProperty("height", out var heightNode))
                 {
-                    content.SetFixedHeight(heightNode.GetInt32());
+                    content.FixedHeight = heightNode.GetInt32();
                 }
 
                 widget.AddContent(content);
@@ -134,19 +163,19 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        private void LoadWidgetBase(JsonElement jsonObj, WidgetBase widget)
+        public static void LoadWidgetBase(JsonElement jsonObj, WidgetBase widget)
         {
             if (jsonObj.TryGetProperty("__styleFiles", out var textStyleFiles))
             {
                 foreach (var styleSheetName in textStyleFiles.EnumerateArray())
                 {
-                    Globals.WidgetTextStyles.LoadStylesFile(styleSheetName.GetString());
+                    Globals.UiStyles.LoadStylesFile(styleSheetName.GetString());
                 }
             }
 
             if (jsonObj.TryGetProperty("__styles", out var inlineTextStyles))
             {
-                Globals.WidgetTextStyles.LoadStyles(inlineTextStyles);
+                Globals.UiStyles.LoadStyles(inlineTextStyles);
             }
 
             if (jsonObj.TryGetProperty("__buttonStyleFiles", out var buttonStyleFiles))
@@ -165,6 +194,11 @@ namespace OpenTemple.Core.Ui.Widgets
             var x = jsonObj.GetInt32Prop("x", 0);
             var y = jsonObj.GetInt32Prop("y", 0);
             widget.SetPos(x, y);
+
+            if (jsonObj.TryGetProperty("localStyles", out var localStylesNode))
+            {
+                StyleJsonDeserializer.DeserializeProperties(localStylesNode, widget.LocalStyles);
+            }
 
             var size = widget.GetSize();
             if (jsonObj.TryGetProperty("width", out var widthNode))
@@ -301,7 +335,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
             if (jsonObj.TryGetProperty("text", out var textProp))
             {
-                result.SetText(textProp.GetString());
+                result.Text = textProp.GetString();
             }
 
             WidgetButtonStyle buttonStyle;
@@ -321,34 +355,34 @@ namespace OpenTemple.Core.Ui.Widgets
                 switch (key)
                 {
                     case "disabledImage":
-                        buttonStyle.disabledImagePath = jsonProperty.Value.GetString();
+                        buttonStyle.DisabledImagePath = jsonProperty.Value.GetString();
                         break;
                     case "activatedImage":
-                        buttonStyle.activatedImagePath = jsonProperty.Value.GetString();
+                        buttonStyle.ActivatedImagePath = jsonProperty.Value.GetString();
                         break;
                     case "normalImage":
-                        buttonStyle.normalImagePath = jsonProperty.Value.GetString();
+                        buttonStyle.NormalImagePath = jsonProperty.Value.GetString();
                         break;
                     case "hoverImage":
-                        buttonStyle.hoverImagePath = jsonProperty.Value.GetString();
+                        buttonStyle.HoverImagePath = jsonProperty.Value.GetString();
                         break;
                     case "pressedImage":
-                        buttonStyle.pressedImagePath = jsonProperty.Value.GetString();
+                        buttonStyle.PressedImagePath = jsonProperty.Value.GetString();
                         break;
                     case "frameImage":
-                        buttonStyle.frameImagePath = jsonProperty.Value.GetString();
+                        buttonStyle.FrameImagePath = jsonProperty.Value.GetString();
                         break;
                     case "textStyle":
-                        buttonStyle.textStyleId = jsonProperty.Value.GetString();
+                        buttonStyle.TextStyleId = jsonProperty.Value.GetString();
                         break;
                     case "hoverTextStyle":
-                        buttonStyle.hoverTextStyleId = jsonProperty.Value.GetString();
+                        buttonStyle.HoverTextStyleId = jsonProperty.Value.GetString();
                         break;
                     case "pressedTextStyle":
-                        buttonStyle.pressedTextStyleId = jsonProperty.Value.GetString();
+                        buttonStyle.PressedTextStyleId = jsonProperty.Value.GetString();
                         break;
                     case "disabledTextStyle":
-                        buttonStyle.disabledTextStyleId = jsonProperty.Value.GetString();
+                        buttonStyle.DisabledTextStyleId = jsonProperty.Value.GetString();
                         break;
                 }
             }
@@ -483,7 +517,7 @@ namespace OpenTemple.Core.Ui.Widgets
          * The caller takes ownership of the widget.
          * This function can only be called once per widget doc instance!
          */
-        public WidgetContainer TakeRootContainer()
+        public WidgetContainer GetRootContainer()
         {
             Trace.Assert(_rootWidget != null);
             if (!_rootWidget.IsContainer())

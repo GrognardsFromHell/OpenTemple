@@ -61,7 +61,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Skills
 
             var detailsDoc = WidgetDoc.Load("ui/char_skills.json");
 
-            Container = detailsDoc.TakeRootContainer();
+            Container = detailsDoc.GetRootContainer();
             Container.SetMouseMsgHandler(msg =>
             {
                 // Forward mouse wheel messages to the scrollbar
@@ -104,7 +104,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Skills
             {
                 _scrollbar = new WidgetScrollBar(new Rectangle(160, -4, 13, 267));
                 _scrollbar.SetMin(0);
-                _scrollbar.SetMax(VisibleSkills.Length - _skillButtons.Length);
+                _scrollbar.Max = VisibleSkills.Length - _skillButtons.Length;
                 Container.Add(_scrollbar);
                 _scrollbar.SetValueChangeHandler((value) => UpdateSkillButtons());
             }
@@ -126,11 +126,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Skills
                 out var miscBonus,
                 out var totalBonus);
 
-            _skillRanks.SetText(skillRanks);
-            _attributeBonus.SetText(attributeBonus);
-            _attributeType.SetText(attributeType);
-            _miscBonus.SetText(miscBonus);
-            _total.SetText(totalBonus);
+            _skillRanks.Text = skillRanks;
+            _attributeBonus.Text = attributeBonus;
+            _attributeType.Text = attributeType;
+            _miscBonus.Text = miscBonus;
+            _total.Text = totalBonus;
 
             // Display the skill's short description in the help text box
             UiSystems.CharSheet.Help.SetHelpText(GameSystems.Skill.GetShortDescription(button.Skill));

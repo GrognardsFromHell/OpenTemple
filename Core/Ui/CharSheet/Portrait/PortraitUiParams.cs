@@ -34,8 +34,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
 
         public PackedLinearColorA InnerBorderColorPressed { get; }
 
-        public PredefinedFont Font { get; }
-
         public PackedLinearColorA NormalFontColor { get; }
 
         public PackedLinearColorA DarkFontColor { get; }
@@ -43,8 +41,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
         public PackedLinearColorA PaperdollBorderColor { get; }
 
         public Size Portrait { get; }
-
-        public int TooltipStyle { get; set; }
 
         public PortraitUiParams(Rectangle parentWindow,
             Dictionary<int, string> settings,
@@ -132,16 +128,14 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
 
             InnerBorderColorHover = LoadColor(490);
             InnerBorderColorPressed = LoadColor(494);
-            var fontName = settings[500];
-            var fontSize = int.Parse(settings[501]);
-            Font = Tig.Fonts.GetPredefinedFont(fontName, fontSize);
+            // var fontName = settings[500];
+            // var fontSize = int.Parse(settings[501]);
 
             NormalFontColor = LoadColor(520);
             DarkFontColor = LoadColor(540);
             PaperdollBorderColor = LoadColor(560);
 
             Portrait = new Size(int.Parse(settings[600]), int.Parse(settings[601]));
-            TooltipStyle = int.Parse(settings[2000]);
 
             // Merge the individual rectangles into one large one
             // Vanilla didn't use clipping for UI rendering, but we do, so we need

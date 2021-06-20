@@ -1,16 +1,14 @@
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Stats
@@ -116,7 +114,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                     StatsUiTexture.ButtonLevelOutputHover,
                     uiParams
                 );
-                widget.Tooltip = null;
+                widget.TooltipText = null;
                 widget.SetClickHandler(() => { GameSystems.Help.ShowTopic("TAG_ABILITY_MODIFIERS"); });
                 Container.Add(widget);
             }
@@ -163,7 +161,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 uiParams
             );
             hpValue.SetClickHandler(() => GameSystems.Help.ShowTopic("TAG_HIT_POINTS"));
-            hpValue.Tooltip = null;
+            hpValue.TooltipText = null;
             Container.Add(hpValue);
 
             Container.Add(new StatsLabel(Stat.ac,
@@ -227,7 +225,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 StatsUiTexture.ButtonHTOutputHover,
                 uiParams
             );
-            heightValue.Tooltip = null;
+            heightValue.TooltipText = null;
             Container.Add(heightValue);
 
             Container.Add(new StatsLabel(Stat.weight,
@@ -244,7 +242,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 StatsUiTexture.ButtonHTOutputHover,
                 uiParams
             );
-            weightValue.Tooltip = null;
+            weightValue.TooltipText = null;
             Container.Add(weightValue);
         }
 
@@ -282,7 +280,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 uiParams
             );
             speedValue.SetClickHandler(() => GameSystems.Help.ShowTopic("TAG_MOVEMENT_RATE"));
-            speedValue.Tooltip = null;
+            speedValue.TooltipText = null;
             Container.Add(speedValue);
 
 
@@ -413,20 +411,20 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             return $"{inches}'{feet}\"";
         }
 
-        private static string GetHitPointsText(GameObjectBody obj)
+        private static InlineElement GetHitPointsText(GameObjectBody obj)
         {
             var currentHp = obj.GetStat(Stat.hp_current);
             var maxHp = obj.GetStat(Stat.hp_max);
 
+            var result = new SimpleInlineElement($"{currentHp}/{maxHp}");
+
             if (currentHp < maxHp)
             {
                 // Display the current hp in red
-                return $"@3{currentHp}@0/{maxHp}";
+                result.AddStyle("char-ui-stat-value-hp-damaged");
             }
-            else
-            {
-                return $"{currentHp}/{maxHp}";
-            }
+
+            return result;
         }
 
         [TempleDllLocation(0x101c8a70)]
@@ -455,23 +453,23 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             return obj.GetStat(stat).ToString(CultureInfo.InvariantCulture);
         }
 
-        private static string GetAbilityScoreValue(GameObjectBody obj, Stat stat)
+        private static InlineElement GetAbilityScoreValue(GameObjectBody obj, Stat stat)
         {
             var baseScore = obj.GetBaseStat(stat);
             var score = obj.GetStat(stat);
+            var result = new SimpleInlineElement(score.ToString());
 
             // Select a color code indicating if there's a malus or bonus being applied
-            var colorCode = 0;
             if (score > baseScore)
             {
-                colorCode = 1;
+                result.AddStyle("char-ui-stat-value-bonus");
             }
             else if (score < baseScore)
             {
-                colorCode = 2;
+                result.AddStyle("char-ui-stat-value-malus");
             }
 
-            return "@" + colorCode + score;
+            return result;
         }
 
         private static string GetStatModifierText(GameObjectBody obj, Stat stat)

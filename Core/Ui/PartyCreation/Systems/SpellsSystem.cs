@@ -26,7 +26,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public SpellsSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/spells_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             // TODO int v1;

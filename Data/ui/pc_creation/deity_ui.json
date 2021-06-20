@@ -11,8 +11,8 @@
       "fontFamily": "arial-10",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "align": "center",
-      "paragraphAlign": "center"
+      "textAlignment": "center",
+      "paragraphAlignment": "center"
     }
   ],
   "__buttonStyles": [

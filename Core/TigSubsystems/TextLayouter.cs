@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
 using System.Numerics;
 using System.Text;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.IO.Fonts;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Utils;
 
@@ -20,17 +18,18 @@ namespace OpenTemple.Core.TigSubsystems
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
+        private readonly FontRenderer _renderer;
+        private readonly ShapeRenderer2d _shapeRenderer;
+
         public TextLayouter(RenderingDevice device, ShapeRenderer2d shapeRenderer)
         {
-            mTextEngine = device.TextEngine;
-            mRenderer = new FontRenderer(device);
-            mShapeRenderer = shapeRenderer;
-            mMapping = new FontsMapping();
+            _renderer = new FontRenderer(device);
+            _shapeRenderer = shapeRenderer;
         }
 
         public void Dispose()
         {
-            mRenderer.Dispose();
+            _renderer.Dispose();
         }
 
         public void LayoutAndDraw(ReadOnlySpan<char> text, TigFont font, ref Rectangle extents, TigTextStyle style)
@@ -41,120 +40,19 @@ namespace OpenTemple.Core.TigSubsystems
             }
 
             // Get the base text format and check if we should render using the new or old algorithms
-            if (!mMapping.TryGetMapping(font.FontFace.Name, out var textStyle))
-            {
-                // Make the text mutable since vanilla drawing might change escape characters
-                // within the text span.
-                Span<char> mutableText = stackalloc char[text.Length];
-                text.CopyTo(mutableText);
+            // Make the text mutable since vanilla drawing might change escape characters
+            // within the text span.
+            Span<char> mutableText = stackalloc char[text.Length];
+            text.CopyTo(mutableText);
 
-                // use the old font drawing algorithm
-                LayoutAndDrawVanilla(mutableText, font, ref extents, style);
-                return;
-            }
-
-            // Use the new text engine style of drawing
-            var tabPos = style.tabStop - extents.X;
-            ApplyStyle(style, tabPos, textStyle);
-
-            // If the string contains an @ symbol, we need to assume it's a legacy formatted string that
-            // we need to parse into the new format.
-            bool isLegacyFormattedStr = text.Contains('@');
-
-            FormattedText formatted = new FormattedText();
-            if (isLegacyFormattedStr)
-            {
-                formatted = ProcessString(textStyle, style, text);
-            }
-            else
-            {
-                formatted.text = new string(text);
-                formatted.defaultStyle = textStyle;
-            }
-
-            // Determine the real text width/height if necessary
-            if (extents.Width <= 0 || extents.Height <= 0)
-            {
-                var metrics = mTextEngine.MeasureText(formatted);
-                if (extents.Width <= 0)
-                {
-                    extents.Width = metrics.width;
-                }
-
-                if (extents.Height <= 0)
-                {
-                    extents.Height = metrics.height;
-                }
-            }
-
-            // Handle drawing of border/background
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_BACKGROUND) ||
-                style.flags.HasFlag(TigTextStyleFlag.TTSF_BORDER))
-            {
-                DrawBackgroundOrOutline(extents, style);
-            }
-
-            // Dispatch based on applied rotation
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_ROTATE))
-            {
-                var angle = Angles.ToDegrees(style.rotation);
-                var center = Vector2.Zero;
-                if (style.flags.HasFlag(TigTextStyleFlag.TTSF_ROTATE_OFF_CENTER))
-                {
-                    center.X = style.rotationCenterX;
-                    center.Y = style.rotationCenterY;
-                }
-
-                mTextEngine.RenderTextRotated(extents, angle, center, formatted);
-            }
-            else
-            {
-                mTextEngine.RenderText(extents, formatted);
-            }
+            // use the old font drawing algorithm
+            LayoutAndDrawVanilla(mutableText, font, ref extents, style);
         }
 
         public void Measure(TigFont font, TigTextStyle style, ReadOnlySpan<char> text, ref TigFontMetrics metrics)
         {
-            // Get the base text format and check if we should render using the new or old algorithms
-            if (!mMapping.TryGetMapping(font.FontFace.Name, out var textStyle))
-            {
-                // use the old font drawing algorithm
-                MeasureVanilla(font, style, text, ref metrics);
-                return;
-            }
-
-            var tabPos = style.tabStop;
-            textStyle = ApplyStyle(style, tabPos, textStyle);
-
-            // Centering doesn't make sense for measuring if no width is given
-            if (metrics.width == 0 && textStyle.align != TextAlign.Left)
-            {
-                textStyle.align = TextAlign.Left;
-            }
-
-            TextMetrics textMetrics;
-            if (text.Contains('@'))
-            {
-                var formatted = ProcessString(textStyle, style, text);
-                textMetrics = mTextEngine.MeasureText(formatted, metrics.width, metrics.height);
-            }
-            else
-            {
-                textMetrics = mTextEngine.MeasureText(textStyle, text, metrics.width, metrics.height);
-            }
-
-            metrics.width = textMetrics.width;
-            metrics.height = textMetrics.height;
-            metrics.lineheight = textMetrics.lineHeight;
-            metrics.lines = textMetrics.lines;
-        }
-
-        private static void SkipSpaces(ReadOnlySpan<char> text, ref int index)
-        {
-            while (index < text.Length && text[index] == ' ')
-            {
-                index++;
-            }
+            // use the old font drawing algorithm
+            MeasureVanilla(font, style, text, ref metrics);
         }
 
         // TODO I believe this function measures how many characters will fit into the current line given the bounds.
@@ -228,7 +126,7 @@ namespace OpenTemple.Core.TigSubsystems
                 corners[3].uv = Vector2.Zero;
 
                 // Draw an untexture rectangle
-                mShapeRenderer.DrawRectangle(corners, null);
+                _shapeRenderer.DrawRectangle(corners, null);
             }
 
             if (style.flags.HasFlag(TigTextStyleFlag.TTSF_BORDER))
@@ -236,7 +134,7 @@ namespace OpenTemple.Core.TigSubsystems
                 var topLeft = new Vector2(left - 1, top - 1);
                 var bottomRight = new Vector2(right + 1, bottom + 1);
 
-                mShapeRenderer.DrawRectangleOutline(
+                _shapeRenderer.DrawRectangleOutline(
                     topLeft,
                     bottomRight,
                     PackedLinearColorA.Black
@@ -540,7 +438,7 @@ namespace OpenTemple.Core.TigSubsystems
             {
                 if (run.Truncated)
                 {
-                    mRenderer.RenderRun(
+                    _renderer.RenderRun(
                         "...",
                         run.X,
                         run.Y,
@@ -550,7 +448,7 @@ namespace OpenTemple.Core.TigSubsystems
                 }
                 else
                 {
-                    mRenderer.RenderRun(
+                    _renderer.RenderRun(
                         text.Slice(run.Start, run.End - run.Start),
                         run.X,
                         run.Y,
@@ -778,135 +676,6 @@ namespace OpenTemple.Core.TigSubsystems
 
             return lines;
         }
-
-        private static TextStyle ApplyStyle(TigTextStyle style, int tabPos, TextStyle textStyle)
-        {
-            var result = textStyle.Copy();
-
-            if (tabPos > 0)
-            {
-                result.tabStopWidth = tabPos;
-            }
-
-            // Convert the color (optional for measurements)
-            if (style.textColor.HasValue)
-            {
-                var textColor = style.textColor.Value;
-                result.foreground.primaryColor = textColor.topLeft;
-                if (textColor.topLeft != textColor.bottomRight)
-                {
-                    result.foreground.gradient = true;
-                    result.foreground.secondaryColor = textColor.bottomRight;
-                }
-            }
-
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
-            {
-                result.trim = true;
-            }
-
-            // Layouting options
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_CENTER))
-            {
-                result.align = TextAlign.Center;
-            }
-
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_DROP_SHADOW))
-            {
-                result.dropShadow = true;
-                if (style.shadowColor.HasValue)
-                {
-                    result.dropShadowBrush.primaryColor = style.shadowColor.Value.topLeft;
-                    result.dropShadowBrush.primaryColor.A = 255;
-                }
-            }
-
-            return result;
-        }
-
-        private static FormattedText ProcessString(TextStyle defaultStyle, TigTextStyle tigStyle,
-            ReadOnlySpan<char> text)
-        {
-            var result = new FormattedText();
-            result.defaultStyle = defaultStyle;
-            var textBuilder = new StringBuilder(text.Length);
-
-            bool inColorRange = false;
-            bool inEscape = false;
-            foreach (var ch in text)
-            {
-                if (ch == '@')
-                {
-                    inEscape = true;
-                }
-                else if (inEscape)
-                {
-                    inEscape = false;
-
-                    if (ch == 't')
-                    {
-                        textBuilder[textBuilder.Length - 1] = '\t';
-                        continue;
-                    }
-                    else if (char.IsDigit(ch))
-                    {
-                        var colorIdx = ch - '0';
-
-                        // Remove the @ that we're about to remove from the previous color range
-                        if (inColorRange)
-                        {
-                            var tmp = result.Formats[result.Formats.Count - 1];
-                            tmp.length--;
-                            result.Formats[result.Formats.Count - 1] = tmp;
-                        }
-
-                        // Remove last CHAR (@)
-                        textBuilder.Length--;
-
-                        if (colorIdx == 0 || !tigStyle.textColor.HasValue)
-                        {
-                            // Return to the normal formatting
-                            inColorRange = false;
-                        }
-                        else
-                        {
-                            inColorRange = true;
-
-                            // Add a constrainted text style
-                            ConstrainedTextStyle newStyle = new ConstrainedTextStyle(defaultStyle);
-                            newStyle.startChar = textBuilder.Length;
-
-                            // Set the desired color
-                            newStyle.style.foreground.gradient = false;
-                            newStyle.style.foreground.primaryColor = tigStyle.GetTextColor(colorIdx).topLeft;
-
-                            result.Formats.Add(newStyle);
-                        }
-
-                        continue;
-                    }
-                }
-
-                if (inColorRange)
-                {
-                    // Extend the colored range by one CHAR
-                    var tmp = result.Formats[result.Formats.Count - 1];
-                    tmp.length++;
-                    result.Formats[result.Formats.Count - 1] = tmp;
-                }
-
-                textBuilder.Append(ch);
-            }
-
-            result.text = textBuilder.ToString();
-            return result;
-        }
-
-        private const string sEllipsis = "...";
-        private TextEngine mTextEngine;
-        private FontRenderer mRenderer;
-        private FontsMapping mMapping;
-        private ShapeRenderer2d mShapeRenderer;
 
     }
 }

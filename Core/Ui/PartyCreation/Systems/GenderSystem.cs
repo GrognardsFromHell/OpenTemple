@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public GenderSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/gender_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             _maleButton = doc.GetButton("maleButton");

@@ -19,7 +19,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public PortraitSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/portrait_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             // TODO chargenPortraitCapacity /*0x10c0eaa8*/ = 0;

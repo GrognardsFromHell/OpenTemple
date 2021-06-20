@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
         public RangerFeaturesUi()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/abilities_ranger_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
         }
 

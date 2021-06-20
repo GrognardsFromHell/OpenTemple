@@ -66,7 +66,7 @@ namespace OpenTemple.Core.Ui.SaveGame
         {
             var doc = WidgetDoc.Load("ui/save_game_ui.json");
 
-            _window = doc.TakeRootContainer();
+            _window = doc.GetRootContainer();
             _window.Visible = false;
             _window.SetCharHandler(OnCharEntered);
 
@@ -434,7 +434,7 @@ namespace OpenTemple.Core.Ui.SaveGame
                 _saves.Insert(0, NewSaveDummy);
             }
 
-            _scrollBar.SetMax(Math.Max(0, _saves.Count - 8));
+            _scrollBar.Max = Math.Max(0, _saves.Count - 8);
 
             if (selectIndex >= 0 && selectIndex < _saves.Count)
             {

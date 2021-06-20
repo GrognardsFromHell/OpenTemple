@@ -1,99 +1,99 @@
+#nullable enable
 using System.Drawing;
+using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
-    public abstract class WidgetContent
+    public abstract class WidgetContent : Styleable
     {
+        public WidgetBase? Parent
+        {
+            get => _parent;
+            set
+            {
+                if (value != _parent)
+                {
+                    _parent = value;
+                    OnParentChanged();
+                }
+            }
+        }
 
         public bool Visible { get; set; } = true;
 
         public abstract void Render();
 
-        public void SetContentArea(Rectangle contentArea)
+        public void SetBounds(Rectangle contentArea)
         {
-            mContentArea = contentArea;
-            mDirty = true;
+            ContentArea = contentArea;
+            Dirty = true;
         }
 
-        public Rectangle GetContentArea()
+        public Rectangle GetBounds()
         {
-            return mContentArea;
+            return ContentArea;
         }
 
-        public Size GetPreferredSize()
+        public virtual Size GetPreferredSize()
         {
-            return mPreferredSize;
+            return PreferredSize;
         }
 
-        public int X
-        {
-            get => GetX();
-            set => SetX(value);
-        }
+        public int X { get; set; }
 
-        public int Y
-        {
-            get => GetY();
-            set => SetY(value);
-        }
-
-        public void SetX(int x)
-        {
-            mX = x;
-        }
-
-        public int GetX()
-        {
-            return mX;
-        }
-
-        public void SetY(int y)
-        {
-            mY = y;
-        }
-
-        public int GetY()
-        {
-            return mY;
-        }
+        public int Y { get; set; }
 
         public Size FixedSize
         {
-            get => new Size(mFixedWidth, mFixedHeight);
+            get => new(FixedWidth, FixedHeight);
             set
             {
-                mFixedWidth = value.Width;
-                mFixedHeight = value.Height;
+                _fixedWidth = value.Width;
+                _fixedHeight = value.Height;
+                OnUpdateFixedSize();
             }
         }
 
-        public void SetFixedWidth(int width)
+        public int FixedWidth
         {
-            mFixedWidth = width;
+            get => _fixedWidth;
+            set
+            {
+                _fixedWidth = value;
+                OnUpdateFixedSize();
+            }
         }
 
-        public int GetFixedWidth()
+        public int FixedHeight
         {
-            return mFixedWidth;
+            get => _fixedHeight;
+            set
+            {
+                _fixedHeight = value;
+                OnUpdateFixedSize();
+            }
         }
 
-        public void SetFixedHeight(int height)
+        protected Rectangle ContentArea;
+        protected Size PreferredSize;
+        protected bool Dirty = true;
+        private int _fixedWidth;
+        private int _fixedHeight;
+        private WidgetBase? _parent;
+
+        public override Styleable? StyleParent => Parent;
+
+        public bool HasPseudoClass(StylingState stylingState) => Parent?.HasPseudoClass(stylingState) == true;
+
+        protected virtual void OnUpdateFixedSize()
         {
-            mFixedHeight = height;
         }
 
-        public int GetFixedHeight()
+        protected virtual void OnParentChanged()
         {
-            return mFixedHeight;
+            // When the parent changes, the styling parent has also changed
+            InvalidateStyles();
         }
 
-        protected Rectangle mContentArea;
-        protected Size mPreferredSize;
-        protected bool mDirty = true;
-
-        protected int mFixedWidth = 0;
-        protected int mFixedHeight = 0;
-        protected int mX = 0;
-        protected int mY = 0;
     };
 }

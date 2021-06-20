@@ -27,7 +27,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
 
         private WidgetImage _icon;
 
-        private readonly WidgetLegacyText _quantityLabel;
+        private readonly WidgetText _quantityLabel;
 
         private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
 
@@ -106,8 +106,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
 
                 // Position the label in the lower right corner
                 var textSize = _quantityLabel.GetPreferredSize();
-                _quantityLabel.SetX(Width - 2 - textSize.Width);
-                _quantityLabel.SetY(Height - 2 - textSize.Height);
+                _quantityLabel.X = Width - 2 - textSize.Width;
+                _quantityLabel.Y = Height - 2 - textSize.Height;
                 _quantityLabel.Visible = true;
             }
             else

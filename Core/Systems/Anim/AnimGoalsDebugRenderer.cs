@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Numerics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
@@ -8,7 +7,8 @@ using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
-using Brush = OpenTemple.Core.GFX.TextRendering.Brush;
+using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Systems.Anim
 {
@@ -52,76 +52,63 @@ namespace OpenTemple.Core.Systems.Anim
             var textEngine = Tig.RenderingDevice.TextEngine;
 
             var slotIdsPerLine = new List<int>();
-            var lines = new List<string>();
-            var lineHeights = new List<int>();
+            var lines = new List<TextLayout>();
 
-            var textStyle = Globals.WidgetTextStyles.GetTextStyle("default-button-text");
+            var style = Globals.UiStyles.StyleResolver.Resolve(
+                new[] {Globals.UiStyles.Get("default-button-text")}
+            );
 
-            var overallHeight = 0;
+            var overallHeight = 0f;
             foreach (var slot in GameSystems.Anim.EnumerateSlots(obj))
             {
                 for (int i = 0; i <= slot.currentGoal; i++)
                 {
                     var stackEntry = slot.goals[i];
                     var goalName = stackEntry.goalType.ToString();
-                    if (i == slot.currentGoal)
-                    {
-                        lines.Add($"{goalName} ({slot.currentState})");
-                    }
-                    else
-                    {
-                        lines.Add(goalName);
-                    }
+                    var text = i == slot.currentGoal ? $"{goalName} ({slot.currentState})" : goalName;
 
                     slotIdsPerLine.Add(slotIdsPerLine.Count);
-                    var metrics = textEngine.MeasureText(textStyle, lines[lines.Count - 1], 120, 500);
-                    overallHeight += metrics.height + 1;
-                    lineHeights.Add(metrics.height);
+                    var layout = textEngine.CreateTextLayout(style, text, 120, 500);
+                    overallHeight += layout.OverallHeight + 1;
+                    lines.Add(layout);
                 }
             }
 
             var x = (int) (topOfObjectInUi.X - 60);
-            var y = (int) (topOfObjectInUi.Y - overallHeight);
+            var y = topOfObjectInUi.Y - overallHeight;
 
             // Render the object name above the goal list
             if (ShowObjectNames)
             {
-                var t = new FormattedText();
-                t.defaultStyle = textStyle.Copy();
-                t.defaultStyle.align = TextAlign.Center;
-                t.defaultStyle.dropShadow = true;
-                t.defaultStyle.dropShadowBrush = new Brush(PackedLinearColorA.Black);
                 var protoNum = obj.ProtoId;
                 var displayName = GameSystems.MapObject.GetDisplayName(obj);
-                t.text = $"{displayName} #{protoNum}";
 
-                var boldStyle = t.defaultStyle.Copy();
-                boldStyle.bold = true;
+                var paragraph = new Paragraph();
+                paragraph.LocalStyles.DropShadowColor = PackedLinearColorA.Black;
+                var nameStyle = new StyleDefinition {FontWeight = FontWeight.Bold};
+                paragraph.AppendContent(displayName, nameStyle);
+                paragraph.AppendContent($" #{protoNum}");
 
-                t.AddFormat(boldStyle, 0, displayName.Length);
+                using var layout = textEngine.CreateTextLayout(paragraph, 0, 0);
 
-                var nameMetrics = textEngine.MeasureText(t);
-                var nameRect = new Rectangle(
-                    x - 60,
-                    y - nameMetrics.lineHeight - 2,
-                    240,
-                    nameMetrics.lineHeight
+                textEngine.RenderTextLayout(
+                    x + 60 - layout.OverallWidth / 2,
+                    y - layout.OverallHeight - 2,
+                    layout
                 );
-                textEngine.RenderText(nameRect, t);
             }
 
             // Draw in reverse because the stack is actually ordered the other way around
             var prevSlotIdx = -1;
             for (var i = lines.Count - 1; i >= 0; i--)
             {
-                var lineHeight = lineHeights[i];
-                var line = lines[i];
+                using var layout = lines[i];
                 var slotIdx = slotIdsPerLine[i];
                 renderer2d.DrawRectangle(
                     x,
                     y,
                     120.0f,
-                    lineHeight,
+                    layout.OverallHeight,
                     null,
                     new PackedLinearColorA(127, 127, 127, 127)
                 );
@@ -131,41 +118,28 @@ namespace OpenTemple.Core.Systems.Anim
                 if (slotIdx != prevSlotIdx)
                 {
                     prevSlotIdx = slotIdx;
-                    RenderSlotHeader(x, y, slotIdx, textStyle, lineHeight);
+                    RenderSlotHeader(x, y, slotIdx, style, layout.OverallHeight);
                 }
 
-                var t = new FormattedText();
-                t.defaultStyle = textStyle;
-                t.text = line;
+                textEngine.RenderTextLayout(x, y, layout);
 
-                var rect = new Rectangle(x, y, 120, lineHeight);
-                textEngine.RenderText(rect, t);
-
-                y += lineHeight + 1;
+                y += layout.OverallHeight + 1;
             }
         }
 
-        private static void RenderSlotHeader(float x, float y, int slotIdx, TextStyle textStyle, int lineHeight)
+        private static void RenderSlotHeader(float x, float y, int slotIdx, ComputedStyles styles, float lineHeight)
         {
             var from = new Vector2(x, y - 1.0f);
             var to = new Vector2(x + 120.0f, y - 1.0f);
             Span<Line2d> borders = stackalloc Line2d[] {new Line2d(from, to, PackedLinearColorA.White)};
             Tig.ShapeRenderer2d.DrawLines(borders);
 
-            var t = new FormattedText();
-            t.defaultStyle = textStyle;
-            t.defaultStyle.align = TextAlign.Left;
-            t.text = $"#{slotIdx}";
+            var textEngine = Tig.RenderingDevice.TextEngine;
+            using var layout = textEngine.CreateTextLayout(styles, $"#{slotIdx}", 240, 0);
 
-            var metrics = Tig.RenderingDevice.TextEngine.MeasureText(t);
-
-            var rect = new Rectangle(
-                (int) (x - metrics.width - 2),
-                (int) y + (lineHeight - metrics.lineHeight) / 2,
-                metrics.width,
-                metrics.height
-            );
-            Tig.RenderingDevice.TextEngine.RenderText(rect, t);
+            var originX = x - layout.OverallWidth - 2;
+            var originY = y + (lineHeight - layout.OverallHeight) / 2;
+            textEngine.RenderTextLayout(originX, originY, layout);
         }
 
         private static void RenderCurrentGoalPath(IGameViewport viewport, GameObjectBody obj)

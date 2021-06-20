@@ -42,7 +42,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public FeatsSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/feats_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             // TODO featsMasterFeatStrings

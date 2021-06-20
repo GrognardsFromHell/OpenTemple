@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GFX;
@@ -7,6 +8,7 @@ using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.Particles.Render;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.FlowModel;
 
 namespace OpenTemple.Core.Systems
 {
@@ -89,7 +91,7 @@ namespace OpenTemple.Core.Systems
                 }
             }
 
-            _renderTimes[_renderTimesPos++] = (int) sw.ElapsedMilliseconds;
+            _renderTimes[_renderTimesPos++] = (int)sw.ElapsedMilliseconds;
             if (_renderTimesPos >= _renderTimes.Length)
             {
                 _renderTimesPos = 0;
@@ -119,54 +121,44 @@ namespace OpenTemple.Core.Systems
 
         private void RenderDebugInfo(IGameViewport gameViewport, PartSys sys)
         {
-            var camera = gameViewport.Camera;
+            var screenPos = gameViewport.WorldToScreen(sys.WorldPos);
+            var screenX = screenPos.X;
+            var screenY = screenPos.Y;
+            var screenBounds = sys.GetScreenBounds();
 
-            // TODO FIXME
-            // var dx = camera.Get2dTranslation().X;
-            // var dy = camera.Get2dTranslation().Y;
+            var left = screenX + screenBounds.left * gameViewport.Zoom;
+            var top = screenY + screenBounds.top * gameViewport.Zoom;
+            var right = screenX + screenBounds.right * gameViewport.Zoom;
+            var bottom = screenY + screenBounds.bottom * gameViewport.Zoom;
 
-            // var screenX = dx - sys.GetScreenPosAbs(gameViewport).X;
-            // var screenY = dy - sys.GetScreenPosAbs(gameViewport).Y;
-            // var screenBounds = sys.GetScreenBounds();
-            //
-            // screenX *= camera.GetScale();
-            // screenY *= camera.GetScale();
-            //
-            // screenX += camera.GetScreenWidth() * 0.5f;
-            // screenY += camera.GetScreenHeight() * 0.5f;
-            //
-            // var left = screenX + screenBounds.left;
-            // var top = screenY + screenBounds.top;
-            // var right = screenX + screenBounds.right;
-            // var bottom = screenY + screenBounds.bottom;
-            //
-            // var color = new PackedLinearColorA(0, 0, 255, 255);
-            //
-            // Span<Line2d> lines = stackalloc Line2d[4]
-            // {
-            //     new Line2d(new Vector2(left, top), new Vector2(right, top), color),
-            //     new Line2d(new Vector2(right, top), new Vector2(right, bottom), color),
-            //     new Line2d(new Vector2(right, bottom), new Vector2(left, bottom), color),
-            //     new Line2d(new Vector2(left, bottom), new Vector2(left, top), color)
-            // };
-            // _shapeRenderer2d.DrawLines(lines);
-            //
-            // Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
-            //
-            // var style = new TigTextStyle
-            // {
-            //     field10 = 25,
-            //     textColor = new ColorRect(PackedLinearColorA.White)
-            // };
-            //
-            // var text = $"{sys.GetSpec().GetName()}";
-            // var rect = Tig.Fonts.MeasureTextSize(text, style);
-            //
-            // rect.X = (int) left;
-            // rect.Y = (int) top;
-            // Tig.Fonts.RenderText(text, rect, style);
-            //
-            // Tig.Fonts.PopFont();
+            var color = new PackedLinearColorA(0, 0, 255, 255);
+
+            Span<Line2d> lines = stackalloc Line2d[4]
+            {
+                new Line2d(new Vector2(left, top), new Vector2(right, top), color),
+                new Line2d(new Vector2(right, top), new Vector2(right, bottom), color),
+                new Line2d(new Vector2(right, bottom), new Vector2(left, bottom), color),
+                new Line2d(new Vector2(left, bottom), new Vector2(left, top), color)
+            };
+            _shapeRenderer2d.DrawLines(lines);
+
+            var textEngine = Tig.RenderingDevice.TextEngine;
+
+            var text = $"{sys.GetSpec().GetName()}";
+
+            var style = Globals.UiStyles.GetComputed("default");
+            var metrics = textEngine.MeasureText(style, text, (int)(right - left), (int)(bottom - top));
+
+            textEngine.RenderText(
+                new RectangleF(
+                    (left + right - metrics.width) / 2f,
+                    (top + bottom - metrics.height) / 2f,
+                    (int)(right - left),
+                    (int)(bottom - top)
+                ),
+                style,
+                text
+            );
         }
     }
 }

@@ -479,10 +479,10 @@ namespace OpenTemple.Core.Ui.TownMap
             for (var i = 0; i < _markerImages.Count; i++)
             {
                 var image = _markerImages[i];
-                if (x >= image.GetX()
-                    && x < image.GetX() + image.GetFixedWidth()
-                    && y >= image.GetY()
-                    && y < image.GetY() + image.GetFixedHeight())
+                if (x >= image.X
+                    && x < image.X + image.FixedWidth
+                    && y >= image.Y
+                    && y < image.Y + image.FixedHeight)
                 {
                     return _markers[i];
                 }
@@ -575,10 +575,10 @@ namespace OpenTemple.Core.Ui.TownMap
                 var position = _partyPositions[i];
                 var image = _partyPositionImages[i];
                 var imagePos = ProjectWorldToView(position);
-                image.SetX(imagePos.X - dimension / 2);
-                image.SetY(imagePos.Y - dimension / 2);
-                image.SetFixedWidth(dimension);
-                image.SetFixedHeight(dimension);
+                image.X = imagePos.X - dimension / 2;
+                image.Y = imagePos.Y - dimension / 2;
+                image.FixedWidth = dimension;
+                image.FixedHeight = dimension;
             }
         }
 
@@ -592,10 +592,10 @@ namespace OpenTemple.Core.Ui.TownMap
                 var marker = _markers[i];
                 var image = _markerImages[i];
                 var markerPos = ProjectWorldToView(marker.Position);
-                image.SetX(markerPos.X - dimension / 2);
-                image.SetY(markerPos.Y - dimension / 2);
-                image.SetFixedWidth(dimension);
-                image.SetFixedHeight(dimension);
+                image.X = markerPos.X - dimension / 2;
+                image.Y = markerPos.Y - dimension / 2;
+                image.FixedWidth = dimension;
+                image.FixedHeight = dimension;
             }
         }
 

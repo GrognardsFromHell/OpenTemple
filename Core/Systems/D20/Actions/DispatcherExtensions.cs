@@ -1,7 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using SharpDX.Direct2D1;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Utils;

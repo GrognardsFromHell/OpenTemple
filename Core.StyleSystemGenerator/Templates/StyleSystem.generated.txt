@@ -1,0 +1,16 @@
+#nullable enable
+using System;
+using System.CodeDom.Compiler;
+using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+
+namespace OpenTemple.Core.Ui.Styles {
+    {{~include "IStyleDefinition.txt" | indent 2~}}
+    {{~include "StyleDefinition.txt" | indent 2~}}
+    {{~include "ComputedStyles.txt" | indent 2~}}
+    {{~include "StyleResolver.txt" | indent 2~}}
+    {{~include "JsonDeserializer.txt" | indent 2~}}
+    {{~include "Enums.txt" | indent 2~}}
+}

@@ -1,0 +1,38 @@
+{{~ ## Generates a JSON Schema that has definitions for the style property groups ## ~}}
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "THIS SCHEMA IS AUTOMATICALLY GENERATED. DO NOT MODIFY IT MANUALLY.",
+  "$id": "https://json-schemas.opentemple.de/styles.json",
+  "type": "array",
+  "title": "A list of style definitions",
+  "items": {
+    "$ref": "#/definitions/StyleDefinition"
+  },
+  "definitions": {
+    "StyleDefinition": {
+      "type": "object",
+      "title": "A style definition",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "inherit": {
+          "type": "string"
+        },
+        {{~for group in property_groups~}}
+        {{~last_group = for.last~}}
+        {{~for property in group.properties~}}
+        "{{property.variable_or_field}}": {
+          {{ include "JsonSchemaType.txt" property.type }}
+        }{{ if (!last_group || !for.last)
+        ","
+        end}}
+        {{~end~}}
+        {{~end~}}
+      }
+    }
+  }
+}

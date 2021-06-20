@@ -1,0 +1,23 @@
+
+/// <summary>
+/// Contains the resolved values for all style properties.
+/// </summary>
+{{ include "GeneratedCodeAttribute.txt" }}
+public class ComputedStyles {
+    {{~for property in properties~}}
+    public {{property.type.name}} {{property.name}} { get; }
+    {{~end~}}
+
+    // Generate a constructor to populate every field
+    public ComputedStyles(
+        {{~for property in properties~}}
+        {{property.type.name}} {{property.variable_or_field}}{{ include "ArgumentListComma.txt" !for.last }}
+        {{~end~}}
+    )
+    {
+        {{~for property in properties~}}
+        this.{{property.name}} = {{property.variable_or_field}};
+        {{~end~}}
+    }
+}
+

@@ -114,7 +114,7 @@ namespace OpenTemple.Core.Ui.PartyPool
                 var contentArea = GetContentArea();
                 contentArea.Offset(4, 4);
                 contentArea.Size = new Size(53, 47);
-                _portrait.SetContentArea(contentArea);
+                _portrait.SetBounds(contentArea);
                 _portrait.Render();
             }
         }

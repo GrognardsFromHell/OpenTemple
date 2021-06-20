@@ -23,7 +23,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public DeitySystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/deity_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             _deityButtons = new Dictionary<DeityId, WidgetButton>();
@@ -37,7 +37,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                     12
                 ));
                 button.SetStyle("deity-button");
-                button.SetText(GameSystems.Deity.GetName(deityId).ToUpper());
+                button.Text = GameSystems.Deity.GetName(deityId).ToUpper();
                 button.OnMouseEnter += msg => ShowDeityHelp(deityId);
                 button.OnMouseExit += msg => UpdateDescriptionBox();
                 button.SetClickHandler(() => SelectDeity(deityId));

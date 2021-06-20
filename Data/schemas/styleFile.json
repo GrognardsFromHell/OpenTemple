@@ -5,7 +5,7 @@
   "title": "Text Style definition file",
   "properties": {
     "styles": {
-      "$ref": "textStyles.json"
+      "$ref": "styles.json"
     }
   },
   "required": ["styles"]

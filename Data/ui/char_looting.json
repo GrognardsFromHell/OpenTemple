@@ -7,14 +7,18 @@
   "height": 300,
   "__styles": [
     {
+      "id": "char-looting-title",
+      "inherit": "dialog-title",
+      "paragraphAlignment": "near"
+    },
+    {
       "id": "charLootingIdentify",
       "fontFamily": "arial-12",
-      "dropShadow": true,
-      "dropShadowBrush": "#000000",
+      "dropShadowColor": "#000000",
       "legacyKerning": 1,
       "legacyTracking": 5,
-      "align": "center",
-      "paragraphAlign": "center"
+      "textAlignment": "center",
+      "paragraphAlignment": "center"
     }
   ],
   "__buttonStyles": [

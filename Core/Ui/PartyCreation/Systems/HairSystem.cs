@@ -57,7 +57,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public HairSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/hair_ui.json", CustomElementFactory);
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             for (var i = 0; i < HairColors.Length; i++)

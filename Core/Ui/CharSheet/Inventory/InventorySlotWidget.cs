@@ -1,16 +1,11 @@
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Text;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
-using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui.CharSheet.Inventory
 {
@@ -28,7 +23,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
         private readonly PackedLinearColorA _slotPressedColor;
 
-        private readonly WidgetLegacyText _quantityLabel;
+        private readonly WidgetText _quantityLabel;
 
         private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
 
@@ -60,32 +55,15 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
             _quantityLabel = CreateQuantityLabel();
 
-            _tooltipRenderer.TooltipStyle = UiSystems.Tooltip.GetStyle(0);
-
             _background = new WidgetRectangle();
             _background.Brush = new Brush(SlotBackground);
             _background.Pen = SlotNormalOutline;
             AddContent(_background);
         }
 
-        public static WidgetLegacyText CreateQuantityLabel()
+        public static WidgetText CreateQuantityLabel()
         {
-            var bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, a: 153));
-            var shadowColor = new ColorRect(PackedLinearColorA.Black);
-            var textColor = new ColorRect(PackedLinearColorA.White);
-
-            var quantityTextStyle = new TigTextStyle
-            {
-                bgColor = bgColor,
-                textColor = textColor,
-                flags = TigTextStyleFlag.TTSF_BORDER | TigTextStyleFlag.TTSF_BACKGROUND |
-                        TigTextStyleFlag.TTSF_DROP_SHADOW,
-                shadowColor = shadowColor,
-                kerning = 2,
-                tracking = 2
-            };
-
-            return new WidgetLegacyText("", PredefinedFont.ARIAL_10, quantityTextStyle);
+            return new ("", "inventory-slot-quantity");
         }
 
         public override void Render()
@@ -194,7 +172,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
                 // Position the label in the lower right corner
                 var textSize = _quantityLabel.GetPreferredSize();
-                _quantityLabel.SetContentArea(new Rectangle(
+                _quantityLabel.SetBounds(new Rectangle(
                     contentArea.Right - 2 - textSize.Width,
                     contentArea.Bottom - 2 - textSize.Height,
                     textSize.Width,

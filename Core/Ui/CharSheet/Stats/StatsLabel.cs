@@ -1,10 +1,7 @@
-using System.Diagnostics;
 using System.Drawing;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Stats
@@ -15,7 +12,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
         private readonly WidgetImage _downImage;
 
-        private readonly WidgetLegacyText _label;
+        private readonly WidgetText _label;
 
         private readonly Stat _stat;
 
@@ -33,16 +30,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             var statName = GetStatName(uiParams, stat);
 
-            _label = new WidgetLegacyText(
-                statName,
-                uiParams.BoldFont,
-                new TigTextStyle
-                {
-                    textColor = new ColorRect(PackedLinearColorA.Black),
-                    kerning = 1,
-                    tracking = 5
-                }
-            );
+            _label = new WidgetText(statName, "char-ui-stat-label");
             SetWidgetMsgHandler(msg =>
             {
                 if (msg.widgetEventType == TigMsgWidgetEvent.Exited)
@@ -105,7 +93,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             if (renderImage != null)
             {
-                renderImage.SetContentArea(
+                renderImage.SetBounds(
                     new Rectangle(
                         contentArea.X,
                         contentArea.Y - 1,
@@ -135,7 +123,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 labelArea.X = contentArea.X + 1;
             }
 
-            _label.SetContentArea(labelArea);
+            _label.SetBounds(labelArea);
             _label.Render();
         }
     }

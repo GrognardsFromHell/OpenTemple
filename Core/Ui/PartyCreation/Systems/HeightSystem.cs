@@ -48,7 +48,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public HeightSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/height_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             _minHeightLabel = doc.GetTextContent("minHeightLabel");
@@ -108,9 +108,9 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         {
             _minHeightInches = minHeightInches;
             _maxHeightInches = maxHeightInches;
-            _minHeightLabel.SetText(FormatHeight(minHeightInches));
+            _minHeightLabel.Text = FormatHeight(minHeightInches);
             _minHeightLabel.X = _slider.X - _minHeightLabel.GetPreferredSize().Width;
-            _maxHeightLabel.SetText(FormatHeight(maxHeightInches));
+            _maxHeightLabel.Text = FormatHeight(maxHeightInches);
             _maxHeightLabel.X = _slider.X - _maxHeightLabel.GetPreferredSize().Width;
 
             _pkt.height = Math.Clamp(_pkt.height, minHeightInches, maxHeightInches);
@@ -151,11 +151,11 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
             _pkt.modelScale = _pkt.height * raceModelScale / _maxHeightInches;
 
-            _currentHeightLabel.SetText(FormatHeight(_pkt.height));
+            _currentHeightLabel.Text = FormatHeight(_pkt.height);
 
             // Center the text vertically at the current slider's Y position
             var textHeight = _currentHeightLabel.GetPreferredSize().Height;
-            _currentHeightLabel.SetY(_slider.ThumbCenterY - textHeight / 2 + 5);
+            _currentHeightLabel.Y = _slider.ThumbCenterY - textHeight / 2 + 5;
 
             var heightFactor = (_pkt.height - _minHeightInches) / (float) (_maxHeightInches - _minHeightInches);
             _pkt.weight = (int) (_minWeight + heightFactor * (_maxWeight - _minWeight));

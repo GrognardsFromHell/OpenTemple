@@ -1,38 +1,33 @@
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Text;
-using ImGuiNET;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet
 {
-    public class CharUiClassLevel : WidgetButton
+    public class CharUiClassLevel : WidgetButtonBase
     {
-        private readonly CharUiParams _uiParams;
-
+        private readonly WidgetText _text;
         private readonly string _textSeparator;
         private readonly string _textLevel;
         private readonly string _textNpc;
 
-        public CharUiClassLevel(CharUiParams uiParams)
+        public CharUiClassLevel()
         {
-            SetPos(uiParams.CharUiMainClassLevelButton.Location);
-            SetSize(uiParams.CharUiMainClassLevelButton.Size);
-            _uiParams = uiParams;
+            AddContent(_text = new WidgetText());
 
             var translations = Tig.FS.ReadMesFile("mes/0_char_ui_text.mes");
             _textSeparator = ' ' + translations[1600] + ' ';
             _textLevel = translations[1590];
             _textNpc = '(' + translations[1610] + ')';
+
+            AddStyle("char-ui-dialog-title");
         }
 
         [TempleDllLocation(0x10144b40)]
@@ -44,50 +39,30 @@ namespace OpenTemple.Core.Ui.CharSheet
                 return;
             }
 
-            var textStyle = new TigTextStyle(new ColorRect(_uiParams.FontNormalColor))
+            _text.Text = BuildClassText(currentCritter, false, false);
+
+            // Switch to class-name shorthands if the text doesn't fit (i.e. "Brd Level 1" instead of "Bard Level 1")
+            if (_text.IsTrimmed)
             {
-                shadowColor = new ColorRect(PackedLinearColorA.Black),
-                tracking = 2,
-                kerning = 0,
-                flags = TigTextStyleFlag.TTSF_DROP_SHADOW
-            };
-            Tig.Fonts.PushFont(_uiParams.FontBig, _uiParams.FontBigSize);
+                // Use the current text as the tooltip if we're going to shorten it
+                TooltipText = _text.Text;
+                _text.Text = BuildClassText(currentCritter, true, false);
 
-            int maxWidth = 340;
-
-            var text = BuildClassText(currentCritter, false);
-
-            var textMeas = Tig.Fonts.MeasureTextSize(text, textStyle);
-            if (textMeas.Width > maxWidth)
+                // If the text still doesn't fit, omit "Level" (i.e. "Brd 1" instead of "Bard Level 1")
+                if (_text.IsTrimmed)
+                {
+                    _text.Text = BuildClassText(currentCritter, true, true);
+                }
+            }
+            else
             {
-                // get class shortnames
-                text = BuildClassText(currentCritter, true);
+                TooltipText = null;
             }
 
-            textMeas = Tig.Fonts.MeasureTextSize(text, textStyle);
-            if (textMeas.Width > maxWidth)
-            {
-                // if still too long, truncate
-                textStyle.flags |= TigTextStyleFlag.TTSF_TRUNCATE;
-                textMeas = Tig.Fonts.MeasureTextSize(text, textStyle, maxWidth);
-            }
-
-            var contentArea = GetContentArea();
-            contentArea.X += Math.Abs(Width - textMeas.Width) / 2;
-            if (textMeas.Width > 290)
-            {
-                contentArea.X -= 20;
-            }
-
-            contentArea.Width = textMeas.Width;
-            contentArea.Height = textMeas.Height;
-
-            Tig.Fonts.RenderText(text, contentArea, textStyle);
-
-            Tig.Fonts.PopFont();
+            base.Render();
         }
 
-        private string BuildClassText(GameObjectBody currentCritter, bool shortClassNames)
+        private string BuildClassText(GameObjectBody currentCritter, bool shortClassNames, bool omitLevelText)
         {
             var textBuilder = new StringBuilder();
 
@@ -123,7 +98,9 @@ namespace OpenTemple.Core.Ui.CharSheet
                         className = GameSystems.Stat.GetStatShortName(classCode);
                     }
 
-                    textBuilder.Append($"{className} {_textLevel} {classLvl}");
+                    textBuilder.Append(omitLevelText
+                        ? $"{className} {classLvl}"
+                        : $"{className} {_textLevel} {classLvl}");
                 }
             }
             else

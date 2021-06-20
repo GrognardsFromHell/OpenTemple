@@ -1,0 +1,14 @@
+{{ include "GeneratedCodeAttribute.txt" }}
+public interface IStyleDefinition {
+    {{~for property in properties~}}
+    public {{property.type.name}}? {{property.name}} { get; }
+    {{~end~}}
+
+    public void MergeInto(StyleDefinition target) {
+        {{~for property in properties~}}
+        if ({{property.name}} != null) {
+            target.{{property.name}} = {{property.name}};
+        }
+        {{~end~}}
+    }
+}

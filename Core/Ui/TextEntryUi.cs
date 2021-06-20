@@ -35,7 +35,7 @@ namespace OpenTemple.Core.Ui
         {
             var doc = WidgetDoc.Load("ui/text_entry_ui.json");
 
-            _dialog = doc.TakeRootContainer();
+            _dialog = doc.GetRootContainer();
             _dialog.Visible = false;
             _dialog.SetKeyStateChangeHandler(HandleShortcut);
             _dialog.OnHandleMessage += HandleMessage;
@@ -137,9 +137,9 @@ namespace OpenTemple.Core.Ui
             _dialog.SetPos(crNamePkt.DialogX, crNamePkt.DialogY);
 
             UpdateInput(crNamePkt.InitialValue ?? "");
-            _titleLabel.SetText(crNamePkt.DialogTitle ?? "");
-            _okButton.SetText(crNamePkt.OkButtonLabel ?? "");
-            _cancelButton.SetText(crNamePkt.CancelButtonLabel ?? "");
+            _titleLabel.Text = crNamePkt.DialogTitle ?? "";
+            _okButton.Text = crNamePkt.OkButtonLabel ?? "";
+            _cancelButton.Text = crNamePkt.CancelButtonLabel ?? "";
             _callback = crNamePkt.Callback;
 
             if (crNamePkt.DialogX != 0 || crNamePkt.DialogY != 0)
@@ -164,13 +164,13 @@ namespace OpenTemple.Core.Ui
 
             // Insert the caret
             var displayedText = text.Insert(_caretPosition, "|");
-            _currentInputLabel.SetText(displayedText);
+            _currentInputLabel.Text = displayedText;
 
             // This is _incredibly_ bad, but it's what vanilla ToEE did :-(
-            while (_currentInputLabel.GetPreferredSize().Width >= _currentInputLabel.GetFixedWidth())
+            while (_currentInputLabel.GetPreferredSize().Width >= _currentInputLabel.FixedWidth)
             {
                 displayedText = displayedText.Substring(1);
-                _currentInputLabel.SetText(displayedText);
+                _currentInputLabel.Text = displayedText;
             }
         }
 

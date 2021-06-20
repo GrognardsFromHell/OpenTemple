@@ -429,8 +429,8 @@ namespace OpenTemple.Core.Systems.RollHistory
         {
             var displayText = new StringBuilder();
             var links = new List<D20HelpLink>();
-            ProcessHelpLinks(text, displayText, links);
-            return new D20RollHistoryLine(displayText.ToString(), links);
+            // ProcessHelpLinks(text, displayText, links);
+            return new D20RollHistoryLine(new string(text), links);
         }
 
         [TempleDllLocation(0x100e7c60)]

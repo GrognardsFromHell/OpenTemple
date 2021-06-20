@@ -10,25 +10,24 @@
     {
       "id": "mapButtonLabel",
       "fontFamily": "priory-12",
-      "dropShadow": true,
-      "dropShadowBrush": "rgba(0,0,0,128)",
-      "foreground": "#ffffff",
+      "dropShadowColor": "rgba(0,0,0,128)",
+      "color": "#ffffff",
       "legacyTracking": 5,
       "legacyKerning": 0,
-      "paragraphAlign": "center",
-      "align": "center"
+      "paragraphAlignment": "center",
+      "textAlignment": "center"
     },
     {
       "id": "mapLocationListButtonNormal",
       "fontFamily": "arial-10",
       "legacyKerning": 2,
       "legacyTracking": 2,
-      "foreground": "#B4B4B4"
+      "color": "#B4B4B4"
     },
     {
       "id": "mapLocationListButtonHover",
       "inherit": "mapLocationListButtonNormal",
-      "foreground": "#00C6FF"
+      "color": "#00C6FF"
     }
   ],
   "__buttonStyles": [

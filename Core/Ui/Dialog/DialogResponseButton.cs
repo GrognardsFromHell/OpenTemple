@@ -1,9 +1,7 @@
 using System;
+using System.Collections.Immutable;
 using System.Drawing;
-using SharpDX.DirectWrite;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems.Dialog;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Dialog
@@ -11,45 +9,41 @@ namespace OpenTemple.Core.Ui.Dialog
     public class DialogResponseButton : WidgetButtonBase
     {
 
-        private static TigTextStyle CreateTextStyle(PackedLinearColorA color) => new TigTextStyle(new ColorRect(color))
-        {
-            kerning = 1,
-            tracking = 3
-        };
+        private const string NormalStyle = "dialog-ui-button-normal";
+        private const string HoverStyle = "dialog-ui-button-hover";
+        private const string PressedStyle = "dialog-ui-button-pressed";
 
-        private static readonly TigTextStyle NormalStyle = CreateTextStyle(new PackedLinearColorA(0xFF00FF00));
-        private static readonly TigTextStyle HoverStyle = CreateTextStyle(new PackedLinearColorA(0xFF99FF99));
-        private static readonly TigTextStyle PressedStyle = CreateTextStyle(new PackedLinearColorA(0xFFFFFFFF));
+        private const string SkillNormalStyle = "dialog-ui-button-skill-normal";
+        private const string SkillHoverStyle = "dialog-ui-button-skill-hover";
+        private const string SkillPressedStyle = "dialog-ui-button-skill-pressed";
 
-        private static readonly TigTextStyle SkillNormalStyle = CreateTextStyle(new PackedLinearColorA(0xFFE4CE3E));
-        private static readonly TigTextStyle SkillHoverStyle = CreateTextStyle(new PackedLinearColorA(0xFFFEFE19));
-        private static readonly TigTextStyle SkillPressedStyle = CreateTextStyle(new PackedLinearColorA(0xFFFEFF00));
+        private readonly WidgetText _numberLabel;
 
-        private readonly WidgetLegacyText _numberLabel;
-
-        private readonly WidgetLegacyText _label;
+        private readonly WidgetText _label;
 
         private readonly DialogSkill _skillUsed;
 
         public DialogResponseButton(Rectangle rect, string numberText, string text, DialogSkill skillUsed) : base(rect)
         {
+            AddStyle("dialog-ui-text");
+
             _skillUsed = skillUsed;
 
-            _label = new WidgetLegacyText(text, DialogUi.Font, NormalStyle);
-            _label.SetX(36);
-            _label.SetFixedWidth(559);
+            _label = new WidgetText(text, NormalStyle);
+            _label.X = 36;
+            _label.FixedWidth = 559;
             AddContent(_label);
 
-            _numberLabel = new WidgetLegacyText(numberText, DialogUi.Font, NormalStyle);
-            _numberLabel.SetX(17);
+            _numberLabel = new WidgetText(numberText, NormalStyle);
+            _numberLabel.X = 17;
             AddContent(_numberLabel);
 
             if (skillUsed != DialogSkill.None)
             {
                 var icon = new WidgetImage(GetSkillTexture(skillUsed));
                 icon.FixedSize = new Size(15, 15);
-                icon.SetX(2);
-                icon.SetY(1);
+                icon.X = 2;
+                icon.Y = 1;
                 AddContent(icon);
             }
         }
@@ -74,26 +68,24 @@ namespace OpenTemple.Core.Ui.Dialog
         }
 
 
-        private TigTextStyle GetTextStyle()
+        private IImmutableList<string> GetTextStyles()
         {
             // Update text style based on button state
-            switch (ButtonState)
+            var styleId = ButtonState switch
             {
-                case LgcyButtonState.Hovered:
-                    return _skillUsed == DialogSkill.None ? HoverStyle : SkillHoverStyle;
-                case LgcyButtonState.Down:
-                    return _skillUsed == DialogSkill.None ? PressedStyle : SkillPressedStyle;
-                default:
-                    return _skillUsed == DialogSkill.None ? NormalStyle : SkillNormalStyle;
-            }
+                LgcyButtonState.Hovered => _skillUsed == DialogSkill.None ? HoverStyle : SkillHoverStyle,
+                LgcyButtonState.Down => _skillUsed == DialogSkill.None ? PressedStyle : SkillPressedStyle,
+                _ => _skillUsed == DialogSkill.None ? NormalStyle : SkillNormalStyle
+            };
+            return ImmutableList.Create(styleId);
         }
 
         [TempleDllLocation(0x1014c520)]
         public override void Render()
         {
-            var textStyle = GetTextStyle();
-            _label.TextStyle = textStyle;
-            _numberLabel.TextStyle = textStyle;
+            var textStyles = GetTextStyles();
+            _label.StyleIds = textStyles;
+            _numberLabel.StyleIds = textStyles;
             base.Render();
         }
     }

@@ -5,6 +5,8 @@
   "y": 50,
   "width": 431,
   "height": 250,
+  "__styles": [
+  ],
   "content": [
     {
       "id": "title",

@@ -23,35 +23,35 @@ namespace OpenTemple.Core.Ui.UtilityBar
         [TempleDllLocation(0x10bd347c)]
         private static readonly WidgetButtonStyle PassTimeButtonStyle = new WidgetButtonStyle
         {
-            normalImagePath = "art/interface/utility_bar_ui/camp.tga",
-            hoverImagePath = "art/interface/utility_bar_ui/camp_hover.tga",
-            pressedImagePath = "art/interface/utility_bar_ui/camp_click.tga",
-            disabledImagePath = "art/interface/utility_bar_ui/camp_clock_grey.tga"
+            NormalImagePath = "art/interface/utility_bar_ui/camp.tga",
+            HoverImagePath = "art/interface/utility_bar_ui/camp_hover.tga",
+            PressedImagePath = "art/interface/utility_bar_ui/camp_click.tga",
+            DisabledImagePath = "art/interface/utility_bar_ui/camp_clock_grey.tga"
         };
 
         [TempleDllLocation(0x10bd34d0)]
         private static readonly WidgetButtonStyle RestForbiddenButtonStyle = new WidgetButtonStyle
         {
-            normalImagePath = "art/interface/utility_bar_ui/camp_red.tga",
-            disabledImagePath = "art/interface/utility_bar_ui/camp_grey.tga"
+            NormalImagePath = "art/interface/utility_bar_ui/camp_red.tga",
+            DisabledImagePath = "art/interface/utility_bar_ui/camp_grey.tga"
         };
 
         [TempleDllLocation(0x10bd33d0)]
         private static readonly WidgetButtonStyle RestUnsafeButtonStyle = new WidgetButtonStyle
         {
-            normalImagePath = "art/interface/utility_bar_ui/camp_yellow.tga",
-            hoverImagePath = "art/interface/utility_bar_ui/camp_yellow_hover.tga",
-            pressedImagePath = "art/interface/utility_bar_ui/camp_yellow_click.tga",
-            disabledImagePath = "art/interface/utility_bar_ui/camp_grey.tga",
+            NormalImagePath = "art/interface/utility_bar_ui/camp_yellow.tga",
+            HoverImagePath = "art/interface/utility_bar_ui/camp_yellow_hover.tga",
+            PressedImagePath = "art/interface/utility_bar_ui/camp_yellow_click.tga",
+            DisabledImagePath = "art/interface/utility_bar_ui/camp_grey.tga",
         };
 
         [TempleDllLocation(0x10bd2de4)]
         private static readonly WidgetButtonStyle RestSafeButtonStyle = new WidgetButtonStyle
         {
-            normalImagePath = "art/interface/utility_bar_ui/camp_green.tga",
-            hoverImagePath = "art/interface/utility_bar_ui/camp_green_hover.tga",
-            pressedImagePath = "art/interface/utility_bar_ui/camp_green_click.tga",
-            disabledImagePath = "art/interface/utility_bar_ui/camp_grey.tga",
+            NormalImagePath = "art/interface/utility_bar_ui/camp_green.tga",
+            HoverImagePath = "art/interface/utility_bar_ui/camp_green_hover.tga",
+            PressedImagePath = "art/interface/utility_bar_ui/camp_green_click.tga",
+            DisabledImagePath = "art/interface/utility_bar_ui/camp_grey.tga",
         };
 
         [TempleDllLocation(0x10bd33f0)]
@@ -81,11 +81,10 @@ namespace OpenTemple.Core.Ui.UtilityBar
             var selectAllButton = new WidgetButton(new Rectangle(8, 4, 41, 65));
             selectAllButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/utility_bar_ui/selectparty.tga",
-                hoverImagePath = "art/interface/utility_bar_ui/selectparty_hover.tga",
-                pressedImagePath = "art/interface/utility_bar_ui/selectparty_click.tga"
+                NormalImagePath = "art/interface/utility_bar_ui/selectparty.tga",
+                HoverImagePath = "art/interface/utility_bar_ui/selectparty_hover.tga",
+                PressedImagePath = "art/interface/utility_bar_ui/selectparty_click.tga"
             });
-            selectAllButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             selectAllButton.TooltipText = _translations[10];
             selectAllButton.SetClickHandler(OnSelectAllButtonClick);
             _container.Add(selectAllButton);
@@ -94,11 +93,10 @@ namespace OpenTemple.Core.Ui.UtilityBar
             var formationButton = new WidgetButton(new Rectangle(50, 4, 19, 41));
             formationButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/utility_bar_ui/formation.tga",
-                hoverImagePath = "art/interface/utility_bar_ui/formation_hover.tga",
-                pressedImagePath = "art/interface/utility_bar_ui/formation_click.tga"
+                NormalImagePath = "art/interface/utility_bar_ui/formation.tga",
+                HoverImagePath = "art/interface/utility_bar_ui/formation_hover.tga",
+                PressedImagePath = "art/interface/utility_bar_ui/formation_click.tga"
             });
-            formationButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             formationButton.TooltipText = _translations[0];
             formationButton.SetClickHandler(OnFormationButtonClick);
             _container.Add(formationButton);
@@ -108,11 +106,10 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 new Rectangle(70, 4, 19, 41));
             _logbookButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/utility_bar_ui/logbook.tga",
-                hoverImagePath = "art/interface/utility_bar_ui/logbook_hover.tga",
-                pressedImagePath = "art/interface/utility_bar_ui/logbook_click.tga"
+                NormalImagePath = "art/interface/utility_bar_ui/logbook.tga",
+                HoverImagePath = "art/interface/utility_bar_ui/logbook_hover.tga",
+                PressedImagePath = "art/interface/utility_bar_ui/logbook_click.tga"
             });
-            _logbookButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             _logbookButton.TooltipText = _translations[1];
             _logbookButton.SetClickHandler(OnLogbookButtonClick);
             _container.Add(_logbookButton);
@@ -122,11 +119,10 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 new Rectangle(90, 4, 19, 41));
             _mapButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/utility_bar_ui/townmap.tga",
-                hoverImagePath = "art/interface/utility_bar_ui/townmap_hover.tga",
-                pressedImagePath = "art/interface/utility_bar_ui/townmap_click.tga"
+                NormalImagePath = "art/interface/utility_bar_ui/townmap.tga",
+                HoverImagePath = "art/interface/utility_bar_ui/townmap_hover.tga",
+                PressedImagePath = "art/interface/utility_bar_ui/townmap_click.tga"
             });
-            _mapButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             _mapButton.TooltipText = _translations[2];
             _mapButton.SetClickHandler(OnMapButtonClick);
             _container.Add(_mapButton);
@@ -135,11 +131,10 @@ namespace OpenTemple.Core.Ui.UtilityBar
             _restButton = new WidgetButton(new Rectangle(110, 4, 19, 41));
             _restButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/utility_bar_ui/camp.tga",
-                hoverImagePath = "art/interface/utility_bar_ui/camp_hover.tga",
-                pressedImagePath = "art/interface/utility_bar_ui/camp_click.tga"
+                NormalImagePath = "art/interface/utility_bar_ui/camp.tga",
+                HoverImagePath = "art/interface/utility_bar_ui/camp_hover.tga",
+                PressedImagePath = "art/interface/utility_bar_ui/camp_click.tga"
             });
-            _restButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             _restButton.SetClickHandler(OnRestButtonClick);
             UpdateRestButton();
             _container.Add(_restButton);
@@ -148,11 +143,10 @@ namespace OpenTemple.Core.Ui.UtilityBar
             var helpButton = new WidgetButton(new Rectangle(130, 4, 19, 41));
             helpButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/utility_bar_ui/help.tga",
-                hoverImagePath = "art/interface/utility_bar_ui/help_hover.tga",
-                pressedImagePath = "art/interface/utility_bar_ui/help_click.tga"
+                NormalImagePath = "art/interface/utility_bar_ui/help.tga",
+                HoverImagePath = "art/interface/utility_bar_ui/help_hover.tga",
+                PressedImagePath = "art/interface/utility_bar_ui/help_click.tga"
             });
-            helpButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             helpButton.TooltipText = _translations[4];
             helpButton.SetClickHandler(OnHelpButtonClick);
             _container.Add(helpButton);
@@ -161,11 +155,10 @@ namespace OpenTemple.Core.Ui.UtilityBar
             var optionsButton = new WidgetButton(new Rectangle(150, 4, 19, 41));
             optionsButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/utility_bar_ui/options.tga",
-                hoverImagePath = "art/interface/utility_bar_ui/options_hover.tga",
-                pressedImagePath = "art/interface/utility_bar_ui/options_click.tga"
+                NormalImagePath = "art/interface/utility_bar_ui/options.tga",
+                HoverImagePath = "art/interface/utility_bar_ui/options_hover.tga",
+                PressedImagePath = "art/interface/utility_bar_ui/options_click.tga"
             });
-            optionsButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             optionsButton.TooltipText = _translations[5];
             optionsButton.SetClickHandler(OnOptionsButtonClick);
             _container.Add(optionsButton);

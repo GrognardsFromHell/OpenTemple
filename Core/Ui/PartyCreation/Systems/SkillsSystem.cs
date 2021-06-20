@@ -36,7 +36,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public SkillsSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/skills_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             int result;

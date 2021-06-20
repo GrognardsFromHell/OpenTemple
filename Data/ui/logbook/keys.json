@@ -1,0 +1,23 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 64,
+  "y": 68,
+  "width": 648,
+  "height": 333,
+  "__styles": [
+    {
+      "id": "logbook-key-button",
+      "trimMode": "character",
+      "trimmingSign": "ellipsis",
+      "wordWrap": "nowrap"
+    },
+    {
+      "id": "logbook-keys-caption",
+      "fontFace": "Arial",
+      "fontSize": 10,
+      "color": "#000000",
+      "wordWrap": "nowrap"
+    }
+  ]
+}

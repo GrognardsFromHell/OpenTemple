@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
 
-    <Copyright>(c) 2020 OpenTemple Development Team</Copyright>
+    <Copyright>(c) 2021 OpenTemple Development Team</Copyright>
 
     <!--
       Which version of Roslyn should be used at game runtime, i.e. for dynamic scripting and debugging consoles.

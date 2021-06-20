@@ -13,16 +13,16 @@ namespace OpenTemple.Core.Ui.UtilityBar
     {
         private static readonly WidgetButtonStyle ToggleRollButtonStyle = new WidgetButtonStyle
         {
-            normalImagePath = "art/interface/history/Tab_Roll_Unselected.tga",
-            hoverImagePath = "art/interface/history/Tab_Roll_Hover.tga",
-            pressedImagePath = "art/interface/history/Tab_Roll_Click.tga"
+            NormalImagePath = "art/interface/history/Tab_Roll_Unselected.tga",
+            HoverImagePath = "art/interface/history/Tab_Roll_Hover.tga",
+            PressedImagePath = "art/interface/history/Tab_Roll_Click.tga"
         };
 
         private static readonly WidgetButtonStyle ToggleDialogButtonStyle = new WidgetButtonStyle
         {
-            normalImagePath = "art/interface/history/Dialog_Unselected.tga",
-            hoverImagePath = "art/interface/history/Dialog_Hover.tga",
-            pressedImagePath = "art/interface/history/Dialog_Click.tga"
+            NormalImagePath = "art/interface/history/Dialog_Unselected.tga",
+            HoverImagePath = "art/interface/history/Dialog_Hover.tga",
+            PressedImagePath = "art/interface/history/Dialog_Click.tga"
         };
 
         [TempleDllLocation(0x10bdddb0)] [TempleDllLocation(0x10bdde54)]

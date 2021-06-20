@@ -1,6 +1,5 @@
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.HelpInventory
@@ -11,7 +10,7 @@ namespace OpenTemple.Core.Ui.CharSheet.HelpInventory
 
         private WidgetContainer _textContainer;
 
-        private WidgetLegacyText _textLabel;
+        private WidgetText _textLabel;
 
         public CharSheetHelpUi()
         {
@@ -20,17 +19,10 @@ namespace OpenTemple.Core.Ui.CharSheet.HelpInventory
 
             _textContainer = new WidgetContainer(0, 0,
                 _scrollView.GetInnerWidth(), _scrollView.GetInnerHeight());
-            var style = new TigTextStyle
-            {
-                flags = TigTextStyleFlag.TTSF_DROP_SHADOW,
-                textColor = new ColorRect(PackedLinearColorA.White),
-                shadowColor = new ColorRect(PackedLinearColorA.Black),
-                kerning = 2,
-                tracking = 2
-            };
-            _textLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_10, style);
+            _textLabel = new WidgetText();
             _textContainer.AddContent(_textLabel);
             _scrollView.Add(_textContainer);
+            _scrollView.AddStyle("char-help-text");
         }
 
         [TempleDllLocation(0x10BF0BC0)]
@@ -56,11 +48,15 @@ namespace OpenTemple.Core.Ui.CharSheet.HelpInventory
         {
             _textLabel.Text = text;
         }
+        public void SetHelpText(InlineElement content)
+        {
+            _textLabel.Content = content;
+        }
 
         [TempleDllLocation(0x101628D0)]
-        public string GetObjectHelp(GameObjectBody obj, GameObjectBody observer)
+        public InlineElement GetObjectHelp(GameObjectBody obj, GameObjectBody observer)
         {
-            return UiSystems.Tooltip.GetObjectDescription(obj, observer);
+            return UiSystems.Tooltip.GetObjectDescriptionContent(obj, observer);
         }
 
         public void ShowItemDescription(GameObjectBody item, GameObjectBody observer)

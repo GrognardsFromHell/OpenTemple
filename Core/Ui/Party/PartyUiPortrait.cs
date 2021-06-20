@@ -30,10 +30,10 @@ namespace OpenTemple.Core.Ui.Party
                 new WidgetContainer(uiParams.party_ui_main_window.Width, uiParams.party_ui_main_window.Height);
 
             var image = new WidgetImage("art/interface/party_ui/Character Portrait Frame.tga");
-            image.SetX(uiParams.party_ui_frame.X);
-            image.SetY(uiParams.party_ui_frame.Y);
-            image.SetFixedWidth(uiParams.party_ui_frame.Width);
-            image.SetFixedHeight(uiParams.party_ui_frame.Height);
+            image.X = uiParams.party_ui_frame.X;
+            image.Y = uiParams.party_ui_frame.Y;
+            image.FixedWidth = uiParams.party_ui_frame.Width;
+            image.FixedHeight = uiParams.party_ui_frame.Height;
             container.AddContent(image);
 
             var portraitButton = new PortraitButton(partyMember);
@@ -61,10 +61,10 @@ namespace OpenTemple.Core.Ui.Party
             DismissButton = new WidgetButton(uiParams.party_ui_remove_icon);
             DismissButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = uiParams.Textures[PartyUiTexture.DismissBtnNormal],
-                disabledImagePath = uiParams.Textures[PartyUiTexture.DismissBtnDisabled],
-                hoverImagePath = uiParams.Textures[PartyUiTexture.DismissBtnHover],
-                pressedImagePath = uiParams.Textures[PartyUiTexture.DismissBtnPressed],
+                NormalImagePath = uiParams.Textures[PartyUiTexture.DismissBtnNormal],
+                DisabledImagePath = uiParams.Textures[PartyUiTexture.DismissBtnDisabled],
+                HoverImagePath = uiParams.Textures[PartyUiTexture.DismissBtnHover],
+                PressedImagePath = uiParams.Textures[PartyUiTexture.DismissBtnPressed],
             });
             DismissButton.SetClickHandler(OnDismissClick);
             container.Add(DismissButton);
@@ -73,10 +73,10 @@ namespace OpenTemple.Core.Ui.Party
             LevelUpButton = new WidgetButton(uiParams.party_ui_level_icon);
             LevelUpButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnNormal],
-                disabledImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnDisabled],
-                hoverImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnHovered],
-                pressedImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnPressed],
+                NormalImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnNormal],
+                DisabledImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnDisabled],
+                HoverImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnHovered],
+                PressedImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnPressed],
             });
             LevelUpButton.SetClickHandler(OnLevelUpClick);
             container.Add(LevelUpButton);

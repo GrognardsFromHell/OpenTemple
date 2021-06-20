@@ -1,21 +1,17 @@
 using System;
 using System.Drawing;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Stats
 {
     public class StatsCurrencyLabel : WidgetButtonBase
     {
-        private readonly WidgetLegacyText _label;
+        private readonly WidgetText _label;
 
         private string _currentText = "";
-
-        private readonly WidgetLegacyText _tooltipLabel;
 
         public MoneyType MoneyType { get; }
 
@@ -50,32 +46,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             Y = Y - 1; // This is hardcoded in the render-function in ToEE
             SetSize(rect.Size);
 
-            var textStyle = new TigTextStyle
-            {
-                shadowColor = new ColorRect(PackedLinearColorA.Black),
-                textColor = new ColorRect(uiParams.FontNormalColor),
-                flags = TigTextStyleFlag.TTSF_DROP_SHADOW,
-                kerning = 1,
-                tracking = 3
-            };
-
             MoneyType = moneyType;
 
-            _label = new WidgetLegacyText(_currentText, PredefinedFont.ARIAL_10, textStyle);
+            _label = new WidgetText(_currentText, "char-ui-stat-money");
             AddContent(_label);
             SetClickHandler(OnClick);
-
-            var tooltipStyle = new TigTextStyle();
-            tooltipStyle.bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, 204));
-            tooltipStyle.shadowColor = new ColorRect(PackedLinearColorA.Black);
-            tooltipStyle.textColor = new ColorRect(PackedLinearColorA.White);
-            tooltipStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW
-                                 | TigTextStyleFlag.TTSF_BACKGROUND
-                                 | TigTextStyleFlag.TTSF_BORDER;
-            tooltipStyle.tracking = 2;
-            tooltipStyle.kerning = 2;
-
-            _tooltipLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_10, tooltipStyle);
         }
 
         [TempleDllLocation(0x101c5dd0)]
@@ -138,12 +113,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 return;
             }
 
-            _tooltipLabel.Text = GetMoneyTooltip();
-
-            var preferredSize = _tooltipLabel.GetPreferredSize();
-            var contentArea = new Rectangle(x, y - preferredSize.Height, preferredSize.Width, preferredSize.Height);
-            _tooltipLabel.SetContentArea(contentArea);
-            _tooltipLabel.Render();
+            TooltipText = GetMoneyTooltip();
+            base.RenderTooltip(x, y);
         }
     }
 }

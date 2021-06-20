@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -13,6 +12,7 @@ using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -20,27 +20,15 @@ namespace OpenTemple.Core.Ui.Dialog
 {
     public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     {
-        internal const PredefinedFont Font = PredefinedFont.ARIAL_10;
-
         private const int ContentWidth = 550;
 
         private const int MaxDialogLines = 200;
 
         [TempleDllLocation(0x10bec280)]
-        private static readonly TigTextStyle NpcLineTextStyle =
-            new TigTextStyle(new ColorRect(new PackedLinearColorA(0xFFFFFF00)))
-            {
-                kerning = 1,
-                tracking = 3
-            };
+        private const string NPCLineTextStyle = "dialog-ui-line-npc";
 
         [TempleDllLocation(0x10bea290)]
-        private static readonly TigTextStyle PcLineTextStyle =
-            new TigTextStyle(new ColorRect(new PackedLinearColorA(0xFF666666)))
-            {
-                kerning = 1,
-                tracking = 3
-            };
+        private const string  PcLineTextStyle = "dialog-ui-line-player";
 
         [TempleDllLocation(0x1014bb50)]
         public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.Visible;
@@ -51,10 +39,10 @@ namespace OpenTemple.Core.Ui.Dialog
 
         private static readonly WidgetButtonStyle HeadButtonStyle = new WidgetButtonStyle
         {
-            normalImagePath = "art/interface/dialog/head_normal.tga",
-            hoverImagePath = "art/interface/dialog/head_hovered.tga",
-            pressedImagePath = "art/interface/dialog/head_pressed.tga",
-            disabledImagePath = "art/interface/dialog/head_disabled.tga"
+            NormalImagePath = "art/interface/dialog/head_normal.tga",
+            HoverImagePath = "art/interface/dialog/head_hovered.tga",
+            PressedImagePath = "art/interface/dialog/head_pressed.tga",
+            DisabledImagePath = "art/interface/dialog/head_disabled.tga"
         };
 
         [TempleDllLocation(0x10bea2e4)]
@@ -69,9 +57,20 @@ namespace OpenTemple.Core.Ui.Dialog
         [TempleDllLocation(0x10bec198)]
         private WidgetContainer uiDialogWnd2Id;
 
+        [TempleDllLocation(0x10bec20c)]
+        private int dword_10BEC20C;
+
+        [TempleDllLocation(0x10be9ff0)]
+        private int dword_10BE9FF0;
+
+        private WidgetContainer _dialogLinesContainer;
+        private readonly TextEngine _textEngine;
+
         public DialogUi()
         {
             Stub.TODO();
+
+            _textEngine = Tig.RenderingDevice.TextEngine;
 
             GameSystems.AI.SetDialogFunctions(CancelDialog, ShowTextBubble);
             GameSystems.Script.SetDialogFunctions(ShowTextBubble);
@@ -102,9 +101,12 @@ namespace OpenTemple.Core.Ui.Dialog
         [TempleDllLocation(0x1014c50c)]
         private void CreateWidgets()
         {
+            // Primarily we just do this for loading styles
+            var doc = WidgetDoc.Load("ui/dialog_ui.json");
+
             // Begin top level window
             // Created @ 0x1014dacc
-            _mainWindow = new WidgetContainer(new Rectangle(0, 0, 611, 292));
+            _mainWindow = doc.GetRootContainer();
             // uiDialogWndId.OnHandleMessage += 0x1014bd00;
             // uiDialogWndId.OnBeforeRender += 0x1014bbb0;
             _mainWindow.OnBeforeRender += UpdateLayout;
@@ -117,16 +119,16 @@ namespace OpenTemple.Core.Ui.Dialog
             _mainWindow.Add(_dialogLinesContainer);
 
             _backdropHistory = new WidgetImage("art/interface/dialog/dialog_backdrop.img");
-            _backdropHistory.SetY(18);
+            _backdropHistory.Y = 18;
             _mainWindow.AddContent(_backdropHistory);
             _backdrop1Line = new WidgetImage("art/interface/dialog/dialog_backdrop_mini_1.img");
-            _backdrop1Line.SetY(Globals.Config.Co8 ? 77 : 126);
+            _backdrop1Line.Y = Globals.Config.Co8 ? 77 : 126;
             _mainWindow.AddContent(_backdrop1Line);
             _backdrop2Line = new WidgetImage("art/interface/dialog/dialog_backdrop_mini_2.img");
-            _backdrop2Line.SetY(112);
+            _backdrop2Line.Y = 112;
             _mainWindow.AddContent(_backdrop2Line);
             _backdrop3Line = new WidgetImage("art/interface/dialog/dialog_backdrop_mini_3.img");
-            _backdrop3Line.SetY(94);
+            _backdrop3Line.Y = 94;
             _mainWindow.AddContent(_backdrop3Line);
 
             _historyScollbar = new WidgetScrollBar(new Rectangle(592, 28, 13, 126));
@@ -300,7 +302,7 @@ namespace OpenTemple.Core.Ui.Dialog
             var rect = _dialogLinesContainer.GetContentArea();
             rect.Y += _dialogLinesContainer.Height - 4;
 
-            var scrollMax = _historyScollbar.GetMax();
+            var scrollMax = _historyScollbar.Max;
             var scrollValue = _historyScollbar.GetValue();
 
             var v4 = _lineHistory.Count - 1;
@@ -318,34 +320,37 @@ namespace OpenTemple.Core.Ui.Dialog
                 }
             }
 
-            Tig.Fonts.PushFont(Font);
             for (; v4 >= 0; v4--)
             {
                 var line = _lineHistory[v4];
 
-                var style = PcLineTextStyle;
-                if ((line.Flags & 1) == 0)
-                {
-                    style = NpcLineTextStyle;
-                }
+                var paragraph = new Paragraph();
+                paragraph.AddStyle(line.IsPcLine ? PcLineTextStyle : NPCLineTextStyle);
+                paragraph.AppendContent(line.Text);
 
-                var metrics = Tig.Fonts.MeasureTextSize(line.Text, NpcLineTextStyle, 550);
-                rect.Height = metrics.Height;
-                rect.Y -= metrics.Height;
+                using var layout = _textEngine.CreateTextLayout(
+                    paragraph,
+                    550,
+                    1000
+                );
+                rect.Height = (int) Math.Ceiling(layout.OverallHeight);
+                rect.Y -= (int) Math.Ceiling(layout.OverallHeight);
                 if (rect.Y < dword_10BEC20C)
                 {
                     break;
                 }
 
-                Tig.Fonts.RenderText(line.Text, rect, style);
+                _textEngine.RenderTextLayout(
+                    rect.X,
+                    rect.Y,
+                    layout
+                );
 
                 if (!ShowDialogHistory)
                 {
                     break;
                 }
             }
-
-            Tig.Fonts.PopFont();
         }
 
 
@@ -698,6 +703,7 @@ namespace OpenTemple.Core.Ui.Dialog
             dlgListEntry.IsPcLine = speaker.IsPC();
 
             dlgListEntry.Text = $"({speakerName})  {text}";
+            dlgListEntry.Paragraph = FlowContentParser.ParseParagraph(dlgListEntry.Text);
             _lineHistory.Add(dlgListEntry);
 
             UiDialogScrollbarRefresh /*0x1014bdf0*/();
@@ -707,14 +713,6 @@ namespace OpenTemple.Core.Ui.Dialog
                 UpdateLayout();
             }
         }
-
-        [TempleDllLocation(0x10bec20c)]
-        private int dword_10BEC20C;
-
-        [TempleDllLocation(0x10be9ff0)]
-        private int dword_10BE9FF0;
-
-        private WidgetContainer _dialogLinesContainer;
 
         /// <summary>
         /// Measure how high the current NPC line is in pixels.
@@ -726,11 +724,10 @@ namespace OpenTemple.Core.Ui.Dialog
                 return 0;
             }
 
-            var lastLine = _lineHistory[^1].Text;
-            Tig.Fonts.PushFont(Font);
-            var height = Tig.Fonts.MeasureTextSize(lastLine, NpcLineTextStyle, ContentWidth).Height;
-            Tig.Fonts.PopFont();
-            return height;
+            var lastLine = _lineHistory[^1];
+
+            using var layout = _textEngine.CreateTextLayout(lastLine.Paragraph, ContentWidth, 1000);
+            return (int) Math.Ceiling(layout.OverallHeight);
         }
 
         [TempleDllLocation(0x1014c030)]
@@ -816,7 +813,7 @@ namespace OpenTemple.Core.Ui.Dialog
         private void UiDialogScrollbarRefresh()
         {
             var uiDialogScrollbarYMax = _lineHistory.Count - 1;
-            _historyScollbar.SetMax(uiDialogScrollbarYMax);
+            _historyScollbar.Max = uiDialogScrollbarYMax;
             _historyScollbar.SetValue(uiDialogScrollbarYMax);
         }
 
@@ -854,7 +851,6 @@ namespace OpenTemple.Core.Ui.Dialog
                 Lines = _lineHistory.Select(line => new SavedDialogUiLine
                 {
                     Text = line.Text,
-                    Flags = line.Flags,
                     IsPcLine = line.IsPcLine
                 }).ToList()
             };
@@ -869,8 +865,8 @@ namespace OpenTemple.Core.Ui.Dialog
             {
                 _lineHistory.Add(new DisplayedDialogLine
                 {
-                    Flags = savedLine.Flags,
                     Text = savedLine.Text,
+                    Paragraph = FlowContentParser.ParseParagraph(savedLine.Text),
                     IsPcLine = savedLine.IsPcLine
                 });
             }
@@ -879,9 +875,9 @@ namespace OpenTemple.Core.Ui.Dialog
 
     public class DisplayedDialogLine
     {
-        public int Flags { get; set; }
-
         public string Text { get; set; }
+
+        public Paragraph Paragraph { get; set; }
 
         public bool IsPcLine { get; set; }
     }

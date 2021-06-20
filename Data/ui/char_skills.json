@@ -15,17 +15,19 @@
     {
       "id": "char-skills-value",
       "fontFamily": "arial-10",
-      "align": "center",
+      "textAlignment": "center",
       "legacyTracking": 5,
       "legacyKerning": 1
     },
     {
       "id": "char-skills-value-large",
-      "fontFamily": "arial-bold-24",
-      "align": "center",
+      "fontFamily": "Arial",
+      "fontSize": 24,
+      "fontWeight": "bold",
+      "textAlignment": "center",
       "legacyTracking": 5,
       "legacyKerning": 1,
-      "foreground": "#0D6BE3"
+      "color": "#0D6BE3"
     }
   ],
   "__buttonStyles": [

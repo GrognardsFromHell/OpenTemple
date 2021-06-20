@@ -50,7 +50,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             else
             {
                 _label.Visible = true;
-                _label.SetText(currentStatValue.ToString());
+                _label.Text = currentStatValue.ToString();
             }
 
             base.Render();

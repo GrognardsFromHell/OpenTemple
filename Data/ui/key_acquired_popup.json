@@ -9,12 +9,11 @@
     {
       "id": "keyAcquiredPopupButton",
       "fontFamily": "priory-12",
-      "dropShadow": true,
-      "dropShadowBrush": "#000000",
+      "dropShadowColor": "#000000",
       "legacyKerning": 0,
       "legacyTracking": 5,
-      "align": "center",
-      "paragraphAlign": "center"
+      "textAlignment": "center",
+      "paragraphAlignment": "center"
     }
   ],
   "__buttonStyles": [
@@ -39,6 +38,14 @@
     {
       "type": "image",
       "path": "art/interface/GENERIC/genericdialogue_nocheckbox.img"
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "y": 12,
+      "height": 29,
+      "text": "",
+      "style": "dialog-title"
     }
   ],
   "children": [
@@ -66,7 +73,10 @@
       "x": 27,
       "y": 70,
       "width": 237,
-      "height": 98
+      "height": 98,
+      "localStyles": {
+        "textAlignment": "center"
+      }
     }
   ]
 }

@@ -10,9 +10,8 @@ namespace OpenTemple.Core.Ui.CharSheet
 {
     public class CharUiMainWidget : WidgetContainer
     {
-        private readonly WidgetLegacyText _attributeRollCountLabel;
-
-        private readonly WidgetLegacyText _attributeRollModeLabel;
+        private readonly WidgetText _attributeRollCountLabel;
+        private readonly WidgetText _attributeRollModeLabel;
         private readonly WidgetImage _ironmanBackground;
         private readonly WidgetImage _normalBackground;
         private readonly string _pointBuyLabel;
@@ -38,8 +37,8 @@ namespace OpenTemple.Core.Ui.CharSheet
             var attributeCountStyle = attributeModeStyle.Copy();
             attributeCountStyle.textColor = new ColorRect(PackedLinearColorA.White);
 
-            _attributeRollModeLabel = new WidgetLegacyText(rerollsLabel, PredefinedFont.PRIORY_12, attributeModeStyle);
-            _attributeRollCountLabel = new WidgetLegacyText("", PredefinedFont.PRIORY_12, attributeCountStyle);
+            _attributeRollModeLabel = new WidgetText(rerollsLabel, "char-ui-attribute-mode");
+            _attributeRollCountLabel = new WidgetText("", "char-ui-attribute-rerolls");
         }
 
         private GameObjectBody CurrentCritter => UiSystems.CharSheet.CurrentCritter;
@@ -83,17 +82,13 @@ namespace OpenTemple.Core.Ui.CharSheet
             }
 
             _attributeRollCountLabel.Text = rollCountText;
-            _attributeRollCountLabel.SetY(11);
+            _attributeRollCountLabel.Y = 11;
             // Right-align
-            _attributeRollCountLabel.SetX(
-                GetContentArea().Width - _attributeRollCountLabel.GetPreferredSize().Width - 28
-            );
+            _attributeRollCountLabel.X = GetContentArea().Width - _attributeRollCountLabel.GetPreferredSize().Width - 28;
 
-            _attributeRollModeLabel.SetY(11);
+            _attributeRollModeLabel.Y = 11;
             // Right-align
-            _attributeRollModeLabel.SetX(
-                _attributeRollCountLabel.GetX() - _attributeRollModeLabel.GetPreferredSize().Width - 2
-            );
+            _attributeRollModeLabel.X = _attributeRollCountLabel.X - _attributeRollModeLabel.GetPreferredSize().Width - 2;
 
             AddContent(_attributeRollCountLabel);
             AddContent(_attributeRollModeLabel);

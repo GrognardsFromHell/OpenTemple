@@ -31,7 +31,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public AbilitiesSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/abilities_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             foreach (var featuresUi in _featuresByClass.Values)

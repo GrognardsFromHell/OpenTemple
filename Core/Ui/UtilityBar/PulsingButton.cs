@@ -32,7 +32,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
             if (PulseColor.A != 0)
             {
                 _pulseImage.Color = PulseColor;
-                _pulseImage.SetContentArea(GetContentArea());
+                _pulseImage.SetBounds(GetContentArea());
                 _pulseImage.Render();
             }
         }

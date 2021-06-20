@@ -49,7 +49,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             _equality = equality;
 
             var doc = WidgetDoc.Load("ui/pc_creation/selection_list_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
 
             _nextPageButton = doc.GetButton("nextPage");
             _nextPageButton.SetClickHandler(() =>
@@ -134,10 +134,9 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                 {
                     var item = _items[PageStart + i];
                     var button = _selectionButtons[i];
-                    button.SetText(item.Label);
+                    button.Text = item.Label;
                     button.SetActive(_equality.Equals(item.Value, _selectedItem));
                     button.SetDisabled(item.IsDisabled);
-                    button.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
                     button.TooltipText = item.Tooltip;
                 }
             }

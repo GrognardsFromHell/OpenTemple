@@ -430,8 +430,8 @@ namespace OpenTemple.Core.GFX
         public void DrawPieSegment(int segments,
             int x, int y,
             float angleCenter, float angleWidth,
-            int innerRadius, int innerOffset,
-            int outerRadius, int outerOffset,
+            float innerRadius, float innerOffset,
+            float outerRadius, float outerOffset,
             PackedLinearColorA color1, PackedLinearColorA color2)
         {
             Trace.Assert(segments <= MaxSegments);

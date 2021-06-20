@@ -45,7 +45,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             OnMouseEnter += ShowSpellHelp;
             OnMouseExit += HideSpellHelp;
 
-            TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             if (spellOpposesAlignment)
             {
                 TooltipText = "#{char_ui_spells:12}";
@@ -159,9 +158,9 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         public override bool HandleMouseMessage(MessageMouseArgs msg)
         {
             // Forward scroll wheel messages to the parent (which will forward it to the scrollbar)
-            if (mParent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+            if (_parent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
             {
-                return mParent.HandleMouseMessage(msg);
+                return _parent.HandleMouseMessage(msg);
             }
 
             return base.HandleMouseMessage(msg);

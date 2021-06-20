@@ -189,12 +189,6 @@ namespace OpenTemple.Core.Ui
                 return false;
             }
 
-            if (kbMsg.key == (DIK) 0x54)
-            {
-                // stupid hack for Sitra's remote control keyboard
-                action = InGameHotKey.ToggleConsole;
-            }
-
             switch (action)
             {
                 case InGameHotKey.TogglePartySelection1:

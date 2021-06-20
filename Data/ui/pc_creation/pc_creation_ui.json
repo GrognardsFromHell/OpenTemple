@@ -11,23 +11,23 @@
       "fontFamily": "priory-12",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "align": "center"
+      "textAlignment": "center"
     },
     {
       "id": "chargenPlayerDescriptionLine",
       "fontFamily": "arial-10",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "align": "center",
-      "foreground": "#ffffff"
+      "textAlignment": "center",
+      "color": "#ffffff"
     },
     {
       "id": "pcCreationStageTitle",
       "fontFamily": "arial-bold-10",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "align": "center",
-      "foreground": "#ffffff"
+      "textAlignment": "center",
+      "color": "#ffffff"
     }
   ],
   "__buttonStyles": [

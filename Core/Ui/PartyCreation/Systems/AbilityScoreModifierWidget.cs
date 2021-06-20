@@ -39,11 +39,11 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                 var modifier = D20StatSystem.GetModifierForAbilityScore(currentStatValue);
                 if (modifier > 0)
                 {
-                    _label.SetText("+" + modifier);
+                    _label.Text = "+" + modifier;
                 }
                 else
                 {
-                    _label.SetText(modifier.ToString());
+                    _label.Text = modifier.ToString();
                 }
             }
 

@@ -8,16 +8,16 @@
     {
       "id": "textEntryTitle",
       "fontFamily": "arial-12",
-      "foreground": "#ffffff",
+      "color": "#ffffff",
       "legacyTracking": 3,
       "legacyKerning": 1,
-      "paragraphAlign": "center",
-      "align": "center"
+      "paragraphAlignment": "center",
+      "textAlignment": "center"
     },
     {
       "id": "textEntryInput",
       "fontFamily": "arial-12",
-      "foreground": "#ffffff",
+      "color": "#ffffff",
       "legacyTracking": 3,
       "legacyKerning": 1
     }

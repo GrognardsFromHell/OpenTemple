@@ -2,11 +2,12 @@
 
     <PropertyGroup>
         <AssemblyName>OpenTemple.Tests</AssemblyName>
+        <RootNamespace>OpenTemple.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
-        <PackageReference Include="FluentAssertions" Version="5.7.0" />
+        <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
         <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
         <PackageReference Include="xunit" Version="2.4.1" />

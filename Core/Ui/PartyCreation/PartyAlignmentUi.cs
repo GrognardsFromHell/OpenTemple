@@ -31,7 +31,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         {
             var doc = WidgetDoc.Load("ui/party_creation/party_alignment.json");
 
-            _container = doc.TakeRootContainer();
+            _container = doc.GetRootContainer();
             _container.Visible = false;
 
             // RENDER: 0x1011be20
@@ -65,7 +65,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             foreach (var (alignment, button) in _alignmentButtons)
             {
                 var alignmentName = GameSystems.Stat.GetAlignmentName(alignment).ToUpper();
-                button.SetText(alignmentName);
+                button.Text = alignmentName;
 
                 button.SetClickHandler(() => SelectAlignment(alignment));
             }
@@ -122,8 +122,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 var button = _alignmentButtons[_alignment.Value];
                 var x = button.X + button.Width / 2 - _selectionRect.FixedSize.Width / 2;
                 var y = button.Y + button.Height / 2 - _selectionRect.FixedSize.Height / 2;
-                _selectionRect.SetX(x);
-                _selectionRect.SetY(y);
+                _selectionRect.X = x;
+                _selectionRect.Y = y;
             }
 
             // Mark any buttons as active that have one of the alignment axes in common with the selected alignment

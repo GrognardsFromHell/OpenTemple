@@ -54,8 +54,8 @@ namespace OpenTemple.Core.Ui
             window.AddContent(uiPopup.background);
 
             uiPopup.titleLabel = new WidgetText("", "popupTitle");
-            uiPopup.titleLabel.SetX(30);
-            uiPopup.titleLabel.SetY(13);
+            uiPopup.titleLabel.X = 30;
+            uiPopup.titleLabel.Y = 13;
             uiPopup.titleLabel.FixedSize = new Size(230, 26);
             uiPopup.titleLabel.SetCenterVertically(true);
             window.AddContent(uiPopup.titleLabel);
@@ -201,7 +201,7 @@ namespace OpenTemple.Core.Ui
             if (uiPrompt.wndTitle != null)
             {
                 popup.titleLabel.Visible = true;
-                popup.titleLabel.SetText(uiPrompt.wndTitle);
+                popup.titleLabel.Text = uiPrompt.wndTitle;
             }
             else
             {
@@ -211,10 +211,10 @@ namespace OpenTemple.Core.Ui
             if (uiPrompt.bodyText != null)
             {
                 popup.bodyLabel.Visible = true;
-                popup.bodyLabel.SetX(popup.prompt.textRect.X);
-                popup.bodyLabel.SetY(popup.prompt.textRect.Y);
+                popup.bodyLabel.X = popup.prompt.textRect.X;
+                popup.bodyLabel.Y = popup.prompt.textRect.Y;
                 popup.bodyLabel.FixedSize = popup.prompt.textRect.Size;
-                popup.bodyLabel.SetText(uiPrompt.bodyText);
+                popup.bodyLabel.Text = uiPrompt.bodyText;
             }
             else
             {
@@ -223,7 +223,7 @@ namespace OpenTemple.Core.Ui
 
             if (uiPromptIdx == 0)
             {
-                popup.btn1.SetText(popup.prompt.okButtonText);
+                popup.btn1.Text = popup.prompt.okButtonText;
                 popup.btn1.Rectangle = popup.prompt.okRect;
                 popup.btn1.SetStyle(uiPrompt.OkayButtonStyle);
                 popup.btn1.Visible = true;
@@ -234,12 +234,12 @@ namespace OpenTemple.Core.Ui
             {
                 popup.btn1.SetStyle(uiPrompt.OkayButtonStyle);
                 popup.btn1.Visible = true;
-                popup.btn1.SetText(popup.prompt.okButtonText);
+                popup.btn1.Text = popup.prompt.okButtonText;
                 popup.btn1.Rectangle = popup.prompt.okRect;
 
                 popup.btn2.SetStyle(uiPrompt.CancelButtonStyle);
                 popup.btn2.Visible = true;
-                popup.btn2.SetText(popup.prompt.cancelButtonText);
+                popup.btn2.Text = popup.prompt.cancelButtonText;
                 popup.btn2.Rectangle = popup.prompt.cancelRect;
 
                 popup.btn3.Visible = false;

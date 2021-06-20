@@ -2,9 +2,9 @@ namespace OpenTemple.Core.GFX.TextRendering
 {
     public struct TextMetrics
     {
-        public int width;
-        public int height;
-        public int lineHeight;
+        public float width;
+        public float height;
+        public float lineHeight;
         public int lines;
     }
 }

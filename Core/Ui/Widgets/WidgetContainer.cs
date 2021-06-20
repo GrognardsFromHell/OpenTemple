@@ -54,12 +54,14 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 childWidget.GetParent().Remove(childWidget);
             }
+
             childWidget.SetParent(this);
             // If the child widget was a top-level window before, remove it
             if (childWidget is WidgetContainer otherContainer)
             {
                 Globals.UiManager.RemoveWindow(otherContainer);
             }
+
             mChildren.Add(childWidget);
             Globals.UiManager.RefreshMouseOverState();
         }
@@ -128,7 +130,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public override void BringToFront()
         {
-            if (mParent == null)
+            if (_parent == null)
             {
                 Globals.UiManager.BringToFront(this);
             }
@@ -174,20 +176,26 @@ namespace OpenTemple.Core.Ui.Widgets
 
             var visArea = GetVisibleArea();
 
+            var clipAreaSet = false;
+
             foreach (var child in mChildren)
             {
                 if (child.Visible)
                 {
-                    if (ClipChildren)
+                    if (ClipChildren && !clipAreaSet)
                     {
                         Tig.RenderingDevice.SetScissorRect(visArea.X, visArea.Y, visArea.Width, visArea.Height);
+                        clipAreaSet = true;
                     }
 
                     child.Render();
                 }
             }
 
-            Tig.RenderingDevice.ResetScissorRect();
+            if (clipAreaSet)
+            {
+                Tig.RenderingDevice.ResetScissorRect();
+            }
         }
 
         public override bool HandleMouseMessage(MessageMouseArgs msg)

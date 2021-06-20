@@ -26,7 +26,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
         public string Value
         {
-            set => _valueLabel.SetText(value);
+            set => _valueLabel.Text = value;
         }
 
         public StatBlockValue(WidgetDoc doc, string idPrefix)

@@ -62,7 +62,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public AbilityScoreSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/stats_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             _pointBuyInfo = doc.GetContainer("pointBuyInfo");
@@ -183,7 +183,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                 var globalContentArea = widget.GetContentArea(true);
                 var localX = msg.X - globalContentArea.X;
                 var localY = msg.Y - globalContentArea.Y;
-                _draggedAbilityScoreLabel.SetText(widget.Value.ToString());
+                _draggedAbilityScoreLabel.Text = widget.Value.ToString();
                 widget.IsDragging = true;
 
                 // This will draw the ability score being dragged under the mouse cursor
@@ -193,7 +193,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                     point.Offset(-localX, -localY);
                     var contentArea = new Rectangle(point, widget.GetSize());
 
-                    _draggedAbilityScoreLabel.SetContentArea(contentArea);
+                    _draggedAbilityScoreLabel.SetBounds(contentArea);
                     _draggedAbilityScoreLabel.Render();
                 });
             }
@@ -358,7 +358,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         private void UiPcCreationStatSetPointbuyState(bool pointbuyState)
         {
             _pkt.isPointbuy = pointbuyState;
-            _titleLabel.SetText(_pkt.isPointbuy ? "#{pc_creation:1100}" : "#{pc_creation:1000}");
+            _titleLabel.Text = _pkt.isPointbuy ? "#{pc_creation:1100}" : "#{pc_creation:1000}";
         }
 
         [TempleDllLocation(0x1018b680)]
@@ -415,7 +415,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         private void UpdateButtons()
         {
             var pointBuyBudget = Globals.Config.PointBuyBudget;
-            _pointBuyPointsAvailable.SetText($"{pointBuyPoints}@1/{pointBuyBudget}");
+            _pointBuyPointsAvailable.Text = $"{pointBuyPoints}@1/{pointBuyBudget}";
 
             var isPointBuyMode = UiSystems.PCCreation.IsPointBuy;
 
@@ -433,7 +433,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             {
                 _togglePointBuyButton.Visible = true; // show toggle button
 
-                _togglePointBuyButton.SetText(isPointBuyMode ? "#{pc_creation:10005}" : "#{pc_creation:10006}");
+                _togglePointBuyButton.Text = isPointBuyMode ? "#{pc_creation:10005}" : "#{pc_creation:10006}";
             }
 
             for (var i = 0; i < 6; i++)
@@ -482,7 +482,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
             _rerollButton.Visible = !isPointBuyMode;
             _rerollsLabel.Visible = !isPointBuyMode;
-            _rerollsLabel.SetText(_pkt.rerollString);
+            _rerollsLabel.Text = _pkt.rerollString;
         }
 
         [TempleDllLocation(0x1018adb0)]

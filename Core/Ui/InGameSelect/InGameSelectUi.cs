@@ -18,6 +18,7 @@ using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.InGameSelect.Pickers;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
@@ -50,6 +51,11 @@ namespace OpenTemple.Core.Ui.InGameSelect
         {
             return _textStyle;
         }
+
+        public IFlowContentHost TextHost { get; } = new FlowContentHost()
+        {
+
+        };
 
         [TempleDllLocation(0x10BD2CD8)]
         private readonly Dictionary<GameObjectBody, string> intgameselTexts = new Dictionary<GameObjectBody, string>();
@@ -184,9 +190,9 @@ namespace OpenTemple.Core.Ui.InGameSelect
             var confirmSelectionButton = new WidgetButton(new Rectangle(0, 0, 30, 30));
             confirmSelectionButton.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/radial_menu/Cast_Spell_Icon.tga",
-                hoverImagePath = "art/interface/radial_menu/Cast_Spell_Icon_Hovered.tga",
-                pressedImagePath = "art/interface/radial_menu/Cast_Spell_Icon_Clicked.tga"
+                NormalImagePath = "art/interface/radial_menu/Cast_Spell_Icon.tga",
+                HoverImagePath = "art/interface/radial_menu/Cast_Spell_Icon_Hovered.tga",
+                PressedImagePath = "art/interface/radial_menu/Cast_Spell_Icon_Clicked.tga"
             }.UseDefaultSounds());
             _confirmSelectionButtonContainer.Add(confirmSelectionButton);
         }
@@ -680,59 +686,8 @@ namespace OpenTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10138e20)]
         private void RenderTooltip(IGameViewport viewport, GameObjectBody obj)
         {
-            var tooltipStyle = UiSystems.Tooltip.GetStyle(0);
-
-            var style = tooltipStyle.TextStyle.Copy();
-            style.additionalTextColors = new[]
-            {
-                new ColorRect(PackedLinearColorA.White),
-                new ColorRect(new PackedLinearColorA(0xFF3333FF))
-            };
-
-            Tig.Fonts.PushFont(tooltipStyle.Font);
-            if (obj.IsCritter())
-            {
-                var currentHp = GameSystems.Stat.StatLevelGet(obj, Stat.hp_current);
-                var maxHp = GameSystems.Stat.StatLevelGet(obj, Stat.hp_max);
-
-                if (obj.IsPC())
-                {
-                    if (currentHp < maxHp)
-                    {
-                        style.additionalTextColors[0] = new ColorRect(new PackedLinearColorA(0xFFFF0000));
-                    }
-                }
-                else if (GameSystems.Critter.IsDeadNullDestroyed(obj) || currentHp <= 0)
-                {
-                    style.additionalTextColors[0] = new ColorRect(new PackedLinearColorA(0xFF7F7F7F));
-                }
-                else
-                {
-                    var injuryLevel = UiSystems.Tooltip.GetInjuryLevel(obj);
-                    style.additionalTextColors[0] = new ColorRect(UiSystems.Tooltip.GetInjuryLevelColor(injuryLevel));
-                }
-            }
-
             var leader = GameSystems.Party.GetConsciousLeader();
-            var tooltipText = UiSystems.Tooltip.GetObjectDescription(obj, leader);
-
-            if (tooltipText.Length > 0)
-            {
-                var metrics = Tig.Fonts.MeasureTextSize(tooltipText, style);
-
-                var objRect = GameSystems.MapObject.GetObjectRect(viewport, obj, 0);
-                var extents = new Rectangle(
-                    objRect.X + (objRect.Width - metrics.Width) / 2,
-                    objRect.Y - metrics.Height,
-                    metrics.Width,
-                    metrics.Height
-                );
-                UiSystems.Tooltip.ClampTooltipToScreen(ref extents);
-
-                Tig.Fonts.RenderText(tooltipText, extents, style);
-            }
-
-            Tig.Fonts.PopFont();
+            UiSystems.Tooltip.RenderObjectTooltip(viewport, obj, leader);
         }
 
         private void RenderFocusList(IGameViewport viewport)

@@ -127,7 +127,7 @@ namespace OpenTemple.Core.IO.Images
 			else
 			{
 				var srcPitch = header.width * 4;
-				Trace.Assert((int) srcSize >= header.height * srcPitch);
+				Trace.Assert(srcSize >= header.height * srcPitch);
 				for (int y = 0; y < header.height; ++y)
 				{
 					var src = srcStart + (header.height - y - 1) * srcPitch;
@@ -137,6 +137,15 @@ namespace OpenTemple.Core.IO.Images
 						*dest++ = *src++;
 						*dest++ = *src++;
 						*dest++ = *src++;
+						// Fix-Up broken TGAs that use purple as the fill-color for transparency,
+						// when using non-perfect integer scaling and linear filtering, it will
+						// start sampling texels from that area too.
+						if (dest[-1] == 0)
+						{
+							dest[-2] = 0;
+							dest[-2] = 0;
+							dest[-4] = 0;
+						}
 					}
 				}
 			}

@@ -1,0 +1,88 @@
+{
+  "$schema": "../schemas/styleFile.json",
+  "styles": [
+    {
+      "id": "default",
+      "fontFace": "Arial",
+      "fontSize": 10,
+      "color": "#ffffff"
+    },
+    {
+      "id": "decorative-text",
+      "inherit": "default",
+      "fontFace": "OFL Sorts Mill Goudy",
+      "fontSize": 12,
+      "color": "#ffffff"
+    },
+    {
+      "id": "default-button-text",
+      "textAlignment": "center",
+      "paragraphAlignment": "center"
+    },
+    {
+      "id": "chargen-button-text",
+      "fontFamily": "priory-12",
+      "textAlignment": "center",
+      "paragraphAlignment": "center",
+      "dropShadowColor": "#000000",
+      "color": "#ffffff",
+      "legacyKerning": 1,
+      "legacyTracking": 3
+    },
+    {
+      "id": "dialog-title",
+      "fontSize": 12,
+      "textAlignment": "center",
+      "paragraphAlignment": "center",
+      "dropShadowColor": "#000000",
+      "color": "#ffffff"
+    },
+    {
+      "id": "radialmenu-hotkey",
+      "wordWrap": "nowrap"
+    },
+    {
+      "id": "radialmenu-text",
+      "wordWrap": "nowrap",
+      "fontSize": 12,
+      "color": "#ffffff"
+    },
+    {
+      "id": "link",
+      "color": "#01BEFD",
+      "fontWeight": "bold"
+    },
+    {
+      "id": "link:hover",
+      "underline": true
+    },
+    {
+      "id": "default-tooltip",
+      "backgroundColor": "rgba(17, 17, 17, 204)",
+      "dropShadowColor": "#000000",
+      "color": "#ffffff",
+      "borderColor": "#000000",
+      "borderWidth": 1,
+      "padding": 2
+    },
+    {
+      "id": "action-bar-tooltip",
+      "inherit": "default-tooltip",
+      "color": "#99FF99"
+    },
+    {
+      "id": "tab-large",
+      "color": "#FFFFFF",
+      "dropShadowColor": "#000000",
+      "inherit": "decorative-text",
+      "wordWrap": "nowrap"
+    },
+    {
+      "id": "tab-small",
+      "color": "#FFFFFF",
+      "dropShadowColor": "#000000",
+      "inherit": "default",
+      "wordWrap": "nowrap"
+    }
+  ]
+}

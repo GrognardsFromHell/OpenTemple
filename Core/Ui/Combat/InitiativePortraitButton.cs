@@ -1,13 +1,7 @@
 using System;
-using System.Drawing;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Combat
@@ -78,63 +72,9 @@ namespace OpenTemple.Core.Ui.Combat
                 return;
             }
 
-            Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
-
-            var style = new TigTextStyle();
-            style.flags = TigTextStyleFlag.TTSF_DROP_SHADOW
-                          | TigTextStyleFlag.TTSF_BACKGROUND
-                          | TigTextStyleFlag.TTSF_BORDER;
-            style.textColor = new ColorRect(PackedLinearColorA.White);
-            style.additionalTextColors = new[]
-            {
-                new ColorRect(PackedLinearColorA.White),
-                new ColorRect(new PackedLinearColorA(0xFF3333FF)),
-            };
-            style.bgColor = new ColorRect(new PackedLinearColorA(0x99111111));
-            style.shadowColor = new ColorRect(PackedLinearColorA.Black);
-            style.field0 = 0;
-            style.kerning = 2;
-            style.leading = 0;
-            style.tracking = 5;
-            if (_combatant.IsCritter())
-            {
-                _combatant.GetInt32(obj_f.critter_subdual_damage);
-                if (_combatant.IsPC())
-                {
-                    if (_combatant.GetStat(Stat.hp_current) < _combatant.GetStat(Stat.hp_max))
-                    {
-                        style.additionalTextColors[0] = new ColorRect(new PackedLinearColorA(0xFFFF0000));
-                    }
-                }
-                else
-                {
-                    if (!GameSystems.Critter.IsDeadNullDestroyed(_combatant) && _combatant.GetStat(Stat.hp_current) > 0)
-                    {
-                        var injuryLevel = UiSystems.Tooltip.GetInjuryLevel(_combatant);
-                        var injuryLevelColor = UiSystems.Tooltip.GetInjuryLevelColor(injuryLevel);
-                        style.additionalTextColors[0] = new ColorRect(injuryLevelColor);
-                    }
-                    else
-                    {
-                        style.additionalTextColors[0] = new ColorRect(new PackedLinearColorA(0xFF7F7F7F));
-                    }
-                }
-            }
-
-            var description = UiSystems.Tooltip.GetObjectDescription(_combatant);
-
-            var metrics = new TigFontMetrics();
-            Tig.Fonts.Measure(style, description, ref metrics);
-
-            var extents = new Rectangle();
-            extents.X = x + 10;
-            extents.Y = y + 10;
-            extents.Width = metrics.width;
-            extents.Height = metrics.height;
-            Tig.Fonts.RenderText(description, extents, style);
-            Tig.Fonts.PopFont();
+            TooltipContent = UiSystems.Tooltip.GetObjectDescriptionContent(_combatant, null);
+            base.RenderTooltip(x, y);
         }
-
 
         [TempleDllLocation(0x10141810)]
         public override void Render()
@@ -276,7 +216,7 @@ namespace OpenTemple.Core.Ui.Combat
             contentArea.Offset(1, 1);
             contentArea.Size = _metrics.FrameSize;
 
-            _frame.SetContentArea(contentArea);
+            _frame.SetBounds(contentArea);
             _frame.Render();
         }
 
@@ -287,7 +227,7 @@ namespace OpenTemple.Core.Ui.Combat
             var portraitRect = contentArea;
             portraitRect.Offset(_metrics.PortraitOffset);
 
-            _portrait.SetContentArea(portraitRect);
+            _portrait.SetBounds(portraitRect);
             _portrait.Render();
         }
 
@@ -297,7 +237,7 @@ namespace OpenTemple.Core.Ui.Combat
             var highlightRect = _metrics.HighlightFrame;
             highlightRect.Offset(contentArea.Location);
 
-            _highlight.SetContentArea(highlightRect);
+            _highlight.SetBounds(highlightRect);
             _highlight.Render();
         }
 

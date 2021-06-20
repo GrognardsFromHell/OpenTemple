@@ -1,48 +1,69 @@
+#nullable enable
 using System;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetButtonBase : WidgetBase
     {
-        private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
+        private readonly WidgetTooltipRenderer _tooltipRenderer = new ();
 
         public bool ClickOnMouseDown { get; set; } = false;
 
-        public TooltipStyle TooltipStyle
+        public string TooltipStyle
         {
             get => _tooltipRenderer.TooltipStyle;
             set => _tooltipRenderer.TooltipStyle = value;
         }
 
-        public string TooltipText
+        public string? TooltipText
         {
             get => _tooltipRenderer.TooltipText;
             set => _tooltipRenderer.TooltipText = value;
         }
 
+        public InlineElement? TooltipContent
+        {
+            get => _tooltipRenderer.TooltipContent;
+            set => _tooltipRenderer.TooltipContent = value;
+        }
+
+        protected bool mDisabled = false;
+
+        protected bool mRepeat = false;
+        protected TimeSpan mRepeatInterval = TimeSpan.FromMilliseconds(200);
+        protected TimePoint mLastClickTriggered;
+
+        public delegate void ClickHandler(int x, int y);
+
+        private ClickHandler? mClickHandler;
+
+        public event ClickHandler? OnRightClick;
+
+        public event Action<MessageWidgetArgs>? OnMouseEnter;
+
+        public event Action<MessageWidgetArgs>? OnMouseExit;
+
         public WidgetButtonBase([CallerFilePath]
-            string filePath = null, [CallerLineNumber]
+            string? filePath = null, [CallerLineNumber]
             int lineNumber = -1)
             : base(filePath, lineNumber)
         {
         }
 
         public WidgetButtonBase(Rectangle rect, [CallerFilePath]
-            string filePath = null, [CallerLineNumber]
+            string? filePath = null, [CallerLineNumber]
             int lineNumber = -1) : this(filePath, lineNumber)
         {
             SetPos(rect.Location);
             SetSize(rect.Size);
         }
-
-        public event Action<MessageWidgetArgs> OnMouseEnter;
-
-        public event Action<MessageWidgetArgs> OnMouseExit;
 
         public override bool HandleMessage(Message msg)
         {
@@ -179,16 +200,14 @@ namespace OpenTemple.Core.Ui.Widgets
             _tooltipRenderer.Render(x, y);
         }
 
-        protected bool mDisabled = false;
+        public override bool HasPseudoClass(StylingState stylingState)
+        {
+            if (stylingState == StylingState.Hover)
+            {
+                return ButtonState == LgcyButtonState.Hovered;
+            }
 
-        protected bool mRepeat = false;
-        protected TimeSpan mRepeatInterval = TimeSpan.FromMilliseconds(200);
-        protected TimePoint mLastClickTriggered;
-
-        public delegate void ClickHandler(int x, int y);
-
-        private ClickHandler mClickHandler;
-
-        public event ClickHandler OnRightClick;
-    };
+            return base.HasPseudoClass(stylingState);
+        }
+    }
 }

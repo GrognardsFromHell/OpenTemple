@@ -19,7 +19,7 @@
           }
         },
         "__styles": {
-          "$ref": "textStyles.json#/"
+          "$ref": "styles.json#/"
         },
         "__buttonStyleFiles": {
           "type": "array",
@@ -29,6 +29,9 @@
         },
         "__buttonStyles": {
           "$ref": "buttonStyles.json#/"
+        },
+        "localStyles": {
+          "$ref": "styles.json#/definitions/StyleDefinition"
         },
         "x": {
           "type": "integer",
@@ -73,6 +76,9 @@
         "path": {
           "type": "string"
         },
+        "localStyles": {
+          "$ref": "styles.json#/definitions/StyleDefinition"
+        },
         "srcRect": {
           "type": "object",
           "properties": {
@@ -107,9 +113,7 @@
     "contentText": {
       "$id": "#contentText",
       "required": [
-        "type",
-        "text",
-        "style"
+        "type"
       ],
       "properties": {
         "$comment": {
@@ -126,6 +130,9 @@
         },
         "style": {
           "type": "string"
+        },
+        "localStyles": {
+          "$ref": "styles.json#/definitions/StyleDefinition"
         },
         "centerVertically": {
           "type": "boolean",

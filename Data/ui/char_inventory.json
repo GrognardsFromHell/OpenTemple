@@ -8,36 +8,40 @@
   "__styles": [
     {
       "id": "charInventoryWeightLabel",
-      "fontFamily": "arial-bold-10",
-      "pointSize": 10,
-      "legacyTracking": 2,
-      "legacyKerning": 1,
-      "foreground": "rgb(0, 0, 0)",
-      "align": "center"
+      "fontWeight": "bold",
+      "color": "rgb(0, 0, 0)",
+      "textAlignment": "center",
+      "paragraphAlignment": "center"
     },
     {
       "id": "charInventoryWeightValue",
-      "fontFamily": "arial-10",
-      "pointSize": 10,
-      "legacyTracking": 2,
-      "legacyKerning": 1,
-      "foreground": "rgb(255, 255, 255)",
-      "align": "center"
+      "color": "rgb(255, 255, 255)",
+      "textAlignment": "center",
+      "paragraphAlignment": "center"
     },
     {
       "id": "charInventoryWeightValueMediumLoad",
       "inherit": "charInventoryWeightValue",
-      "foreground": "rgb(255, 255, 102)"
+      "color": "rgb(255, 255, 102)"
     },
     {
       "id": "charInventoryWeightValueHeavyLoad",
       "inherit": "charInventoryWeightValue",
-      "foreground": "rgb(243, 51, 51)"
+      "color": "rgb(243, 51, 51)"
     },
     {
       "id": "charInventoryWeightValueOverburdened",
       "inherit": "charInventoryWeightValue",
-      "foreground": "rgb(243, 51, 51)"
+      "color": "rgb(243, 51, 51)"
+    },
+    {
+      "id": "inventory-slot-quantity",
+      "backgroundColor": "rgba(17, 17, 17, 153)",
+      "dropShadowColor": "#000000",
+      "color": "#ffffff",
+      "borderColor": "#000000",
+      "borderWidth": 1,
+      "padding": 2
     }
   ],
   "__buttonStyles": [

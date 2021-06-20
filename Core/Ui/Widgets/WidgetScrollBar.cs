@@ -73,9 +73,9 @@ namespace OpenTemple.Core.Ui.Widgets
         public void SetMin(int value)
         {
             mMin = value;
-            if (mMin > mMax)
+            if (mMin > _max)
             {
-                mMin = mMax;
+                mMin = _max;
             }
 
             if (mValue < mMin)
@@ -84,23 +84,22 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        public int GetMax()
+        public int Max
         {
-            return mMax;
-        }
-
-        [TempleDllLocation(0x101f9dd0)]
-        public void SetMax(int value)
-        {
-            mMax = value;
-            if (mMax < mMin)
+            get => _max;
+            [TempleDllLocation(0x101f9dd0)]
+            set
             {
-                mMax = mMin;
-            }
+                _max = value;
+                if (_max < mMin)
+                {
+                    _max = mMin;
+                }
 
-            if (mValue > mMax)
-            {
-                SetValue(mMax);
+                if (mValue > _max)
+                {
+                    SetValue(_max);
+                }
             }
         }
 
@@ -117,9 +116,9 @@ namespace OpenTemple.Core.Ui.Widgets
                 value = mMin;
             }
 
-            if (value > mMax)
+            if (value > _max)
             {
-                value = mMax;
+                value = _max;
             }
 
             if (value != mValue)
@@ -139,7 +138,7 @@ namespace OpenTemple.Core.Ui.Widgets
             mTrack.Height = Height - mUpButton.Height - mDownButton.Height;
 
             var scrollRange = GetScrollRange();
-            int handleOffset = (int) (((mValue - mMin) / (float) mMax) * scrollRange);
+            int handleOffset = (int) (((mValue - mMin) / (float) _max) * scrollRange);
             mHandleButton.Y = mUpButton.Height + handleOffset;
             mHandleButton.Height = GetHandleHeight();
 
@@ -155,7 +154,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private int mValue = 0;
         private int mMin = 0;
-        private int mMax = 150;
+        private int _max = 150;
 
         private WidgetButton mUpButton;
         private WidgetButton mDownButton;
@@ -164,7 +163,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private int GetHandleHeight()
         {
-            return 5 * GetTrackHeight() / (5 + GetMax() - GetMin()) + 20;
+            return 5 * GetTrackHeight() / (5 + Max - GetMin()) + 20;
         } // gets height of handle button (scaled according to Min/Max values)
 
         internal int GetScrollRange()
@@ -219,14 +218,14 @@ namespace OpenTemple.Core.Ui.Widgets
                 var topArea = contentArea;
                 topArea.Width = mTop.GetPreferredSize().Width;
                 topArea.Height = mTop.GetPreferredSize().Height;
-                mTop.SetContentArea(topArea);
+                mTop.SetBounds(topArea);
                 mTop.Render();
 
                 var bottomArea = contentArea;
                 bottomArea.Width = mBottom.GetPreferredSize().Width;
                 bottomArea.Height = mBottom.GetPreferredSize().Height;
                 bottomArea.Y = contentArea.Y + contentArea.Height - bottomArea.Height; // Align to bottom
-                mBottom.SetContentArea(bottomArea);
+                mBottom.SetBounds(bottomArea);
                 mBottom.Render();
 
                 int inBetween = bottomArea.Y - topArea.Y - topArea.Height;
@@ -236,7 +235,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     centerArea.Y = topArea.Y + topArea.Height;
                     centerArea.Height = inBetween;
                     centerArea.Width = mHandle.GetPreferredSize().Width;
-                    mHandle.SetContentArea(centerArea);
+                    mHandle.SetBounds(centerArea);
                     mHandle.Render();
                 }
             }
@@ -260,7 +259,7 @@ namespace OpenTemple.Core.Ui.Widgets
                             vPercent = 1;
                         }
 
-                        var newVal = mScrollBar.mMin + (mScrollBar.mMax - mScrollBar.mMin) * vPercent;
+                        var newVal = mScrollBar.mMin + (mScrollBar._max - mScrollBar.mMin) * vPercent;
 
                         mScrollBar.SetValue((int) newVal);
                     }

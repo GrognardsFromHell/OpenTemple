@@ -123,7 +123,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
              */
 
             var doc = WidgetDoc.Load("ui/pc_creation/pc_creation_ui.json");
-            _mainWindow = doc.TakeRootContainer();
+            _mainWindow = doc.GetRootContainer();
             _mainWindow.Visible = false;
             _mainWindow.OnBeforeRender += BeforeRenderMainWindow;
             uiPcCreationScrollBox = new ScrollBox(new Rectangle(219, 295, 433, 148), new ScrollBoxSettings
@@ -189,7 +189,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         {
             var stageButton = new WidgetButton();
             stageButton.SetStyle("chargen-active-button");
-            stageButton.SetText(system.ButtonLabel);
+            stageButton.Text = system.ButtonLabel;
             stageButton.OnBeforeRender += () =>
             {
                 stageButton.SetActive(uiPcCreationActiveStageIdx == system.Stage);
@@ -199,7 +199,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 if (stageButton.IsActive())
                 {
                     var contentArea = stageButton.GetContentArea(true);
-                    _activeButtonBorder.SetContentArea(contentArea);
+                    _activeButtonBorder.SetBounds(contentArea);
                     _activeButtonBorder.Render();
                 }
             };
@@ -644,7 +644,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 desc.Append(GameSystems.Deity.GetName(charEdSelPkt.deityId.Value));
             }
 
-            _descriptionLabel.SetText(desc.ToString());
+            _descriptionLabel.Text = desc.ToString();
         }
 
         [TempleDllLocation(0x1011e3b0)]

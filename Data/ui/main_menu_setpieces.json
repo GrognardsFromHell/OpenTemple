@@ -8,23 +8,23 @@
     {
       "id": "mm-setpieces-dialog-title",
       "fontFamily": "priory-12",
-      "pointSize": 12,
-      "foreground": "#ffffff",
-      "align": "center"
+      "fontSize": 12,
+      "color": "#ffffff",
+      "textAlignment": "center"
     },
     {
       "id": "mm-setpieces-list-button",
       "fontFamily": "priory-12",
-      "pointSize": 12,
-      "foreground": "#ffffff",
-	  "align": "center"
+      "fontSize": 12,
+      "color": "#ffffff",
+	  "textAlignment": "center"
     },
     {
       "id": "mm-setpieces-list-button-selected",
       "fontFamily": "priory-12",
-      "pointSize": 12,
-      "foreground": "#0000ff",
-	  "align": "center"
+      "fontSize": 12,
+      "color": "#0000ff",
+	  "textAlignment": "center"
     }
   ],
   "__buttonStyles": [

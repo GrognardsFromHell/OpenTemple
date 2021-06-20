@@ -1,0 +1,160 @@
+{{include "GeneratedCodeAttribute.txt"}}
+public class StyleResolver
+{
+    {{~func prop_accessor(property)
+        style_accessor = property.name
+        if (property.is_value_type)
+            style_accessor += ".Value"
+        end
+        ret style_accessor
+    end~}}
+
+    {{~for property in properties~}}
+    public {{property.type.name}} Default{{property.name}} { get; }{{~
+        if property.default_value
+            " = " + property.default_value + ";"
+        end
+    }}
+    {{~end~}}
+
+    public ComputedStyles DefaultStyle { get; private set; }
+
+    {{~
+        # Compute the list of properties that have no default value.
+        # These properties need to be initialized for the style resolver to
+        # produce a fully populated ComputedStyles object.
+        func no_default_value(property)
+            ret !property.default_value
+        end
+        required_properties = properties | array.filter @no_default_value
+    ~}}
+
+    /// <summary>
+    /// Initialize a style resolver that copies it's default styles from a given style definition.
+    /// It must have the following properties set, otherwise the constructor will throw an exception:
+    /// {{~for property in required_properties~}}
+    /// - {{property.name}}
+    /// {{~end~}}
+    /// </<summary>
+    public StyleResolver(IStyleDefinition defaultStyle) : this(
+        {{~for property in required_properties~}}
+        defaultStyle.{{property.name}} ?? throw new ArgumentException("defaultStyle must define {{property.name}}"){{include "ArgumentListComma.txt" !for.last}}
+        {{~end~}}
+    )
+    {
+        // Copy over any other defined property to the default values
+        {{~for property in properties~}}
+        {{~if !no_default_value property~}}
+        if (defaultStyle.{{property.name}} != null)
+        {
+            Default{{property.name}} = defaultStyle.{{prop_accessor property}};
+        }
+        {{~end~}}
+        {{~end~}}
+
+        DefaultStyle = CreateDefaultStyle();
+    }
+
+    /// <summary>
+    /// Initialize a style resolver with default values for properties
+    /// that do not have a default value.
+    /// </<summary>
+    public StyleResolver(
+        {{~for property in required_properties~}}
+        {{property.type.name}} default{{property.name}}{{include "ArgumentListComma.txt" !for.last}}
+        {{~end~}}
+    ) {
+        {{~for property in required_properties~}}
+        Default{{property.name}} = default{{property.name}};
+        {{~end~}}
+
+        DefaultStyle = CreateDefaultStyle();
+    }
+
+    {{~func get_bitfield_var(index)
+        ret "frozenProps" + (index // 64 + 1)
+    end~}}
+    {{~func get_bitfield_mask(index)
+        ret "0x" + (1 << (index % 64) | math.format "X")
+    end~}}
+
+    {{~func resolve_style_property(property, index)
+        style_accessor = prop_accessor property
+        bitfield_var = get_bitfield_var index
+        bitfield_mask = get_bitfield_mask index
+    }}
+            if (({{bitfield_var}} & {{bitfield_mask}}) == 0 && style.{{property.name}} != null)
+            {
+                {{property.variable_or_field}} = style.{{style_accessor}};
+                {{bitfield_var}} |= {{bitfield_mask}};
+            }
+    {{~end~}}
+
+    /// <summary>
+    /// Compute the effective styles given the syles applied directly to an element, and the parent elements
+    /// computed styles.
+    /// </summary>
+    public ComputedStyles Resolve(IReadOnlyList<IStyleDefinition> styles, ComputedStyles? parentStyles = null)
+    {
+        // Shortcut for elements that are unstyled and have no parent
+        if (styles.Count == 0 && parentStyles == null)
+        {
+            return DefaultStyle;
+        }
+
+        // One bit-field block per 64 properties
+        {{~for i in 1..((properties.size + 63) // 64)~}}
+        ulong frozenProps{{i}} = default;
+        {{~end~}}
+
+        {{~##
+            Define local variables for every style property to store the value until we create the computed styles.
+        ##~}}
+        {{~for property in properties~}}
+        {{property.type.name}} {{property.variable_or_field}} = Default{{property.name}};
+        {{~end~}}
+
+        // In the first pass, we resolve all properties, including non-inheritable ones
+        foreach (var style in styles)
+        {
+            // Copy each property that is not-null, but only if it's not applied from a higher-priority source yet
+            {{~
+            for property in properties
+                resolve_style_property property for.index
+            end
+            ~}}
+        }
+
+        // Copy each inheritable property from the parent if it's not yet defined locally
+        if (parentStyles != null)
+        {
+            {{~for property in properties~}}
+            {{~
+            if property.inherited
+                bitfield_var = get_bitfield_var for.index
+                bitfield_mask = get_bitfield_mask for.index
+            ~}}
+            if (({{bitfield_var}} & {{bitfield_mask}}) == 0)
+            {
+                {{property.variable_or_field}} = parentStyles.{{property.name}};
+            }
+            {{~end~}}
+            {{~end~}}
+        }
+
+        return new ComputedStyles(
+            {{~for property in properties~}}
+            {{property.variable_or_field}}{{ include "ArgumentListComma.txt" !for.last }}
+            {{~end~}}
+        );
+    }
+
+    private ComputedStyles CreateDefaultStyle()
+    {
+        return new ComputedStyles(
+            {{~for property in properties~}}
+            Default{{property.name}}{{ include "ArgumentListComma.txt" !for.last }}
+            {{~end~}}
+        );
+    }
+}

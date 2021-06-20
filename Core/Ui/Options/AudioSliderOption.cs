@@ -27,8 +27,8 @@ namespace OpenTemple.Core.Ui.Options
             : base(GetLabel(type), () => GetVolume(type), value => SetVolume(type, value), 0, 100)
         {
             _type = type;
-            _minLabel.SetText("0%");
-            _maxLabel.SetText("100%");
+            _minLabel.Text = "0%";
+            _maxLabel.Text = "100%";
             ValueChanged(_slider.GetValue());
         }
 
@@ -92,7 +92,7 @@ namespace OpenTemple.Core.Ui.Options
 
         protected override void ValueChanged(int newValue)
         {
-            _valueLabel.SetText(newValue + "%");
+            _valueLabel.Text = newValue + "%";
 
             // Immediately apply the volume change
             if (Globals.UiManager.IsVisible(_slider))

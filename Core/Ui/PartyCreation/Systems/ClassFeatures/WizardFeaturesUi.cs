@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
         public WizardFeaturesUi()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/abilities_wizard_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
         }
 

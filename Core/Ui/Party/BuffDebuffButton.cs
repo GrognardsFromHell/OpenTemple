@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
@@ -11,9 +12,7 @@ namespace OpenTemple.Core.Ui.Party
     {
         private readonly WidgetImage _image;
 
-        private readonly WidgetLegacyText _tooltipLabel;
-
-        private string _tooltip;
+        private readonly WidgetTooltipRenderer _tooltipRenderer = new ();
 
         public BuffDebuffType Type { get; }
 
@@ -21,12 +20,7 @@ namespace OpenTemple.Core.Ui.Party
 
         public string Tooltip
         {
-            get => _tooltip;
-            set
-            {
-                _tooltip = value;
-                _tooltipLabel.Text = value;
-            }
+            set => _tooltipRenderer.TooltipText = value;
         }
 
         public string HelpTopic { get; set; }
@@ -45,21 +39,7 @@ namespace OpenTemple.Core.Ui.Party
             Index = index;
             SetClickHandler(ShowHelpTopic);
 
-            _tooltipLabel = new WidgetLegacyText(
-                "",
-                PredefinedFont.ARIAL_10,
-                new TigTextStyle
-                {
-                    bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, 204)),
-                    textColor = new ColorRect(new PackedLinearColorA(153, 255, 153, 255)),
-                    shadowColor = new ColorRect(PackedLinearColorA.Black),
-                    kerning = 2,
-                    tracking = 5,
-                    flags = TigTextStyleFlag.TTSF_DROP_SHADOW
-                            | TigTextStyleFlag.TTSF_BACKGROUND
-                            | TigTextStyleFlag.TTSF_BORDER
-                }
-            );
+            _tooltipRenderer.TooltipStyle = "buffdebuff-tooltip";
         }
 
         [TempleDllLocation(0x101323d0)]
@@ -74,15 +54,12 @@ namespace OpenTemple.Core.Ui.Party
         [TempleDllLocation(0x10131ea0)]
         public override void RenderTooltip(int x, int y)
         {
-            if (ButtonState == LgcyButtonState.Disabled || Tooltip == null)
+            if (ButtonState == LgcyButtonState.Disabled)
             {
                 return;
             }
 
-            var preferredSize = _tooltipLabel.GetPreferredSize();
-            var contentArea = new Rectangle(x + 10, y - 20, preferredSize.Width, preferredSize.Height);
-            _tooltipLabel.SetContentArea(contentArea);
-            _tooltipLabel.Render();
+            _tooltipRenderer.Render(x, y);
         }
     }
 }

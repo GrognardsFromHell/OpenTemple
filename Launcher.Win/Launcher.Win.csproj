@@ -7,12 +7,19 @@
         <RootNamespace>OpenTemple.Windows</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Core\Core.csproj" />
         <ProjectReference Include="..\DynamicScripting\DynamicScripting.csproj" />
         <ProjectReference Include="..\Scripts\Scripts.csproj" />
         <!-- Includes the data directory when publishing -->
         <Content Include="..\Data\**" Link="Data\%(RecursiveDir)%(FileName)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+        <Content Update="..\Data\fonts\QTDublinIrish.otf">
+          <Link>Data\fonts\QTDublinIrish.otf</Link>
+        </Content>
     </ItemGroup>
 
 </Project>

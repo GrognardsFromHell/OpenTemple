@@ -133,7 +133,7 @@ namespace OpenTemple.Core.Platform
             var verScale = MathF.Max(1, _height / (float) _uiCanvasTargetSize.Height);
             UiScale = Math.Min(horScale, verScale);
 
-            UiCanvasSize = new SizeF(_width / UiScale, _height / UiScale);
+            UiCanvasSize = new SizeF(MathF.Floor(_width / UiScale), MathF.Floor(_height / UiScale));
             UiCanvasSizeChanged?.Invoke();
         }
 

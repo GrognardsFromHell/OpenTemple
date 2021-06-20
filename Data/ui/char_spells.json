@@ -9,26 +9,26 @@
     {
       "id": "char-spell-class-tab-label",
       "fontFamily": "arial-10",
-      "foreground": "#000000",
+      "color": "#000000",
       "legacyKerning": 1,
       "legacyTracking": 5
     },
     {
       "id": "char-spell-body",
       "fontFamily": "arial-10",
-      "foreground": "#ffffff",
+      "color": "#ffffff",
       "legacyKerning": 1,
       "legacyTracking": 5
     },
     {
       "id": "char-spell-grey",
       "inherit": "char-spell-body",
-      "foreground": "#909090"
+      "color": "#909090"
     },
     {
       "id": "char-spell-level",
       "fontFamily": "arial-10",
-      "foreground": "#4d7197",
+      "color": "#4d7197",
       "legacyKerning": 1,
       "legacyTracking": 5
     }

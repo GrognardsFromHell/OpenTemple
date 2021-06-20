@@ -1,42 +1,46 @@
+#nullable enable
 using System;
+using System.Collections.Immutable;
 using System.Drawing;
-using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetButton : WidgetButtonBase
     {
-        private readonly WidgetText mLabel = new WidgetText();
+        private readonly WidgetText _label;
 
-        private WidgetImage mActivatedImage;
-        private WidgetImage mDisabledImage;
-        private WidgetImage mFrameImage;
-        private WidgetImage mHoverImage;
+        private WidgetImage _activatedImage;
+        private WidgetImage _disabledImage;
+        private WidgetImage _frameImage;
+        private WidgetImage _hoverImage;
 
-        protected WidgetImage mNormalImage;
-        private WidgetImage mPressedImage;
+        protected WidgetImage _normalImage;
+        private WidgetImage _pressedImage;
 
-        private WidgetButtonStyle mStyle;
+        private WidgetButtonStyle _style;
 
         // is the state associated with the button active? Note: this is separate from mDisabled, which determines if the button itself is disabled or not
-        protected bool mActive = false;
+        protected bool _active = false;
 
         public void SetActive(bool isActive)
         {
-            mActive = isActive;
+            _active = isActive;
         }
 
         public bool IsActive()
         {
-            return mActive;
+            return _active;
         }
 
         public WidgetButton()
         {
+            _label = new WidgetText {Parent = this};
         }
 
-        public WidgetButton(Rectangle rect) : base(rect)
+        public WidgetButton(Rectangle rect) : this()
         {
+            SetPos(rect.Location);
+            SetSize(rect.Size);
         }
 
         /*
@@ -45,11 +49,11 @@ namespace OpenTemple.Core.Ui.Widgets
          */
         public void SetStyle(WidgetButtonStyle style)
         {
-            mStyle = style;
-            sndHoverOn = style.soundEnter;
-            sndHoverOff = style.soundLeave;
-            sndDown = style.soundDown;
-            sndClick = style.soundClick;
+            _style = style;
+            sndHoverOn = style.SoundEnter;
+            sndHoverOff = style.SoundLeave;
+            sndDown = style.SoundDown;
+            sndClick = style.SoundClick;
             UpdateContent();
         }
 
@@ -63,7 +67,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public WidgetButtonStyle GetStyle()
         {
-            return mStyle;
+            return _style;
         }
 
         public override void Render()
@@ -75,32 +79,34 @@ namespace OpenTemple.Core.Ui.Widgets
 
             var contentArea = GetContentArea();
 
+            string? labelStyle = null;
+
             if (mDisabled)
             {
-                if (mStyle.disabledTextStyleId != null)
+                if (_style.DisabledTextStyleId != null)
                 {
-                    mLabel.SetStyleId(mStyle.disabledTextStyleId);
+                    labelStyle = _style.DisabledTextStyleId;
                 }
                 else
                 {
-                    mLabel.SetStyleId(mStyle.textStyleId);
+                    labelStyle = _style.TextStyleId;
                 }
             }
             else
             {
                 if (ButtonState == LgcyButtonState.Down)
                 {
-                    if (mStyle.pressedTextStyleId != null)
+                    if (_style.PressedTextStyleId != null)
                     {
-                        mLabel.SetStyleId(mStyle.pressedTextStyleId);
+                        labelStyle = _style.PressedTextStyleId;
                     }
-                    else if (mStyle.hoverTextStyleId != null)
+                    else if (_style.HoverTextStyleId != null)
                     {
-                        mLabel.SetStyleId(mStyle.hoverTextStyleId);
+                        labelStyle = _style.HoverTextStyleId;
                     }
                     else
                     {
-                        mLabel.SetStyleId(mStyle.textStyleId);
+                        labelStyle = _style.TextStyleId;
                     }
                 }
                 else if (IsActive())
@@ -108,134 +114,138 @@ namespace OpenTemple.Core.Ui.Widgets
                     if (ButtonState == LgcyButtonState.Hovered
                         || ButtonState == LgcyButtonState.Released)
                     {
-                        if (mStyle.hoverTextStyleId != null)
+                        if (_style.HoverTextStyleId != null)
                         {
-                            mLabel.SetStyleId(mStyle.hoverTextStyleId);
+                            labelStyle = _style.HoverTextStyleId;
                         }
                         else
                         {
-                            mLabel.SetStyleId(mStyle.textStyleId);
+                            labelStyle = _style.TextStyleId;
                         }
                     }
                     else
                     {
-                        mLabel.SetStyleId(mStyle.textStyleId);
+                        labelStyle = _style.TextStyleId;
                     }
                 }
                 else if (ButtonState == LgcyButtonState.Hovered
                          || ButtonState == LgcyButtonState.Released)
                 {
-                    if (mStyle.hoverTextStyleId != null)
+                    if (_style.HoverTextStyleId != null)
                     {
-                        mLabel.SetStyleId(mStyle.hoverTextStyleId);
+                        labelStyle = _style.HoverTextStyleId;
                     }
                     else
                     {
-                        mLabel.SetStyleId(mStyle.textStyleId);
+                        labelStyle = _style.TextStyleId;
                     }
                 }
                 else
                 {
-                    mLabel.SetStyleId(mStyle.textStyleId);
+                    labelStyle = _style.TextStyleId;
                 }
             }
 
-            var fr = mFrameImage;
+            _label.StyleIds = labelStyle != null ? ImmutableList.Create(labelStyle) : ImmutableList<string>.Empty;
+
+            var fr = _frameImage;
             if (fr != null)
             {
                 var contentAreaWithMargins = GetContentArea(true);
-                fr.SetContentArea(contentAreaWithMargins);
+                fr.SetBounds(contentAreaWithMargins);
                 fr.Render();
             }
 
             var image = GetCurrentImage();
             if (image != null)
             {
-                image.SetContentArea(contentArea);
+                image.SetBounds(contentArea);
                 image.Render();
             }
 
-            mLabel.SetContentArea(contentArea);
-            mLabel.Render();
+            _label.SetBounds(contentArea);
+            _label.Render();
         }
 
         protected virtual WidgetImage GetCurrentImage()
         {
             // Always fall back to the default
-            var image = mNormalImage;
+            var image = _normalImage;
 
             if (mDisabled)
             {
-                if (mDisabledImage != null)
+                if (_disabledImage != null)
                 {
-                    image = mDisabledImage;
+                    image = _disabledImage;
                 }
                 else
                 {
-                    image = mNormalImage;
+                    image = _normalImage;
                 }
             }
             else
             {
                 if (ButtonState == LgcyButtonState.Down)
                 {
-                    if (mPressedImage != null)
+                    if (_pressedImage != null)
                     {
-                        image = mPressedImage;
+                        image = _pressedImage;
                     }
-                    else if (mHoverImage != null)
+                    else if (_hoverImage != null)
                     {
-                        image = mHoverImage;
+                        image = _hoverImage;
                     }
                     else
                     {
-                        image = mNormalImage;
+                        image = _normalImage;
                     }
                 }
                 else if (IsActive())
                 {
                     // Activated, else Pressed, else Hovered, (else Normal)
-                    if (mActivatedImage != null)
+                    if (_activatedImage != null)
                     {
-                        image = mActivatedImage;
+                        image = _activatedImage;
                     }
-                    else if (mPressedImage != null)
+                    else if (_pressedImage != null)
                     {
-                        image = mPressedImage;
+                        image = _pressedImage;
                     }
-                    else if (mHoverImage != null)
+                    else if (_hoverImage != null)
                     {
-                        image = mHoverImage;
+                        image = _hoverImage;
                     }
                 }
                 else if (ButtonState == LgcyButtonState.Hovered
                          || ButtonState == LgcyButtonState.Released)
                 {
-                    if (mHoverImage != null)
+                    if (_hoverImage != null)
                     {
-                        image = mHoverImage;
+                        image = _hoverImage;
                     }
                     else
                     {
-                        image = mNormalImage;
+                        image = _normalImage;
                     }
                 }
                 else
                 {
-                    image = mNormalImage;
+                    image = _normalImage;
                 }
             }
 
             return image;
         }
 
-        public void SetText(string text)
+        public string Text
         {
-            mLabel.SetText(text);
-            UpdateAutoSize();
+            get => _label.Text;
+            set
+            {
+                _label.Text = value;
+                UpdateAutoSize();
+            }
         }
-
-        public string GetText() => mLabel.GetText();
 
         /*
           1. updates the WidgetImage pointers below, using WidgetButtonStyle file paths
@@ -243,68 +253,71 @@ namespace OpenTemple.Core.Ui.Widgets
          */
         private void UpdateContent()
         {
-            if (mStyle.normalImagePath != null)
+            if (_style.NormalImagePath != null)
             {
-                mNormalImage = new WidgetImage(mStyle.normalImagePath);
+                _normalImage = new WidgetImage(_style.NormalImagePath);
             }
             else
             {
-                mNormalImage?.Dispose();
-                mNormalImage = null;
+                _normalImage?.Dispose();
+                _normalImage = null;
             }
 
-            if (mStyle.activatedImagePath != null)
+            if (_style.ActivatedImagePath != null)
             {
-                mActivatedImage = new WidgetImage(mStyle.activatedImagePath);
+                _activatedImage = new WidgetImage(_style.ActivatedImagePath);
             }
             else
             {
-                mActivatedImage?.Dispose();
-                mActivatedImage = null;
+                _activatedImage?.Dispose();
+                _activatedImage = null;
             }
 
-            if (mStyle.hoverImagePath != null)
+            if (_style.HoverImagePath != null)
             {
-                mHoverImage = new WidgetImage(mStyle.hoverImagePath);
+                _hoverImage = new WidgetImage(_style.HoverImagePath);
             }
             else
             {
-                mHoverImage?.Dispose();
-                mHoverImage = null;
+                _hoverImage?.Dispose();
+                _hoverImage = null;
             }
 
-            if (mStyle.pressedImagePath != null)
+            if (_style.PressedImagePath != null)
             {
-                mPressedImage = new WidgetImage(mStyle.pressedImagePath);
+                _pressedImage = new WidgetImage(_style.PressedImagePath);
             }
             else
             {
-                mPressedImage?.Dispose();
-                mPressedImage = null;
+                _pressedImage?.Dispose();
+                _pressedImage = null;
             }
 
-            if (mStyle.disabledImagePath != null)
+            if (_style.DisabledImagePath != null)
             {
-                mDisabledImage = new WidgetImage(mStyle.disabledImagePath);
+                _disabledImage = new WidgetImage(_style.DisabledImagePath);
             }
             else
             {
-                mDisabledImage?.Dispose();
-                mDisabledImage = null;
+                _disabledImage?.Dispose();
+                _disabledImage = null;
             }
 
-            if (mStyle.frameImagePath != null)
+            if (_style.FrameImagePath != null)
             {
-                mFrameImage = new WidgetImage(mStyle.frameImagePath);
+                _frameImage = new WidgetImage(_style.FrameImagePath);
             }
             else
             {
-                mFrameImage?.Dispose();
-                mFrameImage = null;
+                _frameImage?.Dispose();
+                _frameImage = null;
             }
 
-            mLabel.SetStyleId(mStyle.textStyleId);
-            mLabel.SetCenterVertically(true);
+            if (_style.TextStyleId != null)
+            {
+                _label.AddStyle(_style.TextStyleId);
+            }
+
             UpdateAutoSize();
         }
 
@@ -314,19 +327,19 @@ namespace OpenTemple.Core.Ui.Widgets
             if (mAutoSizeWidth || mAutoSizeHeight)
             {
                 Size prefSize;
-                if (mNormalImage != null)
+                if (_normalImage != null)
                 {
-                    prefSize = mNormalImage.GetPreferredSize();
+                    prefSize = _normalImage.GetPreferredSize();
                 }
                 else
                 {
-                    prefSize = mLabel.GetPreferredSize();
+                    prefSize = _label.GetPreferredSize();
                 }
 
-                if (mFrameImage != null)
+                if (_frameImage != null)
                 {
                     // update margins from frame size
-                    var framePrefSize = mFrameImage.GetPreferredSize();
+                    var framePrefSize = _frameImage.GetPreferredSize();
                     var marginW = framePrefSize.Width - prefSize.Width;
                     var marginH = framePrefSize.Height - prefSize.Height;
                     if (marginW > 0)

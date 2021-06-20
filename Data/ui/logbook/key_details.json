@@ -1,0 +1,62 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 339,
+  "y": 20,
+  "width": 283,
+  "height": 313,
+  "__styles": [
+    {
+      "id": "logbook-keys-muted",
+      "color": "rgb(144, 144, 144)"
+    }
+  ],
+  "content": [
+    {
+      "$comment": "Used to show the key name",
+      "type": "text",
+      "id": "title",
+      "y": 5,
+      "localStyles": {
+        "textAlignment": "center"
+      }
+    },
+    {
+      "id": "helpText",
+      "type": "text",
+      "$comment": "Hidden, when an actual key is selected",
+      "x": 6,
+      "y": 26,
+      "width": 270,
+      "height": 313,
+      "text": "#{logbook_keys:70}"
+    }
+  ],
+  "children": [
+    {
+      "id": "keyDetailsContainer",
+      "type": "container",
+      "x": 6,
+      "y": 26,
+      "width": 270,
+      "height": 313,
+      "content": [
+        {
+          "id": "acquiredLabel",
+          "type": "text",
+          "y": 0
+        },
+        {
+          "id": "usedLabel",
+          "type": "text",
+          "y": 15
+        },
+        {
+          "id": "description",
+          "type": "text",
+          "y": 39
+        }
+      ]
+    }
+  ]
+}

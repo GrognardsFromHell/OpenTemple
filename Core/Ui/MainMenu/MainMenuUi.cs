@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text.Json;
 using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObject;
@@ -32,8 +33,17 @@ namespace OpenTemple.Core.Ui.MainMenu
         {
             var mmLocalization = Tig.FS.ReadMesFile("mes/mainmenu.mes");
 
-            var widgetDoc = WidgetDoc.Load("ui/main_menu.json");
-            mMainWidget = widgetDoc.TakeRootContainer();
+            var widgetDoc = WidgetDoc.Load("ui/main_menu.json", (type, definition) => {
+                if (type == "mainMenuButton")
+                {
+                    return CreateMainMenuButton(definition);
+                }
+                else
+                {
+                    throw new ArgumentException("Unknown custom widget type: " + type);
+                }
+            });
+            mMainWidget = widgetDoc.GetRootContainer();
 
             mViewCinematicsDialog = new ViewCinematicsDialog(this, mmLocalization);
             mSetPiecesDialog = new SetPiecesDialog(this);
@@ -65,48 +75,53 @@ namespace OpenTemple.Core.Ui.MainMenu
             mPageWidgets[MainMenuPage.Options] = widgetDoc.GetContainer("page-options");
             //mPageWidgets[MainMenuPage.SetPieces] = widgetDoc.GetWindow("page-set-pieces");
 
+            MainMenuButton GetButton(string id)
+            {
+                return (MainMenuButton) widgetDoc.GetWidget(id);
+            }
+
             // Wire up buttons on the main menu
-            widgetDoc.GetButton("new-game").SetClickHandler(() => { Show(MainMenuPage.Difficulty); });
-            widgetDoc.GetButton("load-game").SetClickHandler(() =>
+            GetButton("new-game").SetClickHandler(() => { Show(MainMenuPage.Difficulty); });
+            GetButton("load-game").SetClickHandler(() =>
             {
                 Hide();
                 UiSystems.SaveGame.ShowLoad(true);
             });
-            widgetDoc.GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
-            widgetDoc.GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
-            widgetDoc.GetButton("quit-game").SetClickHandler(() =>
+            GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
+            GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
+            GetButton("quit-game").SetClickHandler(() =>
             {
                 Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT));
             });
 
             // Wire up buttons on the difficulty selection page
-            widgetDoc.GetButton("difficulty-normal").SetClickHandler(() =>
+            GetButton("difficulty-normal").SetClickHandler(() =>
             {
                 Globals.GameLib.IsIronmanGame = false;
                 Hide();
                 UiSystems.PCCreation.Start();
             });
-            widgetDoc.GetButton("difficulty-ironman").SetClickHandler(() =>
+            GetButton("difficulty-ironman").SetClickHandler(() =>
             {
                 Globals.GameLib.IsIronmanGame = true;
                 Hide();
                 UiSystems.PCCreation.Start();
             });
-            widgetDoc.GetButton("difficulty-exit").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
+            GetButton("difficulty-exit").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
 
             // Wire up buttons on the ingame menu (normal difficulty)
-            widgetDoc.GetButton("ingame-normal-load").SetClickHandler(() =>
+            GetButton("ingame-normal-load").SetClickHandler(() =>
             {
                 Hide();
                 UiSystems.SaveGame.ShowLoad(false);
             });
-            widgetDoc.GetButton("ingame-normal-save").SetClickHandler(() =>
+            GetButton("ingame-normal-save").SetClickHandler(() =>
             {
                 Hide();
                 UiSystems.SaveGame.ShowSave(true);
             });
-            widgetDoc.GetButton("ingame-normal-close").SetClickHandler(Hide);
-            widgetDoc.GetButton("ingame-normal-quit").SetClickHandler(() =>
+            GetButton("ingame-normal-close").SetClickHandler(Hide);
+            GetButton("ingame-normal-quit").SetClickHandler(() =>
             {
                 Hide();
                 GameSystems.ResetGame();
@@ -115,8 +130,8 @@ namespace OpenTemple.Core.Ui.MainMenu
             });
 
             // Wire up buttons on the ingame menu (ironman difficulty)
-            widgetDoc.GetButton("ingame-ironman-close").SetClickHandler(Hide);
-            widgetDoc.GetButton("ingame-ironman-save-quit").SetClickHandler(() =>
+            GetButton("ingame-ironman-close").SetClickHandler(Hide);
+            GetButton("ingame-ironman-save-quit").SetClickHandler(() =>
             {
                 Globals.GameLib.IronmanSave();
                 Globals.GameLib.Reset();
@@ -125,19 +140,19 @@ namespace OpenTemple.Core.Ui.MainMenu
             });
 
             // Wire up buttons on the ingame menu (ironman difficulty)
-            widgetDoc.GetButton("options-show").SetClickHandler(() =>
+            GetButton("options-show").SetClickHandler(() =>
             {
                 Hide();
                 UiSystems.Options.Show(true);
             });
-            widgetDoc.GetButton("options-view-cinematics").SetClickHandler(() =>
+            GetButton("options-view-cinematics").SetClickHandler(() =>
             {
                 Hide();
                 UiSystems.UtilityBar.Hide();
                 // TODO ui_mm_msg_ui4();
                 mViewCinematicsDialog.Show();
             });
-            widgetDoc.GetButton("options-credits").SetClickHandler(() =>
+            GetButton("options-credits").SetClickHandler(() =>
             {
                 Hide();
 
@@ -151,12 +166,25 @@ namespace OpenTemple.Core.Ui.MainMenu
 
                 Show(MainMenuPage.Options);
             });
-            widgetDoc.GetButton("options-back").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
+            GetButton("options-back").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
 
             RepositionWidgets(Globals.UiManager.CanvasSize);
             Globals.UiManager.OnCanvasSizeChanged += RepositionWidgets;
 
             Hide(); // Hide everything by default
+        }
+
+        private WidgetButtonBase CreateMainMenuButton(JsonElement definition)
+        {
+            var button = new MainMenuButton();
+            WidgetDocLoader.LoadWidgetBase(definition, button);
+
+            if (definition.TryGetProperty("text", out var textProp))
+            {
+                button.Text = textProp.GetString() ?? throw new NullReferenceException("text is null");
+            }
+
+            return button;
         }
 
         public void Dispose()
@@ -396,7 +424,7 @@ namespace OpenTemple.Core.Ui.MainMenu
 
             mListBox = doc.GetScrollView("cinematicsList");
 
-            mWidget = doc.TakeRootContainer();
+            mWidget = doc.GetRootContainer();
             mWidget.Hide();
 
             for (var i = 0; i < 24; i++)
@@ -426,7 +454,7 @@ namespace OpenTemple.Core.Ui.MainMenu
                 var movieInd = seenIndices[i];
 
                 var button = new WidgetButton();
-                button.SetText(mMovieNames[movieInd]);
+                button.Text = mMovieNames[movieInd];
                 button.SetId(mMovieNames[movieInd]);
                 var innerWidth = mListBox.GetInnerWidth();
                 button.Width = innerWidth;
@@ -506,7 +534,7 @@ namespace OpenTemple.Core.Ui.MainMenu
 
             mListBox = doc.GetScrollView("scenariosList");
 
-            mWidget = doc.TakeRootContainer();
+            mWidget = doc.GetRootContainer();
             mWidget.Hide();
         }
 
@@ -524,7 +552,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             for (int i = 0; i < NUM_SCENARIOS; i++)
             {
                 var button = new WidgetButton();
-                button.SetText("Arena");
+                button.Text = "Arena";
                 button.SetId("Arena");
                 var innerWidth = mListBox.GetInnerWidth();
                 button.Width = innerWidth;

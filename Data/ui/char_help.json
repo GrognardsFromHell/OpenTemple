@@ -6,6 +6,11 @@
   "width": 365,
   "height": 76,
   "__styles": [
+    {
+      "id": "char-help-text",
+      "color": "#ffffff",
+      "dropShadowColor": "#000000"
+    }
   ],
   "content": [
   ],

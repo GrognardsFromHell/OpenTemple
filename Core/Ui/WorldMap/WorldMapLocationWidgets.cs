@@ -51,7 +51,6 @@ namespace OpenTemple.Core.Ui.WorldMap
 
             Ring = new LocationRingWidget(location.Position, location.Radius)
             {
-                TooltipStyle = UiSystems.Tooltip.DefaultStyle,
                 TooltipText = location.Name
             };
             Ring.SetClickHandler(() => OnClick?.Invoke(Location));
@@ -59,7 +58,7 @@ namespace OpenTemple.Core.Ui.WorldMap
 
             ListButton = new WidgetButton();
             ListButton.SetStyle("mapLocationListButton"); // Defined in worldmap_ui.json
-            ListButton.SetText(location.Name);
+            ListButton.Text = location.Name;
             ListButton.SetClickHandler(() => OnClick?.Invoke(Location));
             ListButton.OnMouseEnter += _ => Ring.ForceVisible = true;
             ListButton.OnMouseExit += _ => Ring.ForceVisible = false;

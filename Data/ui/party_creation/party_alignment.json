@@ -6,50 +6,46 @@
   "__styles": [
     {
       "id": "partyAlignmentAcceptCancel",
-      "align": "center",
-      "paragraphAlign": "center",
+      "textAlignment": "center",
+      "paragraphAlignment": "center",
       "fontFamily": "arial-12",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "foreground": "#ffffff",
-      "dropShadow": true,
-      "dropShadowBrush": "#000000"
+      "color": "#ffffff",
+      "dropShadowColor": "#000000"
     },
     {
       "id": "partyAlignmentButton",
-      "align": "center",
-      "paragraphAlign": "center",
+      "textAlignment": "center",
+      "paragraphAlignment": "center",
       "fontFamily": "arial-bold-10",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "foreground": "#ffffff",
-      "dropShadow": true,
-      "dropShadowBrush": "#000000"
+      "color": "#ffffff",
+      "dropShadowColor": "#000000"
     },
     {
       "id": "partyAlignmentTitle",
-      "align": "center",
+      "textAlignment": "center",
       "fontFamily": "arial-12",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "foreground": "#ffffff",
-      "dropShadow": true,
-      "dropShadowBrush": "#000000"
+      "color": "#ffffff",
+      "dropShadowColor": "#000000"
     },
     {
       "id": "partyAlignmentBody",
       "fontFamily": "arial-bold-10",
       "legacyKerning": 1,
       "legacyTracking": 3,
-      "foreground": "#ffffff",
-      "dropShadow": true,
-      "dropShadowBrush": "#000000"
+      "color": "#ffffff",
+      "dropShadowColor": "#000000"
     },
     {
       "id": "partyAlignmentSubtitle",
       "inherit": "partyAlignmentBody",
-      "align": "center",
-      "paragraphAlign": "center"
+      "textAlignment": "center",
+      "paragraphAlignment": "center"
     }
   ],
   "__buttonStyles": [

@@ -1,8 +1,10 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
@@ -18,6 +20,7 @@ using OpenTemple.Core.Ui.CharSheet.Portrait;
 using OpenTemple.Core.Ui.CharSheet.Skills;
 using OpenTemple.Core.Ui.CharSheet.Spells;
 using OpenTemple.Core.Ui.CharSheet.Stats;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet
@@ -66,7 +69,7 @@ namespace OpenTemple.Core.Ui.CharSheet
         private WidgetButton char_ui_main_exit_button;
 
         [TempleDllLocation(0x10BE9314)]
-        private CharUiNameLabel char_ui_main_name_button;
+        private WidgetDynamicLabel char_ui_main_name_button;
 
         [TempleDllLocation(0x10BE9310)]
         private WidgetContainer char_ui_main_nav_editor_window;
@@ -113,19 +116,50 @@ namespace OpenTemple.Core.Ui.CharSheet
             );
             _translations = Tig.FS.ReadMesFile("mes/0_char_ui_text.mes");
 
+            Globals.UiStyles.LoadStylesFile("ui/char_ui_styles.json");
+
             _mainWidget = new CharUiMainWidget(_uiParams);
 
             char_ui_main_nav_editor_window = new WidgetContainer(_uiParams.CharUiMainNavEditorWindow);
             _mainWidget.Add(char_ui_main_nav_editor_window);
 
-            char_ui_main_name_button = new CharUiNameLabel(_uiParams);
+            char_ui_main_name_button = new WidgetDynamicLabel(GetCharacterNameText)
+            {
+                X = 17,
+                Y = 12,
+                Width = 196,
+                Height = 12,
+                StyleIds = ImmutableList.Create("char-ui-dialog-title")
+            };
             _mainWidget.Add(char_ui_main_name_button);
 
             CreateExitButton();
 
-            _mainWidget.Add(new CharUiClassLevel(_uiParams));
-            _mainWidget.Add(new CharUiAlignGenderRace(_uiParams));
-            _mainWidget.Add(new CharUiWorship(_uiParams));
+            _mainWidget.Add(new CharUiClassLevel()
+            {
+                X = 262,
+                Y = 12,
+                Width = 300,
+                Height = 12
+            });
+
+            _mainWidget.Add(new WidgetDynamicLabel(GetAlignmentGenderRaceText)
+            {
+                X = 247,
+                Y = 29,
+                Width = 198,
+                Height = 16,
+                StyleIds = ImmutableList.Create("char-ui-align-gender-race")
+            });
+
+            _mainWidget.Add(new WidgetDynamicLabel(GetWorshipDisplayText)
+            {
+                X = 460,
+                Y = 29,
+                Width = 190,
+                Height = 16,
+                StyleIds = ImmutableList.Create("char-ui-worship")
+            });
 
             for (int i = 0; i < 5; i++)
             {
@@ -168,6 +202,89 @@ namespace OpenTemple.Core.Ui.CharSheet
             LevelUp = new CharSheetLevelUpUi();
             Help = new CharSheetHelpUi();
             _mainWidget.Add(Help.Container);
+        }
+
+        private string? GetCharacterNameText()
+        {
+            var critter = CurrentCritter;
+            return critter != null ? GameSystems.MapObject.GetDisplayName(critter) : null;
+        }
+
+        private string? GetAlignmentGenderRaceText()
+        {
+            if (CurrentCritter == null)
+            {
+                return null;
+            }
+
+            var textBuilder = new StringBuilder();
+
+            // Alignment
+            if (CurrentCritter.IsPC() || Globals.Config.ShowNpcStats){
+                var alignment = (Alignment)GameSystems.Stat.StatLevelGet(CurrentCritter, Stat.alignment);
+                var alignmentName = GameSystems.Stat.GetAlignmentName(alignment);
+                textBuilder.Append(alignmentName).Append(' ');
+            }
+
+            // Subtype
+            if (CurrentCritter.IsNPC()){
+                var isHuman = GameSystems.Critter.IsCategorySubtype(CurrentCritter, MonsterSubtype.human)
+                    && GameSystems.Critter.IsCategory(CurrentCritter, MonsterCategory.humanoid);
+
+                for (var i = 0; (1 << i) <= (int) MonsterSubtype.water; i += 1) {
+                    var monSubcat = (MonsterSubtype)(1 << i);
+                    if (monSubcat == MonsterSubtype.human && isHuman)
+                    {
+                        continue; // skip silly string of "Human Humanoid"
+                    }
+
+                    if (GameSystems.Critter.IsCategorySubtype(CurrentCritter, monSubcat))
+                    {
+                        textBuilder
+                            .Append(GameSystems.Stat.GetMonsterSubcategoryName(i))
+                            .Append(' ');
+                    }
+                }
+
+            }
+
+            var gender = GameSystems.Stat.StatLevelGet(CurrentCritter, Stat.gender);
+            var genderName = GameSystems.Stat.GetGenderName(gender);
+
+            if (CurrentCritter.IsPC()) {
+                var race = GameSystems.Critter.GetRace(CurrentCritter, false);
+                var raceName = GameSystems.Stat.GetRaceName(race);
+                textBuilder.Append(genderName).Append(' ').Append(raceName);
+            } else {
+                var moncat = GameSystems.Critter.GetCategory(CurrentCritter);
+                var monsterCatName = GameSystems.Stat.GetMonsterCategoryName(moncat);
+
+                textBuilder.Append(genderName).Append(' ').Append(monsterCatName);
+            }
+
+            return textBuilder.ToString();
+        }
+
+        private InlineElement? GetWorshipDisplayText()
+        {
+            if (CurrentCritter == null)
+            {
+                return null;
+            }
+
+            var result = new ComplexInlineElement();
+            // "Worships: "
+            result.AppendContent(_translations[1500] + "  ", "char-ui-worship-label");
+            if (CurrentCritter.IsPC())
+            {
+                var deity = (DeityId) GameSystems.Stat.StatLevelGet(CurrentCritter, Stat.deity);
+                result.AppendContent(GameSystems.Deity.GetName(deity));
+            }
+            else
+            {
+                result.AppendContent("--");
+            }
+            return result;
         }
 
         [TempleDllLocation(0x10146fd0)]
@@ -263,10 +380,10 @@ namespace OpenTemple.Core.Ui.CharSheet
             exitButton.SetAutoSizeWidth(false);
             exitButton.SetStyle(new WidgetButtonStyle
             {
-                disabledImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonDisabled],
-                hoverImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverOn],
-                normalImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverOff],
-                pressedImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverPressed]
+                DisabledImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonDisabled],
+                HoverImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverOn],
+                NormalImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverOff],
+                PressedImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverPressed]
             });
             exitButton.SetClickHandler(ExitClicked);
             _mainWidget.Add(exitButton);
@@ -494,7 +611,7 @@ namespace OpenTemple.Core.Ui.CharSheet
 
         [TempleDllLocation(0x10144050)]
         [TempleDllLocation(0x10BE9940)]
-        public GameObjectBody CurrentCritter { get; private set; }
+        public GameObjectBody? CurrentCritter { get; private set; }
 
         [TempleDllLocation(0x10143fe0)]
         [TempleDllLocation(0x10BE9948)]

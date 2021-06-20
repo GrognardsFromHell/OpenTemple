@@ -1,14 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using SharpDX.Direct2D1;
 using SharpDX.Direct3D11;
-using SharpDX.DirectWrite;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Ui.Styles;
+using OpenTemple.Interop.Text;
 using SharpDX;
 using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using D3D11Device = SharpDX.Direct3D11.Device;
@@ -16,397 +16,35 @@ using D2D1Device = SharpDX.Direct2D1.Device;
 using D2D1Factory1 = SharpDX.Direct2D1.Factory1;
 using D2D1DeviceContext = SharpDX.Direct2D1.DeviceContext;
 using D2D1Bitmap1 = SharpDX.Direct2D1.Bitmap1;
-using DWriteFactory = SharpDX.DirectWrite.Factory;
-using DWriteFontCollection = SharpDX.DirectWrite.FontCollection;
-using DWriteTextFormat = SharpDX.DirectWrite.TextFormat;
 using D2D1Brush = SharpDX.Direct2D1.Brush;
-using DWriteTextLayout = SharpDX.DirectWrite.TextLayout;
 using FactoryType = SharpDX.Direct2D1.FactoryType;
 using DXGIDevice = SharpDX.DXGI.Device;
 using TextAntialiasMode = SharpDX.Direct2D1.TextAntialiasMode;
-using DWriteInlineObject = SharpDX.DirectWrite.InlineObject;
 using DXGISurface = SharpDX.DXGI.Surface;
-using DataStream = SharpDX.DataStream;
-using DataPointer = SharpDX.DataPointer;
 using Matrix3x2 = SharpDX.Matrix3x2;
-using Rectangle = System.Drawing.Rectangle;
-using Vector2 = System.Numerics.Vector2;
+using RectangleF = System.Drawing.RectangleF;
 
 namespace OpenTemple.Core.GFX.TextRendering
 {
-    public class FontFile
-    {
-        public string Name { get; }
-        public byte[] Data { get; }
-
-        public FontFile(string name, byte[] data)
-        {
-            Name = name;
-            Data = data;
-        }
-    }
 
     public class TextEngine : IDisposable
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private D3D11Device device3d;
+        private readonly D2D1Device _device;
 
-        /*
-            Direct2D resources
-        */
+        private readonly D2D1Factory1 _factory;
 
-        private D2D1Device device;
+        private readonly D2D1DeviceContext _context;
 
-        private D2D1Factory1 factory;
+        private D2D1Bitmap1 _renderTarget;
 
-        private D2D1DeviceContext context;
+        private bool _batching;
 
-        private D2D1Bitmap1 target;
+        private readonly NativeTextEngine _nativeEngine;
 
-        /*
-            DirectWrite resources
-        */
-        private DWriteFactory dWriteFactory;
-
-        /*
-            Custom font handling
-        */
-        private FontLoader fontLoader;
-
-        private List<FontFile> fonts = new List<FontFile>();
-
-        private DWriteFontCollection fontCollection;
-
-        // DirectWrite caches font collections internally.
-        // If we reload, we need to generate a new key
-        private readonly DataStream _fontCollKeyStream = new DataStream(sizeof(int), true, true);
-        private int _fontCollKey = 0;
-
-        private void LoadFontCollection()
+        public TextEngine(D3D11Device d3dDevice, bool debugDevice)
         {
-            Logger.Info("Reloading font collection...");
-            _fontCollKeyStream.Position = 0;
-            _fontCollKeyStream.Write(_fontCollKey++);
-            fontCollection = new FontCollection(
-                dWriteFactory,
-                fontLoader,
-                new DataPointer(_fontCollKeyStream.DataPointer, (int) _fontCollKeyStream.Length)
-            );
-
-            // Enumerate all loaded fonts to the logger
-            var count = fontCollection.FontFamilyCount;
-            for (var i = 0; i < count; i++)
-            {
-                using var family = fontCollection.GetFontFamily(i);
-
-                using var familyNames = family.FamilyNames;
-
-                var familyNamesList = new StringBuilder();
-                for (var j = 0; j < familyNames.Count; j++)
-                {
-                    if (familyNamesList.Length > 0)
-                    {
-                        familyNamesList.Append(", ");
-                    }
-
-                    familyNamesList.Append(familyNames.GetString(j));
-                }
-
-                Logger.Info(" Loaded Font Family: {0}", familyNamesList);
-            }
-        }
-
-        // Text format cache
-        private readonly Dictionary<TextStyle, DWriteTextFormat> _textFormats =
-            new(new TextStyleEqualityComparer());
-
-        private DWriteTextFormat GetTextFormat(TextStyle textStyle)
-        {
-            if (_textFormats.TryGetValue(textStyle, out var existingFormat))
-            {
-                return existingFormat;
-            }
-
-            var fontWeight = GetFontWeight(textStyle);
-            var fontStyle = GetFontStyle(textStyle);
-
-            // Lazily build the font collection
-            if (fontCollection == null)
-            {
-                LoadFontCollection();
-            }
-
-            // Lazily create the text format
-            var textFormat = new DWriteTextFormat(
-                dWriteFactory,
-                textStyle.fontFace,
-                fontCollection,
-                fontWeight,
-                fontStyle,
-                FontStretch.Normal,
-                textStyle.pointSize,
-                ""
-            );
-
-            if (textStyle.tabStopWidth > 0)
-            {
-                textFormat.IncrementalTabStop = textStyle.tabStopWidth;
-            }
-
-            textFormat.WordWrapping = WordWrapping.Wrap;
-
-            switch (textStyle.align)
-            {
-                case TextAlign.Left:
-                    textFormat.TextAlignment = TextAlignment.Leading;
-                    break;
-                case TextAlign.Center:
-                    textFormat.TextAlignment = TextAlignment.Center;
-                    break;
-                case TextAlign.Right:
-                    textFormat.TextAlignment = TextAlignment.Trailing;
-                    break;
-                case TextAlign.Justified:
-                    textFormat.TextAlignment = TextAlignment.Justified;
-                    break;
-            }
-
-            switch (textStyle.paragraphAlign)
-            {
-                case ParagraphAlign.Near:
-                    textFormat.ParagraphAlignment = ParagraphAlignment.Near;
-                    break;
-                case ParagraphAlign.Far:
-                    textFormat.ParagraphAlignment = ParagraphAlignment.Far;
-                    break;
-                case ParagraphAlign.Center:
-                    textFormat.ParagraphAlignment = ParagraphAlignment.Center;
-                    break;
-            }
-
-            if (textStyle.uniformLineHeight)
-            {
-                textFormat.SetLineSpacing(
-                    LineSpacingMethod.Uniform,
-                    textStyle.lineHeight,
-                    textStyle.baseLine
-                );
-            }
-
-            _textFormats[textStyle] = textFormat;
-            return textFormat;
-        }
-
-        // Brush cache
-        private Dictionary<Brush, D2D1Brush> brushes = new Dictionary<Brush, D2D1Brush>(new BrushEqualityComparer());
-
-        private static RawColor4 ToD2dColor(PackedLinearColorA color)
-        {
-            return new RawColor4(
-                color.R / 255.0f,
-                color.G / 255.0f,
-                color.B / 255.0f,
-                color.A / 255.0f
-            );
-        }
-
-        private D2D1Brush GetBrush(in Brush brush)
-        {
-            if (brushes.TryGetValue(brush, out var existingBrush))
-            {
-                return existingBrush;
-            }
-
-            D2D1Brush simpleBrush;
-
-            if (!brush.gradient)
-            {
-                var colorValue = ToD2dColor(brush.primaryColor);
-                simpleBrush = new SolidColorBrush(context, colorValue);
-            }
-            else
-            {
-                var gradientStops = new[]
-                {
-                    new GradientStop
-                    {
-                        Color = ToD2dColor(brush.primaryColor),
-                        Position = 0
-                    },
-                    new GradientStop
-                    {
-                        Color = ToD2dColor(brush.secondaryColor),
-                        Position = 1
-                    }
-                };
-
-                // Create the gradient stops
-                using var gradientStopColl = new GradientStopCollection(
-                    context,
-                    gradientStops
-                );
-
-                // Configure the gradient to go top.down
-                var gradientProps = new LinearGradientBrushProperties
-                {
-                    StartPoint = new RawVector2(0, 0),
-                    EndPoint = new RawVector2(0, 1)
-                };
-
-                simpleBrush = new LinearGradientBrush(
-                    context,
-                    gradientProps,
-                    gradientStopColl
-                );
-            }
-
-            brushes[brush] = simpleBrush;
-            return simpleBrush;
-        }
-
-
-        // Formatted strings
-        private DWriteTextLayout GetTextLayout(int width, int height, TextStyle style, string text)
-        {
-            // The maximum width/height of the box may or may not be specified
-            float widthF, heightF;
-            if (width > 0)
-            {
-                widthF = width;
-            }
-            else
-            {
-                widthF = float.MaxValue;
-            }
-
-            if (height > 0)
-            {
-                heightF = height;
-            }
-            else
-            {
-                heightF = float.MaxValue;
-            }
-
-            var textFormat = GetTextFormat(style);
-
-            var textLayout = new DWriteTextLayout(
-                dWriteFactory,
-                text,
-                textFormat,
-                widthF,
-                heightF
-            );
-
-            if (style.trim)
-            {
-                // Ellipsis for the end of the str
-                using var trimmingSign = new EllipsisTrimming(dWriteFactory, textFormat);
-
-                var trimming = new Trimming {Granularity = TrimmingGranularity.Character};
-                textLayout.SetTrimming(trimming, trimmingSign);
-            }
-
-            return textLayout;
-        }
-
-        private DWriteTextLayout GetTextLayout(int width, int height, in FormattedText formatted,
-            bool skipDrawingEffects = false)
-        {
-            // The maximum width/height of the box may or may not be specified
-            float widthF, heightF;
-            if (width > 0)
-            {
-                widthF = width;
-            }
-            else
-            {
-                widthF = float.MaxValue;
-            }
-
-            if (height > 0)
-            {
-                heightF = height;
-            }
-            else
-            {
-                heightF = float.MaxValue;
-            }
-
-            var textFormat = GetTextFormat(formatted.defaultStyle);
-            var text = formatted.text;
-
-            var textLayout = new DWriteTextLayout(
-                dWriteFactory,
-                text,
-                textFormat,
-                widthF,
-                heightF
-            );
-
-            if (formatted.defaultStyle.trim)
-            {
-                // Ellipsis for the end of the str
-                using var trimmingSign = new EllipsisTrimming(dWriteFactory, textFormat);
-
-                var trimming = new Trimming {Granularity = TrimmingGranularity.Character};
-                textLayout.SetTrimming(trimming, trimmingSign);
-            }
-
-            foreach (var range in formatted.Formats)
-            {
-                var textRange = new TextRange(range.startChar, range.length);
-
-                if (range.style.bold != formatted.defaultStyle.bold)
-                {
-                    textLayout.SetFontWeight(GetFontWeight(range.style), textRange);
-                }
-
-                if (range.style.italic != formatted.defaultStyle.italic)
-                {
-                    textLayout.SetFontStyle(GetFontStyle(range.style), textRange);
-                }
-
-                // This will collide with drop shadow drawing for example
-                if (!skipDrawingEffects)
-                {
-                    var rangeBrush = GetBrush(range.style.foreground);
-                    textLayout.SetDrawingEffect(rangeBrush, textRange);
-                }
-            }
-
-            return textLayout;
-        }
-
-        // Clipping
-        private bool enableClipRect = false;
-        private RawRectangleF clipRect;
-
-        private void BeginDraw()
-        {
-            context.BeginDraw();
-
-            if (enableClipRect)
-            {
-                context.PushAxisAlignedClip(clipRect, AntialiasMode.Aliased);
-            }
-        }
-
-        private void EndDraw()
-        {
-            if (enableClipRect)
-            {
-                context.PopAxisAlignedClip();
-            }
-
-            context.EndDraw();
-        }
-
-        public TextEngine(D3D11Device device3d, bool debugDevice)
-        {
-            this.device3d = device3d;
-
             // Create the D2D factory
             DebugLevel debugLevel;
             if (debugDevice)
@@ -420,31 +58,89 @@ namespace OpenTemple.Core.GFX.TextRendering
                 Logger.Info("Creating Direct2D Factory (debug=false).");
             }
 
-            factory = new D2D1Factory1(FactoryType.SingleThreaded, debugLevel);
+            _factory = new D2D1Factory1(FactoryType.SingleThreaded, debugLevel);
 
-            using var dxgiDevice = device3d.QueryInterface<DXGIDevice>();
+            using var dxgiDevice = d3dDevice.QueryInterface<DXGIDevice>();
 
             // Create a D2D device on top of the DXGI device
-            device = new D2D1Device(factory, dxgiDevice);
+            _device = new D2D1Device(_factory, dxgiDevice);
 
             // Get Direct2D device's corresponding device context object.
-            context = new D2D1DeviceContext(device, DeviceContextOptions.None);
+            _context = new D2D1DeviceContext(_device, DeviceContextOptions.None);
 
-            // DirectWrite factory
-            dWriteFactory = new DWriteFactory(SharpDX.DirectWrite.FactoryType.Shared);
+            using var rt = _context.QueryInterface<RenderTarget>();
 
-            // Create our custom font handling ObjectHandles.
-            fontLoader = new FontLoader(dWriteFactory, fonts);
-            dWriteFactory.RegisterFontCollectionLoader(fontLoader);
-            dWriteFactory.RegisterFontFileLoader(fontLoader);
+            _nativeEngine = new NativeTextEngine(rt.NativePointer);
 
-            context.TextAntialiasMode = TextAntialiasMode.Grayscale;
+            _context.TextAntialiasMode = TextAntialiasMode.Grayscale;
+        }
+
+        // Clipping
+        private bool _enableClipRect;
+        private RawRectangleF _clipRect;
+
+        private void BeginDraw()
+        {
+            if (_batching)
+            {
+                return;
+            }
+
+            _context.BeginDraw();
+
+            if (_enableClipRect)
+            {
+                _context.PushAxisAlignedClip(_clipRect, AntialiasMode.Aliased);
+            }
+        }
+
+        private void EndDraw()
+        {
+            if (_batching)
+            {
+                return;
+            }
+
+            if (_enableClipRect)
+            {
+                _context.PopAxisAlignedClip();
+            }
+
+            _context.EndDraw();
+        }
+
+        public void BeginBatch()
+        {
+            if (_batching)
+            {
+                throw new InvalidOperationException("Recursive call to " + nameof(BeginBatch));
+            }
+
+            BeginDraw();
+            _batching = true;
+        }
+
+        public void EndBatch()
+        {
+            if (!_batching)
+            {
+                throw new InvalidOperationException("Cannot call " + nameof(EndBatch) + " without calling " +
+                                                    nameof(BeginBatch));
+            }
+
+            _batching = false;
+            EndDraw();
         }
 
         public void SetScissorRect(int x, int y, int width, int height)
         {
-            enableClipRect = true;
-            clipRect = new RawRectangleF(
+            if (_batching)
+            {
+                throw new InvalidOperationException("Cannot call " + nameof(SetScissorRect) + " while batching");
+            }
+
+            _enableClipRect = true;
+            _clipRect = new RawRectangleF(
                 x,
                 y,
                 x + width,
@@ -454,18 +150,12 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void ResetScissorRect()
         {
-            enableClipRect = false;
-        }
+            if (_batching)
+            {
+                throw new InvalidOperationException("Cannot call " + nameof(ResetScissorRect) + " while batching");
+            }
 
-
-        private static FontStyle GetFontStyle(TextStyle textStyle)
-        {
-            return textStyle.italic ? FontStyle.Italic : FontStyle.Normal;
-        }
-
-        private static FontWeight GetFontWeight(TextStyle textStyle)
-        {
-            return textStyle.bold ? FontWeight.Bold : FontWeight.Normal;
+            _enableClipRect = false;
         }
 
         private SizeF _canvasSize;
@@ -476,21 +166,20 @@ namespace OpenTemple.Core.GFX.TextRendering
             set
             {
                 _canvasSize = value;
-                var realSize = context.PixelSize;
+                var realSize = _context.PixelSize;
                 var hDpi = 96.0f * realSize.Width / value.Width;
                 var vDpi = 96.0f * realSize.Height / value.Height;
-                context.DotsPerInch = new Size2F(hDpi, vDpi);
-                Logger.Info("Setting Text Engine DPI to {0},{1}", hDpi, vDpi);
+                _context.DotsPerInch = new Size2F(hDpi, vDpi);
             }
         }
 
         public void SetRenderTarget(Texture2D renderTarget)
         {
-            target?.Dispose();
+            _renderTarget?.Dispose();
 
             if (renderTarget == null)
             {
-                context.Target = null;
+                _context.Target = null;
                 return;
             }
 
@@ -505,180 +194,271 @@ namespace OpenTemple.Core.GFX.TextRendering
                 BitmapOptions.Target | BitmapOptions.CannotDraw
             );
 
-            target = new D2D1Bitmap1(context, dxgiSurface, bitmapProperties);
+            _renderTarget = new D2D1Bitmap1(_context, dxgiSurface, bitmapProperties);
 
-            context.Target = target;
+            _context.Target = _renderTarget;
         }
 
-        public void RenderText(Rectangle rect, FormattedText formattedStr)
+        public void RenderText(
+            RectangleF rect,
+            ComputedStyles styles,
+            ReadOnlySpan<char> text
+            )
         {
-            BeginDraw();
+            var nativeParagraphStyle = CreateParagraphStyle(styles);
+            var nativeTextStyle = CreateTextStyle(styles);
 
-            float x = (float) rect.X;
-            float y = (float) rect.Y;
+            using var layout = CreateNativeTextLayout(text, ref nativeParagraphStyle, ref nativeTextStyle,
+                rect.Width, rect.Height);
 
-            using var textLayout = GetTextLayout(rect.Width, rect.Height, formattedStr);
-
-            var metrics = textLayout.Metrics;
-
-            // Draw the drop shadow first as a simple +1, +1 shift
-            if (formattedStr.defaultStyle.dropShadow)
+            if (!_batching)
             {
-                var shadowLayout = GetTextLayout(rect.Width, rect.Height, formattedStr, true);
-
-                var shadowBrush = GetBrush(formattedStr.defaultStyle.dropShadowBrush);
-                context.DrawTextLayout(
-                    new RawVector2(x + 1, y + 1),
-                    shadowLayout,
-                    shadowBrush
-                );
+                BeginDraw();
             }
-
-            // Get applicable brush
-            var brush = GetBrush(formattedStr.defaultStyle.foreground);
-
-            // This is really unpleasant, but DirectWrite doesn't really use a well designed brush
-            // coordinate system for drawing text apparently...
-            using var gradientBrush = brush.QueryInterfaceOrNull<LinearGradientBrush>();
-            if (gradientBrush != null)
+            _nativeEngine.RenderTextLayout(layout, rect.X, rect.Y, 1f);
+            if (!_batching)
             {
-                gradientBrush.StartPoint = new RawVector2(0, y + metrics.Top);
-                gradientBrush.EndPoint = new RawVector2(0, y + metrics.Top + metrics.Height);
+                EndDraw();
             }
-
-            context.DrawTextLayout(
-                new RawVector2(x, y),
-                textLayout,
-                brush
-            );
-
-            EndDraw();
         }
 
-        private static readonly RawMatrix3x2 IdentityMatrix = new RawMatrix3x2(
-            1, 0,
-            0, 1,
-            0, 0
-        );
-
-        public void RenderTextRotated(Rectangle rect, float angle, Vector2 center, FormattedText formattedStr)
+        public TextMetrics MeasureText(ComputedStyles styles,
+            ReadOnlySpan<char> text, int maxWidth = 0, int maxHeight = 0)
         {
-            var transform2d = Matrix3x2.Rotation(angle, new RawVector2(center.X, center.Y));
-            context.Transform = transform2d;
+            var nativeParagraphStyle = CreateParagraphStyle(styles);
+            var nativeTextStyle = CreateTextStyle(styles);
 
-            RenderText(rect, formattedStr);
+            using var layout = _nativeEngine.CreateTextLayout(ref nativeParagraphStyle, ref nativeTextStyle,
+                text, maxWidth, maxHeight);
 
-            context.Transform = IdentityMatrix;
-        }
+            layout.GetMetrics(out var metrics);
 
-        public void RenderText(Rectangle rect, TextStyle style, string text)
-        {
-            BeginDraw();
-
-            // Draw the drop shadow first as a simple +1, +1 shift
-            if (style.dropShadow)
+            return new TextMetrics()
             {
-                var shadowLayout = GetTextLayout(rect.Width, rect.Height, style, text);
-
-                var shadowBrush = GetBrush(style.dropShadowBrush);
-                context.DrawTextLayout(
-                    new RawVector2((float) rect.X + 1, (float) rect.Y + 1),
-                    shadowLayout,
-                    shadowBrush
-                );
-            }
-
-            var textLayout = GetTextLayout(rect.Width, rect.Height, style, text);
-
-            var metrics = textLayout.Metrics;
-
-            // Get applicable brush
-            var brush = GetBrush(style.foreground);
-
-            // This is really unpleasant, but DirectWrite doesn't really use a well designed brush
-            // coordinate system for drawing text apparently...
-            using var gradientBrush = brush.QueryInterfaceOrNull<LinearGradientBrush>();
-            if (gradientBrush != null)
-            {
-                gradientBrush.StartPoint = new RawVector2(0, rect.Y + metrics.Top);
-                gradientBrush.EndPoint = new RawVector2(0, rect.Y + metrics.Top + metrics.Height);
-            }
-
-            context.DrawTextLayout(
-                new RawVector2(rect.X + metrics.Left, rect.Y + metrics.Top),
-                textLayout,
-                brush
-            );
-
-            EndDraw();
-        }
-
-        public TextMetrics MeasureText(FormattedText formattedStr, int maxWidth = 0, int maxHeight = 0)
-        {
-            using var textLayout = GetTextLayout(maxWidth, maxHeight, formattedStr);
-            MeasureText(textLayout, out var metrics);
-            return metrics;
-        }
-
-        public TextMetrics MeasureText(TextStyle style, ReadOnlySpan<char> text, int maxWidth = 0, int maxHeight = 0)
-        {
-            var textStr = new string(text); // TODO: Sadly SharpDX does not support Span's
-            using var textLayout = GetTextLayout(maxWidth, maxHeight, style, textStr);
-            MeasureText(textLayout, out var metrics);
-            return metrics;
-        }
-
-        private void MeasureText(TextLayout textLayout, out TextMetrics metrics)
-        {
-            var lineMetrics = textLayout.GetLineMetrics();
-
-            var dWriteMetrics = textLayout.Metrics;
-            metrics.width = (int) MathF.Ceiling(dWriteMetrics.WidthIncludingTrailingWhitespace);
-            metrics.height = (int) MathF.Ceiling(dWriteMetrics.Height);
-            metrics.lineHeight = (int) MathF.Round(lineMetrics[0].Height);
-            metrics.lines = lineMetrics.Length;
+                width = metrics.Width,
+                height = metrics.Height,
+                lines = metrics.LineCount
+            };
         }
 
         public void AddFont(string filename)
         {
-            var fontData = Tig.FS.ReadBinaryFile(filename);
-
-            fonts.Add(new FontFile(filename, fontData));
-            fontCollection?.Dispose(); // Has to be rebuilt...
-            _textFormats.Clear();
+            using var ownedFontData = Tig.FS.ReadFile(filename);
+            _nativeEngine.AddFontFile(filename, ownedFontData.Memory.Span);
+            _nativeEngine.ReloadFontFamilies();
         }
 
-        /**
-         * Checks if this text engine can provide the given font family. If false, it means it would
-         * use a fallback font.
-         */
-        public bool HasFontFamily(string name)
+        public void LogLoadedFontFamilies()
         {
-            if (fontCollection == null)
+            var fontFamilies = _nativeEngine.FontFamilies;
+            Logger.Info("Loaded {0} additional font families", fontFamilies.Count);
+            foreach (var fontFamily in fontFamilies)
             {
-                LoadFontCollection();
+                Logger.Info(" - '{0}'", fontFamily);
             }
-
-            return fontCollection.FindFamilyName(name, out _);
-        }
-
-        private void ReleaseUnmanagedResources()
-        {
-            // TODO release unmanaged resources here
         }
 
         public void Dispose()
         {
-            dWriteFactory.UnregisterFontFileLoader(fontLoader);
-            dWriteFactory.UnregisterFontCollectionLoader(fontLoader);
+            _device?.Dispose();
+            _factory?.Dispose();
+            _context?.Dispose();
+            _renderTarget?.Dispose();
+        }
 
-            device3d?.Dispose();
-            device?.Dispose();
-            factory?.Dispose();
-            context?.Dispose();
-            target?.Dispose();
-            dWriteFactory?.Dispose();
-            _fontCollKeyStream.Dispose();
+        public TextLayout CreateTextLayout(ComputedStyles styles, ReadOnlySpan<char> text, float maxWidth,
+            float maxHeight)
+        {
+            var nativeParagraphStyle = CreateParagraphStyle(styles);
+            var nativeTextStyle = CreateTextStyle(styles);
+
+            var layout = CreateNativeTextLayout(
+                text,
+                ref nativeParagraphStyle,
+                ref nativeTextStyle,
+                maxWidth,
+                maxHeight
+            );
+
+            return new TextLayout(layout);
+        }
+
+        public TextLayout CreateTextLayout(Paragraph paragraph, float maxWidth, float maxHeight)
+        {
+            var flow = paragraph.TextFlow;
+
+            var nativeParagraphStyle = CreateParagraphStyle(paragraph.ComputedStyles);
+            var nativeTextStyle = CreateTextStyle(paragraph.ComputedStyles);
+
+            var nativeTextLayout = CreateNativeTextLayout(flow.Text, ref nativeParagraphStyle, ref nativeTextStyle,
+                maxWidth, maxHeight);
+
+            foreach (var element in flow.Elements)
+            {
+                var elementStyle = CreateTextStyle(element.Source.ComputedStyles);
+                NativeTextStyleProperty properties = default;
+
+                if (elementStyle.FontFace != nativeTextStyle.FontFace)
+                {
+                    properties |= NativeTextStyleProperty.FontFace;
+                }
+
+                if (Math.Abs(elementStyle.FontSize - nativeTextStyle.FontSize) > 0.1f)
+                {
+                    properties |= NativeTextStyleProperty.FontSize;
+                }
+
+                if (elementStyle.Color != nativeTextStyle.Color)
+                {
+                    properties |= NativeTextStyleProperty.Color;
+                }
+
+                if (elementStyle.Underline != nativeTextStyle.Underline)
+                {
+                    properties |= NativeTextStyleProperty.Underline;
+                }
+
+                if (elementStyle.LineThrough != nativeTextStyle.LineThrough)
+                {
+                    properties |= NativeTextStyleProperty.LineThrough;
+                }
+
+                if (elementStyle.FontStretch != nativeTextStyle.FontStretch)
+                {
+                    properties |= NativeTextStyleProperty.FontStretch;
+                }
+
+                if (elementStyle.FontStyle != nativeTextStyle.FontStyle)
+                {
+                    properties |= NativeTextStyleProperty.FontStyle;
+                }
+
+                if (elementStyle.FontWeight != nativeTextStyle.FontWeight)
+                {
+                    properties |= NativeTextStyleProperty.FontWeight;
+                }
+
+                nativeTextLayout.SetStyle(element.Start, element.Length, properties, ref elementStyle);
+            }
+
+            return new TextLayout(nativeTextLayout);
+        }
+
+        private NativeTextLayout CreateNativeTextLayout(
+            ReadOnlySpan<char> text,
+            ref NativeParagraphStyle nativeParagraphStyle,
+            ref NativeTextStyle nativeTextStyle,
+            float maxWidth,
+            float maxHeight
+        )
+        {
+            return _nativeEngine.CreateTextLayout(
+                ref nativeParagraphStyle,
+                ref nativeTextStyle,
+                text,
+                maxWidth,
+                maxHeight
+            );
+        }
+
+        private static NativeParagraphStyle CreateParagraphStyle(ComputedStyles style)
+        {
+            NativeParagraphStyle nativeStyle;
+            nativeStyle.HangingIndent = style.HangingIndent;
+            nativeStyle.Indent = style.Indent;
+            nativeStyle.TabStopWidth = style.TabStopWidth;
+            nativeStyle.TextAlignment = (NativeTextAlign) style.TextAlignment;
+            nativeStyle.ParagraphAlignment = (NativeParagraphAlign) style.ParagraphAlignment;
+            nativeStyle.WordWrap = (NativeWordWrap) style.WordWrap;
+            nativeStyle.TrimMode = (NativeTrimMode) style.TrimMode;
+            nativeStyle.TrimmingSign = (NativeTrimmingSign) style.TrimmingSign;
+            return nativeStyle;
+        }
+
+        private static NativeTextStyle CreateTextStyle(ComputedStyles style)
+        {
+            NativeTextStyle nativeStyle;
+            nativeStyle.FontFace = style.FontFace;
+            nativeStyle.FontSize = style.FontSize;
+            nativeStyle.Color = style.Color.Pack();
+            nativeStyle.Underline = style.Underline;
+            nativeStyle.LineThrough = style.LineThrough;
+            nativeStyle.FontStretch = (NativeFontStretch) style.FontStretch;
+            nativeStyle.FontStyle = (NativeFontStyle) style.FontStyle;
+            nativeStyle.FontWeight = (NativeFontWeight) style.FontWeight;
+            nativeStyle.DropShadowColor = style.DropShadowColor.Pack();
+            nativeStyle.OutlineColor = style.OutlineColor.Pack();
+            nativeStyle.OutlineWidth = style.OutlineWidth;
+            nativeStyle.Kerning = false;
+            return nativeStyle;
+        }
+
+        public void RenderBackgroundAndBorder(float x, float y, float width, float height, ComputedStyles styles)
+        {
+            if (styles.BackgroundColor.A <= 0 && (!(styles.BorderWidth > 0) || styles.BorderColor.A <= 0))
+            {
+                return;
+            }
+
+            if (!_batching)
+            {
+                BeginDraw();
+            }
+
+            NativeBackgroundAndBorderStyle nativeStyle;
+            nativeStyle.BackgroundColor = styles.BackgroundColor.Pack();
+            nativeStyle.BorderWidth = styles.BorderWidth;
+            nativeStyle.BorderColor = styles.BorderColor.Pack();
+            nativeStyle.RadiusX = 0;
+            nativeStyle.RadiusY = 0;
+            _nativeEngine.RenderBackgroundAndBorder(
+                x, y, width, height,
+                ref nativeStyle
+            );
+
+            if (!_batching)
+            {
+                EndDraw();
+            }
+        }
+
+        public void RenderTextLayout(float x, float y, TextLayout textLayout, in TextRenderOptions options = default)
+        {
+            RawMatrix3x2 currentTransform;
+            if (options.HasRotation)
+            {
+                var transform2d = Matrix3x2.Rotation(options.RotationAngle, new RawVector2(options.RotationCenter.X, options.RotationCenter.Y));
+                currentTransform = _context.Transform;
+                _context.Transform = transform2d;
+            }
+            else
+            {
+                currentTransform = default;
+            }
+
+            if (!_batching)
+            {
+                BeginDraw();
+            }
+
+            var opacity = options.HasOpacity ? options.Opacity : 1f;
+
+            _nativeEngine.RenderTextLayout(
+                textLayout.NativeTextLayout,
+                x,
+                y,
+                opacity
+            );
+
+            if (!_batching)
+            {
+                EndDraw();
+            }
+
+            if (options.HasRotation)
+            {
+                _context.Transform = currentTransform;
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         public StatBlockWidget()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/stat_block_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
 
             StatBlockAbilityScore AddAbilityScore(string containerId, Stat ability)
             {

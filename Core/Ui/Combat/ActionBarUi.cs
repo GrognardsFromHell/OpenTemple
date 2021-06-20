@@ -77,7 +77,7 @@ namespace OpenTemple.Core.Ui.Combat
             actionBarButton.SetStyle(new WidgetButtonStyle());
             actionBarButton.SetSizeToParent(true);
             actionBarButton.SetClickHandler(OnActionBarButtonClick);
-            actionBarButton.TooltipStyle = UiSystems.Tooltip.GetStyle("action-bar");
+            actionBarButton.TooltipStyle = "action-bar-tooltip";
             actionBarButton.OnBeforeRender += () =>
             {
                 // Use the time update message (one per frame) to update the tooltip text
@@ -88,10 +88,10 @@ namespace OpenTemple.Core.Ui.Combat
             var nextTurn = new WidgetButton(new Rectangle(0, 194, 50, 50));
             nextTurn.SetStyle(new WidgetButtonStyle
             {
-                normalImagePath = "art/interface/COMBAT_UI/Action-End-Turn.tga",
-                hoverImagePath = "art/interface/COMBAT_UI/Action-End-Turn-Hover.tga",
-                pressedImagePath = "art/interface/COMBAT_UI/Action-End-Turn-Click.tga",
-                disabledImagePath = "art/interface/COMBAT_UI/Action-End-Turn-Disabled.tga",
+                NormalImagePath = "art/interface/COMBAT_UI/Action-End-Turn.tga",
+                HoverImagePath = "art/interface/COMBAT_UI/Action-End-Turn-Hover.tga",
+                PressedImagePath = "art/interface/COMBAT_UI/Action-End-Turn-Click.tga",
+                DisabledImagePath = "art/interface/COMBAT_UI/Action-End-Turn-Disabled.tga",
             });
             nextTurn.Name = "next_turn";
             nextTurn.OnBeforeRender += () => OnBeforeRenderNextTurn(nextTurn);

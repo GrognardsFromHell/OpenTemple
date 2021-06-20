@@ -118,7 +118,7 @@ namespace OpenTemple.Core.Ui.Camping
 
             // Begin top level window
             // Created @ 0x1012f29f
-            _mainWindow = doc.TakeRootContainer();
+            _mainWindow = doc.GetRootContainer();
             // _mainWindow.OnBeforeRender += 0x1012e4d0;
             // Swallow mouse events (to prevent click through)
             _mainWindow.SetMouseMsgHandler(msg => true);
@@ -128,8 +128,8 @@ namespace OpenTemple.Core.Ui.Camping
             _mainWindow.OnBeforeRender += UpdateCheckboxes;
 
             var titleLabel = new WidgetText(WindowTitle, "camping-button-text");
-            titleLabel.SetX(31);
-            titleLabel.SetY(11);
+            titleLabel.X = 31;
+            titleLabel.Y = 11;
             titleLabel.FixedSize = new Size(230, 12);
             _mainWindow.AddContent(titleLabel);
 
@@ -148,7 +148,7 @@ namespace OpenTemple.Core.Ui.Camping
             _restButton.SetClickHandler(OnRestClicked);
 
             _cancelButton = doc.GetButton("cancelButton");
-            _cancelButton.SetText(ButtonLabelCancel);
+            _cancelButton.Text = ButtonLabelCancel;
             _cancelButton.SetClickHandler(Hide);
 
             _incrementDaysButton = doc.GetButton("incDaysButton");
@@ -433,7 +433,7 @@ namespace OpenTemple.Core.Ui.Camping
 
             if (sleepStatus == SleepStatus.PassTimeOnly)
             {
-                _restButton.SetText(ButtonLabelPassTime);
+                _restButton.Text = ButtonLabelPassTime;
                 throw new NotImplementedException();
 //                TODO
 //                if (!uiStickyStatePtr /*0x10be2c18*/)
@@ -453,7 +453,7 @@ namespace OpenTemple.Core.Ui.Camping
             }
             else
             {
-                _restButton.SetText(ButtonLabelRest);
+                _restButton.Text = ButtonLabelRest;
             }
 
             switch (uiCampingDefinition)
@@ -514,8 +514,8 @@ namespace OpenTemple.Core.Ui.Camping
         [TempleDllLocation(0x1012ea20)]
         private void UiCampingTimeToRestTextUpdate()
         {
-            _daysToRestText.SetText(uiCampingDaysToRest.ToString(CultureInfo.InvariantCulture));
-            _hoursToRestText.SetText(uiCampingHoursToRest.ToString(CultureInfo.InvariantCulture));
+            _daysToRestText.Text = uiCampingDaysToRest.ToString(CultureInfo.InvariantCulture);
+            _hoursToRestText.Text = uiCampingHoursToRest.ToString(CultureInfo.InvariantCulture);
 
             var daysSize = _daysToRestText.GetPreferredSize();
             var hoursSize = _hoursToRestText.GetPreferredSize();
@@ -524,18 +524,18 @@ namespace OpenTemple.Core.Ui.Camping
             var hoursLabelSize = _hoursToRestLabelText.GetPreferredSize();
 
             var daysLeft = (82 - dayLabelSize.Width - daysSize.Width) / 2;
-            _daysToRestText.SetX(daysLeft + 40);
-            _daysToRestText.SetY(85 - daysSize.Height);
+            _daysToRestText.X = daysLeft + 40;
+            _daysToRestText.Y = 85 - daysSize.Height;
 
-            _daysToRestLabelText.SetX(daysLeft + daysSize.Width + 44);
-            _daysToRestLabelText.SetY(85 - dayLabelSize.Height);
+            _daysToRestLabelText.X = daysLeft + daysSize.Width + 44;
+            _daysToRestLabelText.Y = 85 - dayLabelSize.Height;
 
             var hoursLeft = (82 - hoursLabelSize.Width - hoursSize.Width) / 2;
-            _hoursToRestText.SetX(hoursLeft + 149);
-            _hoursToRestText.SetY(85 - hoursSize.Height);
+            _hoursToRestText.X = hoursLeft + 149;
+            _hoursToRestText.Y = 85 - hoursSize.Height;
 
-            _hoursToRestLabelText.SetX(hoursLeft + hoursSize.Width + 153);
-            _hoursToRestLabelText.SetY(85 - hoursLabelSize.Height);
+            _hoursToRestLabelText.X = hoursLeft + hoursSize.Width + 153;
+            _hoursToRestLabelText.Y = 85 - hoursLabelSize.Height;
 
             _incrementDaysButton.SetDisabled(uiCampingDaysToRest >= 99);
             _decrementDaysButton.SetDisabled(uiCampingDaysToRest <= 0);

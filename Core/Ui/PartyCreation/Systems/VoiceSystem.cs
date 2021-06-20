@@ -20,7 +20,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public VoiceSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/voice_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             // TODO int result;

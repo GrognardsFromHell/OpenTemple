@@ -2,15 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
-using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -28,10 +29,6 @@ namespace OpenTemple.Core.Ui
 
     public class TooltipUi : IDisposable
     {
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
-        private readonly List<TooltipStyle> _styles = new List<TooltipStyle>();
-
         [TempleDllLocation(0x10301384)]
         [TempleDllLocation(0x101FA870)]
         [TempleDllLocation(0x101FA880)]
@@ -43,64 +40,14 @@ namespace OpenTemple.Core.Ui
 
         public TooltipUiRules Rules { get; }
 
-        public TooltipStyle DefaultStyle => _styles[0];
-
         private Dictionary<int, string> _translations;
 
         [TempleDllLocation(0x10124380)]
         public TooltipUi()
         {
-            LoadStyles();
-
             Rules = new TooltipUiRules(Tig.FS.ReadMesFile("art/interface/tooltip_ui/tooltip_ui_rules.mes"));
 
             _translations = Tig.FS.ReadMesFile("mes/tooltip_ui_strings.mes");
-
-            AddActionBarTooltipStyle();
-        }
-
-        private void AddActionBarTooltipStyle()
-        {
-            var style = new TooltipStyle("action-bar", PredefinedFont.ARIAL_10, new PackedLinearColorA(0xFF99FF99));
-            style.TextStyle.tracking = 5;
-            _styles.Add(style);
-        }
-
-        [TempleDllLocation(0x10123b30)]
-        private void LoadStyles()
-        {
-            var mesLines = Tig.FS.ReadMesFile("art/interface/tooltip_ui/tooltip_ui_styles.mes");
-            var lines = mesLines.OrderBy(kp => kp.Key).Select(kp => kp.Value).ToList();
-
-            for (var i = 0; i < lines.Count; i += 7)
-            {
-                var name = lines[i];
-                var fontName = lines[i + 1];
-                var fontSize = int.Parse(lines[i + 2]);
-                var alpha = byte.Parse(lines[i + 3]);
-                var red = byte.Parse(lines[i + 4]);
-                var green = byte.Parse(lines[i + 5]);
-                var blue = byte.Parse(lines[i + 6]);
-
-                var font = Tig.Fonts.GetPredefinedFont(fontName, fontSize);
-                var color = new PackedLinearColorA(red, green, blue, alpha);
-
-                _styles.Add(new TooltipStyle(name, font, color));
-            }
-        }
-
-        [TempleDllLocation(0x101238b0)]
-        public TooltipStyle GetStyle(int index) => _styles[index];
-
-        public TooltipStyle GetStyle(string name)
-        {
-            var style = _styles.Find(s => s.Name == name);
-            if (style == null)
-            {
-                Logger.Warn("Unknown tooltip style '{0}' was used.", name);
-                return GetStyle(0);
-            }
-            return style;
         }
 
         [TempleDllLocation(0x10122da0)]
@@ -222,34 +169,34 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x101243b0)]
-        public string GetCritterDescription(GameObjectBody critter, GameObjectBody observer)
+        public InlineElement GetCritterDescriptionContent(GameObjectBody critter, GameObjectBody observer)
         {
-            var description = new StringBuilder();
+            var content = new ComplexInlineElement();
 
             // Start by appending the name
-            description.Append(GameSystems.MapObject.GetDisplayName(critter, observer));
+            content.AppendContent(GameSystems.MapObject.GetDisplayName(critter, observer));
 
-            description.Append("\n\n");
-            AppendHitPointDescription(critter, description);
+            content.AppendContent("\n\n");
+            AppendHitPointDescription(critter, content);
 
             if (GameSystems.Party.IsInParty(critter))
             {
                 var level = critter.GetStat(Stat.level);
                 if (level > 0)
                 {
-                    description.Append('\n');
-                    description.Append(_translations[104]); // Level
-                    description.Append(": ");
-                    description.Append(level);
+                    content.AppendContent("\n");
+                    content.AppendContent(_translations[104]); // Level
+                    content.AppendContent(": ");
+                    content.AppendContent(level.ToString());
                 }
 
                 if (GameSystems.Combat.IsCombatActive())
                 {
-                    description.Append('\n');
-                    description.Append(_translations[111]); // Initiative
-                    description.Append(": ");
+                    content.AppendContent("\n");
+                    content.AppendContent(_translations[111]); // Initiative
+                    content.AppendContent(": ");
                     var initiative = GameSystems.D20.Initiative.GetInitiative(critter);
-                    description.Append(initiative);
+                    content.AppendContent(initiative.ToString());
                 }
             }
 
@@ -258,78 +205,88 @@ namespace OpenTemple.Core.Ui
 
             foreach (var line in dispIo.Lines)
             {
-                description.Append('\n');
-                description.Append(line);
+                content.AppendContent("\n");
+                content.AppendContent(line);
             }
 
-            return description.ToString();
+            return content;
         }
 
-        private void AppendHitPointDescription(GameObjectBody critter, StringBuilder description)
+        private void AppendHitPointDescription(GameObjectBody critter, IInlineContainer content)
         {
             var subdualDamage = critter.GetStat(Stat.subdual_damage);
             var currentHp = critter.GetStat(Stat.hp_current);
             var maxHp = critter.GetStat(Stat.hp_max);
 
+            StyleDefinition hpStyleDefinition = null;
+
             if (critter.IsPC())
             {
-                description.Append(_translations[103]);
-                description.Append(": @1"); // Switches to HP text color
-                description.Append(currentHp);
-                description.Append("@0/");
-                description.Append(maxHp);
-
-                if (subdualDamage > 0)
+                if (currentHp < maxHp)
                 {
-                    description.Append("@2(");
-                    description.Append(subdualDamage);
-                    description.Append(")@0");
+                    hpStyleDefinition = new StyleDefinition() {Color = new PackedLinearColorA(0xFFFF0000)};
                 }
             }
             else if (GameSystems.Critter.IsDeadNullDestroyed(critter) || currentHp <= 0)
             {
-                description.Append(_translations[108]);
-                description.Append(": @1");
-                description.Append(maxHp - currentHp);
-                description.Append("@0");
+                hpStyleDefinition = new StyleDefinition() {Color = new PackedLinearColorA(0xFF7F7F7F)};
             }
             else
             {
-                description.Append("@1");
-                description.Append(GetInjuryLevelDescription(critter));
-                description.Append("@0");
+                var injuryLevel = UiSystems.Tooltip.GetInjuryLevel(critter);
+                hpStyleDefinition = new StyleDefinition() {Color = UiSystems.Tooltip.GetInjuryLevelColor(injuryLevel)};
+            }
+
+            if (critter.IsPC())
+            {
+                content.AppendContent(_translations[103]);
+                content.AppendContent(": ");
+                content.AppendContent(currentHp.ToString(), hpStyleDefinition);
+                content.AppendContent($"/{maxHp}");
+
+                if (subdualDamage > 0)
+                {
+                    content.AppendContent($"({subdualDamage})", CommonStyles.HpSubdualDamage);
+                }
+            }
+            else if (GameSystems.Critter.IsDeadNullDestroyed(critter) || currentHp <= 0)
+            {
+                content.AppendContent(_translations[108]);
+                content.AppendContent(": ");
+                content.AppendContent((maxHp - currentHp).ToString(), hpStyleDefinition);
+            }
+            else
+            {
+                content.AppendContent(GetInjuryLevelDescription(critter), hpStyleDefinition);
 
                 if (subdualDamage <= 0)
                 {
                     // Show the amount of damage dealt so far
                     if (currentHp < maxHp)
                     {
-                        description.Append('\n');
-                        description.Append(_translations[108]); // "Damage"
-                        description.Append(": @1");
-                        description.Append(maxHp - currentHp);
-                        description.Append("@0");
+                        content.AppendContent("\n");
+                        content.AppendContent(_translations[108]); // "Damage"
+                        content.AppendContent(": ");
+                        content.AppendContent((maxHp - currentHp).ToString(), hpStyleDefinition);
                     }
                 }
                 else
                 {
                     if (subdualDamage >= maxHp)
                     {
-                        description.Append('\n');
-                        description.Append(_translations[108]); // "Damage"
-                        description.Append(": @2(");
-                        description.Append(subdualDamage);
-                        description.Append(")@0");
+                        content.AppendContent("\n");
+                        content.AppendContent(_translations[108]); // "Damage"
+                        content.AppendContent(": ");
+                        content.AppendContent($"({subdualDamage})", CommonStyles.HpSubdualDamage);
                     }
                     else
                     {
-                        description.Append('\n');
-                        description.Append(_translations[108]); // "Damage"
-                        description.Append(": @1");
-                        description.Append(maxHp - currentHp);
-                        description.Append("@0 @2(");
-                        description.Append(subdualDamage);
-                        description.Append(")@0");
+                        content.AppendContent("\n");
+                        content.AppendContent(_translations[108]); // "Damage"
+                        content.AppendContent(": @1");
+                        content.AppendContent((maxHp - currentHp).ToString(), hpStyleDefinition);
+                        content.AppendContent("@0 ");
+                        content.AppendContent($"({subdualDamage})", CommonStyles.HpSubdualDamage);
                     }
                 }
             }
@@ -505,29 +462,49 @@ namespace OpenTemple.Core.Ui
             }
         }
 
-        public string GetObjectDescription(GameObjectBody obj)
-        {
-            return GetObjectDescription(obj, GameSystems.Party.GetConsciousLeader());
-        }
-
         [TempleDllLocation(0x101247a0)]
-        public string GetObjectDescription(GameObjectBody obj, GameObjectBody observer)
+        [CanBeNull]
+        public InlineElement GetObjectDescriptionContent(GameObjectBody obj, GameObjectBody observer)
         {
             if (obj.type.IsEquipment())
             {
-                return UiSystems.Tooltip.GetItemDescription(obj, observer);
+                return new SimpleInlineElement(UiSystems.Tooltip.GetItemDescription(obj, observer));
             }
             else if (obj.type == ObjectType.container)
             {
-                return UiSystems.Tooltip.GetContainerDescription(obj, observer);
+                return new SimpleInlineElement(UiSystems.Tooltip.GetContainerDescription(obj, observer));
             }
             else if (obj.IsCritter())
             {
-                return UiSystems.Tooltip.GetCritterDescription(obj, observer);
+                return UiSystems.Tooltip.GetCritterDescriptionContent(obj, observer);
             }
             else
             {
-                return "";
+                return null;
+            }
+        }
+
+        public void RenderObjectTooltip(IGameViewport viewport, GameObjectBody obj, GameObjectBody observer = null)
+        {
+            var content = UiSystems.Tooltip.GetObjectDescriptionContent(obj, observer);
+            if (content != null)
+            {
+                using var tooltipLabel = new WidgetText(content, "default-tooltip");
+                tooltipLabel.SetBounds(new Rectangle(0, 0, 300, 300));
+
+                var size = tooltipLabel.GetPreferredSize();
+
+                var objRect = GameSystems.MapObject.GetObjectRect(viewport, obj);
+                var extents = new Rectangle(
+                    objRect.X + (objRect.Width - size.Width) / 2,
+                    objRect.Y - size.Height,
+                    size.Width,
+                    size.Height
+                );
+                UiSystems.Tooltip.ClampTooltipToScreen(ref extents);
+
+                tooltipLabel.SetBounds(extents);
+                tooltipLabel.Render();
             }
         }
     }
@@ -594,29 +571,4 @@ namespace OpenTemple.Core.Ui
         }
     }
 
-    public class TooltipStyle
-    {
-        public string Name { get; }
-        public PredefinedFont Font { get; }
-        public PackedLinearColorA Color { get; }
-        public TigTextStyle TextStyle { get; }
-
-        public TooltipStyle(string name, PredefinedFont font, PackedLinearColorA color)
-        {
-            Name = name;
-            Font = font;
-            Color = color;
-
-            var tooltipStyle = new TigTextStyle();
-            tooltipStyle.bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, 204));
-            tooltipStyle.shadowColor = new ColorRect(PackedLinearColorA.Black);
-            tooltipStyle.textColor = new ColorRect(Color);
-            tooltipStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW
-                                 | TigTextStyleFlag.TTSF_BACKGROUND
-                                 | TigTextStyleFlag.TTSF_BORDER;
-            tooltipStyle.tracking = 2;
-            tooltipStyle.kerning = 2;
-            TextStyle = tooltipStyle;
-        }
-    }
 }

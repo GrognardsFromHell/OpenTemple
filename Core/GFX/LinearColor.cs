@@ -1,6 +1,8 @@
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using OpenTemple.Core.Ui.Styles;
 using SharpDX.Mathematics.Interop;
 
 namespace OpenTemple.Core.GFX
@@ -103,6 +105,7 @@ namespace OpenTemple.Core.GFX
             A = (byte) ((packed >> 24) & 0xFF);
         }
 
+        [Pure]
         public uint Pack()
         {
             return (uint) (B | G << 8 | R << 16 | A << 24);
@@ -114,6 +117,11 @@ namespace OpenTemple.Core.GFX
             G = g;
             R = r;
             A = a;
+        }
+
+        public PackedLinearColorA WithAlpha(int alpha)
+        {
+            return new PackedLinearColorA(R, G, B, (byte) alpha);
         }
 
         public static PackedLinearColorA OfFloats(float r, float g, float b, float a)
@@ -130,6 +138,9 @@ namespace OpenTemple.Core.GFX
 
         public static PackedLinearColorA Black => new PackedLinearColorA(0, 0, 0, 255);
 
+        public static PackedLinearColorA Transparent => new PackedLinearColorA(0, 0, 0, 0);
+
+        [Pure]
         public Vector4 ToRGBA() => new Vector4(
             R / 255.0f,
             G / 255.0f,
@@ -179,6 +190,11 @@ namespace OpenTemple.Core.GFX
             }
             result.AppendFormat("{0:x2}{1:x2}{2:x2}", R, G, B);
             return result.ToString();
+        }
+
+        public static PackedLinearColorA FromHex(string text)
+        {
+            return JsonColorLoader.ParseColor(text);
         }
     }
 }

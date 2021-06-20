@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public AlignmentSystem()
         {
             var doc = WidgetDoc.Load("ui/pc_creation/alignment_ui.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
             Container.Visible = false;
 
             _partyAlignmentLabel = doc.GetTextContent("partyAlignmentLabel");
@@ -68,7 +68,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public void Activate()
         {
             var partyAlignment = GameSystems.Party.PartyAlignment;
-            _partyAlignmentLabel.SetText("#{pc_creation:16000} @1" + GameSystems.Stat.GetAlignmentName(partyAlignment));
+            _partyAlignmentLabel.Text = "#{pc_creation:16000} @1" + GameSystems.Stat.GetAlignmentName(partyAlignment);
 
             foreach (var (alignment, button ) in _alignmentButtons)
             {

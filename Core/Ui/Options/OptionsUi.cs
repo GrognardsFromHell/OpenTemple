@@ -40,7 +40,7 @@ namespace OpenTemple.Core.Ui.Options
         public OptionsUi()
         {
             var doc = WidgetDoc.Load("ui/options_ui.json");
-            _container = doc.TakeRootContainer();
+            _container = doc.GetRootContainer();
             _container.Visible = false;
             _optionsContainer = doc.GetContainer("options");
 
@@ -227,7 +227,7 @@ namespace OpenTemple.Core.Ui.Options
             var page = _pages[pageIndex];
 
             _scrollbar.SetValueChangeHandler(null);
-            _scrollbar.SetMax(Math.Max(0, page.Options.Count - OptionRows));
+            _scrollbar.Max = Math.Max(0, page.Options.Count - OptionRows);
             _scrollbar.SetValue(0);
             _scrollbar.SetValueChangeHandler(newOffset => ShowPage(pageIndex));
 
@@ -246,8 +246,7 @@ namespace OpenTemple.Core.Ui.Options
                 y += OptionHeight + OptionPadding;
 
                 var text = new WidgetText(option.Label, "options-label");
-                text.SetX(29);
-                text.SetCenterVertically(true);
+                text.X = 29;
                 optionContainer.AddContent(text);
 
                 option.AddTo(optionContainer);

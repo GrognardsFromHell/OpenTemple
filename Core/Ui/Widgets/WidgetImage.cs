@@ -32,7 +32,7 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 var drawArgs = new Render2dArgs();
                 drawArgs.srcRect = SourceRect.Value;
-                drawArgs.destRect = mContentArea;
+                drawArgs.destRect = ContentArea;
                 drawArgs.customTexture = mTexture.Resource;
                 drawArgs.flags = Render2dFlag.BUFFERTEXTURE;
                 if (Color != PackedLinearColorA.White)
@@ -51,10 +51,10 @@ namespace OpenTemple.Core.Ui.Widgets
             else
             {
                 renderer.DrawRectangle(
-                    mContentArea.X,
-                    mContentArea.Y,
-                    mContentArea.Width,
-                    mContentArea.Height,
+                    ContentArea.X,
+                    ContentArea.Y,
+                    ContentArea.Width,
+                    ContentArea.Height,
                     mTexture.Resource,
                     Color
                 );
@@ -70,7 +70,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 mTexture = Tig.RenderingDevice.GetTextures().Resolve(path, false);
                 if (mTexture.Resource.IsValid())
                 {
-                    mPreferredSize = mTexture.Resource.GetSize();
+                    PreferredSize = mTexture.Resource.GetSize();
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace OpenTemple.Core.Ui.Widgets
             mTexture = texture.Ref();
             if (mTexture.Resource.IsValid())
             {
-                mPreferredSize = mTexture.Resource.GetSize();
+                PreferredSize = mTexture.Resource.GetSize();
             }
         }
 

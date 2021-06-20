@@ -8,11 +8,16 @@
   "__styles": [
     {
       "id": "alertOkButtonLabel",
-      "fontFamily": "arial-12",
-      "paragraphAlign": "center",
-      "align": "center",
-      "dropShadow": true,
-      "dropShadowBrush": "#000000"
+      "fontFamily": "Arial",
+      "paragraphAlignment": "center",
+      "textAlignment": "center",
+      "dropShadowColor": "#000000"
+    },
+    {
+      "id": "alertTitleStyle",
+      "fontFamily": "Arial",
+      "textAlignment": "center",
+      "color": "#ffffff"
     }
   ],
   "__buttonStyles": [
@@ -29,6 +34,16 @@
     {
       "type": "image",
       "path": "art/interface/alert/alert_background.img"
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "x": 28,
+      "y": 14,
+      "width": 295,
+      "height": 18,
+      "text": "",
+      "style": "alertTitleStyle"
     }
   ],
   "children": [

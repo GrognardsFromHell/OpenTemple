@@ -10,38 +10,27 @@ namespace OpenTemple.Core.Ui.Alert
 {
     public class AlertUi
     {
-        private WidgetContainer _mainWindow;
+        private readonly WidgetContainer _mainWindow;
 
-        private ScrollBox _scrollBox;
+        private readonly ScrollBox _scrollBox;
 
-        private WidgetLegacyText _titleLabel;
+        private readonly WidgetText _titleLabel;
+
+        private readonly WidgetButton _okButton;
 
         private Action<int> _okCallback;
-
-        private static readonly TigTextStyle TitleStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-        {
-            flags = TigTextStyleFlag.TTSF_CENTER,
-            kerning = 1,
-            tracking = 3
-        };
-
-        private WidgetButton _okButton;
 
         [TempleDllLocation(0x1019da60)]
         public AlertUi()
         {
             var doc = WidgetDoc.Load("ui/alert_ui.json");
 
-            _mainWindow = doc.TakeRootContainer();
+            _mainWindow = doc.GetRootContainer();
             _mainWindow.ZIndex = 99800;
             _mainWindow.Name = "alert_main_window";
             _mainWindow.Visible = false;
 
-            _titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_12, TitleStyle);
-            _titleLabel.SetX(28);
-            _titleLabel.SetY(14);
-            _titleLabel.FixedSize = new Size(295, 18);
-            _mainWindow.AddContent(_titleLabel);
+            _titleLabel = doc.GetTextContent("title");
 
             _okButton = doc.GetButton("alert_ok_button");
             _okButton.Name = "alert_ok_button";
@@ -74,7 +63,7 @@ namespace OpenTemple.Core.Ui.Alert
             GameSystems.TimeEvent.PauseGameTime();
 
             _okCallback = callback;
-            _okButton.SetText(buttonText);
+            _okButton.Text = buttonText;
         }
 
         [TempleDllLocation(0x1019d480)]

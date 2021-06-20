@@ -1,0 +1,114 @@
+{
+  "$schema": "../schemas/styleFile.json",
+  "styles": [
+    {
+      "id": "char-ui-attribute-mode",
+      "$comment": "Used to show the chosen mode to assign the char attributes (pointbuy/roll)",
+      "inherit": "decorative-text",
+      "color": "#5A7390"
+    },
+    {
+      "id": "char-ui-attribute-rerolls",
+      "$comment": "If attributes were rolled, used for the number of rerolls used",
+      "inherit": "decorative-text",
+      "color": "#FFFFFF"
+    },
+    {
+      "id": "char-ui-stat-label",
+      "$comment": "Used in the character sheet for the stat/attribute names",
+      "fontFace": "Arial",
+      "fontSize": 10,
+      "fontWeight": "bold",
+      "color": "#000000",
+      "wordWrap": "nowrap"
+    },
+    {
+      "id": "char-ui-stat-value",
+      "$comment": "Used in the character sheet for the stat/attribute names",
+      "fontFace": "Arial",
+      "fontSize": 10,
+      "color": "#ffffff",
+      "wordWrap": "nowrap"
+    },
+    {
+      "id": "char-ui-stat-value-bonus",
+      "$comment": "Applied to value labels if they include a buff",
+      "color": "rgba(32, 255, 32, 255)"
+    },
+    {
+      "id": "char-ui-stat-value-malus",
+      "$comment": "Applied to value labels if they include a debuff",
+      "color": "rgba(255, 32, 32, 255)"
+    },
+    {
+      "id": "char-ui-stat-value-hp-damaged",
+      "$comment": "Applied to HP value if it's not full",
+      "color": "rgba(255, 51, 51, 255)"
+    },
+    {
+      "id": "char-ui-stat-money",
+      "$comment": "Applied to the labels that show the amount of money owned",
+      "color": "#ffffff"
+    },
+    {
+      "id": "char-ui-dialog-title",
+      "$comment": "Applied to the label that shows the character's name and character classes",
+      "inherit": "decorative-text",
+      "color": "#ffffff",
+      "textAlignment": "center",
+      "paragraphAlignment": "center",
+      "dropShadowColor": "#000000",
+      "trimMode": "character",
+      "trimmingSign": "ellipsis"
+    },
+    {
+      "id": "char-ui-worship",
+      "$comment": "Applied to the text that shows the worshipped deity",
+      "wordWrap": "nowrap",
+      "color": "#ffffff",
+      "trimMode": "character",
+      "trimmingSign": "ellipsis",
+      "dropShadowColor": "#000000"
+    },
+    {
+      "id": "char-ui-worship-label",
+      "$comment": "Applied to the label prefix of the worshipped deity",
+      "color": "rgb(67, 88, 110)"
+    },
+    {
+      "id": "char-ui-align-gender-race",
+      "$comment": "Applied to the text that shows the character's alignment, gender and race",
+      "wordWrap": "nowrap",
+      "color": "#ffffff",
+      "trimMode": "character",
+      "trimmingSign": "ellipsis",
+      "dropShadowColor": "#000000",
+      "textAlignment": "right"
+    },
+    {
+      "id": "char-ui-feat-button",
+      "$comment": "Applied to the buttons in the feat list",
+      "dropShadowColor": "#000000"
+    },
+    {
+      "id": "char-ui-feat-button-hover",
+      "$comment": "Applied to the buttons in the feat list, when they're being hovered.",
+      "color": "#0D6BE3"
+    },
+    {
+      "id": "char-ui-skill-button",
+      "$comment": "Applied to the buttons in the skill list",
+      "dropShadowColor": "#000000"
+    },
+    {
+      "id": "char-ui-skill-button-hover",
+      "$comment": "Applied to the buttons in the skill list, when they're being hovered.",
+      "color": "#0D6BE3"
+    },
+    {
+      "id": "char-ui-skill-value",
+      "$comment": "Applied to the skill-value in the skill list, in addition to the button style above",
+      "textAlignment": "center"
+    }
+  ]
+}

@@ -67,7 +67,7 @@ namespace OpenTemple.Core.Ui.TownMap
         {
             var doc = WidgetDoc.Load("ui/townmap_ui.json");
 
-            _mainWindow = doc.TakeRootContainer();
+            _mainWindow = doc.GetRootContainer();
             _mainWindow.Visible = false;
             _mainWindow.SetKeyStateChangeHandler(HandleShortcut);
 
@@ -75,7 +75,6 @@ namespace OpenTemple.Core.Ui.TownMap
             exit.SetClickHandler(Hide);
 
             _worldMapButton = doc.GetButton("worldMapButton");
-            _worldMapButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             _worldMapButton.SetClickHandler(OpenWorldMap);
 
             // Since we're on the worldmap, this button switches to the townmap
@@ -235,7 +234,7 @@ namespace OpenTemple.Core.Ui.TownMap
                     179, 15
                 ));
                 visitedMapButton.SetStyle("visitedMapButton");
-                visitedMapButton.SetText(GameSystems.Map.GetMapDescription(visitedMap));
+                visitedMapButton.Text = GameSystems.Map.GetMapDescription(visitedMap);
                 visitedMapButton.SetClickHandler(() =>
                 {
                     if (_currentMapId != visitedMap)

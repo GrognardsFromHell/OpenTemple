@@ -10,21 +10,6 @@ namespace OpenTemple.Core.Ui.Logbook
     internal class LogbookKeyAcquiredPopup
     {
 
-        private static readonly TigTextStyle TitleStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-        {
-            flags = TigTextStyleFlag.TTSF_CENTER|TigTextStyleFlag.TTSF_DROP_SHADOW,
-            shadowColor = new ColorRect(PackedLinearColorA.Black),
-            kerning = 1,
-            tracking = 3
-        };
-
-        private static readonly TigTextStyle BodyStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-        {
-            flags = TigTextStyleFlag.TTSF_CENTER,
-            kerning = 2,
-            tracking = 2
-        };
-
         private readonly WidgetContainer _window;
 
         public event Action<bool> OnChangeNotificationSetting;
@@ -33,24 +18,21 @@ namespace OpenTemple.Core.Ui.Logbook
         {
             var doc = WidgetDoc.Load("ui/key_acquired_popup.json");
 
-            _window = doc.TakeRootContainer();
+            _window = doc.GetRootContainer();
 
-            var title = new WidgetLegacyText(translations.NotificationPopupTitle, PredefinedFont.PRIORY_12,
-                TitleStyle);
-            title.SetY(18);
-            _window.AddContent(title);
+            doc.GetTextContent("title").Text = translations.NotificationPopupTitle;
 
             var textContainer = doc.GetContainer("textContainer");
 
-            var text = new WidgetLegacyText("", PredefinedFont.ARIAL_10,
-                BodyStyle);
-            text.MaxWidth = 237;
+            var text = new WidgetText();
+            text.FixedWidth = 237;
             text.Text = translations.NotificationPopupText;
             textContainer.AddContent(text);
 
-            var prompt = new WidgetLegacyText(translations.NotificationPopupPrompt, PredefinedFont.ARIAL_10,
-                BodyStyle);
-            prompt.SetY(text.GetPreferredSize().Height + 13);
+            var prompt = new WidgetText();
+            prompt.FixedWidth = 237;
+            prompt.Text = translations.NotificationPopupPrompt;
+            prompt.Y = text.GetPreferredSize().Height + 13;
             textContainer.AddContent(prompt);
 
             // Created @ 0x1019727c
@@ -64,7 +46,7 @@ namespace OpenTemple.Core.Ui.Logbook
             var acceptButton = doc.GetButton("accept");
             // logbook_ui_key_entry_accept_butn1.OnHandleMessage += 0x10197070;
             // logbook_ui_key_entry_accept_butn1.OnBeforeRender += 0x10196d70;
-            acceptButton.SetText(translations.NotificationPopupYes);
+            acceptButton.Text = translations.NotificationPopupYes;
             acceptButton.Name = "logbook_ui_key_entry_accept_butn";
             acceptButton.SetClickHandler(() =>
             {
@@ -76,7 +58,7 @@ namespace OpenTemple.Core.Ui.Logbook
             var declineButton = doc.GetButton("decline");
             // logbook_ui_key_entry_decline_butn1.OnHandleMessage += 0x10197070;
             // logbook_ui_key_entry_decline_butn1.OnBeforeRender += 0x10196d70;
-            declineButton.SetText(translations.NotificationPopupNo);
+            declineButton.Text = translations.NotificationPopupNo;
             declineButton.Name = "logbook_ui_key_entry_decline_butn";
             declineButton.SetClickHandler(Hide);
         }

@@ -40,22 +40,22 @@ namespace OpenTemple.Core.Ui.Widgets
                     new Vertex2d
                     {
                         diffuse = topColor,
-                        pos = new Vector4(mContentArea.Right, mContentArea.Top, 0, 1)
+                        pos = new Vector4(ContentArea.Right, ContentArea.Top, 0, 1)
                     },
                     new Vertex2d
                     {
                         diffuse = bottomColor,
-                        pos = new Vector4(mContentArea.Right, mContentArea.Bottom, 0, 1)
+                        pos = new Vector4(ContentArea.Right, ContentArea.Bottom, 0, 1)
                     },
                     new Vertex2d
                     {
                         diffuse = bottomColor,
-                        pos = new Vector4(mContentArea.Left, mContentArea.Bottom, 0, 1)
+                        pos = new Vector4(ContentArea.Left, ContentArea.Bottom, 0, 1)
                     },
                     new Vertex2d
                     {
                         diffuse = topColor,
-                        pos = new Vector4(mContentArea.Left, mContentArea.Top, 0, 1)
+                        pos = new Vector4(ContentArea.Left, ContentArea.Top, 0, 1)
                     },
                 };
 
@@ -65,7 +65,7 @@ namespace OpenTemple.Core.Ui.Widgets
             if (Pen.A != 0)
             {
                 renderer.DrawRectangleOutline(
-                    mContentArea,
+                    ContentArea,
                     Pen
                 );
             }

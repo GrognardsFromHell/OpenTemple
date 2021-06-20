@@ -1,0 +1,14 @@
+
+{{for enum_type in enum_types}}
+{{include "GeneratedCodeAttribute.txt"}}
+public enum {{enum_type.name}}
+{
+    {{~for enum_literal in enum_type.literals~}}
+    {{enum_literal.item1}}{{
+        if enum_literal.item2 != null
+            " = " + enum_literal.item2
+        end
+    }},
+    {{~end~}}
+}
+{{end}}

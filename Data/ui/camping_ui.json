@@ -27,8 +27,8 @@
     {
       "id": "camping-button-text",
       "fontFamily": "arial-12",
-      "align": "center",
-      "paragraphAlign": "center",
+      "textAlignment": "center",
+      "paragraphAlignment": "center",
       "legacyTracking": 2,
       "legacyKerning": 2
     },

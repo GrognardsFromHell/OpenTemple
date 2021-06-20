@@ -1,77 +1,43 @@
 using System.Drawing;
 using System.Globalization;
-using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Systems.Help;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Skills
 {
     public class SkillButton : WidgetButtonBase
     {
-        private const PredefinedFont LabelFont = PredefinedFont.ARIAL_10;
+        private readonly WidgetText _skillNameLabel;
 
-        private static readonly TigTextStyle LabelNormalStyle =
-            new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-            {
-                flags = TigTextStyleFlag.TTSF_DROP_SHADOW,
-                shadowColor = new ColorRect(PackedLinearColorA.Black),
-                kerning = 2,
-                leading = 2
-            };
-
-        private static readonly TigTextStyle LabelHoverStyle =
-            new TigTextStyle(new ColorRect(new PackedLinearColorA(0xFF0D6BE3)))
-            {
-                flags = TigTextStyleFlag.TTSF_DROP_SHADOW,
-                shadowColor = new ColorRect(PackedLinearColorA.Black),
-                kerning = 2,
-                leading = 2
-            };
-
-        private static readonly TigTextStyle ValueNormalStyle;
-
-        private static readonly TigTextStyle ValueHoverStyle;
-
-        private WidgetLegacyText _skillNameLabel;
-
-        private WidgetLegacyText _skillBonusLabel;
+        private readonly WidgetText _skillBonusLabel;
 
         private SkillId _skill;
 
         public SkillId Skill => _skill;
 
-        static SkillButton()
-        {
-            ValueNormalStyle = LabelNormalStyle.Copy();
-            ValueNormalStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
-            ValueHoverStyle = LabelHoverStyle.Copy();
-            ValueHoverStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
-        }
-
         public SkillButton(Rectangle rect) : base(rect)
         {
-            _skillNameLabel = new WidgetLegacyText("", LabelFont, LabelNormalStyle);
-            _skillNameLabel.SetX(4);
-            _skillNameLabel.SetY(1);
+            _skillNameLabel = new WidgetText("", "char-ui-skill-button");
+            _skillNameLabel.X = 4;
+            _skillNameLabel.Y = 1;
             AddContent(_skillNameLabel);
 
             // Rectangle surrounding the bonus
             var bonusBox = new WidgetRectangle();
             bonusBox.Pen = new PackedLinearColorA(0xFF80A0C0);
-            bonusBox.SetX(rect.Width - 38);
-            bonusBox.SetY(1);
+            bonusBox.X = rect.Width - 38;
+            bonusBox.Y = 1;
             bonusBox.FixedSize = new Size(30, rect.Height - 2);
             AddContent(bonusBox);
 
-            _skillBonusLabel = new WidgetLegacyText("", LabelFont, ValueNormalStyle);
-            _skillBonusLabel.SetX(bonusBox.GetX());
-            _skillBonusLabel.SetY(bonusBox.GetY());
+            _skillBonusLabel = new WidgetText("", "char-ui-skill-button");
+            _skillBonusLabel.X = bonusBox.X;
+            _skillBonusLabel.Y = bonusBox.Y;
             _skillBonusLabel.FixedSize = bonusBox.FixedSize;
+            _skillBonusLabel.AddStyle("char-ui-skill-value");
             AddContent(_skillBonusLabel);
 
             SetClickHandler(ShowBonusDetails);
@@ -84,7 +50,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Skills
             var bonlist = BonusList.Create();
             critter.dispatch1ESkillLevel(_skill, ref bonlist, null, 0);
 
-            var historyId = GameSystems.RollHistory.AddMiscBonus(critter, bonlist, 1000 + (int) _skill, 0);
+            var historyId = GameSystems.RollHistory.AddMiscBonus(critter, bonlist, 1000 + (int)_skill, 0);
             GameSystems.Help.ShowRoll(historyId);
         }
 
@@ -98,7 +64,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Skills
             var critter = UiSystems.CharSheet.CurrentCritter;
 
             var bonuses = BonusList.Default;
-            var totalBonus = (float) critter.dispatch1ESkillLevel(_skill, ref bonuses, null,
+            var totalBonus = (float)critter.dispatch1ESkillLevel(_skill, ref bonuses, null,
                 SkillCheckFlags.UnderDuress);
             // Include the .5 ranks that are not included in the overall total
             var halfRanks = GameSystems.Skill.GetSkillHalfRanks(critter, _skill);
@@ -114,7 +80,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Skills
             // and group every other bonus
             var attributeBonusFound = false;
             var attributeBonusStat = GameSystems.Skill.GetDecidingStat(_skill);
-            var attributeBonusType = 2 + (int) attributeBonusStat;
+            var attributeBonusType = 2 + (int)attributeBonusStat;
             var attributeBonusValue = 0;
             var miscBonusValue = 0;
             for (var i = 0; i < bonuses.bonCount; i++)
@@ -140,16 +106,9 @@ namespace OpenTemple.Core.Ui.CharSheet.Skills
         [TempleDllLocation(0x101bd850)]
         public override void Render()
         {
-            if (ButtonState == LgcyButtonState.Hovered || ButtonState == LgcyButtonState.Down)
-            {
-                _skillNameLabel.TextStyle = LabelHoverStyle;
-                _skillBonusLabel.TextStyle = ValueHoverStyle;
-            }
-            else
-            {
-                _skillNameLabel.TextStyle = LabelNormalStyle;
-                _skillBonusLabel.TextStyle = ValueNormalStyle;
-            }
+            var hovered = ButtonState == LgcyButtonState.Hovered || ButtonState == LgcyButtonState.Down;
+            _skillNameLabel.ToggleStyle("char-ui-skill-button-hover", hovered);
+            _skillBonusLabel.ToggleStyle("char-ui-skill-button-hover", hovered);
 
             GetSkillBreakdown(out _, out _, out _, out _, out var totalBonus);
             _skillBonusLabel.Text = totalBonus;

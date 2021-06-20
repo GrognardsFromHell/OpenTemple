@@ -11,23 +11,22 @@
       "fontFamily": "arial-12",
       "legacyKerning": 0,
       "legacyTracking": 5,
-      "foreground": "#ffffff",
-      "dropShadow": true,
-      "dropShadowBrush": "#000000",
-      "paragraphAlign": "center",
-      "align": "center"
+      "color": "#ffffff",
+      "dropShadowColor": "#000000",
+      "paragraphAlignment": "center",
+      "textAlignment": "center"
     },
     {
       "id": "options-label",
       "fontFamily": "arial-10",
-      "paragraphAlign": "center",
+      "paragraphAlignment": "center",
       "legacyKerning": 1,
       "legacyTracking": 3
     },
     {
       "id": "options-label-muted",
       "inherit": "options-label",
-      "foreground": "#909090"
+      "color": "#909090"
     }
   ],
   "__buttonStyles": [

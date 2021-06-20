@@ -67,27 +67,19 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
 
         private WidgetButton _takeAllButton;
 
-        private WidgetLegacyText _title;
+        private WidgetText _title;
 
-        private WidgetLegacyText _containerName;
+        private WidgetText _containerName;
 
         private WidgetImage _containerIcon;
 
         private WidgetButtonBase _containerIconButton;
 
-        private TigTextStyle _titleStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-        {
-            flags = TigTextStyleFlag.TTSF_TRUNCATE | TigTextStyleFlag.TTSF_DROP_SHADOW | TigTextStyleFlag.TTSF_CENTER,
-            shadowColor = new ColorRect(PackedLinearColorA.Black),
-            kerning = 1,
-            tracking = 5
-        };
-
         [TempleDllLocation(0x101412a0)]
         public CharSheetLootingUi()
         {
             var doc = WidgetDoc.Load("ui/char_looting.json");
-            var root = doc.TakeRootContainer();
+            var root = doc.GetRootContainer();
             root.Visible = false;
 
             _translations = Tig.FS.ReadMesFile("mes/6_char_looting_ui_text.mes");
@@ -101,15 +93,15 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
             _mainWindow.OnBeforeRender += UpdateSlots;
 
             // Window title
-            _title = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
-            _title.SetY(9);
-            _title.SetFixedWidth(_mainWindow.Width);
+            _title = new WidgetText("", "char-looting-title");
+            _title.Y = 9;
+            _title.FixedWidth = _mainWindow.Width;
             _mainWindow.AddContent(_title);
 
             // Container / Vendor name
-            _containerName = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
-            _containerName.SetY(80);
-            _containerName.SetFixedWidth(_mainWindow.Width);
+            _containerName = new WidgetText("", "char-looting-title");
+            _containerName.Y = 80;
+            _containerName.FixedWidth = _mainWindow.Width;
             _mainWindow.AddContent(_containerName);
 
             for (var i = 0; i < _lootingSlots.Length; i++)
@@ -133,7 +125,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
             _takeAllButton = new WidgetButton(new Rectangle(9, 97, 120, 30));
             _takeAllButton.Name = "char_looting_ui_take_all_button";
             _takeAllButton.SetStyle("charLootingIdentify");
-            _takeAllButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             _takeAllButton.SetClickHandler(OnClickTakeAllButton);
             _mainWindow.Add(_takeAllButton);
 
@@ -142,11 +133,10 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
             // Icon for the container being looted or vendor being bartered with
             _containerIcon = new WidgetImage(null);
             _containerIconButton.AddContent(_containerIcon);
-            _containerIconButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             _mainWindow.Add(_containerIconButton);
 
             _scrollBar = new WidgetScrollBar(new Rectangle(117, 131, 13, 324));
-            _scrollBar.SetMax(100); // TODO This is actually shit because there are slots visible
+            _scrollBar.Max = 100; // TODO This is actually shit because there are slots visible
             _scrollBar.SetValueChangeHandler(_ =>
             {
                 ResetSlots();
@@ -208,13 +198,13 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
             if (Vendor != null)
             {
                 _title.Text = _translations[1502];
-                _takeAllButton.SetText(_translations[1501]);
+                _takeAllButton.Text = _translations[1501];
                 _takeAllButton.TooltipText = UiSystems.Tooltip.GetString(6030);
             }
             else
             {
                 _title.Text = _translations[1503];
-                _takeAllButton.SetText(_translations[1500]);
+                _takeAllButton.Text = _translations[1500];
                 _takeAllButton.TooltipText = null;
             }
 

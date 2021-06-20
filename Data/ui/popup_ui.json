@@ -10,7 +10,7 @@
       "fontFamily": "arial-10",
       "legacyTracking": 3,
       "legacyKerning": 1,
-      "align": "center"
+      "textAlignment": "center"
     },
     {
       "id": "popupBody",

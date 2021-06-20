@@ -34,19 +34,19 @@ namespace OpenTemple.Core.Ui.PartyCreation
         {
             set
             {
-                _valueLabel.SetText(value.ToString());
+                _valueLabel.Text = value.ToString();
                 var modifier = D20StatSystem.GetModifierForAbilityScore(value);
-                _modifierLabel.SetText($"{modifier:+#;-#;0}");
+                _modifierLabel.Text = $"{modifier:+#;-#;0}";
             }
         }
 
         public StatBlockAbilityScore(Stat ability)
         {
             var doc = WidgetDoc.Load("ui/pc_creation/stat_block_ability_score.json");
-            Container = doc.TakeRootContainer();
+            Container = doc.GetRootContainer();
 
             _caption = doc.GetTextContent("caption");
-            _caption.SetText(GameSystems.Stat.GetStatShortName(ability));
+            _caption.Text = GameSystems.Stat.GetStatShortName(ability);
             _captionBg = doc.GetContent("activeCaptionBg");
             _modifierLabel = doc.GetTextContent("modifierLabel");
             _modifierBorder = doc.GetContent("activeModifierBorder");

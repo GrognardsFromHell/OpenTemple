@@ -1,225 +1,202 @@
-using System.Collections.Generic;
+#nullable enable
+
+using System;
 using System.Drawing;
-using System.Linq;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
-    public class WidgetText : WidgetContent
+    public class WidgetText : WidgetContent, IFlowContentHost, IDisposable
     {
-        // Render these fonts using the old rendering engine
-        private static readonly Dictionary<string, PredefinedFont> PredefinedFontMapping =
-            new Dictionary<string, PredefinedFont>
+        private readonly Paragraph _paragraph;
+
+        // TODO: Dispose, preferably when it becomes invisible
+        private TextLayout? _textLayout;
+
+        private bool _preferredSizeDirty = true;
+
+        protected TextLayout TextLayout
+        {
+            get
             {
-                {"scurlock-48", PredefinedFont.SCURLOCK_48},
-                {"arial-10", PredefinedFont.ARIAL_10},
-                {"arial-12", PredefinedFont.ARIAL_12},
-                {"priory-12", PredefinedFont.PRIORY_12},
-                {"arial-bold-10", PredefinedFont.ARIAL_BOLD_10},
-                {"arial-bold-24", PredefinedFont.ARIAL_BOLD_24}
-            };
+                var styles = ComputedStyles;
+                // It's possible the content area was not initialized yet
+                var availableWidth = ContentArea.Width;
+                if (availableWidth <= 0)
+                {
+                    availableWidth = FixedWidth;
+                }
+                var width = MathF.Max(0, availableWidth - styles.MarginLeft - styles.MarginRight
+                                         - styles.PaddingLeft - styles.PaddingRight - styles.BorderWidth);
+                var availableHeight = ContentArea.Height;
+                if (availableHeight <= 0)
+                {
+                    availableHeight = FixedHeight;
+                }
+                var height = MathF.Max(0, availableHeight - styles.MarginTop - styles.MarginBottom
+                                          - styles.PaddingTop - styles.PaddingBottom - styles.BorderWidth);
+
+                _textLayout ??= Tig.RenderingDevice.TextEngine.CreateTextLayout(
+                    _paragraph,
+                    width,
+                    height
+                );
+                return _textLayout;
+            }
+        }
 
         public WidgetText()
         {
-            mText.defaultStyle = Globals.WidgetTextStyles.GetDefaultStyle();
-        }
-
-        public WidgetText(string text, string styleId)
-        {
-            mStyleId = styleId;
-            mText.defaultStyle = Globals.WidgetTextStyles.GetTextStyle(styleId);
-            SetText(text);
-        }
-
-        public WidgetText(string text, TextStyle style)
-        {
-            mText.defaultStyle = style;
-            SetText(text);
-        }
-
-        public void SetText(string text)
-        {
-            // TODO: Process mes file placeholders
-            mText.text = Globals.UiAssets.ApplyTranslation(text);
-            UpdateBounds();
-        }
-
-        public string GetText() => mText.text;
-
-        public void SetStyleId(string id)
-        {
-            mStyleId = id;
-            if (id != null)
+            _paragraph = new Paragraph()
             {
-                mText.defaultStyle = Globals.WidgetTextStyles.GetTextStyle(id);
-            }
-            else
+                Host = this
+            };
+        }
+
+        public WidgetText(string text, string styleId) : this()
+        {
+            Text = text;
+            AddStyle(styleId);
+        }
+
+        public WidgetText(InlineElement content, string styleId) : this()
+        {
+            Content = content;
+            AddStyle(styleId);
+        }
+
+        /// <summary>
+        /// Indicates whether the text in this widget is currently being trimmed because not enough space
+        /// is available. Depends on setting the paragraph style that actually trims text.
+        /// </summary>
+        public bool IsTrimmed => TextLayout.IsTrimmed;
+
+        public string Text
+        {
+            get => _paragraph.TextContent;
+            set
             {
-                mText.defaultStyle = Globals.WidgetTextStyles.GetDefaultStyle();
+                // TODO: Process mes file placeholders
+                var text = Globals.UiAssets.ApplyTranslation(value);
+                Content = new SimpleInlineElement()
+                {
+                    Text = text
+                };
             }
-
-            UpdateBounds();
         }
 
-        public string GetStyleId()
+        public InlineElement? Content
         {
-            return mStyleId;
+            set
+            {
+                _paragraph.ClearContent();
+                if (value != null)
+                {
+                    _paragraph.AppendContent(value);
+                }
+
+                InvalidateTextLayout();
+            }
         }
 
-        public void SetStyle(TextStyle style)
+        private void InvalidateTextLayout()
         {
-            mText.defaultStyle = style;
-            UpdateBounds();
-        }
-
-        public TextStyle GetStyle()
-        {
-            return mText.defaultStyle;
+            _textLayout?.Dispose();
+            _textLayout = null;
+            _preferredSizeDirty = true;
         }
 
         public void SetCenterVertically(bool isCentered)
         {
-            mCenterVertically = isCentered;
+            LocalStyles.ParagraphAlignment = isCentered ? ParagraphAlign.Center : null;
         }
 
         public override void Render()
         {
-            if (PredefinedFontMapping.TryGetValue(mText.defaultStyle.fontFace, out var predefinedFont))
+            if (_paragraph.IsEmpty)
             {
-                RenderWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.defaultStyle));
+                return;
             }
-            else
+
+            var styles = ComputedStyles;
+            var x = ContentArea.X + styles.MarginLeft;
+            var y = ContentArea.Y + styles.MarginTop;
+            var width = ContentArea.Width - styles.MarginLeft - styles.MarginRight;
+            var height = ContentArea.Height - styles.MarginTop - styles.MarginBottom;
+
+            Tig.RenderingDevice.TextEngine.RenderBackgroundAndBorder(
+                x, y,
+                width, height,
+                styles
+            );
+
+            // Move into inner area
+            x += styles.PaddingLeft + styles.BorderWidth;
+            y += styles.PaddingTop + styles.BorderWidth;
+            width -= styles.PaddingLeft + styles.PaddingRight + styles.BorderWidth;
+            height -= styles.PaddingTop + styles.PaddingBottom + styles.BorderWidth;
+
+            // Refresh layout if layout size changed
+            var textLayout = TextLayout;
+            if (Math.Abs(width - textLayout.LayoutWidth) > 0.1f ||
+                Math.Abs(height - textLayout.LayoutHeight) > 0.1f)
             {
-                var area = mContentArea; // Will be modified below
-
-                if (mCenterVertically)
-                {
-                    var metrics = Tig.RenderingDevice.TextEngine.MeasureText(mText);
-                    area = new Rectangle(area.X,
-                        area.Y + (area.Height - metrics.height) / 2,
-                        area.Width, metrics.height);
-                }
-
-                Tig.RenderingDevice.TextEngine.RenderText(area, mText);
+                textLayout.LayoutWidth = width;
+                textLayout.LayoutHeight = height;
             }
+
+            Tig.RenderingDevice.TextEngine.RenderTextLayout(x, y, textLayout);
         }
 
-        private FormattedText mText;
-        private string mStyleId;
-        private bool mWordWrap = false;
-        private bool mCenterVertically = false;
-
-        private void UpdateBounds()
+        public override Size GetPreferredSize()
         {
-            if (PredefinedFontMapping.TryGetValue(mText.defaultStyle.fontFace, out var predefinedFont))
+            if (_preferredSizeDirty)
             {
-                UpdateBoundsWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.defaultStyle));
-            }
-            else
-            {
-                var textMetrics = Tig.RenderingDevice.TextEngine.MeasureText(mText);
-                mPreferredSize.Width = textMetrics.width;
-                mPreferredSize.Height = textMetrics.height;
-            }
-        }
-
-        private void RenderWithPredefinedFont(PredefinedFont font, TigTextStyle textStyle)
-        {
-            var area = mContentArea; // Will be modified below
-
-            Tig.Fonts.PushFont(font);
-
-            var text = mText.text;
-
-            if (mText.defaultStyle.align == TextAlign.Center)
-            {
-                textStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
+                PreferredSize.Width = (int) Math.Ceiling(
+                    TextLayout.OverallWidth + ComputedStyles.MarginLeft + ComputedStyles.MarginRight
+                    + ComputedStyles.PaddingLeft + ComputedStyles.PaddingRight
+                    + ComputedStyles.BorderWidth
+                );
+                PreferredSize.Height = (int) Math.Ceiling(
+                    TextLayout.OverallHeight + ComputedStyles.MarginTop + ComputedStyles.MarginBottom
+                    + ComputedStyles.PaddingTop + ComputedStyles.PaddingBottom
+                    + ComputedStyles.BorderWidth
+                );
+                _preferredSizeDirty = false;
             }
 
-            if (mCenterVertically)
-            {
-                var textMeas = Tig.Fonts.MeasureTextSize(text, textStyle);
-                area = new Rectangle(area.X,
-                    area.Y + (area.Height - textMeas.Height) / 2,
-                    area.Width, textMeas.Height);
-            }
-
-            Tig.Fonts.RenderText(text, area, textStyle);
-
-            Tig.Fonts.PopFont();
-        }
-
-        private void UpdateBoundsWithPredefinedFont(PredefinedFont font, TigTextStyle textStyle)
-        {
-            if (mText.defaultStyle.align == TextAlign.Center)
-            {
-                textStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
-            }
-
-            Tig.Fonts.PushFont(font);
-            var rect = Tig.Fonts.MeasureTextSize(mText.text, textStyle, 0, 0);
-            Tig.Fonts.PopFont();
-            if (mText.defaultStyle.align == TextAlign.Center)
-            {
-                // Return 0 here to be in sync with the new renderer
-                mPreferredSize.Width = 0;
-            }
-            else
-            {
-                mPreferredSize.Width = rect.Width;
-            }
-
-            mPreferredSize.Height = rect.Height;
-        }
-
-        private TigTextStyle GetLegacyStyle(TextStyle style)
-        {
-            var sColorRect = new ColorRect(style.foreground.primaryColor);
-            if (style.foreground.gradient)
-            {
-                sColorRect.bottomLeft = style.foreground.secondaryColor;
-                sColorRect.bottomRight = style.foreground.secondaryColor;
-            }
-
-            TigTextStyle textStyle = new TigTextStyle(sColorRect);
-            textStyle.leading = style.legacyLeading;
-            textStyle.kerning = style.legacyKerning;
-            textStyle.tracking = style.legacyTracking;
-            if (LegacyAdditionalTextColors != null)
-            {
-                textStyle.additionalTextColors = LegacyAdditionalTextColors;
-            }
-            else if (style.legacyExtraColors != null)
-            {
-                textStyle.additionalTextColors = style.legacyExtraColors
-                    .Select(b => new ColorRect(b.primaryColor))
-                    .ToArray();
-            }
-
-            if (style.dropShadow)
-            {
-                textStyle.flags |= TigTextStyleFlag.TTSF_DROP_SHADOW;
-                var shadowColor = new ColorRect(style.dropShadowBrush.primaryColor);
-                if (style.dropShadowBrush.gradient)
-                {
-                    shadowColor.bottomLeft = style.dropShadowBrush.secondaryColor;
-                    shadowColor.bottomRight = style.dropShadowBrush.secondaryColor;
-                }
-
-                textStyle.shadowColor = shadowColor;
-            }
-
-            if (style.align == TextAlign.Center)
-            {
-                textStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
-            }
-
-            return textStyle;
+            return PreferredSize;
         }
 
         public ColorRect[] LegacyAdditionalTextColors { get; set; }
 
+        protected override void OnUpdateFixedSize()
+        {
+            InvalidateTextLayout();
+        }
+
+        protected override void OnStylesInvalidated()
+        {
+            base.OnStylesInvalidated();
+            // We need to ensure that the styles inherited by the paragraph are up to date
+            _paragraph.InvalidateStyles();
+            InvalidateTextLayout();
+        }
+
+        public void NotifyStyleChanged()
+        {
+        }
+
+        public void NotifyTextFlowChanged()
+        {
+        }
+
+        public void Dispose()
+        {
+            _textLayout?.Dispose();
+        }
     }
 }

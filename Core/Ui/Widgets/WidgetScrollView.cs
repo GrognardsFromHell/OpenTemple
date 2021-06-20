@@ -92,7 +92,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 }
             }
 
-            mScrollBar.SetMax(innerHeight);
+            mScrollBar.Max = innerHeight;
         }
 
         private void UpdateInnerContainer()
