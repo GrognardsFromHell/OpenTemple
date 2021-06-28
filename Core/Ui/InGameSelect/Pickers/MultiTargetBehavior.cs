@@ -4,7 +4,6 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers
 {
@@ -174,20 +173,11 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             var widget = Globals.UiManager.GetWidgetAt(x, y);
             widget?.RenderTooltip(x, y);
 
-            var text = $"{PickerState.tgtIdx + 1}/{Picker.maxTargets}";
-
-            var style = UiSystems.InGameSelect.GetTextStyle();
-
-            var metrics = new TigFontMetrics();
-            Tig.Fonts.Measure(style, text, ref metrics);
-
-            var extents = new Rectangle(
-                x + 32,
-                y + 32,
-                metrics.width,
-                metrics.height
+            Tig.RenderingDevice.TextEngine.RenderText(
+                new RectangleF(x + 32, y + 32, 100, 13),
+                UiSystems.InGameSelect.PickerTooltipStyle,
+                $"{PickerState.tgtIdx + 1}/{Picker.maxTargets}"
             );
-            Tig.Fonts.RenderText(text, extents, style);
         }
 
         [TempleDllLocation(0x10137da0)]

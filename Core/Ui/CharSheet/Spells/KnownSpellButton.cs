@@ -5,6 +5,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Spells
@@ -59,18 +60,18 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         [TempleDllLocation(0x101b78f0)]
         private void DrawSpellNameUnderMouse(int x, int y, object arg)
         {
-            Tig.Fonts.PushFont(PredefinedFont.ARIAL_BOLD_10);
-            var textStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White));
-            textStyle.shadowColor = new ColorRect(PackedLinearColorA.Black);
-            textStyle.flags = TigTextStyleFlag.TTSF_TRUNCATE | TigTextStyleFlag.TTSF_DROP_SHADOW;
-            textStyle.kerning = 1;
-            textStyle.tracking = 5;
+            ComputedStyles style;
 
             var caster = UiSystems.CharSheet.CurrentCritter;
             if (GameSystems.Spell.GetSchoolSpecialization(caster, out var specializedSchool, out _, out _)
                 && GameSystems.Spell.GetSpellSchoolEnum(_spell.spellEnum) == specializedSchool)
             {
-                textStyle.textColor = new ColorRect(new PackedLinearColorA(0xFFFFFF80));
+                style = Globals.UiStyles.GetComputed("dragged-spell-name",
+                    "dragged-spell-name-specialized");
+            }
+            else
+            {
+                style = Globals.UiStyles.GetComputed("dragged-spell-name");
             }
 
             string displayName;
@@ -85,14 +86,17 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
                 displayName = $"{spellName} ({domainName})";
             }
 
-            var extents = new Rectangle();
+            var extents = new RectangleF();
             extents.X = x;
             extents.Y = y - Height;
             extents.Width = Width;
             extents.Height = 0;
 
-            Tig.Fonts.RenderText(displayName, extents, textStyle);
-            Tig.Fonts.PopFont();
+            Tig.RenderingDevice.TextEngine.RenderText(
+                extents,
+                style,
+                displayName
+            );
         }
 
         public override bool HandleMessage(Message msg)

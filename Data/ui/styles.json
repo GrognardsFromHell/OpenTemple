@@ -83,6 +83,78 @@
       "dropShadowColor": "#000000",
       "inherit": "default",
       "wordWrap": "nowrap"
+    },
+    {
+      "$comment": "Used for ingame text bubbles shown on talking NPCs",
+      "id": "ingame-text-bubble",
+      "inherit": "decorative-text",
+      "dropShadowColor": "#000000"
+    },
+    {
+      "$comment": "Used for ingame notification text such as skill failures, etc.",
+      "id": "ingame-floating-text",
+      "inherit": "decorative-text",
+      "dropShadowColor": "#000000",
+      "textAlignment": "center"
+    },
+    {
+      "$comment": "Used to set the color of floating text.",
+      "id": "ingame-floating-text-white",
+      "color": "#ffffff"
+    },
+    {
+      "$comment": "Used to set the color of floating text.",
+      "id": "ingame-floating-text-red",
+      "color": "rgb(255, 0, 0)"
+    },
+    {
+      "$comment": "Used to set the color of floating text.",
+      "id": "ingame-floating-text-green",
+      "color": "rgb(0, 255, 0)"
+    },
+    {
+      "$comment": "Used to set the color of floating text.",
+      "id": "ingame-floating-text-blue",
+      "color": "rgb(64, 64, 255)"
+    },
+    {
+      "$comment": "Used to set the color of floating text.",
+      "id": "ingame-floating-text-yellow",
+      "color": "rgb(255, 255, 0)"
+    },
+    {
+      "$comment": "Used to set the color of floating text.",
+      "id": "ingame-floating-text-lightblue",
+      "color": "rgb(128, 226, 255)"
+    },
+    {
+      "$comment": "Used to draw text at mouse cursor when spells are being dragged",
+      "id": "dragged-spell-name",
+      "fontWeight": "bold",
+      "dropShadowColor": "#000000",
+      "trimMode": "character",
+      "trimmingSign": "ellipsis",
+      "wordWrap": "nowrap"
+    },
+    {
+      "$comment": "Added to the style above if the spell being dragged is of the specialized school",
+      "id": "dragged-spell-name-specialized",
+      "color": "#FFFF80"
+    },
+    {
+      "$comment": "Used for text placed on the mouse cursor when picking spell or other targets",
+      "id": "picker-tooltip",
+      "inherit": "default",
+      "wordWrap": "nowrap"
+    },
+    {
+      "$comment": "Used to render target numbers on targets that are already selected for a multi-target picker",
+      "id": "picker-target-label",
+      "inherit": "default",
+      "wordWrap": "nowrap",
+      "fontSize": 24,
+      "fontWeight": "bold",
+      "textAlignment": "center"
     }
   ]
 }

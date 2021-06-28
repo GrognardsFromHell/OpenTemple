@@ -20,6 +20,7 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.InGameSelect.Pickers;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 using Rectangle = System.Drawing.Rectangle;
@@ -28,6 +29,9 @@ namespace OpenTemple.Core.Ui.InGameSelect
 {
     public class InGameSelectUi : IResetAwareSystem, IDisposable
     {
+        public ComputedStyles PickerTooltipStyle { get; }
+        public ComputedStyles PickerTargetLabelStyle { get; }
+
         private ResourceRef<IMdfRenderMaterial> quarterArcShaderId;
         private ResourceRef<IMdfRenderMaterial> invalidSelectionShaderId;
 
@@ -42,15 +46,6 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
         [TempleDllLocation(0x10BD2C50)]
         private ResourceRef<IMdfRenderMaterial> _spellPointerMaterial;
-
-        [TempleDllLocation(0x10BD2C00)]
-        private TigTextStyle _textStyle;
-
-        [TempleDllLocation(0x10106f20)]
-        public TigTextStyle GetTextStyle()
-        {
-            return _textStyle;
-        }
 
         public IFlowContentHost TextHost { get; } = new FlowContentHost()
         {
@@ -119,12 +114,8 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _rectangleRenderer = new RectangleRenderer(Tig.RenderingDevice);
             GameSystems.PathXRender.LoadShaders();
 
-            _textStyle = new TigTextStyle();
-            _textStyle.flags = 0;
-            _textStyle.textColor = new ColorRect(PackedLinearColorA.White);
-            _textStyle.shadowColor = new ColorRect(PackedLinearColorA.White);
-            _textStyle.kerning = 2;
-            _textStyle.leading = 0;
+            PickerTooltipStyle = Globals.UiStyles.GetComputed("picker-tooltip");
+            PickerTargetLabelStyle = Globals.UiStyles.GetComputed("picker-target-label");
 
             quarterArcShaderId = Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/quarter-arc.mdf");
             invalidSelectionShaderId = Tig.MdfFactory.LoadMaterial("art/interface/cursors/InvalidSelection.mdf");
@@ -1168,31 +1159,30 @@ namespace OpenTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10108fa0)]
         private void RenderTargetNumberLabels(IGameViewport viewport)
         {
-            Tig.Fonts.PushFont(PredefinedFont.ARIAL_BOLD_24);
             foreach (var kvp in intgameselTexts)
             {
                 var obj = kvp.Key;
                 var text = kvp.Value;
 
-                var metrics = new TigFontMetrics();
-                Tig.Fonts.Measure(_textStyle, text, ref metrics);
-
                 var worldPos = obj.GetLocationFull().ToInches3D();
 
                 var screenPos = viewport.WorldToScreen(worldPos);
 
-                var extents = new Rectangle
+                var extents = new RectangleF
                 {
-                    X = (int) (screenPos.X - metrics.width / 2.0f),
-                    Y = (int) screenPos.Y,
-                    Width = metrics.width,
-                    Height = metrics.height
+                    X = screenPos.X - 100,
+                    Y = screenPos.Y,
+                    Width = 200,
+                    Height = 20
                 };
-                Tig.Fonts.RenderText(text, extents, _textStyle);
+                Tig.RenderingDevice.TextEngine.RenderText(
+                    extents,
+                    PickerTargetLabelStyle,
+                    text
+                );
             }
 
             intgameselTexts.Clear();
-            Tig.Fonts.PopFont();
         }
 
         [TempleDllLocation(0x10108ed0)]

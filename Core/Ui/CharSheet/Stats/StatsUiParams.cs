@@ -98,15 +98,12 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             var normalFont = settings[260];
             var normalFontSize = int.Parse(settings[261]);
-            NormalFont = Tig.Fonts.GetPredefinedFont(normalFont, normalFontSize);
             var boldFont = settings[270];
             var boldFontSize = int.Parse(settings[271]);
-            BoldFont = Tig.Fonts.GetPredefinedFont(boldFont, boldFontSize);
             var moneyFont = settings[280];
             var moneyFontSize = int.Parse(settings[281]);
-            MoneyFont = Tig.Fonts.GetPredefinedFont(moneyFont, moneyFontSize);
 
-            LoadColor(out FontNormalColor, 300);
+            // LoadColor(out FontNormalColor, 300);
             // LoadColor(out FontDarkColor, 319);
 
             // TooltipUiStyle = int.Parse(settings[200]);
@@ -182,12 +179,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
         public Rectangle SecondaryAtkValue;
         public Rectangle SpeedLabel;
         public Rectangle SpeedValue;
-
-        public PredefinedFont NormalFont;
-        public PredefinedFont BoldFont;
-        public PredefinedFont MoneyFont;
-        public PackedLinearColorA FontNormalColor;
-        public PackedLinearColorA FontDarkColor;
 
         public Dictionary<StatsUiTexture, string> TexturePaths { get; set; } = new Dictionary<StatsUiTexture, string>();
     }

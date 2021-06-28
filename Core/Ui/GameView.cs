@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Security.Cryptography.X509Certificates;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
@@ -133,6 +134,8 @@ namespace OpenTemple.Core.Ui
                 PackedLinearColorA.White,
                 samplerType
             );
+
+            UiSystems.TurnBased.Render(this);
         }
 
         protected override void Dispose(bool disposing)
@@ -167,6 +170,16 @@ namespace OpenTemple.Core.Ui
         public MapObjectRenderer GetMapObjectRenderer()
         {
             return _gameRenderer.GetMapObjectRenderer();
+        }
+
+        public override bool HandleMessage(Message msg)
+        {
+            if (UiSystems.TurnBased.HandleMessage(this, msg))
+            {
+                return true;
+            }
+
+            return base.HandleMessage(msg);
         }
 
         public override bool HandleMouseMessage(MessageMouseArgs msg)

@@ -107,8 +107,10 @@ namespace OpenTemple.Core.Ui.Styles
                 builder.Add(_localStyles);
             }
 
-            foreach (var styleId in _styleIds)
+            // Add in reverse. Priority is lowest to highest.
+            for (var i = _styleIds.Count - 1; i >= 0; i--)
             {
+                var styleId = _styleIds[i];
                 builder.Add(Globals.UiStyles.Get(styleId));
             }
 

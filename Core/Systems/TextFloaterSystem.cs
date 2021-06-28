@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Immutable;
 using System.Drawing;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Utils;
+using CollectionExtensions = OpenTemple.Core.Utils.CollectionExtensions;
 
 namespace OpenTemple.Core.Systems
 {
@@ -35,65 +37,29 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10B3D8A4)]
         private const bool IsEditor = false; // Is Editor
 
-        [TempleDllLocation(0x102CDF50)]
-        private static readonly Dictionary<TextFloaterColor, PackedLinearColorA> Colors =
-            new Dictionary<TextFloaterColor, PackedLinearColorA>
-            {
-                {TextFloaterColor.White, PackedLinearColorA.White},
-                {TextFloaterColor.Red, new PackedLinearColorA(255, 0, 0, 255)},
-                {TextFloaterColor.Green, new PackedLinearColorA(0, 255, 0, 255)},
-                {TextFloaterColor.Blue, new PackedLinearColorA(64, 64, 255, 255)},
-                {TextFloaterColor.Yellow, new PackedLinearColorA(255, 255, 0, 255)},
-                {TextFloaterColor.LightBlue, new PackedLinearColorA(128, 226, 255, 255)},
-            };
+
+        // TODO this is incorrect and the floating system needs a rework of how it fades in/out
+        private const float LineHeight = 20;
+
+        // The width/height allocated to floating text.
+        private const float FloaterWidth = 200;
+        private const float FloaterHeight = 5 * LineHeight;
 
         [TempleDllLocation(0x10b3d8ac)]
-        private readonly List<TextFloater> _activeFloaters = new List<TextFloater>();
-
-        private PredefinedFont _font = PredefinedFont.PRIORY_12;
-
-        [TempleDllLocation(0x10b3d850)]
-        private readonly TigTextStyle _textStyle = new TigTextStyle
-        {
-            flags = 0,
-            textColor = new ColorRect(PackedLinearColorA.White),
-            shadowColor = new ColorRect(PackedLinearColorA.Black),
-            kerning = 2,
-            tracking = 5
-        };
-
-        [TempleDllLocation(0x10b3d80c)]
-        private readonly int _lineHeight;
+        private readonly List<TextFloater> _activeFloaters = new();
 
         [TempleDllLocation(0x10b3d808)]
         private TimePoint _timeReference;
 
-        /// <summary>
-        /// Defines the intended size of the text floater rectangle that will be
-        /// centered above an object's "head".
-        /// </summary>
-        [TempleDllLocation(0x10B3D82C)] [TempleDllLocation(0x10B3D830)]
-        private readonly Size _boundingBox;
-
         [TempleDllLocation(0x100a2040)]
         public TextFloaterSystem()
         {
-            // Pre-measure the font-size with our chosen font
-            Tig.Fonts.PushFont(_font);
-            TigFontMetrics metrics = default;
-            Tig.Fonts.Measure(_textStyle, "", ref metrics);
-            Tig.Fonts.PopFont();
-
-            _lineHeight = metrics.lineheight + 2;
-            _boundingBox = new Size(
-                200,
-                5 * _lineHeight
-            );
         }
 
         [TempleDllLocation(0x100a2980)]
         public void Dispose()
         {
+            RemoveAll();
         }
 
         [TempleDllLocation(0x100a2970)]
@@ -176,11 +142,11 @@ namespace OpenTemple.Core.Systems
             var line = new TextFloaterLine();
 
             // Initially place the line as line 5
-            line.Y = 4 * _lineHeight;
+            line.Y = 4 * LineHeight;
             if (floater.Lines.Count > 0)
             {
                 // If there's another existing line that's already overlapping the lowest line, move our new line down.
-                var lastLineBottom = floater.Lines[^1].Y + _lineHeight;
+                var lastLineBottom = floater.Lines[^1].Y + floater.Lines[^1].TextLayout.OverallHeight;
 
                 if (lastLineBottom > line.Y)
                 {
@@ -190,17 +156,30 @@ namespace OpenTemple.Core.Systems
 
             floater.Lines.Add(line);
 
-            line.Text = text;
-            line.Color = color;
-            line.Category = category;
+            var paragraph = new Paragraph();
+            paragraph.StyleIds = ImmutableList.Create("ingame-floating-text", GetColorStyle(color));
+            paragraph.AppendContent(text);
 
-            // Measure the text height here once since it shouldn't change once the floater has been added
-            Tig.Fonts.PushFont(_font);
-            line.TextRectangle = Tig.Fonts.MeasureTextSize(text, _textStyle);
-            Tig.Fonts.PopFont();
+            line.Text = text;
+            line.TextLayout = Tig.RenderingDevice.TextEngine.CreateTextLayout(paragraph, FloaterWidth, FloaterHeight);
+            line.Category = category;
 
             GameSystems.MapObject.SetFlags(obj, ObjectFlag.TEXT_FLOATER);
             UpdateAlpha(line);
+        }
+
+        private static string GetColorStyle(TextFloaterColor color)
+        {
+            return color switch
+            {
+                TextFloaterColor.White => "ingame-floating-text-white",
+                TextFloaterColor.Red => "ingame-floating-text-red",
+                TextFloaterColor.Green => "ingame-floating-text-green",
+                TextFloaterColor.Blue => "ingame-floating-text-blue",
+                TextFloaterColor.Yellow => "ingame-floating-text-yellow",
+                TextFloaterColor.LightBlue => "ingame-floating-text-lightblue",
+                _ => throw new ArgumentOutOfRangeException(nameof(color), color, null)
+            };
         }
 
         /// <summary>
@@ -209,31 +188,30 @@ namespace OpenTemple.Core.Systems
         /// </summary>
         /// <param name="floater"></param>
         [TempleDllLocation(0x100a1fa0)]
-        private void UpdateAlpha(TextFloaterLine floater)
+        private static void UpdateAlpha(TextFloaterLine floater)
         {
-            var middleOfLine = _lineHeight / 2;
+            var middleOfLine = LineHeight / 2;
             var currentPos = floater.Y + middleOfLine;
 
             // This will fade-out items far below the fold as if they were far up
-            if (currentPos > 3 * _lineHeight)
+            if (currentPos > 3 * LineHeight)
             {
-                currentPos = _boundingBox.Height - currentPos;
+                currentPos = FloaterHeight - currentPos;
             }
 
-            if (currentPos > 2 * _lineHeight)
+            if (currentPos > 2 * LineHeight)
             {
-                floater.Alpha = 0xFF;
+                floater.Opacity = 1;
             }
             else if (currentPos <= middleOfLine)
             {
-                floater.Alpha = 0;
+                floater.Opacity = 0;
             }
             else
             {
                 // Fade-in range is up until line 2 (of 5)
-                var factor = (currentPos - middleOfLine) /
-                             (float) (2 * _lineHeight - middleOfLine);
-                floater.Alpha = (byte) (factor * 255.0f);
+                floater.Opacity = (currentPos - middleOfLine) /
+                                  (float)(2 * LineHeight - middleOfLine);
             }
         }
 
@@ -244,7 +222,8 @@ namespace OpenTemple.Core.Systems
             {
                 floater.Object.SetFlag(ObjectFlag.TEXT_FLOATER, false);
             }
-            _activeFloaters.Clear();
+
+            _activeFloaters.DisposeAndClear();
         }
 
         [TempleDllLocation(0x100a2600)]
@@ -254,8 +233,6 @@ namespace OpenTemple.Core.Systems
             {
                 return;
             }
-
-            Tig.Fonts.PushFont(PredefinedFont.PRIORY_12);
 
             var visibleRect = new Rectangle(Point.Empty, viewport.Camera.ViewportSize);
 
@@ -275,28 +252,18 @@ namespace OpenTemple.Core.Systems
                         continue;
                     }
 
-                    var extends = new Rectangle
-                    {
-                        // Horizontally center the text inside the floater's bounding rectangle
-                        X = floaterRect.X + (floaterRect.Width - line.TextRectangle.Width) / 2,
-                        Y = floaterRect.Y + line.Y,
-                        Width = line.TextRectangle.Width,
-                        Height = line.TextRectangle.Height
-                    };
-
-                    var color = Colors[line.Color];
-                    color.A = line.Alpha;
-                    _textStyle.textColor = new ColorRect(color);
-
-                    Tig.Fonts.RenderText(line.Text, extends, _textStyle);
+                    Tig.RenderingDevice.TextEngine.RenderTextLayout(
+                        floaterRect.X,
+                        floaterRect.Y + line.Y,
+                        line.TextLayout,
+                        new TextRenderOptions().WithOpacity(line.Opacity)
+                    );
                 }
             }
-
-            Tig.Fonts.PopFont();
         }
 
         [TempleDllLocation(0x100a2410)]
-        private void GetFloaterScreenRect(IGameViewport viewport, TextFloater floater, out Rectangle rectangle)
+        private static void GetFloaterScreenRect(IGameViewport viewport, TextFloater floater, out Rectangle rectangle)
         {
             var floaterBottomCenter = floater.Object.GetLocationFull().ToInches3D(floater.ObjectHeight);
             var screenPos = viewport.WorldToScreen(floaterBottomCenter);
@@ -304,10 +271,10 @@ namespace OpenTemple.Core.Systems
             // This will center the intended rectangle horizontally around the object head's screen pos,
             // and place it on top.
             rectangle = new Rectangle(
-                (int) (screenPos.X - _boundingBox.Width / 2.0f),
-                (int) (screenPos.Y - _boundingBox.Height - 1),
-                _boundingBox.Width,
-                _boundingBox.Height
+                (int)(screenPos.X - FloaterWidth / 2f),
+                (int)(screenPos.Y - FloaterHeight),
+                (int)FloaterWidth,
+                (int)FloaterHeight
             );
         }
 
@@ -322,21 +289,39 @@ namespace OpenTemple.Core.Systems
             Stub.TODO(); // TODO: Vanilla did some stuff here to remove some of the lines, but not sure why
         }
 
-        private class TextFloaterLine
+        private class TextFloaterLine : IDisposable
         {
-            public int Y;
+            public float Y;
             public string Text;
-            public Rectangle TextRectangle;
-            public byte Alpha;
-            public TextFloaterColor Color;
+            public float Opacity;
             public TextFloaterCategory Category;
+            public TextLayout TextLayout;
+
+            public void Dispose()
+            {
+                TextLayout.Dispose();
+            }
         }
 
-        private class TextFloater
+        private class TextFloater : IDisposable
         {
             public GameObjectBody Object { get; }
             public float ObjectHeight { get; private set; }
-            public List<TextFloaterLine> Lines { get; } = new List<TextFloaterLine>();
+            public List<TextFloaterLine> Lines { get; } = new();
+
+            public float OverallHeight
+            {
+                get
+                {
+                    float result = 0;
+                    foreach (var line in Lines)
+                    {
+                        result += line.TextLayout.OverallHeight;
+                    }
+
+                    return result;
+                }
+            }
 
             public TextFloater(GameObjectBody obj)
             {
@@ -348,7 +333,11 @@ namespace OpenTemple.Core.Systems
             {
                 ObjectHeight = Object.GetRenderHeight();
             }
-        }
 
+            public void Dispose()
+            {
+                Lines.DisposeAndClear();
+            }
+        }
     }
 }

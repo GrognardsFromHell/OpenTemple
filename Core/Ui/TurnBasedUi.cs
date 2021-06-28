@@ -25,11 +25,9 @@ namespace OpenTemple.Core.Ui
         IsLastSequenceActionWithPath = 0x2
     }
 
-    public class TurnBasedUi : IResetAwareSystem, IDisposable
+    public class TurnBasedUi : IResetAwareSystem
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
-        private readonly WidgetContainer _container;
 
         [TempleDllLocation(0x10c040e8)]
         public GameObjectBody intgameTargetFromRaycast { get; private set; }
@@ -44,16 +42,10 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x10174d70)]
         public TurnBasedUi()
         {
-            _container = new WidgetContainer(Globals.UiManager.CanvasSize);
-            // TODO: This should be moved to the actual game view widget
-            _container.OnBeforeRender += () => Render(GameViews.Primary);
-            _container.OnHandleMessage += HandleMessage;
-            Globals.UiManager.SendToBack(_container);
         }
 
         [TempleDllLocation(0x10c04114)]
         private bool uiIntgameWaypointMode;
-
 
         [TempleDllLocation(0x10c0410c)]
         private bool uiIntgameAcquireByRaycastOn;
@@ -70,9 +62,11 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x10C040F8)]
         private LocAndOffsets uiIntgameWaypointLoc;
 
+        private WidgetTooltipRenderer _tooltipRenderer = new();
+
         [TempleDllLocation(0x10173f70)]
         [TemplePlusLocation("ui_intgame_turnbased.cpp:178")]
-        private void Render(IGameViewport viewport)
+        public void Render(IGameViewport viewport)
         {
             var widEntered = uiIntgameWidgetEnteredForRender;
             if (!widEntered)
@@ -112,32 +106,11 @@ namespace OpenTemple.Core.Ui
                         // trim last \n
                         tooltipText = tooltipText.Trim('\n');
 
-                        int x = screenXfromMouseEvent;
-                        int y = screenYfromMouseEvent;
+                        var x = screenXfromMouseEvent;
+                        var y = screenYfromMouseEvent;
 
-                        Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
-                        TigTextStyle ttTextStyle = new TigTextStyle();
-                        ttTextStyle.kerning = 2;
-                        ttTextStyle.tracking = 2;
-                        ttTextStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW | TigTextStyleFlag.TTSF_BACKGROUND |
-                                            TigTextStyleFlag.TTSF_BORDER;
-                        ttTextStyle.field2c = -1;
-                        ttTextStyle.colors4 = null;
-                        ttTextStyle.colors2 = null;
-                        ttTextStyle.field0 = 0;
-                        ttTextStyle.leading = 0;
-                        ttTextStyle.textColor = new ColorRect(PackedLinearColorA.White);
-                        ttTextStyle.shadowColor = new ColorRect(new PackedLinearColorA(0xFF000000));
-                        ttTextStyle.bgColor = new ColorRect(new PackedLinearColorA(0x99111111));
-
-                        Rectangle extents = Tig.Fonts.MeasureTextSize(tooltipText, ttTextStyle);
-                        extents.X = x;
-                        if (y > extents.Height)
-                            extents.Y = y - extents.Height;
-                        else
-                            extents.Y = y;
-                        Tig.Fonts.RenderText(tooltipText, extents, ttTextStyle);
-                        Tig.Fonts.PopFont();
+                        _tooltipRenderer.TooltipText = tooltipText;
+                        _tooltipRenderer.Render(x, y);
                     }
 
                     RenderThreatRanges(viewport); // TODO: This shit needs to be moved into a scene-render-only method querying this state
@@ -167,11 +140,8 @@ namespace OpenTemple.Core.Ui
         private int _panicKeys = 0;
 
         [TempleDllLocation(0x10174A30)]
-        private bool HandleMessage(Message msg)
+        public bool HandleMessage(IGameViewport viewport, Message msg)
         {
-            // TODO: Should come from the viewport that was actually interacted with
-            var viewport = GameViews.Primary;
-
             // TODO: DM System
 
             var initialSeq = GameSystems.D20.Actions.CurrentSequence;
@@ -963,11 +933,6 @@ namespace OpenTemple.Core.Ui
                     UiSystems.TurnBased.IntgameValidateMouseSelection(GameViews.Primary, msg);
                 }
             }
-        }
-
-        public void Dispose()
-        {
-            _container.Dispose();
         }
 
         [TempleDllLocation(0x10173ac0)]

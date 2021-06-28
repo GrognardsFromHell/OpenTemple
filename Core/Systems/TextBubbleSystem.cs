@@ -3,32 +3,23 @@ using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.FlowModel;
 
 namespace OpenTemple.Core.Systems
 {
     public class TextBubbleSystem : IGameSystem, ITimeAwareSystem, IMapCloseAwareGameSystem, IResetAwareSystem
     {
-        private const PredefinedFont Font = PredefinedFont.PRIORY_12;
-
-        [TempleDllLocation(0x10b3d8d8)]
-        private static readonly TigTextStyle TextStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-        {
-            flags = TigTextStyleFlag.TTSF_DROP_SHADOW,
-            shadowColor = new ColorRect(PackedLinearColorA.Black),
-            kerning = 2,
-            tracking = 5
-        };
-
         private const int MaxTextBubbles = 8;
 
         [TempleDllLocation(0x10b3d928)]
-        private TimeSpan TextDuration => TimeSpan.FromSeconds(Globals.Config.TextDuration);
+        private static TimeSpan TextDuration => TimeSpan.FromSeconds(Globals.Config.TextDuration);
 
         [TempleDllLocation(0x10b3d938)]
-        private readonly List<TextBubble> _bubbles = new List<TextBubble>();
+        private readonly List<TextBubble> _bubbles = new();
 
         private ResourceRef<ITexture> _portraitFrame;
 
@@ -54,6 +45,7 @@ namespace OpenTemple.Core.Systems
                 if (bubble.Object == obj)
                 {
                     _bubbles.RemoveAt(i);
+                    bubble.Dispose();
                 }
             }
 
@@ -74,7 +66,7 @@ namespace OpenTemple.Core.Systems
                 if (textBubble.Object == obj)
                 {
                     // Find the oldest one
-                    if (result == null || !textBubble.Flag2 && textBubble.Shown < result.Shown)
+                    if (result == null || !textBubble.IsPermanent && textBubble.Shown < result.Shown)
                     {
                         result = textBubble;
                     }
@@ -87,6 +79,11 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x100a2e60)]
         public void FloatText_100A2E60(GameObjectBody obj, string text, bool withPortrait = false)
         {
+            if (text.Length == 0)
+            {
+                return;
+            }
+
             // Clean up an old bubble to show this new one
             if (_bubbles.Count >= MaxTextBubbles)
             {
@@ -98,18 +95,16 @@ namespace OpenTemple.Core.Systems
                 {
                     oldest.Object.SetFlag(ObjectFlag.TEXT, false);
                 }
+
+                oldest.Dispose();
             }
 
-            Tig.Fonts.PushFont(Font);
-            var textSize = Tig.Fonts.MeasureTextSize(text, TextStyle, 200, 200);
-            Tig.Fonts.PopFont();
+            var paragraph = new Paragraph();
+            paragraph.AppendContent(text, "ingame-text-bubble");
 
-            var bubble = new TextBubble();
-            bubble.Size = textSize.Size;
-            bubble.Text = text;
-            bubble.Object = obj;
-            bubble.Shown = TimePoint.Now;
-            bubble.Duration = TextDuration;
+            var textLayout = Tig.RenderingDevice.TextEngine.CreateTextLayout(paragraph, 200, 200);
+
+            var bubble = new TextBubble(text, textLayout, obj, TextDuration);
 
             if (!withPortrait)
             {
@@ -140,11 +135,11 @@ namespace OpenTemple.Core.Systems
 
                 if (durationSeconds == -2)
                 {
-                    bubble.Flag2 = true;
+                    bubble.IsPermanent = true;
                 }
                 else
                 {
-                    bubble.Flag2 = false;
+                    bubble.IsPermanent = false;
                     var duration = TextDuration;
                     // -1 resets to default
                     if (durationSeconds > -1)
@@ -165,7 +160,6 @@ namespace OpenTemple.Core.Systems
         {
             var visibleRect = new Rectangle(Point.Empty, viewport.Camera.ViewportSize);
 
-            Tig.Fonts.PushFont(Font);
             foreach (var bubble in _bubbles)
             {
                 GetScreenRect(viewport, bubble, out var screenRect);
@@ -174,12 +168,11 @@ namespace OpenTemple.Core.Systems
                     continue;
                 }
 
-                if (bubble.Text.Length == 0)
-                {
-                    continue;
-                }
-
-                Tig.Fonts.RenderText(bubble.Text, screenRect, TextStyle);
+                Tig.RenderingDevice.TextEngine.RenderTextLayout(
+                    screenRect.X,
+                    screenRect.Y,
+                    bubble.TextLayout
+                );
 
                 if (!bubble.HidePortrait)
                 {
@@ -209,8 +202,6 @@ namespace OpenTemple.Core.Systems
                     Tig.ShapeRenderer2d.DrawRectangle(ref args);
                 }
             }
-
-            Tig.Fonts.PopFont();
         }
 
         [TempleDllLocation(0x100a3150)]
@@ -223,10 +214,10 @@ namespace OpenTemple.Core.Systems
             var screenPos = viewport.WorldToScreen(worldPos);
 
             var pos = new Point(
-                (int) (screenPos.X - bubble.Size.Width / 2.0f),
+                (int) (screenPos.X - bubble.TextLayout.OverallWidth / 2.0f),
                 (int) (screenPos.Y - 20)
             );
-            rect = new Rectangle(pos, bubble.Size);
+            rect = new Rectangle(pos, new Size((int) bubble.TextLayout.OverallWidth, (int) bubble.TextLayout.OverallHeight));
         }
 
         [TempleDllLocation(0x100a30f0)]
@@ -235,6 +226,7 @@ namespace OpenTemple.Core.Systems
             foreach (var bubble in _bubbles)
             {
                 bubble.Object.SetFlag(ObjectFlag.TEXT, false);
+                bubble.Dispose();
             }
 
             _bubbles.Clear();
@@ -246,9 +238,11 @@ namespace OpenTemple.Core.Systems
             for (var i = _bubbles.Count - 1; i >= 0; i--)
             {
                 var bubble = _bubbles[i];
-                if (!bubble.Flag2 && (time - bubble.Shown) > bubble.Duration)
+                if (!bubble.IsPermanent && (time - bubble.Shown) > bubble.Duration)
                 {
                     _bubbles.RemoveAt(i);
+                    bubble.Dispose();
+
                     // If there aren't any other bubbles for the same object, we need to clear the object's flags
                     bool foundOther = false;
                     for (var j = 0; j < i; j++)
@@ -281,22 +275,36 @@ namespace OpenTemple.Core.Systems
         }
     }
 
-    internal class TextBubble
+    internal class TextBubble : IDisposable
     {
-        // Probably means "permanent"
-        public bool Flag2 { get; set; }
+        public TextBubble(string text, TextLayout textLayout, GameObjectBody owner, TimeSpan duration)
+        {
+            Text = text;
+            TextLayout = textLayout;
+            Object = owner;
+            Shown = TimePoint.Now;
+            Duration = duration;
+        }
+
+        public GameObjectBody Object { get; }
+
+        public string Text { get; }
+
+        public TextLayout TextLayout { get; }
+
+        // Formerly "flag 2"
+        public bool IsPermanent { get; set; }
 
         // Formerly "flag 4"
         public bool HidePortrait { get; set; }
-
-        public GameObjectBody Object { get; set; }
-
-        public string Text { get; set; }
 
         public TimePoint Shown { get; set; }
 
         public TimeSpan Duration { get; set; }
 
-        public Size Size { get; set; }
+        public void Dispose()
+        {
+            TextLayout.Dispose();
+        }
     }
 }

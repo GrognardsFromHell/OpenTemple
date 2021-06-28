@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using OpenTemple.Core.Location;
@@ -25,22 +26,23 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         internal override void DrawTextAtCursor(int x, int y)
         {
             const int cursorOffset = 22;
-            var destRect = new Rectangle(x + cursorOffset, y + cursorOffset, 100, 13);
 
-            switch (WallState)
+            var tooltip = WallState switch
             {
-                case WallState.StartPoint:
-                    Tig.Fonts.RenderText("Start Point", destRect, TigTextStyle.standardWhite);
-                    break;
-                case WallState.EndPoint:
-                    Tig.Fonts.RenderText("End Point", destRect, TigTextStyle.standardWhite);
-                    break;
-                case WallState.CenterPoint:
-                    Tig.Fonts.RenderText("Center Point", destRect, TigTextStyle.standardWhite);
-                    break;
-                case WallState.Radius:
-                    Tig.Fonts.RenderText("Ring Radius", destRect, TigTextStyle.standardWhite);
-                    break;
+                WallState.StartPoint => "Start Point",
+                WallState.EndPoint => "End Point",
+                WallState.CenterPoint => "Center Point",
+                WallState.Radius => "Ring Radius",
+                _ => null
+            };
+
+            if (tooltip != null)
+            {
+                Tig.RenderingDevice.TextEngine.RenderText(
+                    new RectangleF(x + cursorOffset, y + cursorOffset, 100, 13),
+                    UiSystems.InGameSelect.PickerTooltipStyle,
+                    tooltip
+                );
             }
         }
 
