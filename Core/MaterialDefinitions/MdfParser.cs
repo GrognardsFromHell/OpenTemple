@@ -106,7 +106,7 @@ namespace OpenTemple.Core.MaterialDefinitions
                     result.enableColorWrite = true;
                 } else {
                     if (mStrict) {
-                        throw CreateError("Unrecognized token '{0}'", tokenizer.TokenText);
+                        throw CreateError("Unrecognized token '{0}'", tokenizer.TokenText.ToString());
                     }
                 }
             }
@@ -130,7 +130,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 
             while (tokenizer.NextToken()) {
                 if (tokenizer.IsNamedIdentifier("color")) {
-                    if (!ParseRgba(tokenizer, "Color", out result.diffuse)) {
+                    if (!ParseRgba(ref tokenizer, "Color", out result.diffuse)) {
                         throw CreateError("Unable to parse diffuse color");
                     }
                 } else if (tokenizer.IsNamedIdentifier("texture")) {
@@ -138,7 +138,7 @@ namespace OpenTemple.Core.MaterialDefinitions
                         throw CreateError("Missing filename for texture");
                     }
 
-                    result.samplers[0].filename = tokenizer.TokenText;
+                    result.samplers[0].filename = tokenizer.TokenText.ToString();
                 } else if (tokenizer.IsNamedIdentifier("colorfillonly")) {
                     result.enableZWrite = false;
                     result.enableColorWrite = true;
@@ -156,7 +156,7 @@ namespace OpenTemple.Core.MaterialDefinitions
                     result.clamp = true;
                 } else {
                     if (mStrict) {
-                        throw CreateError("Unrecognized token '{0}'", tokenizer.TokenText);
+                        throw CreateError("Unrecognized token '{0}'", tokenizer.TokenText.ToString());
                     }
                 }
             }
@@ -176,7 +176,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 
 			if (!tokenizer.IsIdentifier) {
 				if (mStrict) {
-					throw CreateError("Unexpected token: {0}", tokenizer.TokenText);
+					throw CreateError("Unexpected token: {0}", tokenizer.TokenText.ToString());
 				}
 				continue;
 			}
@@ -190,32 +190,32 @@ namespace OpenTemple.Core.MaterialDefinitions
 			}
 
 			if (tokenizer.IsNamedIdentifier("texture")) {
-				if (!ParseTextureStageId(tokenizer)) {
+				if (!ParseTextureStageId(ref tokenizer)) {
 					continue;
 				}
 
 				var samplerNo = tokenizer.TokenInt;
-				if (ParseFilename(tokenizer, "Texture")) {
-					result.samplers[samplerNo].filename = tokenizer.TokenText;
+				if (ParseFilename(ref tokenizer, "Texture")) {
+					result.samplers[samplerNo].filename = tokenizer.TokenText.ToString();
 				}
 				continue;
 			}
 
 			if (tokenizer.IsNamedIdentifier("glossmap")) {
-				if (ParseFilename(tokenizer, "GlossMap")) {
-					result.glossmap = tokenizer.TokenText;
+				if (ParseFilename(ref tokenizer, "GlossMap")) {
+					result.glossmap = tokenizer.TokenText.ToString();
 				}
 				continue;
 			}
 
 			if (tokenizer.IsNamedIdentifier("uvtype")) {
-				if (!ParseTextureStageId(tokenizer)) {
+				if (!ParseTextureStageId(ref tokenizer)) {
 					continue;
 				}
 
 				var samplerNo = tokenizer.TokenInt;
 
-				if (!ParseIdentifier(tokenizer, "UvType")) {
+				if (!ParseIdentifier(ref tokenizer, "UvType")) {
 					continue;
 				}
 
@@ -232,7 +232,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 					uvType = MdfUvType.Wavey;
 				} else {
 					if (mStrict) {
-						throw CreateError("Unrecognized UvType: {0}", tokenizer.TokenText);
+						throw CreateError("Unrecognized UvType: {0}", tokenizer.TokenText.ToString());
 					}
 					continue;
 				}
@@ -241,13 +241,13 @@ namespace OpenTemple.Core.MaterialDefinitions
 			}
 
 			if (tokenizer.IsNamedIdentifier("blendtype")) {
-				if (!ParseTextureStageId(tokenizer)) {
+				if (!ParseTextureStageId(ref tokenizer)) {
 					continue;
 				}
 
 				var samplerNo = tokenizer.TokenInt;
 
-				if (!ParseIdentifier(tokenizer, "BlendType")) {
+				if (!ParseIdentifier(ref tokenizer, "BlendType")) {
 					continue;
 				}
 
@@ -264,7 +264,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 					blendType = MdfTextureBlendType.CurrentAlphaAdd;
 				} else {
 					if (mStrict) {
-						throw CreateError("Unrecognized BlendType: {0}", tokenizer.TokenText);
+						throw CreateError("Unrecognized BlendType: {0}", tokenizer.TokenText.ToString());
 					}
 					continue;
 				}
@@ -274,7 +274,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 
 			if (tokenizer.IsNamedIdentifier("color")) {
 				uint argbColor;
-				if (ParseRgba(tokenizer, "Color", out argbColor)) {
+				if (ParseRgba(ref tokenizer, "Color", out argbColor)) {
 					result.diffuse = argbColor;
 				}
 				continue;
@@ -282,7 +282,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 
 			if (tokenizer.IsNamedIdentifier("specular")) {
 				uint argbColor;
-				if (ParseRgba(tokenizer, "Specular", out argbColor)) {
+				if (ParseRgba(ref tokenizer, "Specular", out argbColor)) {
 					result.specular = argbColor;
 				}
 				continue;
@@ -296,7 +296,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 				} else if (!tokenizer.IsNumber) {
 					if (mStrict) {
 						throw CreateError("Expected number after SpecularPower, but got: {0}",
-						                  tokenizer.TokenText);
+						                  tokenizer.TokenText.ToString());
 					}
 				} else {
 					result.specularPower = tokenizer.TokenFloat;
@@ -305,7 +305,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 			}
 
 			if (tokenizer.IsNamedIdentifier("materialblendtype")) {
-				if (!ParseIdentifier(tokenizer, "MaterialBlendType")) {
+				if (!ParseIdentifier(ref tokenizer, "MaterialBlendType")) {
 					continue;
 				}
 
@@ -320,14 +320,14 @@ namespace OpenTemple.Core.MaterialDefinitions
 				} else {
 					if (mStrict) {
 						throw CreateError("Unrecognized MaterialBlendType: {0}",
-						                  tokenizer.TokenText);
+						                  tokenizer.TokenText.ToString());
 					}
 				}
 				continue;
 			}
 
 			if (tokenizer.IsNamedIdentifier("speed")) {
-				if (!ParseNumber(tokenizer, "Speed")) {
+				if (!ParseNumber(ref tokenizer, "Speed")) {
 					continue;
 				}
 
@@ -342,13 +342,13 @@ namespace OpenTemple.Core.MaterialDefinitions
 			}
 
 			if (tokenizer.IsNamedIdentifier("speedu")) {
-				if (!ParseTextureStageId(tokenizer)) {
+				if (!ParseTextureStageId(ref tokenizer)) {
 					continue;
 				}
 
 				var samplerNo = tokenizer.TokenInt;
 
-				if (!ParseNumber(tokenizer, "SpeedU")) {
+				if (!ParseNumber(ref tokenizer, "SpeedU")) {
 					continue;
 				}
 
@@ -358,13 +358,13 @@ namespace OpenTemple.Core.MaterialDefinitions
 			}
 
 			if (tokenizer.IsNamedIdentifier("speedv")) {
-				if (!ParseTextureStageId(tokenizer)) {
+				if (!ParseTextureStageId(ref tokenizer)) {
 					continue;
 				}
 
 				var samplerNo = tokenizer.TokenInt;
 
-				if (!ParseNumber(tokenizer, "SpeedV")) {
+				if (!ParseNumber(ref tokenizer, "SpeedV")) {
 					continue;
 				}
 
@@ -411,7 +411,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 			}
 
 			if (mStrict) {
-				throw CreateError("Unrecognized token: {0}", tokenizer.TokenText);
+				throw CreateError("Unrecognized token: {0}", tokenizer.TokenText.ToString());
 			}
 
 		}
@@ -419,7 +419,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 		return result;
         }
 
-        private bool ParseTextureStageId(Tokenizer tokenizer)
+        private bool ParseTextureStageId(ref Tokenizer tokenizer)
         {
 	        if (!tokenizer.NextToken()) {
 		        if (mStrict) {
@@ -430,14 +430,14 @@ namespace OpenTemple.Core.MaterialDefinitions
 	        if (!tokenizer.IsNumber || tokenizer.TokenInt < 0 || tokenizer.TokenInt >= 4) {
 		        if (mStrict) {
 			        throw CreateError("Expected a texture stage between 0 and 3 as the second argument: {0}",
-				        tokenizer.TokenText);
+				        tokenizer.TokenText.ToString());
 		        }
 		        return false;
 	        }
 	        return true;
         }
 
-        private bool ParseFilename(Tokenizer tokenizer, string logMsg)
+        private bool ParseFilename(ref Tokenizer tokenizer, string logMsg)
         {
 
 	        if (!tokenizer.NextToken()) {
@@ -448,7 +448,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 	        } else if (!tokenizer.IsQuotedString) {
 		        if (mStrict) {
 			        throw CreateError("Unexpected token instead of filename found for {0}: {1}",
-				        logMsg, tokenizer.TokenText);
+				        logMsg, tokenizer.TokenText.ToString());
 		        }
 		        return false;
 	        } else {
@@ -456,7 +456,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 	        }
         }
 
-        private bool ParseIdentifier(Tokenizer tokenizer, string logMsg)
+        private bool ParseIdentifier(ref Tokenizer tokenizer, string logMsg)
         {
 
 	        if (!tokenizer.NextToken()) {
@@ -469,7 +469,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 	        if (!tokenizer.IsIdentifier) {
 		        if (mStrict) {
 			        throw CreateError("Identifier after {0} expected, but got: {1}",
-				        logMsg, tokenizer.TokenText);
+				        logMsg, tokenizer.TokenText.ToString());
 		        }
 		        return false;
 	        }
@@ -477,7 +477,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 	        return true;
         }
 
-        private bool ParseRgba(Tokenizer tokenizer, string logMsg, out uint argbOut)
+        private bool ParseRgba(ref Tokenizer tokenizer, string logMsg, out uint argbOut)
         {
 
 	        // Color in the input is RGBA
@@ -518,7 +518,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 	        return true;
         }
 
-        private bool ParseNumber(Tokenizer tokenizer, string logMsg)
+        private bool ParseNumber(ref Tokenizer tokenizer, string logMsg)
         {
 	        if (!tokenizer.NextToken()) {
 		        if (mStrict) {
@@ -528,7 +528,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 	        } else if (!tokenizer.IsNumber) {
 		        if (mStrict) {
 			        throw CreateError("Expected number after {0}, but got: {1}",
-				        logMsg, tokenizer.TokenText);
+				        logMsg, tokenizer.TokenText.ToString());
 		        }
 		        return false;
 	        }

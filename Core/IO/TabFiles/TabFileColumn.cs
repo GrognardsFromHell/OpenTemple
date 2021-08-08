@@ -1,12 +1,11 @@
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 
 namespace OpenTemple.Core.IO.TabFiles
 {
-    public ref struct TabFileColumn
+    public readonly ref struct TabFileColumn
     {
         public int ColumnIndex { get; }
 

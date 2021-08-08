@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace OpenTemple.Core.IO.TabFiles
 {
-    public ref struct TabFileRecord
+    public readonly ref struct TabFileRecord
     {
         public int LineNumber { get; }
 

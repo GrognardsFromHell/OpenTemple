@@ -33,6 +33,8 @@ namespace OpenTemple.Core.Systems.GameObjects
         [TempleDllLocation(0x1009c8c0)]
         public void Dispose()
         {
+            mObjRegistry.Clear();
+
             // TODO: Shutdown
         }
 

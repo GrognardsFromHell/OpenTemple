@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 namespace OpenTemple.Core.Systems.Protos
 {
-    internal struct EnumIntMapping
+    internal readonly struct EnumIntMapping
     {
         private struct MappingEntry
         {
@@ -41,12 +41,12 @@ namespace OpenTemple.Core.Systems.Protos
 
 
         [Pure]
-        public bool TryGetValue(string literal, out int value)
+        public bool TryGetValue(ReadOnlySpan<char> literal, out int value)
         {
             for (int j = 0; j < _mappingEntries.Length; j++)
             {
                 ref var mapping = ref _mappingEntries[j];
-                if (mapping.Key.Equals(literal, StringComparison.OrdinalIgnoreCase))
+                if (literal.Equals(mapping.Key, StringComparison.OrdinalIgnoreCase))
                 {
                     value = mapping.Value;
                     return true;

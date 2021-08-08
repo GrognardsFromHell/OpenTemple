@@ -147,13 +147,13 @@ namespace OpenTemple.Core.Systems.Spells
         /// Used by prototypes mostly. Gets the spell enum by it's english unlocalized name.
         /// </summary>
         [TempleDllLocation(0x100779a0)]
-        public bool GetSpellEnumByEnglishName(string name, out int id)
+        public bool GetSpellEnumByEnglishName(ReadOnlySpan<char> name, out int id)
         {
             for (int i = 0; i < 802; i++)
             {
                 if (_spellEnumMes.TryGetValue(5000 + i, out var line))
                 {
-                    if (line.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                    if (name.Equals(line, StringComparison.OrdinalIgnoreCase))
                     {
                         id = i;
                         return true;
@@ -166,12 +166,12 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10077a00)]
-        public bool GetSpellClassCode(string name, out int code)
+        public bool GetSpellClassCode(ReadOnlySpan<char> name, out int code)
         {
             for (int i = 7; i < 18; i++)
             {
                 var line = _spellEnumMes[9993 + i];
-                if (line.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                if (name.Equals(line, StringComparison.OrdinalIgnoreCase))
                 {
                     code = (i & 0x7F) | 0x80;
                     return true;
@@ -181,7 +181,7 @@ namespace OpenTemple.Core.Systems.Spells
             for (int i = 0; i < 24; i++)
             {
                 var line = _spellEnumMes[10500 + i];
-                if (line.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                if (name.Equals(line, StringComparison.OrdinalIgnoreCase))
                 {
                     code = (i & 0x7F);
                     return true;
@@ -2455,7 +2455,7 @@ namespace OpenTemple.Core.Systems.Spells
             {
                 if (!GetSpellEnumByEnglishName(tokenizer.TokenText, out var spellEnum))
                 {
-                    Logger.Warn("Could not find spell '{0}'", tokenizer.TokenText);
+                    Logger.Warn("Could not find spell '{0}'", tokenizer.TokenText.ToString());
                     spellDataOut = default;
                     return false;
                 }
@@ -2464,7 +2464,7 @@ namespace OpenTemple.Core.Systems.Spells
                 {
                     if (!GetSpellClassCode(tokenizer.TokenText, out var classCode))
                     {
-                        Logger.Warn("Unable to parse spell '{0}'", tokenizer.TokenText);
+                        Logger.Warn("Unable to parse spell '{0}'", tokenizer.TokenText.ToString());
                         spellDataOut = default;
                         return false;
                     }

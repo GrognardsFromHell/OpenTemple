@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -845,21 +846,21 @@ namespace OpenTemple.Core.Systems.Protos
             foreach (var (columnIndex, parser) in ColumnsByType[obj.type])
             {
                 var column = record[columnIndex];
-                parser.Parse(protoId, column, obj);
+                parser.Parse(protoId, in column, obj);
             }
         }
 
         private interface IProtoColumnParser
         {
-            void Parse(int protoId, TabFileColumn column, GameObjectBody obj);
+            void Parse(int protoId, in TabFileColumn column, GameObjectBody obj);
 
             bool IsTypeSupported(ObjectType type);
         }
 
         [TempleDllLocation(0x10039360)]
-        private struct IdParser : IProtoColumnParser
+        private class IdParser : IProtoColumnParser
         {
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
             }
 
@@ -867,9 +868,9 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x101f5850)]
-        private struct SkipParser : IProtoColumnParser
+        private class SkipParser : IProtoColumnParser
         {
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 // Logger.Debug("Skipping proto {0} column '{1}'", protoId, column.AsString());
             }
@@ -878,7 +879,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039380)]
-        private struct Int32Parser : IProtoColumnParser
+        private class Int32Parser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -887,7 +888,7 @@ namespace OpenTemple.Core.Systems.Protos
                 _field = field;
             }
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -922,7 +923,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039560)]
-        private struct Int32FlagsParser<T> : IProtoColumnParser where T : Enum, IConvertible
+        private class Int32FlagsParser<T> : IProtoColumnParser where T : Enum, IConvertible
         {
             private readonly obj_f _field;
 
@@ -936,7 +937,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -954,11 +955,13 @@ namespace OpenTemple.Core.Systems.Protos
                         }
                         else
                         {
+                            var wrongToken = tokenizer.TokenText.ToString();
+
                             // Ignore known Vanilla issues
                             bool warn = true;
                             if (field == obj_f.item_wear_flags)
                             {
-                                switch (tokenizer.TokenText)
+                                switch (wrongToken)
                                 {
                                     case "oif_wear_weapon_primary":
                                     case "oif_wear_weapon_secondary":
@@ -970,7 +973,7 @@ namespace OpenTemple.Core.Systems.Protos
                             }
                             else if (field == obj_f.critter_flags)
                             {
-                                switch (tokenizer.TokenText)
+                                switch (wrongToken)
                                 {
                                     case "ocf_animal":
                                     case "ocf_undead":
@@ -986,7 +989,7 @@ namespace OpenTemple.Core.Systems.Protos
 
                             if (warn)
                             {
-                                Logger.Warn($"Proto {protoId} has invalid value for {field}: '{tokenizer.TokenText}'");
+                                Logger.Warn($"Proto {protoId} has invalid value for {field}: '{wrongToken}'");
                             }
                         }
                     }
@@ -997,7 +1000,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039640)]
-        private struct CharParser : IProtoColumnParser
+        private class CharParser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -1008,7 +1011,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1025,7 +1028,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039480)]
-        private struct FloatParser : IProtoColumnParser
+        private class FloatParser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -1036,7 +1039,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1047,7 +1050,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039680)]
-        private struct Int32EnumParser<T> : IProtoColumnParser where T : Enum
+        private class Int32EnumParser<T> : IProtoColumnParser where T : Enum
         {
             private readonly obj_f _field;
             private readonly EnumIntMapping _mapping;
@@ -1062,7 +1065,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1081,7 +1084,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x100393c0)]
-        private struct Int32TwoFieldsParser : IProtoColumnParser
+        private class Int32TwoFieldsParser : IProtoColumnParser
         {
             private readonly obj_f _field1;
             private readonly obj_f _field2;
@@ -1095,7 +1098,7 @@ namespace OpenTemple.Core.Systems.Protos
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field1)
                                                             && ObjectFields.DoesTypeSupportField(type, _field2);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1106,11 +1109,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x100394c0)]
-        private struct FloatRadiusParser : IProtoColumnParser
+        private class FloatRadiusParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, obj_f.radius);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1122,11 +1125,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039510)]
-        private struct FloatHeightParser : IProtoColumnParser
+        private class FloatHeightParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, obj_f.render_height_3d);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1138,11 +1141,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039410)]
-        private struct InvenSrcParser : IProtoColumnParser
+        private class InvenSrcParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => type == ObjectType.container || type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1159,12 +1162,12 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003aa90)]
-        private struct SpellChargesIdxParser : IProtoColumnParser
+        private class SpellChargesIdxParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) =>
                 ObjectFields.DoesTypeSupportField(type, obj_f.item_spell_charges_idx);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1174,7 +1177,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x100397d0)]
-        private struct D20DmgTypeParser : IProtoColumnParser
+        private class D20DmgTypeParser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -1211,7 +1214,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1222,14 +1225,14 @@ namespace OpenTemple.Core.Systems.Protos
                     }
                     else
                     {
-                        _enumParser.Parse(protoId, column, obj);
+                        _enumParser.Parse(protoId, in column, obj);
                     }
                 }
             }
         }
 
         [TempleDllLocation(0x10039b80)]
-        private struct DiceParser : IProtoColumnParser
+        private class DiceParser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -1240,7 +1243,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1257,7 +1260,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039ce0)]
-        private struct CritRangeParser : IProtoColumnParser
+        private class CritRangeParser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -1268,7 +1271,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1278,7 +1281,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003a780)]
-        private struct ArmorTypeParser : IProtoColumnParser
+        private class ArmorTypeParser : IProtoColumnParser
         {
             private static readonly Dictionary<string, ArmorFlag> Mapping = new Dictionary<string, ArmorFlag>
             {
@@ -1290,7 +1293,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             private static readonly EnumIntMapping EnumIntMapping = EnumIntMapping.Create(Mapping);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1316,7 +1319,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003a840)]
-        private struct HelmSizeParser : IProtoColumnParser
+        private class HelmSizeParser : IProtoColumnParser
         {
 
             private static readonly Dictionary<string, ArmorFlag> Mapping = new Dictionary<string, ArmorFlag>
@@ -1328,7 +1331,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             private static readonly EnumIntMapping EnumIntMapping = EnumIntMapping.Create(Mapping);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1349,7 +1352,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039d20)]
-        private struct Int32IndexedParser : IProtoColumnParser
+        private class Int32IndexedParser : IProtoColumnParser
         {
             private readonly obj_f _field;
             private readonly int _index;
@@ -1362,7 +1365,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1373,11 +1376,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039b40)]
-        private struct RaceParser : IProtoColumnParser
+        private class RaceParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1394,11 +1397,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x100396f0)]
-        private struct GenderParser : IProtoColumnParser
+        private class GenderParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1419,11 +1422,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039d60)]
-        private struct DeityParser : IProtoColumnParser
+        private class DeityParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1440,7 +1443,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039c70)]
-        private struct DiceIndexedParser : IProtoColumnParser
+        private class DiceIndexedParser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -1454,7 +1457,7 @@ namespace OpenTemple.Core.Systems.Protos
                 _index = index;
             }
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty && Dice.TryParse(column, out var dice))
                 {
@@ -1464,7 +1467,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039760)]
-        private struct Int32EnumIndexedParser<T> : IProtoColumnParser where T : Enum
+        private class Int32EnumIndexedParser<T> : IProtoColumnParser where T : Enum
         {
             private readonly obj_f _field;
             private readonly int _index;
@@ -1479,7 +1482,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1496,7 +1499,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039990)]
-        private struct HairColorParser : IProtoColumnParser
+        private class HairColorParser : IProtoColumnParser
         {
             private static readonly Dictionary<string, HairColor> Mapping = new Dictionary<string, HairColor>
             {
@@ -1514,7 +1517,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1536,7 +1539,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039a60)]
-        private struct HairStyleParser : IProtoColumnParser
+        private class HairStyleParser : IProtoColumnParser
         {
             private static readonly Dictionary<string, HairStyle> Mapping = new Dictionary<string, HairStyle>
             {
@@ -1557,7 +1560,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1579,11 +1582,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003a700)]
-        private struct FactionsParser : IProtoColumnParser
+        private class FactionsParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1597,7 +1600,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039da0)]
-        private struct ChallengeRatingParser : IProtoColumnParser
+        private class ChallengeRatingParser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -1608,7 +1611,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1636,7 +1639,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039bf0)]
-        private struct HitDiceParser : IProtoColumnParser
+        private class HitDiceParser : IProtoColumnParser
         {
             private readonly obj_f _field;
 
@@ -1647,7 +1650,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty && Dice.TryParse(column, out var dice))
                 {
@@ -1659,7 +1662,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039850)]
-        private struct MonsterCategoryParser : IProtoColumnParser
+        private class MonsterCategoryParser : IProtoColumnParser
         {
             private static readonly Dictionary<string, MonsterCategory> Mapping =
                 new Dictionary<string, MonsterCategory>
@@ -1687,7 +1690,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1704,7 +1707,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x100398c0)]
-        private struct MonsterSubtypesParser : IProtoColumnParser
+        private class MonsterSubtypesParser : IProtoColumnParser
         {
             // obj_f.critter_monster_category
 
@@ -1746,7 +1749,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -1892,7 +1895,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             private static readonly EnumIntMapping AttackPowerIntMapping = EnumIntMapping.Create(AttackPowerMapping);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (column.ColumnIndex == _arg1Col)
                 {
@@ -1965,7 +1968,7 @@ namespace OpenTemple.Core.Systems.Protos
                         {
                             Logger.Warn(
                                 $"Proto {protoId} has bare text '{column.AsString()}' as condition argument. Should use single quotes.");
-                            _currentConditionArg1 = ElfHash.Hash(column.AsString());
+                            _currentConditionArg1 = ElfHash.Hash(column);
                         }
                     }
                 }
@@ -2075,7 +2078,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (column.ColumnIndex == _classColumn)
                 {
@@ -2133,7 +2136,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (column.ColumnIndex == _nameColumn)
                 {
@@ -2170,7 +2173,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003a600)]
-        private struct FeatParser : IProtoColumnParser
+        private class FeatParser : IProtoColumnParser
         {
             private readonly int _index;
 
@@ -2181,7 +2184,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -2201,7 +2204,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003a660)]
-        private struct ScriptParser : IProtoColumnParser
+        private class ScriptParser : IProtoColumnParser
         {
             private readonly int _index;
 
@@ -2212,7 +2215,7 @@ namespace OpenTemple.Core.Systems.Protos
 
             public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, obj_f.scripts_idx);
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -2241,11 +2244,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003a8c0)]
-        private struct SpellKnownParser : IProtoColumnParser
+        private class SpellKnownParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => type.IsCritter() || type.IsEquipment();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
@@ -2259,7 +2262,7 @@ namespace OpenTemple.Core.Systems.Protos
                     var spellName = tokenizer.TokenText;
                     if (!GameSystems.Spell.GetSpellEnumByEnglishName(spellName, out var spellId))
                     {
-                        Logger.Warn($"Proto {protoId} references unknown spell '{spellName}");
+                        Logger.Warn($"Proto {protoId} references unknown spell '{spellName.ToString()}");
                     }
 
                     if (!tokenizer.NextToken() || !tokenizer.IsIdentifier)
@@ -2270,7 +2273,7 @@ namespace OpenTemple.Core.Systems.Protos
                     var classCodeName = tokenizer.TokenText;
                     if (!GameSystems.Spell.GetSpellClassCode(classCodeName, out var classCode))
                     {
-                        Logger.Warn($"Proto {protoId} references unknown spell class code '{classCodeName}");
+                        Logger.Warn($"Proto {protoId} references unknown spell class code '{classCodeName.ToString()}");
                     }
 
                     if (!tokenizer.NextToken() || !tokenizer.IsNumber)
@@ -2305,11 +2308,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003acc0)]
-        private struct CritterPadI4Parser : IProtoColumnParser
+        private class CritterPadI4Parser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (obj.IsCritter())
                 {
@@ -2319,11 +2322,11 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003ad20)]
-        private struct CritterStrategyParser : IProtoColumnParser
+        private class CritterStrategyParser : IProtoColumnParser
         {
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
-            public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
+            public void Parse(int protoId, in TabFileColumn column, GameObjectBody obj)
             {
                 if (obj.IsCritter())
                 {

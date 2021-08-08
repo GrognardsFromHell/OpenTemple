@@ -13,7 +13,7 @@ namespace OpenTemple.Tests
 
             var recordsFound = 0;
 
-            TabFile.ParseSpan(Encoding.Default.GetBytes(line), record =>
+            TabFile.ParseSpan(Encoding.Default.GetBytes(line), (in TabFileRecord record) =>
             {
                 recordsFound++;
 

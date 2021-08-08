@@ -135,7 +135,7 @@ namespace OpenTemple.Core.Systems.Help
         private const int ColumnText = 5;
 
         [TempleDllLocation(0x100e7120)]
-        private void ParseHelpTopicIndex(TabFileRecord record)
+        private void ParseHelpTopicIndex(in TabFileRecord record)
         {
             var topic = new D20HelpTopic();
 
@@ -159,7 +159,7 @@ namespace OpenTemple.Core.Systems.Help
             {
                 if (tok.IsIdentifier)
                 {
-                    vParents.Add(tok.TokenText.ToUpperInvariant());
+                    vParents.Add(tok.TokenText.ToString().ToUpperInvariant());
                 }
             }
 
@@ -183,7 +183,7 @@ namespace OpenTemple.Core.Systems.Help
         }
 
         [TempleDllLocation(0x100e7cf0)]
-        private void ParseHelpTopicText(TabFileRecord record)
+        private void ParseHelpTopicText(in TabFileRecord record)
         {
             var id = record[ColumnId].AsString();
             if (!_helpTopics.TryGetValue(id, out var topic))

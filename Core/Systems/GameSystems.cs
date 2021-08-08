@@ -154,6 +154,8 @@ namespace OpenTemple.Core.Systems
 
         public static DiseaseSystem Disease { get; private set; }
 
+        private static List<(long, string)> _timing = new ();
+
         private static List<IGameSystem> _initializedSystems = new List<IGameSystem>();
 
         // All systems that want to listen to map events
@@ -516,11 +518,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             loadingScreen.Message = "Loading...";
 
-            AAS = new AASSystem(Tig.FS, Tig.MdfFactory, new AasRenderer(
+            AAS = InitializeSystem(loadingScreen, () => new AASSystem(Tig.FS, Tig.MdfFactory, new AasRenderer(
                 Tig.RenderingDevice,
                 Tig.ShapeRenderer2d,
                 Tig.ShapeRenderer3d
-            ));
+            )));
 
             // Loading Screen ID: 2
             loadingScreen.Progress = 1 / 79.0f;
@@ -590,7 +592,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.Progress = 25 / 79.0f;
             Proto = InitializeSystem(loadingScreen, () => new ProtoSystem(Object));
             loadingScreen.Progress = 26 / 79.0f;
-            Raycast = new RaycastSystem();
+            Raycast = InitializeSystem(loadingScreen, () => new RaycastSystem());
             MapObject = InitializeSystem(loadingScreen, () => new MapObjectSystem());
             loadingScreen.Progress = 27 / 79.0f;
             MapSector = InitializeSystem(loadingScreen, () => new MapSectorSystem());
@@ -628,7 +630,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             SoundGame = InitializeSystem(loadingScreen, () => new SoundGameSystem());
             loadingScreen.Progress = 42 / 79.0f;
             Item = InitializeSystem(loadingScreen, () => new ItemSystem());
-            Weapon = new WeaponSystem();
+            Weapon = InitializeSystem(loadingScreen, () => new WeaponSystem());
             loadingScreen.Progress = 43 / 79.0f;
             Combat = InitializeSystem(loadingScreen, () => new CombatSystem());
             loadingScreen.Progress = 44 / 79.0f;
@@ -705,21 +707,34 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             ItemHighlight = InitializeSystem(loadingScreen, () => new ItemHighlightSystem());
             loadingScreen.Progress = 79 / 79.0f;
             PathX = InitializeSystem(loadingScreen, () => new PathXSystem());
-            PathXRender = new PathXRenderSystem();
-            Vfx = new VfxSystem();
+            PathXRender = InitializeSystem(loadingScreen, () => new PathXRenderSystem());
+            Vfx = InitializeSystem(loadingScreen, () => new VfxSystem());
             RollHistory = InitializeSystem(loadingScreen, () => new RollHistorySystem());
-            Poison = new PoisonSystem();
-            Disease = new DiseaseSystem();
+            Poison = InitializeSystem(loadingScreen, () => new PoisonSystem());
+            Disease = InitializeSystem(loadingScreen, () => new DiseaseSystem());
+
+            _timing.Sort((a, b) => b.CompareTo(a));
+            foreach (var (time, system) in _timing.Take(10))
+            {
+                Console.WriteLine(system + ": " + time + "ms");
+            }
         }
 
-        private static T InitializeSystem<T>(ILoadingProgress loadingScreen, Func<T> factory) where T : IGameSystem
+        private static T InitializeSystem<T>(ILoadingProgress loadingScreen, Func<T> factory)
         {
+            var sw = Stopwatch.StartNew();
+
             Logger.Info($"Loading game system {typeof(T).Name}");
             loadingScreen.Update();
 
             var system = factory();
 
-            _initializedSystems.Add(system);
+            if (system is IGameSystem gameSystem)
+            {
+                _initializedSystems.Add(gameSystem);
+            }
+
+            _timing.Add((sw.ElapsedMilliseconds, typeof(T).Name));
 
             return system;
         }
@@ -1357,7 +1372,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             _jumpPoints = new Dictionary<int, JumpPoint>();
 
-            TabFile.ParseFile("rules/jumppoint.tab", record =>
+            TabFile.ParseFile("rules/jumppoint.tab", (in TabFileRecord record) =>
             {
                 var id = record[0].GetInt();
                 var name = record[1].AsString();

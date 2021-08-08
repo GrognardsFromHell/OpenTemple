@@ -22,7 +22,7 @@ namespace OpenTemple.Core.Systems.AI
             TabFile.ParseFile(path, ProcessStrategy);
         }
 
-        private void ProcessStrategy(TabFileRecord record)
+        private void ProcessStrategy(in TabFileRecord record)
         {
             var newStrategy = new AiStrategy(record[0].AsString());
 

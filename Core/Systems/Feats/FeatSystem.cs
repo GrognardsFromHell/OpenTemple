@@ -81,7 +81,7 @@ namespace OpenTemple.Core.Systems.Feats
             }
 
             // feat.tab is pretty much only used for english feat names used in protos.tab
-            TabFile.ParseFile("rules/feat.tab", record =>
+            TabFile.ParseFile("rules/feat.tab", (in TabFileRecord record) =>
             {
                 var featId = (FeatId) record[0].GetInt();
                 var featName = record[1].AsString();
@@ -112,7 +112,7 @@ namespace OpenTemple.Core.Systems.Feats
             TabFile.ParseFile("tprules/feat_properties.tab", ParseFeatPropertyLine);
         }
 
-        private void ParseFeatPropertyLine(TabFileRecord record)
+        private void ParseFeatPropertyLine(in TabFileRecord record)
         {
             FeatId feat = (FeatId) record[0].GetInt();
             if ((int) feat >= NUM_FEATS || feat < 0)

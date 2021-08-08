@@ -11,7 +11,7 @@ namespace OpenTemple.Core.IO.TabFiles
         // We will allow no more than this number of columns
         private const int MaxColumns = 1000;
 
-        public delegate void Callback(TabFileRecord record);
+        public delegate void Callback(in TabFileRecord record);
 
         public static void ParseFile(
             IFileSystem fs,

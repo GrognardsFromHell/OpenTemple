@@ -113,15 +113,15 @@ namespace OpenTemple.Core.AAS
             RenderTargetTexture texture,
             bool horizontal)
         {
-            SamplerSpec samplerState = new SamplerSpec();
+            var samplerState = new SamplerSpec();
             samplerState.addressU = TextureAddress.Clamp;
             samplerState.addressV = TextureAddress.Clamp;
             samplerState.magFilter = TextureFilterType.Linear;
             samplerState.minFilter = TextureFilterType.Linear;
             samplerState.mipFilter = TextureFilterType.Linear;
-            RasterizerSpec rasterizerState = new RasterizerSpec();
+            var rasterizerState = new RasterizerSpec();
             rasterizerState.cullMode = CullMode.None;
-            DepthStencilSpec depthStencilState = new DepthStencilSpec();
+            var depthStencilState = new DepthStencilSpec();
             depthStencilState.depthEnable = false;
 
             var vs = device.GetShaders().LoadVertexShader("gaussian_blur_vs");
@@ -133,9 +133,9 @@ namespace OpenTemple.Core.AAS
 
             var ps = device.GetShaders().LoadPixelShader("gaussian_blur_ps", horDefines);
 
-            MaterialSamplerSpec[] samplers = new MaterialSamplerSpec[]
+            var samplers = new MaterialSamplerSpec[]
             {
-                new MaterialSamplerSpec(new ResourceRef<ITexture>(texture), samplerState)
+                new (new ResourceRef<ITexture>(texture), samplerState)
             };
             return device.CreateMaterial(null, depthStencilState, rasterizerState, samplers, vs, ps).Ref();
         }

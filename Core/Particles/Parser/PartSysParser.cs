@@ -104,7 +104,7 @@ namespace OpenTemple.Core.Particles.Parser
                 {"Same as Emitter", PartSysParticleSpace.SameAsEmitter}
             };
 
-        private static void ParseOptionalFloat(TabFileRecord record, int col, string name, Action<float> setter)
+        private static void ParseOptionalFloat(in TabFileRecord record, int col, string name, Action<float> setter)
         {
             var column = record[col];
             if (column)
@@ -121,7 +121,7 @@ namespace OpenTemple.Core.Particles.Parser
             }
         }
 
-        private static void ParseOptionalEnum<T>(TabFileRecord record,
+        private static void ParseOptionalEnum<T>(in TabFileRecord record,
             int col,
             string name,
             Dictionary<string, T> mapping,
@@ -142,7 +142,7 @@ namespace OpenTemple.Core.Particles.Parser
             }
         }
 
-        void ParseLifespan(TabFileRecord record, PartSysEmitterSpec emitter)
+        void ParseLifespan(in TabFileRecord record, PartSysEmitterSpec emitter)
         {
             var colLifespan = record[COL_LIFESPAN];
             if (!colLifespan || colLifespan.EqualsIgnoreCase("perm"))
@@ -165,7 +165,7 @@ namespace OpenTemple.Core.Particles.Parser
             }
         }
 
-        void ParseParticleLifespan(TabFileRecord record, PartSysEmitterSpec emitter)
+        void ParseParticleLifespan(in TabFileRecord record, PartSysEmitterSpec emitter)
         {
             var colLifespan = record[COL_PART_LIFESPAN];
             if (!colLifespan || colLifespan.EqualsIgnoreCase("perm"))
@@ -184,7 +184,7 @@ namespace OpenTemple.Core.Particles.Parser
             }
         }
 
-        void ParseParticleRate(TabFileRecord record, PartSysEmitterSpec emitter)
+        void ParseParticleRate(in TabFileRecord record, PartSysEmitterSpec emitter)
         {
             var maxParticles = emitter.GetMaxParticles();
             if (!record[COL_PARTICLE_RATE].TryGetFloat(out var rate) || rate == 0)
@@ -231,7 +231,7 @@ namespace OpenTemple.Core.Particles.Parser
             }
         }
 
-        void ParseEmitterNodeName(TabFileRecord record, PartSysEmitterSpec emitter)
+        void ParseEmitterNodeName(in TabFileRecord record, PartSysEmitterSpec emitter)
         {
             var col = record[COL_EMITTER_NODE_NAME];
             if (col)
@@ -240,7 +240,7 @@ namespace OpenTemple.Core.Particles.Parser
             }
         }
 
-        void ParseMaterial(TabFileRecord record, PartSysEmitterSpec emitter)
+        void ParseMaterial(in TabFileRecord record, PartSysEmitterSpec emitter)
         {
             var colMaterial = record[COL_MATERIAL];
             if (!colMaterial)
@@ -285,7 +285,7 @@ namespace OpenTemple.Core.Particles.Parser
             }
         }
 
-        void ParseMesh(TabFileRecord record, PartSysEmitterSpec emitter)
+        void ParseMesh(in TabFileRecord record, PartSysEmitterSpec emitter)
         {
             // This only applies to emitters that emit 3D particles
             if (emitter.GetParticleType() != PartSysParticleType.Model)
@@ -297,7 +297,7 @@ namespace OpenTemple.Core.Particles.Parser
             emitter.SetMeshName(record[COL_MODEL].AsString());
         }
 
-        public void ParseEmitter(TabFileRecord record)
+        public void ParseEmitter(in TabFileRecord record)
         {
             var systemName = record[COL_PARTSYS_NAME].AsString();
 

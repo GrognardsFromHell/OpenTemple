@@ -6,62 +6,91 @@ using System.Text;
 
 namespace OpenTemple.Core.IO
 {
+    /// <summary>
+    /// String tokenizer that works like the ToEE vanilla one.
+    /// </summary>
+    public ref struct Tokenizer
+    {
+        private ReadOnlySpan<char> _remainingInput;
+        private StringBuilder _tokenTextBuilder;
+        private ReadOnlySpan<char> _tokenText;
+        private TokenType _tokenType;
+        private double _tokenFloat;
+        private int _tokenInt;
 
-/*
-	String tokenizer that works like the ToEE vanilla one.
-*/
-    public class Tokenizer {
+        private ReadOnlySpan<char> _line; // Buffer for current line
+        private int _linePos; // Current position within mLine
+        private int _lineNo;
 
-        public Tokenizer(string input)
+        public Tokenizer(ReadOnlySpan<char> input)
         {
-            mIn = new StringReader(input);
+            _remainingInput = input;
+            _tokenTextBuilder = new StringBuilder();
+            _tokenText = ReadOnlySpan<char>.Empty;
+            _tokenType = TokenType.Unknown;
+            _tokenFloat = 0;
+            _tokenInt = 0;
+
+            IsEnableEscapes = true;
+
+            _line = null;
+            _linePos = 0;
+            _lineNo = 0;
         }
 
         public bool NextToken()
         {
             // This skips comments / spaces after a token has been read
-            if (LineHasMoreChars()) {
+            if (LineHasMoreChars())
+            {
                 SkipSpaceAndControl();
                 SkipComment();
             }
 
             // This loop finds the next line
             // If we ran out of line, seek to the next one
-            while (!LineHasMoreChars()) {
-                if (!GetLine()) {
+            while (!LineHasMoreChars())
+            {
+                if (!GetLine())
+                {
                     return false;
                 }
             }
 
             // Record the position where the current token started
-            var startOfToken = mLinePos;
+            var startOfToken = _linePos;
 
-            if (ReadNumber()) {
+            if (ReadNumber())
+            {
                 return true;
-            } else if (ReadQuotedString()) {
+            }
+            else if (ReadQuotedString())
+            {
                 return true;
-            } else if (ReadIdentifier()) {
+            }
+            else if (ReadIdentifier())
+            {
                 return true;
             }
 
-            mLinePos = startOfToken;
+            _linePos = startOfToken;
             var ch = TakeChar();
 
-            if (char.IsPunctuation(ch)) {
-                mTokenText = ch.ToString();
-                mTokenType = TokenType.Unknown;
+            if (char.IsPunctuation(ch))
+            {
+                _tokenText = ch.ToString();
+                _tokenType = TokenType.Unknown;
                 return true;
             }
 
             throw new TokenizerException($"Unrecognized character: {ch}");
-
         }
 
-        public bool IsQuotedString => mTokenType == TokenType.QuotedString;
+        public bool IsQuotedString => _tokenType == TokenType.QuotedString;
 
-        public bool IsNumber => mTokenType == TokenType.Number;
+        public bool IsNumber => _tokenType == TokenType.Number;
 
-        public bool IsIdentifier => mTokenType == TokenType.Identifier;
+        public bool IsIdentifier => _tokenType == TokenType.Identifier;
 
         public bool IsNamedIdentifier(string identifier)
         {
@@ -69,162 +98,201 @@ namespace OpenTemple.Core.IO
             // being passed in is lowercase
             Debug.Assert(identifier.ToLowerInvariant() == identifier);
 
-            if (mTokenType != TokenType.Identifier) {
+            if (_tokenType != TokenType.Identifier)
+            {
                 return false;
             }
 
-            return mTokenText == identifier;
+            return _tokenText.SequenceEqual(identifier);
         }
 
-        public string TokenText => mTokenText;
+        public ReadOnlySpan<char> TokenText => _tokenText;
 
-        public bool IsEnableEscapes { get; set; } = true;
+        public bool IsEnableEscapes { get; set; }
 
-        public int TokenInt => mTokenInt;
+        public int TokenInt => _tokenInt;
 
-        public float TokenFloat => (float) mTokenFloat;
+        public float TokenFloat => (float)_tokenFloat;
 
-        private enum TokenType {
+        private enum TokenType
+        {
             Number,
             QuotedString,
             Identifier,
             Unknown
         };
 
-        private StringReader mIn;
-        private string mTokenText;
-        private StringBuilder tokenTextBuilder = new StringBuilder();
-        private TokenType mTokenType = TokenType.Unknown;
-        private double mTokenFloat = 0;
-        private int mTokenInt = 0;
-
-        private string mLine; // Buffer for current line
-        private int mLinePos; // Current position within mLine
-        private int mLineNo = 0;
-
         private bool GetLine()
         {
-            mLinePos = 0;
-            mLine = mIn.ReadLine();
-            if (mLine != null) {
+            _linePos = 0;
+            _line = null;
+
+            // Search for the next newline
+            int i;
+            for (i = 0; i < _remainingInput.Length; i++)
+            {
+                var ch = _remainingInput[i];
+                if (ch == '\r' || ch == '\n')
+                {
+                    _line = _remainingInput.Slice(0, i);
+                    // Skip a potential \n following a \r
+                    if (ch == '\r' && i + 1 < _remainingInput.Length && _remainingInput[i + 1] == '\n')
+                    {
+                        i++;
+                    }
+
+                    _remainingInput = _remainingInput.Slice(i + 1);
+                    break;
+                }
+            }
+
+            // If no further newline was found, just use the entire remaining input
+            if (_line.IsEmpty)
+            {
+                _line = _remainingInput;
+                _remainingInput = null;
+            }
+
+            if (!_line.IsEmpty)
+            {
                 // Spaces at beginning and end of the line
                 // are ignored. This is more lenient than
                 // vanilla ToEE, but it is convenient
                 // trim(mLine);
-                mLineNo++;
+                _lineNo++;
                 SkipSpaceAndControl();
                 SkipComment();
                 return true;
             }
+
             return false;
         }
 
         private bool LineHasMoreChars()
         {
-            return mLine != null && mLinePos < mLine.Length;
+            return _line != null && _linePos < _line.Length;
         }
 
         private bool ReadNumber()
         {
             Trace.Assert(LineHasMoreChars());
 
-            var startOfToken = mLinePos;
+            var startOfToken = _linePos;
 
             var firstChar = PeekChar();
 
             // Handle digits
-            if (firstChar != '+' && firstChar != '-' && !char.IsDigit(firstChar)) {
+            if (firstChar != '+' && firstChar != '-' && !char.IsDigit(firstChar))
+            {
                 return false;
             }
 
             SkipChar(); // Consumes the character we peeked
 
-            tokenTextBuilder.Clear();
-            tokenTextBuilder.Append(firstChar);
+            _tokenText = null;
+            _tokenTextBuilder.Clear();
+            _tokenTextBuilder.Append(firstChar);
 
             var foundDecimalMarks = false;
             var foundDigits = char.IsDigit(firstChar);
 
-            while (LineHasMoreChars()) {
+            while (LineHasMoreChars())
+            {
                 var nextChar = TakeChar();
 
-                if (char.IsDigit(nextChar)) {
+                if (char.IsDigit(nextChar))
+                {
                     foundDigits = true;
-                } else if (nextChar == '.' && !foundDecimalMarks) {
+                }
+                else if (nextChar == '.' && !foundDecimalMarks)
+                {
                     foundDecimalMarks = true;
-                } else {
+                }
+                else
+                {
                     UngetChar(); // Read something that doesn't belong to the number
                     break;
                 }
 
-                tokenTextBuilder.Append(nextChar);
+                _tokenTextBuilder.Append(nextChar);
             }
 
-            mTokenText = tokenTextBuilder.ToString();
+            _tokenText = _tokenTextBuilder.ToString();
 
             // Seems to be a number...
-            if (!foundDigits) {
+            if (!foundDigits)
+            {
                 // While we started with + or -, we didn't actually read a number
-                mLinePos = startOfToken;
+                _linePos = startOfToken;
                 return false;
             }
 
-            double.TryParse(mTokenText, NumberStyles.Any, CultureInfo.InvariantCulture, out mTokenFloat);
-            int.TryParse(mTokenText, NumberStyles.Integer, CultureInfo.InvariantCulture, out mTokenInt);
-            mTokenType = TokenType.Number;
+            double.TryParse(_tokenText, NumberStyles.Any, CultureInfo.InvariantCulture, out _tokenFloat);
+            int.TryParse(_tokenText, NumberStyles.Integer, CultureInfo.InvariantCulture, out _tokenInt);
+            _tokenType = TokenType.Number;
             return true;
         }
 
         private bool ReadQuotedString()
         {
-
-            var startedOnLine = mLineNo;
-            var startedPos = mLine;
+            var startedOnLine = _lineNo;
+            var startedPos = _line;
             var firstChar = PeekChar();
 
-            if (firstChar != '"' && firstChar != '\'') {
+            if (firstChar != '"' && firstChar != '\'')
+            {
                 return false; // Not a quoted string
             }
 
             TakeChar(); // We dont actually store the quote
 
-            tokenTextBuilder.Clear();
+            _tokenTextBuilder.Clear();
 
             var lastLineEndingEscaped = false;
 
-            while (true) {
-
+            while (true)
+            {
                 // If the quoted string is not terminated yet, it actually eats lines
-                while (!LineHasMoreChars()) {
-                    if (!GetLine()) {
+                while (!LineHasMoreChars())
+                {
+                    if (!GetLine())
+                    {
                         // TODO Nice error
                         throw new TokenizerException("Unterminated string literal");
                     }
-                    if (!lastLineEndingEscaped) {
-                        tokenTextBuilder.Append('\n');
-                    } else {
+
+                    if (!lastLineEndingEscaped)
+                    {
+                        _tokenTextBuilder.Append('\n');
+                    }
+                    else
+                    {
                         // The backslash is worth only a single line ending
                         lastLineEndingEscaped = false;
                     }
                 }
 
                 var ch = TakeChar();
-                if (ch == firstChar) {
+                if (ch == firstChar)
+                {
                     break;
                 }
 
                 // Handle escape sequences if enabled
-                if (IsEnableEscapes && ch == '\\') {
+                if (IsEnableEscapes && ch == '\\')
+                {
                     // It's possible for a quoted string to span multiple lines by
                     // escaping the end of the line
-                    if (!LineHasMoreChars()) {
+                    if (!LineHasMoreChars())
+                    {
                         lastLineEndingEscaped = true;
                         continue;
                     }
 
                     // Escape sequences always consume the next char
                     var nextChar = TakeChar();
-                    switch (char.ToLowerInvariant(nextChar)) {
+                    switch (char.ToLowerInvariant(nextChar))
+                    {
                         case 'n':
                         case 'r':
                             ch = '\n';
@@ -244,38 +312,43 @@ namespace OpenTemple.Core.IO
                     }
                 }
 
-                tokenTextBuilder.Append(ch);
+                _tokenTextBuilder.Append(ch);
             }
 
-            mTokenText = tokenTextBuilder.ToString();
-            mTokenType = TokenType.QuotedString;
+            _tokenText = _tokenTextBuilder.ToString();
+            _tokenType = TokenType.QuotedString;
             return true;
         }
 
         private bool ReadIdentifier()
         {
-            var startedPos = mLine;
+            var startedPos = _line;
             var firstChar = PeekChar();
 
             // Identifiers start with an alpha char or underscore
-            if (firstChar != '_' && !char.IsLetter(firstChar)) {
+            if (firstChar != '_' && !char.IsLetter(firstChar))
+            {
                 return false;
             }
 
-            tokenTextBuilder.Clear();
-            while (LineHasMoreChars()) {
+            _tokenTextBuilder.Clear();
+            while (LineHasMoreChars())
+            {
                 var ch = TakeChar();
-                if (char.IsDigit(ch) || char.IsLetter(ch) || ch == '_') {
+                if (char.IsDigit(ch) || char.IsLetter(ch) || ch == '_')
+                {
                     // Note that identifiers are always lowercased automatically
-                    tokenTextBuilder.Append(char.ToLowerInvariant(ch));
-                } else {
+                    _tokenTextBuilder.Append(char.ToLowerInvariant(ch));
+                }
+                else
+                {
                     UngetChar();
                     break;
                 }
             }
 
-            mTokenText = tokenTextBuilder.ToString();
-            mTokenType = TokenType.Identifier;
+            _tokenText = _tokenTextBuilder.ToString();
+            _tokenType = TokenType.Identifier;
             return true;
         }
 
@@ -283,51 +356,56 @@ namespace OpenTemple.Core.IO
         private char PeekChar()
         {
             Trace.Assert(LineHasMoreChars());
-            return mLine[mLinePos];
+            return _line[_linePos];
         }
 
         private void SkipChar()
         {
             Trace.Assert(LineHasMoreChars());
-            mLinePos++;
+            _linePos++;
         }
 
         private char TakeChar()
         {
             Trace.Assert(LineHasMoreChars());
-            return mLine[mLinePos++];
+            return _line[_linePos++];
         }
 
         private void UngetChar()
         {
-            mLinePos--;
-            Trace.Assert(mLinePos >= 0);
+            _linePos--;
+            Trace.Assert(_linePos >= 0);
         }
 
         // Seeks past any control or space characters at current line pos
         private void SkipSpaceAndControl()
         {
             // Skip control characters and spaces
-            while (LineHasMoreChars()) {
-                var ch = mLine[mLinePos];
-                if (!char.IsWhiteSpace(ch) && !char.IsControl(ch)) {
+            while (LineHasMoreChars())
+            {
+                var ch = _line[_linePos];
+                if (!char.IsWhiteSpace(ch) && !char.IsControl(ch))
+                {
                     return;
                 }
-                mLinePos++; // Skip space & control
+
+                _linePos++; // Skip space & control
             }
         }
 
         // Skips past comment at current line pos to end of line
         private void SkipComment()
         {
-            if (mLinePos < mLine.Length
-                && mLine[mLinePos] == '#') {
-                mLinePos = mLine.Length;
-
-            } else if (mLinePos + 1 < mLine.Length
-                       && mLine[mLinePos] == '/'
-                       && mLine[mLinePos + 1] == '/') {
-                mLinePos = mLine.Length;
+            if (_linePos < _line.Length
+                && _line[_linePos] == '#')
+            {
+                _linePos = _line.Length;
+            }
+            else if (_linePos + 1 < _line.Length
+                     && _line[_linePos] == '/'
+                     && _line[_linePos + 1] == '/')
+            {
+                _linePos = _line.Length;
             }
         }
     };

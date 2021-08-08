@@ -76,7 +76,7 @@ namespace OpenTemple.Core.Systems.Protos
         {
             var result = new List<GameObjectBody>();
 
-            void ProcessProtoRecord(TabFileRecord record)
+            void ProcessProtoRecord(in TabFileRecord record)
             {
                 var protoId = record[0].GetInt();
 
