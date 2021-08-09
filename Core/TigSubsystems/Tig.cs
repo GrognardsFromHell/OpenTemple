@@ -205,6 +205,37 @@ namespace OpenTemple.Core.TigSubsystems
             vfs.AddDataDir(dataDirectory);
             return vfs;
         }
+
+        public static void Shutdown()
+        {
+            MainWindow?.Dispose();
+            RenderingDevice?.Dispose();
+            MdfFactory?.Dispose();
+            ShapeRenderer2d?.Dispose();
+            ShapeRenderer3d?.Dispose();
+            TextLayouter?.Dispose();
+            WftScrollbar?.Dispose();
+            Sound?.Dispose();
+            Fonts?.Dispose();
+
+            DynamicScripting = null;
+            FS = null;
+            Mouse = null;
+            Keyboard = null;
+            SystemEventPump = null;
+            MainWindow = null;
+            MessageQueue = null;
+            RenderingDevice = null;
+            DebugUI = null;
+            MdfFactory = null;
+            ShapeRenderer2d = null;
+            ShapeRenderer3d = null;
+            TextLayouter = null;
+            WftScrollbar = null;
+            Sound = null;
+            Fonts = null;
+            Console = null;
+        }
     }
 
     public class TigSettings

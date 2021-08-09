@@ -3,6 +3,7 @@ using NUnit.Framework;
 
 namespace OpenTemple.Tests.TestUtils
 {
+    [Category("NeedsRealFiles")]
     public abstract class HeadlessGameTest
     {
         protected static HeadlessGameHelper Game { get; private set; }
@@ -10,7 +11,7 @@ namespace OpenTemple.Tests.TestUtils
         [OneTimeSetUp]
         public static void StartGame()
         {
-            Debug.Assert(Game == null);
+            Trace.Assert(Game == null);
             Game = new HeadlessGameHelper();
         }
 

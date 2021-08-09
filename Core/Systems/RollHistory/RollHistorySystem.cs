@@ -376,7 +376,7 @@ namespace OpenTemple.Core.Systems.RollHistory
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x10048960)]

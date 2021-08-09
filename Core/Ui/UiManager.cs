@@ -612,10 +612,10 @@ namespace OpenTemple.Core.Ui
             switch (e.Type)
             {
                 case WindowEventType.MouseEnter:
-                    Tig.Mouse.MouseOutsideWndSet(false);
+                    Tig.Mouse.IsMouseOutsideWindow = false;
                     break;
                 case WindowEventType.MouseLeave:
-                    Tig.Mouse.MouseOutsideWndSet(true);
+                    Tig.Mouse.IsMouseOutsideWindow = true;
                     break;
                 case WindowEventType.MouseMove:
                     HandleMouseMoveEvent((MouseWindowEvent) e);
@@ -669,14 +669,14 @@ namespace OpenTemple.Core.Ui
                             y = 0;
                         else if (y > height)
                             y = height;
-                        Tig.Mouse.MouseOutsideWndSet(false);
+                        Tig.Mouse.IsMouseOutsideWindow = false;
                         // TODO: Switch all mouse positioning to floats
                         Tig.Mouse.SetPos((int) x, (int) y, wheelDelta);
                         return;
                     }
                     else
                     {
-                        Tig.Mouse.MouseOutsideWndSet(true);
+                        Tig.Mouse.IsMouseOutsideWindow = true;
                     }
                 }
                 else
@@ -687,7 +687,7 @@ namespace OpenTemple.Core.Ui
                 return;
             }
 
-            Tig.Mouse.MouseOutsideWndSet(false);
+            Tig.Mouse.IsMouseOutsideWindow = false;
             // TODO: Switch all mouse positioning to floats
             Tig.Mouse.SetPos((int) pos.X, (int) pos.Y, wheelDelta);
         }

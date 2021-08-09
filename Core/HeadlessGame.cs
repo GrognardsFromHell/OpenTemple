@@ -40,8 +40,6 @@ namespace OpenTemple.Core
 
             GameSystems.InitializeFonts();
             GameSystems.InitializeSystems(new DummyLoadingProgress());
-            GameSystems.GameInit.IsEditor = true; // Prevent shopmap from opening
-            GameSystems.LoadModule("ToEE", true);
 
             if (options.WithUserInterface)
             {
@@ -52,6 +50,15 @@ namespace OpenTemple.Core
 
                 UiSystems.Startup(config);
             }
+
+            GameSystems.GameInit.IsEditor = !options.OpenStartMap; // Prevent shopmap from opening
+            GameSystems.LoadModule("ToEE", true);
+            // If we don't open a start map, we still need to set the campaign start time
+            if (!options.OpenStartMap)
+            {
+                GameSystems.GameInit.SetupStartingTime();
+            }
+
         }
 
         public static HeadlessGame Start(HeadlessGameOptions options)
@@ -61,6 +68,10 @@ namespace OpenTemple.Core
 
         public void Dispose()
         {
+            // Reset all of the UI and GameSystems
+            UiSystems.DisposeAll();
+            GameSystems.DisposeAll();
+            Tig.Shutdown();
         }
 
         private static string FindDataFolder()
@@ -118,6 +129,12 @@ namespace OpenTemple.Core
         /// Will be much slower.
         /// </summary>
         public bool UseDebugRenderer { get; init; }
+
+        /// <summary>
+        /// If set to true, the shop map will be loaded upon startup.
+        /// Keep in mind that working with game objects requires a map to be open.
+        /// </summary>
+        public bool OpenStartMap { get; init; }
 
         public HeadlessGameOptions(string installationFolder)
         {

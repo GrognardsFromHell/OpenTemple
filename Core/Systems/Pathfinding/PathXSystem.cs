@@ -1411,7 +1411,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
             {
                 ref var pathCacheQ = ref pathCache[i];
 
-                if (pathCacheQ.timeCached < now - PATH_CACHE_EXPIRATION_TIME)
+                if (pathCacheQ.timeCached < now - PATH_CACHE_EXPIRATION_TIME || pathCacheQ.query == null)
                 {
                     continue;
                 }

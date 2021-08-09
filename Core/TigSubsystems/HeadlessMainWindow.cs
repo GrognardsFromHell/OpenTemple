@@ -36,5 +36,8 @@ namespace OpenTemple.Core.TigSubsystems
         }
 
         public bool IsCursorVisible { get; set; }
+        public void Dispose()
+        {
+        }
     }
 }

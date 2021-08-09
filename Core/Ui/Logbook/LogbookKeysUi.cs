@@ -232,7 +232,7 @@ namespace OpenTemple.Core.Ui.Logbook
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x10195110)]

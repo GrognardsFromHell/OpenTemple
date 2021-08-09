@@ -119,6 +119,7 @@ namespace OpenTemple.Core.Ui.CharSheet
             Globals.UiStyles.LoadStylesFile("ui/char_ui_styles.json");
 
             _mainWidget = new CharUiMainWidget(_uiParams);
+            _mainWidget.Visible = false; // Initially invisible
 
             char_ui_main_nav_editor_window = new WidgetContainer(_uiParams.CharUiMainNavEditorWindow);
             _mainWidget.Add(char_ui_main_nav_editor_window);

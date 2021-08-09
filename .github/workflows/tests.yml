@@ -12,13 +12,14 @@ jobs:
         with:
           lfs: true
       - name: Run Unit Tests
-        run: dotnet test --configuration Release --logger GitHubActions
+        # Since we do not have access to the real game files here, we can't run tests that rely on their presence
+        run: dotnet test --configuration Release --logger GitHubActions  --filter Category!=NeedsRealFiles
       - name: Upload attached unit test artifacts
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
           name: test_results
-          path: 'Tests/bin/*.png'
+          path: 'Tests/bin/**/*.png'
           retention-days: 5
 
   # Can currently not build on Linux because of Windows Forms

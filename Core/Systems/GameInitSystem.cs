@@ -28,14 +28,7 @@ namespace OpenTemple.Core.Systems
                 return;
             }
 
-            var gameinitMes = Tig.FS.ReadMesFile("rules/gameinit.mes");
-
-            var startingYear = int.Parse(gameinitMes[4]);
-            var startingHourOfDay = int.Parse(gameinitMes[5]);
-            var startingDay = int.Parse(gameinitMes[6]);
-
-            GameSystems.TimeEvent.SetStartingTime(startingYear, startingDay, startingHourOfDay);
-
+            SetupStartingTime();
             Reset();
         }
 
@@ -50,14 +43,30 @@ namespace OpenTemple.Core.Systems
         {
             if (!IsEditor)
             {
-                var mapId = GameSystems.Map.GetMapIdByType(MapType.ShoppingMap);
-                if (mapId == 0)
-                {
-                    mapId = GameSystems.Map.GetMapIdByType(MapType.StartMap);
-                }
-
-                GameSystems.Map.OpenMap(mapId, false, true);
+                OpenStartMap();
             }
+        }
+
+        public void SetupStartingTime()
+        {
+            var gameinitMes = Tig.FS.ReadMesFile("rules/gameinit.mes");
+
+            var startingYear = int.Parse(gameinitMes[4]);
+            var startingHourOfDay = int.Parse(gameinitMes[5]);
+            var startingDay = int.Parse(gameinitMes[6]);
+
+            GameSystems.TimeEvent.SetStartingTime(startingYear, startingDay, startingHourOfDay);
+        }
+
+        public void OpenStartMap()
+        {
+            var mapId = GameSystems.Map.GetMapIdByType(MapType.ShoppingMap);
+            if (mapId == 0)
+            {
+                mapId = GameSystems.Map.GetMapIdByType(MapType.StartMap);
+            }
+
+            GameSystems.Map.OpenMap(mapId, false, true);
         }
     }
 }

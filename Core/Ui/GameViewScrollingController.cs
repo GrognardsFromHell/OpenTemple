@@ -15,6 +15,7 @@ namespace OpenTemple.Core.Ui
         private static readonly TimeSpan ScrollButterDelay = TimeSpan.FromMilliseconds(16);
         private bool _grabMoving;
         private Point _grabMoveRef;
+        private bool _mouseHasMoved;
 
         public GameViewScrollingController(WidgetContainer widget, IGameViewport viewport)
         {
@@ -48,6 +49,8 @@ namespace OpenTemple.Core.Ui
                 return false;
             }
 
+            _mouseHasMoved = true;
+
             var dx = pos.X - _grabMoveRef.X;
             var dy = pos.Y - _grabMoveRef.Y;
             dx = (int) (dx / _viewport.Zoom);
@@ -68,6 +71,13 @@ namespace OpenTemple.Core.Ui
                 return;
             }
 
+            // Wait until the mouse has moved at least once to avoid the issue of the mouse at 0,0
+            // causing the screen to move directly on startup.
+            if (!_mouseHasMoved)
+            {
+                return;
+            }
+
             var sceneIdx = UiSystems.InGame.GetActiveSceneIdx();
             if (!UiSystems.InGame.IsMouseScrollingEnabled(sceneIdx))
             {
@@ -75,7 +85,7 @@ namespace OpenTemple.Core.Ui
             }
 
             var config = Globals.Config.Window;
-            if (config.Windowed && Tig.Mouse.MouseOutsideWndGet())
+            if (config.Windowed && Tig.Mouse.IsMouseOutsideWindow)
             {
                 return;
             }

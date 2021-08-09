@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.Remoting;
 using System.Text;
 using OpenTemple.Core.GameObject;
@@ -260,21 +261,22 @@ namespace OpenTemple.Core.Systems.GameObjects
             return obj;
         }
 
-        /**
-         * Calls a given callback for each non prototype object.
-         */
+        /// <summary>
+        /// Calls a given callback for each non prototype object.
+        /// </summary>
+        /// <param name="callback"></param>
         public void ForEachObj(Action<GameObjectBody> callback)
         {
-            foreach (var obj in mObjRegistry)
+            foreach (var obj in GameObjects)
             {
-                if (obj.IsProto())
-                {
-                    continue; // Only instances
-                }
-
                 callback(obj);
             }
         }
+
+        /// <summary>
+        /// Returns all non prototype objects.
+        /// </summary>
+        public IEnumerable<GameObjectBody> GameObjects => mObjRegistry.Where(x => !x.IsProto());
 
         /**
          * Clone an existing object and give it the requested location.

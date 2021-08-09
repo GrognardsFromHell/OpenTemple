@@ -400,7 +400,7 @@ namespace OpenTemple.Core.Ui.Camping
         [TempleDllLocation(0x1012edd0)]
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x1012edf0)]

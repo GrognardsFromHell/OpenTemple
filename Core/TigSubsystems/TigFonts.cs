@@ -172,7 +172,7 @@ namespace OpenTemple.Core.TigSubsystems
         /// </summary>
         public Rectangle MeasureTextSize(string text, TigTextStyle style, int maxWidth = 0, int maxHeight = 0)
         {
-            var metrics = new TigFontMetrics {width = maxWidth, height = maxHeight};
+            var metrics = new TigFontMetrics { width = maxWidth, height = maxHeight };
             Measure(style, text, ref metrics);
             return new Rectangle(0, 0, metrics.width, metrics.height);
         }
@@ -202,7 +202,8 @@ namespace OpenTemple.Core.TigSubsystems
 
         public void Dispose()
         {
-            _fonts.Values.DisposeAndClear();
+            _fonts.Values.DisposeAll();
+            _fonts.Clear();
         }
 
         public PredefinedFont GetPredefinedFont(string name, int size)
@@ -221,6 +222,5 @@ namespace OpenTemple.Core.TigSubsystems
                     return PredefinedFont.ARIAL_10;
             }
         }
-
     }
 }

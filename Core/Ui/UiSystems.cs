@@ -261,6 +261,14 @@ namespace OpenTemple.Core.Ui
                 system.SaveGame(uiState);
             }
         }
+
+        public static void DisposeAll()
+        {
+            _disposableSystems.DisposeAndClear();
+            _timeAwareSystems.Clear();
+            _resetAwareSystems.Clear();
+            _saveSystems.Clear();
+        }
     }
 
     public class CharmapUi
@@ -451,7 +459,6 @@ namespace OpenTemple.Core.Ui
 
     public class WorldMapRandomEncounterUi
     {
-
         [TempleDllLocation(0x1016d210)]
         [TempleDllLocation(0x10BF3784)]
         public bool IsActive { get; set; }
@@ -566,5 +573,4 @@ namespace OpenTemple.Core.Ui
             GameSystems.TimeEvent.RemoveAll(TimeEventType.AmbientLighting);
         }
     }
-
 }

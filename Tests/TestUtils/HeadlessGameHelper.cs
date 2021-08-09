@@ -1,8 +1,14 @@
 using System;
+using System.Runtime.InteropServices;
 using OpenTemple.Core;
 using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace OpenTemple.Tests.TestUtils
 {
@@ -13,10 +19,21 @@ namespace OpenTemple.Tests.TestUtils
     {
         private readonly TempDirectory _userData = new();
 
+        private static HeadlessGameHelper _activeInstance;
+
+        private TimePoint _currentTime = new(0);
+
         private HeadlessGame Game { get; }
 
         public HeadlessGameHelper()
         {
+            if (_activeInstance != null)
+            {
+                throw new InvalidOperationException(
+                    "There can only be a single HeadlessGameHelper active at the same time"
+                );
+            }
+
             var toeeDir = Environment.GetEnvironmentVariable("TOEE_DIR");
             if (toeeDir == null)
             {
@@ -33,7 +50,8 @@ namespace OpenTemple.Tests.TestUtils
             var options = new HeadlessGameOptions(toeeDir)
             {
                 UserDataFolder = _userData.Path,
-                WithUserInterface = true
+                WithUserInterface = true,
+                OpenStartMap = true
             };
 
             Game = HeadlessGame.Start(options);
@@ -43,6 +61,20 @@ namespace OpenTemple.Tests.TestUtils
                 Tig.RenderingDevice,
                 Tig.DebugUI
             );
+
+            TimePoint.SetFakeTime(_currentTime);
+        }
+
+        public void Dispose()
+        {
+            if (_activeInstance == this)
+            {
+                _activeInstance = null;
+            }
+
+            Game.Dispose();
+            _userData.Dispose();
+            TimePoint.ClearFakeTime();
         }
 
         public void RenderFrame()
@@ -50,15 +82,62 @@ namespace OpenTemple.Tests.TestUtils
             Globals.GameLoop.RenderFrame();
         }
 
-        public void TakeScreenshot()
+        public void RunFor(int milliseconds)
         {
-            Tig.RenderingDevice.TakeScaledScreenshot("screenshot.jpg");
+            // Advance one "frame"
+            void AdvanceAndIterate(int time)
+            {
+                _currentTime = new TimePoint(_currentTime.Time + TimePoint.TicksPerMillisecond * time);
+                TimePoint.SetFakeTime(_currentTime);
+                Globals.GameLoop.RunOneIteration();
+            }
+
+            // When advancing time, simulate 30fps
+            var advancePerRound = 1000 / 30;
+            var totalAdvanced = 0;
+            for (var i = 0; i < milliseconds / advancePerRound; i++)
+            {
+                AdvanceAndIterate(advancePerRound);
+                totalAdvanced += advancePerRound;
+            }
+
+            if (totalAdvanced < milliseconds)
+            {
+                AdvanceAndIterate(milliseconds - totalAdvanced);
+            }
         }
 
-        public void Dispose()
+        public void RunOneIteration()
         {
-            Game.Dispose();
-            _userData.Dispose();
+            Globals.GameLoop.RunOneIteration();
+        }
+
+        public Image<Bgra32> TakeScreenshot()
+        {
+            Image<Bgra32> result = null;
+
+            Tig.RenderingDevice.ReadRenderTarget(
+                Tig.RenderingDevice.GetCurrentRenderTargetColorBuffer(),
+                (data, stride, width, height) =>
+                {
+                    // Boooo.... It doesn't support stride
+                    if (stride == width * 4)
+                    {
+                        result = Image.LoadPixelData<Bgra32>(data, width, height);
+                    }
+                    else
+                    {
+                        result = new Image<Bgra32>(width, height);
+                        for (var i = 0; i < height; i++)
+                        {
+                            var destRow = MemoryMarshal.Cast<Bgra32, byte>(result.GetPixelRowSpan(i));
+                            data.Slice(i + stride, width * 4).CopyTo(destRow);
+                        }
+                    }
+                }
+            );
+
+            return result;
         }
     }
 }

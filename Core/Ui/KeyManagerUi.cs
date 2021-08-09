@@ -96,7 +96,7 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x101431a0)]
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x10143190)]

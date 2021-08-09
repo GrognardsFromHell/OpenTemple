@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -1232,9 +1233,42 @@ namespace OpenTemple.Core.GFX
         }
 
         public void TakeScaledScreenshot(RenderTargetTexture renderTarget,
-            string filename, int width = 0, int height = 0, int quality = 90)
+            string filename, int scaledWidth = 0, int scaledHeight = 0, int quality = 90)
         {
-            annotation?.SetMarker("TakeScaledScreenshot");
+            // Clamp quality to [1, 100]
+            quality = Math.Min(100, Math.Max(1, quality));
+
+            Logger.Debug("Creating screenshot with size {0}x{1} in {2}", scaledWidth, scaledHeight,
+                filename);
+
+            byte[] jpegData = null;
+            ReadRenderTarget(renderTarget, (data, stride, width, height) =>
+            {
+                jpegData = IO.Images.ImageIO.EncodeJpeg(data,
+                    JpegPixelFormat.BGRX, width, height,
+                    quality, stride);
+            }, scaledWidth, scaledHeight);
+
+            try
+            {
+                File.WriteAllBytes(filename, jpegData);
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Unable to save screenshot due to an IO error: {0}", e);
+            }
+        }
+
+        /// <summary>
+        /// Callback that is used to handle the data read back to the CPU from a render target.
+        /// Pixel data is in BGRA format.
+        /// </summary>
+        public delegate void RenderTargetReader(ReadOnlySpan<byte> data, int rowStride, int width, int height);
+
+        public void ReadRenderTarget(RenderTargetTexture renderTarget, RenderTargetReader reader,
+            int width = 0, int height = 0)
+        {
+            annotation?.SetMarker("ReadRenderTarget");
 
             var targetSize = renderTarget.GetSize();
 
@@ -1246,9 +1280,6 @@ namespace OpenTemple.Core.GFX
                 height = targetSize.Height;
                 stretch = false;
             }
-
-            Logger.Debug("Creating screenshot with size {0}x{1} in {2}", width, height,
-                filename);
 
             // Retrieve the backbuffer format...
             var currentTargetDesc = renderTarget.Texture.Description;
@@ -1345,29 +1376,17 @@ namespace OpenTemple.Core.GFX
                 out _
             );
 
-            // Clamp quality to [1, 100]
-            quality = Math.Min(100, Math.Max(1, quality));
-
-            byte[] jpegData;
-            unsafe
-            {
-                Span<byte> mappedData = new Span<byte>((void*)mapped.DataPointer, height * mapped.RowPitch);
-
-                jpegData = IO.Images.ImageIO.EncodeJpeg(mappedData,
-                    JpegPixelFormat.BGRX, width, height,
-                    quality, mapped.RowPitch);
-            }
-
-            _context.UnmapSubresource(stagingTex, 0);
-
-            // We have to write using tio or else it goes god knows where
             try
             {
-                File.WriteAllBytes(filename, jpegData);
+                unsafe
+                {
+                    var mappedData = new Span<byte>((void*)mapped.DataPointer, height * mapped.RowPitch);
+                    reader(mappedData, mapped.RowPitch, width, height);
+                }
             }
-            catch (Exception e)
+            finally
             {
-                Logger.Error("Unable to save screenshot due to an IO error: {0}", e);
+                _context.UnmapSubresource(stagingTex, 0);
             }
         }
 

@@ -82,7 +82,7 @@ namespace OpenTemple.Core.Platform
         }
     }
 
-    public interface IMainWindow
+    public interface IMainWindow : IDisposable
     {
         void SetWindowMsgFilter(WindowMsgFilter filter);
 

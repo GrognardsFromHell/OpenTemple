@@ -1,6 +1,7 @@
 using System.IO;
 using Codeuctivity;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -16,6 +17,14 @@ namespace OpenTemple.Tests.TestUtils
             image.Save(imageName);
 
             var expectedPath = TestData.GetPath(referenceName);
+
+            if (!File.Exists(expectedPath))
+            {
+                File.Copy(imageName, expectedPath);
+                throw new NUnitException("Reference file didn't exist: " + expectedPath
+                                                                         + " copied actual to its location");
+            }
+
             var imageDiff = ImageSharpCompare.CalcDiff(imageName, expectedPath);
             if (imageDiff.PixelErrorCount > 0)
             {

@@ -1,30 +1,21 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using System.Threading;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.TabFiles;
-using OpenTemple.Core.IO.TroikaArchives;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Particles;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.AI;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.Clipping;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Feats;
@@ -45,9 +36,7 @@ using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.Systems.Waypoints;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
-using Path = System.IO.Path;
 
 namespace OpenTemple.Core.Systems
 {
@@ -191,6 +180,18 @@ namespace OpenTemple.Core.Systems
 
             using var loadingScreen = new LoadingScreen(Tig.MainWindow, Tig.RenderingDevice, Tig.ShapeRenderer2d);
             InitializeSystems(loadingScreen);
+        }
+
+        public static void DisposeAll()
+        {
+            mResetting = default;
+            mModuleGuid = default;
+            mModuleArchivePath = default;
+            mModuleDirPath = default;
+            ModuleLoaded = false;
+
+            _timing.Clear();
+            _initializedSystems.DisposeAndClear();
         }
 
         public static void InitializeFonts()

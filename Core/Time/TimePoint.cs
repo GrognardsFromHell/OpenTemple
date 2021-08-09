@@ -17,12 +17,34 @@ namespace OpenTemple.Core.Time
 
         private const int SecondsPerDay = 24 * 60 * 60;
 
+        private static long _fakeTime = -1;
+
         public TimePoint(long time)
         {
             Time = time;
         }
 
-        public static TimePoint Now => new TimePoint(Stopwatch.GetTimestamp());
+        public static TimePoint Now
+        {
+            get
+            {
+                if (_fakeTime >= 0)
+                {
+                    return new TimePoint(_fakeTime);
+                }
+                return new TimePoint(Stopwatch.GetTimestamp());
+            }
+        }
+
+        public static void SetFakeTime(TimePoint timePoint)
+        {
+            _fakeTime = timePoint.Time;
+        }
+
+        public static void ClearFakeTime()
+        {
+            _fakeTime = -1;
+        }
 
         public double Seconds => Time / (double) Stopwatch.Frequency;
 

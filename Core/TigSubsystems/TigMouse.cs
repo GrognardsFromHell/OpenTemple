@@ -45,8 +45,6 @@ namespace OpenTemple.Core.TigSubsystems
 
         private const int FlagHideCursor = 1;
 
-        private bool mMouseOutsideWnd = false;
-
         [TempleDllLocation(0x10D2558C)]
         private ResourceRef<ITexture> _iconUnderCursor;
 
@@ -319,15 +317,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         public Point GetPos() => new Point(mouseState.x, mouseState.y);
 
-        public void MouseOutsideWndSet(bool outside)
-        {
-            mMouseOutsideWnd = outside;
-        }
-
-        public bool MouseOutsideWndGet()
-        {
-            return mMouseOutsideWnd;
-        }
+        public bool IsMouseOutsideWindow { get; set; } = true;
 
         /// <summary>
         /// we no longer call SetPos if nothing has changed, so we need this function to trigger the PosChangeSlow

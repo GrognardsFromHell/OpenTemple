@@ -1571,7 +1571,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
             _portraitAlphaMask.Dispose();
             _checkboxUnchecked.Dispose();
             _checkboxChecked.Dispose();
-            _standardNodeIcons.Values.DisposeAndClear();
+            _standardNodeIcons.Values.DisposeAll();
+            _standardNodeIcons.Clear();
         }
     }
 }
