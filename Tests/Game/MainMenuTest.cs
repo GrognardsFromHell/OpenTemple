@@ -3,11 +3,9 @@ using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Tests.TestUtils;
 using NUnit.Framework;
-using SixLabors.ImageSharp;
 
 namespace OpenTemple.Tests.Game
 {
-    [NeedsRealGame]
     public class MainMenuTest : HeadlessGameTest
     {
         [Test]
