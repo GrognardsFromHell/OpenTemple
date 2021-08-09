@@ -1,11 +1,14 @@
 using System;
+using System.IO;
 using System.Numerics;
+using Codeuctivity;
+using NUnit.Framework;
+using OpenTemple.Core.Systems.FogOfWar;
+using OpenTemple.Tests.TestUtils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using OpenTemple.Core.Systems.FogOfWar;
-using NUnit.Framework;
 
-namespace OpenTemple.Tests
+namespace OpenTemple.Tests.FogOfWar
 {
     public class TriangleRasterizerTest
     {
@@ -24,8 +27,9 @@ namespace OpenTemple.Tests
 
             TriangleRasterizer.Rasterize(dimension, dimension, buffer, vertices, 0xFF);
 
-            using var image = Image.LoadPixelData<Gray8>(buffer, dimension, dimension);
-            image.Save("tesselated.png");
+            using var image = Image.LoadPixelData<L8>(buffer, dimension, dimension);
+            ImageComparison.AssertImagesEqual(image, "FogOfWar/tesselated_expected.png");
+
         }
     }
 }

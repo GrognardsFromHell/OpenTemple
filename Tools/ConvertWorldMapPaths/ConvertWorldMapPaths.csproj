@@ -6,7 +6,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Core.csproj" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
     </ItemGroup>
 
 </Project>
