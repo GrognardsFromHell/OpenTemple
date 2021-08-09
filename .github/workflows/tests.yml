@@ -1,0 +1,82 @@
+
+name: Nightly Build
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-windows:
+    name: Build for Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          lfs: true
+      ### Create MSIX packages
+      - name: Create Windows Nightly Build
+        run: .\Launcher.Win\build_nightly.ps1 -buildNumber $env:GITHUB_RUN_NUMBER
+        env:
+          CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
+          CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: nightly_windows
+          path: dist/windows
+          retention-days: 1
+
+  publish:
+    needs: build-windows
+    name: Publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: nightly_windows
+          path: public/windows
+      - uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: 'opentemple-nightlies'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT: 'https://storage.de.cloud.ovh.net'
+          AWS_REGION: 'DE'
+          SOURCE_DIR: 'public'
+      # Trigger a rebuild of the website to include new nightlies data
+      - name: Trigger Website Rebuild
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.SITE_REBUILD_TOKEN }}
+          repository: GrognardsFromHell/OpenTemple.Site
+          event-type: rebuild-site # This has no special meaning
+
+  # Can currently not build on Linux because of Windows Forms
+  # build-linux64:
+  #   name: Build (Linux 64-bit)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #       with:
+  #         lfs: true
+  #     - run: dotnet publish -c Release -o dist --self-contained --version-suffix ${GITHUB_SHA::8} -r linux-x64 Launcher
+  #     - run: tar cfJ a opentemple-linux.tar.xz dist
+  #       shell: bash
+  #     - uses: actions/upload-artifact@v1
+  #       with:
+  #         name: opentemple-linux
+  #         path: opentemple-linux.tar.xz
+  # build-osx:
+  #   name: Build (MacOS 64-bit)
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #       with:
+  #         lfs: true
+  #     - run: dotnet publish -c Release -o dist --self-contained --version-suffix ${GITHUB_SHA::8} -r osx-x64 Launcher
+  #     - run: tar cfJ a opentemple-mac.tar.xz dist
+  #     - uses: actions/upload-artifact@v1
+  #       with:
+  #         name: opentemple-mac
+  #         path: opentemple-mac.tar.xz
