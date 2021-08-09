@@ -5,6 +5,7 @@ using System.Security;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Utils;
 using OpenTemple.Interop;
+#nullable enable
 
 namespace OpenTemple.Core.Config
 {
@@ -13,9 +14,9 @@ namespace OpenTemple.Core.Config
     /// </summary>
     public class GameFolders
     {
-        public GameFolders()
+        public GameFolders(string? userDataFolder = null)
         {
-            UserDataFolder = NativePlatform.UserDataFolder;
+            UserDataFolder = userDataFolder ?? NativePlatform.UserDataFolder;
             if (!Directory.Exists(UserDataFolder))
             {
                 Directory.CreateDirectory(UserDataFolder);

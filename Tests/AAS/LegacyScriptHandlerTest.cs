@@ -2,20 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using FluentAssertions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NUnit.Framework;
 using OpenTemple.Core.AAS;
-using Xunit;
-using Xunit.Sdk;
 
 namespace OpenTemple.Tests.AAS
 {
     public class LegacyScriptHandlerTest
     {
-        [Theory]
-        [MemberData(nameof(GetTestData))]
+        [TestCaseSource(nameof(GetTestData))]
         public void CanConvertLegacyAnimEvent(string legacyScript)
         {
             var handler = new LegacyScriptConverter();
@@ -41,7 +37,7 @@ namespace OpenTemple.Tests.AAS
             return content.Split('\n')
                 .Select(l => l.TrimEnd('\r'))
                 .Where(l => !string.IsNullOrWhiteSpace(l))
-                .Select(l => new object[] {l});
+                .Select(l => new object[] { l });
         }
     }
 }

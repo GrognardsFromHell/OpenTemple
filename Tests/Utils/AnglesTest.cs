@@ -1,7 +1,7 @@
 using System;
 using FluentAssertions;
 using OpenTemple.Core.Utils;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests.Utils
 {
@@ -14,7 +14,7 @@ namespace OpenTemple.Tests.Utils
             return (int) Math.Round(Angles.ToDegrees(Angles.ShortestAngleBetween(fromRadians, toRadians)));
         }
 
-        [Fact]
+        [Test]
         public void TestShortestAngleBetweenSameAngles()
         {
             ShortestAngleDegrees(0, 0).Should().Be(0);
@@ -22,21 +22,21 @@ namespace OpenTemple.Tests.Utils
             ShortestAngleDegrees(360, 0).Should().Be(0);
         }
 
-        [Fact]
+        [Test]
         public void TestShortestAngleLeftDirection()
         {
             ShortestAngleDegrees(0, 270).Should().Be(-90);
             ShortestAngleDegrees(90, 0).Should().Be(-90);
         }
 
-        [Fact]
+        [Test]
         public void TestShortestAngleRightDirection()
         {
             ShortestAngleDegrees(0, 90).Should().Be(90);
             ShortestAngleDegrees(270, 0).Should().Be(90);
         }
 
-        [Fact]
+        [Test]
         public void TestLargeAnglesAreNormalized()
         {
             ShortestAngleDegrees(0, 2 * 360).Should().Be(0);

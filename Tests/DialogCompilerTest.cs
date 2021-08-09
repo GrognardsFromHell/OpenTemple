@@ -1,10 +1,10 @@
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class DialogCompilerTest
     {
-        [Fact]
+        [Test]
         public void TestDialogCompilation()
         {
         }

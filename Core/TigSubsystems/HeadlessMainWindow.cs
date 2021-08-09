@@ -7,8 +7,6 @@ namespace OpenTemple.Core.TigSubsystems
 {
     public class HeadlessMainWindow : IMainWindow
     {
-        public IntPtr NativeHandle => IntPtr.Zero;
-
         public void SetWindowMsgFilter(WindowMsgFilter filter)
         {
         }
@@ -18,6 +16,8 @@ namespace OpenTemple.Core.TigSubsystems
         public event Action<Size> Resized;
 
         public event Action Closed;
+
+        public Size OffScreenSize { get; set; } = new Size(1024, 768);
 
         public WindowConfig WindowConfig { get; set; }
 
@@ -30,5 +30,11 @@ namespace OpenTemple.Core.TigSubsystems
         public SizeF UiCanvasSize { get; set; }
         public event Action UiCanvasSizeChanged;
         public float UiScale { get; set; }
+
+        public void SetCursor(int hotspotX, int hotspotY, string imagePath)
+        {
+        }
+
+        public bool IsCursorVisible { get; set; }
     }
 }

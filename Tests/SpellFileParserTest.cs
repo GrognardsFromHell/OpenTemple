@@ -3,19 +3,19 @@ using System.Linq;
 using FluentAssertions;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Spells;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class SpellFileParserTest
     {
-        [Fact]
+        [Test]
         public void CanParseSchoolOfMagic()
         {
             Parse("School: Abjuration").spellSchoolEnum.Should().Be(SchoolOfMagic.Abjuration);
         }
 
-        [Fact]
+        [Test]
         public void CanParseSpellLists()
         {
             var entry = Parse(
@@ -31,7 +31,7 @@ namespace OpenTemple.Tests
             );
         }
 
-        [Fact]
+        [Test]
         public void CanParseSpellComponents()
         {
             var entry = Parse(
@@ -44,19 +44,19 @@ namespace OpenTemple.Tests
             entry.costGp.Should().Be(250);
         }
 
-        [Fact]
+        [Test]
         public void CanParseCastingTime()
         {
             Parse("Casting Time: Full Round").castingTimeType.Should().Be(SpellCastingTime.FullRoundAction);
         }
 
-        [Fact]
+        [Test]
         public void CanParseMinTargets()
         {
             Parse("min_Target: 1").minTarget.Should().Be(1);
         }
 
-        [Fact]
+        [Test]
         public void CanParseMaxTargets()
         {
             Parse("max_Target: 1").maxTarget.Should().Be(1);

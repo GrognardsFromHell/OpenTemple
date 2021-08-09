@@ -182,16 +182,24 @@ namespace OpenTemple.Core.Systems
 
             ModuleLoaded = false;
 
+            InitializeFonts();
+
+            if (!config.SkipLegal)
+            {
+                PlayLegalMovies();
+            }
+
+            using var loadingScreen = new LoadingScreen(Tig.MainWindow, Tig.RenderingDevice, Tig.ShapeRenderer2d);
+            InitializeSystems(loadingScreen);
+        }
+
+        public static void InitializeFonts()
+        {
             var lang = GetLanguage();
             if (lang == "en")
             {
                 Logger.Info("Assuming english fonts");
                 Tig.Fonts.FontIsEnglish = true;
-            }
-
-            if (!config.SkipLegal)
-            {
-                PlayLegalMovies();
             }
 
             foreach (var filename in Tig.FS.ListDirectory("fonts"))
@@ -200,6 +208,7 @@ namespace OpenTemple.Core.Systems
                 {
                     continue;
                 }
+
                 var path = $"fonts/{filename}";
                 Logger.Info("Adding font '{0}'", path);
                 Tig.RenderingDevice.TextEngine.AddFont(path);
@@ -209,9 +218,6 @@ namespace OpenTemple.Core.Systems
 
             Tig.Fonts.LoadAllFrom("art/interface/fonts");
             Tig.Fonts.PushFont("priory-12", 12);
-
-            using var loadingScreen = new LoadingScreen(Tig.MainWindow, Tig.RenderingDevice, Tig.ShapeRenderer2d);
-            InitializeSystems(loadingScreen);
         }
 
         public static void Shutdown()

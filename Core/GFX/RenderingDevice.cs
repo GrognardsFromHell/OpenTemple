@@ -1,23 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security;
 using JetBrains.Annotations;
-using OpenTemple.Core.Config;
 using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using OpenTemple.Core.GFX.Materials;
-using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Interop;
 using Buffer = SharpDX.Direct3D11.Buffer;
@@ -42,29 +42,27 @@ namespace OpenTemple.Core.GFX
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private readonly IFileSystem _fs;
+        private readonly IOutputSurface _outputSurface;
 
         public RenderingDevice(IFileSystem fs, IMainWindow mainWindow, int adapterIdx = 0, bool debugDevice = false)
         {
-            _fs = fs;
-            mWindowHandle = mainWindow.NativeHandle;
-            mShaders = new Shaders(fs, this);
-            mTextures = new Textures(fs, this, 128 * 1024 * 1024);
+            _shaders = new Shaders(fs, this);
+            _textures = new Textures(fs, this, 128 * 1024 * 1024);
             _debugDevice = debugDevice;
 
-            mDxgiFactory = new Factory1();
+            _dxgiFactory = new Factory1();
 
             var displayDevices = GetDisplayDevices();
 
             // Find the adapter selected by the user, although we might fall back to the
             // default one if the user didn't select one or the adapter selection changed
-            mAdapter = GetAdapter(adapterIdx);
-            if (mAdapter == null)
+            _adapter = GetAdapter(adapterIdx);
+            if (_adapter == null)
             {
                 // Fall back to default
                 Logger.Error("Couldn't retrieve adapter #{0}. Falling back to default", 0);
-                mAdapter = GetAdapter(displayDevices[0].id);
-                if (mAdapter == null)
+                _adapter = GetAdapter(displayDevices[0].id);
+                if (_adapter == null)
                 {
                     throw new GfxException(
                         "Couldn't retrieve your configured graphics adapter, but also couldn't fall back to the default adapter.");
@@ -88,14 +86,23 @@ namespace OpenTemple.Core.GFX
 
             try
             {
-                Device = new D3D11Device(mAdapter, deviceFlags, requestedLevels);
-                mFeatureLevel = Device.FeatureLevel;
-                _context = Device.ImmediateContext;
+                if (_windowHandle == IntPtr.Zero)
+                {
+                    Device = new D3D11Device(
+                        DriverType.Warp,
+                        deviceFlags,
+                        requestedLevels
+                    );
+                }
+                else
+                {
+                    Device = new D3D11Device(_adapter, deviceFlags, requestedLevels);
+                }
             }
             catch (SharpDXException e)
             {
                 // DXGI_ERROR_SDK_COMPONENT_MISSING
-                if (debugDevice && unchecked((uint) e.ResultCode.Code) == 0x887A002D)
+                if (debugDevice && unchecked((uint)e.ResultCode.Code) == 0x887A002D)
                 {
                     throw new GfxException("To use the D3D debugging feature, you need to " +
                                            "install the corresponding Windows SDK component.");
@@ -104,7 +111,10 @@ namespace OpenTemple.Core.GFX
                 throw new GfxException("Unable to create a Direct3D 11 device.", e);
             }
 
-            Logger.Info("Created D3D11 device with feature level {0}", mFeatureLevel);
+            _featureLevel = Device.FeatureLevel;
+            _context = Device.ImmediateContext;
+
+            Logger.Info("Created D3D11 device with feature level {0}", _featureLevel);
 
             if (debugDevice)
             {
@@ -120,33 +130,30 @@ namespace OpenTemple.Core.GFX
             }
 
             using Adapter dxgiAdapter = dxgiDevice.GetParent<Adapter>();
-            mDxgiFactory = dxgiAdapter.GetParent<Factory1>(); // Hang on to the DXGI factory used here
+            _dxgiFactory = dxgiAdapter.GetParent<Factory1>(); // Hang on to the DXGI factory used here
 
             // Create 2D rendering
             _textEngine = new TextEngine(Device, debugDevice);
 
-            if (mWindowHandle != IntPtr.Zero)
+            if (mainWindow is MainWindow outputWindow)
             {
-                mSwapChainDesc = new SwapChainDescription();
-                mSwapChainDesc.BufferCount = 2;
-                mSwapChainDesc.ModeDescription.Format = Format.B8G8R8A8_UNorm;
-                mSwapChainDesc.Usage = Usage.RenderTargetOutput;
-                mSwapChainDesc.OutputHandle = mWindowHandle;
-                mSwapChainDesc.SampleDescription.Count = 1;
-                mSwapChainDesc.IsWindowed = true; // As per the recommendation, we always create windowed
-
-                _swapChain = new SwapChain(mDxgiFactory, Device, mSwapChainDesc);
-
-                // Get the backbuffer from the swap chain
-                using var backBufferTexture = _swapChain.GetBackBuffer<Texture2D>(0);
-
-                mBackBufferNew = CreateRenderTargetForNativeSurface(backBufferTexture);
-                var backBufferSize = mBackBufferNew.Resource.GetSize();
-                mBackBufferDepthStencil = CreateRenderTargetDepthStencil(backBufferSize.Width, backBufferSize.Height);
-
-                // Push back the initial render target that should never be removed
-                PushBackBufferRenderTarget();
+                _outputSurface = new WindowOutputSurface(Device, outputWindow.NativeHandle);
             }
+            else if (mainWindow is HeadlessMainWindow headlessMainWindow)
+            {
+                _outputSurface = new OffScreenOutputSurface();
+            }
+            else
+            {
+                throw new ArgumentException("Unknown main window type: " + mainWindow.GetType());
+            }
+
+            _backBuffer = _outputSurface.CreateBackBuffer(this);
+            var backBufferSize = _backBuffer.Resource.GetSize();
+            _backBufferDepthStencil = CreateRenderTargetDepthStencil(backBufferSize.Width, backBufferSize.Height);
+
+            // Push back the initial render target that should never be removed
+            PushBackBufferRenderTarget();
 
             // Create centralized constant buffers for the vertex and pixel shader stages
             mVsConstantBuffer = CreateEmptyConstantBuffer(MaxVsConstantBufferSize);
@@ -203,9 +210,9 @@ namespace OpenTemple.Core.GFX
 
         public void Present()
         {
-            mTextures.FreeUnusedTextures();
+            _textures.FreeUnusedTextures();
 
-            _swapChain.Present(0, 0);
+            _outputSurface.Present(this);
         }
 
         public void Flush()
@@ -255,12 +262,12 @@ namespace OpenTemple.Core.GFX
         }
 
         public TimePoint GetLastFrameStart() => _lastFrameStart;
-        public TimePoint GetDeviceCreated() => mDeviceCreated;
+        public TimePoint GetDeviceCreated() => _deviceCreated;
 
         public List<DisplayDevice> GetDisplayDevices()
         {
             // Recreate the DXGI factory if we want to enumerate a new list of devices
-            if (mDisplayDevices != null && mDxgiFactory.IsCurrent)
+            if (mDisplayDevices != null && _dxgiFactory.IsCurrent)
             {
                 return mDisplayDevices;
             }
@@ -270,10 +277,10 @@ namespace OpenTemple.Core.GFX
 
             mDisplayDevices = new List<DisplayDevice>();
 
-            int adapterCount = mDxgiFactory.GetAdapterCount1();
+            int adapterCount = _dxgiFactory.GetAdapterCount1();
             for (int adapterIdx = 0; adapterIdx < adapterCount; adapterIdx++)
             {
-                using var adapter = mDxgiFactory.GetAdapter1(adapterIdx);
+                using var adapter = _dxgiFactory.GetAdapter1(adapterIdx);
 
                 // Get an adapter descriptor
                 var adapterDesc = adapter.Description;
@@ -337,34 +344,26 @@ namespace OpenTemple.Core.GFX
         // Resize the back buffer
         private void ResizeBuffers()
         {
-            if (_swapChain == null)
-            {
-                return;
-            }
-
             if (_renderTargetStack.Count != 1)
             {
                 throw new InvalidOperationException("Cannot resize backbuffer while rendering is going on!");
             }
 
-            mBackBufferNew.Dispose();
-            mBackBufferDepthStencil.Dispose();
+            // All references to the current back buffer need to be freed
+            _backBuffer.Dispose();
+            _backBufferDepthStencil.Dispose();
             PopRenderTarget();
 
-            _swapChain.ResizeBuffers(0, 0, 0, Format.Unknown, 0);
-
-            // Get the backbuffer from the swap chain
-            using var backBufferTexture = _swapChain.GetBackBuffer<Texture2D>(0);
-
-            mBackBufferNew = CreateRenderTargetForNativeSurface(backBufferTexture);
-            var backBufferSize = mBackBufferNew.Resource.GetSize();
-            mBackBufferDepthStencil = CreateRenderTargetDepthStencil(backBufferSize.Width, backBufferSize.Height);
+            // Then re-aquire the backbuffer from our output target
+            _backBuffer = _outputSurface.CreateBackBuffer(this);
+            var backBufferSize = _backBuffer.Resource.GetSize();
+            _backBufferDepthStencil = CreateRenderTargetDepthStencil(backBufferSize.Width, backBufferSize.Height);
 
             // restore the render target
             PushBackBufferRenderTarget();
 
             // Retrieve the *actual* back buffer size since we created it to match the client area above
-            var size = mBackBufferNew.Resource.GetSize();
+            var size = _backBuffer.Resource.GetSize();
 
             // Notice listeners about changed backbuffer size
             foreach (var entry in mResizeListeners)
@@ -651,10 +650,10 @@ namespace OpenTemple.Core.GFX
             var hFactor = size.Width / _uiCanvasSize.Width;
             var vFactor = size.Height / _uiCanvasSize.Height;
 
-            var left = (int) (x * hFactor);
-            var top = (int) (y * vFactor);
-            var right = (int) ((x + width) * hFactor);
-            var bottom = (int) ((y + height) * vFactor);
+            var left = (int)(x * hFactor);
+            var top = (int)(y * vFactor);
+            var right = (int)((x + width) * hFactor);
+            var bottom = (int)((y + height) * vFactor);
 
             _context.Rasterizer.SetScissorRectangle(left, top, right, bottom);
 
@@ -881,51 +880,6 @@ namespace OpenTemple.Core.GFX
                 resourceView, size, multiSample.IsEnabled));
         }
 
-        public ResourceRef<RenderTargetTexture> CreateRenderTargetForNativeSurface(Texture2D surface)
-        {
-            var surfaceDesc = surface.Description;
-
-            var rtvDesc = new RenderTargetViewDescription();
-            rtvDesc.Format = surfaceDesc.Format;
-            rtvDesc.Dimension = RenderTargetViewDimension.Texture2D;
-            rtvDesc.Texture2D.MipSlice = 0;
-
-            // Create a render target view for rendering to the real backbuffer
-            var backBufferView = new RenderTargetView(
-                Device, surface, rtvDesc
-            );
-
-            var size = new Size(surfaceDesc.Width, surfaceDesc.Height);
-            return new ResourceRef<RenderTargetTexture>(new RenderTargetTexture(
-                this,
-                surface,
-                backBufferView,
-                null,
-                null,
-                size,
-                false));
-        }
-
-        public ResourceRef<RenderTargetTexture> CreateRenderTargetForSharedSurface(ComObject surface)
-        {
-            var dxgiResource = surface.QueryInterfaceOrNull<SharpDX.DXGI.Resource>();
-
-            if (dxgiResource == null)
-            {
-                throw new ArgumentException("Given COM object is not a DXGI surface");
-            }
-
-            var sharedHandle = dxgiResource.SharedHandle;
-
-            dxgiResource.Dispose();
-
-            var sharedResource = Device.OpenSharedResource<Resource>(sharedHandle);
-
-            var sharedTexture = sharedResource.QueryInterface<Texture2D>();
-
-            return CreateRenderTargetForNativeSurface(sharedTexture);
-        }
-
         public ResourceRef<RenderTargetDepthStencil> CreateRenderTargetDepthStencil(int width, int height,
             MultiSampleSettings multiSample = default)
         {
@@ -992,7 +946,7 @@ namespace OpenTemple.Core.GFX
             Buffer buffer;
             fixed (byte* dataPtr = data)
             {
-                buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
+                buffer = new Buffer(Device, (IntPtr)dataPtr, bufferDesc);
             }
 
             if (debugName != null)
@@ -1018,7 +972,7 @@ namespace OpenTemple.Core.GFX
             Buffer buffer;
             fixed (ushort* dataPtr = data)
             {
-                buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
+                buffer = new Buffer(Device, (IntPtr)dataPtr, bufferDesc);
             }
 
             if (debugName != null)
@@ -1044,7 +998,7 @@ namespace OpenTemple.Core.GFX
             Buffer buffer;
             fixed (int* dataPtr = data)
             {
-                buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
+                buffer = new Buffer(Device, (IntPtr)dataPtr, bufferDesc);
             }
 
             if (debugName != null)
@@ -1077,12 +1031,12 @@ namespace OpenTemple.Core.GFX
             }
 
             // Free up the texture bindings of the samplers currently being used
-            for (int i = material.Samplers.Count; i < mUsedSamplers; ++i)
+            for (int i = material.Samplers.Count; i < _usedSamplers; ++i)
             {
                 SetTexture(i, Textures.InvalidTexture);
             }
 
-            mUsedSamplers = material.Samplers.Count;
+            _usedSamplers = material.Samplers.Count;
 
             material.VertexShader.Resource.Bind();
             material.PixelShader.Resource.Bind();
@@ -1182,7 +1136,7 @@ namespace OpenTemple.Core.GFX
             // a non-MSAA texture like a normal texture
             if (texture.Type == TextureType.RenderTarget)
             {
-                var rt = (RenderTargetTexture) texture;
+                var rt = (RenderTargetTexture)texture;
 
                 if (rt.IsMultiSampled)
                 {
@@ -1268,48 +1222,10 @@ namespace OpenTemple.Core.GFX
         }
 
         /*
-          Changes the currently used cursor to the given surface.
-         */
-        public void SetCursor(int hotspotX, int hotspotY, string imagePath)
-        {
-            if (!cursorCache.TryGetValue(imagePath, out var cursor))
-            {
-                var textureData = _fs.ReadBinaryFile(imagePath);
-                try
-                {
-                    cursor = IO.Images.ImageIO.LoadImageToCursor(textureData, hotspotX, hotspotY);
-                }
-                catch (Exception e)
-                {
-                    cursor = IntPtr.Zero;
-                    Logger.Error("Failed to load cursor {0}: {1}", imagePath, e);
-                }
-
-                cursorCache[imagePath] = cursor;
-            }
-
-            Cursor.SetCursor(mWindowHandle, cursor);
-            currentCursor = cursor;
-        }
-
-        public void ShowCursor()
-        {
-            if (currentCursor != IntPtr.Zero)
-            {
-                Cursor.SetCursor(mWindowHandle, currentCursor);
-            }
-        }
-
-        public void HideCursor()
-        {
-            Cursor.HideCursor(mWindowHandle);
-        }
-
-        /*
             Take a screenshot with the given size. The image will be stretched
             to the given size.
         */
-        public void TakeScaledScreenshot(string filename, int width, int height, int quality = 90)
+        public void TakeScaledScreenshot(string filename, int width = 0, int height = 0, int quality = 90)
         {
             var currentTarget = GetCurrentRenderTargetColorBuffer();
             TakeScaledScreenshot(currentTarget, filename, width, height, quality);
@@ -1386,7 +1302,7 @@ namespace OpenTemple.Core.GFX
                 var srv = new ShaderResourceView(Device, tmpTexture, srvDesc);
 
                 // Create our own wrapper so we can use the standard rendering functions
-                var tmpSize = new Size((int) currentTargetDesc.Width, (int) currentTargetDesc.Height);
+                var tmpSize = new Size((int)currentTargetDesc.Width, (int)currentTargetDesc.Height);
                 var tmpTexWrapper = new DynamicTexture(this,
                     tmpTexture,
                     srv,
@@ -1435,7 +1351,7 @@ namespace OpenTemple.Core.GFX
             byte[] jpegData;
             unsafe
             {
-                Span<byte> mappedData = new Span<byte>((void*) mapped.DataPointer, height * mapped.RowPitch);
+                Span<byte> mappedData = new Span<byte>((void*)mapped.DataPointer, height * mapped.RowPitch);
 
                 jpegData = IO.Images.ImageIO.EncodeJpeg(mappedData,
                     JpegPixelFormat.BGRX, width, height,
@@ -1469,7 +1385,7 @@ namespace OpenTemple.Core.GFX
         {
             var vs = GetShaders().LoadVertexShader("mdf_vs", new Dictionary<string, string>
             {
-                {"TEXTURE_STAGES", "1"} // Necessary so the input struct gets the UVs
+                { "TEXTURE_STAGES", "1" } // Necessary so the input struct gets the UVs
             });
 
             return new BufferBinding(this, vs);
@@ -1477,12 +1393,12 @@ namespace OpenTemple.Core.GFX
 
         public Shaders GetShaders()
         {
-            return mShaders;
+            return _shaders;
         }
 
         public Textures GetTextures()
         {
-            return mTextures;
+            return _textures;
         }
 
         public void UpdateBuffer<T>(VertexBuffer buffer, ReadOnlySpan<T> data) where T : struct
@@ -1548,7 +1464,7 @@ namespace OpenTemple.Core.GFX
             var mapped = _context.MapSubresource(texture.mTexture, 0, 0, mapMode, 0, out _);
 
             var size = texture.GetSize().Height * mapped.RowPitch;
-            var data = new Span<byte>((void*) mapped.DataPointer, size);
+            var data = new Span<byte>((void*)mapped.DataPointer, size);
             var rowPitch = mapped.RowPitch;
 
             return new MappedBuffer<byte>(texture.mTexture, _context, data, rowPitch);
@@ -1581,12 +1497,12 @@ namespace OpenTemple.Core.GFX
             PSSetConstantBuffer(slot, mPsConstantBuffer);
         }
 
-        public Size GetBackBufferSize() => mBackBufferNew.Resource.GetSize();
+        public Size GetBackBufferSize() => _backBuffer.Resource.GetSize();
 
         // Pushes the back buffer and it's depth buffer as the current render target
         public void PushBackBufferRenderTarget()
         {
-            PushRenderTarget(mBackBufferNew.Resource, mBackBufferDepthStencil.Resource);
+            PushRenderTarget(_backBuffer.Resource, _backBufferDepthStencil.Resource);
         }
 
         public void PushRenderTarget(
@@ -1618,7 +1534,7 @@ namespace OpenTemple.Core.GFX
             viewport.Height = size.Height;
             viewport.MinDepth = 0.0f;
             viewport.MaxDepth = 1.0f;
-            _context.Rasterizer.SetViewports(new[] {viewport}, 1);
+            _context.Rasterizer.SetViewports(new[] { viewport }, 1);
 
             _renderTargetStack.Push(new RenderTarget(colorBuffer, depthStencilBuffer));
 
@@ -1629,7 +1545,7 @@ namespace OpenTemple.Core.GFX
         public void PopRenderTarget()
         {
             // The last targt should NOT be popped, if the backbuffer was auto-pushed
-            if (mBackBufferNew.Resource != null)
+            if (_backBuffer.Resource != null)
             {
                 Trace.Assert(_renderTargetStack.Count > 1);
             }
@@ -1665,7 +1581,7 @@ namespace OpenTemple.Core.GFX
             viewport.Height = size.Height;
             viewport.MinDepth = 0.0f;
             viewport.MaxDepth = 1.0f;
-            _context.Rasterizer.SetViewports(new[] {viewport}, 1);
+            _context.Rasterizer.SetViewports(new[] { viewport }, 1);
 
             ResetScissorRect();
             SetGpuRasterizerState();
@@ -1725,14 +1641,14 @@ namespace OpenTemple.Core.GFX
 
         public void Dispose()
         {
-            mD3d11Device1?.Dispose();
-            mD3d11Device1 = null;
+            _d3d11Device1?.Dispose();
+            _d3d11Device1 = null;
 
             Device?.Dispose();
             Device = null;
 
-            mDxgiFactory?.Dispose();
-            mDxgiFactory = null;
+            _dxgiFactory?.Dispose();
+            _dxgiFactory = null;
         }
 
         private void BeginPerfGroupInternal(string message)
@@ -1770,7 +1686,7 @@ namespace OpenTemple.Core.GFX
 
             try
             {
-                var dest = new Span<byte>((void*) mapped.DataPointer, (int) stream.Length);
+                var dest = new Span<byte>((void*)mapped.DataPointer, (int)stream.Length);
                 data.CopyTo(dest);
             }
             finally
@@ -1796,7 +1712,7 @@ namespace OpenTemple.Core.GFX
             {
                 fixed (byte* rawDataPtr = rawData)
                 {
-                    return new Buffer(Device, (IntPtr) rawDataPtr, bufferDesc);
+                    return new Buffer(Device, (IntPtr)rawDataPtr, bufferDesc);
                 }
             }
         }
@@ -1831,7 +1747,7 @@ namespace OpenTemple.Core.GFX
 
             var mapped = _context.MapSubresource(buffer, 0, mapMode, 0);
 
-            return new Span<byte>((void*) mapped.DataPointer, bufferSize);
+            return new Span<byte>((void*)mapped.DataPointer, bufferSize);
         }
 
         private SizeF _uiCanvasSize;
@@ -1860,7 +1776,7 @@ namespace OpenTemple.Core.GFX
         {
             var m = new Matrix4x4();
             m.M11 = 2 / width;
-            m.M22 = - 2 / height;
+            m.M22 = -2 / height;
             m.M33 = 1;
 
             m.M41 = -1f;
@@ -1871,26 +1787,27 @@ namespace OpenTemple.Core.GFX
 
         private Adapter1 GetAdapter(int index)
         {
-            return mDxgiFactory.GetAdapter1(index);
+            return _dxgiFactory.GetAdapter1(index);
         }
 
         private int _drawDepth = 0;
 
-        private IntPtr mWindowHandle;
+        private IntPtr _windowHandle;
 
-        private Factory1 mDxgiFactory;
+        private Factory1 _dxgiFactory;
 
         // The DXGI adapter we use
-        private Adapter1 mAdapter;
+        private Adapter1 _adapter;
 
         // D3D11 device and related
         public D3D11Device Device { get; private set; }
-        private SharpDX.Direct3D11.Device1 mD3d11Device1;
-        private SwapChainDescription mSwapChainDesc;
-        private SharpDX.DXGI.SwapChain _swapChain;
+
+        [MaybeNull]
+        private SharpDX.Direct3D11.Device1 _d3d11Device1;
+
         private SharpDX.Direct3D11.DeviceContext _context;
-        private ResourceRef<RenderTargetTexture> mBackBufferNew;
-        private ResourceRef<RenderTargetDepthStencil> mBackBufferDepthStencil;
+        private ResourceRef<RenderTargetTexture> _backBuffer;
+        private ResourceRef<RenderTargetDepthStencil> _backBufferDepthStencil;
 
         internal SharpDX.Direct3D11.DeviceContext Context => _context;
 
@@ -1922,7 +1839,7 @@ namespace OpenTemple.Core.GFX
 
         private Stack<RenderTarget> _renderTargetStack = new Stack<RenderTarget>(16);
 
-        private FeatureLevel mFeatureLevel = FeatureLevel.Level_9_1;
+        private FeatureLevel _featureLevel = FeatureLevel.Level_9_1;
 
         private List<DisplayDevice> mDisplayDevices;
 
@@ -1937,16 +1854,12 @@ namespace OpenTemple.Core.GFX
 
 
         private TimePoint _lastFrameStart = TimePoint.Now;
-        private TimePoint mDeviceCreated = TimePoint.Now;
+        private TimePoint _deviceCreated = TimePoint.Now;
 
-        private int mUsedSamplers = 0;
+        private int _usedSamplers = 0;
 
-        private Shaders mShaders;
-        private Textures mTextures;
-
-        // Caches for cursors
-        private Dictionary<string, IntPtr> cursorCache = new();
-        private IntPtr currentCursor = IntPtr.Zero;
+        private Shaders _shaders;
+        private Textures _textures;
 
         // Caches for created device states
         private SamplerState[] currentSamplerState = new SamplerState[4];
@@ -1971,6 +1884,100 @@ namespace OpenTemple.Core.GFX
 
         // Text rendering (Direct2D integration)
         private TextEngine _textEngine;
+
+        private interface IOutputSurface : IDisposable
+        {
+            ResourceRef<RenderTargetTexture> CreateBackBuffer(RenderingDevice device);
+
+            void Present(RenderingDevice device);
+        }
+
+        private class WindowOutputSurface : IOutputSurface
+        {
+            /// <summary>
+            /// The HWND (on Window) of the window output surface.
+            /// </summary>
+            public IntPtr WindowHandle { get; }
+
+            private SharpDX.DXGI.SwapChain _swapChain;
+
+            public WindowOutputSurface(D3D11Device device, IntPtr windowHandle)
+            {
+                WindowHandle = windowHandle;
+            }
+
+            public ResourceRef<RenderTargetTexture> CreateBackBuffer(RenderingDevice device)
+            {
+                if (_swapChain == null)
+                {
+                    var swapChainDesc = new SwapChainDescription();
+                    swapChainDesc.BufferCount = 2;
+                    swapChainDesc.ModeDescription.Format = Format.B8G8R8A8_UNorm;
+                    swapChainDesc.Usage = Usage.RenderTargetOutput;
+                    swapChainDesc.OutputHandle = WindowHandle;
+                    swapChainDesc.SampleDescription.Count = 1;
+                    swapChainDesc.IsWindowed = true; // As per the recommendation, we always create windowed
+
+                    _swapChain = new SwapChain(device._dxgiFactory, device.Device, swapChainDesc);
+                } else { 
+                    _swapChain.ResizeBuffers(0, 0, 0, Format.Unknown, 0);
+                }
+
+                var surface = _swapChain.GetBackBuffer<Texture2D>(0);
+
+                var surfaceDesc = surface.Description;
+
+                var rtvDesc = new RenderTargetViewDescription();
+                rtvDesc.Format = surfaceDesc.Format;
+                rtvDesc.Dimension = RenderTargetViewDimension.Texture2D;
+                rtvDesc.Texture2D.MipSlice = 0;
+
+                // Create a render target view for rendering to the real backbuffer
+                var backBufferView = new RenderTargetView(
+                    device.Device, surface, rtvDesc
+                );
+
+                var size = new Size(surfaceDesc.Width, surfaceDesc.Height);
+                return new ResourceRef<RenderTargetTexture>(new RenderTargetTexture(
+                    device,
+                    surface,
+                    backBufferView,
+                    null,
+                    null,
+                    size,
+                    false));
+            }
+
+            public void Present(RenderingDevice device)
+            {
+                _swapChain.Present(0, 0);
+            }
+
+            public void Dispose()
+            {
+                _swapChain?.Dispose();
+            }
+        }
+
+        private class OffScreenOutputSurface : IOutputSurface
+        {
+            public void Dispose()
+            {
+            }
+
+            public ResourceRef<RenderTargetTexture> CreateBackBuffer(RenderingDevice device)
+            {
+                // For off-screen rendering, we just create normal backbuffer/depthstencil without an associated swapchain
+                var offscreenSize = new Size(1024, 768);
+                return device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, offscreenSize.Width,
+                    offscreenSize.Height);
+            }
+
+            public void Present(RenderingDevice device)
+            {
+                device.Context.Flush();
+            }
+        }
     }
 
     public delegate void ResizeListener(int w, int h);

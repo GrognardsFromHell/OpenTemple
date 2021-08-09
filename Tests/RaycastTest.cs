@@ -5,21 +5,13 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.Raycast;
-using Xunit;
-using Xunit.Abstractions;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class RaycastTest
     {
-        private readonly ITestOutputHelper output;
-
-        public RaycastTest(ITestOutputHelper output)
-        {
-            this.output = output;
-        }
-
-        [Fact]
+        [Test]
         public void TestRaycast()
         {
 
@@ -42,7 +34,7 @@ namespace OpenTemple.Tests
             SearchPointAlongRay search_func = RaycastPacket.IsPointCloseToSegment;
 
             var tileRadius = 1 + (int) (radius / locXY.INCH_PER_TILE);
-            output.WriteLine(tileRadius.ToString());
+            TestContext.Out.WriteLine(tileRadius.ToString());
             var tile_rect = RaycastPacket.BuildSearchRectangle(ray_search.origin, ray_search.target);
 
             var canFly = false;
@@ -59,9 +51,9 @@ namespace OpenTemple.Tests
                 int right = s.TileRectangle.Right;
                 int bottom = s.TileRectangle.Bottom;
 
-                output.WriteLine($"{s.SectorLoc.X} {s.SectorLoc.Y} {left},{top} {right},{bottom}");
+                TestContext.Out.WriteLine($"{s.SectorLoc.X} {s.SectorLoc.Y} {left},{top} {right},{bottom}");
             }
-            output.WriteLine("OLD OLD OLD");
+            TestContext.Out.WriteLine("OLD OLD OLD");
 
             if (!PreciseSectorRows.Build(tile_rect, out var sector_tiles))
             {
@@ -118,7 +110,7 @@ namespace OpenTemple.Tests
                         sectorTileMaxY = 63;
                     }
 
-                    output.WriteLine($"{pPVar2.sectors[local_2f0].X} {pPVar2.sectors[local_2f0].Y} {sectorTileMinX},{sectorTileMinY}->{sectorTileMaxX},{sectorTileMaxY}");
+                    TestContext.Out.WriteLine($"{pPVar2.sectors[local_2f0].X} {pPVar2.sectors[local_2f0].Y} {sectorTileMinX},{sectorTileMinY}->{sectorTileMaxX},{sectorTileMaxY}");
                 }
             }
         }

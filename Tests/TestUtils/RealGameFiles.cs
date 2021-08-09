@@ -3,20 +3,20 @@ using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.TroikaArchives;
 using OpenTemple.Core.TigSubsystems;
 
-namespace OpenTemple.Tests
+namespace OpenTemple.Tests.TestUtils
 {
     /// <summary>
     /// This is a test fixture for tests that depend on an actual ToEE installation directory.
     /// These are mostly used to test the use of certain classes against all data found in a
     /// normal ToEE installation.
     /// </summary>
-    public class RealDataTest : IDisposable
+    public class RealGameFiles : IDisposable
     {
         private IFileSystem _oldVfs;
 
-        private TroikaVfs _vfs;
+        protected TroikaVfs FS;
 
-        public RealDataTest()
+        public RealGameFiles()
         {
             _oldVfs = Tig.FS;
             var toeeDir = Environment.GetEnvironmentVariable("TOEE_DIR");
@@ -27,14 +27,22 @@ namespace OpenTemple.Tests
                 );
             }
 
-            _vfs = TroikaVfs.CreateFromInstallationDir(toeeDir);
-            Tig.FS = _vfs;
+            FS = TroikaVfs.CreateFromInstallationDir(toeeDir);
+            Tig.FS = FS;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
-            _vfs.Dispose();
-            Tig.FS = _oldVfs;
+            if (FS != null)
+            {
+                FS.Dispose();
+                if (Tig.FS == FS)
+                {
+                    Tig.FS = _oldVfs;
+                }
+                _oldVfs = null;
+                FS = null;
+            }
         }
     }
 }

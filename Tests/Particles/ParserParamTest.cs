@@ -1,7 +1,7 @@
 using System.Text;
 using OpenTemple.Core.Particles.Parser;
 using OpenTemple.Particles.Params;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests.Particles
 {
@@ -10,15 +10,15 @@ namespace OpenTemple.Tests.Particles
         /// <summary>
         /// Check the default value calculation of PartSysParam for a few examples.
         /// </summary>
-        [Fact]
+        [Test]
         public void GetDefaultValue()
         {
-            Assert.Equal(0, PartSysParamDefaultValues.GetDefaultValue(PartSysParamId.part_accel_X));
-            Assert.Equal(255, PartSysParamDefaultValues.GetDefaultValue(PartSysParamId.emit_init_alpha));
-            Assert.Equal(1, PartSysParamDefaultValues.GetDefaultValue(PartSysParamId.emit_scale_X));
+            Assert.AreEqual(0, PartSysParamDefaultValues.GetDefaultValue(PartSysParamId.part_accel_X));
+            Assert.AreEqual(255, PartSysParamDefaultValues.GetDefaultValue(PartSysParamId.emit_init_alpha));
+            Assert.AreEqual(1, PartSysParamDefaultValues.GetDefaultValue(PartSysParamId.emit_scale_X));
         }
 
-        [Fact]
+        [Test]
         public void ParseConstant()
         {
             var value = Encoding.Default.GetBytes("1.5");
@@ -27,15 +27,15 @@ namespace OpenTemple.Tests.Particles
 
             Assert.NotNull(param);
             Assert.True(success);
-            Assert.Equal(PartSysParamType.PSPT_CONSTANT, param.Type);
-            Assert.Equal(1.5f, param.GetValue());
+            Assert.AreEqual(PartSysParamType.PSPT_CONSTANT, param.Type);
+            Assert.AreEqual(1.5f, param.GetValue());
         }
 
         /// <summary>
         /// For constants with a default value, the parser will return null, but
         /// set success to true.
         /// </summary>
-        [Fact]
+        [Test]
         public void ParseConstantDefault()
         {
             var value = Encoding.Default.GetBytes("0");

@@ -4,20 +4,20 @@ using FluentAssertions;
 using FluentAssertions.Common;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.Raycast;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class SectorEnumeratorTest
     {
-        [Fact]
+        [Test]
         public void IterateEmpty()
         {
             SectorEnumerator e = default;
             e.MoveNext().IsSameOrEqualTo(false);
         }
 
-        [Fact]
+        [Test]
         public void IterateSingleTileAlignedAtStart()
         {
             var e = new SectorEnumerator(new Rectangle(0, 0, 1, 1), false);
@@ -27,7 +27,7 @@ namespace OpenTemple.Tests
             e.MoveNext().IsSameOrEqualTo(false);
         }
 
-        [Fact]
+        [Test]
         public void IterateSingleTileAlignedAtEnd()
         {
             var e = new SectorEnumerator(new Rectangle(63, 63, 1, 1), false);
@@ -37,7 +37,7 @@ namespace OpenTemple.Tests
             e.MoveNext().IsSameOrEqualTo(false);
         }
 
-        [Fact]
+        [Test]
         public void IterateSingleTileInMiddle()
         {
             var e = new SectorEnumerator(new Rectangle(10, 10, 1, 1), false);
@@ -47,7 +47,7 @@ namespace OpenTemple.Tests
             e.MoveNext().IsSameOrEqualTo(false);
         }
 
-        [Fact]
+        [Test]
         public void IterateFourTilesSpanningFourSectors()
         {
             var e = new SectorEnumerator(new Rectangle(63, 63, 2, 2), false);
@@ -66,7 +66,7 @@ namespace OpenTemple.Tests
             e.MoveNext().IsSameOrEqualTo(false);
         }
 
-        [Fact]
+        [Test]
         public void IterateOneFullSector()
         {
             var e = new SectorEnumerator(new Rectangle(64, 64, 64, 64), false);
@@ -76,7 +76,7 @@ namespace OpenTemple.Tests
             e.MoveNext().IsSameOrEqualTo(false);
         }
 
-        [Fact]
+        [Test]
         public void IterateThreeByThreeSectorsWithOneTileBorder()
         {
             var e = new SectorEnumerator(new Rectangle(1, 1, 64 * 3 - 2, 64 * 3 - 2), false);

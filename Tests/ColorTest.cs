@@ -1,13 +1,13 @@
 using FluentAssertions;
 using OpenTemple.Core.GFX;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class ColorTest
     {
 
-        [Fact]
+        [Test]
         public void PackRoundtrip()
         {
             var c = new PackedLinearColorA(0xFF_FE_FD_FC);

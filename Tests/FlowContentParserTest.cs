@@ -2,13 +2,13 @@ using FluentAssertions;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Styles;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class FlowContentParserTest
     {
-        [Fact]
+        [Test]
         public void CanParseSequenceWithColorSwitches()
         {
             var text = FlowContentParser.ParseLegacyText("text@1other@tcolor@0and back",

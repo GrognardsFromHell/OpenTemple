@@ -1,10 +1,11 @@
+using System;
 using JetBrains.Annotations;
 
 namespace OpenTemple.Core.Logging
 {
     public interface ILogger
     {
-        void Error(string message);
+        void Error(ReadOnlySpan<char> message);
 
         [StringFormatMethod("format")]
         void Error<T1>(string format, T1 arg1);
@@ -15,7 +16,7 @@ namespace OpenTemple.Core.Logging
         [StringFormatMethod("format")]
         void Error<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3);
 
-        void Warn(string message);
+        void Warn(ReadOnlySpan<char> message);
 
         [StringFormatMethod("format")]
         void Warn<T1>(string format, T1 arg1);
@@ -29,7 +30,7 @@ namespace OpenTemple.Core.Logging
         [StringFormatMethod("format")]
         void Warn(string format, params object[] args);
 
-        void Info(string message);
+        void Info(ReadOnlySpan<char> message);
 
         [StringFormatMethod("format")]
         void Info<T1>(string format, T1 arg1);
@@ -43,7 +44,7 @@ namespace OpenTemple.Core.Logging
         [StringFormatMethod("format")]
         void Info(string format, params object[] args);
 
-        void Debug(string message);
+        void Debug(ReadOnlySpan<char> message);
 
         [StringFormatMethod("format")]
         void Debug<T1>(string format, T1 arg1);

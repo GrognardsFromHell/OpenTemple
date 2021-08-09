@@ -6,8 +6,8 @@ using OpenTemple.Core.IO.TroikaArchives;
 using OpenTemple.Core.Particles.Parser;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Particles.Params;
-using Xunit;
-using Xunit.Sdk;
+using NUnit.Framework;
+using NUnit.Framework.Internal;
 
 namespace OpenTemple.Tests.Particles
 {
@@ -31,16 +31,16 @@ namespace OpenTemple.Tests.Particles
             _parser.ParseFile("Particles/partsys2.tab");
         }
 
-        [Fact]
+        [Test]
         public void TestBasicSystem()
         {
             // Tests that the max particles are calculated correctly for all particle systems
             var flamingAxeEmitter = _parser.GetSpec("ef-flaming axe");
             Assert.NotNull(flamingAxeEmitter);
-            Assert.Equal(6, flamingAxeEmitter.GetEmitters().Count);
+            Assert.AreEqual(6, flamingAxeEmitter.GetEmitters().Count);
         }
 
-        [Fact]
+        [Test]
         public void TestKeyFrameParsing()
         {
             foreach (var line in File.ReadLines("Particles/keyframedump.txt"))
@@ -53,12 +53,12 @@ namespace OpenTemple.Tests.Particles
                 var partSys = _parser.GetSpec(partSysName);
                 if (partSys == null)
                 {
-                    throw new XunitException($"Could not find particle system {partSysName}");
+                    throw new NUnitException($"Could not find particle system {partSysName}");
                 }
 
                 if (emitterIdx >= partSys.GetEmitters().Count)
                 {
-                    throw new XunitException($"Particle System {partSysName} is missing emitter {emitterIdx}");
+                    throw new NUnitException($"Particle System {partSysName} is missing emitter {emitterIdx}");
                 }
 
                 var emitter = partSys.GetEmitters()[emitterIdx];
@@ -95,7 +95,7 @@ namespace OpenTemple.Tests.Particles
             }
         }
 
-        [Fact]
+        [Test]
         public void TestMaxParticleCalculations()
         {
             foreach (var line in File.ReadLines("Particles/partsysdump.txt"))

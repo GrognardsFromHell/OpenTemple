@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using FluentAssertions;
 using OpenTemple.Core.IO;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests.Core.IO
 {
     public class TokenizerTest
     {
-        [Fact]
+        [Test]
         public void CanParseSimpleTexturedMdf()
         {
             var tokenizer = new Tokenizer("Textured\r\nTexture \"folder/filename\"");
@@ -23,14 +23,14 @@ namespace OpenTemple.Tests.Core.IO
             tokenizer.TokenText.ToString().Should().Be("folder/filename");
         }
 
-        [Fact]
+        [Test]
         public void CanParseChainOfNumbers()
         {
             Tokenize("268 0 0 0 0").Should()
                 .Equal(268f, 0f, 0f, 0f, 0f);
         }
 
-        [Fact]
+        [Test]
         public void UnexpectedPunctuationIsSkipped()
         {
             Tokenize("TAG_PROTECTION_D TAG_RANGER_2, TAG_SORCERER_3").Should()

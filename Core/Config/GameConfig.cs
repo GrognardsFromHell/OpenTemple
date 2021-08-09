@@ -27,6 +27,8 @@ namespace OpenTemple.Core.Config
 
         public WindowConfig Window { get; set; } = new WindowConfig();
 
+        public bool EnableDebugUI { get; set; } = true;
+
         public bool SkipLegal { get; set; } = true;
         public bool laxRules { get; set; }
         public bool allowXpOverflow { get; set; } = false;

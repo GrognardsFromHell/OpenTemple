@@ -1,15 +1,11 @@
 using System;
-using System.Drawing;
 using System.Threading;
-using ImGuiNET;
-using OpenTemple.Core.Config;
 using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
@@ -23,7 +19,7 @@ namespace OpenTemple.Core
 
         private readonly RenderingDevice _device;
 
-        private readonly DebugUiSystem _debugUiSystem;
+        private readonly IDebugUI _debugUiSystem;
 
         private volatile bool _quit;
 
@@ -42,7 +38,7 @@ namespace OpenTemple.Core
         public GameLoop(
             MessageQueue messageQueue,
             RenderingDevice device,
-            DebugUiSystem debugUiSystem)
+            IDebugUI debugUiSystem)
         {
             _messageQueue = messageQueue;
             _device = device;

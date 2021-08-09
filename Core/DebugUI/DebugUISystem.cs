@@ -13,7 +13,7 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.DebugUI
 {
-    public class DebugUiSystem : IDisposable
+    public class DebugUiSystem : IDebugUI, IDisposable
     {
         private readonly ImGuiRenderer _renderer;
 
@@ -33,7 +33,13 @@ namespace OpenTemple.Core.DebugUI
         {
             _device = device;
 
-            var hwnd = mainWindow.NativeHandle;
+            // This is used for IME only.
+            var hwnd = IntPtr.Zero;
+            if (mainWindow is MainWindow realMainWindow)
+            {
+                hwnd = realMainWindow.NativeHandle;
+            }
+
             var context = device.Device.ImmediateContext;
 
             var guiContext = ImGui.CreateContext();
@@ -82,7 +88,6 @@ namespace OpenTemple.Core.DebugUI
         {
             try
             {
-
                 if (_renderDebugOverlay)
                 {
                     DebugOverlay.Render(GameViews.Primary);
@@ -135,7 +140,7 @@ namespace OpenTemple.Core.DebugUI
 
             if (ImGui.BeginMainMenuBar())
             {
-                height = (int) ImGui.GetWindowHeight();
+                height = (int)ImGui.GetWindowHeight();
 
                 _forceMainMenu = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
@@ -298,7 +303,8 @@ namespace OpenTemple.Core.DebugUI
                     GameSystems.D20.Combat.SavingThrowsAlwaysSucceed = savingThrowsAlwaysSucceed;
                 }
 
-                if (ImGui.MenuItem("Levelup")){
+                if (ImGui.MenuItem("Levelup"))
+                {
                     GameSystems.Cheats.LevelupParty();
                 }
 
@@ -332,24 +338,24 @@ namespace OpenTemple.Core.DebugUI
                     io.MouseDown[2] = false;
                     return io.WantCaptureMouse;
                 case WM_MOUSEWHEEL:
-                    io.MouseWheel += ((short) (wParam >> 16)) > 0 ? +1.0f : -1.0f;
+                    io.MouseWheel += ((short)(wParam >> 16)) > 0 ? +1.0f : -1.0f;
                     return io.WantCaptureMouse;
                 case WM_MOUSEMOVE:
-                    io.MousePos.X = (short) (lParam);
-                    io.MousePos.Y = (short) (lParam >> 16);
+                    io.MousePos.X = (short)(lParam);
+                    io.MousePos.Y = (short)(lParam >> 16);
                     return false; // Always update, never take it
                 case WM_KEYDOWN:
                     if (wParam < 256)
-                        io.KeysDown[(int) wParam] = true;
+                        io.KeysDown[(int)wParam] = true;
                     return io.WantCaptureKeyboard;
                 case WM_KEYUP:
                     if (wParam < 256)
-                        io.KeysDown[(int) wParam] = false;
+                        io.KeysDown[(int)wParam] = false;
                     return io.WantCaptureKeyboard;
                 case WM_CHAR:
                     // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
                     if (wParam > 0 && wParam < 0x10000)
-                        io.AddInputCharacter((ushort) wParam);
+                        io.AddInputCharacter((ushort)wParam);
                     return io.WantCaptureKeyboard;
                 default:
                     return false;

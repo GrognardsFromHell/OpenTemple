@@ -6,7 +6,7 @@ using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using OpenTemple.Core.Systems.FogOfWar;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests.FogOfWar
 {
@@ -35,7 +35,7 @@ namespace OpenTemple.Tests.FogOfWar
         // Copy just the blocking-bit from source to dest
         private static void CopyBlockingBit(ReadOnlySpan<byte> source, Span<byte> dest)
         {
-            Assert.Equal(source.Length, dest.Length);
+            Assert.AreEqual(source.Length, dest.Length);
             for (var i = 0; i < source.Length; i++)
             {
                 int current = dest[i];
@@ -102,7 +102,7 @@ namespace OpenTemple.Tests.FogOfWar
         /// The data is based around the initial player position on the tutorial map.
         /// This does not include the "extended" line of sight which is performed after the initial raycasting.
         /// </summary>
-        [Fact]
+        [Test]
         public void ComputedLineOfSightMatchesVanillaForTutorialMap()
         {
             var buffer = new LineOfSightBuffer();
@@ -119,7 +119,7 @@ namespace OpenTemple.Tests.FogOfWar
             // Check that the line of sight bit (2) is set as it is in vanilla
             for (var i = 0; i < losBuffer.Length; i++)
             {
-                Assert.Equal(_vanillaLos0[i] & LineOfSightBuffer.LINE_OF_SIGHT, losBuffer[i] & LineOfSightBuffer.LINE_OF_SIGHT);
+                Assert.AreEqual(_vanillaLos0[i] & LineOfSightBuffer.LINE_OF_SIGHT, losBuffer[i] & LineOfSightBuffer.LINE_OF_SIGHT);
             }
         }
 
@@ -127,7 +127,7 @@ namespace OpenTemple.Tests.FogOfWar
         /// Checks line of sight against vanilla after it has been extended by the sector visibility flags.
         /// (BASE, END, EXTEND, ARCHWAY)
         /// </summary>
-        [Fact]
+        [Test]
         public void ExtendedLineOfSightMatchesVanillaForTutorialMap()
         {
             var buffer = new LineOfSightBuffer();
@@ -144,7 +144,7 @@ namespace OpenTemple.Tests.FogOfWar
             // Check that the line of sight bit (2) is set as it is in vanilla
             for (var i = 0; i < losBuffer.Length; i++)
             {
-                Assert.Equal(_vanillaLos1b[i] & LineOfSightBuffer.LINE_OF_SIGHT, losBuffer[i] & LineOfSightBuffer.LINE_OF_SIGHT);
+                Assert.AreEqual(_vanillaLos1b[i] & LineOfSightBuffer.LINE_OF_SIGHT, losBuffer[i] & LineOfSightBuffer.LINE_OF_SIGHT);
             }
         }
 

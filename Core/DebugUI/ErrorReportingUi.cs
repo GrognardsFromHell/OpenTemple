@@ -101,7 +101,10 @@ namespace OpenTemple.Core.DebugUI
             ImGui.SameLine();
             if (ImGui.Button("Copy to Clipboard"))
             {
-                NativePlatform.SetClipboardText(Tig.MainWindow.NativeHandle, currentErrorText);
+                if (Tig.MainWindow is MainWindow nativeMainWindow)
+                {
+                    NativePlatform.SetClipboardText(nativeMainWindow.NativeHandle, currentErrorText);
+                }
             }
 
             ImGui.End(); // Window

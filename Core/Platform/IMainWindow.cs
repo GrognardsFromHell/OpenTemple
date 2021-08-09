@@ -84,8 +84,6 @@ namespace OpenTemple.Core.Platform
 
     public interface IMainWindow
     {
-        IntPtr NativeHandle { get; }
-
         void SetWindowMsgFilter(WindowMsgFilter filter);
 
         /// <summary>
@@ -113,5 +111,9 @@ namespace OpenTemple.Core.Platform
         event Action UiCanvasSizeChanged;
 
         float UiScale { get; }
+
+        void SetCursor(int hotspotX, int hotspotY, string imagePath);
+
+        bool IsCursorVisible { set; }
     }
 }

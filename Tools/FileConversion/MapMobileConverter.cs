@@ -19,7 +19,7 @@ namespace ConvertMapToText
     {
         public static void Convert(string toeeDir, int mapId)
         {
-            using var game = HeadlessGame.Start(toeeDir);
+            using var game = HeadlessGame.Start(new HeadlessGameOptions(toeeDir));
 
             var mapList = MapListParser.Parse(Tig.FS);
 

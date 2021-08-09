@@ -31,7 +31,7 @@ namespace OpenTemple.Core.Logging
             _writer.Write(string.Format(CultureInfo.InvariantCulture, "{0:0000.000} ", elapsedSeconds));
         }
 
-        public override void Error(string message)
+        public override void Error(ReadOnlySpan<char> message)
         {
             WriteElapsedTime();
             _writer.Write("[e] ");
@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Logging
             _writer.Flush();
         }
 
-        public override void Warn(string message)
+        public override void Warn(ReadOnlySpan<char> message)
         {
             WriteElapsedTime();
             _writer.Write("[w] ");
@@ -47,7 +47,7 @@ namespace OpenTemple.Core.Logging
             _writer.Flush();
         }
 
-        public override void Info(string message)
+        public override void Info(ReadOnlySpan<char> message)
         {
             WriteElapsedTime();
             _writer.Write("[i] ");
@@ -55,7 +55,7 @@ namespace OpenTemple.Core.Logging
             _writer.Flush();
         }
 
-        public override void Debug(string message)
+        public override void Debug(ReadOnlySpan<char> message)
         {
             WriteElapsedTime();
             _writer.Write("[d] ");

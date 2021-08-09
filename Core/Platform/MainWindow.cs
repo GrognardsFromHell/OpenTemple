@@ -1,8 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using OpenTemple.Core;
 using OpenTemple.Core.Config;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Platform
@@ -24,8 +29,9 @@ namespace OpenTemple.Core.Platform
         // Used to determine whether a MouseEnter event should be emitted when a mouse event is received
         private bool _mouseFocus;
 
-        public MainWindow(WindowConfig config)
+        public MainWindow(WindowConfig config, IFileSystem fs)
         {
+            _fs = fs;
             _config = config.Copy();
             if (_config.Width < _config.MinWidth)
             {
@@ -126,6 +132,49 @@ namespace OpenTemple.Core.Platform
 
         public float UiScale { get; private set; }
 
+        public bool IsCursorVisible
+        {
+            set
+            {
+                if (value)
+                {
+                    if (_currentCursor != IntPtr.Zero)
+                    {
+                        Cursor.SetCursor(_windowHandle, _currentCursor);
+                    }
+                }
+                else
+                {
+                    Cursor.HideCursor(_windowHandle);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Changes the currently used cursor to the given surface.
+        /// </summary>
+        public void SetCursor(int hotspotX, int hotspotY, string imagePath)
+        {
+            if (!_cursorCache.TryGetValue(imagePath, out var cursor))
+            {
+                var textureData = _fs.ReadBinaryFile(imagePath);
+                try
+                {
+                    cursor = IO.Images.ImageIO.LoadImageToCursor(textureData, hotspotX, hotspotY);
+                }
+                catch (Exception e)
+                {
+                    cursor = IntPtr.Zero;
+                    Logger.Error("Failed to load cursor {0}: {1}", imagePath, e);
+                }
+
+                _cursorCache[imagePath] = cursor;
+            }
+
+            Cursor.SetCursor(_windowHandle, cursor);
+            _currentCursor = cursor;
+        }
+
         private void UpdateUiCanvasSize()
         {
             // Attempt to fit 1024x768 onto the backbuffer
@@ -167,10 +216,15 @@ namespace OpenTemple.Core.Platform
             mWindowMsgFilter = filter;
         }
 
+        private readonly IFileSystem _fs;
         private readonly IntPtr _instanceHandle;
         private IntPtr _windowHandle;
         private int _width;
         private int _height;
+
+        // Caches for cursors
+        private readonly Dictionary<string, IntPtr> _cursorCache = new();
+        private IntPtr _currentCursor = IntPtr.Zero;
 
         // The window class name used for RegisterClass and CreateWindow.
         private const string WindowClassName = "OpenTempleMainWnd";

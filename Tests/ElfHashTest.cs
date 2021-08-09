@@ -1,15 +1,15 @@
 using OpenTemple.Core.Utils;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class ElfHashTest
     {
-        [Fact]
+        [Test]
         public void TestParticleSystemName()
         {
-            Assert.Equal(2908521, ElfHash.Hash("MM-ChainFlyBy".ToLowerInvariant()));
-            Assert.Equal(2908521, ElfHash.Hash("MM-ChainFlyBy"));
+            Assert.AreEqual(2908521, ElfHash.Hash("MM-ChainFlyBy".ToLowerInvariant()));
+            Assert.AreEqual(2908521, ElfHash.Hash("MM-ChainFlyBy"));
         }
     }
 }

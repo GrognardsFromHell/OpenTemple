@@ -3,13 +3,13 @@ using System.Numerics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using OpenTemple.Core.Systems.FogOfWar;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class TriangleRasterizerTest
     {
-        [Fact]
+        [Test]
         public void TestRasterization()
         {
             const int dimension = 192;

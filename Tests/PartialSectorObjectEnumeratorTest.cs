@@ -4,7 +4,7 @@ using System.Drawing;
 using FluentAssertions;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.Raycast;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
@@ -12,21 +12,21 @@ namespace OpenTemple.Tests
     {
         private static List<GameObjectBody>[,] EmptyTiles => new List<GameObjectBody>[64, 64];
 
-        [Fact]
+        [Test]
         public void TestEmptyEnumeration()
         {
             var e = new PartialSectorObjectEnumerator();
             e.MoveNext().Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void TestEnumerationOfEmptySector()
         {
             var e = new PartialSectorObjectEnumerator(EmptyTiles, new Rectangle(0, 0, 64, 64));
             e.MoveNext().Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void TestEnumerationOfSectorWithObjectInLastTile()
         {
             var tiles = EmptyTiles;
@@ -38,7 +38,7 @@ namespace OpenTemple.Tests
             e.MoveNext().Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void TestEnumerationOfSectorWithDiagonalObjects()
         {
             var tiles = EmptyTiles;
@@ -61,7 +61,7 @@ namespace OpenTemple.Tests
             e.MoveNext().Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void TestEnumeratePartialSectorOneTileSet()
         {
             var tiles = EmptyTiles;
@@ -89,7 +89,7 @@ namespace OpenTemple.Tests
             e.MoveNext().Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void TestEnumeratePartialSectorOneTileNotSet()
         {
             var tiles = EmptyTiles;

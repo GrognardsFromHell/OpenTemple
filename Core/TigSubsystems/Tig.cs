@@ -11,7 +11,6 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Scripting;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -40,7 +39,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         public static Textures Textures => RenderingDevice.GetTextures();
 
-        public static DebugUiSystem DebugUI { get; set; }
+        public static IDebugUI DebugUI { get; private set; }
 
         public static MdfMaterialFactory MdfFactory { get; set; }
 
@@ -66,10 +65,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         public static void Startup(GameConfig config, TigSettings tigSettings = null)
         {
-            if (tigSettings == null)
-            {
-                tigSettings = new TigSettings();
-            }
+            tigSettings ??= new TigSettings();
 
             Logger.Info("Initializing TIG");
 
@@ -83,7 +79,7 @@ namespace OpenTemple.Core.TigSubsystems
             }
             else
             {
-                MainWindow = new MainWindow(config.Window);
+                MainWindow = new MainWindow(config.Window, FS);
             }
 
             var configRendering = config.Rendering;
@@ -93,7 +89,14 @@ namespace OpenTemple.Core.TigSubsystems
                 configRendering.AdapterIndex,
                 configRendering.DebugDevice);
 
-            DebugUI = new DebugUiSystem(MainWindow, RenderingDevice);
+            if (config.EnableDebugUI)
+            {
+                DebugUI = new DebugUiSystem(MainWindow, RenderingDevice);
+            }
+            else
+            {
+                DebugUI = new NoOpDebugUI();
+            }
 
             MdfFactory = new MdfMaterialFactory(FS, RenderingDevice);
             ShapeRenderer2d = new ShapeRenderer2d(RenderingDevice);

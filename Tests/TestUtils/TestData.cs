@@ -1,7 +1,7 @@
 using System.IO;
 using System.Reflection;
 
-namespace OpenTemple.Tests
+namespace OpenTemple.Tests.TestUtils
 {
     public static class TestData
     {

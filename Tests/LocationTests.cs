@@ -2,7 +2,7 @@ using System;
 using FluentAssertions;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Utils;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
@@ -12,7 +12,7 @@ namespace OpenTemple.Tests
 
         private static locXY Center => new locXY(480,480);
 
-        [Fact]
+        [Test]
         public void ConversionRoundtrip()
         {
             var zeroTile = LocAndOffsets.FromInches(0, 0);
@@ -35,10 +35,10 @@ namespace OpenTemple.Tests
                 return; // Everything okay!
             }
 
-            Assert.Equal(expectedRadians, actualRadians);
+            Assert.AreEqual(expectedRadians, actualRadians);
         }
 
-        [Fact]
+        [Test]
         public void RotationTowardsUpIsZero()
         {
             var top = new LocAndOffsets(Center.Offset(CompassDirection.Top));
@@ -46,7 +46,7 @@ namespace OpenTemple.Tests
             AssertAngles(0.0f, rot);
         }
 
-        [Fact]
+        [Test]
         public void RotationTowardsRightIs90Degrees()
         {
             var right = new LocAndOffsets(Center.Offset(CompassDirection.Right));
@@ -54,7 +54,7 @@ namespace OpenTemple.Tests
             AssertAngles(90, rot);
         }
 
-        [Fact]
+        [Test]
         public void RotationTowardsBottomIs180Degrees()
         {
             var bottom = new LocAndOffsets(Center.Offset(CompassDirection.Bottom));
@@ -62,7 +62,7 @@ namespace OpenTemple.Tests
             AssertAngles(180, rot);
         }
 
-        [Fact]
+        [Test]
         public void RotationTowardsLeftIs270Degrees()
         {
             var left = new LocAndOffsets(Center.Offset(CompassDirection.Left));

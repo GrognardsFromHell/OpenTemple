@@ -3,13 +3,14 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using OpenTemple.Core.IO.SaveGames;
-using Xunit;
+using OpenTemple.Tests.TestUtils;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests.SaveGames
 {
     public class SaveGameTest
     {
-        [Fact]
+        [Test]
         public void CanLoadCo8SaveGame()
         {
             var savePath = TestData.GetPath("SaveGames/TestData/slot0007");
@@ -19,7 +20,7 @@ namespace OpenTemple.Tests.SaveGames
             Console.WriteLine();
         }
 
-        [Fact]
+        [Test]
         public void CanLoadVanillaPatch2SaveGame()
         {
             var savePath = TestData.GetPath("SaveGames/TestData/slot0014");

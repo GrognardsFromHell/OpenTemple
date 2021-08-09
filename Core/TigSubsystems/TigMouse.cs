@@ -244,7 +244,7 @@ namespace OpenTemple.Core.TigSubsystems
                 hotspotY = 11;
             }
 
-            Tig.RenderingDevice.SetCursor(hotspotX, hotspotY, cursorPath);
+            Tig.MainWindow.SetCursor(hotspotX, hotspotY, cursorPath);
         }
 
         [TempleDllLocation(0x101DD770)]

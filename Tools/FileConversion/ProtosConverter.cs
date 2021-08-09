@@ -15,7 +15,7 @@ namespace ConvertMapToText
     {
         internal static void Convert(string toeeDir)
         {
-            using var game = HeadlessGame.Start(toeeDir);
+            using var game = HeadlessGame.Start(new HeadlessGameOptions(toeeDir));
 
             Directory.CreateDirectory("protos");
 

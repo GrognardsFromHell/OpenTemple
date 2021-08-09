@@ -2,13 +2,13 @@ using System;
 using FluentAssertions;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.SaveGames.Co8State;
-using Xunit;
+using NUnit.Framework;
 
 namespace OpenTemple.Tests
 {
     public class PythonValueParserTest
     {
-        [Fact]
+        [Test]
         public void TestParseActiveTargetListEntry()
         {
             var serializedValue = "[[17, (2, (965518452, 33924, 17687, (181, 170, 229, 54, 235, 222, 28, 219)))]]";
