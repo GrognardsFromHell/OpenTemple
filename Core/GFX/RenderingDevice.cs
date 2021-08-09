@@ -1236,9 +1236,6 @@ namespace OpenTemple.Core.GFX
         {
             annotation?.SetMarker("TakeScaledScreenshot");
 
-            Logger.Debug("Creating screenshot with size {0}x{1} in {2}", width, height,
-                filename);
-
             var targetSize = renderTarget.GetSize();
 
             // Support taking unscaled screenshots
@@ -1249,6 +1246,9 @@ namespace OpenTemple.Core.GFX
                 height = targetSize.Height;
                 stretch = false;
             }
+
+            Logger.Debug("Creating screenshot with size {0}x{1} in {2}", width, height,
+                filename);
 
             // Retrieve the backbuffer format...
             var currentTargetDesc = renderTarget.Texture.Description;

@@ -26,10 +26,10 @@ namespace OpenTemple.Core.TigSubsystems
             Closed?.Invoke();
         }
 
-        public Size UiCanvasTargetSize { get; set; }
-        public SizeF UiCanvasSize { get; set; }
+        public SizeF UiCanvasSize => new (OffScreenSize.Width, OffScreenSize.Height);
+
         public event Action UiCanvasSizeChanged;
-        public float UiScale { get; set; }
+        public float UiScale { get; set; } = 1.0f;
 
         public void SetCursor(int hotspotX, int hotspotY, string imagePath)
         {

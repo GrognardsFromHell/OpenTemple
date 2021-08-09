@@ -104,8 +104,6 @@ namespace OpenTemple.Core.Platform
 
         WindowConfig WindowConfig { get; set; }
 
-        Size UiCanvasTargetSize { get; set; }
-
         SizeF UiCanvasSize { get; }
 
         event Action UiCanvasSizeChanged;

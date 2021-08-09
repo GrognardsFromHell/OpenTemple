@@ -73,7 +73,10 @@ namespace OpenTemple.Core
                 }
                 catch (Exception e)
                 {
-                    ErrorReporting.ReportException(e);
+                    if (!ErrorReporting.ReportException(e))
+                    {
+                        throw;
+                    }
                 }
 
                 RenderFrame();
@@ -149,7 +152,10 @@ namespace OpenTemple.Core
             }
             catch (Exception e)
             {
-                ErrorReporting.ReportException(e);
+                if (!ErrorReporting.ReportException(e))
+                {
+                    throw;
+                }
             }
 
             _device.EndDraw();
@@ -164,7 +170,10 @@ namespace OpenTemple.Core
             }
             catch (Exception e)
             {
-                ErrorReporting.ReportException(e);
+                if (!ErrorReporting.ReportException(e))
+                {
+                    throw;
+                }
             }
 
             // Render "GFade" overlay

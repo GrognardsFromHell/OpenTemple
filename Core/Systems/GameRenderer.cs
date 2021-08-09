@@ -142,6 +142,11 @@ namespace OpenTemple.Core.Systems
 
         private void RenderWorld(IGameViewport viewport, ref TileRect tileRect)
         {
+            if (!GameSystems.Map.IsMapOpen())
+            {
+                return;
+            }
+
             // We need to set the canvas size because renderers like the terrain rendering system will make use
             // of a UI projection that has to match the scaled viewport in size. The viewport is in a 2D-coordinate
             // system transformed by the "x,y translation" used by the vanilla engine to apply scrolling, and we're

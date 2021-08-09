@@ -23,7 +23,10 @@ namespace OpenTemple.Core.TigSubsystems
             }
             catch (Exception e)
             {
-                ErrorReporting.ReportException(e);
+                if (!ErrorReporting.ReportException(e))
+                {
+                    throw;
+                }
             }
 
             try
@@ -32,7 +35,10 @@ namespace OpenTemple.Core.TigSubsystems
             }
             catch (Exception e)
             {
-                ErrorReporting.ReportException(e);
+                if (!ErrorReporting.ReportException(e))
+                {
+                    throw;
+                }
             }
 
             try
@@ -41,7 +47,10 @@ namespace OpenTemple.Core.TigSubsystems
             }
             catch (Exception e)
             {
-                ErrorReporting.ReportException(e);
+                if (!ErrorReporting.ReportException(e))
+                {
+                    throw;
+                }
             }
 
             try
@@ -50,7 +59,10 @@ namespace OpenTemple.Core.TigSubsystems
             }
             catch (Exception e)
             {
-                ErrorReporting.ReportException(e);
+                if (!ErrorReporting.ReportException(e))
+                {
+                    throw;
+                }
             }
         }
 

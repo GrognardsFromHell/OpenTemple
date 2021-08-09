@@ -1,15 +1,24 @@
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace OpenTemple.Core.Utils
 {
     public static class ErrorReporting
     {
-        public static List<UnhandledError> Queue {get;} = new List<UnhandledError>();
+        public static List<UnhandledError> Queue { get; } = new List<UnhandledError>();
 
-        public static void ReportException(Exception e)
+        public static bool DisableErrorReporting { get; set; }
+
+        [MustUseReturnValue]
+        public static bool ReportException(Exception e)
         {
-        Queue.Add(new UnhandledError(e));
+            if (DisableErrorReporting)
+            {
+                return false;
+            }
+            Queue.Add(new UnhandledError(e));
+            return true;
         }
 
         public readonly struct UnhandledError

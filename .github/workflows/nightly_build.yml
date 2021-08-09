@@ -21,10 +21,11 @@ jobs:
         env:
           CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: nightly_windows
           path: dist/windows
+          retention-days: 1
 
   publish:
     needs: build-windows

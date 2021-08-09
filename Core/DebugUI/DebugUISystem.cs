@@ -113,7 +113,10 @@ namespace OpenTemple.Core.DebugUI
             }
             catch (Exception e)
             {
-                ErrorReporting.ReportException(e);
+                if (!ErrorReporting.ReportException(e))
+                {
+                    throw;
+                }
             }
 
             ErrorReportingUi.Render();

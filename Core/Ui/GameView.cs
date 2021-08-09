@@ -103,7 +103,10 @@ namespace OpenTemple.Core.Ui
             }
             catch (Exception e)
             {
-                ErrorReporting.ReportException(e);
+                if (!ErrorReporting.ReportException(e))
+                {
+                    throw;
+                }
             }
         }
 

@@ -13,25 +13,27 @@ namespace OpenTemple.Tests.Particles
         public void SplitEmptyText()
         {
             using var parts = SpanUtils.SplitList(ReadOnlySpan<byte>.Empty, SEP, out var count);
-            Assert.AreEqual(1, count);
+            Assert.AreEqual(0, count);
             Assert.AreEqual(parts.Memory.Span[0], ..0);
         }
 
+        /// <summary>
+        /// The last element is removed if it is purely whitespace.
+        /// </summary>
         [Test]
         public void SplitWhitespace()
         {
             using var parts = SpanUtils.SplitList(Encoding.ASCII.GetBytes("   "), SEP, out var count);
-            Assert.AreEqual(1, count);
-            Assert.AreEqual(..0, parts.Memory.Span[0]);
+            Assert.AreEqual(0, count);
         }
 
         [Test]
         public void SplitEmptyTokens()
         {
-            using var parts = SpanUtils.SplitList(Encoding.ASCII.GetBytes("  , "), SEP, out var count);
+            using var parts = SpanUtils.SplitList(Encoding.ASCII.GetBytes("   , , "), SEP, out var count);
             Assert.AreEqual(2, count);
             Assert.AreEqual(..0, parts.Memory.Span[0]);
-            Assert.AreEqual(3..3, parts.Memory.Span[1]);
+            Assert.AreEqual(4..4, parts.Memory.Span[1]);
         }
 
         [Test]

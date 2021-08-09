@@ -427,7 +427,10 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 }
                 catch (Exception e)
                 {
-                    ErrorReporting.ReportException(e);
+                    if (!ErrorReporting.ReportException(e))
+                    {
+                        throw;
+                    }
                 }
             }
         }
