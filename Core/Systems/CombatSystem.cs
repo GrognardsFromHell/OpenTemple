@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
@@ -61,7 +62,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10062eb0)]
         public void Dispose()
         {
-            CombatEnd();
+            CombatEnd(true);
         }
 
         [TempleDllLocation(0x10062ed0)]

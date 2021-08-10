@@ -182,18 +182,6 @@ namespace OpenTemple.Core.Systems
             InitializeSystems(loadingScreen);
         }
 
-        public static void DisposeAll()
-        {
-            mResetting = default;
-            mModuleGuid = default;
-            mModuleArchivePath = default;
-            mModuleDirPath = default;
-            ModuleLoaded = false;
-
-            _timing.Clear();
-            _initializedSystems.DisposeAndClear();
-        }
-
         public static void InitializeFonts()
         {
             var lang = GetLanguage();
@@ -287,18 +275,18 @@ namespace OpenTemple.Core.Systems
             Reaction = null;
             Reputation?.Dispose();
             Reputation = null;
-            Anim?.Dispose();
-            Anim = null;
             AI?.Dispose();
             AI = null;
             Quest?.Dispose();
             Quest = null;
             Rumor?.Dispose();
             Rumor = null;
-            TimeEvent?.Dispose();
-            TimeEvent = null;
             Combat?.Dispose();
             Combat = null;
+            TimeEvent?.Dispose();
+            TimeEvent = null;
+            Anim?.Dispose();
+            Anim = null;
             Item?.Dispose();
             Item = null;
             Weapon = null;
@@ -392,6 +380,15 @@ namespace OpenTemple.Core.Systems
             Vagrant = null;
             Help?.Dispose();
             Help = null;
+
+            mResetting = default;
+            mModuleGuid = default;
+            mModuleArchivePath = default;
+            mModuleDirPath = default;
+            ModuleLoaded = false;
+
+            _timing.Clear();
+            _initializedSystems.Clear();
         }
 
         /*
