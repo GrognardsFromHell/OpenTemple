@@ -77,21 +77,29 @@ namespace OpenTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101e3fa0)]
-        public TigSound(Func<int, string> soundLookup)
+        public TigSound(Func<int, string> soundLookup, bool disableSound)
         {
             nextFreeEffectStreamIdx = 11;
 
             _soundLookup = soundLookup;
 
             _soloud = new Soloud();
-            var err = _soloud.init(
-                Soloud.CLIP_ROUNDOFF | Soloud.LEFT_HANDED_3D
-            );
-            if (err != 0)
+            if (disableSound)
             {
-                Logger.Error("Failed to initialize sound system: {0}", _soloud.getErrorString(err));
+                Logger.Debug("Disabling sound output");
                 _soloud.init(Soloud.NULLDRIVER);
-                return;
+            }
+            else
+            {
+                var err = _soloud.init(
+                    Soloud.CLIP_ROUNDOFF | Soloud.LEFT_HANDED_3D
+                );
+                if (err != 0)
+                {
+                    Logger.Error("Failed to initialize sound system: {0}", _soloud.getErrorString(err));
+                    _soloud.init(Soloud.NULLDRIVER);
+                    return;
+                }
             }
 
             Logger.Info(
@@ -383,7 +391,7 @@ namespace OpenTemple.Core.TigSubsystems
                     }
                     else if ((stream.flags & 2) != 0)
                     {
-                        var actualVol = (float) (fadedVolume * stream.volume / 128) / 127.0f;
+                        var actualVol = (float)(fadedVolume * stream.volume / 128) / 127.0f;
                         _soloud.setVolume(stream.voiceHandle, actualVol);
                     }
                     else if ((stream.flags & 0x400) != 0)
@@ -446,10 +454,10 @@ namespace OpenTemple.Core.TigSubsystems
         private readonly Dictionary<tig_sound_type, int> tig_sound_type_stream_flags =
             new Dictionary<tig_sound_type, int>
             {
-                {tig_sound_type.TIG_ST_EFFECTS, 0x80},
-                {tig_sound_type.TIG_ST_MUSIC, 0x100},
-                {tig_sound_type.TIG_ST_VOICE, 0x200},
-                {tig_sound_type.TIG_ST_THREE_D, 0x400},
+                { tig_sound_type.TIG_ST_EFFECTS, 0x80 },
+                { tig_sound_type.TIG_ST_MUSIC, 0x100 },
+                { tig_sound_type.TIG_ST_VOICE, 0x200 },
+                { tig_sound_type.TIG_ST_THREE_D, 0x400 },
             };
 
         [TempleDllLocation(0x101e45b0)]

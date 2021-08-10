@@ -130,9 +130,10 @@ namespace OpenTemple.Core.TigSubsystems
             // startedSystems.emplace_back(StartSystem("gfx.c", TigStartupNoop, TigShutdownNoop));
             // TODO mStartedSystems.emplace_back(StartSystem("strparse.c", 0x101EBF00, TigShutdownNoop));
             // TODO mStartedSystems.emplace_back(StartSystem("filecache.c", TigStartupNoop, TigShutdownNoop));
-            // TODO if (!config.noSound) {
-            Sound = new TigSound(soundId => GameSystems.SoundGame.FindSoundFilename(soundId));
-            // TODO }
+            Sound = new TigSound(
+                soundId => GameSystems.SoundGame.FindSoundFilename(soundId),
+                tigSettings.DisableSound
+            );
             // TODO mSoundSystem = std::make_unique<temple::SoundSystem>();
             // TODO mMovieSystem = std::make_unique<temple::MovieSystem>(*mSoundSystem);
             // mStartedSystems.emplace_back(StartSystem("movie.c", 0x101F1090, TigShutdownNoop));
@@ -243,5 +244,7 @@ namespace OpenTemple.Core.TigSubsystems
         public string DataFolder { get; set; }
 
         public bool OffScreen { get; set; }
+
+        public bool DisableSound { get; set; }
     }
 }

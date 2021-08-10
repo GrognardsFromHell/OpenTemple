@@ -31,7 +31,8 @@ namespace OpenTemple.Core
             var settings = new TigSettings
             {
                 DataFolder = options.OpenTempleDataPath ?? FindDataFolder(),
-                OffScreen = true
+                OffScreen = true,
+                DisableSound = true
             };
             Globals.ConfigManager = new GameConfigManager(config);
             Globals.GameFolders = new GameFolders(options.UserDataFolder);
