@@ -86,8 +86,7 @@ namespace OpenTemple.Core.TigSubsystems
             _soloud = new Soloud();
             if (disableSound)
             {
-                Logger.Debug("Disabling sound output");
-                _soloud.init(Soloud.NULLDRIVER);
+                _soloud.init(Soloud.CLIP_ROUNDOFF | Soloud.LEFT_HANDED_3D, Soloud.NULLDRIVER);
             }
             else
             {
@@ -97,7 +96,7 @@ namespace OpenTemple.Core.TigSubsystems
                 if (err != 0)
                 {
                     Logger.Error("Failed to initialize sound system: {0}", _soloud.getErrorString(err));
-                    _soloud.init(Soloud.NULLDRIVER);
+                    _soloud.init(Soloud.CLIP_ROUNDOFF | Soloud.LEFT_HANDED_3D, Soloud.NULLDRIVER);
                     return;
                 }
             }
