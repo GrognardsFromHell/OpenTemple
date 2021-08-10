@@ -103,12 +103,6 @@ namespace OpenTemple.Core.Systems.AI
             Stub.TODO();
         }
 
-        [TempleDllLocation(0x1005d5e0)]
-        public void AddAiTimer(GameObjectBody obj)
-        {
-            Stub.TODO();
-        }
-
         [TempleDllLocation(0x10AA4BC8)]
         private AiCancelDialog _cancelDialog;
 
@@ -122,6 +116,12 @@ namespace OpenTemple.Core.Systems.AI
             _showTextBubble = showTextBubble;
         }
 
+        [TempleDllLocation(0x1005d5e0)]
+        public void AddAiTimer(GameObjectBody obj)
+        {
+            AiTimeEventSchedule_Normal(obj, GetAiEventDelay(obj));
+        }
+
         [TempleDllLocation(0x1005be60)]
         public void AddOrReplaceAiTimer(GameObjectBody obj, int unknownFlag)
         {
@@ -132,6 +132,20 @@ namespace OpenTemple.Core.Systems.AI
             newEvt.arg2.int32 = unknownFlag;
 
             GameSystems.TimeEvent.ScheduleNow(newEvt);
+        }
+
+        [TempleDllLocation(0x1005be00)]
+        private void AiTimeEventSchedule_Normal(GameObjectBody obj, TimeSpan delay)
+        {
+            GameSystems.TimeEvent.Remove(
+                TimeEventType.AI,
+                e => e.arg1.handle == obj
+            );
+
+            var evt = new TimeEvent(TimeEventType.AI);
+            evt.arg1.handle = obj;
+            evt.arg2.int32 = 0;
+            GameSystems.TimeEvent.Schedule(evt, delay, out _);
         }
 
         [TempleDllLocation(0x1005b5f0)]
@@ -3139,20 +3153,6 @@ namespace OpenTemple.Core.Systems.AI
 
             var keyId = container.GetInt32(obj_f.container_key_id);
             return GameSystems.Item.HasKey(critter, keyId) ? LockStatus.PLS_OPEN : LockStatus.PLS_LOCKED;
-        }
-
-        [TempleDllLocation(0x1005be00)]
-        private void AiTimeEventSchedule_Normal(GameObjectBody obj, TimeSpan delay)
-        {
-            GameSystems.TimeEvent.Remove(
-                TimeEventType.AI,
-                e => e.arg1.handle == obj
-            );
-
-            var evt = new TimeEvent(TimeEventType.AI);
-            evt.arg1.handle = obj;
-            evt.arg2.int32 = 0;
-            GameSystems.TimeEvent.Schedule(evt, delay, out _);
         }
 
         [TempleDllLocation(0x1005b950)]
