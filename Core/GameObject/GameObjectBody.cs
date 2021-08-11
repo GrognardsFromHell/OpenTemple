@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTemple.Core.IO;
@@ -1808,23 +1809,23 @@ namespace OpenTemple.Core.GameObject
                 if (IsPC())
                 {
                     var pcName = GetString(obj_f.pc_player_name);
-                    return $"{pcName} (PC, Proto {ProtoId})";
+                    return $"{pcName} (PC, Proto {ProtoId}, #{_objectId})";
                 }
                 else
                 {
                     if (GameSystems.Description == null)
                     {
-                        return $"{type} (Proto {ProtoId})";
+                        return $"{type} (Proto {ProtoId}, #{_objectId})";
                     }
 
                     if (type == ObjectType.key)
                     {
                         var keyId = GetInt32(obj_f.key_key_id);
-                        return GameSystems.Description.GetKeyName(keyId) + $" ({type}, Proto {ProtoId})";
+                        return GameSystems.Description.GetKeyName(keyId) + $" ({type}, Proto {ProtoId}, #{_objectId})";
                     }
 
                     var descriptionId = GetInt32(obj_f.description);
-                    return GameSystems.Description.Get(descriptionId) + $" ({type}, Proto {ProtoId})";
+                    return GameSystems.Description.Get(descriptionId) + $" ({type}, Proto {ProtoId}, #{_objectId})";
                 }
             }
             else
@@ -1882,6 +1883,29 @@ namespace OpenTemple.Core.GameObject
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Two game objects can only be equal if they're the same game object.
+        /// </summary>
+        public override bool Equals(object? obj)
+        {
+            return ReferenceEquals(this, obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return RuntimeHelpers.GetHashCode(this);
+        }
+
+        public static bool operator ==(GameObjectBody left, GameObjectBody right)
+        {
+            return ReferenceEquals(left, right);
+        }
+
+        public static bool operator !=(GameObjectBody left, GameObjectBody right)
+        {
+            return !ReferenceEquals(left, right);
         }
     }
 }

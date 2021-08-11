@@ -324,8 +324,6 @@ namespace OpenTemple.Core.Systems
             MapSector = null;
             Object?.Dispose();
             Object = null;
-            Proto?.Dispose();
-            Proto = null;
             ObjectNode?.Dispose();
             ObjectNode = null;
             OName?.Dispose();
@@ -380,6 +378,8 @@ namespace OpenTemple.Core.Systems
             Vagrant = null;
             Help?.Dispose();
             Help = null;
+            Proto?.Dispose();
+            Proto = null;
 
             mResetting = default;
             mModuleGuid = default;

@@ -148,7 +148,6 @@ namespace OpenTemple.Core.Systems
             _combatInitiative--;
         }
 
-
         [TempleDllLocation(0x100632b0)]
         private void EndTurn()
         {
@@ -207,12 +206,18 @@ namespace OpenTemple.Core.Systems
             {
                 Logger.Info("Ending combat (enemies far from GameSystems.Party)");
                 var leader = GameSystems.Party.GetConsciousLeader();
-                CritterLeaveCombat(leader);
+                if (leader != null)
+                {
+                    CritterLeaveCombat(leader);
+                }
             }
             else if (AllPcsUnconscious())
             {
                 var leader = GameSystems.Party.GetConsciousLeader();
-                CritterLeaveCombat(leader);
+                if (leader != null)
+                {
+                    CritterLeaveCombat(leader);
+                }
             }
         }
 
@@ -340,8 +345,10 @@ namespace OpenTemple.Core.Systems
             if (!GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
             {
                 if (GameSystems.Party.IsInParty(actor))
+                {
                     GameSystems.Combat.AddToInitiativeWithinRect(actor);
-                else if (!GameSystems.Critter.IsFriendly(actor, partyLeader))
+                }
+                else if (partyLeader != null && !GameSystems.Critter.IsFriendly(actor, partyLeader))
                 {
                     using var objList = ObjList.ListRangeTiles(actor, 24, ObjectListFilter.OLC_CRITTERS);
                     foreach (var resHandle in objList)

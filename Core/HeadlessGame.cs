@@ -42,6 +42,8 @@ namespace OpenTemple.Core
             GameSystems.InitializeFonts();
             GameSystems.InitializeSystems(new DummyLoadingProgress());
 
+            GameSystems.GameInit.EnableStartMap = options.EnableStartMap; // Prevents shopmap from opening
+
             if (options.WithUserInterface)
             {
                 Globals.UiManager = new UiManager(Tig.MainWindow);
@@ -52,13 +54,7 @@ namespace OpenTemple.Core
                 UiSystems.Startup(config);
             }
 
-            GameSystems.GameInit.IsEditor = !options.OpenStartMap; // Prevent shopmap from opening
             GameSystems.LoadModule("ToEE", true);
-            // If we don't open a start map, we still need to set the campaign start time
-            if (!options.OpenStartMap)
-            {
-                GameSystems.GameInit.SetupStartingTime();
-            }
 
         }
 
@@ -135,7 +131,7 @@ namespace OpenTemple.Core
         /// If set to true, the shop map will be loaded upon startup.
         /// Keep in mind that working with game objects requires a map to be open.
         /// </summary>
-        public bool OpenStartMap { get; init; }
+        public bool EnableStartMap { get; init; }
 
         public HeadlessGameOptions(string installationFolder)
         {

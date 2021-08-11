@@ -9,6 +9,7 @@ namespace OpenTemple.Tests.Game
     public class MainMenuTest : HeadlessGameTest
     {
         [Test]
+        [TakeFailureScreenshot]
         public void CanStartAndReachMainMenu()
         {
             UiSystems.MainMenu.Show(MainMenuPage.MainMenu);

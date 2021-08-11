@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml.Linq;
 using OpenTemple.Core.GameObject;
@@ -317,6 +318,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002BE60)]
+        [return:MaybeNull]
         public GameObjectBody GetConsciousLeader()
         {
             foreach (var selected in _selected)

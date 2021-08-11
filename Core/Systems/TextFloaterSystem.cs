@@ -37,7 +37,6 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10B3D8A4)]
         private const bool IsEditor = false; // Is Editor
 
-
         // TODO this is incorrect and the floating system needs a rework of how it fades in/out
         private const float LineHeight = 20;
 

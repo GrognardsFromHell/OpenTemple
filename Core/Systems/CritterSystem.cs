@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObject;
@@ -240,6 +241,20 @@ namespace OpenTemple.Core.Systems
             }
 
             return GetWeaponAnim(critter, weaponPrim, weaponSec, animType);
+        }
+
+        [TempleDllLocation(0x10080DA0)]
+        public void RemoveFromGroups(GameObjectBody obj)
+        {
+            Trace.Assert(obj.IsCritter());
+
+            GameSystems.Party.RemoveFromAllGroups(obj);
+
+            if (obj.IsNPC())
+            {
+                GameSystems.AI.FollowerAddWithTimeEvent(obj, true);
+                GameSystems.Critter.RemoveFollowerFromLeaderCritterFollowers(obj);
+            }
         }
 
         [TempleDllLocation(0x10020B60)]
@@ -2506,5 +2521,6 @@ namespace OpenTemple.Core.Systems
         {
             return GameSystems.Critter.NpcAllegianceShared(critter, otherCritter);
         }
+
     }
 }

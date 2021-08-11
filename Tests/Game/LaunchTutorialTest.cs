@@ -11,13 +11,16 @@ namespace OpenTemple.Tests.Game
     public class LaunchTutorialTest : HeadlessGameTest
     {
         [OneTimeSetUp]
-        public static void LaunchTutorial()
+        public void LaunchTutorial()
         {
+            // Tutorial can't be launched without an existing map
+            GameSystems.GameInit.OpenStartMap(true);
             UiSystems.MainMenu.LaunchTutorial();
             Game.RunFor(1000);
         }
 
         [Test]
+        [TakeFailureScreenshot]
         public void TutorialMapIsLoaded()
         {
             // The tutorial map

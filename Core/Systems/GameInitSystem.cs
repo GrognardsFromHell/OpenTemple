@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Systems
     public class GameInitSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
         [TempleDllLocation(0x10aa327c)]
-        public bool IsEditor { get; set; }
+        public bool EnableStartMap { get; set; } = true;
 
         [TempleDllLocation(0x1004c610)]
         public GameInitSystem()
@@ -23,13 +23,8 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1004c6a0)]
         public void LoadModule()
         {
-            if (IsEditor)
-            {
-                return;
-            }
-
             SetupStartingTime();
-            Reset();
+            OpenStartMap();
         }
 
         [TempleDllLocation(0x1004c850)]
@@ -41,10 +36,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1004c660)]
         public void Reset()
         {
-            if (!IsEditor)
-            {
-                OpenStartMap();
-            }
+            OpenStartMap();
         }
 
         public void SetupStartingTime()
@@ -58,8 +50,14 @@ namespace OpenTemple.Core.Systems
             GameSystems.TimeEvent.SetStartingTime(startingYear, startingDay, startingHourOfDay);
         }
 
-        public void OpenStartMap()
+        public void OpenStartMap(bool force = false)
         {
+            if (!EnableStartMap && !force)
+            {
+                GameSystems.Map.CloseMap();
+                return;
+            }
+
             var mapId = GameSystems.Map.GetMapIdByType(MapType.ShoppingMap);
             if (mapId == 0)
             {

@@ -3,10 +3,12 @@
     <PropertyGroup>
         <AssemblyName>OpenTemple.Tests</AssemblyName>
         <RootNamespace>OpenTemple.Tests</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
+        <PackageReference Include="FFmpeg.AutoGen" Version="4.4.0" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="GitHubActionsTestLogger" Version="1.2.0" />
         <PackageReference Include="ImageSharpCompare" Version="1.1.34" />
@@ -53,6 +55,9 @@
     </ItemGroup>
     <ItemGroup>
       <EmbeddedResource Include="AAS\animscripts.txt" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="TestResults" />
     </ItemGroup>
     
 </Project>

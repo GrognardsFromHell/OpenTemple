@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -391,7 +392,8 @@ namespace OpenTemple.Core.Systems.D20
                 var condition = Conditions.GetByHash(condNameHash);
                 if (condition != null)
                 {
-                    Span<int> condArgsIn = stackalloc int[condition.numArgs];
+                    using var condArgsInMem = MemoryPool<int>.Shared.Rent(condition.numArgs);
+                    var condArgsIn = condArgsInMem.Memory.Slice(0, condition.numArgs).Span;
                     foreach (ref var arg in condArgsIn)
                     {
                         arg = item.GetInt32(obj_f.item_pad_wielder_argument_array, argArrayCount++);
@@ -406,12 +408,12 @@ namespace OpenTemple.Core.Systems.D20
         [TempleDllLocation(0x10092A50)]
         public void turnBasedReset()
         {
-            // TODO
+            Stub.TODO();
         }
 
         public void ResetRadialMenus()
         {
-            // TODO
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x100e5080)]

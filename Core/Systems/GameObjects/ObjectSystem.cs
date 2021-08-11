@@ -343,55 +343,12 @@ namespace OpenTemple.Core.Systems.GameObjects
             }
             else if (type.IsCritter())
             {
-                RemoveFromGroups(obj);
-
-                GameSystems.AI.RemoveAiTimer(obj);
-
-                if (type == ObjectType.npc)
-                {
-                    var player = GameSystems.Reaction.GetLastReactionPlayer(obj);
-                    if (player != null)
-                    {
-                        GameUiBridge.CancelDialog(player);
-                    }
-                }
-
                 GameSystems.Item.PoopInventory(obj, true, onlyInvulnerable: true);
             }
 
-            GameSystems.Anim.ClearForObject(obj);
-
-            if (GameSystems.Combat.IsCombatActive())
-            {
-                if (GameSystems.D20.Initiative.CurrentActor == obj)
-                {
-                    GameSystems.Combat.AdvanceTurn(obj);
-                }
-            }
-
-            GameSystems.D20.Initiative.RemoveFromInitiative(obj);
-
-            GameSystems.D20.RemoveDispatcher(obj);
-
-            GameUiBridge.OnObjectDestroyed(obj);
-
-            obj.DestroyRendering();
+            GameSystems.MapObject.OnObjectRemovedFromWorld(obj);
 
             obj.SetFlag(ObjectFlag.DESTROYED, true);
-        }
-
-        [TempleDllLocation(0x10080DA0)]
-        private void RemoveFromGroups(GameObjectBody obj)
-        {
-            Trace.Assert(obj.IsCritter());
-
-            GameSystems.Party.RemoveFromAllGroups(obj);
-
-            if (obj.IsNPC())
-            {
-                GameSystems.AI.FollowerAddWithTimeEvent(obj, true);
-                GameSystems.Critter.RemoveFollowerFromLeaderCritterFollowers(obj);
-            }
         }
 
         public void AddToIndex(ObjectId id, GameObjectBody obj)

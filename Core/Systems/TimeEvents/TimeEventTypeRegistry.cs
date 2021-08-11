@@ -462,7 +462,8 @@ namespace OpenTemple.Core.Systems.TimeEvents
         [TempleDllLocation(EmptyStub)]
         private static bool ExpireTBCombat(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            // TODO: Remove this entire time event type since it has an empty callback in Vanilla
+            return true;
         }
 
         private static bool ExpireAmbientLighting(TimeEvent evt)

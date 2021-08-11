@@ -17,7 +17,6 @@ using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
-using SharpDX;
 using Rectangle = System.Drawing.Rectangle;
 using Vector2 = System.Numerics.Vector2;
 
@@ -92,8 +91,14 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        [TempleDllLocation(0x100219B0)]
-        public void RemoveMapObj(GameObjectBody obj)
+        /// <summary>
+        /// Handles cleanup tasks when an object leaves the world for any reason.
+        /// This includes, but is not limited to:
+        /// - It's being destroyed via <see cref="ObjectSystem.Destroy"/>
+        /// - It's being fully deleted via <see cref="RemoveMapObj"/>
+        /// - An item is being moved into a container
+        /// </summary>
+        public void OnObjectRemovedFromWorld(GameObjectBody obj)
         {
             if (obj.HasFlag(ObjectFlag.TEXT))
             {
@@ -106,15 +111,65 @@ namespace OpenTemple.Core.Systems
             }
 
             GameSystems.Anim.ClearForObject(obj);
-            GameSystems.AI.RemoveAiTimer(obj);
 
-            if (!IsEditor)
+            if (obj.IsCritter())
             {
-                GameSystems.D20.RemoveDispatcher(obj);
+                GameSystems.AI.RemoveAiTimer(obj);
+
+                if (GameSystems.Combat.IsCombatActive())
+                {
+                    if (GameSystems.D20.Initiative.CurrentActor == obj)
+                    {
+                        GameSystems.Combat.AdvanceTurn(obj);
+                    }
+
+                    GameSystems.Combat.CritterLeaveCombat(obj);
+                }
+
+                GameSystems.D20.Initiative.RemoveFromInitiative(obj);
+
+                GameSystems.Critter.RemoveFromGroups(obj);
+
+                // If the object that is leaving the world is an NPC, stop any dialog that might be ongoing
+                if (obj.type == ObjectType.npc)
+                {
+                    var player = GameSystems.Reaction.GetLastReactionPlayer(obj);
+                    if (player != null)
+                    {
+                        GameUiBridge.CancelDialog(player);
+                    }
+                }
+
+                GameUiBridge.OnObjectDestroyed(obj);
             }
 
-            GameUiBridge.OnObjectDestroyed(obj);
             obj.DestroyRendering();
+
+            // Remove the object from the sector it's currently in (OT addition),
+            // this only applies to dynamic objects because static objects cannot
+            // be truly removed from the world
+            if (!obj.IsStatic())
+            {
+                var sectorLoc = new SectorLoc(obj.GetLocation());
+                if (GameSystems.MapSector.IsSectorLoaded(sectorLoc))
+                {
+                    using var lockedSector = new LockedMapSector(sectorLoc);
+                    lockedSector.RemoveObject(obj);
+                }
+            }
+        }
+
+        /// <summary>
+        /// This is a lower-level method to remove an object from the map. If you want to properly remove
+        /// a game object, use <see cref="ObjectSystem.Destroy"/> instead.
+        /// </summary>
+        [TempleDllLocation(0x100219B0)]
+        public void RemoveMapObj(GameObjectBody obj)
+        {
+            OnObjectRemovedFromWorld(obj);
+
+            GameSystems.D20.RemoveDispatcher(obj);
+
             GameSystems.Object.Remove(obj);
         }
 
@@ -745,15 +800,7 @@ namespace OpenTemple.Core.Systems
 
             if (!item.HasFlag(ObjectFlag.DESTROYED))
             {
-                GameSystems.Light.RemoveAttachedTo(item);
-
-                var sectorLoc = new SectorLoc(item.GetLocation());
-
-                if (GameSystems.MapSector.IsSectorLoaded(sectorLoc))
-                {
-                    using var lockedSector = new LockedMapSector(sectorLoc);
-                    lockedSector.RemoveObject(item);
-                }
+                OnObjectRemovedFromWorld(item);
 
                 item.SetFlag(ObjectFlag.INVENTORY, true);
                 item.SetObject(obj_f.item_parent, parent);

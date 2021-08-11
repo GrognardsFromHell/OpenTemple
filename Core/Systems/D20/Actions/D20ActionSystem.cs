@@ -164,7 +164,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         private int numSimultPerformers;
 
         [TempleDllLocation(0x118A06C0)]
-        private List<GameObjectBody> _simultPerformerQueue = new List<GameObjectBody>();
+        private List<GameObjectBody> _simultPerformerQueue = new ();
 
         [TempleDllLocation(0x10B3D5BC)]
         private int simulsIdx;
@@ -829,8 +829,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
                     if (!simulsOk(curSeq))
                     {
                         if (simulsAbort(curSeq.performer))
+                        {
                             Logger.Debug("sequence not allowed... aborting simuls (pending).");
-                        else Logger.Debug("sequence not allowed... aborting subsequent simuls.");
+                        }
+                        else
+                        {
+                            Logger.Debug("sequence not allowed... aborting subsequent simuls.");
+                        }
+
                         return;
                     }
 
@@ -1714,25 +1720,19 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return _simultPerformerQueue.Contains(objHnd);
         }
 
+        /// <summary>
+        /// Checks if the given action sequence can be performed simultaneously with other actions by other
+        /// actors.
+        /// </summary>
+        [TempleDllLocation(0x100926a0)]
         private bool simulsOk(ActionSequence actSeq)
         {
-            var numd20as = actSeq.d20ActArrayNum;
-            if (numd20as <= 0)
+            // Check if all actions in the sequence can be performed concurrently with others,
+            // this is also true if the action sequence is empty
+            if (actSeq.d20ActArray.TrueForAll(action =>
+                action.GetActionDefinitionFlags().HasFlag(D20ADF.D20ADF_SimulsCompatible)))
             {
                 return true;
-            }
-
-            var numStdAttkActns = 0;
-            foreach (var d20a in actSeq.d20ActArray)
-            {
-                if (!d20a.GetActionDefinitionFlags().HasFlag(D20ADF.D20ADF_SimulsCompatible))
-                {
-                    ++numStdAttkActns;
-                    if (numStdAttkActns >= numd20as)
-                    {
-                        return true;
-                    }
-                }
             }
 
             if (isSomeoneAlreadyActingSimult(actSeq.performer))
@@ -1741,34 +1741,41 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
             else
             {
+                numSimultPerformers = 0;
                 _simultPerformerQueue.Clear();
-                Logger.Debug("first simul actor, proceeding");
+                Logger.Debug("first simul actor, proceeding"); // aborts simuls
             }
 
             return true;
         }
 
         [TempleDllLocation(0x100924e0)]
-        public bool simulsAbort(GameObjectBody objHnd)
+        public bool simulsAbort(GameObjectBody obj)
         {
             // aborts sequence; returns 1 if objHnd is not the first in queue
-            if (!GameSystems.Combat.IsCombatActive()) return false;
+            if (!GameSystems.Combat.IsCombatActive())
+            {
+                return false;
+            }
+
             var isFirstInQueue = true;
 
             foreach (var simultPerformer in _simultPerformerQueue)
             {
-                if (objHnd == simultPerformer)
+                if (obj == simultPerformer)
                 {
                     if (isFirstInQueue)
                     {
+                        numSimultPerformers = 0;
                         _simultPerformerQueue.Clear();
                         return false;
                     }
                     else
                     {
                         numSimultPerformers = simulsIdx;
+                        _simultPerformerQueue.RemoveRange(simulsIdx, _simultPerformerQueue.Count - simulsIdx);
                         simulsTbStatus = CurrentSequence.tbStatus.Copy();
-                        Logger.Debug("Simul aborted {0} ({1})", objHnd, simulsIdx);
+                        Logger.Debug("Simul aborted {0} ({1})", obj, simulsIdx);
                         return true;
                     }
                 }
@@ -1782,13 +1789,9 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         private bool isSomeoneAlreadyActingSimult(GameObjectBody objHnd)
         {
-            if (numSimultPerformers == 0)
+            for (var index = 0; index < numSimultPerformers; index++)
             {
-                return false;
-            }
-
-            foreach (var simultPerformer in _simultPerformerQueue)
-            {
+                var simultPerformer = _simultPerformerQueue[index];
                 if (objHnd == simultPerformer)
                 {
                     return false;
@@ -3642,7 +3645,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
 
             numSimultPerformers = 0;
-            _simultPerformerQueue = new List<GameObjectBody> {null};
+            _simultPerformerQueue.Clear();
 
             // If any actions are readied, do not allow simultaneous turns
             if (_readiedActions.Count > 0)
@@ -3652,13 +3655,10 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
             if (actSeqInterrupt == null && !GameSystems.Party.IsInParty(obj) && !HasCustomCombatScript(obj))
             {
-                Logger.Info("Building List: ");
-                Logger.Info("\t{0}\n", obj);
-                _simultPerformerQueue[numSimultPerformers] = obj;
-                numSimultPerformers++;
+                Logger.Info("Building List for simultaneous turn: ");
+                _simultPerformerQueue.Add(obj);
 
                 var currentInitiativeIndex = GameSystems.D20.Initiative.CurrentActorIndex;
-                var iVar2 = GameSystems.D20.Initiative.Count;
 
                 // Iterate through the initiative list starting at the position of the current actor
                 // and find anyone in order of their initiative who might go at the same time as the actor.
@@ -3667,45 +3667,44 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 while (idx != currentInitiativeIndex)
                 {
                     var nextInInitiative = GameSystems.D20.Initiative[idx];
-                    if (GameSystems.Party.IsInParty(nextInInitiative))
+                    if (GameSystems.Party.IsInParty(nextInInitiative) || HasCustomCombatScript(nextInInitiative))
                     {
-                        // Seek through the initiative until we find the next party member
+                        // Seek through the initiative until we find someone that cannot take their turn simultaneously
                         break;
                     }
 
                     // If the critter is hostile towards any of the currently queued simulatenous performers,
                     // he cannot go at the same time.
-                    for (var i = 0; i < numSimultPerformers; i++)
-                    {
-                        if (!GameSystems.Critter.IsFriendly(_simultPerformerQueue[i], nextInInitiative))
-                        {
-                            break;
-                        }
-                    }
-
-                    // Custom combat scripts prevent simultaneous turns
-                    if (HasCustomCombatScript(nextInInitiative))
+                    if (_simultPerformerQueue.Any(performer =>
+                        !GameSystems.Critter.IsFriendly(performer, nextInInitiative)))
                     {
                         break;
                     }
 
-                    Logger.Info("\t{0}\n", nextInInitiative);
+                    _simultPerformerQueue.Add(nextInInitiative);
 
-                    _simultPerformerQueue[numSimultPerformers++] = nextInInitiative;
-
-                    if (numSimultPerformers > MaxSimultPerformers)
+                    if (_simultPerformerQueue.Count >= MaxSimultPerformers)
+                    {
                         break;
+                    }
 
                     // Wrap around to the start of the initiative list, if needed
                     idx = (idx + 1) % GameSystems.D20.Initiative.Count;
                 }
 
-                if (numSimultPerformers == 1)
+                foreach (var performer in _simultPerformerQueue)
                 {
-                    numSimultPerformers = 0;
+                    Logger.Info("    {0} (Initiative: {1})", obj, GameSystems.D20.Initiative.GetInitiative(performer));
                 }
 
-                _simultPerformerQueue[numSimultPerformers] = null;
+                // Don't need to perform simultaneously with just one critter
+                if (_simultPerformerQueue.Count == 1)
+                {
+                    _simultPerformerQueue.Clear();
+                }
+
+                numSimultPerformers = _simultPerformerQueue.Count;
+                _simultPerformerQueue.Add(null);
                 simulsIdx = 0;
             }
         }
@@ -4792,20 +4791,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x100921f0)]
         public bool IsCurrentlyActing(GameObjectBody obj)
         {
-            if (numSimultPerformers > 0)
-            {
-                for (var i = 0; i < numSimultPerformers; i++)
-                {
-                    if (_simultPerformerQueue[i] == obj)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            return GameSystems.D20.Initiative.CurrentActor == obj;
+            return GameSystems.D20.Initiative.CurrentActor == obj || _simultPerformerQueue.Contains(obj);
         }
 
         [TempleDllLocation(0x1008a210)]

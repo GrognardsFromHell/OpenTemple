@@ -84,6 +84,9 @@ namespace OpenTemple.Core.Systems.D20
 
         public int IndexOf(GameObjectBody obj) => _initiativeOrder.IndexOf(obj);
 
+        /// <summary>
+        /// Sorts by initiative in descending order.
+        /// </summary>
         private class InitiativeComparer : IComparer<GameObjectBody>
         {
             [TempleDllLocation(0x100def20)]
@@ -94,13 +97,13 @@ namespace OpenTemple.Core.Systems.D20
 
                 if (xInit != yInit)
                 {
-                    return xInit.CompareTo(yInit);
+                    return yInit.CompareTo(xInit);
                 }
 
                 var xSubinit = x.GetInt32(obj_f.subinitiative);
                 var ySubinit = y.GetInt32(obj_f.subinitiative);
 
-                return xSubinit.CompareTo(ySubinit);
+                return ySubinit.CompareTo(xSubinit);
             }
         }
 
@@ -247,8 +250,7 @@ namespace OpenTemple.Core.Systems.D20
         public void NextActor()
         {
             var currentInitiative = GetInitiative(_currentActor);
-            var v7 = CurrentActorIndex;
-            var nextActorIdx = v7 + 1;
+            var nextActorIdx = CurrentActorIndex + 1;
 
             if (nextActorIdx >= _initiativeOrder.Count)
             {
@@ -360,9 +362,16 @@ namespace OpenTemple.Core.Systems.D20
         [TempleDllLocation(0x100df530)]
         public void RemoveFromInitiative(GameObjectBody obj)
         {
+            // We cannot immediately remove the object because it still has to be in the initiative list
+            // in order to find the next actor.
             if (obj == _currentActor && _initiativeOrder.Count > 0)
             {
                 NextActor();
+                // If we're still the current actor, we're likely the only one in the initiative order
+                if (_currentActor == obj)
+                {
+                    _currentActor = null;
+                }
             }
 
             _initiativeOrder.Remove(obj);

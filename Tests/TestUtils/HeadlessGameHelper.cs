@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using FluentAssertions;
 using OpenTemple.Core;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
@@ -24,6 +25,8 @@ namespace OpenTemple.Tests.TestUtils
         private TimePoint _currentTime = new(0);
 
         private HeadlessGame Game { get; }
+
+        public event Action OnRenderFrame;
 
         public HeadlessGameHelper()
         {
@@ -50,8 +53,7 @@ namespace OpenTemple.Tests.TestUtils
             var options = new HeadlessGameOptions(toeeDir)
             {
                 UserDataFolder = _userData.Path,
-                WithUserInterface = true,
-                OpenStartMap = true
+                WithUserInterface = true
             };
 
             Game = HeadlessGame.Start(options);
@@ -80,30 +82,60 @@ namespace OpenTemple.Tests.TestUtils
         public void RenderFrame()
         {
             Globals.GameLoop.RenderFrame();
+            OnRenderFrame?.Invoke();
         }
 
-        public void RunFor(int milliseconds)
+        // Advance one "frame"
+        public void AdvanceTimeAndRender(int time)
         {
-            // Advance one "frame"
-            void AdvanceAndIterate(int time)
+            _currentTime = new TimePoint(_currentTime.Time + TimePoint.TicksPerMillisecond * time);
+            TimePoint.SetFakeTime(_currentTime);
+            Globals.GameLoop.RunOneIteration();
+            OnRenderFrame?.Invoke();
+        }
+
+        public void RunUntil(Func<bool> condition, int maxSimulationTime = 1000)
+        {
+            if (condition())
             {
-                _currentTime = new TimePoint(_currentTime.Time + TimePoint.TicksPerMillisecond * time);
-                TimePoint.SetFakeTime(_currentTime);
-                Globals.GameLoop.RunOneIteration();
+                return;
             }
 
             // When advancing time, simulate 30fps
             var advancePerRound = 1000 / 30;
             var totalAdvanced = 0;
+            for (var i = 0; i < maxSimulationTime / advancePerRound; i++)
+            {
+                AdvanceTimeAndRender(advancePerRound);
+                totalAdvanced += advancePerRound;
+                if (condition())
+                {
+                    return;
+                }
+            }
+
+            if (totalAdvanced < maxSimulationTime)
+            {
+                AdvanceTimeAndRender(maxSimulationTime - totalAdvanced);
+            }
+
+            condition().Should().BeTrue("Condition didn't become true after running for " + totalAdvanced);
+        }
+
+        public void RunFor(int milliseconds)
+        {
+            // When advancing time, simulate 30fps
+            var advancePerRound = 1000 / 30;
+            var totalAdvanced = 0;
             for (var i = 0; i < milliseconds / advancePerRound; i++)
             {
-                AdvanceAndIterate(advancePerRound);
+                AdvanceTimeAndRender(advancePerRound);
                 totalAdvanced += advancePerRound;
             }
 
             if (totalAdvanced < milliseconds)
             {
-                AdvanceAndIterate(milliseconds - totalAdvanced);
+                AdvanceTimeAndRender(milliseconds - totalAdvanced);
             }
         }
 

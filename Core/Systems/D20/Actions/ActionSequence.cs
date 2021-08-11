@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
-using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Spells;
 
 namespace OpenTemple.Core.Systems.D20.Actions

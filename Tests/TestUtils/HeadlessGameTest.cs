@@ -1,25 +1,40 @@
+using System;
 using System.Diagnostics;
 using NUnit.Framework;
 
 namespace OpenTemple.Tests.TestUtils
 {
     [Category("NeedsRealFiles")]
+    [NonParallelizable]
     public abstract class HeadlessGameTest
     {
-        protected static HeadlessGameHelper Game { get; private set; }
+        private static HeadlessGameHelper _game;
+
+        public HeadlessGameHelper Game => _game;
 
         [OneTimeSetUp]
         public static void StartGame()
         {
-            Trace.Assert(Game == null);
-            Game = new HeadlessGameHelper();
+            Trace.Assert(_game == null);
+            _game = new HeadlessGameHelper();
         }
 
         [OneTimeTearDown]
         public static void StopGame()
         {
-            Game?.Dispose();
-            Game = null;
+            try
+            {
+                _game?.Dispose();
+            }
+            finally
+            {
+                _game = null;
+            }
+        }
+
+        [TearDown]
+        public void TakeScreenshotOfFailure()
+        {
         }
     }
 }

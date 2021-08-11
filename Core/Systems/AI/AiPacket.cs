@@ -79,10 +79,11 @@ namespace OpenTemple.Core.Systems.AI
                 && (obj.GetFlags() & (ObjectFlag.DONTDRAW | ObjectFlag.OFF)) != default)
                 return false;
 
-            // TODO: This seems odd, should probably use the usual party-leader function
-            var pc0 = GameSystems.Party.PlayerCharacters.First();
-            if ((pc0.GetFlags() & ObjectFlag.OFF) != default)
+            // TODO: Vanilla previously checked if the first party member had the "OFF" flag, which was even weirder. What is this about?
+            if (GameSystems.Party.PartySize == 0)
+            {
                 return false;
+            }
 
             if ((obj.GetSpellFlags() & SpellFlag.STONED) != default)
             {
