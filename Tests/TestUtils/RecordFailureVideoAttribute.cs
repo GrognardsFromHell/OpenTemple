@@ -10,9 +10,16 @@ namespace OpenTemple.Tests.TestUtils
     [AttributeUsage(AttributeTargets.Method)]
     public class RecordFailureVideoAttribute : Attribute, IWrapTestMethod
     {
+        private readonly bool _always;
+
+        public RecordFailureVideoAttribute(bool always = false)
+        {
+            _always = always;
+        }
+
         public TestCommand Wrap(TestCommand command)
         {
-            return new ScreenshotCommandWrapper(command, true);
+            return new ScreenshotCommandWrapper(command, _always, true);
         }
     }
 }

@@ -1,16 +1,13 @@
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
+using OpenTemple.Core;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.Movies;
 using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Tests.TestUtils;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Gif;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace OpenTemple.Tests.Game
 {
@@ -69,14 +66,40 @@ namespace OpenTemple.Tests.Game
 
         [Test]
         [RecordFailureVideo]
-        public void CombatShouldWorkWithTwoOpponents()
+        public void CombatShouldWorkWithTwoOpponentsAndConcurrentTurns()
+        {
+            Globals.Config.ConcurrentTurnsEnabled = true;
+            SetupScenarioForTwoZombies(out var zombie1, out var zombie2);
+
+            // The zombies should perform simultaneously
+            GameSystems.D20.Actions.isSimultPerformer(zombie1).Should().BeTrue();
+            GameSystems.D20.Actions.isSimultPerformer(zombie2).Should().BeTrue();
+
+            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 4000);
+        }
+
+        [Test]
+        [RecordFailureVideo(always:true)]
+        public void CombatShouldWorkWithTwoOpponentsAndSequentialTurns()
+        {
+            Globals.Config.ConcurrentTurnsEnabled = false;
+            SetupScenarioForTwoZombies(out var zombie1, out var zombie2);
+
+            // The zombies should not perform simultaneously
+            GameSystems.D20.Actions.isSimultPerformer(zombie1).Should().BeFalse();
+            GameSystems.D20.Actions.isSimultPerformer(zombie2).Should().BeFalse();
+
+            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 4000);
+        }
+
+        private void SetupScenarioForTwoZombies(out GameObjectBody zombie1, out GameObjectBody zombie2)
         {
             // Ensure the player goes first by bumping the initiative bonus past 20
             _player.SetBaseStat(Stat.dexterity, 100);
 
-            var zombie1 = GameSystems.MapObject.CreateObject(TestProtos.Zombie, new locXY(500, 483));
+            zombie1 = GameSystems.MapObject.CreateObject(TestProtos.Zombie, new locXY(500, 483));
             GameSystems.Critter.GenerateHp(zombie1);
-            var zombie2 = GameSystems.MapObject.CreateObject(TestProtos.Zombie, new locXY(500, 484));
+            zombie2 = GameSystems.MapObject.CreateObject(TestProtos.Zombie, new locXY(500, 484));
             GameSystems.Critter.GenerateHp(zombie2);
 
             Game.RunUntil(() => GameSystems.Combat.IsCombatActive());
@@ -91,12 +114,6 @@ namespace OpenTemple.Tests.Game
 
             // End turn for the player
             GameSystems.Combat.AdvanceTurn(_player);
-
-            // The zombies should perform simultaneously
-            GameSystems.D20.Actions.isSimultPerformer(zombie1).Should().BeTrue();
-            GameSystems.D20.Actions.isSimultPerformer(zombie2).Should().BeTrue();
-
-            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 2000);
         }
     }
 }

@@ -119,7 +119,9 @@ namespace OpenTemple.Core.Systems.AI
         [TempleDllLocation(0x1005d5e0)]
         public void AddAiTimer(GameObjectBody obj)
         {
-            AiTimeEventSchedule_Normal(obj, GetAiEventDelay(obj));
+            var delay = GetAiEventDelay(obj);
+            AiTimeEventSchedule_Normal(obj, delay);
+            Logger.Debug("Scheduling first AI Timer for {0} in {1}", obj, delay);
         }
 
         [TempleDllLocation(0x1005be60)]

@@ -11,10 +11,16 @@ namespace OpenTemple.Tests.TestUtils
     [AttributeUsage(AttributeTargets.Method)]
     public class TakeFailureScreenshotAttribute : Attribute, IWrapTestMethod
     {
+        private readonly bool _always;
+
+        public TakeFailureScreenshotAttribute(bool always = false)
+        {
+            _always = always;
+        }
+
         public TestCommand Wrap(TestCommand command)
         {
-            return new ScreenshotCommandWrapper(command);
+            return new ScreenshotCommandWrapper(command, _always);
         }
     }
 }
-

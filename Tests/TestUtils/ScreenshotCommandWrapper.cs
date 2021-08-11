@@ -18,12 +18,15 @@ namespace OpenTemple.Tests.TestUtils
 
         private readonly bool _recordVideo;
 
+        private readonly bool _always;
+
         private readonly List<(TimePoint, Image<Bgra32>)> _frames = new();
 
-        public ScreenshotCommandWrapper(TestCommand @delegate, bool recordVideo = false) : base(@delegate.Test)
+        public ScreenshotCommandWrapper(TestCommand @delegate, bool always, bool recordVideo = false) : base(@delegate.Test)
         {
             _delegate = @delegate;
             _recordVideo = recordVideo;
+            _always = always;
         }
 
         public override TestResult Execute(TestExecutionContext context)
@@ -54,7 +57,7 @@ namespace OpenTemple.Tests.TestUtils
 
         private void TakeScreenshot(HeadlessGameHelper game)
         {
-            if (TestContext.CurrentContext.Result.Outcome != ResultState.Success)
+            if (_always || TestContext.CurrentContext.Result.Outcome != ResultState.Success)
             {
                 if (_recordVideo && _frames.Count > 0)
                 {
@@ -85,11 +88,6 @@ namespace OpenTemple.Tests.TestUtils
 
             foreach (var (time, image) in _frames)
             {
-                if (!image.TryGetSinglePixelSpan(out var rawPixelData))
-                {
-                    throw new InvalidOperationException("Image is not encoded as contiguous data!");
-                }
-
                 encoder.Encode(image, (long)(time - firstFrameTime).TotalMilliseconds);
             }
 
