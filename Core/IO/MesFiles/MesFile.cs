@@ -8,10 +8,11 @@ namespace OpenTemple.Core.IO.MesFiles
     public static class MesFile
     {
 
-        public static Dictionary<int, string> Read(string path)
+        public static Dictionary<int, string> Read(string path, bool withPatches = true)
         {
             var data = File.ReadAllBytes(path);
-            return Read(Path.GetFileName(path), data);
+            var result = Read(Path.GetFileName(path), data);
+            return result;
         }
 
         public static Dictionary<int, string> Read(string filename, ReadOnlySpan<byte> content)

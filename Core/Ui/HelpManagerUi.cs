@@ -139,6 +139,13 @@ namespace OpenTemple.Core.Ui
             }
         }
 
+        [TempleDllLocation(0x10124a20)]
+        public void ClickForHelpCallback(string topicId)
+        {
+            GameSystems.Help.ShowTopic(topicId);
+            ClickForHelpToggle();
+        }
+
         [TempleDllLocation(0x10124a40)]
         public void ShowPredefinedTopic(int id)
         {

@@ -1,0 +1,9 @@
+// Entries that are part of GoG's release that aren't in Vanilla. Probably come from Spellslinger/Moebius fixes
+
+{733}{spell_scorching_ray}
+
+{5733}{Scorching Ray}
+
+{20221}{TAG_SPELLS_CURE_LIGHT_WOUNDS_MASS}//spell_healing_circle
+
+{20733}{}//spell_scorching_ray

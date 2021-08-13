@@ -222,8 +222,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
                     var helpTopic = clickedNode.entry.helpSystemHashkey;
                     if (helpTopic != null)
                     {
-                        Stub.TODO("Show help entry for " + helpTopic);
-                        // TODO PresentWikiHelpAndToggleClickForHelp /*0x10124a20*/(helpTopic);
+                        UiSystems.HelpManager.ClickForHelpCallback(helpTopic);
                     }
 
                     return true;

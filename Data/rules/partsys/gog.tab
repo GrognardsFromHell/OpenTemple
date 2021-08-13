@@ -1,0 +1,6 @@
+sp-Scorching Ray	bang	15		5	30		Object Pos	bip01 r hand			Sprite	World	Cartesian		flare-1	15	Add	0				0	0	0	0	0	0	0	45	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	20	0	0	0?360	0	0	255,0	255	128	64
+sp-Scorching Ray	start flash	0		10	30		Object Pos	bip01 r hand			Sprite	World	Cartesian		flare-3	15	Add	0				0	0	0	0	0	0	0	45	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	40,0	0	0	0?360	0	0	0,255	255	128	32
+sp-Scorching Ray	New Emitter	10		perm	120		Object Pos	bip01 r hand			Sprite	World	Cartesian		fire-sprite	20	Add	0				0	0	0	0	0	0	0	45	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	10?-10	10?-10	10?-10	0	0	0	5?2	0	0	0?360	0	0	255,0	255	128	32
+sp-Scorching Ray-Hit	bang	0		5	30		World	bip01 r hand			Sprite	World	Cartesian		flare-1	15	Add	0				0	0	0	0	0	0	0	45	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	40	0	0	0?360	0	0	255,0	255	128	64
+sp-Scorching Ray-Hit	start flash	0		5	30		World	bip01 r hand			Sprite	World	Cartesian		flare-3	15	Add	0				0	0	0	0	0	0	0	40	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0,80	0	0	0?360	0	0	255,0	255	128	32
+sp-Scorching Ray-Hit	New Emitter	0		10	60		World	bip01 r hand			Sprite	World	Cartesian		fire-sprite	20	Add	0				0	0	0	0	0	0	0	40	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	10?-10	10?-10	10?-10	0	0	0	10?30	0	0	0?360	0	0	255,0	255	128	32

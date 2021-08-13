@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using OpenTemple.Core.IO.MesFiles;
+using OpenTemple.Core.Logging;
 
 namespace OpenTemple.Core.IO
 {
@@ -10,12 +13,35 @@ namespace OpenTemple.Core.IO
     /// </summary>
     public static class FileSystemExtensions
     {
-        private static readonly char[] DirSeparators = {'/', '\\'};
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        public static Dictionary<int, string> ReadMesFile(this IFileSystem vfs, string path)
+        private static readonly char[] DirSeparators = { '/', '\\' };
+
+        public static Dictionary<int, string> ReadMesFile(this IFileSystem vfs, string path, bool withPatches = true)
         {
-            using var content = vfs.ReadFile(path);
-            return MesFile.Read(path, content.Memory.Span);
+            Dictionary<int, string> result;
+            {
+                using var content = vfs.ReadFile(path);
+                result = MesFile.Read(path, content.Memory.Span);
+            }
+
+            if (withPatches)
+            {
+                var patchDir = Path.ChangeExtension(path, ".d");
+                var patchFiles = vfs.Search($"{patchDir}/*.mes").ToList();
+                patchFiles.Sort(); // Apply natural sort
+                foreach (var patchFile in patchFiles)
+                {
+                    var patchContent = ReadMesFile(vfs, patchFile, false);
+                    Logger.Debug("Applying {0} patches from {1}", patchContent.Count, patchFile);
+                    foreach (var entry in patchContent)
+                    {
+                        result[entry.Key] = entry.Value;
+                    }
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -55,6 +81,7 @@ namespace OpenTemple.Core.IO
             {
                 resultPrefix += '/';
             }
+
             var filenamePart = lastIdxOfSep != -1
                 ? searchPattern.Substring(lastIdxOfSep + 1)
                 : searchPattern;
@@ -78,6 +105,5 @@ namespace OpenTemple.Core.IO
                 }
             }
         }
-
     }
 }

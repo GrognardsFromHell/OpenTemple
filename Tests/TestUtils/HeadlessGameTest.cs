@@ -30,6 +30,12 @@ namespace OpenTemple.Tests.TestUtils
             {
                 _game = null;
             }
+
+            // Run all pending finalizers, because sometimes these will crash and
+            // if it happens later, it will be harder to associate them with the test
+            // that actually caused the problem
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         [TearDown]

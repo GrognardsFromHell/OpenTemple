@@ -1,0 +1,13 @@
+// Entries that are part of GoG's release that aren't in Vanilla. Probably come from Spellslinger/Moebius fixes
+
+{733}{Scorching Ray}
+
+{5059} Chill Touch {[Necromancy] One touch/level deals 1d6 damage and possibly 1 point of Strength damage.}
+
+{5201} Greater Command {[Enchantment] 1 subject/level obeys selected command (approach, fall, flee, or halt) for 1 round/level.}
+
+{5204} Greater Magic Fang {[Transmutation] One natural weapon of subject creature gets +1/four levels on attack and damage rolls (max +3).}
+
+{5558} Greater Heroism {[Enchantment] This spell functions like Heroism, except the creature gains a +4 morale bonus on attack rolls, saves, and skill checks, immunity to fear, and temporary hit points equal to the level of the caster.}
+
+{5733} Scorching Ray {[Evocation] You blast your enemies with fiery rays. You may fire one ray, plus one additional ray for every four levels beyond 3rd (to a maximum of three rays at 11th level). Each ray requires a ranged touch attack to hit and deals 4d6 points of fire damage.The rays may be fired at the same or different targets, but all bolts must be aimed at targets within 30 feet of each other and fired simultaneously.}

@@ -1,0 +1,78 @@
+// Entries that are part of GoG's release that aren't in Vanilla. Probably come from Spellslinger/Moebius fixes
+
+// 9008 - animal growth
+// 9547 - rage
+
+{2}{9002 9006 9010 9011 9025 9027 9028 9037 9038 9040 9041 9042 9043 9044 9045 9046 9047 9048 9049 9050 9051 9054 9055 9056 9057 9058 9059 9061 9062 9065 9066 9067 9072 9073 9074 9076 9079 9089 9090 9091 9092 9093 9094 9099 9552 9549 9550 9551 9100 9101 9553 9104 9107 9110 9111 9112 9113 9114 9117 9120 9122 9123 9125 9128 9129 9130 9131 9132 9133 9134 9135 9137 9138 9139 9141 9142 9554 9148 9147 9149 9152 9153 9155 9159 9163 9555 9660 9165 9167 9169 9171 9173 9178 9180 9183 9556 9188 9189 9194 9195 9196 9199 9200 9204 9205 9213 9217 9219 9223 9559 9558 9226 9227 9228 9231 9237 9238 9244 9246 9247 9249 9250 9253 9254 9255 9256 9257 9261 9262 9275 9272 9280 9282 9283 9284 9285 9286 9288 9290 9291 9292 9303 9309 9311 9315 9320 9327 9333 9334 9335 9337 9345 9352 9359 9364 9367 9368 9369 9370 9371 9372 9661 9662 9663 9664 9379 9383 9384 9385 9386 9390 9391 9392 9393 9394 9396 9399 9400 9401 9404 9407 9408 9412 9414 9425 9426 9427 9430 9431 9432 9434 9437 9438 9439 9440 9442 9443 9445 9451 9455 9456 9457 9460 9462 9466 9467 9468 9469 9470 9471 9476 9477 9478 9479 9480 9485 9490 9492 9505 9508 9509 9513 9515 9519 9531 9536 9542 9543 9544 9548 9546 9665 9304 9214 9008 9547}
+
+{3}{12554 12400 12553 12531 12519 12515 12513 12509 12505 12490 12485 12479 12478 12477 12476 12470 12469 12468 12467 12466 12462 12460 12457 12456 12455 12445 12443 12442 12440 12439 12438 12434 12432 12431 12430 12427 12426 12425 12414 12412 12408 12407 12401 12399 12396 12394 12393 12392 12391 12390 12386 12574 12385 12384 12383 12573 12372 12371 12370 12369 12368 12367 12364 12359 12352 12345 12572 12337 12335 12334 12333 12327 12315 12311 12304 12303 12292 12291 12290 12286 12285 12284 12283 12282 12280 12275 12272 12262 12261 12255 12254 12244 12253 12250 12249 12248 12247 12246 12238 12237 12231 12228 12226 12257 12256 12223 12219 12217 12214 12213 12205 12204 12200 12199 12196 12567 12195 12194 12189 12188 12566 12183 12180 12173 12169 12580 12163 12159 12155 12153 12152 12149 12147 12579 12142 12139 12138 12137 12135 12134 12133 12128 12125 12123 12122 12120 12117 12114 12113 12112 12111 12110 12107 12104 12578 12101 12100 12577 12099 12094 12093 12092 12091 12090 12089 12576 12079 12076 12074 12570 12073 12066 12062 12059 12058 12057 12056 12055 12560 12552 12551 12550 12549 12548 12575 12547 12546 12545 12544 12543 12542 12541 12540 12148 12539 12538 12537 12536 12535 12533 12532 12006 12007 12591 12592}
+
+// 4 - craft rod
+//     hijacked to be forge arms and armor
+{4}{4124 4139 4111 4227 4228 4229 4230 4231 4232 4233 4234}
+
+// 6264 - amulet of natural armor +3
+{5}{6267 6268 6251 6250 6249 6256 6248 6247 6246 6201 6200 6199 6245 8036 8035 8034 6254 6253 6252 6255 6244 6243 6264 6263 6262 6261 6260 6259 6258 6257 6242 6241 6240 6115 6119 12009 6090 6085 6086 6087 6058 6271 6272 6273 6274 6275 6276 6277 6278 6279 6280 12594 12595 12596 12597 12598 12599 12600 12601}
+
+// 6 - Craft Staff
+{6}{}
+
+// 7 - Forge Ring
+{7}{}
+
+// 8 - magic arms and armor (handled different, leave blank for now)
+{8}{}
+
+{8001}{}
+{9008}{"SAnimal Growth"}
+{9560}{}
+{9546}{"SDispel Water"}
+
+{9326}{}
+{9327}{"SNeutralize Poison"}
+
+{9372}{"SProtection from Law"}
+
+{9546}{}
+{9547}{"SRage"}
+
+{12007}{}
+{12007}{"SMagic Missile" C9}
+
+{12591}{"SMagic Missile" C3}
+{12592}{"SMagic Missile" C5}
+
+{4227}{"FCraft Rod" "FCraft Magic Arms and Armor" "Agood" C5} // white rod, minor
+{4228}{"FCraft Rod" "FCraft Magic Arms and Armor" "Agood" C9} // white rod
+{4229}{"FCraft Rod" "FCraft Magic Arms and Armor" "SSummon Natures Ally I" C5} // gray rod, minor
+{4230}{"FCraft Rod" "FCraft Magic Arms and Armor" "SSummon Natures Ally III" C9} // gray rod
+{4231}{"FCraft Rod" "FCraft Magic Arms and Armor" "Aevil" C5}
+{4232}{"FCraft Rod" "FCraft Magic Arms and Armor" "Aevil" C9} // black rod
+{4233}{"FCraft Rod" "SMage Armor" "SShield" "SMirror Image" "SProtection from Arrows" "SFog Cloud" C5}
+{4234}{"FCraft Rod" "SOwls Wisdom" "SBears Endurance" "SEagles Splendor" "SBulls Strength" "SCats Grace" "SFoxs Cunning" C5}
+
+{6115}{"FCraft Wondrous Item" "SMage Armor" C10} // bracers of armor +5
+{6119}{"FCraft Wondrous Item" "SMage Armor" C6} // bracers of armor +3
+
+{6262}{"FCraft Wondrous Item" "SBarkskin" C5} // amulet of natural armor +1
+{6263}{"FCraft Wondrous Item" "SBarkskin" C6} // amulet of natural armor +2
+{6264}{"FCraft Wondrous Item" "SBarkskin" C9} // amulet of natural armor +3
+
+{6271}{"FCraft Wondrous Item" "SSearing Light" C5} // Circlet of Blasting, Minor
+{6272}{"FCraft Wondrous Item" "SMage Armor" C2} // bracers of armor +1
+{6273}{"FCraft Wondrous Item" "SMage Armor" C4} // bracers of armor +2
+{6274}{"FCraft Wondrous Item" "SMage Armor" C8} // bracers of armor +4
+{6275}{"FCraft Wondrous Item" "SWeb" C6} // Cloak of Arachnida
+{6276}{"FCraft Wondrous Item" "SBurning Hands" C3} // gloves of flame
+{6277}{"FCraft Wondrous Item" "SChill Touch" C3} // gloves of cold
+{6278}{"FCraft Wondrous Item" "SShocking Grasp" C3} // gloves of elec
+{6279}{"FCraft Wondrous Item" "SCure Light Wounds" C3} // gloves of good
+{6280}{"FCraft Wondrous Item" "SInflict Light Wounds" C3} // gloves of evil
+{12594}{"FCraft Wondrous Item" C10} // Ioun Stones
+{12595}{"FCraft Wondrous Item" C10} // Ioun Stones
+{12596}{"FCraft Wondrous Item" C10} // Ioun Stones
+{12597}{"FCraft Wondrous Item" C10} // Ioun Stones
+{12598}{"FCraft Wondrous Item" C10} // Ioun Stones
+{12599}{"FCraft Wondrous Item" C10} // Ioun Stones
+{12600}{"FCraft Wondrous Item" C10} // Ioun Stones
+{12601}{"FCraft Wondrous Item" "SSummon Natures Ally III" C5} // Tan Bag o Tricks
