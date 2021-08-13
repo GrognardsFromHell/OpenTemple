@@ -499,8 +499,8 @@ namespace OpenTemple.Core.Systems
                 if (!obj.GetFlags().HasFlag(ObjectFlag.INVENTORY))
                 {
                     GameSystems.MapObject.Move(obj, loc);
-                    return;
                 }
+                return;
             }
 
             // Collect all objects that need to be moved (includes equipment / container content)
@@ -525,6 +525,8 @@ namespace OpenTemple.Core.Systems
                 GameSystems.Critter.StopSubdualHealingTimer(objToMove);
                 GameSystems.Teleport.RemoveObjectFromCurrentMap(objToMove);
                 GameSystems.Anim.ClearForObject(objToMove);
+
+                objToMove.FreezeIds();
 
                 // Move the object to the target map by appending it to that maps dynamic mobile file,
                 // and marking it extinct in the current

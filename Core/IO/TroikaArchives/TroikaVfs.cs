@@ -166,7 +166,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
             return memory?.Memory.ToArray();
         }
 
-        public IMemoryOwner<byte>? ReadOptionalFile(string path)
+        public IMemoryOwner<byte> ReadOptionalFile(string path)
         {
             // Check the data directories first
             foreach (var dataDir in _dataDirs)
@@ -209,9 +209,16 @@ namespace OpenTemple.Core.IO.TroikaArchives
             return false;
         }
 
-        public void AddDataDir(string path)
+        public void AddDataDir(string path, bool prepend = false)
         {
-            _dataDirs.Add(path);
+            if (prepend)
+            {
+                _dataDirs.Insert(0, path);
+            }
+            else
+            {
+                _dataDirs.Add(path);
+            }
         }
 
         public void AddArchive(string path)

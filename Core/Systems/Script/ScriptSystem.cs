@@ -114,8 +114,8 @@ namespace OpenTemple.Core.Systems.Script
         {
             var scriptState = savedGameState.ScriptState;
             scriptState.GlobalVars.CopyTo(_globalVars, 0);
-             scriptState.GlobalFlags.CopyTo(_globalFlags, 0);
-             _currentStoryState = scriptState.StoryState;
+            scriptState.GlobalFlags.CopyTo(_globalFlags, 0);
+            _currentStoryState = scriptState.StoryState;
         }
 
         public bool TryGetDialogScript(int scriptId, out IDialogScript dialogScript)
@@ -137,7 +137,7 @@ namespace OpenTemple.Core.Systems.Script
                 throw new NullReferenceException("Cannot run a script without an attachee");
             }
 
-            var script = attachee.GetScript(obj_f.scripts_idx, (int) invocation.eventId);
+            var script = attachee.GetScript(obj_f.scripts_idx, (int)invocation.eventId);
 
             if (script.scriptId == 0)
             {
@@ -225,7 +225,7 @@ namespace OpenTemple.Core.Systems.Script
         {
             var value = enable ? 1 : 0;
 
-            _globalFlags[index / 32] = (uint) ((value << index % 32) | _globalFlags[index / 32] & ~(1 << index % 32));
+            _globalFlags[index / 32] = (uint)((value << index % 32) | _globalFlags[index / 32] & ~(1 << index % 32));
         }
 
         [TempleDllLocation(0x10006760)]
@@ -236,6 +236,7 @@ namespace OpenTemple.Core.Systems.Script
 
         [TempleDllLocation(0x10BCA76C)]
         private GameObjectBody _animationScriptContext;
+
         [TempleDllLocation(0x10BCA768)]
         private Action<GameObjectBody, GameObjectBody, string, int> _showTextBubble;
 
@@ -259,7 +260,7 @@ namespace OpenTemple.Core.Systems.Script
         {
             if (_hooks.TryGetValue(typeof(T), out var hookInstance))
             {
-                return (T) hookInstance;
+                return (T)hookInstance;
             }
 
             if (!_scriptAssembly.TryCreateHook<T>(out var newHookInstance))

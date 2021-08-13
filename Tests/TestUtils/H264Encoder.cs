@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
@@ -27,6 +28,7 @@ namespace OpenTemple.Tests.TestUtils
         private SwsContext* _swsContext;
         private readonly int _uSize;
         private readonly int _ySize;
+        private long _lastPts = -1;
 
         public H264Encoder(string outputPath, Size frameSize)
         {
@@ -85,8 +87,9 @@ namespace OpenTemple.Tests.TestUtils
         {
             if (_outputContext != null)
             {
+                SendAndProcessFrame(null); // drain codec
+
                 ffmpeg.av_write_trailer(_outputContext);
-                ffmpeg.avio_close(_outputContext->pb);
                 ffmpeg.avformat_free_context(_outputContext);
 
                 _outputContext = null;
@@ -122,6 +125,12 @@ namespace OpenTemple.Tests.TestUtils
 
         private void Encode(AVFrame *frame)
         {
+            if (frame->pts <= _lastPts)
+            {
+                throw new InvalidOperationException("Frame didn't have higher PTS");
+            }
+            _lastPts = frame->pts;
+
             if (frame->format != (int)_pCodecContext->pix_fmt)
                 throw new ArgumentException("Invalid pixel format.", nameof(frame));
             if (frame->width != _frameSize.Width) throw new ArgumentException("Invalid width.", nameof(frame));
@@ -134,33 +143,44 @@ namespace OpenTemple.Tests.TestUtils
             if (frame->data[2] - frame->data[1] < _uSize)
                 throw new ArgumentException("Invalid U data size.", nameof(frame));
 
+            SendAndProcessFrame(frame);
+        }
+
+        private void SendAndProcessFrame(AVFrame* frame)
+        {
             var pPacket = ffmpeg.av_packet_alloc();
 
             try
             {
-                int error;
+                ffmpeg.avcodec_send_frame(_pCodecContext, frame).ThrowExceptionIfError();
 
-                do
+                while (true)
                 {
-                    ffmpeg.avcodec_send_frame(_pCodecContext, frame).ThrowExceptionIfError();
+                    var error = ffmpeg.avcodec_receive_packet(_pCodecContext, pPacket);
+                    if (error == ffmpeg.AVERROR(ffmpeg.EAGAIN) || error == ffmpeg.AVERROR_EOF)
+                    {
+                        return; // Done for now
+                    }
+
+                    error.ThrowExceptionIfError();
+                    WritePacket(pPacket);
                     ffmpeg.av_packet_unref(pPacket);
-                    error = ffmpeg.avcodec_receive_packet(_pCodecContext, pPacket);
-                } while (error == ffmpeg.AVERROR(ffmpeg.EAGAIN));
-
-                error.ThrowExceptionIfError();
-
-                /* prepare packet for muxing */
-                pPacket->stream_index = _stream->index;
-                ffmpeg.av_packet_rescale_ts(pPacket,
-                    _pCodecContext->time_base,
-                    _stream->time_base);
-
-                ffmpeg.av_interleaved_write_frame(_outputContext, pPacket).ThrowExceptionIfError();
+                }
             }
             finally
             {
                 ffmpeg.av_packet_free(&pPacket);
             }
+        }
+
+        private void WritePacket(AVPacket *packet)
+        {
+            /* prepare packet for muxing */
+            packet->stream_index = _stream->index;
+            ffmpeg.av_packet_rescale_ts(packet,
+                _pCodecContext->time_base,
+                _stream->time_base);
+            ffmpeg.av_interleaved_write_frame(_outputContext, packet).ThrowExceptionIfError();
         }
 
         public void Encode(Image<Bgra32> image, long ptsMilliseconds)

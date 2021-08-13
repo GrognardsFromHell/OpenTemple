@@ -203,7 +203,7 @@ namespace OpenTemple.Core.TigSubsystems
             }
 
             Logger.Info("Using additional data from: {0}", dataDirectory);
-            vfs.AddDataDir(dataDirectory);
+            vfs.AddDataDir(dataDirectory, true);
             return vfs;
         }
 

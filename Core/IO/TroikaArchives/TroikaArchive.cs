@@ -42,9 +42,9 @@ namespace OpenTemple.Core.IO.TroikaArchives
     /// </summary>
     public sealed class TroikaArchive : IDisposable
     {
-        private static readonly uint SignatureV0 = 0x44_41_54_31; // "DAT1" in little-endian
+        private static readonly uint SignatureV0 = 0x44_41_54_20; // "DAT " in little-endian
 
-        private static readonly uint SignatureV1 = 0x44_41_54_20; // "DAT " in little-endian
+        private static readonly uint SignatureV1 = 0x44_41_54_31; // "DAT1" in little-endian
 
         private readonly MemoryMappedFile _file;
 
@@ -110,7 +110,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
 
                 var fileTableSize = reader.ReadUInt32();
 
-                Debug.Assert(fileTableSize < stream.Length);
+                Debug.Assert(fileTableSize <= stream.Length);
 
                 // Seek back to read the archive GUID if it's a newer version of the file format
                 if (signature == SignatureV0)
@@ -168,7 +168,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
         private bool FindEntry(int startAt, ReadOnlySpan<char> path, out ArchiveEntry entryOut)
         {
             var nextSegment = GetNextPathSegment(ref path);
-            if (nextSegment.IsEmpty)
+            if (nextSegment.IsEmpty || _entries.Length == 0)
             {
                 entryOut = default;
                 return false;

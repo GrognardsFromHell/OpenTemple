@@ -22,7 +22,8 @@ namespace OpenTemple.Tests.TestUtils
 
         private readonly List<(TimePoint, Image<Bgra32>)> _frames = new();
 
-        public ScreenshotCommandWrapper(TestCommand @delegate, bool always, bool recordVideo = false) : base(@delegate.Test)
+        public ScreenshotCommandWrapper(TestCommand @delegate, bool always, bool recordVideo = false) : base(
+            @delegate.Test)
         {
             _delegate = @delegate;
             _recordVideo = recordVideo;
@@ -59,6 +60,19 @@ namespace OpenTemple.Tests.TestUtils
         {
             if (_always || TestContext.CurrentContext.Result.Outcome != ResultState.Success)
             {
+                try
+                {
+                    TimePoint.SetFakeTime(TimePoint.Now + TimeSpan.FromMilliseconds(100));
+                    game.RenderFrame();
+                    // OnRenderFrame callback should not be registered anymore, hence we have to
+                    // queue it manually as the last video frame
+                    _frames.Add((TimePoint.Now, game.TakeScreenshot()));
+                }
+                catch (Exception e)
+                {
+                    TestContext.WriteLine("Failed to render screen for final screenshot: " + e);
+                }
+
                 if (_recordVideo && _frames.Count > 0)
                 {
                     CreateVideo();
@@ -66,7 +80,6 @@ namespace OpenTemple.Tests.TestUtils
 
                 try
                 {
-                    game.RenderFrame();
                     var filename = Test.FullName + "_AfterFailure.png";
                     game.TakeScreenshot().SaveAsPng(filename);
                     TestContext.WriteLine("Took screenshot after failure: " + filename);
@@ -90,6 +103,10 @@ namespace OpenTemple.Tests.TestUtils
             {
                 encoder.Encode(image, (long)(time - firstFrameTime).TotalMilliseconds);
             }
+
+            // Repeat the last frame to get a hold-time of 1 second on the last frame
+            var (lastFrameTime, lastFrame) = _frames[^1];
+            encoder.Encode(lastFrame, (long)(lastFrameTime - firstFrameTime).TotalMilliseconds + 1000);
 
             encoder.Dispose();
             TestContext.AddTestAttachment(filename, "Video");

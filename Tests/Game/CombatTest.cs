@@ -65,7 +65,7 @@ namespace OpenTemple.Tests.Game
         }
 
         [Test]
-        [RecordFailureVideo]
+        [RecordFailureVideo(always:true)]
         public void CombatShouldWorkWithTwoOpponentsAndConcurrentTurns()
         {
             Globals.Config.ConcurrentTurnsEnabled = true;
@@ -75,7 +75,7 @@ namespace OpenTemple.Tests.Game
             GameSystems.D20.Actions.isSimultPerformer(zombie1).Should().BeTrue();
             GameSystems.D20.Actions.isSimultPerformer(zombie2).Should().BeTrue();
 
-            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 4000);
+            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 6000);
         }
 
         [Test]
@@ -89,7 +89,7 @@ namespace OpenTemple.Tests.Game
             GameSystems.D20.Actions.isSimultPerformer(zombie1).Should().BeFalse();
             GameSystems.D20.Actions.isSimultPerformer(zombie2).Should().BeFalse();
 
-            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 4000);
+            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 6000);
         }
 
         private void SetupScenarioForTwoZombies(out GameObjectBody zombie1, out GameObjectBody zombie2)
@@ -114,6 +114,9 @@ namespace OpenTemple.Tests.Game
 
             // End turn for the player
             GameSystems.Combat.AdvanceTurn(_player);
+
+            GameSystems.Combat.IsCombatActive().Should().BeTrue();
+            GameSystems.D20.Initiative.CurrentActor.Should().NotBe(_player);
         }
     }
 }

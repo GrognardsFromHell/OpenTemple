@@ -3953,7 +3953,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
                 foreach (var actionSequence in actSeqArray)
                 {
-                    if (actionSequence.performer == performer)
+                    if (actionSequence.performer == performer && actionSequence.IsPerforming)
                     {
                         var actorName = GameSystems.MapObject.GetDisplayName(performer);
                         Logger.Info("Actor {0} not completed", actorName);

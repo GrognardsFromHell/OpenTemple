@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using JetBrains.Annotations;
 
 namespace OpenTemple.Core.Utils
@@ -13,7 +14,7 @@ namespace OpenTemple.Core.Utils
         [MustUseReturnValue]
         public static bool ReportException(Exception e)
         {
-            if (DisableErrorReporting)
+            if (DisableErrorReporting || Debugger.IsAttached)
             {
                 return false;
             }
