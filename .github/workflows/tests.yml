@@ -27,7 +27,7 @@ jobs:
           mkdir testdata
           7z x -o"${{ env.TOEE_DIR }}" -p${{ secrets.TEST_DATA_KEY }} "${{ env.GITHUB_WORKSPACE }}/testdata.7z"
         env:
-          TOEE_DIR: ${{ env.GITHUB_WORKSPACE }}/testdata
+          TOEE_DIR: ${{ github.workspace }}/testdata
       - name: Download FFMPEG
         run: |
           curl -L -o ffmpeg.7z https://github.com/GyanD/codexffmpeg/releases/download/4.4/ffmpeg-4.4-full_build-shared.7z
@@ -36,7 +36,7 @@ jobs:
       - name: Run Unit Tests
         run: dotnet test --configuration Release --logger GitHubActions
         env:
-          TOEE_DIR: ${{ env.GITHUB_WORKSPACE }}/testdata
+          TOEE_DIR: ${{ github.workspace }}/testdata
       - name: Upload attached unit test artifacts
         uses: actions/upload-artifact@v2
         if: ${{ always() }}

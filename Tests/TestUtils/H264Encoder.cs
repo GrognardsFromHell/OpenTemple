@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
+using NUnit.Framework;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Size = System.Drawing.Size;
@@ -33,6 +34,7 @@ namespace OpenTemple.Tests.TestUtils
         public H264Encoder(string outputPath, Size frameSize)
         {
             ffmpeg.RootPath = Path.Join(TestData.SolutionDir, "ffmpeg", "bin");
+            Console.WriteLine("FFMPEG version: " + ffmpeg.av_version_info());
 
             _frameSize = frameSize;
 
@@ -69,7 +71,7 @@ namespace OpenTemple.Tests.TestUtils
             ffmpeg.av_frame_get_buffer(_frame, 32);
 
             // Create output context for mp4
-            AVFormatContext *outputContext;
+            AVFormatContext* outputContext;
             ffmpeg.avformat_alloc_output_context2(&outputContext, null, "mp4", null).ThrowExceptionIfError();
             _outputContext = outputContext;
             ffmpeg.avio_open2(&_outputContext->pb, outputPath, ffmpeg.AVIO_FLAG_WRITE, null, null);
@@ -123,12 +125,13 @@ namespace OpenTemple.Tests.TestUtils
             }
         }
 
-        private void Encode(AVFrame *frame)
+        private void Encode(AVFrame* frame)
         {
             if (frame->pts <= _lastPts)
             {
                 throw new InvalidOperationException("Frame didn't have higher PTS");
             }
+
             _lastPts = frame->pts;
 
             if (frame->format != (int)_pCodecContext->pix_fmt)
@@ -173,7 +176,7 @@ namespace OpenTemple.Tests.TestUtils
             }
         }
 
-        private void WritePacket(AVPacket *packet)
+        private void WritePacket(AVPacket* packet)
         {
             /* prepare packet for muxing */
             packet->stream_index = _stream->index;
@@ -202,7 +205,7 @@ namespace OpenTemple.Tests.TestUtils
 
             fixed (Bgra32* ptr = pixelData)
             {
-                var data = new byte*[4] { (byte*) ptr, null, null, null };
+                var data = new byte*[4] { (byte*)ptr, null, null, null };
                 var linesize = new int[4] { 4 * image.Width, 0, 0, 0 };
                 ffmpeg.sws_scale(_swsContext, data, linesize, 0, image.Height, _frame->data, _frame->linesize)
                     .ThrowExceptionIfError();
