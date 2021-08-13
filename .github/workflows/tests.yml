@@ -29,8 +29,7 @@ jobs:
         env:
           TOEE_DIR: ${{ env.GITHUB_WORKSPACE }}/testdata
       - name: Run Unit Tests
-        # Since we do not have access to the real game files here, we can't run tests that rely on their presence
-        run: dotnet test --configuration Release --logger GitHubActions  --filter Category!=NeedsRealFiles
+        run: dotnet test --configuration Release --logger GitHubActions
         env:
           TOEE_DIR: ${{ env.GITHUB_WORKSPACE }}/testdata
       - name: Upload attached unit test artifacts
