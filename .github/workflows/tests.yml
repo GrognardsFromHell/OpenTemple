@@ -31,7 +31,8 @@ jobs:
       - name: Download FFMPEG
         run: |
           curl -L -o ffmpeg.7z https://github.com/GyanD/codexffmpeg/releases/download/4.4/ffmpeg-4.4-full_build-shared.7z
-          7z x -offmpeg ffmpeg.7z
+          7z x ffmpeg.7z
+          Rename-Item ffmpeg-4.4-full_build-shared ffmpeg
       - name: Run Unit Tests
         run: dotnet test --configuration Release --logger GitHubActions
         env:
