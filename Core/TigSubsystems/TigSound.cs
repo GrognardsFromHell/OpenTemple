@@ -139,11 +139,7 @@ namespace OpenTemple.Core.TigSubsystems
 
             ref var stream = ref tig_sound_streams[streamId];
 
-            var sampleData = Tig.FS.ReadBinaryFile(path);
-
-            stream.wav = new Wav();
-            stream.wav.loadMem(sampleData);
-            stream.soundPath = path;
+            LoadSample(ref stream, path);
 
             // TODO v5 = (int*) sub_10200C00 /*0x10200c00*/(dword_10EED5A4 /*0x10eed5a4*/, path);
             // TODO stream.field_134 = (int) v5;
@@ -158,11 +154,30 @@ namespace OpenTemple.Core.TigSubsystems
             float yPos = GameSystems.Random.GetInt(0, 100) - 50;
 
             var actualVolume = volume / 127.0f;
-            stream.voiceHandle = _soloud.play3d(stream.wav, xPos, yPos, 0, aVolume: actualVolume, aPaused: 1);
+            stream.voiceHandle = _soloud.play3d(stream.wav, xPos, yPos, 0, aVolume: actualVolume, aPaused: true);
             _soloud.set3dSourceMinMaxDistance(stream.voiceHandle, 2.0f, 50.0f);
-            _soloud.setPause(stream.voiceHandle, 0);
+            _soloud.setPause(stream.voiceHandle, false);
 
             stream.flags |= 0x400;
+        }
+
+        private bool LoadSample(ref tig_sound_stream stream, string path)
+        {
+            stream.wav?.Dispose();
+            stream.soundPath = null;
+
+            stream.wav = new Wav();
+
+            using var sampleData = Tig.FS.ReadFile(path);
+            var err = stream.wav.loadMem(sampleData.Memory.Span);
+            if (err != 0)
+            {
+                Logger.Warn("Failed to load sound: {0}: {1}", path, err);
+                return false;
+            }
+
+            stream.soundPath = path;
+            return true;
         }
 
         public void PlayDynamicSource(SoLoudDynamicSource source)
@@ -200,17 +215,11 @@ namespace OpenTemple.Core.TigSubsystems
             }
 
             // TODO: Inefficient and unsafe (not freeing old handle for instance)
-            var soundData = Tig.FS.ReadBinaryFile(soundPath);
 
             ref var stream = ref tig_sound_streams[streamId];
-            stream.wav = new Wav();
-            var err = stream.wav.loadMem(soundData);
-            if (err != 0)
-            {
-                Logger.Warn("Failed to load sound: {0}: {1}", soundPath, err);
-            }
 
-            stream.soundPath = soundPath;
+            LoadSample(ref stream, soundPath);
+
             stream.flags |= 2;
             stream.soundId = soundId;
             stream.voiceHandle = _soloud.play(stream.wav);
@@ -233,8 +242,7 @@ namespace OpenTemple.Core.TigSubsystems
 
             stream.flags |= 1;
 
-            stream.wav = new Wav();
-            stream.wav.loadMem(Tig.FS.ReadBinaryFile(path));
+            LoadSample(ref stream, path);
 
             stream.voiceHandle = _soloud.play(stream.wav);
 
@@ -251,12 +259,11 @@ namespace OpenTemple.Core.TigSubsystems
                 // TODO REVERB     mss_reverb_wet /*0x10ee756c*/);
             }
 
-            stream.soundPath = path;
             stream.loopCount = loopCount;
             if (loopCount == 0)
             {
                 // In MSS, looping = 0 -> loops forever
-                _soloud.setLooping(stream.voiceHandle, 1);
+                _soloud.setLooping(stream.voiceHandle, true);
             }
             else if (loopCount != 1)
             {
@@ -404,7 +411,7 @@ namespace OpenTemple.Core.TigSubsystems
                     // TODO: Probably fade in
                     if (stream.fieldC == 0)
                     {
-                        _soloud.setPause(stream.voiceHandle, 0);
+                        _soloud.setPause(stream.voiceHandle, false);
                     }
 
                     stream.fieldC++;
@@ -593,6 +600,7 @@ namespace OpenTemple.Core.TigSubsystems
                 // TODO sub_10200B90/*0x10200b90*/(dword_10EED5A4/*0x10eed5a4*/, stream.field134);
             }
 
+            stream.wav.Dispose();
             stream.active = false;
         }
 
@@ -748,7 +756,7 @@ namespace OpenTemple.Core.TigSubsystems
                 if (stream.active)
                 {
                     return _soloud.isValidVoiceHandle(stream.voiceHandle)
-                           && _soloud.getPause(stream.voiceHandle) == 0;
+                           && !_soloud.getPause(stream.voiceHandle);
                 }
             }
 
@@ -872,8 +880,14 @@ namespace OpenTemple.Core.TigSubsystems
             public uint voiceHandle;
         }
 
+        [TempleDllLocation(0x101e48a0)]
         public void Dispose()
         {
+            // Free all streams, releases soloud resources
+            FadeOutAll(0);
+
+            // TODO sub_10200B70((void *)dword_10EED5A4); ( sample cache ?)
+
             _soloud?.deinit();
             _soloud = null;
         }

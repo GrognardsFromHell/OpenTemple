@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Particles;
 using OpenTemple.Core.Particles.Instances;
@@ -38,12 +39,9 @@ namespace OpenTemple.Core.Systems
             parser.ParseFile("rules/partsys1.tab");
             parser.ParseFile("rules/partsys2.tab");
 
-            foreach (var filename in Tig.FS.ListDirectory("rules/partsys/"))
+            foreach (var path in Tig.FS.Search("rules/partsys/*.tab"))
             {
-                if (filename.EndsWith(".tab"))
-                {
-                    parser.ParseFile(filename);
-                }
+                parser.ParseFile(path);
             }
 
             foreach (var kvp in parser.Specs)
