@@ -15,17 +15,19 @@ jobs:
         id: cache-testdata
         uses: actions/cache@v2
         with:
-          path: ~/testdata.7z
+          path: ${{ env.GITHUB_WORKSPACE }}/testdata.7z
           key: testdata
       - name: Download Testdata
         if: steps.cache-testdata.outputs.cache-hit != 'true'
         run: |
           mkdir ~/testdata-download
-          curl ${{ secrets.TEST_DATA_URL }} -o ~/testdata.7z
+          curl ${{ secrets.TEST_DATA_URL }} -o "${{ env.GITHUB_WORKSPACE }}/testdata.7z"
       - name: Extract Testdata
         run: |
           mkdir testdata
-          7z x -otestdata -p${{ secrets.TEST_DATA_KEY }} ~/testdata.7z
+          7z x -o"${{ env.TOEE_DIR }}" -p${{ secrets.TEST_DATA_KEY }} "${{ env.GITHUB_WORKSPACE }}/testdata.7z"
+        env:
+          TOEE_DIR: ${{ env.GITHUB_WORKSPACE }}/testdata
       - name: Run Unit Tests
         # Since we do not have access to the real game files here, we can't run tests that rely on their presence
         run: dotnet test --configuration Release --logger GitHubActions  --filter Category!=NeedsRealFiles
