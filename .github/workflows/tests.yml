@@ -42,13 +42,21 @@ jobs:
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
-          name: test_results
+          name: test_results_windows
           path: Tests/TestResults
           retention-days: 5
+
+  test-report:
+    name: Test Report
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      statuses: write
+    steps:
       - uses: dorny/test-reporter@v1
-        if: ${{ always() }}
         with:
-          name: Tests
+          artifact: test_results_windows
+          name: Tests (Windows)
           path: Tests/TestResults/*.trx
           reporter: dotnet-trx
 
