@@ -8,6 +8,9 @@ jobs:
   build-windows:
     name: Test for Windows
     runs-on: windows-latest
+    permissions:
+      checks: write
+      statuses: write
     steps:
       - uses: actions/checkout@v1
         with:
@@ -45,21 +48,11 @@ jobs:
           name: test_results_windows
           path: Tests/TestResults
           retention-days: 5
-
-  test-report:
-    name: Test Report
-    runs-on: ubuntu-latest
-    if: always()
-    needs: [build-windows]
-    permissions:
-      checks: write
-      statuses: write
-    steps:
       - uses: dorny/test-reporter@v1
+        if: ${{ always() }}
         with:
-          artifact: test_results_windows
           name: Tests (Windows)
-          path: "*.trx"
+          path: "Tests/TestResults/*.trx"
           reporter: dotnet-trx
 
   # Can currently not build on Linux because of Windows Forms
