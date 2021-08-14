@@ -2,6 +2,7 @@
 name: Tests
 on:
   push:
+  pull_request:
 
 jobs:
   build-windows:
@@ -44,6 +45,12 @@ jobs:
           name: test_results
           path: Tests/TestResults
           retention-days: 5
+      - uses: dorny/test-reporter@v1
+        with:
+          artifact: test_results
+          name: Tests
+          path: 'results.trx'
+          reporter: dotnet-trx
 
   # Can currently not build on Linux because of Windows Forms
   # build-linux64:
