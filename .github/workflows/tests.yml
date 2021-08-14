@@ -46,10 +46,10 @@ jobs:
           path: Tests/TestResults
           retention-days: 5
       - uses: dorny/test-reporter@v1
+        if: ${{ always() }}
         with:
-          artifact: test_results
           name: Tests
-          path: 'results.trx'
+          path: Tests/TestResults/*.trx
           reporter: dotnet-trx
 
   # Can currently not build on Linux because of Windows Forms
