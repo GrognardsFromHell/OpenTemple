@@ -34,7 +34,7 @@ jobs:
           7z x ffmpeg.7z
           Rename-Item ffmpeg-4.4-full_build-shared ffmpeg
       - name: Run Unit Tests
-        run: dotnet test --configuration Release --logger GitHubActions
+        run: dotnet test --configuration Release --logger GitHubActions --logger "trx;LogFileName=results.trx"
         env:
           TOEE_DIR: ${{ github.workspace }}/testdata
       - name: Upload attached unit test artifacts
@@ -42,7 +42,7 @@ jobs:
         if: ${{ always() }}
         with:
           name: test_results
-          path: 'Tests/bin/**/*.{png,mp4}'
+          path: Tests/TestResults
           retention-days: 5
 
   # Can currently not build on Linux because of Windows Forms
