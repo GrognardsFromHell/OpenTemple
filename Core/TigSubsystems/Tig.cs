@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using OpenTemple.Core.Config;
@@ -209,6 +210,8 @@ namespace OpenTemple.Core.TigSubsystems
 
         public static void Shutdown()
         {
+            var sw = Stopwatch.StartNew();
+            Logger.Info("TIG shutdown started...");
             MainWindow?.Dispose();
             RenderingDevice?.Dispose();
             MdfFactory?.Dispose();
@@ -236,6 +239,7 @@ namespace OpenTemple.Core.TigSubsystems
             Sound = null;
             Fonts = null;
             Console = null;
+            Logger.Info("TIG shutdown completed in {0}.", sw);
         }
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using SoLoud;
 using OpenTemple.Core.Logging;
@@ -163,10 +164,11 @@ namespace OpenTemple.Core.TigSubsystems
 
         private bool LoadSample(ref tig_sound_stream stream, string path)
         {
-            stream.wav?.Dispose();
+            FreeResources(ref stream);
             stream.soundPath = null;
 
             stream.wav = new Wav();
+            Logger.Info("Allocated soloud Wav {0}", stream.wav.objhandle);
 
             using var sampleData = Tig.FS.ReadFile(path);
             var err = stream.wav.loadMem(sampleData.Memory.Span);
@@ -178,6 +180,16 @@ namespace OpenTemple.Core.TigSubsystems
 
             stream.soundPath = path;
             return true;
+        }
+
+        private void FreeResources(ref tig_sound_stream stream)
+        {
+            if (stream.wav != null)
+            {
+                Logger.Info("Disposing soloud Wav {0}", stream.wav.objhandle);
+                stream.wav.Dispose();
+                stream.wav = null;
+            }
         }
 
         public void PlayDynamicSource(SoLoudDynamicSource source)
@@ -600,7 +612,7 @@ namespace OpenTemple.Core.TigSubsystems
                 // TODO sub_10200B90/*0x10200b90*/(dword_10EED5A4/*0x10eed5a4*/, stream.field134);
             }
 
-            stream.wav.Dispose();
+            FreeResources(ref stream);
             stream.active = false;
         }
 
@@ -883,8 +895,11 @@ namespace OpenTemple.Core.TigSubsystems
         [TempleDllLocation(0x101e48a0)]
         public void Dispose()
         {
-            // Free all streams, releases soloud resources
-            FadeOutAll(0);
+            // We have to release all Wav objects we allocated before actually shutting down soloud itself
+            for (var i = 0; i < tig_sound_streams.Length; i++)
+            {
+                FreeResources(ref tig_sound_streams[i]);
+            }
 
             // TODO sub_10200B70((void *)dword_10EED5A4); ( sample cache ?)
 

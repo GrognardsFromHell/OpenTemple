@@ -8,26 +8,22 @@ namespace OpenTemple.Tests.TestUtils
     {
         public override void Error(ReadOnlySpan<char> message)
         {
-            TestContext.Error.Write("[e] ");
-            TestContext.Error.WriteLine(message.ToString());
+            TestContext.Out.WriteLine("[e] " + message.ToString());
         }
 
         public override void Warn(ReadOnlySpan<char> message)
         {
-            TestContext.Error.Write("[e] ");
-            TestContext.Error.WriteLine(message.ToString());
+            TestContext.Out.WriteLine("[w] " + message.ToString());
         }
 
         public override void Info(ReadOnlySpan<char> message)
         {
-            TestContext.Out.Write("[i] ");
-            TestContext.Out.WriteLine(message.ToString());
+            TestContext.Out.WriteLine("[i] " + message.ToString());
         }
 
         public override void Debug(ReadOnlySpan<char> message)
         {
-            TestContext.Out.Write("[d] ");
-            TestContext.Out.WriteLine(message.ToString());
+            TestContext.Out.WriteLine("[d] " + message.ToString());
         }
     }
 }
