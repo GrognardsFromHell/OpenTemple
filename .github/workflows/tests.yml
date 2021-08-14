@@ -49,6 +49,8 @@ jobs:
   test-report:
     name: Test Report
     runs-on: ubuntu-latest
+    if: always()
+    needs: [build-windows]
     permissions:
       checks: write
       statuses: write
