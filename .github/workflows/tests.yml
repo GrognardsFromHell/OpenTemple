@@ -57,7 +57,7 @@ jobs:
         with:
           artifact: test_results_windows
           name: Tests (Windows)
-          path: Tests/TestResults/*.trx
+          path: "*.trx"
           reporter: dotnet-trx
 
   # Can currently not build on Linux because of Windows Forms
