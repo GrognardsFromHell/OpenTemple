@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using OpenTemple.Core.Config;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup;
 using OpenTemple.Interop;
@@ -15,6 +16,8 @@ namespace OpenTemple.Windows
     /// </summary>
     public static class JumpListHandler
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         private const string ChangeInstallationDirVerb = "--change-installation-dir";
         private const string OpenSaveGameFolderVerb = "--open-save-game-folder";
 
@@ -34,7 +37,14 @@ namespace OpenTemple.Windows
                 }
             }
 
-            UpdateJumpList();
+            try
+            {
+                UpdateJumpList();
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Failed to update jump lists: {0}", e);
+            }
 
             return false;
         }
