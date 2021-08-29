@@ -1,21 +1,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using ImGuiNET;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
+#nullable enable
+
 namespace OpenTemple.Core.Systems.D20
 {
     public class D20Initiative : IDisposable, IReadOnlyList<GameObjectBody>
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+        /// <summary>
+        /// This is for tests that want to override the initiative to ensure a specific turn order.
+        /// </summary>
+        public Func<GameObjectBody, int>? InitiativeOverride { get; set; }
+
         [TempleDllLocation(0x10BCAD90)]
         private bool _surpriseRound;
 
@@ -23,7 +31,7 @@ namespace OpenTemple.Core.Systems.D20
         private readonly CritterGroup _initiativeOrder = new CritterGroup();
 
         [TempleDllLocation(0x10BCAD88)]
-        private GameObjectBody _currentActor;
+        private GameObjectBody? _currentActor;
 
         [TempleDllLocation(0x10BCAD80)]
         private int _currentActorInitiative;
@@ -212,9 +220,7 @@ namespace OpenTemple.Core.Systems.D20
 
             GameSystems.AI.OnAddToInitiative(obj);
 
-            var initiativeRoll = Dice.Roll(1, 20);
-            var initiativeBonus = GetInitiativeBonus(obj, out _);
-            obj.SetInt32(obj_f.initiative, initiativeRoll + initiativeBonus);
+            obj.SetInt32(obj_f.initiative, RollInitiative(obj));
 
             _initiativeOrder.Add(obj);
 
@@ -231,6 +237,24 @@ namespace OpenTemple.Core.Systems.D20
             {
                 obj.AddCondition(BuiltInConditions.Surprised);
             }
+        }
+
+        private int RollInitiative(GameObjectBody obj)
+        {
+            int initiative;
+            if (InitiativeOverride != null)
+            {
+                initiative = InitiativeOverride(obj);
+            }
+            else
+            {
+                var initiativeRoll = Dice.D20.Roll();
+                var initiativeBonus = GetInitiativeBonus(obj, out _);
+                initiative = initiativeRoll + initiativeBonus;
+            }
+
+            Logger.Info("Rolled initiative {0} for {1}", initiative, obj);
+            return initiative;
         }
 
         [TempleDllLocation(0x100df2b0)]

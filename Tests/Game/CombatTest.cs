@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
@@ -6,6 +8,7 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Tests.TestUtils;
 
@@ -36,7 +39,7 @@ namespace OpenTemple.Tests.Game
         {
             // Delete everything
             var toDelete = GameSystems.Object.GameObjects.ToList();
-            toDelete.ForEach(GameSystems.MapObject.RemoveMapObj);
+            toDelete.ForEach(GameSystems.Object.Destroy);
             // Wait for combat to stop
             Game.RunUntil(() => !GameSystems.Combat.IsCombatActive());
         }
@@ -65,7 +68,7 @@ namespace OpenTemple.Tests.Game
         }
 
         [Test]
-        [RecordFailureVideo(always:true)]
+        [RecordFailureVideo(always: true)]
         public void CombatShouldWorkWithTwoOpponentsAndConcurrentTurns()
         {
             Globals.Config.ConcurrentTurnsEnabled = true;
@@ -75,11 +78,11 @@ namespace OpenTemple.Tests.Game
             GameSystems.D20.Actions.isSimultPerformer(zombie1).Should().BeTrue();
             GameSystems.D20.Actions.isSimultPerformer(zombie2).Should().BeTrue();
 
-            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 6000);
+            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 10000);
         }
 
         [Test]
-        [RecordFailureVideo(always:true)]
+        [RecordFailureVideo(always: true)]
         public void CombatShouldWorkWithTwoOpponentsAndSequentialTurns()
         {
             Globals.Config.ConcurrentTurnsEnabled = false;
@@ -89,34 +92,71 @@ namespace OpenTemple.Tests.Game
             GameSystems.D20.Actions.isSimultPerformer(zombie1).Should().BeFalse();
             GameSystems.D20.Actions.isSimultPerformer(zombie2).Should().BeFalse();
 
-            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 6000);
+            // It should be zombie1's turn, run the game until it's zombie2's turn and check what zombie1 did
+            GameSystems.D20.Initiative.CurrentActor.Should().Be(zombie1);
+            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == zombie2, 10000);
+            CompletedActions.Should()
+                .HaveCount(1)
+                .And.Contain(action => action.d20APerformer == zombie1
+                                       && action.d20ATarget == _player
+                                       && action.d20ActType == D20ActionType.MOVE);
+            ActionLog.Clear();
+
+            // Now it's zombie2's turn, run until it's the player's turn and check what zombie2 did
+            Game.RunUntil(() => GameSystems.D20.Initiative.CurrentActor == _player, 10000);
+            CompletedActions.Should()
+                .HaveCount(1)
+                .And.Contain(action => action.d20APerformer == zombie2
+                                       && action.d20ATarget == _player
+                                       && action.d20ActType == D20ActionType.MOVE);
+
+            // Since both zombies just moved, there should be no combat entries
+            CombatLog.Should().BeEmpty();
         }
 
         private void SetupScenarioForTwoZombies(out GameObjectBody zombie1, out GameObjectBody zombie2)
         {
-            // Ensure the player goes first by bumping the initiative bonus past 20
-            _player.SetBaseStat(Stat.dexterity, 100);
+            // Initially, the logs should be empty.
+            CombatLog.Should().BeEmpty();
+            ActionLog.Should().BeEmpty();
+            Action<D20Action> failHandler = action =>
+            {
+                Debugger.Break();
+            };
+            GameSystems.D20.Actions.OnActionStarted += failHandler;
+            GameSystems.D20.Actions.OnActionEnded += failHandler;
 
             zombie1 = GameSystems.MapObject.CreateObject(TestProtos.Zombie, new locXY(500, 483));
             GameSystems.Critter.GenerateHp(zombie1);
             zombie2 = GameSystems.MapObject.CreateObject(TestProtos.Zombie, new locXY(500, 484));
             GameSystems.Critter.GenerateHp(zombie2);
 
+            // Ensure a specific turn order
+            SetInitiative(_player, 20);
+            SetInitiative(zombie1, 10);
+            SetInitiative(zombie2, 0);
+
             Game.RunUntil(() => GameSystems.Combat.IsCombatActive());
 
             GameSystems.Combat.IsCombatActive().Should().BeTrue();
             GameSystems.D20.Initiative.CurrentActor.Should().Be(_player);
-            GameSystems.D20.Initiative.Should().BeEquivalentTo(
+            GameSystems.D20.Initiative.Should().Equal(
                 _player,
                 zombie1,
                 zombie2
             );
 
+            // Without advancing time, no combat history entries should exist
+            CombatLog.Should().BeEmpty();
+            ActionLog.Should().BeEmpty();
+
+            GameSystems.D20.Actions.OnActionStarted -= failHandler;
+            GameSystems.D20.Actions.OnActionEnded -= failHandler;
+
             // End turn for the player
             GameSystems.Combat.AdvanceTurn(_player);
 
             GameSystems.Combat.IsCombatActive().Should().BeTrue();
-            GameSystems.D20.Initiative.CurrentActor.Should().NotBe(_player);
         }
     }
 }

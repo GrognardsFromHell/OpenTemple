@@ -168,7 +168,6 @@ namespace OpenTemple.Core.TigSubsystems
             stream.soundPath = null;
 
             stream.wav = new Wav();
-            Logger.Info("Allocated soloud Wav {0}", stream.wav.objhandle);
 
             using var sampleData = Tig.FS.ReadFile(path);
             var err = stream.wav.loadMem(sampleData.Memory.Span);

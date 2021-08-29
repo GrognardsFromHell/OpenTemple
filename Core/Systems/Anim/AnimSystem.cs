@@ -67,7 +67,11 @@ namespace OpenTemple.Core.Systems.Anim
         [TempleDllLocation(0x102B2654)]
         private int mCurrentlyProcessingSlotIdx = -1;
 
-        private List<AnimActionCallback> mActionCallbacks = new List<AnimActionCallback>();
+        /// <summary>
+        /// Callbacks for animations that have reached their action trigger that should be dispatched
+        /// to the action system after animation processing has completed.
+        /// </summary>
+        private readonly List<AnimActionCallback> _actionCallbacks = new();
 
         private Action mAllGoalsClearedCallback;
 
@@ -396,7 +400,7 @@ namespace OpenTemple.Core.Systems.Anim
             // This seems like a pretty stupid check since slots cannot "move"
             // and the first part of their ID must be the slot index
             // Shouldn't this really check for the unique id of the animation instead?
-            if (slot.id.slotIndex != triggerId.slotIndex)
+            if (slot.id.uniqueId != triggerId.uniqueId)
             {
                 Logger.Debug("{0} != {1}", slot.id, triggerId);
                 return true;
@@ -416,7 +420,7 @@ namespace OpenTemple.Core.Systems.Anim
             {
                 ProcessActionCallbacks();
 
-                var rescheduleDelay = Math.Max((int) slot.path.PauseTime.TotalMilliseconds, 100);
+                var rescheduleDelay = Math.Max((int)slot.path.PauseTime.TotalMilliseconds, 100);
                 return RescheduleEvent(rescheduleDelay, slot, evt);
             }
 
@@ -540,11 +544,11 @@ namespace OpenTemple.Core.Systems.Anim
                 delay = transition.delay;
 
                 // Special transitions
-                if ((nextState & (uint) AnimStateTransitionFlags.MASK) != 0)
+                if ((nextState & (uint)AnimStateTransitionFlags.MASK) != 0)
                 {
                     var currentStack = new List<AnimSlotGoalStackEntry>(slot.goals);
 
-                    var nextStateFlags = (AnimStateTransitionFlags) nextState & AnimStateTransitionFlags.MASK;
+                    var nextStateFlags = (AnimStateTransitionFlags)nextState & AnimStateTransitionFlags.MASK;
                     if (nextStateFlags.HasFlag(AnimStateTransitionFlags.REWIND))
                     {
                         slot.currentState = 0;
@@ -585,7 +589,7 @@ namespace OpenTemple.Core.Systems.Anim
                         }
                         else
                         {
-                            var newGoalType = (AnimGoalType) (nextState & 0xFFF);
+                            var newGoalType = (AnimGoalType)(nextState & 0xFFF);
                             goal = Goals.GetByType(newGoalType);
 
                             AnimSlotGoalStackEntry stackEntry = new AnimSlotGoalStackEntry(null, newGoalType);
@@ -674,7 +678,7 @@ namespace OpenTemple.Core.Systems.Anim
                             slot.currentState, currentGoal.goalType);
                     }
 
-                    slot.currentState = (int) nextState;
+                    slot.currentState = (int)nextState;
                 }
 
                 if (delay > 0)
@@ -684,7 +688,7 @@ namespace OpenTemple.Core.Systems.Anim
                         case AnimStateTransition.DelaySlot:
                             // Use the delay specified in the slot. Reasoning currently unknown.
                             // NOTE: Could mean that it's waiting for pathing to complete
-                            delay = (int) slot.path.PauseTime.TotalMilliseconds;
+                            delay = (int)slot.path.PauseTime.TotalMilliseconds;
                             break;
                         case AnimStateTransition.DelayCustom:
                             // Used by some goal states to set their desired dynamic delay
@@ -730,7 +734,7 @@ namespace OpenTemple.Core.Systems.Anim
 
                 if (animObj != null && animObj.IsCritter())
                 {
-                    mActionCallbacks.Add(new AnimActionCallback(animObj, actionAnimId));
+                    _actionCallbacks.Add(new AnimActionCallback(animObj, actionAnimId));
                 }
             }
 
@@ -808,6 +812,13 @@ namespace OpenTemple.Core.Systems.Anim
 
                 FreeSlot(slot);
             }
+
+            // Remove any queued anim callbacks. Note that this may leave dangling actions for the object.
+            if (_actionCallbacks.RemoveAll(c => c.obj == obj) > 0)
+            {
+                // We might have to call back the anim system to tell it the animation was interrupted
+                Logger.Warn("Removed pending anim callbacks for obj {0} during removal", obj);
+            }
         }
 
         [TempleDllLocation(0x1000c8d0)]
@@ -826,7 +837,6 @@ namespace OpenTemple.Core.Systems.Anim
                 }
             }
         }
-
 
         [TempleDllLocation(0x10056090)]
         public bool InterruptGoals(AnimSlot slot, AnimGoalPriority priority)
@@ -1110,24 +1120,35 @@ namespace OpenTemple.Core.Systems.Anim
             // Logger.Debug("PopGoal: Ending with slot flags {:x}, state {:x}", static_cast<uint>(slot.flags), slot.currentState);
         }
 
+        private bool _processingActionCallbacks;
+
         [TempleDllLocation(0x10016a30)]
         private void ProcessActionCallbacks()
         {
-            // changed to manual iteration because PerformOnAnimComplete can alter the vector
-            var initSize = mActionCallbacks.Count;
-            for (var i = 0; i < mActionCallbacks.Count; i++)
+            if (_processingActionCallbacks)
             {
-                var callback = mActionCallbacks[i];
-                GameSystems.D20.Actions.PerformOnAnimComplete(callback.obj, callback.uniqueId);
-                if (initSize != mActionCallbacks.Count)
-                {
-                    Debugger.Break();
-                }
-
-                mActionCallbacks[i] = new AnimActionCallback(null, 0);
+                // Any added callbacks will be processed at the end of the already active call to this function
+                return;
             }
 
-            mActionCallbacks.Clear();
+            _processingActionCallbacks = true;
+            try
+            {
+                // changed to manual iteration because PerformOnAnimComplete can alter the vector
+                for (var i = 0; i < _actionCallbacks.Count; i++)
+                {
+                    var callback = _actionCallbacks[i];
+                    GameSystems.D20.Actions.PerformOnAnimComplete(callback.obj, callback.uniqueId);
+
+                    _actionCallbacks[i] = new AnimActionCallback(null, 0);
+                }
+
+                _actionCallbacks.Clear();
+            }
+            finally
+            {
+                _processingActionCallbacks = false;
+            }
         }
 
         [TempleDllLocation(0x10016a00)]
@@ -1138,7 +1159,7 @@ namespace OpenTemple.Core.Systems.Anim
                 return;
             }
 
-            mActionCallbacks.Add(new AnimActionCallback(slot.animObj, slot.uniqueActionId));
+            _actionCallbacks.Add(new AnimActionCallback(slot.animObj, slot.uniqueActionId));
         }
 
         // Replaces PrepareSlotForGoalState with null state
@@ -1169,14 +1190,14 @@ namespace OpenTemple.Core.Systems.Anim
             slot.animObj = slot.pCurrentGoal.self.obj;
 
             slot.stateFlagData = state.flagsData;
-            slot.param1 = GetAnimParam(slot, (AnimGoalProperty) state.argInfo1);
-            slot.param2 = GetAnimParam(slot, (AnimGoalProperty) state.argInfo2);
+            slot.param1 = GetAnimParam(slot, (AnimGoalProperty)state.argInfo1);
+            slot.param2 = GetAnimParam(slot, (AnimGoalProperty)state.argInfo2);
             return true;
         }
 
         private AnimParam GetAnimParam(AnimSlot slot, AnimGoalProperty property)
         {
-            if ((int) property == -1)
+            if ((int)property == -1)
             {
                 var result = new AnimParam();
                 result.number = 0;
@@ -2191,16 +2212,16 @@ namespace OpenTemple.Core.Systems.Anim
         private static readonly Dictionary<DamageType, string> DamageParticleEffectPrefixes =
             new Dictionary<DamageType, string>
             {
-                {DamageType.Acid, "hit-ACID-"},
-                {DamageType.Cold, "hit-COLD-"},
-                {DamageType.Electricity, "hit-SHOCK-"},
-                {DamageType.Fire, "hit-FIRE-"},
-                {DamageType.Sonic, "hit-SONIC-"},
-                {DamageType.NegativeEnergy, "hit-NEGATIVE_ENERGY-"},
-                {DamageType.Subdual, "hit-SUBDUAL-"},
-                {DamageType.Poison, "hit-POISON-"},
-                {DamageType.PositiveEnergy, "hit-POSITIVE_ENERGY-"},
-                {DamageType.Force, "hit-FORCE-"}
+                { DamageType.Acid, "hit-ACID-" },
+                { DamageType.Cold, "hit-COLD-" },
+                { DamageType.Electricity, "hit-SHOCK-" },
+                { DamageType.Fire, "hit-FIRE-" },
+                { DamageType.Sonic, "hit-SONIC-" },
+                { DamageType.NegativeEnergy, "hit-NEGATIVE_ENERGY-" },
+                { DamageType.Subdual, "hit-SUBDUAL-" },
+                { DamageType.Poison, "hit-POISON-" },
+                { DamageType.PositiveEnergy, "hit-POSITIVE_ENERGY-" },
+                { DamageType.Force, "hit-FORCE-" }
             };
 
         [TempleDllLocation(0x10016A90)]
@@ -2271,7 +2292,7 @@ namespace OpenTemple.Core.Systems.Anim
             var newgoal = new AnimSlotGoalStackEntry(critter, AnimGoalType.use_skill_on, true);
             newgoal.target.obj = target;
             newgoal.scratch.obj = scratch;
-            newgoal.flagsData.number = (int) skillId;
+            newgoal.flagsData.number = (int)skillId;
 
             if (!PushGoal(newgoal, out animIdGlobal))
             {
@@ -2446,11 +2467,11 @@ namespace OpenTemple.Core.Systems.Anim
                     {
                         if (!useSecondaryAnim)
                         {
-                            weaponAnim = (WeaponAnim) (attackAnimIdx + 1);
+                            weaponAnim = (WeaponAnim)(attackAnimIdx + 1);
                         }
                         else
                         {
-                            weaponAnim = (WeaponAnim) (attackAnimIdx + 4);
+                            weaponAnim = (WeaponAnim)(attackAnimIdx + 4);
                         }
                     }
                     else
@@ -2459,7 +2480,7 @@ namespace OpenTemple.Core.Systems.Anim
                         weaponAnim = useSecondaryAnim ? WeaponAnim.LeftCriticalSwing : WeaponAnim.RightCriticalSwing;
                     }
 
-                    goalStackEntry.animIdPrevious.number = (int) weaponAnim;
+                    goalStackEntry.animIdPrevious.number = (int)weaponAnim;
                     Logger.Info("Attack animation: {0}", weaponAnim);
 
                     if (PushGoal(goalStackEntry, out animIdGlobal))
@@ -2511,7 +2532,7 @@ namespace OpenTemple.Core.Systems.Anim
 
             GameSystems.SoundGame.StartCombatMusic(attacker);
             goal.scratchVal6.number = scratchVal6;
-            goal.animIdPrevious.number = (int) (secondary ? WeaponAnim.LeftThrow : WeaponAnim.RightThrow);
+            goal.animIdPrevious.number = (int)(secondary ? WeaponAnim.LeftThrow : WeaponAnim.RightThrow);
 
             if (!PushGoal(goal, out animIdGlobal))
             {
@@ -2865,12 +2886,12 @@ namespace OpenTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x10056350)]
         public void InterruptGoalsByType(GameObjectBody handle, AnimGoalType type,
-            AnimGoalType keep = (AnimGoalType) (-1))
+            AnimGoalType keep = (AnimGoalType)(-1))
         {
             // type is always ag_flee, keep is always -1 where we call it
             AnimGoalPriority interruptPriority;
 
-            if (keep == (AnimGoalType) (-1))
+            if (keep == (AnimGoalType)(-1))
             {
                 interruptPriority = AnimGoalPriority.AGP_HIGHEST;
             }

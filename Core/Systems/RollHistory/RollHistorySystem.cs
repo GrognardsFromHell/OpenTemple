@@ -31,7 +31,7 @@ namespace OpenTemple.Core.Systems.RollHistory
 
         public event Action OnHistoryCleared;
 
-        public event EventHandler<HistoryEntry> OnHistoryEvent;
+        public event Action<HistoryEntry> OnHistoryEvent;
 
         private readonly Dictionary<int, string> _translations;
 
@@ -107,7 +107,7 @@ namespace OpenTemple.Core.Systems.RollHistory
                 entry.obj2Descr = "";
             }
 
-            OnHistoryEvent?.Invoke(this, entry);
+            OnHistoryEvent?.Invoke(entry);
 
             return entry.histId;
         }

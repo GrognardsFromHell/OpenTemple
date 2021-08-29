@@ -25,6 +25,8 @@ using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.InGameSelect;
 using OpenTemple.Core.Utils;
 
+#nullable enable
+
 namespace OpenTemple.Core.Systems.D20.Actions
 {
     public enum CursorType
@@ -109,6 +111,13 @@ namespace OpenTemple.Core.Systems.D20.Actions
             {CursorType.InvalidSelection4, "art/interface/cursors/invalidSelection.tga"},
         };
 
+        /// <summary>
+        /// Callback to listen to actions as they're being performed. For testing purposes to listen to
+        /// move actions and such.
+        /// </summary>
+        public event Action<D20Action>? OnActionStarted;
+        public event Action<D20Action>? OnActionEnded;
+
         private readonly Dictionary<int, PythonActionSpec> _pythonActions = new Dictionary<int, PythonActionSpec>();
 
         public D20Action globD20Action = new D20Action();
@@ -119,7 +128,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         private List<ActionSequence> actSeqArray = new List<ActionSequence>();
 
         [TempleDllLocation(0x118CD574)]
-        private ActionSequence actSeqInterrupt;
+        private ActionSequence? actSeqInterrupt;
 
         [TempleDllLocation(0x1186A8F0)]
         internal ActionSequence CurrentSequence { get; set; }
@@ -160,11 +169,17 @@ namespace OpenTemple.Core.Systems.D20.Actions
         /// </summary>
         private const int MaxSimultPerformers = 8;
 
-        [TempleDllLocation(0x10B3D5B8)]
-        private int numSimultPerformers;
-
         [TempleDllLocation(0x118A06C0)]
-        private List<GameObjectBody> _simultPerformerQueue = new ();
+        [TempleDllLocation(0x10B3D5B8)]
+        private readonly List<GameObjectBody> _simultPerformerQueue = new ();
+
+        // Vanilla stored the object who this was for in _simultPerformerQueue[numSimultPerformers],
+        // which essentially reused the area past the actual simultaneous performers for storing
+        // the object for which the turn based status was saved.
+        // I think this saves the turn based status for a critter who had to abort their sequence during
+        // a simultaneous turn, so that it can be restored later.
+        [TempleDllLocation(0x118CD3C0)]
+        private (GameObjectBody actor, TurnBasedStatus status)? _abortedSimultaneousSequence;
 
         [TempleDllLocation(0x10B3D5BC)]
         private int simulsIdx;
@@ -969,6 +984,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
                         Logger.Debug("ActionPerform: \t Performing action [{2}/{3}] for {0}: {1}", d20a.d20APerformer,
                             d20a.d20ActType, curSeq.d20aCurIdx + 1, curSeq.d20ActArray.Count);
 
+                        OnActionStarted?.Invoke(d20a);
                         D20ActionDefs.GetActionDef(d20a.d20ActType).performFunc(d20a);
                         InterruptNonCounterspell(d20a);
                     }
@@ -1741,7 +1757,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
             else
             {
-                numSimultPerformers = 0;
+                _abortedSimultaneousSequence = null;
                 _simultPerformerQueue.Clear();
                 Logger.Debug("first simul actor, proceeding"); // aborts simuls
             }
@@ -1759,29 +1775,29 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
 
             var isFirstInQueue = true;
-
             foreach (var simultPerformer in _simultPerformerQueue)
             {
                 if (obj == simultPerformer)
                 {
                     if (isFirstInQueue)
                     {
-                        numSimultPerformers = 0;
+                        _abortedSimultaneousSequence = null;
                         _simultPerformerQueue.Clear();
                         return false;
                     }
                     else
                     {
-                        numSimultPerformers = simulsIdx;
+                        _abortedSimultaneousSequence = (_simultPerformerQueue[simulsIdx], CurrentSequence.tbStatus.Copy());
                         _simultPerformerQueue.RemoveRange(simulsIdx, _simultPerformerQueue.Count - simulsIdx);
-                        simulsTbStatus = CurrentSequence.tbStatus.Copy();
                         Logger.Debug("Simul aborted {0} ({1})", obj, simulsIdx);
                         return true;
                     }
                 }
 
                 if (IsCurrentlyPerforming(simultPerformer))
+                {
                     isFirstInQueue = false;
+                }
             }
 
             return false;
@@ -1789,9 +1805,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         private bool isSomeoneAlreadyActingSimult(GameObjectBody objHnd)
         {
-            for (var index = 0; index < numSimultPerformers; index++)
+            foreach (var simultPerformer in _simultPerformerQueue)
             {
-                var simultPerformer = _simultPerformerQueue[index];
                 if (objHnd == simultPerformer)
                 {
                     return false;
@@ -1989,6 +2004,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
             {
                 ActionFrameProcess(obj);
             }
+
+            OnActionEnded?.Invoke(action);
 
             if (actSeqOkToPerform())
             {
@@ -2502,9 +2519,6 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x10B3D5C4)]
         private bool performedDefaultAction;
-
-        [TempleDllLocation(0x118CD3C0)]
-        private TurnBasedStatus simulsTbStatus;
 
         [TempleDllLocation(0x1008B1E0)]
         public bool ProjectileAppend(D20Action action, GameObjectBody projHndl, GameObjectBody thrownItem)
@@ -3639,13 +3653,12 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
             var obj = GameSystems.D20.Initiative.CurrentActor;
 
-            if (numSimultPerformers > 0 && _simultPerformerQueue.Contains(obj))
+            if (_simultPerformerQueue.Contains(obj))
             {
                 return;
             }
 
-            numSimultPerformers = 0;
-            _simultPerformerQueue.Clear();
+            ResetSimultaneousTurn();
 
             // If any actions are readied, do not allow simultaneous turns
             if (_readiedActions.Count > 0)
@@ -3698,15 +3711,18 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 }
 
                 // Don't need to perform simultaneously with just one critter
+                simulsIdx = 0;
                 if (_simultPerformerQueue.Count == 1)
                 {
-                    _simultPerformerQueue.Clear();
+                    ResetSimultaneousTurn();
                 }
-
-                numSimultPerformers = _simultPerformerQueue.Count;
-                _simultPerformerQueue.Add(null);
-                simulsIdx = 0;
             }
+        }
+
+        private void ResetSimultaneousTurn()
+        {
+            _simultPerformerQueue.Clear();
+            _abortedSimultaneousSequence = null;
         }
 
         [TempleDllLocation(0x10099320)]
@@ -3925,9 +3941,9 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100920e0)]
-        public GameObjectBody getNextSimulsPerformer()
+        public GameObjectBody? getNextSimulsPerformer()
         {
-            if (simulsIdx + 1 < numSimultPerformers)
+            if (simulsIdx + 1 < _simultPerformerQueue.Count)
             {
                 return _simultPerformerQueue[simulsIdx + 1];
             }
@@ -3941,10 +3957,10 @@ namespace OpenTemple.Core.Systems.D20.Actions
         public bool IsSimulsCompleted()
         {
             var currentActor = GameSystems.D20.Initiative.CurrentActor;
-            for (var index = 0; index < numSimultPerformers; index++)
+            for (var index = 0; index < _simultPerformerQueue.Count; index++)
             {
                 var performer = _simultPerformerQueue[index];
-                if (currentActor == performer && index < numSimultPerformers - 1)
+                if (currentActor == performer && index < _simultPerformerQueue.Count - 1)
                 {
                     var actorName = GameSystems.MapObject.GetDisplayName(performer);
                     Logger.Info("Actor {0} not completed issuing instructions", actorName);
@@ -3968,15 +3984,15 @@ namespace OpenTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x100925b0)]
         public bool IsLastSimultPopped(GameObjectBody obj)
         {
-            return obj == _simultPerformerQueue[numSimultPerformers];
+            return _abortedSimultaneousSequence.HasValue && _abortedSimultaneousSequence.Value.actor == obj;
         }
 
         [TempleDllLocation(0x10096fa0)]
         public bool IsLastSimulsPerformer(GameObjectBody critter)
         {
-            if (numSimultPerformers > 0)
+            if (_simultPerformerQueue.Count > 0)
             {
-                if (critter == _simultPerformerQueue[numSimultPerformers - 1] && !IsSimulsCompleted())
+                if (critter == _simultPerformerQueue[^1] && !IsSimulsCompleted())
                 {
                     return true;
                 }
@@ -3994,18 +4010,17 @@ namespace OpenTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10095ca0)]
         private bool restoreSeqTo(GameObjectBody critter)
         {
-            if (critter != _simultPerformerQueue[numSimultPerformers])
-            {
-                return false;
-            }
-            else
+            if (_abortedSimultaneousSequence.HasValue && _abortedSimultaneousSequence.Value.actor == critter)
             {
                 Logger.Info("Restore Aborted: Reseting Sequence");
                 CurSeqReset(critter);
-                CurrentSequence.tbStatus = simulsTbStatus;
-                numSimultPerformers = 0;
-                _simultPerformerQueue = new List<GameObjectBody> {null};
+                CurrentSequence.tbStatus = _abortedSimultaneousSequence.Value.status;
+                ResetSimultaneousTurn();
                 return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -4069,9 +4084,9 @@ namespace OpenTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10092720)]
         public bool SimulsAdvance()
         {
-            simulsIdx = numSimultPerformers - 1;
+            simulsIdx = _simultPerformerQueue.Count - 1;
             var actor = GameSystems.D20.Initiative.CurrentActor;
-            for (var i = 0; i < numSimultPerformers; i++)
+            for (var i = 0; i < _simultPerformerQueue.Count; i++)
             {
                 if (actor == _simultPerformerQueue[i])
                 {
@@ -4080,10 +4095,12 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 }
             }
 
-            if (simulsIdx >= numSimultPerformers - 1)
-                return false;
-            Logger.Debug("Advancing to simul current {0}", ++simulsIdx);
-            return true;
+            if (simulsIdx < _simultPerformerQueue.Count - 1)
+            {
+                Logger.Debug("Advancing to simul current {0}", ++simulsIdx);
+                return true;
+            }
+            return false;
         }
 
         [TempleDllLocation(0x10097ef0)]

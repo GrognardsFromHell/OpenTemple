@@ -346,6 +346,10 @@ namespace OpenTemple.Core.Systems.GameObjects
                 GameSystems.Item.PoopInventory(obj, true, onlyInvulnerable: true);
             }
 
+            // This is an OT addition, setting it to OFF should prevent it being a valid combat actor when
+            // the turn order is advanced in OnObjectRemovedFromWorld (in case the object being removed is
+            // the current combat actor).
+            obj.SetFlag(ObjectFlag.OFF, true);
             GameSystems.MapObject.OnObjectRemovedFromWorld(obj);
 
             obj.SetFlag(ObjectFlag.DESTROYED, true);
