@@ -9,8 +9,7 @@ namespace OpenTemple.Core.Platform
     {
         public int cbSize;
         public ClassStyles style;
-        [MarshalAs(UnmanagedType.FunctionPtr)]
-        public WndProc lpfnWndProc;
+        public IntPtr lpfnWndProc;
         public int cbClsExtra;
         public int cbWndExtra;
         public IntPtr hInstance;

@@ -185,7 +185,6 @@ namespace OpenTemple.Core.TigSubsystems
         {
             if (stream.wav != null)
             {
-                Logger.Info("Disposing soloud Wav {0}", stream.wav.objhandle);
                 stream.wav.Dispose();
                 stream.wav = null;
             }

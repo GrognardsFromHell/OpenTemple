@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using OpenTemple.Core;
 using OpenTemple.Core.Config;
@@ -12,9 +13,7 @@ using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Platform
 {
-    public delegate bool WindowMsgFilter(uint msg, ulong wparam, long lparam);
-
-    internal delegate IntPtr WndProc(IntPtr hWnd, uint msg, ulong wParam, long lParam);
+    public delegate bool WindowMsgFilter(uint msg, nuint wparam, nint lparam);
 
     public class MainWindow : IMainWindow, IDisposable
     {
@@ -230,14 +229,14 @@ namespace OpenTemple.Core.Platform
         private const string WindowClassName = "OpenTempleMainWnd";
         private const string WindowTitle = "OpenTemple";
 
-        private void RegisterWndClass()
+        private unsafe void RegisterWndClass()
         {
             var wndClass = new WNDCLASSEX
             {
                 cbSize = Marshal.SizeOf<WNDCLASSEX>(),
                 // Make sure to use the delegate object here, otherwise .NET might create a temporary one,
                 // but we need to ensure the native twin of this delegate will live as long as the App.
-                lpfnWndProc = WndProcTrampolineDelegate,
+                lpfnWndProc = (IntPtr)(delegate* unmanaged[Stdcall]<IntPtr, uint, nuint, nint, IntPtr>)&WndProcTrampoline,
                 hInstance = _instanceHandle,
                 hIcon = LoadIcon(_instanceHandle, "icon"),
                 hCursor = LoadCursor(IntPtr.Zero, IDC_ARROW),
@@ -335,10 +334,8 @@ namespace OpenTemple.Core.Platform
             }
         }
 
-        // Keep a delegate object for the trampoline around to prevent it from being GC'd
-        private static readonly WndProc WndProcTrampolineDelegate = WndProcTrampoline;
-
-        private static IntPtr WndProcTrampoline(IntPtr hWnd, uint msg, ulong wparam, long lparam)
+        [UnmanagedCallersOnly(CallConvs = new []{typeof(CallConvStdcall)})]
+        private static IntPtr WndProcTrampoline(IntPtr hWnd, uint msg, nuint wparam, nint lparam)
         {
             // Retrieve our this pointer from the wnd
             var handlePtr = GetWindowLongPtr(hWnd, 0);
@@ -359,7 +356,7 @@ namespace OpenTemple.Core.Platform
         [TempleDllLocation(0x10D25CEC), TempleDllLocation(0x10D25CF0)]
         private PointF mousePos;
 
-        private IntPtr WndProc(IntPtr hWnd, uint msg, ulong wParam, long lParam)
+        private IntPtr WndProc(IntPtr hWnd, uint msg, nuint wParam, nint lParam)
         {
             if (hWnd != _windowHandle)
             {
@@ -375,7 +372,7 @@ namespace OpenTemple.Core.Platform
             {
                 case WM_SETFOCUS:
                     // Make our window topmost unless a debugger is attached
-                    if ((IntPtr) wParam == _windowHandle && !IsDebuggerPresent())
+                    if ((IntPtr) (nint) wParam == _windowHandle && !IsDebuggerPresent())
                     {
                         SetWindowPos(_windowHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
                     }
@@ -383,7 +380,7 @@ namespace OpenTemple.Core.Platform
                     break;
                 case WM_KILLFOCUS:
                     // Make our window topmost unless a debugger is attached
-                    if ((IntPtr) wParam == _windowHandle && !IsDebuggerPresent())
+                    if ((IntPtr) (nint) wParam == _windowHandle && !IsDebuggerPresent())
                     {
                         SetWindowPos(_windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0,
                             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
@@ -927,7 +924,7 @@ namespace OpenTemple.Core.Platform
         private WindowMsgFilter mWindowMsgFilter;
 
         [DllImport("user32.dll")]
-        private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, ulong wParam, long lParam);
+        private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, nuint wParam, nint lParam);
 
         [DllImport("user32.dll")]
         private static extern bool AdjustWindowRectEx(ref RECT lpRect, WindowStyles dwStyle,
@@ -968,15 +965,47 @@ namespace OpenTemple.Core.Platform
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
 
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
-        private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
-
         private const int GWL_STYLE = -16;
 
         private const int GWL_EXSTYLE = -20;
 
-        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
-        private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+        // Check https://stackoverflow.com/questions/54833997/i-keep-getting-unable-to-find-an-entry-point-named-getwindowlongptra-in-dll
+        // for why this is required
+        [DllImport("user32.dll", EntryPoint="GetWindowLong")]
+        private static extern IntPtr GetWindowLongPtr32(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint="GetWindowLongPtr")]
+        private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
+
+        private static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
+        {
+            if (IntPtr.Size == 8)
+            {
+                return GetWindowLongPtr64(hWnd, nIndex);
+            }
+            else
+            {
+                return GetWindowLongPtr32(hWnd, nIndex);
+            }
+        }
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+        private static extern IntPtr SetWindowLongPtr32(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+        private static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        private static IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+        {
+            if (IntPtr.Size == 8)
+            {
+                return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+            }
+            else
+            {
+                return SetWindowLongPtr32(hWnd, nIndex, dwNewLong);
+            }
+        }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern IntPtr LoadIcon(IntPtr hInstance, string lpIconName);

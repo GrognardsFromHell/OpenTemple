@@ -317,7 +317,7 @@ namespace OpenTemple.Core.DebugUI
             }
         }
 
-        private bool HandleMessage(uint message, ulong wParam, long lParam)
+        private bool HandleMessage(uint message, nuint wParam, nint lParam)
         {
             var io = ImGui.GetIO();
             switch (message)
