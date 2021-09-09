@@ -46,7 +46,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         public ActionFrameCallback actionFrameFunc;
         public ProjectileHitCallback projectileHitFunc;
         public ActionCostCallback actionCost;
-        public Func<D20Action, CursorType?> getCursor;
+        public Func<D20Action, CursorType?> getCursor = action => null;
         public SeqRenderFuncCallback seqRenderFunc;
         public D20ADF flags;
     }
