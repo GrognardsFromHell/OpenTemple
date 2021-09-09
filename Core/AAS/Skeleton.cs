@@ -104,7 +104,7 @@ namespace OpenTemple.Core.AAS
                     }
                     else
                     {
-                        animation.Events = new SkelAnimEvent[0];
+                        animation.Events = Array.Empty<SkelAnimEvent>();
                     }
 
                     var streamCount = reader.ReadUInt16();

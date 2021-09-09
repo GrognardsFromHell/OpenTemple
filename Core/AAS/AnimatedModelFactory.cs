@@ -10,14 +10,14 @@ namespace OpenTemple.Core.AAS
 {
     public class AnimatedModelFactory : IAnimatedModelFactory, IDisposable
     {
-        private readonly IDictionary<int, string> meshTable_;
+        private readonly IDictionary<int, string> _meshTable;
 
         public AnimatedModelFactory(
             IFileSystem fileSystem,
             IDictionary<int, string> meshTable,
             Func<string, object> resolveMaterial)
         {
-            meshTable_ = meshTable;
+            _meshTable = meshTable;
 
             var materialResolver = new MaterialResolver(resolveMaterial);
 
@@ -31,12 +31,12 @@ namespace OpenTemple.Core.AAS
 
         private string GetMeshFilename(int meshId)
         {
-            return "art/meshes/" + meshTable_[meshId] + ".skm";
+            return "art/meshes/" + _meshTable[meshId] + ".skm";
         }
 
         private string GetSkeletonFilename(int meshId)
         {
-            return "art/meshes/" + meshTable_[meshId] + ".ska";
+            return "art/meshes/" + _meshTable[meshId] + ".ska";
         }
 
         public IAnimatedModel FromIds(int meshId, int skeletonId, EncodedAnimId idleAnimId,

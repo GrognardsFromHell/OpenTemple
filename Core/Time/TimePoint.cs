@@ -15,6 +15,22 @@ namespace OpenTemple.Core.Time
 
         public static readonly long TicksPerMillisecond = Stopwatch.Frequency / 1000;
 
+        /// <summary>
+        /// Conversion from the ticks in this structure to the ticks found in TimeSpan.
+        /// </summary>
+        private static long ToTimeSpanTicks(long ticks)
+        {
+            return ticks * TimeSpan.TicksPerMillisecond / TicksPerMillisecond;
+        }
+
+        /// <summary>
+        /// Conversion from the ticks found in TimeSpan to the ticks found in this structure.
+        /// </summary>
+        private static long FromTimeSpanTicks(long ticks)
+        {
+            return ticks / TimeSpan.TicksPerMillisecond * TicksPerMillisecond;
+        }
+
         private const int SecondsPerDay = 24 * 60 * 60;
 
         private static long _fakeTime = -1;
@@ -46,9 +62,9 @@ namespace OpenTemple.Core.Time
             _fakeTime = -1;
         }
 
-        public double Seconds => Time / (double) Stopwatch.Frequency;
+        public double Seconds => Time / (double) TicksPerSecond;
 
-        public double Milliseconds => Seconds * 1000.0f;
+        public double Milliseconds => Time / (double) TicksPerMillisecond;
 
         public bool Equals(TimePoint other)
         {
@@ -87,17 +103,17 @@ namespace OpenTemple.Core.Time
 
         public static TimeSpan operator -(TimePoint left, TimePoint right)
         {
-            return new TimeSpan(left.Time - right.Time);
+            return new TimeSpan(ToTimeSpanTicks(left.Time - right.Time));
         }
 
         public static TimePoint operator -(TimePoint left, TimeSpan right)
         {
-            return new TimePoint(left.Time - right.Ticks);
+            return new TimePoint(left.Time - FromTimeSpanTicks(right.Ticks));
         }
 
         public static TimePoint operator +(TimePoint left, TimeSpan right)
         {
-            return new TimePoint(left.Time + right.Ticks);
+            return new TimePoint(left.Time + FromTimeSpanTicks(right.Ticks));
         }
 
         public static bool operator <(TimePoint left, TimePoint right)
