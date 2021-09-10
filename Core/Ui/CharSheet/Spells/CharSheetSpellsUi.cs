@@ -107,7 +107,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             var currentX = 0;
             foreach (var spellList in _spellLists)
             {
-                var button = new ClassTabButton(spellList.SpellsPerDay.Name, TabLabelStyle);
+                var button = new WidgetTabButton(spellList.SpellsPerDay.Name, WidgetTabStyle.Small);
                 button.Y = 4;
                 button.X = currentX;
                 button.SetClickHandler(() => ActivateTab(spellList));
@@ -136,7 +136,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             foreach (var otherSpellList in _spellLists)
             {
                 otherSpellList.Active = otherSpellList == spellList;
-                otherSpellList.Button.IsActive = otherSpellList == spellList;
+                otherSpellList.Button.Active = otherSpellList == spellList;
             }
 
             var spellsPerDay = spellList.SpellsPerDay;

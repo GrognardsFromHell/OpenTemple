@@ -23,18 +23,28 @@ namespace OpenTemple.Core.Ui.Widgets
             get
             {
                 var styles = ComputedStyles;
+
                 // It's possible the content area was not initialized yet
                 var availableWidth = ContentArea.Width;
                 if (availableWidth <= 0)
                 {
                     availableWidth = FixedWidth;
+                    if (availableWidth <= 0)
+                    {
+                        availableWidth = short.MaxValue;
+                    }
                 }
+
                 var width = MathF.Max(0, availableWidth - styles.MarginLeft - styles.MarginRight
                                          - styles.PaddingLeft - styles.PaddingRight - styles.BorderWidth);
                 var availableHeight = ContentArea.Height;
                 if (availableHeight <= 0)
                 {
                     availableHeight = FixedHeight;
+                    if (availableHeight <= 0)
+                    {
+                        availableHeight = short.MaxValue;
+                    }
                 }
                 var height = MathF.Max(0, availableHeight - styles.MarginTop - styles.MarginBottom
                                           - styles.PaddingTop - styles.PaddingBottom - styles.BorderWidth);

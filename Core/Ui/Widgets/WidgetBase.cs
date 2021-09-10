@@ -41,7 +41,7 @@ namespace OpenTemple.Core.Ui.Widgets
         }
 
         /// <summary>
-        /// Content is shiftet by this offset within the viewport of the widget.
+        /// Content is shifted by this offset within the viewport of the widget.
         /// </summary>
         protected Point ContentOffset { get; set; }
 
@@ -216,7 +216,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     // Cull the item when it's no longer visible at all
                     if (!contentBounds.IntersectsWith(contentArea))
                     {
-                        continue;
+                        contentBounds = Rectangle.Empty;
                     }
                 }
 
