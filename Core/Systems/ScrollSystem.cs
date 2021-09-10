@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using JetBrains.Annotations;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -9,6 +10,8 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
+
+#nullable enable
 
 namespace OpenTemple.Core.Systems
 {
@@ -58,21 +61,16 @@ namespace OpenTemple.Core.Systems
         private MapLimits _currentLimits;
 
         // Map limits loaded from MapLimits.mes, keyed by map id
-        private Dictionary<int, MapLimits> _mapLimits;
-
-        private readonly ScrollingController _scrollingController = new ScrollingController();
+        private readonly Dictionary<int, MapLimits> _mapLimits;
 
         // TODO: Currently, this only supports the primary viewport, but should be viewport specific
-        [MaybeNull]
-        private IGameViewport _currentViewport;
+        private IGameViewport? _currentViewport;
 
         [TempleDllLocation(0x10005E70)]
         public ScrollSystem()
         {
             ReReadScrollConfig();
             Globals.ConfigManager.OnConfigChanged += ReReadScrollConfig;
-
-            CalculateScrollSpeed();
             GameSystems.Location.OnMapCentered += CenterViewDirectly;
 
             _mapLimits = LoadMapLimits();
@@ -135,15 +133,10 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10005ca0)]
-        private void CalculateScrollSpeed()
+        private void CalculateScrollSpeed(IGameViewport viewport)
         {
-            if (_currentViewport == null)
-            {
-                return;
-            }
-
             // TODO: This is actually incorrect since this should use UI space
-            var screenSize = _currentViewport.Camera.ViewportSize;
+            var screenSize = viewport.Camera.ViewportSize;
 
             if (IsEditor)
             {
@@ -206,7 +199,10 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10005870)]
         private void ResizeViewport()
         {
-            CalculateScrollSpeed();
+            if (_currentViewport != null)
+            {
+                CalculateScrollSpeed(_currentViewport);
+            }
         }
 
         [TempleDllLocation(0x10005700)]
@@ -241,26 +237,23 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10006000)]
         public void AdvanceTime(TimePoint time)
         {
-            if (GameSystems.Map.GetCurrentMapId() == 5000 && !IsEditor)
-            {
-                ProcessMainMenuScrolling();
-                return;
-            }
-
-            ProcessScreenShake(time);
-
-            ProcessScrollButter(time);
-
-            _scrollingController.Update();
-        }
-
-        private void ProcessMainMenuScrolling()
-        {
             if (_currentViewport == null)
             {
                 return;
             }
 
+            if (GameSystems.Map.GetCurrentMapId() == 5000 && !IsEditor)
+            {
+                ProcessMainMenuScrolling(_currentViewport);
+                return;
+            }
+
+            ProcessScreenShake(time);
+            ProcessScrollButter(time);
+        }
+
+        private void ProcessMainMenuScrolling(IGameViewport viewport)
+        {
             var elapsedSeconds = (TimePoint.Now - _scrollMainMenuRefPoint).TotalSeconds;
             if (elapsedSeconds < 1.0f)
             {
@@ -281,7 +274,7 @@ namespace OpenTemple.Core.Systems
                 }
             }
 
-            var screenHeight = (int) _currentViewport.Camera.GetViewportHeight();
+            var screenHeight = (int) viewport.Camera.GetViewportHeight();
             var targetTranslationX = 1400 - (int) (amountToScroll * 53.599998);
             var targetTranslationY = screenHeight / 2 - 13726;
 
@@ -314,13 +307,13 @@ namespace OpenTemple.Core.Systems
                 var yTime = (time.Milliseconds + 100) / 50.0f;
                 // TODO RANDOMIZE v10 = sub_10089EE0(v10, 4.0, 4.0, 3);
                 var yOffset = (int) (yTime * _screenShakeAmount * shakeRemaining);
-                ScrollBy(xOffset - _screenShakeLastXOffset, yOffset - _screenShakeLastYOffset);
+                ScrollBy(_currentViewport, xOffset - _screenShakeLastXOffset, yOffset - _screenShakeLastYOffset);
                 _screenShakeLastXOffset = xOffset;
                 _screenShakeLastYOffset = yOffset;
             }
             else if (_screenShakeLastXOffset != 0 || _screenShakeLastYOffset != 0)
             {
-                ScrollBy(-_screenShakeLastXOffset, -_screenShakeLastYOffset);
+                ScrollBy(_currentViewport, -_screenShakeLastXOffset, -_screenShakeLastYOffset);
                 _screenShakeLastYOffset = 0;
                 _screenShakeLastXOffset = 0;
             }
@@ -340,7 +333,7 @@ namespace OpenTemple.Core.Systems
 
                 var deltaX = (int) (_mapScrollX * elapsedTime);
                 var deltaY = (int) (_mapScrollY * elapsedTime);
-                ScrollBy(deltaX, deltaY);
+                ScrollBy(_currentViewport, deltaX, deltaY);
                 _mapScrollX -= deltaX;
                 _mapScrollY -= deltaY;
 
@@ -362,18 +355,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100058f0)]
-        private void ScrollBy(int x, int y)
+        public void ScrollBy(IGameViewport viewport, int x, int y)
         {
-            if (_currentViewport == null)
-            {
-                return;
-            }
-
             var translationX = GameSystems.Location.LocationTranslationX;
             var translationY = GameSystems.Location.LocationTranslationY;
 
-            var screenWidth = (int) _currentViewport.Camera.GetViewportWidth();
-            var screenHeight = (int) _currentViewport.Camera.GetViewportHeight();
+            var screenWidth = (int) viewport.Camera.GetViewportWidth();
+            var screenHeight = (int) viewport.Camera.GetViewportHeight();
 
             // Perform clamping to the scroll-limit on the x/y values
             if (!IsEditor)
@@ -502,7 +490,7 @@ namespace OpenTemple.Core.Systems
             }
             else
             {
-                ScrollBy(deltaX, deltaY);
+                ScrollBy(_currentViewport, deltaX, deltaY);
             }
         }
 

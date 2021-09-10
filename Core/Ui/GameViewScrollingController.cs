@@ -56,7 +56,7 @@ namespace OpenTemple.Core.Ui
             dx = (int) (dx / _viewport.Zoom);
             dy = (int) (dy / _viewport.Zoom);
 
-            GameSystems.Location.AddTranslation(dx, dy);
+            GameSystems.Scroll.ScrollBy(_viewport, dx, dy);
 
             _grabMoveRef = pos;
             return true;
