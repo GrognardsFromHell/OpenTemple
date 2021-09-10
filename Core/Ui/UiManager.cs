@@ -78,6 +78,8 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x101f97e0)]
         public bool IsDragging { get; set; }
 
+        public WidgetContainer Modal { get; set; }
+
         private readonly IMainWindow _mainWindow;
 
         public UiManager(IMainWindow mainWindow)
@@ -214,6 +216,12 @@ namespace OpenTemple.Core.Ui
             for (int i = _topLevelWidgets.Count - 1; i >= 0; --i)
             {
                 var window = _topLevelWidgets[i];
+
+                if (Modal != null && Modal != window)
+                {
+                    continue;
+                }
+
                 if (window.Visible && DoesWidgetContain(window, x, y))
                 {
                     result = window;
@@ -328,6 +336,7 @@ namespace OpenTemple.Core.Ui
             newTigMsg.y = y;
 
             var widAtCursor = GetWidgetAt(x, y);
+
             var globalWid = _currentMouseOverWidget;
 
             // moused widget changed
@@ -528,6 +537,12 @@ namespace OpenTemple.Core.Ui
                     {
                         var window = _topLevelWidgets[i];
 
+                        // Skip the top-level window if there's a modal and the modal is a different window
+                        if (Modal != null && Modal != window)
+                        {
+                            continue;
+                        }
+
                         if (window.HandleMessage(msg))
                         {
                             return true;
@@ -577,6 +592,12 @@ namespace OpenTemple.Core.Ui
             {
                 var window = _topLevelWidgets[i];
 
+                // Skip the top-level window if there's a modal and the modal is a different window
+                if (Modal != null && Modal != window)
+                {
+                    continue;
+                }
+
                 if (window == null || !window.Visible || !DoesWidgetContain(window, mouseArgs.X, mouseArgs.Y))
                 {
                     continue;
@@ -602,6 +623,12 @@ namespace OpenTemple.Core.Ui
                 {
                     return true;
                 }
+            }
+
+            if (Modal != null)
+            {
+                // Always swallow mouse messages when a modal is visible
+                return true;
             }
 
             return false;

@@ -51,6 +51,7 @@ namespace OpenTemple.Core.Ui.Alert
         }
 
         [TempleDllLocation(0x1019d6d0)]
+        [TempleDllLocation(0x1019D500)]
         public void Show(HelpRequest helpRequest, Action<int> callback, string buttonText)
         {
             Hide();
@@ -60,6 +61,7 @@ namespace OpenTemple.Core.Ui.Alert
             _titleLabel.Text = windowTitle;
             _mainWindow.BringToFront();
             _mainWindow.CenterOnScreen();
+            Globals.UiManager.Modal = _mainWindow;
             GameSystems.TimeEvent.PauseGameTime();
 
             _okCallback = callback;
@@ -73,6 +75,10 @@ namespace OpenTemple.Core.Ui.Alert
             {
                 GameSystems.TimeEvent.ResumeGameTime();
                 _mainWindow.Visible = false;
+                if (Globals.UiManager.Modal == _mainWindow)
+                {
+                    Globals.UiManager.Modal = null;
+                }
             }
         }
 
