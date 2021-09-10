@@ -52,6 +52,11 @@ namespace OpenTemple.Core.Config
         public string fogOfWar { get; set; } = "";
 
         /// <summary>
+        /// Used to speed up all animations.
+        /// </summary>
+        public float AnimSpeedFactor { get; set; } = 1;
+
+        /// <summary>
         /// This determines for how many party members we update the line of sight per frame.
         /// If a party member doesn't move, they will not be updated regardless of this number.
         /// Keeping this at a lower number will reduce stutter when the entire party is moving.

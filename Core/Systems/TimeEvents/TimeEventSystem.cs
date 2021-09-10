@@ -489,11 +489,11 @@ namespace OpenTemple.Core.Systems.TimeEvents
                     GameSystems.Terrain.UpdateDayNight();
                 }
 
-                _currentAnimTime.Add(timeDelta);
+                _currentAnimTime.Add(timeDelta * Globals.Config.AnimSpeedFactor);
             }
             else if (GameUiBridge.IsDialogOpen())
             {
-                _currentAnimTime.Add(timeDelta);
+                _currentAnimTime.Add(timeDelta * Globals.Config.AnimSpeedFactor);
             }
 
             var iterations = 0;
@@ -573,7 +573,7 @@ namespace OpenTemple.Core.Systems.TimeEvents
             GameSystems.Light.UpdateDaylight();
             GameSystems.Terrain.UpdateDayNight();
 
-            _currentAnimTime.Add(timeToAdvance);
+            _currentAnimTime.Add(timeToAdvance * Globals.Config.AnimSpeedFactor);
         }
 
         [TempleDllLocation(0x10061b10)]

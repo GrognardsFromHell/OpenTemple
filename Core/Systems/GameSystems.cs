@@ -400,7 +400,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             // TODO gameSystemInitTable.DestroyPlayerObject();
         }
 
-// Ends the game, resets the game systems and returns to the main menu.
+        // Ends the game, resets the game systems and returns to the main menu.
         public static void EndGame()
         {
             // TODO return gameSystemInitTable.EndGame();

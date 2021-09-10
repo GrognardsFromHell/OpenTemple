@@ -59,11 +59,12 @@ namespace OpenTemple.DynamicScripting
             )
             .WithImports(Usings);
 
-        private readonly CSharpCompilationOptions compilationOptions = new CSharpCompilationOptions(
+        private readonly CSharpCompilationOptions _compilationOptions = new(
             OutputKind.DynamicallyLinkedLibrary,
-            usings: Usings);
+            usings: Usings
+        );
 
-        private readonly ReplGlobals _globals = new ReplGlobals();
+        private readonly ReplGlobals _globals = new();
 
         private Document _scriptDocument;
 
@@ -90,7 +91,7 @@ namespace OpenTemple.DynamicScripting
                     MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                     MetadataReference.CreateFromFile(typeof(Object).Assembly.Location)
                 })
-                .WithCompilationOptions(compilationOptions);
+                .WithCompilationOptions(_compilationOptions);
             var project = workspace.AddProject(scriptProjectInfo);
 
             var scriptDocumentInfo = DocumentInfo.Create(
@@ -195,8 +196,7 @@ namespace OpenTemple.DynamicScripting
             Dictionary<TextSpan, string> textSpanToText)
         {
             var textSpan = item.Span;
-            string filterText;
-            if (!textSpanToText.TryGetValue(textSpan, out filterText))
+            if (!textSpanToText.TryGetValue(textSpan, out var filterText))
             {
                 filterText = text.GetSubText(textSpan).ToString();
                 textSpanToText[textSpan] = filterText;

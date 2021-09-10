@@ -1,6 +1,8 @@
 using System;
 using System.Dynamic;
 using System.Linq;
+using OpenTemple.Core;
+using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -12,7 +14,9 @@ namespace OpenTemple.DynamicScripting
     /// </summary>
     public class ReplGlobals
     {
-        public dynamic vars = new ExpandoObject();
+        public dynamic Vars = new ExpandoObject();
+
+        public GameConfig Config => Globals.Config;
 
         public GameObjectBody PartyLeader => GameSystems.Party.GetLeader();
 

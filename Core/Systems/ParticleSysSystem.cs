@@ -215,7 +215,7 @@ namespace OpenTemple.Core.Systems
                 sinceLastSim = MaxSimTime;
             }
 
-            var timeInSecs = (float) sinceLastSim.TotalSeconds;
+            var timeInSecs = (float) sinceLastSim.TotalSeconds * Globals.Config.AnimSpeedFactor;
 
             var deadSystems = new List<int>();
 
