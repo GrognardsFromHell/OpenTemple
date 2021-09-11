@@ -9,7 +9,6 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Tests.TestUtils;
 
 namespace OpenTemple.Tests.Game
@@ -37,9 +36,7 @@ namespace OpenTemple.Tests.Game
         [TearDown]
         public void ClearArena()
         {
-            // Delete everything
-            var toDelete = GameSystems.Object.GameObjects.ToList();
-            toDelete.ForEach(GameSystems.Object.Destroy);
+            ClearGameObjects();
             // Wait for combat to stop
             Game.RunUntil(() => !GameSystems.Combat.IsCombatActive());
         }
@@ -119,12 +116,6 @@ namespace OpenTemple.Tests.Game
             // Initially, the logs should be empty.
             CombatLog.Should().BeEmpty();
             ActionLog.Should().BeEmpty();
-            Action<D20Action> failHandler = action =>
-            {
-                Debugger.Break();
-            };
-            GameSystems.D20.Actions.OnActionStarted += failHandler;
-            GameSystems.D20.Actions.OnActionEnded += failHandler;
 
             zombie1 = GameSystems.MapObject.CreateObject(TestProtos.Zombie, new locXY(500, 483));
             GameSystems.Critter.GenerateHp(zombie1);
@@ -149,9 +140,6 @@ namespace OpenTemple.Tests.Game
             // Without advancing time, no combat history entries should exist
             CombatLog.Should().BeEmpty();
             ActionLog.Should().BeEmpty();
-
-            GameSystems.D20.Actions.OnActionStarted -= failHandler;
-            GameSystems.D20.Actions.OnActionEnded -= failHandler;
 
             // End turn for the player
             GameSystems.Combat.AdvanceTurn(_player);

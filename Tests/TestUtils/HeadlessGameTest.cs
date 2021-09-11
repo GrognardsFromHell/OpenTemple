@@ -38,6 +38,12 @@ namespace OpenTemple.Tests.TestUtils
             _initiativeOverrides.Add(obj, new InitiativeOverride(initiative));
         }
 
+        protected void ClearGameObjects()
+        {
+            // Delete everything (but make a copy because we're modifying that list)
+            GameSystems.Object.GameObjects.ToList().ForEach(GameSystems.Object.Destroy);
+        }
+
         [OneTimeSetUp]
         public void StartGame()
         {

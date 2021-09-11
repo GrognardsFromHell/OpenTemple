@@ -1304,7 +1304,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008a9c0)]
-        private bool D20ActionTriggersAoO(D20Action action, TurnBasedStatus tbStatus)
+        internal bool D20ActionTriggersAoO(D20Action action, TurnBasedStatus tbStatus)
         {
             var actSeq = CurrentSequence;
             if (actSeq.tbStatus.tbsFlags.HasFlag(TurnBasedStatusFlags.CritterSpell))
@@ -1354,9 +1354,11 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 return GameSystems.Feat.HasFeatCountByClass(action.d20APerformer, FeatId.IMPROVED_SUNDER) == 0;
             }
 
+            // From here on out, we just check as if the action is a standard action.
+            // Check if the attack qualifies as "armed".
             if (action.d20Caf.HasFlag(D20CAF.TOUCH_ATTACK)
                 || GameSystems.D20.GetAttackWeapon(action.d20APerformer, action.data1, action.d20Caf) != null
-                || DispatchD20ActionCheck(action, tbStatus, DispatcherType.GetCritterNaturalAttacksNum) == 0)
+                || DispatchD20ActionCheck(action, tbStatus, DispatcherType.GetCritterNaturalAttacksNum) > 0)
             {
                 return false;
             }
