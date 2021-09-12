@@ -127,8 +127,6 @@ namespace OpenTemple.Core.Systems
             {
                 _mapScrollX = 0;
                 _mapScrollY = 0;
-                _screenCenterTile = new locXY(tileX, tileY);
-                GameSystems.SoundGame.SetViewCenterTile(_screenCenterTile);
             }
         }
 
@@ -389,23 +387,6 @@ namespace OpenTemple.Core.Systems
             }
 
             GameSystems.Location.AddTranslation(x, y);
-
-            x = GameSystems.Location.LocationTranslationX;
-            y = GameSystems.Location.LocationTranslationY;
-
-            if (x != translationX || y != translationY)
-            {
-                if (!IsEditor)
-                {
-                    GameSystems.Location.ScreenToLoc(screenWidth / 2, screenHeight / 2,
-                        out var screenCenter);
-                    if (screenCenter != _screenCenterTile)
-                    {
-                        GameSystems.SoundGame.SetViewCenterTile(screenCenter);
-                        _screenCenterTile = screenCenter;
-                    }
-                }
-            }
         }
 
         private const float MaxDistanceForSmoothScrolling = 2400.0f;

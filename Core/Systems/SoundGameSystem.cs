@@ -16,6 +16,8 @@ namespace OpenTemple.Core.Systems
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
+        private const bool IsEditor = false;
+
         private readonly PositionalAudioConfig _positionalAudioConfig;
 
         [TempleDllLocation(0x108f2744)]
@@ -35,12 +37,6 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x108f28cc)]
         private int dword_108F28CC = 0;
-
-        [TempleDllLocation(0x108f28c0)]
-        private int soundBaseX = 0;
-
-        [TempleDllLocation(0x108ee830)]
-        private int soundBaseY = 0;
 
         [TempleDllLocation(0x108f2748)]
         private bool _combatMusicPlaying;
@@ -154,10 +150,6 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1003cb30)]
         public void Reset()
         {
-            dword_108F28C8 = 0;
-            dword_108F28CC = 0;
-            soundBaseX = 0;
-            soundBaseY = 0;
             _combatMusicPlaying = false;
             soundscheme_stashed = 0;
             StopAll(false);
@@ -192,13 +184,20 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1003dc50)]
         public void AdvanceTime(TimePoint time)
         {
+            // Update the position for attenuation purposes. This is different from behavior in Vanilla,
+            // where it was only updated from the scroll-system.
+            if (!IsEditor && GameViews.Primary != null)
+            {
+                SetViewCenterTile(GameViews.Primary.CenteredOn.ToInches3D());
+            }
+
             // TODO SOUND
         }
 
         [TempleDllLocation(0x1003bdb0)]
         public int Sound(int soundId, int loopCount = 1)
         {
-            return SoundLoc_1003BD50(soundId, loopCount, 127, 64);
+            return CreateSoundStream(soundId, loopCount, 127, 64);
         }
 
         public int PositionalSound(int soundId, GameObjectBody source)
@@ -225,6 +224,7 @@ namespace OpenTemple.Core.Systems
             return PositionalSound(soundId, loopCount, worldPos, sourceSize);
         }
 
+        [TempleDllLocation(0x1003dc80)]
         [TempleDllLocation(0x1003dcb0)]
         public int PositionalSound(int soundId, int loopCount, locXY location)
         {
@@ -233,6 +233,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1003cff0)]
+        [TempleDllLocation(0x1003cf60)]
         private int PositionalSound(int soundId, int loopCount, Vector3 worldPos, SoundSourceSize soundSize)
         {
             if (soundId == -1)
@@ -240,30 +241,15 @@ namespace OpenTemple.Core.Systems
                 return -1;
             }
 
-            // TODO: This is trash, we need to set the listener position instead
-            worldPos.X -= soundBaseX;
-            worldPos.Z -= soundBaseY;
-
-            return PositionalSoundRelative(soundId, loopCount, worldPos, soundSize);
-        }
-
-        [TempleDllLocation(0x1003cf60)]
-        private int PositionalSoundRelative(int soundId, int loopCount, Vector3 worldPos, SoundSourceSize soundSizeType)
-        {
-            if (soundId == -1)
-            {
-                return -1;
-            }
-
-            SoundGameApplyAttenuation(worldPos, soundSizeType, out var volume, out var panning);
-            var streamId = SoundLoc_1003BD50(soundId, loopCount, volume, panning);
+            SoundGameApplyAttenuation(worldPos, soundSize, out var volume, out var panning);
+            var streamId = CreateSoundStream(soundId, loopCount, volume, panning);
             Tig.Sound.SetStreamWorldPos(streamId, worldPos);
-            Tig.Sound.SetStreamSourceSize(streamId, soundSizeType);
+            Tig.Sound.SetStreamSourceSize(streamId, soundSize);
             return streamId;
         }
 
         [TempleDllLocation(0x1003bd50)]
-        private int SoundLoc_1003BD50(int soundId, int loopCount, int volume, float panning)
+        private int CreateSoundStream(int soundId, int loopCount, int volume, float panning)
         {
             var soundPath = FindSoundFilename(soundId);
             if (soundPath == null)
@@ -272,11 +258,11 @@ namespace OpenTemple.Core.Systems
                 return -1;
             }
 
-            return Sound_1003BC90(soundPath, soundId, loopCount, volume, panning);
+            return CreateSoundStream(soundPath, soundId, loopCount, volume, panning);
         }
 
         [TempleDllLocation(0x1003bc90)]
-        private int Sound_1003BC90(string soundPath, int soundId, int loopCount, int volume, float panning)
+        private int CreateSoundStream(string soundPath, int soundId, int loopCount, int volume, float panning)
         {
             if (soundscheme_stashed != 0)
             {
@@ -381,10 +367,14 @@ namespace OpenTemple.Core.Systems
         /// Sets the tile coordinates the view is currently centered on.
         /// </summary>
         [TempleDllLocation(0x1003D3C0)]
-        public void SetViewCenterTile(locXY location)
+        public void SetViewCenterTile(Vector3 worldPos)
         {
-            _currentListenerPos = location.ToInches3D();
-            Tig.Sound.SoundStreamForEach3dSound(UpdateAttenuation);
+            var distSquared = (_currentListenerPos - worldPos).LengthSquared();
+            if (distSquared > 1)
+            {
+                _currentListenerPos = worldPos;
+                Tig.Sound.SoundStreamForEach3dSound(UpdateAttenuation);
+            }
         }
 
         [TempleDllLocation(0x1003cef0)]

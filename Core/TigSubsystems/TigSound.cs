@@ -232,7 +232,7 @@ namespace OpenTemple.Core.TigSubsystems
 
             stream.flags |= 2;
             stream.soundId = soundId;
-            stream.voiceHandle = _soloud.play(stream.wav);
+            stream.voiceHandle = _soloud.play(stream.wav, stream.volume / 127.0f);
             _soloud.setInaudibleBehavior(stream.voiceHandle, false, true);
         }
 
@@ -675,6 +675,8 @@ namespace OpenTemple.Core.TigSubsystems
                 return;
             }
 
+            stream.volume = volume;
+
             var actualVolume = volume / 127.0f;
             if ((stream.flags & 1) != 0)
             {
@@ -687,6 +689,11 @@ namespace OpenTemple.Core.TigSubsystems
             else if ((stream.flags & 0x400) != 0)
             {
                 stream.wav.setVolume(actualVolume);
+            }
+
+            if (stream.voiceHandle != 0)
+            {
+                _soloud.setVolume(stream.voiceHandle, actualVolume);
             }
         }
 
