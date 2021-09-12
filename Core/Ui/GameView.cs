@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Security.Cryptography.X509Certificates;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -229,13 +230,24 @@ namespace OpenTemple.Core.Ui
 
             if (size != Camera.ViewportSize)
             {
-                var currentCenter = ((IGameViewport) this).CenteredOn;
+                // Using IGameViewport.CenteredOn will be wrong here if the zoom just changed
+                var currentCenter = Camera.ScreenToTile(Camera.GetViewportWidth() / 2, Camera.GetViewportHeight() / 2);
 
                 Camera.ViewportSize = size;
 
                 // See also @ 0x10028db0
                 var restoreCenter = currentCenter.ToInches3D();
                 Camera.CenterOn(restoreCenter.X, restoreCenter.Y, restoreCenter.Z);
+
+                // Ensure the primary translation is updated, otherwise the next scroll event will undo what we just did
+                if (GameViews.Primary == this)
+                {
+                    var dt = Camera.Get2dTranslation();
+                    GameSystems.Location.LocationTranslationX = (int) dt.X;
+                    GameSystems.Location.LocationTranslationY = (int) dt.Y;
+                    // This clamps the translation to the scroll limit
+                    GameSystems.Scroll.ScrollBy(this, 0, 0);
+                }
 
                 _onResize?.Invoke();
             }

@@ -10,7 +10,9 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.RollHistory;
+using OpenTemple.Core.Time;
 using OpenTemple.Core.Utils;
+using SixLabors.ImageSharp;
 
 namespace OpenTemple.Tests.TestUtils
 {
@@ -51,14 +53,8 @@ namespace OpenTemple.Tests.TestUtils
             _game = new HeadlessGameHelper();
 
             // Record all actions as they're being performed
-            GameSystems.D20.Actions.OnActionStarted += action =>
-            {
-                ActionLog.Add(action.Copy());
-            };
-            GameSystems.D20.Actions.OnActionEnded += action =>
-            {
-                ActionLog.Add(action.Copy());
-            };
+            GameSystems.D20.Actions.OnActionStarted += action => { ActionLog.Add(action.Copy()); };
+            GameSystems.D20.Actions.OnActionEnded += action => { ActionLog.Add(action.Copy()); };
 
             // Record any combat log events
             GameSystems.RollHistory.OnHistoryEvent += entry =>
@@ -111,9 +107,12 @@ namespace OpenTemple.Tests.TestUtils
             GameSystems.TextFloater.RemoveAll();
         }
 
-        [TearDown]
-        public void TakeScreenshotOfFailure()
+        protected void TakeScreenshot(string name)
         {
+            TimePoint.SetFakeTime(TimePoint.Now + TimeSpan.FromMilliseconds(100));
+            Game.RenderFrame();
+            var screenshot = Game.TakeScreenshot();
+            screenshot.SaveAsPng(TestContext.CurrentContext.Test.FullName + "_" + name + ".png");
         }
     }
 }
