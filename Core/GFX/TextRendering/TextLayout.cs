@@ -1,11 +1,11 @@
 using System;
-using OpenTemple.Interop.Text;
+using OpenTemple.Interop.Drawing;
 
 namespace OpenTemple.Core.GFX.TextRendering
 {
     public sealed class TextLayout : IDisposable
     {
-        internal readonly NativeTextLayout NativeTextLayout;
+        internal NativeTextLayout NativeTextLayout;
 
         private bool _metricsInvalid = true;
         private bool _lineMetricsInvalid = true;
@@ -110,7 +110,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void Dispose()
         {
-            NativeTextLayout?.Dispose();
+            NativeTextLayout.Dispose();
         }
     }
 }

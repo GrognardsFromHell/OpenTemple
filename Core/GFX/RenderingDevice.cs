@@ -134,7 +134,7 @@ namespace OpenTemple.Core.GFX
             _dxgiFactory = dxgiAdapter.GetParent<Factory1>(); // Hang on to the DXGI factory used here
 
             // Create 2D rendering
-            _textEngine = new TextEngine(Device, debugDevice);
+            _textEngine = new TextEngine(Device.NativePointer, debugDevice);
 
             if (mainWindow is MainWindow outputWindow)
             {
@@ -1545,7 +1545,7 @@ namespace OpenTemple.Core.GFX
             }
 
             _context.OutputMerger.SetRenderTargets(depthStencilView, rtv);
-            _textEngine.SetRenderTarget(colorBuffer.Texture);
+            _textEngine.SetRenderTarget(colorBuffer.Texture.NativePointer);
 
             // Set the viewport accordingly
             var viewport = new RawViewportF();
@@ -1575,8 +1575,8 @@ namespace OpenTemple.Core.GFX
 
             if (_renderTargetStack.Count == 0)
             {
-                _context.OutputMerger.SetRenderTargets(null, new RenderTargetView[0]);
-                _textEngine.SetRenderTarget(null);
+                _context.OutputMerger.SetRenderTargets(null, Array.Empty<RenderTargetView>());
+                _textEngine.SetRenderTarget(IntPtr.Zero);
                 return;
             }
 
@@ -1591,7 +1591,7 @@ namespace OpenTemple.Core.GFX
             }
 
             _context.OutputMerger.SetRenderTargets(depthStencilView, rtv);
-            _textEngine.SetRenderTarget(newTarget.colorBuffer.Resource.Texture);
+            _textEngine.SetRenderTarget(newTarget.colorBuffer.Resource.Texture.NativePointer);
 
             // Set the viewport accordingly
             var size = newTarget.Size;
@@ -1660,6 +1660,8 @@ namespace OpenTemple.Core.GFX
 
         public void Dispose()
         {
+            _textEngine?.Dispose();
+
             _d3d11Device1?.Dispose();
             _d3d11Device1 = null;
 
@@ -1902,7 +1904,7 @@ namespace OpenTemple.Core.GFX
         private UserDefinedAnnotation annotation;
 
         // Text rendering (Direct2D integration)
-        private TextEngine _textEngine;
+        private readonly TextEngine _textEngine;
 
         private interface IOutputSurface : IDisposable
         {

@@ -66,8 +66,8 @@ namespace OpenTemple.Core
         public void Dispose()
         {
             // Reset all of the UI and GameSystems
-            UiSystems.DisposeAll();
             GameSystems.Shutdown();
+            UiSystems.DisposeAll();
             Tig.Shutdown();
         }
 

@@ -1,3 +1,4 @@
+using System;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -12,7 +13,6 @@ namespace OpenTemple.Core
     /// </summary>
     public static class Globals
     {
-
         public static GameLib GameLib { get; set; } = new GameLib();
 
         public static GameLoop GameLoop { get; set; }

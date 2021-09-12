@@ -268,6 +268,41 @@ namespace OpenTemple.Core.Ui
             _timeAwareSystems.Clear();
             _resetAwareSystems.Clear();
             _saveSystems.Clear();
+
+            GameView = null;
+            Tooltip = null;
+            SaveGame = null;
+            UtilityBar = null;
+            MainMenu = null;
+            DungeonMaster = null;
+            CharSheet = null;
+            InGame = null;
+            HelpManager = null;
+            WorldMapRandomEncounter = null;
+            InGameSelect = null;
+            ItemCreation = null;
+            Party = null;
+            TextEntry = null;
+            RadialMenu = null;
+            Dialog = null;
+            KeyManager = null;
+            Logbook = null;
+            TB = null;
+            Combat = null;
+            PartyPool = null;
+            Popup = null;
+            Help = null;
+            Alert = null;
+            TurnBased = null;
+            Anim = null;
+            Written = null;
+            TownMap = null;
+            WorldMap = null;
+            PCCreation = null;
+            Options = null;
+            Camping = null;
+            Formation = null;
+            RandomEncounter = null;
         }
     }
 

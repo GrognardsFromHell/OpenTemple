@@ -217,6 +217,8 @@ namespace OpenTemple.Core.Systems
             // dependency graph, this call criss-crosses across almost all systems
             Map?.CloseMap();
 
+            AAS?.Dispose();
+
             Vfx?.Dispose();
             Vfx = null;
             PathXRender?.Dispose();
@@ -380,6 +382,7 @@ namespace OpenTemple.Core.Systems
             Help = null;
             Proto?.Dispose();
             Proto = null;
+            AAS = null;
 
             mResetting = default;
             mModuleGuid = default;

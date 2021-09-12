@@ -1,4 +1,3 @@
-using SharpDX.Direct2D1;
 
 namespace OpenTemple.Tests.Game
 {

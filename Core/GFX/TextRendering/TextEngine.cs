@@ -1,27 +1,11 @@
 using System;
 using System.Drawing;
-using SharpDX.Direct2D1;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-using SharpDX.Mathematics.Interop;
+using System.Numerics;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Styles;
-using OpenTemple.Interop.Text;
-using SharpDX;
-using AlphaMode = SharpDX.Direct2D1.AlphaMode;
-using D3D11Device = SharpDX.Direct3D11.Device;
-using D2D1Device = SharpDX.Direct2D1.Device;
-using D2D1Factory1 = SharpDX.Direct2D1.Factory1;
-using D2D1DeviceContext = SharpDX.Direct2D1.DeviceContext;
-using D2D1Bitmap1 = SharpDX.Direct2D1.Bitmap1;
-using D2D1Brush = SharpDX.Direct2D1.Brush;
-using FactoryType = SharpDX.Direct2D1.FactoryType;
-using DXGIDevice = SharpDX.DXGI.Device;
-using TextAntialiasMode = SharpDX.Direct2D1.TextAntialiasMode;
-using DXGISurface = SharpDX.DXGI.Surface;
-using Matrix3x2 = SharpDX.Matrix3x2;
+using OpenTemple.Interop.Drawing;
 using RectangleF = System.Drawing.RectangleF;
 
 namespace OpenTemple.Core.GFX.TextRendering
@@ -31,53 +15,18 @@ namespace OpenTemple.Core.GFX.TextRendering
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private readonly D2D1Device _device;
-
-        private readonly D2D1Factory1 _factory;
-
-        private readonly D2D1DeviceContext _context;
-
-        private D2D1Bitmap1 _renderTarget;
-
         private bool _batching;
 
-        private readonly NativeTextEngine _nativeEngine;
+        private readonly NativeDrawingEngine _nativeEngine;
 
-        public TextEngine(D3D11Device d3dDevice, bool debugDevice)
+        public TextEngine(IntPtr d3d11Device, bool debugDevice)
         {
-            // Create the D2D factory
-            DebugLevel debugLevel;
-            if (debugDevice)
-            {
-                debugLevel = DebugLevel.Information;
-                Logger.Info("Creating Direct2D Factory (debug=true).");
-            }
-            else
-            {
-                debugLevel = DebugLevel.None;
-                Logger.Info("Creating Direct2D Factory (debug=false).");
-            }
-
-            _factory = new D2D1Factory1(FactoryType.SingleThreaded, debugLevel);
-
-            using var dxgiDevice = d3dDevice.QueryInterface<DXGIDevice>();
-
-            // Create a D2D device on top of the DXGI device
-            _device = new D2D1Device(_factory, dxgiDevice);
-
-            // Get Direct2D device's corresponding device context object.
-            _context = new D2D1DeviceContext(_device, DeviceContextOptions.None);
-
-            using var rt = _context.QueryInterface<RenderTarget>();
-
-            _nativeEngine = new NativeTextEngine(rt.NativePointer);
-
-            _context.TextAntialiasMode = TextAntialiasMode.Grayscale;
+            _nativeEngine = new NativeDrawingEngine(d3d11Device, debugDevice);
         }
 
         // Clipping
         private bool _enableClipRect;
-        private RawRectangleF _clipRect;
+        private RectangleF _clipRect;
 
         private void BeginDraw()
         {
@@ -86,11 +35,11 @@ namespace OpenTemple.Core.GFX.TextRendering
                 return;
             }
 
-            _context.BeginDraw();
+            _nativeEngine.BeginDraw();
 
             if (_enableClipRect)
             {
-                _context.PushAxisAlignedClip(_clipRect, AntialiasMode.Aliased);
+                _nativeEngine.PushClipRect(_clipRect, false);
             }
         }
 
@@ -103,10 +52,10 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             if (_enableClipRect)
             {
-                _context.PopAxisAlignedClip();
+                _nativeEngine.PopClipRect();
             }
 
-            _context.EndDraw();
+            _nativeEngine.EndDraw();
         }
 
         public void BeginBatch()
@@ -140,11 +89,11 @@ namespace OpenTemple.Core.GFX.TextRendering
             }
 
             _enableClipRect = true;
-            _clipRect = new RawRectangleF(
+            _clipRect = new RectangleF(
                 x,
                 y,
-                x + width,
-                y + height
+                width,
+                height
             );
         }
 
@@ -166,37 +115,13 @@ namespace OpenTemple.Core.GFX.TextRendering
             set
             {
                 _canvasSize = value;
-                var realSize = _context.PixelSize;
-                var hDpi = 96.0f * realSize.Width / value.Width;
-                var vDpi = 96.0f * realSize.Height / value.Height;
-                _context.DotsPerInch = new Size2F(hDpi, vDpi);
+                _nativeEngine.SetCanvasSize(value);
             }
         }
 
-        public void SetRenderTarget(Texture2D renderTarget)
+        public void SetRenderTarget(IntPtr d3d11RenderTargetTexture)
         {
-            _renderTarget?.Dispose();
-
-            if (renderTarget == null)
-            {
-                _context.Target = null;
-                return;
-            }
-
-            // Get the underlying DXGI surface
-            using var dxgiSurface = renderTarget.QueryInterface<DXGISurface>();
-
-            // Create a D2D RT bitmap for it
-            var bitmapProperties = new BitmapProperties1(
-                new PixelFormat(Format.Unknown, AlphaMode.Ignore),
-                96.0f,
-                96.0f,
-                BitmapOptions.Target | BitmapOptions.CannotDraw
-            );
-
-            _renderTarget = new D2D1Bitmap1(_context, dxgiSurface, bitmapProperties);
-
-            _context.Target = _renderTarget;
+            _nativeEngine.SetRenderTarget(d3d11RenderTargetTexture);
         }
 
         public void RenderText(
@@ -260,10 +185,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void Dispose()
         {
-            _device?.Dispose();
-            _factory?.Dispose();
-            _context?.Dispose();
-            _renderTarget?.Dispose();
+            _nativeEngine?.Dispose();
         }
 
         public TextLayout CreateTextLayout(ComputedStyles styles, ReadOnlySpan<char> text, float maxWidth,
@@ -424,12 +346,12 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void RenderTextLayout(float x, float y, TextLayout textLayout, in TextRenderOptions options = default)
         {
-            RawMatrix3x2 currentTransform;
+            Matrix3x2 currentTransform;
             if (options.HasRotation)
             {
-                var transform2d = Matrix3x2.Rotation(options.RotationAngle, new RawVector2(options.RotationCenter.X, options.RotationCenter.Y));
-                currentTransform = _context.Transform;
-                _context.Transform = transform2d;
+                var transform2d = Matrix3x2.CreateRotation(options.RotationAngle, new Vector2(options.RotationCenter.X, options.RotationCenter.Y));
+                _nativeEngine.GetTransform(out currentTransform);
+                _nativeEngine.SetTransform(ref transform2d);
             }
             else
             {
@@ -457,7 +379,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             if (options.HasRotation)
             {
-                _context.Transform = currentTransform;
+                _nativeEngine.SetTransform(ref currentTransform);
             }
         }
     }

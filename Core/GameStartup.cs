@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.Config;
+using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
@@ -129,6 +130,21 @@ namespace OpenTemple.Core
         public void Dispose()
         {
             _singleInstanceCheck.Dispose();
+
+            GameSystems.Shutdown();
+            UiSystems.DisposeAll();
+            Tig.Shutdown();
+
+            Globals.ConfigManager = null;
+            Globals.GameFolders = null;
+            Globals.GameLoop = null;
+            Globals.UiAssets = null;
+            Globals.UiManager = null;
+            Globals.UiStyles = null;
+            Globals.WidgetButtonStyles = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         public void EnterMainMenu()
