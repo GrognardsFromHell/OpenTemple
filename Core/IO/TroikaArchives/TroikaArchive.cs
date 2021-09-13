@@ -32,9 +32,42 @@ namespace OpenTemple.Core.IO.TroikaArchives
 
         public int NextSiblingEntry;
 
-        public bool IsDirectory;
+        private byte _flags;
 
-        public bool IsCompressed;
+        private const byte FlagDirectory = 0x01;
+        private const byte FlagCompressed = 0x02;
+        private const byte FlagDeleted = 0x04;
+
+        private bool GetFlag(byte flag) => (_flags & flag) != 0;
+        private void SetFlag(byte flag, bool enabled)
+        {
+            if (enabled)
+            {
+                _flags |= flag;
+            }
+            else
+            {
+                _flags &= unchecked((byte)~flag);
+            }
+        }
+
+        public bool IsDirectory
+        {
+            get => GetFlag(FlagDirectory);
+            set => SetFlag(FlagDirectory, value);
+        }
+
+        public bool IsCompressed
+        {
+            get => GetFlag(FlagCompressed);
+            set => SetFlag(FlagCompressed, value);
+        }
+
+        public bool IsDeleted
+        {
+            get => GetFlag(FlagDeleted);
+            set => SetFlag(FlagDeleted, value);
+        }
     }
 
     /// <summary>
@@ -99,54 +132,53 @@ namespace OpenTemple.Core.IO.TroikaArchives
 
         private void ReadFileTable(MemoryMappedFile file)
         {
-            using (var stream = file.CreateViewStream(0, _fileLength, MemoryMappedFileAccess.Read))
+            using var stream = file.CreateViewStream(0, _fileLength, MemoryMappedFileAccess.Read);
+            stream.Seek(-12, SeekOrigin.End);
+
+            var reader = new BinaryReader(stream, Encoding.ASCII, true);
+
+            var signature = reader.ReadUInt32();
+            reader.ReadUInt32(); // Skip the string heap, we'll deduce it later
+
+            var fileTableSize = reader.ReadUInt32();
+
+            Debug.Assert(fileTableSize <= stream.Length);
+
+            // Seek back to read the archive GUID if it's a newer version of the file format
+            if (signature == SignatureV0)
             {
-                stream.Seek(-12, SeekOrigin.End);
+                ArchiveGuid = Guid.Empty;
+            }
+            else if (signature == SignatureV1)
+            {
+                stream.Seek(-24, SeekOrigin.End);
 
-                var reader = new BinaryReader(stream, Encoding.ASCII, true);
+                Span<byte> guidData = stackalloc byte[16];
+                stream.Read(guidData);
+                ArchiveGuid = new Guid(guidData);
+            }
+            else
+            {
+                throw new Exception("Corrupted header in Troika archive " + Path);
+            }
 
-                var signature = reader.ReadUInt32();
-                reader.ReadUInt32(); // Skip the string heap, we'll deduce it later
+            // Seek to the start of the file allocation table
+            stream.Seek(-(int) fileTableSize, SeekOrigin.End);
 
-                var fileTableSize = reader.ReadUInt32();
+            // Read number of entries and allocate memory for them
+            var entryCount = reader.ReadUInt32();
 
-                Debug.Assert(fileTableSize <= stream.Length);
+            // When looking at the file table, the space for strings can be deduced from the entry count,
+            // since the only dynamic component of an entry is the file name.
+            var fixedEntrySize = 8 * sizeof(uint);
+            var stringHeapEstimate = fileTableSize - entryCount * fixedEntrySize;
+            _stringHeap = new char[stringHeapEstimate];
 
-                // Seek back to read the archive GUID if it's a newer version of the file format
-                if (signature == SignatureV0)
-                {
-                    ArchiveGuid = Guid.Empty;
-                }
-                else if (signature == SignatureV1)
-                {
-                    stream.Seek(-24, SeekOrigin.End);
+            _entries = new ArchiveEntry[entryCount];
 
-                    Span<byte> guidData = stackalloc byte[16];
-                    ArchiveGuid = new Guid(guidData);
-                }
-                else
-                {
-                    throw new Exception("Corrupted header in Troika archive " + Path);
-                }
-
-                // Seek to the start of the file allocation table
-                stream.Seek(-(int) fileTableSize, SeekOrigin.End);
-
-                // Read number of entries and allocate memory for them
-                var entryCount = reader.ReadUInt32();
-
-                // When looking at the file table, the space for strings can be deduced from the entry count,
-                // since the only dynamic component of an entry is the file name.
-                var fixedEntrySize = 8 * sizeof(uint);
-                var stringHeapEstimate = fileTableSize - entryCount * fixedEntrySize;
-                _stringHeap = new char[stringHeapEstimate];
-
-                _entries = new ArchiveEntry[entryCount];
-
-                for (var i = 0; i < entryCount; i++)
-                {
-                    ReadEntry(reader, ref _entries[i]);
-                }
+            for (var i = 0; i < entryCount; i++)
+            {
+                ReadEntry(reader, ref _entries[i]);
             }
         }
 
@@ -165,13 +197,24 @@ namespace OpenTemple.Core.IO.TroikaArchives
             return builder.ToString();
         }
 
-        private bool FindEntry(int startAt, ReadOnlySpan<char> path, out ArchiveEntry entryOut)
+        /// <summary>
+        /// Marks a file as deleted so that it will no longer be found by operations on this archive.
+        /// </summary>
+        public void SetDeleted(ReadOnlySpan<char> path)
+        {
+            var index = FindEntryIndex(0, path);
+            if (index != -1)
+            {
+                _entries[index].IsDeleted = true;
+            }
+        }
+
+        private int FindEntryIndex(int startAt, ReadOnlySpan<char> path, bool hideDeleted = true)
         {
             var nextSegment = GetNextPathSegment(ref path);
             if (nextSegment.IsEmpty || _entries.Length == 0)
             {
-                entryOut = default;
-                return false;
+                return -1;
             }
 
             var currentEntryIdx = startAt;
@@ -179,27 +222,44 @@ namespace OpenTemple.Core.IO.TroikaArchives
             {
                 if (IsEntryNameEqualTo(currentEntryIdx, nextSegment))
                 {
+                    if (hideDeleted && _entries[currentEntryIdx].IsDeleted)
+                    {
+                        return -1;
+                    }
+
                     if (path.IsEmpty)
                     {
-                        entryOut = _entries[currentEntryIdx];
-                        return true;
+                        return currentEntryIdx;
                     }
 
                     var firstChild = _entries[currentEntryIdx].FirstChildEntry;
                     if (firstChild != -1)
                     {
-                        return FindEntry(firstChild, path, out entryOut);
+                        return FindEntryIndex(firstChild, path);
                     }
 
-                    entryOut = default;
-                    return false;
+                    return -1;
                 }
 
                 currentEntryIdx = _entries[currentEntryIdx].NextSiblingEntry;
             }
 
-            entryOut = default;
-            return false;
+            return -1;
+        }
+
+        private bool FindEntry(int startAt, ReadOnlySpan<char> path, out ArchiveEntry entryOut, bool hideDeleted = true)
+        {
+            var index = FindEntryIndex(startAt, path, hideDeleted);
+            if (index != -1)
+            {
+                entryOut = _entries[index];
+                return true;
+            }
+            else
+            {
+                entryOut = default;
+                return false;
+            }
         }
 
         private bool IsEntryNameEqualTo(int entryIdx, in ReadOnlySpan<char> pathSegment)
@@ -322,7 +382,10 @@ namespace OpenTemple.Core.IO.TroikaArchives
             {
                 ref var current = ref _entries[currentIdx];
 
-                result.Add(GetName(current).ToString());
+                if (!current.IsDeleted)
+                {
+                    result.Add(GetName(current).ToString());
+                }
 
                 currentIdx = current.NextSiblingEntry;
             }

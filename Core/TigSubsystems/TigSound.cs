@@ -232,7 +232,7 @@ namespace OpenTemple.Core.TigSubsystems
 
             stream.flags |= 2;
             stream.soundId = soundId;
-            stream.voiceHandle = _soloud.play(stream.wav, stream.volume / 127.0f);
+            stream.voiceHandle = _soloud.play(stream.wav, stream.volume / 127.0f, stream.panning);
             _soloud.setInaudibleBehavior(stream.voiceHandle, false, true);
         }
 
@@ -254,7 +254,7 @@ namespace OpenTemple.Core.TigSubsystems
 
             LoadSample(ref stream, path);
 
-            stream.voiceHandle = _soloud.play(stream.wav);
+            stream.voiceHandle = _soloud.play(stream.wav, stream.volume / 127.0f, stream.panning);
 
             if (!_soloud.isValidVoiceHandle(stream.voiceHandle))
             {

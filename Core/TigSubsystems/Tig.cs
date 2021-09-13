@@ -239,7 +239,7 @@ namespace OpenTemple.Core.TigSubsystems
             Sound = null;
             Fonts = null;
             Console = null;
-            Logger.Info("TIG shutdown completed in {0}.", sw);
+            Logger.Info("TIG shutdown completed in {0}.", sw.Elapsed);
         }
     }
 

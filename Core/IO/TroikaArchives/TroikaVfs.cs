@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using OpenTemple.Core.Utils;
 
@@ -11,6 +12,11 @@ namespace OpenTemple.Core.IO.TroikaArchives
 {
     public sealed class TroikaVfs : IFileSystem, IDisposable
     {
+        /// <summary>
+        /// This is the GUID of the original Vanilla ToEE.dat
+        /// </summary>
+        private static readonly Guid VanillaModuleGuid = Guid.Parse("48fd71db-2bba-9b2b-1b93-3ad631544144");
+
         private readonly List<TroikaArchive> _archives = new List<TroikaArchive>();
 
         private readonly List<string> _dataDirs = new List<string>();
@@ -37,6 +43,19 @@ namespace OpenTemple.Core.IO.TroikaArchives
             vfs.AddArchive(Path.Join(path, @"ToEE2.dat"));
             vfs.AddArchive(Path.Join(path, @"ToEE1.dat"));
             vfs.AddArchive(Path.Join(path, @"tig.dat"));
+
+            // These files are actually not correct and not used in Vanilla. Due to how vanilla loads data,
+            // they are only picked up from ToEE[1-4].dat, and the data in Modules\ToEE.dat is never used.
+            // Due to OT simplifying how archives are loaded, our game system load routine will pick up
+            // the files from Modules\ToEE.dat, which are old files from Arkanum, and not ToEE.
+            vfs.HideArchiveContent(
+                VanillaModuleGuid,
+                new[]
+                {
+                    "sound/schemeindex.mes",
+                    "sound/schemelist.mes"
+                }
+            );
 
             return vfs;
         }
@@ -224,6 +243,26 @@ namespace OpenTemple.Core.IO.TroikaArchives
         public void AddArchive(string path)
         {
             _archives.Add(new TroikaArchive(path));
+        }
+
+        /// <summary>
+        /// Mark the given files as excluded for the given archive. Can be used to prevent files from a specific
+        /// archive from interfering with other files.
+        /// </summary>
+        /// <param name="archiveGuid">The Troika Archive GUID found in the .dat file header (or rather, footer).</param>
+        /// <param name="files">The list of files or folders to hide.</param>
+        public void HideArchiveContent(Guid archiveGuid, IReadOnlyList<string> files)
+        {
+            foreach (var archive in _archives)
+            {
+                if (archive.ArchiveGuid == archiveGuid)
+                {
+                    foreach (var file in files)
+                    {
+                        archive.SetDeleted(file);
+                    }
+                }
+            }
         }
     }
 

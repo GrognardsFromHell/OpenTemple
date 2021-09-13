@@ -373,7 +373,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             tpArgs.FadeInArgs.transitionTime = 3.0f;
             var task = GameSystems.Teleport.FadeAndTeleport(in tpArgs);
 
-            GameSystems.SoundGame.StopAll(false);
+            GameSystems.SoundGame.StopAll(0);
             UiSystems.WorldMapRandomEncounter.StartRandomEncounterTimer();
             GameSystems.TimeEvent.ResumeGameTime();
 

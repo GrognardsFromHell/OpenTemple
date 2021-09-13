@@ -10,10 +10,10 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
         /// <summary>
         /// This is triggered by the /OVER flag for sound schemes and uses the two stashed sound scheme ids below.
         /// </summary>
-        public bool IsOneShotScheme { get; set; }
+        public bool IsOverlayScheme { get; set; }
 
-        // Supressed by the one shot scheme
-        public (int, int) SchemesSuppressedByOneShot { get; set; }
+        // Supressed by the overlay scheme
+        public (int, int) SchemesSuppressedByOverlay { get; set; }
 
         public bool IsCombatMusicPlaying { get; set; }
 
@@ -27,8 +27,8 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             // Currently active scheme ids
             result.CurrentSchemeIds = (reader.ReadInt32(), reader.ReadInt32());
 
-            result.IsOneShotScheme = reader.ReadInt32() != 0;
-            result.SchemesSuppressedByOneShot = (reader.ReadInt32(), reader.ReadInt32());
+            result.IsOverlayScheme = reader.ReadInt32() != 0;
+            result.SchemesSuppressedByOverlay = (reader.ReadInt32(), reader.ReadInt32());
 
             result.IsCombatMusicPlaying = reader.ReadInt32() != 0;
             result.SchemesSuppressedByCombatMusic = (reader.ReadInt32(), reader.ReadInt32());
@@ -42,9 +42,9 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             writer.WriteInt32(CurrentSchemeIds.Item1);
             writer.WriteInt32(CurrentSchemeIds.Item2);
 
-            writer.WriteInt32(IsOneShotScheme ? 1 : 0);
-            writer.WriteInt32(SchemesSuppressedByOneShot.Item1);
-            writer.WriteInt32(SchemesSuppressedByOneShot.Item2);
+            writer.WriteInt32(IsOverlayScheme ? 1 : 0);
+            writer.WriteInt32(SchemesSuppressedByOverlay.Item1);
+            writer.WriteInt32(SchemesSuppressedByOverlay.Item2);
 
             writer.WriteInt32(IsCombatMusicPlaying ? 1 : 0);
             writer.WriteInt32(SchemesSuppressedByCombatMusic.Item1);

@@ -71,7 +71,7 @@ namespace OpenTemple.Core.GFX
             }
 
             // Required for the Direct2D support
-            DeviceCreationFlags deviceFlags = DeviceCreationFlags.BgraSupport;
+            var deviceFlags = DeviceCreationFlags.BgraSupport;
             if (debugDevice)
             {
                 deviceFlags |=
@@ -87,8 +87,9 @@ namespace OpenTemple.Core.GFX
 
             try
             {
-                if (_windowHandle == IntPtr.Zero)
+                if (mainWindow is HeadlessMainWindow)
                 {
+                    Logger.Info("Creating headless WARP device");
                     Device = new D3D11Device(
                         DriverType.Warp,
                         deviceFlags,
@@ -97,6 +98,7 @@ namespace OpenTemple.Core.GFX
                 }
                 else
                 {
+                    Logger.Info("Creating D3D11 device on {0}", _adapter.Description1.Description);
                     Device = new D3D11Device(_adapter, deviceFlags, requestedLevels);
                 }
             }
@@ -1812,8 +1814,6 @@ namespace OpenTemple.Core.GFX
         }
 
         private int _drawDepth = 0;
-
-        private IntPtr _windowHandle;
 
         private Factory1 _dxgiFactory;
 
