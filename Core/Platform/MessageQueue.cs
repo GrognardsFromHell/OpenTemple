@@ -213,6 +213,11 @@ namespace OpenTemple.Core.Platform
             _messages.Enqueue(msg);
         }
 
+        public bool TryDequeue(out Message message)
+        {
+            return _messages.TryDequeue(out message);
+        }
+
         public bool Process(out Message unhandledMsgOut)
         {
             while (_messages.TryDequeue(out var message)) {

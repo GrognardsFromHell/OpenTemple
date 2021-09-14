@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using FfmpegBink.Interop;
+using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
@@ -51,11 +53,21 @@ namespace OpenTemple.Core.Systems.Movies
             GameSystems.SoundGame?.StashSchemes();
             try
             {
-                // while (!scene.IsAtEnd)
-                // {
-                //     Globals.GameLoop.RunOneIteration(false);
-                //     Thread.Sleep(1);
-                // }
+                if (!Tig.FS.TryGetRealPath(moviePath, out var fullMoviePath))
+                {
+                    Logger.Error("Unable to find movie '{0}' in data directories.", moviePath);
+                    return;
+                }
+
+                using var videoPlayer = new VideoPlayer();
+                if (!videoPlayer.Open(fullMoviePath))
+                {
+                    Logger.Error("Unable to open movie '{0}': {1}", moviePath, videoPlayer.Error);
+                    return;
+                }
+
+                using var movieRenderer = new MovieRenderer(videoPlayer, subtitles);
+                movieRenderer.Run();
             }
             finally
             {
@@ -80,7 +92,7 @@ namespace OpenTemple.Core.Systems.Movies
             }
         }
 
-        private static MovieSubtitles?  LoadSubtitles(string? subtitleFile)
+        private static MovieSubtitles? LoadSubtitles(string? subtitleFile)
         {
             return subtitleFile != null ? MovieSubtitles.Load(subtitleFile) : null;
         }
@@ -105,7 +117,8 @@ namespace OpenTemple.Core.Systems.Movies
             }
             else if (movieDefinition.MovieType == MovieType.Slide)
             {
-                PlayMovieSlide(movieDefinition.MoviePath, movieDefinition.MusicPath, movieDefinition.SubtitleFile, soundtrackId);
+                PlayMovieSlide(movieDefinition.MoviePath, movieDefinition.MusicPath, movieDefinition.SubtitleFile,
+                    soundtrackId);
             }
         }
 
