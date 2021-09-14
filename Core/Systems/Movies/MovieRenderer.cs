@@ -92,7 +92,11 @@ namespace OpenTemple.Core.Systems.Movies
                 RenderFrame();
                 Thread.Sleep(3);
 
-                Tig.SystemEventPump.PumpSystemEvents();
+                // Resizing the window can cause device interaction which might conflict with the update frame thread
+                lock (this)
+                {
+                    Tig.SystemEventPump.PumpSystemEvents();
+                }
 
                 while (Tig.MessageQueue.TryDequeue(out var msg))
                 {
