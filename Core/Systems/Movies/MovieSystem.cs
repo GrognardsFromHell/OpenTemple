@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using FfmpegBink.Interop;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
 #nullable enable
 
@@ -79,16 +81,21 @@ namespace OpenTemple.Core.Systems.Movies
         public void PlayMovieSlide(string slidePath, string? musicPath, string? subtitleFile,
             int soundtrackId)
         {
+            Logger.Info("Play Movie Slide {0} {1} {2} {3}", slidePath, musicPath, subtitleFile, soundtrackId);
+
+            Tig.MainWindow.IsCursorVisible = false;
+
             GameSystems.SoundGame.StashSchemes();
             try
             {
                 var subtitles = LoadSubtitles(subtitleFile);
-
-                Stub.TODO();
+                using var slideRenderer = new SlideRenderer(slidePath, musicPath, subtitles);
+                slideRenderer.Run();
             }
             finally
             {
                 GameSystems.SoundGame.UnstashSchemes();
+                Tig.MainWindow.IsCursorVisible = true;
             }
         }
 
@@ -131,13 +138,19 @@ namespace OpenTemple.Core.Systems.Movies
         [TempleDllLocation(0x100345a0)]
         public void MovieQueuePlay()
         {
-            Stub.TODO();
+            foreach (var movieId in _movieQueue)
+            {
+                PlayMovieId(movieId, 0);
+            }
+
+            _movieQueue.Clear();
         }
 
         [TempleDllLocation(0x10034670)]
         public void MovieQueuePlayAndEndGame()
         {
-            Stub.TODO();
+            MovieQueuePlay();
+            GameUiBridge.EndGame();
         }
     }
 }

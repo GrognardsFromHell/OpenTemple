@@ -390,7 +390,7 @@ namespace OpenTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10173830)]
         private static bool ExpireBkgAnim(TimeEvent evt)
         {
-            return UiSystems.Anim.BkgAnimTimeeventExpires(evt);
+            return UiSystems.Anim.BkgAnimTimeEventExpires(evt);
         }
 
         [TempleDllLocation(0x100144c0)]

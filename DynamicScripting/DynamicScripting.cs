@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -48,7 +49,7 @@ namespace OpenTemple.DynamicScripting
             typeof(Dice).Namespace
         };
 
-        private readonly ScriptOptions _scriptOptions = ScriptOptions.Default
+        private ScriptOptions _scriptOptions = ScriptOptions.Default
             .AddReferences(
                 // Allow access to anything from the Core assembly
                 typeof(ReplGlobals).Assembly,
@@ -156,6 +157,11 @@ namespace OpenTemple.DynamicScripting
             {
                 _ = RunScriptAsync("scripts/startup.csx");
             }
+        }
+
+        public void AddAssembly(Assembly assembly)
+        {
+            _scriptOptions = _scriptOptions.AddReferences(assembly);
         }
 
         public List<CompletionItem> GetCompletions(string codeSnippet)

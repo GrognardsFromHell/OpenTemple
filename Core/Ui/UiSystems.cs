@@ -515,16 +515,15 @@ namespace OpenTemple.Core.Ui
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x101737f0)]
-        public void BkgAnimTimeEventSchedule(int param0, int param1, int delayMs)
+        public void BkgAnimTimeEventSchedule(int eventType, int delayMs)
         {
             TimeEvent evt = new TimeEvent(TimeEventType.BkgAnim);
-            evt.arg1.int32 = param0;
-            evt.arg2.int32 = param1;
+            evt.arg1.int32 = eventType;
             GameSystems.TimeEvent.Schedule(evt, delayMs, out _);
         }
 
         [TempleDllLocation(0x10173830)]
-        public bool BkgAnimTimeeventExpires(TimeEvent evt)
+        public bool BkgAnimTimeEventExpires(TimeEvent evt)
         {
             var eventType = evt.arg1.int32;
             if (eventType == 0)

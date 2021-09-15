@@ -28,7 +28,7 @@ namespace OpenTemple.Core.Systems.Movies
 
         private readonly SoLoudDynamicSource? _soundSource;
 
-        private SubtitleRenderer? _subtitleRenderer;
+        private readonly SubtitleRenderer? _subtitleRenderer;
 
         // Current time in movie in seconds
         private double _currentTime;
@@ -98,28 +98,33 @@ namespace OpenTemple.Core.Systems.Movies
                     Tig.SystemEventPump.PumpSystemEvents();
                 }
 
-                while (Tig.MessageQueue.Process(out var msg))
-                {
-                    // Allow skipping the movie via key-press or mouse-press
-                    if (msg.type == MessageType.KEYSTATECHANGE && msg.KeyStateChangeArgs.down
-                        || msg.type == MessageType.MOUSE && (msg.MouseArgs.flags & MouseEventFlag.LeftClick) != 0)
-                    {
-                        // TODO Wait for the key to be unpressed again
-                        keyPressed = true;
-                        break;
-                    }
-                }
+                ProcessMessages(ref keyPressed);
             }
 
             _player.Stop();
             _mainWindow.IsCursorVisible = true;
         }
 
+        internal static void ProcessMessages(ref bool keyPressed)
+        {
+            while (Tig.MessageQueue.Process(out var msg))
+            {
+                // Allow skipping the movie via key-press or mouse-press
+                if (msg.type == MessageType.KEYSTATECHANGE && msg.KeyStateChangeArgs.down
+                    || msg.type == MessageType.MOUSE && (msg.MouseArgs.flags & MouseEventFlag.LeftClick) != 0)
+                {
+                    // TODO Wait for the key to be unpressed again
+                    keyPressed = true;
+                    break;
+                }
+            }
+        }
+
         private void RenderFrame()
         {
             lock (this)
             {
-                var movieRect = GetMovieRect(_player.VideoWidth, _player.VideoHeight);
+                var movieRect = GetMovieRect(_device, _player.VideoWidth, _player.VideoHeight);
                 // TODO UV should be manipulated for certain vignettes since they have been letterboxed in the bink file!!!
 
                 // Set vertex shader
@@ -137,7 +142,7 @@ namespace OpenTemple.Core.Systems.Movies
                 };
                 using var indexBuffer = _device.CreateIndexBuffer(indices);
 
-                BufferBinding binding = new BufferBinding(_device, _material.VertexShader);
+                BufferBinding binding = new (_device, _material.VertexShader);
                 binding.AddBuffer<MovieVertex>(vertexBuffer, 0)
                     .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
                     .AddElement(VertexElementType.Color, VertexElementSemantic.Color)
@@ -160,10 +165,10 @@ namespace OpenTemple.Core.Systems.Movies
             }
         }
 
-        private RectangleF GetMovieRect(int movieWidth, int movieHeight)
+        internal static RectangleF GetMovieRect(RenderingDevice device, int movieWidth, int movieHeight)
         {
-            var screenWidth = _device.UiCanvasSize.Width;
-            var screenHeight = _device.UiCanvasSize.Height;
+            var screenWidth = device.UiCanvasSize.Width;
+            var screenHeight = device.UiCanvasSize.Height;
 
             // Fit movie into rect
             var wFactor = screenWidth / movieWidth;
@@ -210,6 +215,7 @@ namespace OpenTemple.Core.Systems.Movies
 
         public void Dispose()
         {
+            _soundSource?.Dispose();
             _material.Dereference();
             _texture.Dispose();
         }

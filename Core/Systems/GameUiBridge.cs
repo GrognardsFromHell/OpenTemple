@@ -3,8 +3,6 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Help;
-using OpenTemple.Core.Systems.Spells;
-using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.InGameSelect;
@@ -249,7 +247,7 @@ namespace OpenTemple.Core.Systems
         {
             UiSystems.Logbook.RecordNewTurn();
         }
-        
+
         [TempleDllLocation(0x1009A940)]
         [TempleDllLocation(0x10B3D720)]
         public static void LogbookExperience(int xpTotalFromCombat)
@@ -365,7 +363,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10B3D714)]
         public static void Confirm(string body, string title, bool yesNoButtons, Action<int> callback)
         {
-            UiSystems.Popup.ConfirmBox(body, title, yesNoButtons, callback, 0);
+            UiSystems.Popup.ConfirmBox(body, title, yesNoButtons, callback);
         }
 
         [TempleDllLocation(0x1009a760)]
@@ -421,7 +419,15 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10b3d5fc)]
         public static void TotalPartyKill()
         {
-            UiSystems.Anim.BkgAnimTimeEventSchedule(0, -1, 5000);
+            UiSystems.Anim.BkgAnimTimeEventSchedule(0, 5000);
+        }
+
+        [TempleDllLocation(0x1009a4f0)]
+        [TempleDllLocation(0x10B3D600)]
+        [TempleDllLocation(0x1014E160)]
+        public static void EndGame()
+        {
+            UiSystems.Anim.BkgAnimTimeEventSchedule(1, 50);
         }
 
         [TempleDllLocation(0x1009aaf0)]
@@ -444,6 +450,5 @@ namespace OpenTemple.Core.Systems
         {
             UiSystems.WorldMap.TravelToArea(areaId);
         }
-
     }
 }

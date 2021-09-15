@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Threading.Tasks;
 using OpenTemple.Core.TigSubsystems;
 
@@ -22,6 +23,10 @@ namespace OpenTemple.Core.Scripting
         }
 
         public void RunStartupScripts()
+        {
+        }
+
+        public void AddAssembly(Assembly assembly)
         {
         }
     }

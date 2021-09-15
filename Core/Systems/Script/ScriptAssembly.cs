@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.Dialog;
-using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Systems.Script.Hooks;
+using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Systems.Script
 {
@@ -15,17 +14,20 @@ namespace OpenTemple.Core.Systems.Script
     {
         private readonly Assembly _scriptAssembly;
 
-        private readonly Dictionary<int, ConstructorInfo> _objectScripts = new Dictionary<int, ConstructorInfo>();
+        private readonly Dictionary<int, ConstructorInfo> _objectScripts = new();
 
-        private readonly Dictionary<int, ConstructorInfo> _dialogScripts = new Dictionary<int, ConstructorInfo>();
+        private readonly Dictionary<int, ConstructorInfo> _dialogScripts = new();
 
-        private readonly Dictionary<int, ConstructorInfo> _spellScripts = new Dictionary<int, ConstructorInfo>();
+        private readonly Dictionary<int, ConstructorInfo> _spellScripts = new();
 
-        private readonly Dictionary<Type, ConstructorInfo> _hooks = new Dictionary<Type, ConstructorInfo>();
+        private readonly Dictionary<Type, ConstructorInfo> _hooks = new();
 
         internal ScriptAssembly(string name)
         {
             _scriptAssembly = Assembly.Load(name);
+
+            // Expose the script assembly to the console
+            Tig.DynamicScripting.AddAssembly(_scriptAssembly);
 
             var exportedTypes = _scriptAssembly.GetExportedTypes();
             foreach (var exportedType in exportedTypes)
@@ -45,7 +47,7 @@ namespace OpenTemple.Core.Systems.Script
                 return false;
             }
 
-            scriptObject = (BaseObjectScript) constructor.Invoke(null);
+            scriptObject = (BaseObjectScript)constructor.Invoke(null);
             return true;
         }
 
@@ -57,7 +59,7 @@ namespace OpenTemple.Core.Systems.Script
                 return false;
             }
 
-            scriptObject = (IDialogScript) constructor.Invoke(null);
+            scriptObject = (IDialogScript)constructor.Invoke(null);
             return true;
         }
 
@@ -69,7 +71,7 @@ namespace OpenTemple.Core.Systems.Script
                 return false;
             }
 
-            scriptObject = (BaseSpellScript) constructor.Invoke(null);
+            scriptObject = (BaseSpellScript)constructor.Invoke(null);
             return true;
         }
 
@@ -81,7 +83,7 @@ namespace OpenTemple.Core.Systems.Script
                 return false;
             }
 
-            hook = (T) constructor.Invoke(null);
+            hook = (T)constructor.Invoke(null);
             return true;
         }
 
