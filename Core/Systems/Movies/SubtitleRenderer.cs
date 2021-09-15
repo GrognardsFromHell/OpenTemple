@@ -2,6 +2,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Ui.FlowModel;
+using OpenTemple.Core.Ui.Styles;
 
 #nullable enable
 
@@ -17,6 +18,7 @@ namespace OpenTemple.Core.Systems.Movies
         private readonly MovieSubtitles _subtitles;
         private int _currentSubtitleLine = -1;
         private TextLayout? _currentLineLayout;
+        private ComputedStyles? _backgroundStyle;
 
         public SubtitleRenderer(RenderingDevice device, MovieSubtitles subtitles)
         {
@@ -55,6 +57,7 @@ namespace OpenTemple.Core.Systems.Movies
                     paragraph.AddStyle("movie-subtitles");
                     paragraph.LocalStyles.Color = line.Color;
                     paragraph.AppendContent(line.Text);
+                    _backgroundStyle = paragraph.ComputedStyles;
 
                     _currentLineLayout = _device.TextEngine.CreateTextLayout(paragraph, MaxWidth, 0);
                     return;
@@ -75,6 +78,21 @@ namespace OpenTemple.Core.Systems.Movies
                 var x = (canvasSize.Width - _currentLineLayout.LayoutWidth) / 2;
                 // Put lines at 10% margin from bottom
                 var y = canvasSize.Height - canvasSize.Height / 10 - _currentLineLayout.OverallHeight;
+
+                // Draw a background
+                if (_backgroundStyle != null)
+                {
+                    var boundingRect = _currentLineLayout.BoundingRectangle;
+                    boundingRect.Inflate(4, 4);
+                    _device.TextEngine.RenderBackgroundAndBorder(
+                        x + boundingRect.X,
+                        y + boundingRect.Y,
+                        boundingRect.Width,
+                        boundingRect.Height,
+                        _backgroundStyle
+                    );
+                }
+
                 _device.TextEngine.RenderTextLayout(x, y, _currentLineLayout);
             }
         }

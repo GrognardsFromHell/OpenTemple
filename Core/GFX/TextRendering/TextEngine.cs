@@ -8,6 +8,8 @@ using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Interop.Drawing;
 using RectangleF = System.Drawing.RectangleF;
 
+#nullable enable
+
 namespace OpenTemple.Core.GFX.TextRendering
 {
 
@@ -185,7 +187,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void Dispose()
         {
-            _nativeEngine?.Dispose();
+            _nativeEngine.Dispose();
         }
 
         public TextLayout CreateTextLayout(ComputedStyles styles, ReadOnlySpan<char> text, float maxWidth,
