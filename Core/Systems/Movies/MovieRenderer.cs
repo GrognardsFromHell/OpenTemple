@@ -98,13 +98,9 @@ namespace OpenTemple.Core.Systems.Movies
                     Tig.SystemEventPump.PumpSystemEvents();
                 }
 
-                while (Tig.MessageQueue.TryDequeue(out var msg))
+                while (Tig.MessageQueue.Process(out var msg))
                 {
-                    if (msg.type == MessageType.MOUSE)
-                    {
-                        Console.WriteLine(msg.MouseArgs.flags);
-                    }
-                    // Flags 1 seems to disable skip via keyboard. Also seems unused.
+                    // Allow skipping the movie via key-press or mouse-press
                     if (msg.type == MessageType.KEYSTATECHANGE && msg.KeyStateChangeArgs.down
                         || msg.type == MessageType.MOUSE && (msg.MouseArgs.flags & MouseEventFlag.LeftClick) != 0)
                     {
