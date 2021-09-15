@@ -86,7 +86,7 @@ namespace OpenTemple.Core.Systems.Movies
             _mainWindow.IsCursorVisible = false;
             _player.Play();
 
-            bool keyPressed = false;
+            var keyPressed = false;
             while (!_player.AtEnd && !keyPressed)
             {
                 RenderFrame();
@@ -100,6 +100,10 @@ namespace OpenTemple.Core.Systems.Movies
 
                 while (Tig.MessageQueue.TryDequeue(out var msg))
                 {
+                    if (msg.type == MessageType.MOUSE)
+                    {
+                        Console.WriteLine(msg.MouseArgs.flags);
+                    }
                     // Flags 1 seems to disable skip via keyboard. Also seems unused.
                     if (msg.type == MessageType.KEYSTATECHANGE && msg.KeyStateChangeArgs.down
                         || msg.type == MessageType.MOUSE && (msg.MouseArgs.flags & MouseEventFlag.LeftClick) != 0)

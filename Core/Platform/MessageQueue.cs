@@ -254,7 +254,7 @@ namespace OpenTemple.Core.Platform
             return false;
         }
 
-        private readonly Queue<Message> _messages = new Queue<Message>(100);
+        private readonly Queue<Message> _messages = new(100);
 
     }
 }

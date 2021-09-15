@@ -1,10 +1,7 @@
-using System.Reflection;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.FlowModel;
-using OpenTemple.Core.Ui.Styles;
 
 #nullable enable
 
@@ -55,11 +52,8 @@ namespace OpenTemple.Core.Systems.Movies
                     _currentSubtitleLine = i;
 
                     var paragraph = new Paragraph();
-                    TigFonts.ApplyLegacyFont(line.FontName, paragraph.LocalStyles);
+                    paragraph.AddStyle("movie-subtitles");
                     paragraph.LocalStyles.Color = line.Color;
-                    paragraph.LocalStyles.TextAlignment = TextAlign.Center;
-                    paragraph.LocalStyles.DropShadowColor = PackedLinearColorA.Black;
-                    paragraph.LocalStyles.BackgroundColor = new PackedLinearColorA(17, 17, 17, 153);
                     paragraph.AppendContent(line.Text);
 
                     _currentLineLayout = _device.TextEngine.CreateTextLayout(paragraph, MaxWidth, 0);
@@ -79,6 +73,7 @@ namespace OpenTemple.Core.Systems.Movies
             {
                 var canvasSize = _device.UiCanvasSize;
                 var x = (canvasSize.Width - _currentLineLayout.LayoutWidth) / 2;
+                // Put lines at 10% margin from bottom
                 var y = canvasSize.Height - canvasSize.Height / 10 - _currentLineLayout.OverallHeight;
                 _device.TextEngine.RenderTextLayout(x, y, _currentLineLayout);
             }

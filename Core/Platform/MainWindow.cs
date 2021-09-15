@@ -15,7 +15,7 @@ namespace OpenTemple.Core.Platform
 {
     public delegate bool WindowMsgFilter(uint msg, nuint wparam, nint lparam);
 
-    public class MainWindow : IMainWindow, IDisposable
+    public class MainWindow : IMainWindow
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
