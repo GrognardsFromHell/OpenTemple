@@ -217,7 +217,7 @@ namespace OpenTemple.Core.Systems.GameObjects
             obj.type = protoObj.type;
             obj.field40 = 0; // TODO Is this even used?
             obj.hasDifs = false;
-            obj.propCollection = null;
+            obj.propCollection = Array.Empty<object>();
 
             // We allocate one array for both bitmaps
             var bitmapLen = ObjectFields.GetBitmapBlockCount(obj.type);

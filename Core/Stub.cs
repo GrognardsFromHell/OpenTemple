@@ -15,7 +15,7 @@ namespace OpenTemple.Core
             [CallerMemberName]
             string callerMember = "")
         {
-            Logger.Warn($"{path}:{lineNumber} {callerMember}");
+            Logger.Warn($"NYI {path}:{lineNumber} {callerMember}");
         }
     }
 }

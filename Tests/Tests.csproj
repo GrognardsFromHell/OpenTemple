@@ -56,8 +56,5 @@
     <ItemGroup>
       <EmbeddedResource Include="AAS\animscripts.txt" />
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="TestResults" />
-    </ItemGroup>
     
 </Project>

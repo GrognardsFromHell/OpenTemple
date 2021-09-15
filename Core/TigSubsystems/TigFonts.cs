@@ -206,33 +206,5 @@ namespace OpenTemple.Core.TigSubsystems
             _fonts.Values.DisposeAll();
             _fonts.Clear();
         }
-
-        public static void ApplyLegacyFont(string name, StyleDefinition styles)
-        {
-            switch (name.ToLowerInvariant())
-            {
-                case "arial-10":
-                    styles.FontFace = Globals.Config.DefaultUiFont;
-                    styles.FontSize = 10;
-                    break;
-                case "arial-12":
-                    styles.FontFace = Globals.Config.DefaultUiFont;
-                    styles.FontSize = 12;
-                    break;
-                case "arial-bold-10":
-                    styles.FontFace = Globals.Config.DefaultUiFont;
-                    styles.FontSize = 10;
-                    styles.FontWeight = FontWeight.Bold;
-                    break;
-                case "priory-12":
-                    styles.FontFace = Globals.Config.DefaultUiFont;
-                    styles.FontSize = 12;
-                    break;
-                default:
-                    Logger.Warn("No such predefined font: '{0}'", name);
-                    Debugger.Break();
-                    return;
-            }
-        }
     }
 }

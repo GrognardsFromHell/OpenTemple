@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Text;
 using OpenTemple.Core.Utils;
 
@@ -12,14 +12,9 @@ namespace OpenTemple.Core.IO.TroikaArchives
 {
     public sealed class TroikaVfs : IFileSystem, IDisposable
     {
-        /// <summary>
-        /// This is the GUID of the original Vanilla ToEE.dat
-        /// </summary>
-        private static readonly Guid VanillaModuleGuid = Guid.Parse("48fd71db-2bba-9b2b-1b93-3ad631544144");
+        private readonly List<TroikaArchive> _archives = new();
 
-        private readonly List<TroikaArchive> _archives = new List<TroikaArchive>();
-
-        private readonly List<string> _dataDirs = new List<string>();
+        private readonly List<string> _dataDirs = new ();
 
         private readonly MemoryPool<byte> _pool = MemoryPool<byte>.Shared;
 
@@ -211,7 +206,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
             throw new FileNotFoundException(path);
         }
 
-        public bool TryGetRealPath(string path, out string realPath)
+        public bool TryGetRealPath(string path, [NotNullWhen(true)] out string? realPath)
         {
             foreach (var dataDir in _dataDirs)
             {

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 
@@ -25,7 +26,7 @@ namespace OpenTemple.Core.IO
 
         IMemoryOwner<byte> ReadFile(string path);
 
-        bool TryGetRealPath(string path, out string realPath);
+        bool TryGetRealPath(string path, [NotNullWhen(true)] out string? realPath);
     }
 
 }

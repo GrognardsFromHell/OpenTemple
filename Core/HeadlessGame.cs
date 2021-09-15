@@ -79,13 +79,13 @@ namespace OpenTemple.Core
 
             do
             {
-                var dataDirectory = Path.Join(location.FullName, "Data");
+                var dataDirectory = location != null ? Path.Join(location.FullName, "Data") : "Data";
                 if (Directory.Exists(dataDirectory))
                 {
                     return dataDirectory;
                 }
 
-                location = location.Parent;
+                location = location?.Parent;
             } while (location != null);
 
             throw new InvalidOperationException("Failed to find data directory.");

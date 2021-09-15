@@ -1,6 +1,7 @@
 using System;
-using System.Data;
 using System.Runtime.InteropServices;
+
+#nullable enable
 
 namespace OpenTemple.Core.GameObject
 {
@@ -11,7 +12,7 @@ namespace OpenTemple.Core.GameObject
         public int renderColors;
         public int renderPalette;
         public int renderScale;
-        public SparseArray<int> renderAlpha;
+        public SparseArray<int>? renderAlpha;
         public int renderX;
         public int renderY;
         public int renderWidth;
@@ -22,7 +23,7 @@ namespace OpenTemple.Core.GameObject
         public int renderFlags;
         public int tempId;
         public int lightHandle;
-        public SparseArray<int> overlayLightHandles;
+        public SparseArray<int>? overlayLightHandles;
         public int findNode;
         public int animationHandle;
         public int grappleState;
@@ -35,7 +36,7 @@ namespace OpenTemple.Core.GameObject
             overlayLightHandles = null;
         }
 
-        public object GetFieldValue(obj_f field)
+        public object? GetFieldValue(obj_f field)
         {
             switch (field)
             {

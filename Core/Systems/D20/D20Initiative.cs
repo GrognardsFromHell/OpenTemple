@@ -33,9 +33,6 @@ namespace OpenTemple.Core.Systems.D20
         [TempleDllLocation(0x10BCAD88)]
         private GameObjectBody? _currentActor;
 
-        [TempleDllLocation(0x10BCAD80)]
-        private int _currentActorInitiative;
-
         [TempleDllLocation(0x100dec60)]
         public void OnExitCombat()
         {
@@ -74,17 +71,13 @@ namespace OpenTemple.Core.Systems.D20
             return _initiativeOrder.Contains(obj);
         }
 
-        public GameObjectBody CurrentActor
+        public GameObjectBody? CurrentActor
         {
             [TempleDllLocation(0x100dee40)]
             get => _currentActor;
 
             [TempleDllLocation(0x100dee10)]
-            set
-            {
-                _currentActor = value;
-                _currentActorInitiative = GetInitiative(_currentActor);
-            }
+            set => _currentActor = value;
         }
 
         [TempleDllLocation(0x100dee50)]
@@ -98,18 +91,18 @@ namespace OpenTemple.Core.Systems.D20
         private class InitiativeComparer : IComparer<GameObjectBody>
         {
             [TempleDllLocation(0x100def20)]
-            public int Compare(GameObjectBody x, GameObjectBody y)
+            public int Compare(GameObjectBody? x, GameObjectBody? y)
             {
-                var xInit = x.GetInt32(obj_f.initiative);
-                var yInit = y.GetInt32(obj_f.initiative);
+                var xInit = x?.GetInt32(obj_f.initiative) ?? int.MinValue;
+                var yInit = y?.GetInt32(obj_f.initiative) ?? int.MinValue;
 
                 if (xInit != yInit)
                 {
                     return yInit.CompareTo(xInit);
                 }
 
-                var xSubinit = x.GetInt32(obj_f.subinitiative);
-                var ySubinit = y.GetInt32(obj_f.subinitiative);
+                var xSubinit = x?.GetInt32(obj_f.subinitiative) ?? int.MinValue;
+                var ySubinit = y?.GetInt32(obj_f.subinitiative) ?? int.MinValue;
 
                 return ySubinit.CompareTo(xSubinit);
             }
@@ -180,12 +173,10 @@ namespace OpenTemple.Core.Systems.D20
             if (actorIdx == -1)
             {
                 _currentActor = null;
-                _currentActorInitiative = 0;
             }
             else
             {
                 _currentActor = _initiativeOrder[actorIdx];
-                _currentActorInitiative = _currentActor.GetInt32(obj_f.initiative);
             }
         }
 
@@ -273,6 +264,11 @@ namespace OpenTemple.Core.Systems.D20
         [TempleDllLocation(0x100df310)]
         public void NextActor()
         {
+            if (_currentActor == null)
+            {
+                return;
+            }
+
             var currentInitiative = GetInitiative(_currentActor);
             var nextActorIdx = CurrentActorIndex + 1;
 

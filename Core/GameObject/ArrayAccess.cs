@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace OpenTemple.Core.GameObject
 {
     /// <summary>
@@ -11,9 +13,9 @@ namespace OpenTemple.Core.GameObject
     {
         private readonly GameObjectBody _gameObject;
 
-        private readonly IReadOnlyList<T> _arrayRef;
+        private readonly IReadOnlyList<T>? _arrayRef;
 
-        public ArrayAccess(GameObjectBody gameObject, IReadOnlyList<T> arrayRef)
+        public ArrayAccess(GameObjectBody gameObject, IReadOnlyList<T>? arrayRef)
         {
             _gameObject = gameObject;
             _arrayRef = arrayRef;

@@ -15,6 +15,8 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.GameObjects;
 
+#nullable enable
+
 namespace OpenTemple.Core.GameObject
 {
     public class GameObjectBody : IDisposable
@@ -23,9 +25,20 @@ namespace OpenTemple.Core.GameObject
 
         private static long _nextObjectId = 1;
 
-        private long _objectId = 0;
+        private readonly long _objectId;
 
         public long UniqueObjectId => _objectId;
+
+        public ObjectType type;
+        public ObjectId id;
+        public ObjectId protoId;
+        public uint field40;
+        public bool hasDifs;
+        public uint[] propCollBitmap;
+        public uint[] difBitmap;
+        public object?[] propCollection;
+        TransientProps transientProps;
+        private IDispatcher? dispatcher;
 
         /// <summary>
         /// Indicates that fields of type <see cref="ObjectFieldType.Obj"/> and <see cref="ObjectFieldType.ObjArray"/>
@@ -36,6 +49,9 @@ namespace OpenTemple.Core.GameObject
         public GameObjectBody()
         {
             _objectId = _nextObjectId++;
+            propCollBitmap = Array.Empty<uint>();
+            difBitmap = Array.Empty<uint>();
+            propCollection = Array.Empty<object?>();
         }
 
         [TempleDllLocation(0x100a1930)]
@@ -74,32 +90,8 @@ namespace OpenTemple.Core.GameObject
                 transientProps.Dispose();
             }
 
-            // This is the "old" way of doing it
-            if (IsProto())
-            {
-                // TODO free(difBitmap);
-            }
-            else
-            {
-                // TODO free(propCollBitmap);
-            }
-
-            propCollection = null;
-            // TODO delete[] propCollection;
+            propCollection = Array.Empty<object>();
         }
-
-        public ObjectType type;
-        uint field4;
-        public ObjectId id;
-        public ObjectId protoId;
-        public uint field40;
-        public bool hasDifs;
-        public uint[] propCollBitmap;
-        public uint[] difBitmap;
-        public object[] propCollection;
-        TransientProps transientProps;
-        uint padding;
-        private IDispatcher dispatcher;
 
         public bool IsProto()
         {
@@ -196,7 +188,7 @@ namespace OpenTemple.Core.GameObject
         // This gets the object handle and returns true, if it is valid (by validating it against the obj registry)
         // handleOut will always be set to the null handle if the handle is invalid.
         // If the handle is invalid, this function will also clear the storage location
-        public bool GetValidObject(obj_f field, out GameObjectBody objOut)
+        public bool GetValidObject(obj_f field, out GameObjectBody? objOut)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Obj);
 
@@ -220,10 +212,10 @@ namespace OpenTemple.Core.GameObject
             return true;
         }
 
-        public string GetString(obj_f field)
+        public string? GetString(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.String);
-            return (string) GetFieldValue(field);
+            return (string?)GetFieldValue(field);
         }
 
         public void SetString(obj_f field, string text)
@@ -239,12 +231,12 @@ namespace OpenTemple.Core.GameObject
             if (ObjectFields.GetType(field) == ObjectFieldType.ObjArray
                 || ObjectFields.GetType(field) == ObjectFieldType.SpellArray)
             {
-                var backingArray = (IList) GetFieldValue(field);
+                var backingArray = (IList?) GetFieldValue(field);
                 return backingArray?.Count ?? 0;
             }
             else
             {
-                var backingArray = (ISparseArray) GetFieldValue(field);
+                var backingArray = (ISparseArray?) GetFieldValue(field);
                 return backingArray?.Count ?? 0;
             }
         }
@@ -254,7 +246,7 @@ namespace OpenTemple.Core.GameObject
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Int32Array
                          || ObjectFields.GetType(field) == ObjectFieldType.AbilityArray);
 
-            var backingArray = (SparseArray<int>) GetFieldValue(field);
+            var backingArray = (SparseArray<int>?) GetFieldValue(field);
             return new ArrayAccess<int>(this, backingArray);
         }
 
@@ -262,7 +254,7 @@ namespace OpenTemple.Core.GameObject
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Int64Array);
 
-            var backingArray = (SparseArray<long>) GetFieldValue(field);
+            var backingArray = (SparseArray<long>?) GetFieldValue(field);
             return new ArrayAccess<long>(this, backingArray);
         }
 
@@ -276,14 +268,14 @@ namespace OpenTemple.Core.GameObject
                 throw new InvalidOperationException("Cannot access this method on a frozen object.");
             }
 
-            return (List<GameObjectBody>) GetFieldValue(field) ?? EmptyList;
+            return (List<GameObjectBody>?) GetFieldValue(field) ?? EmptyList;
         }
 
         public ArrayAccess<ObjectScript> GetScriptArray(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ScriptArray);
 
-            var backingArray = (SparseArray<ObjectScript>) GetFieldValue(field);
+            var backingArray = (SparseArray<ObjectScript>?) GetFieldValue(field);
             return new ArrayAccess<ObjectScript>(this, backingArray);
         }
 
@@ -293,7 +285,7 @@ namespace OpenTemple.Core.GameObject
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.SpellArray);
 
-            return (List<SpellStoreData>) GetFieldValue(field) ?? EmptySpellList;
+            return (List<SpellStoreData>?) GetFieldValue(field) ?? EmptySpellList;
         }
 
         // Convenience array accessors
@@ -353,7 +345,7 @@ namespace OpenTemple.Core.GameObject
             }
         }
 
-        public GameObjectBody GetObject(obj_f field, int index)
+        public GameObjectBody? GetObject(obj_f field, int index)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ObjArray);
             if (_frozenObjRefs)
@@ -363,7 +355,7 @@ namespace OpenTemple.Core.GameObject
                 );
             }
 
-            var arr = (List<GameObjectBody>) GetFieldValue(field);
+            var arr = (List<GameObjectBody>?) GetFieldValue(field);
             if (arr == null || index >= arr.Count)
             {
                 return null;
@@ -372,16 +364,16 @@ namespace OpenTemple.Core.GameObject
             return arr[index];
         }
 
-        public GameObjectBody GetObject(obj_f field)
+        public GameObjectBody? GetObject(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Obj);
 
             // Keep in mind that handles are stored in the form of ObjectIds
-            return (GameObjectBody) GetFieldValue(field);
+            return (GameObjectBody?) GetFieldValue(field);
         }
 
         [TempleDllLocation(0x100a14a0)]
-        public void SetObject(obj_f field, int index, GameObjectBody obj)
+        public void SetObject(obj_f field, int index, GameObjectBody? obj)
         {
             if (obj == null)
             {
@@ -564,7 +556,7 @@ namespace OpenTemple.Core.GameObject
             return false;
         }
 
-        public delegate bool ForEachFieldConstCallback(obj_f field, object currentValue);
+        public delegate bool ForEachFieldConstCallback(obj_f field, object? currentValue);
 
         public bool ForEachField(ForEachFieldConstCallback callback)
         {
@@ -628,7 +620,7 @@ namespace OpenTemple.Core.GameObject
                 else if (fieldType == ObjectFieldType.ObjArray)
                 {
                     var objectIdArray = (List<ObjectId>) currentValue;
-                    var objArray = new List<GameObjectBody>(objectIdArray.Count);
+                    var objArray = new List<GameObjectBody?>(objectIdArray.Count);
                     foreach (var objId in objectIdArray)
                     {
                         if (objId.IsNull)
@@ -684,7 +676,7 @@ namespace OpenTemple.Core.GameObject
                 }
                 else if (fieldType == ObjectFieldType.ObjArray)
                 {
-                    var objArray = (List<GameObjectBody>) currentValue;
+                    var objArray = (List<GameObjectBody?>) currentValue;
                     var objIdArray = new List<ObjectId>(objArray.Count);
                     foreach (var obj in objArray)
                     {
@@ -904,13 +896,13 @@ namespace OpenTemple.Core.GameObject
         }
 
 // TODO: Move to extension methods
-        public IDispatcher GetDispatcher()
+        public IDispatcher? GetDispatcher()
         {
             return dispatcher;
         }
 
         // TODO: Move to extension methods
-        public void SetDispatcher(IDispatcher dispatcher)
+        public void SetDispatcher(IDispatcher? dispatcher)
         {
             this.dispatcher = dispatcher;
         }
@@ -1027,7 +1019,10 @@ namespace OpenTemple.Core.GameObject
             for (var i = 0; i < count; ++i)
             {
                 var item = GetObject(indexField, i);
-                callback(item);
+                if (item != null)
+                {
+                    callback(item);
+                }
             }
         }
 
@@ -1251,7 +1246,7 @@ namespace OpenTemple.Core.GameObject
 
 
         private static void WriteListAsSparseArray<T>(BinaryWriter writer, int itemSize,
-            SparseArrayConverter.ItemWriter<T> itemWriter, IList<T> items)
+            SparseArrayConverter.ItemWriter<T> itemWriter, IList<T>? items)
         {
             if (items == null)
             {
@@ -1437,7 +1432,7 @@ namespace OpenTemple.Core.GameObject
 
         // Gets a readable storage location, possibly in the object_s prototype
         // if this object doesnt have the requested field
-        private object GetFieldValue(obj_f field)
+        private object? GetFieldValue(obj_f field)
         {
             if (!ValidateFieldForType(field))
             {
@@ -1509,15 +1504,7 @@ namespace OpenTemple.Core.GameObject
                 // Allocate the storage location
                 propCollBitmap[fieldDef.bitmapBlockIdx] |= fieldDef.bitmapMask;
 
-                // TODO: This should just be a vector or similar so we can use the STL's insert function
-                if (propCollection == null)
-                {
-                    propCollection = new object[1];
-                }
-                else
-                {
-                    Array.Resize(ref propCollection, propCollection.Length + 1);
-                }
+                Array.Resize(ref propCollection, propCollection.Length + 1);
 
                 var desiredIdx = GetPropCollIdx(fieldDef);
 
@@ -1550,7 +1537,7 @@ namespace OpenTemple.Core.GameObject
         public int ProtoId => protoId.PrototypeId;
 
         // Resolves the proto object for this instance
-        public GameObjectBody GetProtoObj()
+        public GameObjectBody? GetProtoObj()
         {
             if (protoId.IsPrototype)
             {
@@ -1563,7 +1550,7 @@ namespace OpenTemple.Core.GameObject
         }
 
         // Frees storage that may have been allocated to store a property of the given type
-        public void FreeStorage(ref object storage)
+        public void FreeStorage(ref object? storage)
         {
             if (storage == null)
             {
@@ -1584,7 +1571,7 @@ namespace OpenTemple.Core.GameObject
 
         private SparseArray<T> GetOrCreateSparseArray<T>(obj_f field) where T : struct
         {
-            var value = (SparseArray<T>) GetFieldValue(field);
+            var value = (SparseArray<T>?) GetFieldValue(field);
 
             if (IsProto())
             {
@@ -1598,7 +1585,7 @@ namespace OpenTemple.Core.GameObject
             {
                 // Make sure to create a new value if the parent value belonged to the proto (otherwise it will
                 // be mutated)
-                var protoValue = (SparseArray<T>) GetProtoObj()?.GetFieldValue(field);
+                var protoValue = (SparseArray<T>?) GetProtoObj()?.GetFieldValue(field);
                 if (value == null || ReferenceEquals(value, protoValue))
                 {
                     if (protoValue != null)
@@ -1633,7 +1620,7 @@ namespace OpenTemple.Core.GameObject
             return GetOrCreateSparseArray<long>(field);
         }
 
-        private List<GameObjectBody> GetMutableObjectArray(obj_f field)
+        private List<GameObjectBody?> GetMutableObjectArray(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ObjArray);
             if (_frozenObjRefs)
@@ -1646,11 +1633,13 @@ namespace OpenTemple.Core.GameObject
 
             if (IsProto())
             {
-                return (List<GameObjectBody>) propCollection[fieldDef.protoPropIdx];
+                return (List<GameObjectBody?>?)propCollection[fieldDef.protoPropIdx]
+                       ?? throw new Exception("Cannot get mutable list for " + field + " for proto");
             }
             else if (ObjectFields.IsTransient(field))
             {
-                return (List<GameObjectBody>) transientProps.GetFieldValue(field);
+                return (List<GameObjectBody?>?) transientProps.GetFieldValue(field)
+                       ?? throw new Exception("Cannot get mutable list for " + field + " for transient field");
             }
 
             if (!HasDataForField(fieldDef))
@@ -1659,7 +1648,8 @@ namespace OpenTemple.Core.GameObject
             }
 
             var propCollIdx = GetPropCollIdx(fieldDef);
-            return (List<GameObjectBody>) propCollection[propCollIdx];
+            return (List<GameObjectBody?>?) propCollection[propCollIdx]
+                   ?? throw new Exception("Setting field " + field + " seems to have failed.");
         }
 
         private SparseArray<ObjectScript> GetMutableScriptArray(obj_f field)
@@ -1678,16 +1668,19 @@ namespace OpenTemple.Core.GameObject
 
             if (IsProto())
             {
-                if (propCollection[fieldDef.protoPropIdx] == null)
+                var result = propCollection[fieldDef.protoPropIdx];
+                if (result == null)
                 {
-                    propCollection[fieldDef.protoPropIdx] = new List<SpellStoreData>();
+                    result = new List<SpellStoreData>();
+                    propCollection[fieldDef.protoPropIdx] = result;
                 }
 
-                return (List<SpellStoreData>) propCollection[fieldDef.protoPropIdx];
+                return (List<SpellStoreData>)result;
             }
             else if (ObjectFields.IsTransient(field))
             {
-                return (List<SpellStoreData>) transientProps.GetFieldValue(field);
+                return (List<SpellStoreData>?) transientProps.GetFieldValue(field)
+                    ?? throw new Exception("Field " + field + " not set on transient props");
             }
 
             if (!HasDataForField(fieldDef))
@@ -1697,20 +1690,28 @@ namespace OpenTemple.Core.GameObject
             }
 
             var propCollIdx = GetPropCollIdx(fieldDef);
-            return (List<SpellStoreData>) propCollection[propCollIdx];
+            return (List<SpellStoreData>) propCollection[propCollIdx]!;
         }
 
         /// <summary>
         /// Writes a field value to file.
         /// </summary>
-        private static void WriteFieldToStream(ObjectFieldType type, object value, BinaryWriter stream)
+        private static void WriteFieldToStream(ObjectFieldType type, object? value, BinaryWriter stream)
         {
             switch (type)
             {
                 case ObjectFieldType.Int32:
+                    if (value == null)
+                    {
+                        throw new Exception("Value for Int32 field is null");
+                    }
                     stream.WriteInt32((int) value);
                     break;
                 case ObjectFieldType.Float32:
+                    if (value == null)
+                    {
+                        throw new Exception("Value for Int32 field is null");
+                    }
                     stream.Write((float) value);
                     break;
                 case ObjectFieldType.Int64:
@@ -1783,10 +1784,10 @@ namespace OpenTemple.Core.GameObject
 
                     break;
                 case ObjectFieldType.ObjArray:
-                    WriteListAsSparseArray(stream, 24, WriteObjectId, (List<ObjectId>) value);
+                    WriteListAsSparseArray(stream, 24, WriteObjectId, (List<ObjectId>?) value);
                     break;
                 case ObjectFieldType.SpellArray:
-                    WriteListAsSparseArray(stream, 32, WriteSpellStoreData, (List<SpellStoreData>) value);
+                    WriteListAsSparseArray(stream, 32, WriteSpellStoreData, (List<SpellStoreData>?) value);
                     break;
                 default:
                     throw new Exception("Cannot write unknown field type to file.");
@@ -1898,12 +1899,12 @@ namespace OpenTemple.Core.GameObject
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        public static bool operator ==(GameObjectBody left, GameObjectBody right)
+        public static bool operator ==(GameObjectBody? left, GameObjectBody? right)
         {
             return ReferenceEquals(left, right);
         }
 
-        public static bool operator !=(GameObjectBody left, GameObjectBody right)
+        public static bool operator !=(GameObjectBody? left, GameObjectBody? right)
         {
             return !ReferenceEquals(left, right);
         }
