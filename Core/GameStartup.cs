@@ -51,6 +51,8 @@ namespace OpenTemple.Core
             Tig.Startup(config, new TigSettings(){DataFolder = DataFolder});
             Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
+            Globals.UiManager = new UiManager(Tig.MainWindow);
+
             // Hides the cursor during loading
 #if !DEBUG
             Tig.Mouse.HideCursor();
@@ -67,7 +69,6 @@ namespace OpenTemple.Core
 
             Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga");
 
-            Globals.UiManager = new UiManager(Tig.MainWindow);
             Globals.UiAssets = new UiAssets();
             Globals.UiStyles = new UiStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();

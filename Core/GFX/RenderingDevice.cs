@@ -1944,7 +1944,7 @@ namespace OpenTemple.Core.GFX
                     _swapChain.ResizeBuffers(0, 0, 0, Format.Unknown, 0);
                 }
 
-                var surface = _swapChain.GetBackBuffer<Texture2D>(0);
+                using var surface = _swapChain.GetBackBuffer<Texture2D>(0);
 
                 var surfaceDesc = surface.Description;
 

@@ -20,7 +20,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.GITHUB_WORKSPACE }}/testdata.7z
-          key: testdata
+          key: testdata-2
       - name: Download Testdata
         if: steps.cache-testdata.outputs.cache-hit != 'true'
         run: |

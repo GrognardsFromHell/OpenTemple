@@ -37,27 +37,26 @@ namespace OpenTemple.Core.IO.TroikaArchives
             vfs.AddDataDir(moduleDataDir);
             vfs.AddDataDir(dataDir);
 
-            vfs.AddArchive(Path.Join(path, @"Modules\ToEE.dat"));
+            var moduleArchive = vfs.AddArchive(Path.Join(path, @"Modules\ToEE.dat"));
+            IgnoreIncorrectSoundSchemes(moduleArchive);
+
             vfs.AddArchive(Path.Join(path, @"ToEE4.dat"));
             vfs.AddArchive(Path.Join(path, @"ToEE3.dat"));
             vfs.AddArchive(Path.Join(path, @"ToEE2.dat"));
             vfs.AddArchive(Path.Join(path, @"ToEE1.dat"));
             vfs.AddArchive(Path.Join(path, @"tig.dat"));
 
+            return vfs;
+        }
+
+        private static void IgnoreIncorrectSoundSchemes(TroikaArchive archive)
+        {
             // These files are actually not correct and not used in Vanilla. Due to how vanilla loads data,
             // they are only picked up from ToEE[1-4].dat, and the data in Modules\ToEE.dat is never used.
             // Due to OT simplifying how archives are loaded, our game system load routine will pick up
             // the files from Modules\ToEE.dat, which are old files from Arkanum, and not ToEE.
-            vfs.HideArchiveContent(
-                VanillaModuleGuid,
-                new[]
-                {
-                    "sound/schemeindex.mes",
-                    "sound/schemelist.mes"
-                }
-            );
-
-            return vfs;
+            archive.SetDeleted("sound/schemeindex.mes");
+            archive.SetDeleted("sound/schemelist.mes");
         }
 
         /// <summary>
@@ -240,9 +239,11 @@ namespace OpenTemple.Core.IO.TroikaArchives
             }
         }
 
-        public void AddArchive(string path)
+        public TroikaArchive AddArchive(string path)
         {
-            _archives.Add(new TroikaArchive(path));
+            var archive = new TroikaArchive(path);
+            _archives.Add(archive);
+            return archive;
         }
 
         /// <summary>

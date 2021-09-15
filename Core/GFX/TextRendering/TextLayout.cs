@@ -1,5 +1,8 @@
 using System;
+using System.Drawing;
 using OpenTemple.Interop.Drawing;
+
+#nullable enable
 
 namespace OpenTemple.Core.GFX.TextRendering
 {
@@ -100,6 +103,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public TextLayout(NativeTextLayout layout)
         {
+            _lineMetrics = Array.Empty<NativeLineMetrics>();
             NativeTextLayout = layout;
         }
 
@@ -111,6 +115,18 @@ namespace OpenTemple.Core.GFX.TextRendering
         public void Dispose()
         {
             NativeTextLayout.Dispose();
+        }
+
+        /// <summary>
+        /// The bounding rectangle of the text, relative to the layout box initially given to the text layout
+        /// </summary>
+        public RectangleF BoundingRectangle
+        {
+            get
+            {
+                RefreshMetrics();
+                return new RectangleF(_metrics.Left, _metrics.Top, _metrics.Width, _metrics.Height);
+            }
         }
     }
 }

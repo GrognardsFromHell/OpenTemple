@@ -130,7 +130,7 @@ namespace OpenTemple.Core.Platform
 
         public Message(MessageCharArgs messageArgs) : this(MessageType.CHAR)
         {
-            args = messageArgs;
+            CharArgs = messageArgs;
         }
 
         public Message(MessageMouseArgs mouseArgs) : this(MessageType.MOUSE)
@@ -155,7 +155,7 @@ namespace OpenTemple.Core.Platform
                 Trace.Assert(type == MessageType.MOUSE);
                 return (MessageMouseArgs) args;
             }
-            private set
+            private init
             {
                 Trace.Assert(type == MessageType.MOUSE);
                 args = value;
@@ -169,7 +169,7 @@ namespace OpenTemple.Core.Platform
                 Trace.Assert(type == MessageType.WIDGET);
                 return (MessageWidgetArgs) args;
             }
-            private set
+            private init
             {
                 Trace.Assert(type == MessageType.WIDGET);
                 args = value;
@@ -183,7 +183,7 @@ namespace OpenTemple.Core.Platform
                 Trace.Assert(type == MessageType.KEYSTATECHANGE);
                 return (MessageKeyStateChangeArgs) args;
             }
-            private set
+            private init
             {
                 Trace.Assert(type == MessageType.KEYSTATECHANGE);
                 args = value;
@@ -197,7 +197,7 @@ namespace OpenTemple.Core.Platform
                 Trace.Assert(type == MessageType.CHAR);
                 return (MessageCharArgs) args;
             }
-            set
+            private init
             {
                 Trace.Assert(type == MessageType.CHAR);
                 args = value;
@@ -249,7 +249,7 @@ namespace OpenTemple.Core.Platform
             return false;
         }
 
-        private readonly Queue<Message> _messages = new Queue<Message>(100);
+        private readonly Queue<Message> _messages = new(100);
 
     }
 }

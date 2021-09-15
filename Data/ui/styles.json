@@ -38,6 +38,14 @@
       "color": "#ffffff"
     },
     {
+      "id": "movie-subtitles",
+      "inherit": "default",
+      "fontSize": 14,
+      "textAlignment": "center",
+      "dropShadowColor": "#000000",
+      "backgroundColor": "#11111199"
+    },
+    {
       "id": "radialmenu-hotkey",
       "wordWrap": "nowrap"
     },
