@@ -666,6 +666,12 @@ namespace OpenTemple.Core.Ui
 
         private void HandleMouseButtonEvent(MouseWindowEvent evt)
         {
+            // Otherwise we might not get the actual position that was clicked if we use the last mouse move position..
+            if (evt.Type == WindowEventType.MouseDown)
+            {
+                HandleMouseMoveEvent(evt);
+            }
+
             Tig.Mouse.SetButtonState(evt.Button, evt.Type == WindowEventType.MouseDown);
         }
 

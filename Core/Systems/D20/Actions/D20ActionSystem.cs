@@ -131,7 +131,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         private ActionSequence? actSeqInterrupt;
 
         [TempleDllLocation(0x1186A8F0)]
-        internal ActionSequence CurrentSequence { get; set; }
+        internal ActionSequence? CurrentSequence { get; set; }
 
         [TempleDllLocation(0x1008a090)]
         internal D20Action CurrentAction

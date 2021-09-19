@@ -127,6 +127,7 @@ namespace OpenTemple.Core.Systems
             {
                 _mapScrollX = 0;
                 _mapScrollY = 0;
+                _screenCenterTile = new locXY(tileX, tileY);
             }
         }
 
