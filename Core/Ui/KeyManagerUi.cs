@@ -15,10 +15,11 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x10BE8CF0)]
         private bool _modalIsOpen;
 
-        [field: TempleDllLocation(0x10BE8CF4)]
+        // TODO 1.0: This seems to never be set to anything but 0 in Vanilla
+        [field:TempleDllLocation(0x10be8cf4)]
         [TempleDllLocation(0x101431e0)]
         [TempleDllLocation(0x101431d0)]
-        public int AlwaysFalse { get; set; } = 0;
+        public int InputState { get; set; } = 0;
 
         [TempleDllLocation(0x10be7018)]
         private readonly Dictionary<int, string> _translations;
@@ -103,7 +104,7 @@ namespace OpenTemple.Core.Ui
         public void Reset()
         {
             uiManagerDoYouWantToQuitActive = false;
-            AlwaysFalse = 0;
+            InputState = 0;
         }
 
         [TempleDllLocation(0x10143750)]
@@ -156,7 +157,7 @@ namespace OpenTemple.Core.Ui
         {
             if (evtName <= InGameHotKey.ObjectHighlight)
             {
-                return AlwaysFalse == 1;
+                return InputState == 1;
             }
 
             if (evtName == InGameHotKey.ShowHelp)
@@ -166,12 +167,12 @@ namespace OpenTemple.Core.Ui
 
             if (evtName == InGameHotKey.Rest)
             {
-                return (AlwaysFalse == 1 || AlwaysFalse == 2);
+                return (InputState == 1 || InputState == 2);
             }
 
             if (evtName <= InGameHotKey.EndTurnNonParty)
             {
-                return AlwaysFalse == 1;
+                return InputState == 1;
             }
 
             return false;

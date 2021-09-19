@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Security.Cryptography;
 using FluentAssertions;
 using NUnit.Framework;
 using OpenTemple.Core.GameObject;
@@ -77,6 +78,12 @@ namespace OpenTemple.Tests.Game
                     (EquipSlot.Armor, 6047),
                     (EquipSlot.Boots, 6011)
                 );
+        }
+
+        [Test]
+        public void RestingIsNotAllowedOnTutorialMap()
+        {
+            GameSystems.RandomEncounter.SleepStatus.Should().Be(SleepStatus.Impossible);
         }
     }
 }

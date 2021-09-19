@@ -342,7 +342,7 @@ internal sealed class BaseTypeRequiredAttribute : Attribute
   /// </summary>
   [AttributeUsage(AttributeTargets.All)]
   [Conditional("JETBRAINS_ANNOTATIONS")]
-internal sealed class UsedImplicitlyAttribute : Attribute
+  internal sealed class UsedImplicitlyAttribute : Attribute
   {
     public UsedImplicitlyAttribute()
       : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }

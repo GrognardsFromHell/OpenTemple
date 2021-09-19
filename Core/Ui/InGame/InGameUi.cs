@@ -109,7 +109,7 @@ namespace OpenTemple.Core.Ui.InGame
                 {
                     if (msg.type == MessageType.KEYSTATECHANGE)
                     {
-                        UiSystems.KeyManager.AlwaysFalse = 0;
+                        UiSystems.KeyManager.InputState = 0;
                         UiSystems.KeyManager.HandleKeyEvent(msg.KeyStateChangeArgs);
                     }
                 }
@@ -175,7 +175,7 @@ namespace OpenTemple.Core.Ui.InGame
         {
             if (!args.down)
             {
-                UiSystems.KeyManager.AlwaysFalse = 0;
+                UiSystems.KeyManager.InputState = 0;
                 if (UiSystems.KeyManager.HandleKeyEvent(args))
                 {
                     return; // TODO: This is new, previously it fell through here
@@ -334,7 +334,7 @@ namespace OpenTemple.Core.Ui.InGame
                 }
             }
 
-            UiSystems.KeyManager.AlwaysFalse = 0;
+            UiSystems.KeyManager.InputState = 0;
             UiSystems.KeyManager.HandleKeyEvent(args);
         }
 

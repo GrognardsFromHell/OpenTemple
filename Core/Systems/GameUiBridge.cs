@@ -450,5 +450,12 @@ namespace OpenTemple.Core.Systems
         {
             UiSystems.WorldMap.TravelToArea(areaId);
         }
+
+        [TempleDllLocation(0x1009ab60)]
+        [TempleDllLocation(0x10b3d78c)]
+        public static bool IsRestDisabled()
+        {
+            return UiSystems.KeyManager.InputState == 1;
+        }
     }
 }

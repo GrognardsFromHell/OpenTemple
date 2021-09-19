@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.Script.Hooks;
 
 namespace OpenTemple.Core.Systems
 {
@@ -52,7 +53,15 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10045850)]
         public void UpdateSleepStatus()
         {
-            Stub.TODO();
+            if ( GameUiBridge.IsRestDisabled() )
+            {
+                SleepStatus = SleepStatus.Impossible;
+            }
+            else
+            {
+                SleepStatus = GameSystems.Script.GetHook<IRandomEncountersHook>()?.CalculateSleepStatus()
+                              ?? SleepStatus.Impossible;
+            }
         }
 
         public void QueueRandomEncounter(int encounterId)

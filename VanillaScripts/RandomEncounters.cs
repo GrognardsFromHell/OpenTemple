@@ -13,13 +13,21 @@ using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Ui;
 using System.Linq;
+using JetBrains.Annotations;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.Script.Hooks;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
 namespace VanillaScripts
 {
+
+    [UsedImplicitly]
+    public class RandomEncountersHook : IRandomEncountersHook
+    {
+        public SleepStatus CalculateSleepStatus() => RandomEncounters.can_sleep();
+    }
 
     public class RandomEncounters
     {
