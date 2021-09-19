@@ -78,9 +78,6 @@ namespace OpenTemple.Core.Systems.Anim
         [TempleDllLocation(0x10AA4BC0)]
         private int mActiveGoalCount;
 
-        [TempleDllLocation(0x10AA4BBC)]
-        private int slotsInUse;
-
         [TempleDllLocation(0x11E61520)]
         private int nextUniqueId;
 
@@ -993,8 +990,6 @@ namespace OpenTemple.Core.Systems.Anim
             slot.goals[0].scratchTracking = default;
             slot.goals[0].parentTracking = default;*/
 
-            slotsInUse++;
-
             return slot.id;
         }
 
@@ -1030,7 +1025,6 @@ namespace OpenTemple.Core.Systems.Anim
             }
 
             slot.Clear();
-            slotsInUse--;
 
             // Clean up slots from the back
             while (mSlots.Count > 0 && !mSlots[^1].IsActive)
@@ -1593,7 +1587,6 @@ namespace OpenTemple.Core.Systems.Anim
         {
             mSlots.Clear();
             mActiveGoalCount = 0;
-            slotsInUse = 0;
             _nextUniqueActionId = 1;
         }
 
