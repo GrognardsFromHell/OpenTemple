@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -599,6 +600,12 @@ namespace OpenTemple.Core.Systems
                 }
 
                 GameSystems.D20.Combat.AwardCombatExperience();
+
+                // If no party member is selected after combat, select the party leader
+                if (GameSystems.Party.Selected.Count == 0 && GameSystems.Party.GetLeader() != null)
+                {
+                    GameSystems.Party.AddToSelection(GameSystems.Party.GetLeader());
+                }
             }
 
             OnCombatStatusChanged?.Invoke(false);
