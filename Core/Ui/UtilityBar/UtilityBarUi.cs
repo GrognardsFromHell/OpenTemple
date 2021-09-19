@@ -84,7 +84,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 NormalImagePath = "art/interface/utility_bar_ui/selectparty.tga",
                 HoverImagePath = "art/interface/utility_bar_ui/selectparty_hover.tga",
                 PressedImagePath = "art/interface/utility_bar_ui/selectparty_click.tga"
-            });
+            }.UseDefaultSounds());
             selectAllButton.TooltipText = _translations[10];
             selectAllButton.SetClickHandler(OnSelectAllButtonClick);
             _container.Add(selectAllButton);
@@ -96,7 +96,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 NormalImagePath = "art/interface/utility_bar_ui/formation.tga",
                 HoverImagePath = "art/interface/utility_bar_ui/formation_hover.tga",
                 PressedImagePath = "art/interface/utility_bar_ui/formation_click.tga"
-            });
+            }.UseDefaultSounds());
             formationButton.TooltipText = _translations[0];
             formationButton.SetClickHandler(OnFormationButtonClick);
             _container.Add(formationButton);
@@ -109,7 +109,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 NormalImagePath = "art/interface/utility_bar_ui/logbook.tga",
                 HoverImagePath = "art/interface/utility_bar_ui/logbook_hover.tga",
                 PressedImagePath = "art/interface/utility_bar_ui/logbook_click.tga"
-            });
+            }.UseDefaultSounds());
             _logbookButton.TooltipText = _translations[1];
             _logbookButton.SetClickHandler(OnLogbookButtonClick);
             _container.Add(_logbookButton);
@@ -122,7 +122,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 NormalImagePath = "art/interface/utility_bar_ui/townmap.tga",
                 HoverImagePath = "art/interface/utility_bar_ui/townmap_hover.tga",
                 PressedImagePath = "art/interface/utility_bar_ui/townmap_click.tga"
-            });
+            }.UseDefaultSounds());
             _mapButton.TooltipText = _translations[2];
             _mapButton.SetClickHandler(OnMapButtonClick);
             _container.Add(_mapButton);
@@ -134,7 +134,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 NormalImagePath = "art/interface/utility_bar_ui/camp.tga",
                 HoverImagePath = "art/interface/utility_bar_ui/camp_hover.tga",
                 PressedImagePath = "art/interface/utility_bar_ui/camp_click.tga"
-            });
+            }.UseDefaultSounds());
             _restButton.SetClickHandler(OnRestButtonClick);
             UpdateRestButton();
             _container.Add(_restButton);
@@ -146,7 +146,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 NormalImagePath = "art/interface/utility_bar_ui/help.tga",
                 HoverImagePath = "art/interface/utility_bar_ui/help_hover.tga",
                 PressedImagePath = "art/interface/utility_bar_ui/help_click.tga"
-            });
+            }.UseDefaultSounds());
             helpButton.TooltipText = _translations[4];
             helpButton.SetClickHandler(OnHelpButtonClick);
             _container.Add(helpButton);
@@ -158,7 +158,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
                 NormalImagePath = "art/interface/utility_bar_ui/options.tga",
                 HoverImagePath = "art/interface/utility_bar_ui/options_hover.tga",
                 PressedImagePath = "art/interface/utility_bar_ui/options_click.tga"
-            });
+            }.UseDefaultSounds());
             optionsButton.TooltipText = _translations[5];
             optionsButton.SetClickHandler(OnOptionsButtonClick);
             _container.Add(optionsButton);
