@@ -4,6 +4,9 @@ namespace OpenTemple.Core.Ui.Widgets
 {
     public sealed class WidgetButtonStyle
     {
+        public const int DefaultUpSound = 3013;
+        public const int DefaultDownSound = 3012;
+
         public string? Id;
         public string? Inherits;
         public string? NormalImagePath;
@@ -33,8 +36,8 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             SoundEnter = 3010;
             SoundLeave = 3011;
-            SoundClick = 3013;
-            SoundDown = 3012;
+            SoundClick = DefaultUpSound;
+            SoundDown = DefaultDownSound;
             return this;
         }
     }

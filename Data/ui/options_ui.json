@@ -50,7 +50,8 @@
       "type": "text",
       "style": "options-button-text",
       "text": "#{options:6}",
-      "y": 10
+      "y": 10,
+      "height": 16
     }
   ],
   "children": [

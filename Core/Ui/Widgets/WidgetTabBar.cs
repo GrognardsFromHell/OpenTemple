@@ -167,6 +167,8 @@ namespace OpenTemple.Core.Ui.Widgets
         public WidgetTabButton(string label, WidgetTabStyle style)
         {
             _style = style;
+            sndClick = WidgetButtonStyle.DefaultUpSound;
+            sndDown = WidgetButtonStyle.DefaultDownSound;
 
             if (style == WidgetTabStyle.Large)
             {

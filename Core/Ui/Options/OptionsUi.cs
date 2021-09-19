@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.Widgets;
+using SharpDX.Direct3D11;
 
 namespace OpenTemple.Core.Ui.Options
 {
@@ -55,9 +57,21 @@ namespace OpenTemple.Core.Ui.Options
             CreatePages();
 
             _tabBar = doc.GetTabBar("tabs");
-            _tabBar.OnActiveTabIndexChanged += ShowPage;
+            _tabBar.OnActiveTabIndexChanged += newPage => ShowPage(newPage);
             _tabBar.SetTabs(_pages.Select(page => page.Name));
             _tabBar.ActiveTabIndex = 0;
+
+            // Forward otherwise unhandled mouse-wheel messages to the scrollbar
+            _container.SetMouseMsgHandler(msg =>
+            {
+                if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+                {
+                    _scrollbar.HandleMouseMessage(msg);
+                    return true;
+                }
+
+                return false;
+            });
         }
 
         private void CreatePages()
@@ -181,6 +195,7 @@ namespace OpenTemple.Core.Ui.Options
             UiSystems.HideOpenedWindows(true);
             GameSystems.TimeEvent.PauseGameTime();
             _container.Visible = true;
+            Globals.UiManager.Modal = _container;
 
             if (fromMainMenu)
             {
@@ -205,6 +220,7 @@ namespace OpenTemple.Core.Ui.Options
             if (_container.Visible)
             {
                 GameSystems.TimeEvent.ResumeGameTime();
+                Globals.UiManager.Modal = null;
             }
 
             _container.Visible = false;
@@ -215,7 +231,7 @@ namespace OpenTemple.Core.Ui.Options
             }
         }
 
-        private void ShowPage(int pageIndex)
+        private void ShowPage(int pageIndex, int scrollOffset = 0)
         {
             _optionsContainer.Clear();
 
@@ -228,12 +244,12 @@ namespace OpenTemple.Core.Ui.Options
 
             _scrollbar.SetValueChangeHandler(null);
             _scrollbar.Max = Math.Max(0, page.Options.Count - OptionRows);
-            _scrollbar.SetValue(0);
-            _scrollbar.SetValueChangeHandler(newOffset => ShowPage(pageIndex));
+            _scrollbar.SetValue(scrollOffset);
+            _scrollbar.SetValueChangeHandler(newOffset => ShowPage(pageIndex, newOffset));
 
             var y = 0;
             var rowCount = 0;
-            for (var index = _scrollbar.GetValue(); index < page.Options.Count; index++)
+            for (var index = scrollOffset; index < page.Options.Count; index++)
             {
                 if (rowCount++ > OptionRows)
                 {
@@ -272,6 +288,7 @@ namespace OpenTemple.Core.Ui.Options
                     option.Apply();
                 }
             }
+
             Globals.ConfigManager.Save();
             Globals.ConfigManager.NotifyConfigChanged();
 
