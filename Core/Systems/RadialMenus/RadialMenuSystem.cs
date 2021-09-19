@@ -302,7 +302,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         [TempleDllLocation(0x100f12b0)]
         public int GetStandardNode(RadialMenuStandardNode standardNode)
         {
-            return standardNodeIndices[(int) standardNode];
+            return standardNodeIndices[(int)standardNode];
         }
 
         [TempleDllLocation(0x100f0670)]
@@ -388,7 +388,35 @@ namespace OpenTemple.Core.Systems.RadialMenus
         [TempleDllLocation(0x100f0200)]
         public bool RadialMenuCheckboxOrSliderCallback(GameObjectBody obj, ref RadialMenuEntry radEntry)
         {
-            throw new NotImplementedException();
+            int actualArg;
+            var node = activeRadialMenu.nodes[activeRadialMenuNode];
+            var type = node.entry.type;
+            if (type == RadialMenuEntryType.Slider
+                || type == RadialMenuEntryType.Toggle
+                || type == RadialMenuEntryType.Choice)
+            {
+                actualArg = node.entry.ArgumentGetter();
+            }
+            else
+            {
+                actualArg = 0;
+            }
+
+            if (radEntry.type == RadialMenuEntryType.Choice && actualArg == 0)
+            {
+                GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_RadialMenu_Clear_Checkbox_Group, radEntry);
+            }
+
+            if (radEntry.type == RadialMenuEntryType.Slider)
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                GameSystems.D20.RadialMenu.RadialMenuSetActiveNodeArg(actualArg + 1);
+            }
+
+            return false;
         }
 
         [TempleDllLocation(0x100f2650)]
@@ -430,7 +458,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
                     j < 34 + (i - RadialMenuStandardNode.SpellsWizard) * 10;
                     j++)
                 {
-                    SetStandardNode(critter, (RadialMenuStandardNode) j, i);
+                    SetStandardNode(critter, (RadialMenuStandardNode)j, i);
                 }
             }
 
@@ -543,14 +571,14 @@ namespace OpenTemple.Core.Systems.RadialMenus
             }
 
             var node = new RadialMenuNode();
-            node.entry = new RadialMenuEntry {text = "ROOT"};
+            node.entry = new RadialMenuEntry { text = "ROOT" };
             radialMenu.nodes.Add(node);
         }
 
         private void SetStandardNode(GameObjectBody handle, RadialMenuStandardNode stdNode,
             RadialMenuStandardNode specialParent)
         {
-            var meskey = 1000 + (int) stdNode;
+            var meskey = 1000 + (int)stdNode;
             var isSpellNode = false;
             var isVanillaNode = false;
 
@@ -558,20 +586,20 @@ namespace OpenTemple.Core.Systems.RadialMenus
             {
                 meskey = 5101;
             }
-            else if (stdNode > RadialMenuStandardNode.SpellsDomain && stdNode <= (RadialMenuStandardNode) 104)
+            else if (stdNode > RadialMenuStandardNode.SpellsDomain && stdNode <= (RadialMenuStandardNode)104)
             {
                 isSpellNode = true;
 
                 if (specialParent == RadialMenuStandardNode.SpellsSorcerer &&
-                    stdNode < (RadialMenuStandardNode) 34
+                    stdNode < (RadialMenuStandardNode)34
                     || specialParent == RadialMenuStandardNode.SpellsBard &&
-                    stdNode < (RadialMenuStandardNode) 44)
+                    stdNode < (RadialMenuStandardNode)44)
                     isVanillaNode = true;
 
                 if (isVanillaNode)
-                    meskey = (int) (stdNode - 24) % NUM_SPELL_LEVELS_VANILLA + 1024;
+                    meskey = (int)(stdNode - 24) % NUM_SPELL_LEVELS_VANILLA + 1024;
                 else
-                    meskey = (int) (stdNode - 24) % NUM_SPELL_LEVELS + 1024;
+                    meskey = (int)(stdNode - 24) % NUM_SPELL_LEVELS + 1024;
             }
 
             var radMenuEntry = RadialMenuEntry.CreateParent(meskey);
@@ -589,7 +617,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
                 else
                 {
                     radMenuEntry.text =
-                        GameSystems.D20.Combat.GetCombatMesLine((int) (1000 + RadialMenuStandardNode.SpellsDomain));
+                        GameSystems.D20.Combat.GetCombatMesLine((int)(1000 + RadialMenuStandardNode.SpellsDomain));
                 }
             }
             // Set min/max for Natural Casting
@@ -606,7 +634,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
                         // draw min/max arg
                         radMenuEntry.HasMinArg = true;
                         radMenuEntry.HasMaxArg = true;
-                        var spLvl = (int) (stdNode - 24) % NUM_SPELL_LEVELS;
+                        var spLvl = (int)(stdNode - 24) % NUM_SPELL_LEVELS;
 
                         var spellClass = SpellSystem.GetSpellClass(classCode);
                         var numSpellsPerDay = GameSystems.Spell.GetNumSpellsPerDay(handle, classCode, spLvl);
@@ -626,8 +654,8 @@ namespace OpenTemple.Core.Systems.RadialMenus
             }
 
 
-            standardNodeIndices[(int) stdNode] =
-                AddChildNode(handle, ref radMenuEntry, standardNodeIndices[(int) specialParent]);
+            standardNodeIndices[(int)stdNode] =
+                AddChildNode(handle, ref radMenuEntry, standardNodeIndices[(int)specialParent]);
         }
 
         private int GetSpellClassFromSpecialNode(GameObjectBody handle, RadialMenuStandardNode specialParent)
@@ -1085,10 +1113,11 @@ namespace OpenTemple.Core.Systems.RadialMenus
             GameSystems.D20.Actions.SequenceSwitch(critter);
 
             GameSystems.D20.Actions.GlobD20ActnInit();
-            GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(entry.d20ActionType, (int) entry.dispKey);
+            GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(entry.d20ActionType, (int)entry.dispKey);
 
             var entryType = entry.type;
-            switch (entryType){
+            switch (entryType)
+            {
                 case RadialMenuEntryType.Slider:
                 case RadialMenuEntryType.Toggle:
                 case RadialMenuEntryType.Choice:
