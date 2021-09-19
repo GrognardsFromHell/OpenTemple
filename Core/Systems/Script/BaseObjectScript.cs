@@ -251,7 +251,7 @@ namespace OpenTemple.Core.Systems.Script
                 case ObjScriptEvent.SpellCast:
                     return OnSpellCast(invocation.attachee, invocation.triggerer, invocation.spell);
                 case ObjScriptEvent.UnlockAttempt:
-                    return OnUnlock(invocation.attachee, invocation.triggerer);
+                    return OnUnlockAttempt(invocation.attachee, invocation.triggerer);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
