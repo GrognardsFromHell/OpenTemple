@@ -54,12 +54,11 @@ namespace OpenTemple.Core.Ui.UtilityBar
         [TempleDllLocation(0x101226a0)]
         public UtilityBarHistoryUi()
         {
-            // TODO: Right align
-            var screenSize = Globals.UiManager.CanvasSize;
-            _container = new WidgetContainer(new Rectangle(screenSize.Width - 182, screenSize.Height - 292 - 82, 182, 292));
+            _container = new WidgetContainer(new Rectangle(0, 0, 182, 292));
             _container.ZIndex = 99900;
+            UpdatePosition(Globals.UiManager.CanvasSize);
 
-            uiHistoryMinimizeBtn = new WidgetButton(new Rectangle(37, 0, 24, 20));
+            uiHistoryMinimizeBtn = new WidgetButton(new Rectangle(_container.Width - 36, 0, 24, 20));
             uiHistoryMinimizeBtn.SetStyle(ToggleRollButtonStyle);
             uiHistoryMinimizeBtn.TooltipText = UiSystems.Tooltip.GetString(6029);
             uiHistoryMinimizeBtn.SetClickHandler(() =>
@@ -76,7 +75,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
             });
             _container.Add(uiHistoryMinimizeBtn);
 
-            uiHistoryMaximizeBtn = new WidgetButton(new Rectangle(37, 272, 24, 20));
+            uiHistoryMaximizeBtn = new WidgetButton(new Rectangle(_container.Width - 36, 272, 24, 20));
             uiHistoryMaximizeBtn.SetStyle(ToggleRollButtonStyle);
             uiHistoryMaximizeBtn.TooltipText = UiSystems.Tooltip.GetString(6029);
             uiHistoryMaximizeBtn.SetClickHandler(() =>
@@ -93,13 +92,13 @@ namespace OpenTemple.Core.Ui.UtilityBar
             });
             _container.Add(uiHistoryMaximizeBtn);
 
-            uiHistoryMaximizeDialogBtn = new WidgetButton(new Rectangle(11, 272, 24, 20));
+            uiHistoryMaximizeDialogBtn = new WidgetButton(new Rectangle(_container.Width - 62, 272, 24, 20));
             uiHistoryMaximizeDialogBtn.SetStyle(ToggleDialogButtonStyle);
             uiHistoryMaximizeDialogBtn.SetClickHandler(OnDialogButtonClicked);
             uiHistoryMaximizeDialogBtn.TooltipText = UiSystems.Tooltip.GetString(6028);
             _container.Add(uiHistoryMaximizeDialogBtn);
 
-            uiHistoryMinimizeDialogBtn = new WidgetButton(new Rectangle(11, 0, 24, 20));
+            uiHistoryMinimizeDialogBtn = new WidgetButton(new Rectangle(_container.Width - 62, 0, 24, 20));
             uiHistoryMinimizeDialogBtn.SetStyle(ToggleDialogButtonStyle);
             uiHistoryMinimizeDialogBtn.SetClickHandler(OnDialogButtonClicked);
             uiHistoryMinimizeDialogBtn.TooltipText = UiSystems.Tooltip.GetString(6028);
