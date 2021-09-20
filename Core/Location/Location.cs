@@ -312,9 +312,9 @@ namespace OpenTemple.Core.Location
             return FromInches(pos.X, pos.Z);
         }
 
-        /**
-         * Distance between this location and the other location in inches.
-         */
+        /// <summary>
+        /// Distance between this location and the other location in inches.
+        /// </summary>
         [TempleDllLocation(0x1002A0A0)]
         [TempleDllLocation(0x10040010)] /* The pointer based version */
         public float DistanceTo(LocAndOffsets locB)

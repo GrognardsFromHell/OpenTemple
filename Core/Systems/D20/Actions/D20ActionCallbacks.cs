@@ -2274,56 +2274,57 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 return ActionErrorCode.AEC_TARGET_INVALID;
             }
 
-            var actNum = sequence.d20ActArrayNum;
 
+            // If the target is within reach, no move-to action has to be prepended
             var reach = action.d20APerformer.GetReach(action.d20ActType);
-            if (action.d20APerformer.DistanceToObjInFeet(action.d20ATarget) > reach)
+            if (action.d20APerformer.DistanceToObjInFeet(action.d20ATarget) <= reach)
             {
-                var d20aCopy = action.Copy();
-                d20aCopy.d20ActType = D20ActionType.UNSPECIFIED_MOVE;
-                d20aCopy.destLoc = tgt.GetLocationFull();
-                var result =
-                    GameSystems.D20.Actions.MoveSequenceParse(d20aCopy, sequence, tbStatus, 0.0f, reach, true);
-                if (result == ActionErrorCode.AEC_OK)
-                {
-                    var tbStatusCopy = tbStatus.Copy();
-                    sequence.d20ActArray.Add(d20aCopy);
-                    if (actNum < sequence.d20ActArrayNum)
-                    {
-                        for (; actNum < sequence.d20ActArrayNum; actNum++)
-                        {
-                            var actionToCheck = sequence.d20ActArray[actNum];
-                            result = GameSystems.D20.Actions.TurnBasedStatusUpdate(actionToCheck, tbStatusCopy);
-                            if (result != ActionErrorCode.AEC_OK)
-                            {
-                                tbStatusCopy.errCode = result;
-                                return result;
-                            }
-
-                            var actionCheckFunc = D20ActionDefs.GetActionDef(actionToCheck.d20ActType).actionCheckFunc;
-                            if (actionCheckFunc != null)
-                            {
-                                result = actionCheckFunc(actionToCheck, tbStatusCopy);
-                                if (result != ActionErrorCode.AEC_OK)
-                                    return result;
-                            }
-                        }
-
-                        if (actNum >= sequence.d20ActArrayNum)
-                            return ActionErrorCode.AEC_OK;
-                        tbStatusCopy.errCode = result;
-                        if (result != ActionErrorCode.AEC_OK)
-                            return result;
-                    }
-
-                    return ActionErrorCode.AEC_OK;
-                }
-
-                return result;
+                sequence.d20ActArray.Add(action);
+                return ActionErrorCode.AEC_OK;
             }
 
+            // Remember the position where we start adding actions
+            var insertionIndex = sequence.d20ActArray.Count;
+
+            // Add an additional move-to action to get within reach
+            var moveToAction = action.Copy();
+            moveToAction.d20ActType = D20ActionType.UNSPECIFIED_MOVE;
+            moveToAction.destLoc = tgt.GetLocationFull();
+
+            var result = GameSystems.D20.Actions.MoveSequenceParse(moveToAction, sequence, tbStatus, 0.0f, reach, true);
+            if (result != ActionErrorCode.AEC_OK)
+            {
+                return result; // Can't move into reach, just return that result
+            }
+
+            // The move-to action will already have been added to the sequence
             sequence.d20ActArray.Add(action);
-            return ActionErrorCode.AEC_OK;
+
+            var tbStatusCopy = tbStatus.Copy();
+
+            // Check every inserted action in sequence
+            for (; insertionIndex < sequence.d20ActArray.Count; insertionIndex++)
+            {
+                // This should check if there's enough time left in the performer's turn
+                var actionToCheck = sequence.d20ActArray[insertionIndex];
+                result = GameSystems.D20.Actions.TurnBasedStatusUpdate(actionToCheck, tbStatusCopy);
+                if (result != ActionErrorCode.AEC_OK)
+                {
+                    break;
+                }
+
+                var actionCheckFunc = D20ActionDefs.GetActionDef(actionToCheck.d20ActType).actionCheckFunc;
+                if (actionCheckFunc != null)
+                {
+                    result = actionCheckFunc(actionToCheck, tbStatusCopy);
+                    if (result != ActionErrorCode.AEC_OK)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return result;
         }
 
     }

@@ -19,7 +19,7 @@ namespace OpenTemple.Windows
             // When a debugger is attached, immediately rethrow unobserved exceptions from asynchronous tasks
             if (Debugger.IsAttached)
             {
-                TaskScheduler.UnobservedTaskException += (sender, eventArgs) =>
+                TaskScheduler.UnobservedTaskException += (_, eventArgs) =>
                 {
                     if (!eventArgs.Observed)
                     {

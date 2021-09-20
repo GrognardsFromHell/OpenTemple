@@ -3,13 +3,15 @@ using System.Runtime.InteropServices;
 using FluentAssertions;
 using OpenTemple.Core;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Systems;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Drawing;
+using Point = System.Drawing.Point;
+using PointF = System.Drawing.PointF;
 
 namespace OpenTemple.Tests.TestUtils
 {
@@ -25,6 +27,8 @@ namespace OpenTemple.Tests.TestUtils
         private TimePoint _currentTime = new(0);
 
         private HeadlessGame Game { get; }
+
+        public HeadlessMainWindow Window { get; }
 
         public event Action OnRenderFrame;
 
@@ -57,6 +61,8 @@ namespace OpenTemple.Tests.TestUtils
             };
 
             Game = HeadlessGame.Start(options);
+
+            Window = (HeadlessMainWindow)Tig.MainWindow;
 
             Globals.GameLoop = new GameLoop(
                 Tig.MessageQueue,
@@ -170,6 +176,40 @@ namespace OpenTemple.Tests.TestUtils
             );
 
             return result;
+        }
+
+        public PointF ToUiCanvas(Point screenPoint) => new Point(
+            (int)(screenPoint.X / Window.UiScale),
+            (int)(screenPoint.Y / Window.UiScale)
+        );
+
+        public Point FromUiCanvas(PointF uiPoint) => new Point(
+            (int)(uiPoint.X * Window.UiScale),
+            (int)(uiPoint.Y * Window.UiScale)
+        );
+
+        public void SendMouseEvent(WindowEventType type, Point screenPoint, MouseButton button)
+        {
+            Window.SendInput(new MouseWindowEvent(
+                type,
+                Window,
+                screenPoint,
+                ToUiCanvas(screenPoint)
+            )
+            {
+                Button = button
+            });
+        }
+
+        public void Click(Point screenPoint, MouseButton button = MouseButton.LEFT)
+        {
+            SendMouseEvent(WindowEventType.MouseDown, screenPoint, button);
+            SendMouseEvent(WindowEventType.MouseUp, screenPoint, button);
+        }
+
+        public void ClickUi(float x, float y, MouseButton button = MouseButton.LEFT)
+        {
+            Click(FromUiCanvas(new PointF(x, y)), button);
         }
     }
 }

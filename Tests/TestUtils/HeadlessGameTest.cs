@@ -4,13 +4,17 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using NUnit.Framework;
+using OpenTemple.Core;
 using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 using SixLabors.ImageSharp;
 
@@ -113,6 +117,12 @@ namespace OpenTemple.Tests.TestUtils
             Game.RenderFrame();
             var screenshot = Game.TakeScreenshot();
             screenshot.SaveAsPng(TestContext.CurrentContext.Test.FullName + "_" + name + ".png");
+        }
+
+        protected void ClickOn(GameObjectBody obj)
+        {
+            var pos = GameSystems.MapObject.GetScreenPosOfObject(GameViews.Primary, obj);
+            Game.ClickUi(pos.X, pos.Y);
         }
     }
 }
