@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Security.Cryptography.X509Certificates;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -14,6 +13,10 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui
 {
+    /// <summary>
+    /// Shows a view of the ingame world in the user interface. Handles rendering of the world and
+    /// interacting with object in the world.
+    /// </summary>
     public class GameView : WidgetContainer, IGameViewport
     {
         private const float MinZoom = 0.5f;

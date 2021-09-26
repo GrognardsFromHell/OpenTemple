@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using OpenTemple.Core;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Platform
@@ -27,6 +25,8 @@ namespace OpenTemple.Core.Platform
 
         // Used to determine whether a MouseEnter event should be emitted when a mouse event is received
         private bool _mouseFocus;
+
+        private int _mouseCaptureDepth;
 
         public MainWindow(WindowConfig config, IFileSystem fs)
         {
@@ -78,12 +78,12 @@ namespace OpenTemple.Core.Platform
                 _config = value.Copy();
                 CreateWindowRectAndStyles(out var windowRect, out var style, out var styleEx);
 
-                var currentStyles = unchecked((WindowStyles) (long) GetWindowLongPtr(_windowHandle, GWL_STYLE));
+                var currentStyles = unchecked((WindowStyles)(long)GetWindowLongPtr(_windowHandle, GWL_STYLE));
                 currentStyles &= ~(WindowStyles.WS_OVERLAPPEDWINDOW | WindowStyles.WS_POPUP);
                 currentStyles |= style;
 
-                SetWindowLongPtr(_windowHandle, GWL_STYLE, (IntPtr) currentStyles);
-                SetWindowLongPtr(_windowHandle, GWL_EXSTYLE, (IntPtr) styleEx);
+                SetWindowLongPtr(_windowHandle, GWL_STYLE, (IntPtr)currentStyles);
+                SetWindowLongPtr(_windowHandle, GWL_EXSTYLE, (IntPtr)styleEx);
                 SetWindowPos(
                     _windowHandle,
                     IntPtr.Zero,
@@ -177,8 +177,8 @@ namespace OpenTemple.Core.Platform
         private void UpdateUiCanvasSize()
         {
             // Attempt to fit 1024x768 onto the backbuffer
-            var horScale = MathF.Max(1, _width / (float) _uiCanvasTargetSize.Width);
-            var verScale = MathF.Max(1, _height / (float) _uiCanvasTargetSize.Height);
+            var horScale = MathF.Max(1, _width / (float)_uiCanvasTargetSize.Width);
+            var verScale = MathF.Max(1, _height / (float)_uiCanvasTargetSize.Height);
             UiScale = Math.Min(horScale, verScale);
 
             UiCanvasSize = new SizeF(MathF.Floor(_width / UiScale), MathF.Floor(_height / UiScale));
@@ -193,7 +193,7 @@ namespace OpenTemple.Core.Platform
 
             if (isForeground)
             {
-                RECT rect = new RECT {X = x, Y = y, Right = x + w, Bottom = y + h};
+                RECT rect = new RECT { X = x, Y = y, Right = x + w, Bottom = y + h };
 
                 ClipCursor(ref rect);
                 unsetClip = false;
@@ -236,7 +236,8 @@ namespace OpenTemple.Core.Platform
                 cbSize = Marshal.SizeOf<WNDCLASSEX>(),
                 // Make sure to use the delegate object here, otherwise .NET might create a temporary one,
                 // but we need to ensure the native twin of this delegate will live as long as the App.
-                lpfnWndProc = (IntPtr)(delegate* unmanaged[Stdcall]<IntPtr, uint, nuint, nint, IntPtr>)&WndProcTrampoline,
+                lpfnWndProc =
+                    (IntPtr)(delegate* unmanaged[Stdcall]<IntPtr, uint, nuint, nint, IntPtr>)&WndProcTrampoline,
                 hInstance = _instanceHandle,
                 hIcon = LoadIcon(_instanceHandle, "icon"),
                 hCursor = LoadCursor(IntPtr.Zero, IDC_ARROW),
@@ -334,7 +335,7 @@ namespace OpenTemple.Core.Platform
             }
         }
 
-        [UnmanagedCallersOnly(CallConvs = new []{typeof(CallConvStdcall)})]
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
         private static IntPtr WndProcTrampoline(IntPtr hWnd, uint msg, nuint wparam, nint lparam)
         {
             // Retrieve our this pointer from the wnd
@@ -345,7 +346,7 @@ namespace OpenTemple.Core.Platform
 
                 if (handle.IsAllocated)
                 {
-                    var mainWindow = (MainWindow) handle.Target;
+                    var mainWindow = (MainWindow)handle.Target;
                     return mainWindow.WndProc(hWnd, msg, wparam, lparam);
                 }
             }
@@ -372,7 +373,7 @@ namespace OpenTemple.Core.Platform
             {
                 case WM_SETFOCUS:
                     // Make our window topmost unless a debugger is attached
-                    if ((IntPtr) (nint) wParam == _windowHandle && !IsDebuggerPresent())
+                    if ((IntPtr)(nint)wParam == _windowHandle && !IsDebuggerPresent())
                     {
                         SetWindowPos(_windowHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
                     }
@@ -380,7 +381,7 @@ namespace OpenTemple.Core.Platform
                     break;
                 case WM_KILLFOCUS:
                     // Make our window topmost unless a debugger is attached
-                    if ((IntPtr) (nint) wParam == _windowHandle && !IsDebuggerPresent())
+                    if ((IntPtr)(nint)wParam == _windowHandle && !IsDebuggerPresent())
                     {
                         SetWindowPos(_windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0,
                             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
@@ -397,7 +398,7 @@ namespace OpenTemple.Core.Platform
                 case WM_GETMINMAXINFO:
                     unsafe
                     {
-                        var minMaxInfo = (MinMaxInfo*) lParam;
+                        var minMaxInfo = (MinMaxInfo*)lParam;
                         minMaxInfo->ptMinTrackSize.X = _config.MinWidth;
                         minMaxInfo->ptMinTrackSize.Y = _config.MinHeight;
                     }
@@ -421,7 +422,7 @@ namespace OpenTemple.Core.Platform
                     Closed?.Invoke();
                     break;
                 case WM_QUIT:
-                    Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs((int) wParam)));
+                    Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs((int)wParam)));
                     Closed?.Invoke();
                     break;
                 case WM_LBUTTONDOWN:
@@ -469,7 +470,7 @@ namespace OpenTemple.Core.Platform
                 case WM_SYSKEYDOWN:
                 case WM_KEYDOWN:
                 {
-                    var key = (DIK) ToDirectInputKey((VirtualKey) wParam);
+                    var key = (DIK)ToDirectInputKey((VirtualKey)wParam);
                     if (key != 0)
                     {
                         Tig.MessageQueue.Enqueue(new Message(
@@ -486,7 +487,7 @@ namespace OpenTemple.Core.Platform
                 case WM_KEYUP:
                 case WM_SYSKEYUP:
                 {
-                    var key = (DIK) ToDirectInputKey((VirtualKey) wParam);
+                    var key = (DIK)ToDirectInputKey((VirtualKey)wParam);
                     if (key != 0)
                     {
                         Tig.MessageQueue.Enqueue(new Message(
@@ -501,7 +502,7 @@ namespace OpenTemple.Core.Platform
                 }
                     break;
                 case WM_CHAR:
-                    Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs((char) wParam)));
+                    Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs((char)wParam)));
                     break;
                 case WM_MOUSEWHEEL:
                     HandleMouseWheelEvent(hWnd, wParam, lParam);
@@ -558,6 +559,20 @@ namespace OpenTemple.Core.Platform
         private void HandleMouseButtonEvent(WindowEventType type, MouseButton button, IntPtr hWnd, ulong wParam,
             long lParam)
         {
+            // When a mouse button is pressed, capture the mouse in order to guarantee receiving a mouse up event
+            if (type == WindowEventType.MouseDown && _mouseCaptureDepth <= 0)
+            {
+                SetCapture(hWnd);
+                _mouseCaptureDepth++;
+            }
+            else if (type == WindowEventType.MouseUp)
+            {
+                if (--_mouseCaptureDepth <= 0)
+                {
+                    ReleaseCapture();
+                }
+            }
+
             HandleMouseFocusEvent(true);
             var windowPos = new Point(
                 WindowsMessageUtils.GetXParam(lParam),
@@ -646,6 +661,7 @@ namespace OpenTemple.Core.Platform
         private const uint WM_XBUTTONDOWN = 0x020B;
         private const uint WM_XBUTTONUP = 0x020C;
         private const uint WM_MOUSELEAVE = 0x02A3;
+        private const uint WM_CAPTURECHANGED = 0x0215;
 
         private const uint SC_KEYMENU = 0xF100;
         private const uint SC_SCREENSAVE = 0xF140;
@@ -657,24 +673,24 @@ namespace OpenTemple.Core.Platform
             switch (vk)
             {
                 case VirtualKey.VK_HOME:
-                    return (uint) DIK.DIK_HOME; /* Home on arrow keypad */
+                    return (uint)DIK.DIK_HOME; /* Home on arrow keypad */
                 case VirtualKey.VK_END:
-                    return (uint) DIK.DIK_END; /* End on arrow keypad */
+                    return (uint)DIK.DIK_END; /* End on arrow keypad */
                 case VirtualKey.VK_PRIOR:
-                    return (uint) DIK.DIK_PRIOR; /* PgUp on arrow keypad */
+                    return (uint)DIK.DIK_PRIOR; /* PgUp on arrow keypad */
                 case VirtualKey.VK_NEXT:
-                    return (uint) DIK.DIK_NEXT; /* PgDn on arrow keypad */
+                    return (uint)DIK.DIK_NEXT; /* PgDn on arrow keypad */
                 case VirtualKey.VK_VOLUME_DOWN:
-                    return (uint) DIK.DIK_VOLUMEDOWN;
+                    return (uint)DIK.DIK_VOLUMEDOWN;
                 case VirtualKey.VK_VOLUME_UP:
-                    return (uint) DIK.DIK_VOLUMEUP;
+                    return (uint)DIK.DIK_VOLUMEUP;
                 case VirtualKey.VK_VOLUME_MUTE:
-                    return (uint) DIK.DIK_MUTE;
+                    return (uint)DIK.DIK_MUTE;
             }
 
             // This seems to map using scan codes, which
             // actually look like original US keyboard ones
-            var mapped = MapVirtualKey((uint) vk, MAPVK_VK_TO_VSC);
+            var mapped = MapVirtualKey((uint)vk, MAPVK_VK_TO_VSC);
             if (mapped != 0)
             {
                 return mapped;
@@ -683,226 +699,226 @@ namespace OpenTemple.Core.Platform
             switch (vk)
             {
                 case VirtualKey.VK_ESCAPE:
-                    return (byte) DIK.DIK_ESCAPE;
+                    return (byte)DIK.DIK_ESCAPE;
                 case VirtualKey.VK_1:
-                    return (byte) DIK.DIK_1;
+                    return (byte)DIK.DIK_1;
                 case VirtualKey.VK_2:
-                    return (byte) DIK.DIK_2;
+                    return (byte)DIK.DIK_2;
                 case VirtualKey.VK_3:
-                    return (byte) DIK.DIK_3;
+                    return (byte)DIK.DIK_3;
                 case VirtualKey.VK_4:
-                    return (byte) DIK.DIK_4;
+                    return (byte)DIK.DIK_4;
                 case VirtualKey.VK_5:
-                    return (byte) DIK.DIK_5;
+                    return (byte)DIK.DIK_5;
                 case VirtualKey.VK_6:
-                    return (byte) DIK.DIK_6;
+                    return (byte)DIK.DIK_6;
                 case VirtualKey.VK_7:
-                    return (byte) DIK.DIK_7;
+                    return (byte)DIK.DIK_7;
                 case VirtualKey.VK_8:
-                    return (byte) DIK.DIK_8;
+                    return (byte)DIK.DIK_8;
                 case VirtualKey.VK_9:
-                    return (byte) DIK.DIK_9;
+                    return (byte)DIK.DIK_9;
                 case VirtualKey.VK_0:
-                    return (byte) DIK.DIK_0;
+                    return (byte)DIK.DIK_0;
                 case VirtualKey.VK_OEM_MINUS:
-                    return (byte) DIK.DIK_MINUS /* - on main keyboard */;
+                    return (byte)DIK.DIK_MINUS /* - on main keyboard */;
                 case VirtualKey.VK_OEM_PLUS:
-                    return (byte) DIK.DIK_EQUALS;
+                    return (byte)DIK.DIK_EQUALS;
                 case VirtualKey.VK_BACK:
-                    return (byte) DIK.DIK_BACK /* backspace */;
+                    return (byte)DIK.DIK_BACK /* backspace */;
                 case VirtualKey.VK_TAB:
-                    return (byte) DIK.DIK_TAB;
+                    return (byte)DIK.DIK_TAB;
                 case VirtualKey.VK_Q:
-                    return (byte) DIK.DIK_Q;
+                    return (byte)DIK.DIK_Q;
                 case VirtualKey.VK_W:
-                    return (byte) DIK.DIK_W;
+                    return (byte)DIK.DIK_W;
                 case VirtualKey.VK_E:
-                    return (byte) DIK.DIK_E;
+                    return (byte)DIK.DIK_E;
                 case VirtualKey.VK_R:
-                    return (byte) DIK.DIK_R;
+                    return (byte)DIK.DIK_R;
                 case VirtualKey.VK_T:
-                    return (byte) DIK.DIK_T;
+                    return (byte)DIK.DIK_T;
                 case VirtualKey.VK_Y:
-                    return (byte) DIK.DIK_Y;
+                    return (byte)DIK.DIK_Y;
                 case VirtualKey.VK_U:
-                    return (byte) DIK.DIK_U;
+                    return (byte)DIK.DIK_U;
                 case VirtualKey.VK_I:
-                    return (byte) DIK.DIK_I;
+                    return (byte)DIK.DIK_I;
                 case VirtualKey.VK_O:
-                    return (byte) DIK.DIK_O;
+                    return (byte)DIK.DIK_O;
                 case VirtualKey.VK_P:
-                    return (byte) DIK.DIK_P;
+                    return (byte)DIK.DIK_P;
                 case VirtualKey.VK_OEM_4:
-                    return (byte) DIK.DIK_LBRACKET;
+                    return (byte)DIK.DIK_LBRACKET;
                 case VirtualKey.VK_OEM_6:
-                    return (byte) DIK.DIK_RBRACKET;
+                    return (byte)DIK.DIK_RBRACKET;
                 case VirtualKey.VK_RETURN:
-                    return (byte) DIK.DIK_RETURN /* Enter on main keyboard */;
+                    return (byte)DIK.DIK_RETURN /* Enter on main keyboard */;
                 case VirtualKey.VK_LCONTROL:
-                    return (byte) DIK.DIK_LCONTROL;
+                    return (byte)DIK.DIK_LCONTROL;
                 case VirtualKey.VK_A:
-                    return (byte) DIK.DIK_A;
+                    return (byte)DIK.DIK_A;
                 case VirtualKey.VK_S:
-                    return (byte) DIK.DIK_S;
+                    return (byte)DIK.DIK_S;
                 case VirtualKey.VK_D:
-                    return (byte) DIK.DIK_D;
+                    return (byte)DIK.DIK_D;
                 case VirtualKey.VK_F:
-                    return (byte) DIK.DIK_F;
+                    return (byte)DIK.DIK_F;
                 case VirtualKey.VK_G:
-                    return (byte) DIK.DIK_G;
+                    return (byte)DIK.DIK_G;
                 case VirtualKey.VK_H:
-                    return (byte) DIK.DIK_H;
+                    return (byte)DIK.DIK_H;
                 case VirtualKey.VK_J:
-                    return (byte) DIK.DIK_J;
+                    return (byte)DIK.DIK_J;
                 case VirtualKey.VK_K:
-                    return (byte) DIK.DIK_K;
+                    return (byte)DIK.DIK_K;
                 case VirtualKey.VK_L:
-                    return (byte) DIK.DIK_L;
+                    return (byte)DIK.DIK_L;
                 case VirtualKey.VK_OEM_1:
-                    return (byte) DIK.DIK_SEMICOLON;
+                    return (byte)DIK.DIK_SEMICOLON;
                 case VirtualKey.VK_OEM_7:
-                    return (byte) DIK.DIK_APOSTROPHE;
+                    return (byte)DIK.DIK_APOSTROPHE;
                 case VirtualKey.VK_OEM_3:
-                    return (byte) DIK.DIK_GRAVE /* accent grave */;
+                    return (byte)DIK.DIK_GRAVE /* accent grave */;
                 case VirtualKey.VK_LSHIFT:
-                    return (byte) DIK.DIK_LSHIFT;
+                    return (byte)DIK.DIK_LSHIFT;
                 case VirtualKey.VK_OEM_5:
-                    return (byte) DIK.DIK_BACKSLASH;
+                    return (byte)DIK.DIK_BACKSLASH;
                 case VirtualKey.VK_Z:
-                    return (byte) DIK.DIK_Z;
+                    return (byte)DIK.DIK_Z;
                 case VirtualKey.VK_X:
-                    return (byte) DIK.DIK_X;
+                    return (byte)DIK.DIK_X;
                 case VirtualKey.VK_C:
-                    return (byte) DIK.DIK_C;
+                    return (byte)DIK.DIK_C;
                 case VirtualKey.VK_V:
-                    return (byte) DIK.DIK_V;
+                    return (byte)DIK.DIK_V;
                 case VirtualKey.VK_B:
-                    return (byte) DIK.DIK_B;
+                    return (byte)DIK.DIK_B;
                 case VirtualKey.VK_N:
-                    return (byte) DIK.DIK_N;
+                    return (byte)DIK.DIK_N;
                 case VirtualKey.VK_M:
-                    return (byte) DIK.DIK_M;
+                    return (byte)DIK.DIK_M;
                 case VirtualKey.VK_OEM_COMMA:
-                    return (byte) DIK.DIK_COMMA;
+                    return (byte)DIK.DIK_COMMA;
                 case VirtualKey.VK_OEM_PERIOD:
-                    return (byte) DIK.DIK_PERIOD /* . on main keyboard */;
+                    return (byte)DIK.DIK_PERIOD /* . on main keyboard */;
                 case VirtualKey.VK_OEM_2:
-                    return (byte) DIK.DIK_SLASH /* / on main keyboard */;
+                    return (byte)DIK.DIK_SLASH /* / on main keyboard */;
                 case VirtualKey.VK_RSHIFT:
-                    return (byte) DIK.DIK_RSHIFT;
+                    return (byte)DIK.DIK_RSHIFT;
                 case VirtualKey.VK_MULTIPLY:
-                    return (byte) DIK.DIK_MULTIPLY /* * on numeric keypad */;
+                    return (byte)DIK.DIK_MULTIPLY /* * on numeric keypad */;
                 case VirtualKey.VK_LMENU:
-                    return (byte) DIK.DIK_LMENU /* left Alt */;
+                    return (byte)DIK.DIK_LMENU /* left Alt */;
                 case VirtualKey.VK_SPACE:
-                    return (byte) DIK.DIK_SPACE;
+                    return (byte)DIK.DIK_SPACE;
                 case VirtualKey.VK_CAPITAL:
-                    return (byte) DIK.DIK_CAPITAL;
+                    return (byte)DIK.DIK_CAPITAL;
                 case VirtualKey.VK_F1:
-                    return (byte) DIK.DIK_F1;
+                    return (byte)DIK.DIK_F1;
                 case VirtualKey.VK_F2:
-                    return (byte) DIK.DIK_F2;
+                    return (byte)DIK.DIK_F2;
                 case VirtualKey.VK_F3:
-                    return (byte) DIK.DIK_F3;
+                    return (byte)DIK.DIK_F3;
                 case VirtualKey.VK_F4:
-                    return (byte) DIK.DIK_F4;
+                    return (byte)DIK.DIK_F4;
                 case VirtualKey.VK_F5:
-                    return (byte) DIK.DIK_F5;
+                    return (byte)DIK.DIK_F5;
                 case VirtualKey.VK_F6:
-                    return (byte) DIK.DIK_F6;
+                    return (byte)DIK.DIK_F6;
                 case VirtualKey.VK_F7:
-                    return (byte) DIK.DIK_F7;
+                    return (byte)DIK.DIK_F7;
                 case VirtualKey.VK_F8:
-                    return (byte) DIK.DIK_F8;
+                    return (byte)DIK.DIK_F8;
                 case VirtualKey.VK_F9:
-                    return (byte) DIK.DIK_F9;
+                    return (byte)DIK.DIK_F9;
                 case VirtualKey.VK_F10:
-                    return (byte) DIK.DIK_F10;
+                    return (byte)DIK.DIK_F10;
                 case VirtualKey.VK_NUMLOCK:
-                    return (byte) DIK.DIK_NUMLOCK;
+                    return (byte)DIK.DIK_NUMLOCK;
                 case VirtualKey.VK_SCROLL:
-                    return (byte) DIK.DIK_SCROLL /* Scroll Lock */;
+                    return (byte)DIK.DIK_SCROLL /* Scroll Lock */;
                 case VirtualKey.VK_NUMPAD7:
-                    return (byte) DIK.DIK_NUMPAD7;
+                    return (byte)DIK.DIK_NUMPAD7;
                 case VirtualKey.VK_NUMPAD8:
-                    return (byte) DIK.DIK_NUMPAD8;
+                    return (byte)DIK.DIK_NUMPAD8;
                 case VirtualKey.VK_NUMPAD9:
-                    return (byte) DIK.DIK_NUMPAD9;
+                    return (byte)DIK.DIK_NUMPAD9;
                 case VirtualKey.VK_SUBTRACT:
-                    return (byte) DIK.DIK_SUBTRACT /* - on numeric keypad */;
+                    return (byte)DIK.DIK_SUBTRACT /* - on numeric keypad */;
                 case VirtualKey.VK_NUMPAD4:
-                    return (byte) DIK.DIK_NUMPAD4;
+                    return (byte)DIK.DIK_NUMPAD4;
                 case VirtualKey.VK_NUMPAD5:
-                    return (byte) DIK.DIK_NUMPAD5;
+                    return (byte)DIK.DIK_NUMPAD5;
                 case VirtualKey.VK_NUMPAD6:
-                    return (byte) DIK.DIK_NUMPAD6;
+                    return (byte)DIK.DIK_NUMPAD6;
                 case VirtualKey.VK_ADD:
-                    return (byte) DIK.DIK_ADD /* + on numeric keypad */;
+                    return (byte)DIK.DIK_ADD /* + on numeric keypad */;
                 case VirtualKey.VK_NUMPAD1:
-                    return (byte) DIK.DIK_NUMPAD1;
+                    return (byte)DIK.DIK_NUMPAD1;
                 case VirtualKey.VK_NUMPAD2:
-                    return (byte) DIK.DIK_NUMPAD2;
+                    return (byte)DIK.DIK_NUMPAD2;
                 case VirtualKey.VK_NUMPAD3:
-                    return (byte) DIK.DIK_NUMPAD3;
+                    return (byte)DIK.DIK_NUMPAD3;
                 case VirtualKey.VK_NUMPAD0:
-                    return (byte) DIK.DIK_NUMPAD0;
+                    return (byte)DIK.DIK_NUMPAD0;
                 case VirtualKey.VK_DECIMAL:
-                    return (byte) DIK.DIK_DECIMAL /* . on numeric keypad */;
+                    return (byte)DIK.DIK_DECIMAL /* . on numeric keypad */;
                 case VirtualKey.VK_F11:
-                    return (byte) DIK.DIK_F11;
+                    return (byte)DIK.DIK_F11;
                 case VirtualKey.VK_F12:
-                    return (byte) DIK.DIK_F12;
+                    return (byte)DIK.DIK_F12;
                 case VirtualKey.VK_F13:
-                    return (byte) DIK.DIK_F13 /* (NEC PC98) */;
+                    return (byte)DIK.DIK_F13 /* (NEC PC98) */;
                 case VirtualKey.VK_F14:
-                    return (byte) DIK.DIK_F14 /* (NEC PC98) */;
+                    return (byte)DIK.DIK_F14 /* (NEC PC98) */;
                 case VirtualKey.VK_F15:
-                    return (byte) DIK.DIK_F15 /* (NEC PC98) */;
+                    return (byte)DIK.DIK_F15 /* (NEC PC98) */;
                 case VirtualKey.VK_RCONTROL:
-                    return (byte) DIK.DIK_RCONTROL;
+                    return (byte)DIK.DIK_RCONTROL;
                 case VirtualKey.VK_DIVIDE:
-                    return (byte) DIK.DIK_DIVIDE /* / on numeric keypad */;
+                    return (byte)DIK.DIK_DIVIDE /* / on numeric keypad */;
                 case VirtualKey.VK_RMENU:
-                    return (byte) DIK.DIK_RMENU /* right Alt */;
+                    return (byte)DIK.DIK_RMENU /* right Alt */;
                 case VirtualKey.VK_HOME:
-                    return (byte) DIK.DIK_HOME /* Home on arrow keypad */;
+                    return (byte)DIK.DIK_HOME /* Home on arrow keypad */;
                 case VirtualKey.VK_UP:
-                    return (byte) DIK.DIK_UP /* UpArrow on arrow keypad */;
+                    return (byte)DIK.DIK_UP /* UpArrow on arrow keypad */;
                 case VirtualKey.VK_PRIOR:
-                    return (byte) DIK.DIK_PRIOR /* PgUp on arrow keypad */;
+                    return (byte)DIK.DIK_PRIOR /* PgUp on arrow keypad */;
                 case VirtualKey.VK_LEFT:
-                    return (byte) DIK.DIK_LEFT /* LeftArrow on arrow keypad */;
+                    return (byte)DIK.DIK_LEFT /* LeftArrow on arrow keypad */;
                 case VirtualKey.VK_RIGHT:
-                    return (byte) DIK.DIK_RIGHT /* RightArrow on arrow keypad */;
+                    return (byte)DIK.DIK_RIGHT /* RightArrow on arrow keypad */;
                 case VirtualKey.VK_END:
-                    return (byte) DIK.DIK_END /* End on arrow keypad */;
+                    return (byte)DIK.DIK_END /* End on arrow keypad */;
                 case VirtualKey.VK_DOWN:
-                    return (byte) DIK.DIK_DOWN /* DownArrow on arrow keypad */;
+                    return (byte)DIK.DIK_DOWN /* DownArrow on arrow keypad */;
                 case VirtualKey.VK_NEXT:
-                    return (byte) DIK.DIK_NEXT /* PgDn on arrow keypad */;
+                    return (byte)DIK.DIK_NEXT /* PgDn on arrow keypad */;
                 case VirtualKey.VK_INSERT:
-                    return (byte) DIK.DIK_INSERT /* Insert on arrow keypad */;
+                    return (byte)DIK.DIK_INSERT /* Insert on arrow keypad */;
                 case VirtualKey.VK_DELETE:
-                    return (byte) DIK.DIK_DELETE /* Delete on arrow keypad */;
+                    return (byte)DIK.DIK_DELETE /* Delete on arrow keypad */;
                 case VirtualKey.VK_LWIN:
-                    return (byte) DIK.DIK_LWIN /* Left Windows key */;
+                    return (byte)DIK.DIK_LWIN /* Left Windows key */;
                 case VirtualKey.VK_RWIN:
-                    return (byte) DIK.DIK_RWIN /* Right Windows key */;
+                    return (byte)DIK.DIK_RWIN /* Right Windows key */;
                 case VirtualKey.VK_APPS:
-                    return (byte) DIK.DIK_APPS /* AppMenu key */;
+                    return (byte)DIK.DIK_APPS /* AppMenu key */;
                 case VirtualKey.VK_PAUSE:
-                    return (byte) DIK.DIK_PAUSE;
+                    return (byte)DIK.DIK_PAUSE;
                 case VirtualKey.VK_SNAPSHOT:
-                    return (byte) DIK.DIK_SYSRQ; // (print screen);
+                    return (byte)DIK.DIK_SYSRQ; // (print screen);
                 default:
                     return 0;
             }
         }
 
-        const uint MAPVK_VK_TO_VSC = 0x00;
+        private const uint MAPVK_VK_TO_VSC = 0x00;
 
         [DllImport("user32.dll")]
-        static extern uint MapVirtualKey(uint uCode, uint uMapType);
+        private static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
@@ -918,8 +934,8 @@ namespace OpenTemple.Core.Platform
             SWP_NOACTIVATE = 0x0010,
             SWP_FRAMECHANGED = 0x0020;
 
-        static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
 
         private WindowMsgFilter mWindowMsgFilter;
 
@@ -938,8 +954,7 @@ namespace OpenTemple.Core.Platform
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.U2)]
-        static extern short RegisterClassEx([In]
-            ref WNDCLASSEX lpwcx);
+        private static extern short RegisterClassEx([In] ref WNDCLASSEX lpwcx);
 
         [DllImport("gdi32.dll")]
         private static extern IntPtr GetStockObject(StockObjects fnObject);
@@ -971,10 +986,10 @@ namespace OpenTemple.Core.Platform
 
         // Check https://stackoverflow.com/questions/54833997/i-keep-getting-unable-to-find-an-entry-point-named-getwindowlongptra-in-dll
         // for why this is required
-        [DllImport("user32.dll", EntryPoint="GetWindowLong")]
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong")]
         private static extern IntPtr GetWindowLongPtr32(IntPtr hWnd, int nIndex);
 
-        [DllImport("user32.dll", EntryPoint="GetWindowLongPtr")]
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
         private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
 
         private static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
@@ -1008,13 +1023,19 @@ namespace OpenTemple.Core.Platform
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern IntPtr LoadIcon(IntPtr hInstance, string lpIconName);
+        private static extern IntPtr LoadIcon(IntPtr hInstance, string lpIconName);
 
         [DllImport("user32.dll")]
-        static extern int GetSystemMetrics(SystemMetric smIndex);
+        private static extern int GetSystemMetrics(SystemMetric smIndex);
 
         [DllImport("user32.dll", SetLastError = true)]
-        static extern bool TrackMouseEvent(ref TRACKMOUSEEVENT lpEventTrack);
+        private static extern bool TrackMouseEvent(ref TRACKMOUSEEVENT lpEventTrack);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool ReleaseCapture();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SetCapture(IntPtr hWnd);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr CreateWindowEx(

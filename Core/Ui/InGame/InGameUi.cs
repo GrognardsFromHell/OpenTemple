@@ -91,8 +91,6 @@ namespace OpenTemple.Core.Ui.InGame
             // TODO: This should be the viewport that receives the mouse event and x,y should be local to it
             var viewport = GameViews.Primary;
 
-            DoKeyboardScrolling();
-
             if (UiSystems.RadialMenu.HandleMessage(msg))
             {
                 return;
@@ -1008,55 +1006,6 @@ namespace OpenTemple.Core.Ui.InGame
                 {
                     UiSystems.Party.ForceHovered = mouseTarget;
                 }
-            }
-        }
-
-        [TempleDllLocation(0x10113fb0)]
-        private void DoKeyboardScrolling()
-        {
-            // TODO: This is very stupid...
-            if (Tig.Console.IsVisible || UiSystems.ItemCreation.IsVisible || UiSystems.TextEntry.IsVisible)
-            {
-                return;
-            }
-
-            if (Tig.Keyboard.IsPressed(DIK.DIK_UP))
-            {
-                if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_LEFT);
-                }
-                else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_RIGHT);
-                }
-                else
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP);
-                }
-            }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_DOWN))
-            {
-                if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_LEFT);
-                }
-                else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_RIGHT);
-                }
-                else
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN);
-                }
-            }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
-            {
-                GameSystems.Scroll.SetScrollDirection(ScrollDirection.LEFT);
-            }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
-            {
-                GameSystems.Scroll.SetScrollDirection(ScrollDirection.RIGHT);
             }
         }
 
