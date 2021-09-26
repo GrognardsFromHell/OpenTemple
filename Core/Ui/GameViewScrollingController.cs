@@ -78,8 +78,7 @@ namespace OpenTemple.Core.Ui
                 return;
             }
 
-            var sceneIdx = UiSystems.InGame.GetActiveSceneIdx();
-            if (!UiSystems.InGame.IsMouseScrollingEnabled(sceneIdx))
+            if (!IsMouseScrolling)
             {
                 return;
             }
@@ -145,5 +144,7 @@ namespace OpenTemple.Core.Ui
                 GameSystems.Scroll.SetScrollDirection(scrollDir.Value);
             }
         }
+
+        public bool IsMouseScrolling { get; set; } = true;
     }
 }

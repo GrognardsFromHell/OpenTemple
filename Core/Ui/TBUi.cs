@@ -33,8 +33,7 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x1014e170)]
         public void OnAfterMapLoad()
         {
-            UiSystems.InGame.SetScene(0);
-            UiSystems.InGame.SetScene(0);
+            UiSystems.Dialog.CancelDialog();
 
             if (GameSystems.MapObject.GlobalStashedObject != null)
             {

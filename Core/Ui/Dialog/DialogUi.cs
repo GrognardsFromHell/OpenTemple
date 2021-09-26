@@ -375,6 +375,15 @@ namespace OpenTemple.Core.Ui.Dialog
             DialogCreateBubble(critter, speakingto, critter.IsNPC() ? 2 : 0, -1, text, speechid);
         }
 
+        // This replaces calling 0x10115040 with 0 (popping the current dialog scene)
+        public void CancelDialog()
+        {
+            if (dialog_slot_idx != null)
+            {
+                CancelDialog(dialog_slot_idx.pc);
+            }
+        }
+
         [TempleDllLocation(0x1014BA40)]
         public void CancelDialog(GameObjectBody obj)
         {
@@ -400,7 +409,7 @@ namespace OpenTemple.Core.Ui.Dialog
         {
             UiSystems.Tooltip.TooltipsEnabled = true;
             Hide();
-            UiSystems.InGame.SetScene(0);
+            CancelDialog();
         }
 
         [TempleDllLocation(0x1014bad0)]
@@ -462,7 +471,7 @@ namespace OpenTemple.Core.Ui.Dialog
             if (!GameSystems.Critter.IsDeadNullDestroyed(pc)
                 && !GameSystems.Critter.IsDeadOrUnconscious(pc)
                 && GameSystems.AI.GetCannotTalkReason(npc, pc) == 0
-                && (!GameSystems.Party.IsInParty(pc) || UiSystems.InGame.GetActiveSceneIdx() != 3))
+                && (!GameSystems.Party.IsInParty(pc) || !IsVisible))
             {
                 GameSystems.Anim.InterruptAllExceptFidgetOrIdle();
                 if (GameSystems.Combat.IsCombatModeActive(pc))
@@ -581,8 +590,6 @@ namespace OpenTemple.Core.Ui.Dialog
 
             UiSystems.Tooltip.TooltipsEnabled = false;
             UiDialogBegin();
-            UiSystems.InGame.SetScene(0);
-            UiSystems.InGame.SetScene(3);
         }
 
         [TempleDllLocation(0x10bec344)]

@@ -311,9 +311,10 @@ namespace OpenTemple.Core.Ui.InGame
                         {
                             var screenPos = GameViews.Primary.WorldToScreen(leaderLoc.ToInches3D());
 
-                            UiSystems.RadialMenu.Spawn((int) screenPos.X, (int) screenPos.Y);
+                            UiSystems.RadialMenu.Spawn((int)screenPos.X, (int)screenPos.Y);
                             UiSystems.RadialMenu.HandleKeyMessage(args);
                         }
+
                         return;
                     }
 
@@ -1056,128 +1057,6 @@ namespace OpenTemple.Core.Ui.InGame
             else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.RIGHT);
-            }
-        }
-
-        [TempleDllLocation(0x10BD3B68)]
-        private bool _isRecovering;
-
-        [TempleDllLocation(0x10BD3AFC)]
-        private int[] objRecovery_10BD3AFC = new int[10];
-
-        [TempleDllLocation(0x10BD3B44)]
-        private int idx_10BD3B44;
-
-        [TempleDllLocation(0x102F6A28)]
-        private bool[] dword_102F6A28 = new bool[10]
-        {
-            true, true, true, true, false, true, false, false, false, false
-        };
-
-        [TempleDllLocation(0x10113CD0)]
-        public int GetActiveSceneIdx()
-        {
-            return objRecovery_10BD3AFC[idx_10BD3B44];
-        }
-
-        /**
-         * Main loop will only do mouse scrolling when this function returns true.
-         * The argument is what is returned by the sub above (sub_10113CD0).
-         */
-        [TempleDllLocation(0x10113D40)]
-        public bool IsMouseScrollingEnabled(int sceneIndex)
-        {
-            return dword_102F6A28[sceneIndex];
-        }
-
-        [TempleDllLocation(0x10115040)]
-        public void SetScene(int a1)
-        {
-            // TODO
-
-            if (_isRecovering)
-            {
-                return;
-            }
-
-            int v4; // edi@2
-            int v5; // eax@3
-            int v6; // ecx@5
-
-            var v1 = false;
-            var v2 = false;
-            var v3 = false;
-            v4 = a1;
-            while (true)
-            {
-                v5 = objRecovery_10BD3AFC[idx_10BD3B44];
-                _isRecovering = true;
-
-                if (v4 != 0)
-                {
-                    idx_10BD3B44++;
-                    v1 = true;
-                }
-                else if (idx_10BD3B44 > 0)
-                {
-                    v4 = objRecovery_10BD3AFC[idx_10BD3B44 - 1];
-                    idx_10BD3B44--;
-                    v2 = true;
-                }
-
-                switch (v5)
-                {
-                    case 1:
-                    case 2:
-                        v3 = true;
-                        break;
-                    case 3:
-                        CenterOnPartyLeader();
-                        if (v2)
-                        {
-                            var v7 = GameSystems.Party.GetPCGroupMemberN(0);
-                            UiSystems.Dialog.CancelDialog(v7);
-                        }
-                        else
-                        {
-                            var v8 = GameSystems.Party.GetPCGroupMemberN(0);
-                            UiSystems.Dialog.DialogHideForPartyMember(v8);
-                        }
-
-                        break;
-                    case 5:
-                        // The scroll hook was reset here, but it was never set to anything
-                        break;
-                }
-
-                switch (v4)
-                {
-                    case 0:
-                    case 1:
-                    case 2:
-                        Tig.Mouse.GetState(out var mouseState);
-                        var args = new MessageMouseArgs(mouseState.x, mouseState.y, 0, default);
-                        // TODO: This entire method is... blergh, but for now we can only use the primary viewport
-                        CombatMouseHandler(GameViews.Primary, args);
-                        break;
-                    case 3:
-                        if (!v1)
-                        {
-                            var v9 = GameSystems.Party.GetPCGroupMemberN(0);
-                            UiSystems.Dialog.sub_1014BFF0(v9);
-                        }
-
-                        break;
-                }
-
-                objRecovery_10BD3AFC[idx_10BD3B44] = v4;
-                _isRecovering = false;
-                if (!v3)
-                    return;
-                v4 = 0;
-                v1 = false;
-                v2 = false;
-                v3 = false;
             }
         }
 
