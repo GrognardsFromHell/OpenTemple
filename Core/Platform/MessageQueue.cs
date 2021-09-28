@@ -228,12 +228,6 @@ namespace OpenTemple.Core.Platform
 
         public bool HandleMessage(Message message)
         {
-
-            if (!Globals.UiManager.IsMouseInputEnabled)
-            {
-                return false;
-            }
-
             if (message.type == MessageType.MOUSE && Globals.UiManager.TranslateMouseMessage(message.MouseArgs)) {
                 return true;
             }

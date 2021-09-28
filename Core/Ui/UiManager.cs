@@ -68,11 +68,6 @@ namespace OpenTemple.Core.Ui
         // Hang on to the delegate
         private readonly CursorDrawCallback _renderTooltipCallback;
 
-        [TempleDllLocation(0x103012C4)]
-        [TempleDllLocation(0x101f97b0)]
-        [TempleDllLocation(0x101f97a0)]
-        public bool IsMouseInputEnabled { get; set; } = true;
-
         [TempleDllLocation(0x10EF97C4)]
         [TempleDllLocation(0x101f97d0)]
         [TempleDllLocation(0x101f97e0)]

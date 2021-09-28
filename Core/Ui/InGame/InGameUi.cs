@@ -16,6 +16,7 @@ using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.InGame
 {
@@ -49,7 +50,8 @@ namespace OpenTemple.Core.Ui.InGame
         {
             uiDragSelectOn = false;
             _normalLmbClicked = false;
-            Globals.UiManager.IsMouseInputEnabled = true;
+            // TODO: This should obviously be the one we captured...
+            Globals.UiManager.UnsetMouseCaptureWidget((WidgetBase)GameViews.Primary);
 
             UiSystems.InGameSelect.FocusClear();
         }
@@ -129,9 +131,6 @@ namespace OpenTemple.Core.Ui.InGame
                         }*/
                     }
 
-                    // TODO if ( !viewportIds[viewportIdx + 1] )
-                    // TODO {
-
                     if (GameSystems.Combat.IsCombatActive())
                     {
                         if (!isCombatModeMessage)
@@ -144,8 +143,6 @@ namespace OpenTemple.Core.Ui.InGame
                         isCombatModeMessage = false;
                         HandleNormalModeMessage(viewport, msg);
                     }
-
-                    // TODO }
                 }
             }
         }
@@ -448,7 +445,8 @@ namespace OpenTemple.Core.Ui.InGame
                 var rect = Rectangle.FromLTRB(left, top, right, bottom);
                 UiSystems.InGameSelect.SelectInRectangle(rect);
                 uiDragSelectOn = false;
-                Globals.UiManager.IsMouseInputEnabled = true;
+                // TODO: This should obviously be the one we captured...
+                Globals.UiManager.UnsetMouseCaptureWidget((WidgetBase)viewport);
                 return;
             }
 
@@ -893,7 +891,7 @@ namespace OpenTemple.Core.Ui.InGame
                     if (GetEstimatedSelectionSize(args.X, args.Y) > 25)
                     {
                         uiDragSelectOn = true;
-                        Globals.UiManager.IsMouseInputEnabled = false;
+                        Globals.UiManager.SetMouseCaptureWidget((WidgetBase)viewport);
                     }
                 }
 

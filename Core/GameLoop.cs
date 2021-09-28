@@ -123,11 +123,6 @@ namespace OpenTemple.Core
 
                 // I have not found any place where message type 7 is queued,
                 // so i removed the out of place re-rendering of the game frame
-
-                if (!UiSystems.MainMenu.IsVisible())
-                {
-                    UiSystems.InGame.HandleMessage(msg);
-                }
             }
         }
 

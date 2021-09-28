@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -182,6 +183,10 @@ namespace OpenTemple.Core.Platform
             UiScale = Math.Min(horScale, verScale);
 
             UiCanvasSize = new SizeF(MathF.Floor(_width / UiScale), MathF.Floor(_height / UiScale));
+            if (UiCanvasSize.IsEmpty)
+            {
+                Debugger.Break();
+            }
             UiCanvasSizeChanged?.Invoke();
         }
 
