@@ -18,8 +18,11 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10ab7f8c)]
         private int pfx_render_lightning_bolt;
 
-        [TempleDllLocation(0x10b397b8)]
-        private Vector2 lightning_scratch;
+        [TempleDllLocation(0x10B397B8)]
+        private Vector2 lightning_start;
+
+        [TempleDllLocation(0x10B397C0)]
+        private float[] lightning_scratch = new float[600];
 
         [TempleDllLocation(0x10b397b0)]
         private TimePoint call_lightning_start;
@@ -30,11 +33,10 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10ab7e58)]
         private Vector3 chain_lightning_source;
 
-        [TempleDllLocation(0x10ab7e68)]
-        [TempleDllLocation(0x10ab7e64)]
-        private List<ChainLightningTarget> chain_lightning_targets = new List<ChainLightningTarget>();
+        [TempleDllLocation(0x10ab7e68)] [TempleDllLocation(0x10ab7e64)]
+        private List<ChainLightningTarget> chain_lightning_targets = new();
 
-        private struct ChainLightningTarget
+        private class ChainLightningTarget
         {
             public GameObjectBody Object;
             public Vector3 Location;
@@ -49,17 +51,21 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10ab7f9c)]
         private Vector3 lightning_bolt_target;
 
+        public PerlinNoise Noise { get; } = new ();
+
         // Initializes several random tables, vectors and shuffled int lists as well as the lightning material.
         [TempleDllLocation(0x10087220)]
         public VfxSystem()
         {
-            Stub.TODO();
+            pfx_lightning_render = 0;
+            pfx_chain_lightning_render = 0;
+            pfx_render_lightning_bolt = 0;
         }
 
         [TempleDllLocation(0x10087440)]
         public void CallLightning(LocAndOffsets location)
         {
-            lightning_scratch = location.ToInches2D();
+            lightning_start = location.ToInches2D();
             pfx_lightning_render = 1;
         }
 
@@ -71,6 +77,7 @@ namespace OpenTemple.Core.Systems
             {
                 return boneMatrix.Translation;
             }
+
             return caster.GetLocationFull().ToInches3D();
         }
 
@@ -146,8 +153,6 @@ namespace OpenTemple.Core.Systems
             {
                 RenderLightningBolt();
             }
-
-
         }
 
         private void RenderCallLightning()

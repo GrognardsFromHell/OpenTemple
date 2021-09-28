@@ -528,6 +528,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             loadingScreen.Message = "Loading...";
 
+            Vfx = InitializeSystem(loadingScreen, () => new VfxSystem());
+
             AAS = InitializeSystem(loadingScreen, () => new AASSystem(Tig.FS, Tig.MdfFactory, new AasRenderer(
                 Tig.RenderingDevice,
                 Tig.ShapeRenderer2d,
@@ -718,7 +720,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.Progress = 79 / 79.0f;
             PathX = InitializeSystem(loadingScreen, () => new PathXSystem());
             PathXRender = InitializeSystem(loadingScreen, () => new PathXRenderSystem());
-            Vfx = InitializeSystem(loadingScreen, () => new VfxSystem());
             RollHistory = InitializeSystem(loadingScreen, () => new RollHistorySystem());
             Poison = InitializeSystem(loadingScreen, () => new PoisonSystem());
             Disease = InitializeSystem(loadingScreen, () => new DiseaseSystem());

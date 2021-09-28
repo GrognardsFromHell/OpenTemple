@@ -24,6 +24,8 @@ namespace OpenTemple.Core.Systems
         private const float FullDecelerationTimeHalf = FullDecelerationTime / 2;
         private const float FullDecelerationTimeSquared = FullDecelerationTime * FullDecelerationTime;
 
+        private readonly PerlinNoise _noise;
+
         /// <summary>
         /// Used to animate the scrolling of the main menu background map.
         /// </summary>
@@ -69,6 +71,8 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10005E70)]
         public ScrollSystem()
         {
+            _noise = GameSystems.Vfx.Noise;
+
             ReReadScrollConfig();
             Globals.ConfigManager.OnConfigChanged += ReReadScrollConfig;
             GameSystems.Location.OnMapCentered += CenterViewDirectly;
@@ -297,15 +301,13 @@ namespace OpenTemple.Core.Systems
             var screenShakeElapsed = (float) (time - _screenShakeStart).TotalMilliseconds;
             if (screenShakeElapsed < _screenShakeDuration)
             {
-                var shakeRemaining = (1.0 - screenShakeElapsed / _screenShakeDuration);
+                var shakeRemaining = 1.0 - screenShakeElapsed / _screenShakeDuration;
 
-                var xTime = time.Milliseconds / 50.0f;
-                // TODO RANDOMIZE v7 = sub_10089EE0(v7, 4.0, 4.0, 3);
-                var xOffset = (int) (xTime * _screenShakeAmount * shakeRemaining);
+                var xTime = time.Milliseconds / 50.0;
+                var xOffset = (int) (_noise.Noise1D(xTime) * _screenShakeAmount * shakeRemaining);
 
-                var yTime = (time.Milliseconds + 100) / 50.0f;
-                // TODO RANDOMIZE v10 = sub_10089EE0(v10, 4.0, 4.0, 3);
-                var yOffset = (int) (yTime * _screenShakeAmount * shakeRemaining);
+                var yTime = (time.Milliseconds + 100) / 50.0;
+                var yOffset = (int) (_noise.Noise1D(yTime) * _screenShakeAmount * shakeRemaining);
                 ScrollBy(_currentViewport, xOffset - _screenShakeLastXOffset, yOffset - _screenShakeLastYOffset);
                 _screenShakeLastXOffset = xOffset;
                 _screenShakeLastYOffset = yOffset;
