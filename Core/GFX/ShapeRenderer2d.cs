@@ -294,7 +294,7 @@ namespace OpenTemple.Core.GFX
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.ignoreLighting = true;
             overrides.uiProjection = true;
-            material?.Bind(null, _device, Array.Empty<Light3d>(), overrides);
+            material?.Bind((WorldCamera) null, _device, Array.Empty<Light3d>(), overrides);
 
             _device.SetDepthStencilState(noDepthState);
 

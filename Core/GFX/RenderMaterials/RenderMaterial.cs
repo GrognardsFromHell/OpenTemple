@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using OpenTemple.Core.MaterialDefinitions;
 using OpenTemple.Core.Ui;
@@ -43,7 +44,13 @@ namespace OpenTemple.Core.GFX.RenderMaterials
 
         MdfMaterial GetSpec();
 
-        void Bind(IGameViewport viewport, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null);
+        void Bind([MaybeNull] WorldCamera camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null);
+
+        void Bind([MaybeNull] IGameViewport viewport, RenderingDevice g, IList<Light3d> lights,
+            MdfRenderOverrides overrides = null)
+        {
+            Bind(viewport.Camera, g, lights, overrides);
+        }
 
     }
 }

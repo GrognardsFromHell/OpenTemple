@@ -55,15 +55,15 @@ namespace OpenTemple.Core.GFX.RenderMaterials
 
         public MdfMaterial GetSpec() => mSpec;
 
-        public void Bind(IGameViewport viewport, RenderingDevice device, IList<Light3d> lights,
+        public void Bind([MaybeNull] WorldCamera camera, RenderingDevice device, IList<Light3d> lights,
             MdfRenderOverrides overrides = null)
         {
             device.SetMaterial(mDeviceMaterial);
 
-            BindShader(viewport, device, lights, overrides);
+            BindShader(camera, device, lights, overrides);
         }
 
-        private void BindShader([MaybeNull] IGameViewport viewport,
+        private void BindShader([MaybeNull] WorldCamera camera,
             RenderingDevice device,
             IList<Light3d> lights,
             MdfRenderOverrides overrides)
@@ -78,7 +78,7 @@ namespace OpenTemple.Core.GFX.RenderMaterials
             }
             else
             {
-                viewProj = viewport?.Camera.GetViewProj() ?? device.UiProjection;
+                viewProj = camera?.GetViewProj() ?? device.UiProjection;
             }
 
             // Should we use a separate world matrix?

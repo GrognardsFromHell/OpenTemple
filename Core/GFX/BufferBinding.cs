@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using SharpDX.Mathematics.Interop;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace OpenTemple.Core.GFX

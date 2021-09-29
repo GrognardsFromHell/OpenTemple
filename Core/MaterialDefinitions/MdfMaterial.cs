@@ -27,6 +27,7 @@ namespace OpenTemple.Core.MaterialDefinitions
         public bool clamp = false;
         public bool outline = false; // Ignored during rendering
         public bool wireframe = false; // Ignored during rendering
+        public bool perVertexColor = false; // per-vertex color info (only used for lightning, more or less)
         public List<MdfGeneralMaterialSampler> samplers = new List<MdfGeneralMaterialSampler>();
     };
 }

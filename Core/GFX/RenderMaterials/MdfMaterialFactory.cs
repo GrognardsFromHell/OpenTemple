@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.IO;
@@ -50,11 +51,12 @@ namespace OpenTemple.Core.GFX.RenderMaterials
             return null;
         }
 
-        public ResourceRef<IMdfRenderMaterial> LoadMaterial(string name)
+        public ResourceRef<IMdfRenderMaterial> LoadMaterial(string name, Action<MdfMaterial> customizer = null)
         {
             var nameLower = name.ToLowerInvariant();
 
-            if (mNameRegistry.TryGetValue(name, out var materialRef))
+            // Do not cache if a customizer is present
+            if (customizer == null && mNameRegistry.TryGetValue(name, out var materialRef))
             {
                 return materialRef.CloneRef();
             }
@@ -63,6 +65,7 @@ namespace OpenTemple.Core.GFX.RenderMaterials
                 var mdfContent = _fs.ReadTextFile(name);
                 var parser = new MdfParser(name, mdfContent);
                 var mdfMaterial = parser.Parse();
+	            customizer?.Invoke(mdfMaterial);
 
                 Trace.Assert(_nextFreeId >= 1);
                 // Assign ID
@@ -75,7 +78,10 @@ namespace OpenTemple.Core.GFX.RenderMaterials
                 );
 
                 mIdRegistry[id] = result.CloneRef();
-                mNameRegistry[nameLower] = result.CloneRef();
+                if (customizer == null)
+                {
+	                mNameRegistry[nameLower] = result.CloneRef();
+                }
 
                 return result.CloneRef();
             } catch (Exception e) {
@@ -234,11 +240,8 @@ namespace OpenTemple.Core.GFX.RenderMaterials
 
 		psDefines["TEXTURE_STAGES"] = samplers.Count.ToString(CultureInfo.InvariantCulture);
 		vsDefines["TEXTURE_STAGES"] = samplers.Count.ToString(CultureInfo.InvariantCulture);
-		if (spec.notLit) {
-			vsDefines["LIGHTING"] = "0";
-		} else {
-			vsDefines["LIGHTING"] = "1";
-		}
+		vsDefines["LIGHTING"] = spec.notLit ? "0" : "1";
+		vsDefines["PER_VERTEX_COLOR"] = spec.perVertexColor ? "1" : "0";
 
 		// Special case for highlight shaders until we're able to encode this
 		// in the material file itself
@@ -314,7 +317,7 @@ namespace OpenTemple.Core.GFX.RenderMaterials
 
 	    public MdfMaterial GetSpec() => _spec;
 
-	    public void Bind(IGameViewport viewport, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null)
+	    public void Bind([MaybeNull] WorldCamera camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null)
 	    {
 		    // Simply do nothing
 	    }
