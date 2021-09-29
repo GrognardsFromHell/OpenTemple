@@ -94,18 +94,23 @@ namespace OpenTemple.Tests.TestUtils
 
         private void CreateVideo()
         {
-            var filename = Path.GetFullPath(Test.FullName + "_Video.mp4");
-            var (firstFrameTime, firstFrame) = _frames[0];
+            AttachVideo(Test.FullName + "_Video.mp4", _frames);
+        }
+
+        public static void AttachVideo(string path, IList<(TimePoint, Image<Bgra32>)> frames)
+        {
+            var filename = Path.GetFullPath(path);
+            var (firstFrameTime, firstFrame) = frames[0];
 
             using var encoder = new H264Encoder(filename, new Size(firstFrame.Width, firstFrame.Height));
 
-            foreach (var (time, image) in _frames)
+            foreach (var (time, image) in frames)
             {
                 encoder.Encode(image, (long)(time - firstFrameTime).TotalMilliseconds);
             }
 
             // Repeat the last frame to get a hold-time of 1 second on the last frame
-            var (lastFrameTime, lastFrame) = _frames[^1];
+            var (lastFrameTime, lastFrame) = frames[^1];
             encoder.Encode(lastFrame, (long)(lastFrameTime - firstFrameTime).TotalMilliseconds + 1000);
 
             encoder.Dispose();

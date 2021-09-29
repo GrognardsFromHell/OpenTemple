@@ -8,10 +8,6 @@ namespace OpenTemple.Core.Systems.MapSector
 {
     public class LockedMapSector : IDisposable
     {
-#if DEBUG
-        private readonly StackTrace _stackTrace;
-#endif
-
         [TempleDllLocation(0x10082700)]
         public LockedMapSector(int secX, int secY) : this(new SectorLoc(secX, secY))
         {
@@ -22,9 +18,6 @@ namespace OpenTemple.Core.Systems.MapSector
         {
             Loc = loc;
             Sector = GameSystems.MapSector.LockSector(loc);
-#if DEBUG
-            _stackTrace = new StackTrace(false);
-#endif
         }
 
         public LockedMapSector(locXY tileLocation) : this(new SectorLoc(tileLocation))

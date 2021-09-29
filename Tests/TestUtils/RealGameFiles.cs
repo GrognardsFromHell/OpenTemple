@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.TroikaArchives;
 using OpenTemple.Core.TigSubsystems;
@@ -27,7 +28,8 @@ namespace OpenTemple.Tests.TestUtils
                 );
             }
 
-            FS = TroikaVfs.CreateFromInstallationDir(toeeDir);
+            var dataFolder = Path.Join(TestData.SolutionDir, "Data");
+            FS = (TroikaVfs) Tig.CreateFileSystem(toeeDir, dataFolder);
             Tig.FS = FS;
         }
 

@@ -9,7 +9,7 @@ using OpenTemple.Core.Time;
 using OpenTemple.Core.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Drawing;
+using OpenTemple.Core.GFX;
 using Point = System.Drawing.Point;
 using PointF = System.Drawing.PointF;
 
@@ -152,10 +152,15 @@ namespace OpenTemple.Tests.TestUtils
 
         public Image<Bgra32> TakeScreenshot()
         {
+            return TakeScreenshot(Tig.RenderingDevice);
+        }
+
+        public static Image<Bgra32> TakeScreenshot(RenderingDevice device)
+        {
             Image<Bgra32> result = null;
 
-            Tig.RenderingDevice.ReadRenderTarget(
-                Tig.RenderingDevice.GetCurrentRenderTargetColorBuffer(),
+            device.ReadRenderTarget(
+                device.GetCurrentRenderTargetColorBuffer(),
                 (data, stride, width, height) =>
                 {
                     // Boooo.... It doesn't support stride
