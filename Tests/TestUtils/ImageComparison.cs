@@ -29,6 +29,7 @@ namespace OpenTemple.Tests.TestUtils
             if (imageDiff.PixelErrorCount > 0)
             {
                 // Re-save the expected image so it is next to the actual and difference
+                File.Delete(imageBasename + "_expected.png");
                 File.Copy(expectedPath, imageBasename + "_expected.png");
 
                 // Calculate the difference as an image

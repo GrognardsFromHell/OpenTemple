@@ -1,19 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
+using OpenTemple.Core.Startup;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 
-namespace OpenTemple.Core.Systems
+namespace OpenTemple.Core.Systems.Vfx
 {
     public class VfxSystem : IDisposable
     {
         [TempleDllLocation(0x10b397b4)]
         private int pfx_lightning_render;
-
-        [TempleDllLocation(0x10ab7e54)]
-        private int pfx_chain_lightning_render;
 
         [TempleDllLocation(0x10ab7f8c)]
         private int pfx_render_lightning_bolt;
@@ -21,26 +22,8 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10B397B8)]
         private Vector2 lightning_start;
 
-        [TempleDllLocation(0x10B397C0)]
-        private float[] lightning_scratch = new float[600];
-
         [TempleDllLocation(0x10b397b0)]
         private TimePoint call_lightning_start;
-
-        [TempleDllLocation(0x10ab7e50)]
-        private TimePoint chain_lightning_start;
-
-        [TempleDllLocation(0x10ab7e58)]
-        private Vector3 chain_lightning_source;
-
-        [TempleDllLocation(0x10ab7e68)] [TempleDllLocation(0x10ab7e64)]
-        private List<ChainLightningTarget> chain_lightning_targets = new();
-
-        private class ChainLightningTarget
-        {
-            public GameObjectBody Object;
-            public Vector3 Location;
-        }
 
         [TempleDllLocation(0x10ab7f88)]
         private TimePoint lightning_bolt_start;
@@ -51,15 +34,20 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10ab7f9c)]
         private Vector3 lightning_bolt_target;
 
-        public PerlinNoise Noise { get; } = new ();
+        private readonly ChainLightningRenderer _chainLightningRenderer;
+
+        private ChainLightningEffect _chainLightningEffect;
+
+        public PerlinNoise Noise { get; } = new();
 
         // Initializes several random tables, vectors and shuffled int lists as well as the lightning material.
         [TempleDllLocation(0x10087220)]
         public VfxSystem()
         {
             pfx_lightning_render = 0;
-            pfx_chain_lightning_render = 0;
             pfx_render_lightning_bolt = 0;
+
+            _chainLightningRenderer = new ChainLightningRenderer(Noise);
         }
 
         [TempleDllLocation(0x10087440)]
@@ -98,25 +86,22 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10087480)]
         public void ChainLightning(GameObjectBody caster, IEnumerable<GameObjectBody> targets)
         {
-            chain_lightning_source = GetCastingRef(caster);
+            var origin = GetCastingRef(caster);
 
+            var effectTargets = new List<ChainLightningTarget>();
             foreach (var target in targets)
             {
                 var renderHeight = target.GetRenderHeight();
                 var location = target.GetLocationFull().ToInches3D(renderHeight);
 
-                chain_lightning_targets.Add(new ChainLightningTarget
-                {
-                    Object = target,
-                    Location = location
-                });
+                effectTargets.Add(new ChainLightningTarget(target, location));
             }
 
-            pfx_chain_lightning_render = 1;
+            _chainLightningEffect = new ChainLightningEffect(_chainLightningRenderer, TimePoint.Now, origin, effectTargets);
         }
 
         [TempleDllLocation(0x10087e60)]
-        public void Render()
+        public void Render(IGameViewport viewport)
         {
             if (pfx_lightning_render == 1)
             {
@@ -130,16 +115,13 @@ namespace OpenTemple.Core.Systems
                 RenderCallLightning();
             }
 
-            if (pfx_chain_lightning_render == 1)
+            if (_chainLightningEffect != null)
             {
-                chain_lightning_start = TimePoint.Now;
-                pfx_chain_lightning_render = 2;
-
-                RenderChainLightning();
-            }
-            else if (pfx_chain_lightning_render == 2)
-            {
-                RenderChainLightning();
+                _chainLightningEffect.Render(viewport);
+                if (_chainLightningEffect.AtEnd)
+                {
+                    _chainLightningEffect = null;
+                }
             }
 
             if (pfx_render_lightning_bolt == 1)
@@ -168,6 +150,12 @@ namespace OpenTemple.Core.Systems
         private void RenderLightningBolt()
         {
             throw new NotImplementedException();
+        }
+
+
+        public void render_pfx_lightning_related(IGameViewport viewport)
+        {
+
         }
 
         public void Dispose()

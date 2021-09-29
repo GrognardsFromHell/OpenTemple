@@ -1402,11 +1402,12 @@ namespace OpenTemple.Core.GFX
 
         // Creates a buffer binding for a MDF material that
         // is preinitialized with the correct shader
-        public BufferBinding CreateMdfBufferBinding()
+        public BufferBinding CreateMdfBufferBinding(bool perVertexColor = false)
         {
             var vs = GetShaders().LoadVertexShader("mdf_vs", new Dictionary<string, string>
             {
-                { "TEXTURE_STAGES", "1" } // Necessary so the input struct gets the UVs
+                { "TEXTURE_STAGES", "1" }, // Necessary so the input struct gets the UVs
+                { "PER_VERTEX_COLOR",  perVertexColor ? "1" : "0" } // Enable per-vertex color if necessary
             });
 
             return new BufferBinding(this, vs);
@@ -1947,6 +1948,7 @@ namespace OpenTemple.Core.GFX
                 using var surface = _swapChain.GetBackBuffer<Texture2D>(0);
 
                 var surfaceDesc = surface.Description;
+                Logger.Info("Created Swap Chain: {0}x{1} @ {2}", surfaceDesc.Width, surfaceDesc.Height, surfaceDesc.Format);
 
                 var rtvDesc = new RenderTargetViewDescription();
                 rtvDesc.Format = surfaceDesc.Format;

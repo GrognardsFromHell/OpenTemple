@@ -172,7 +172,7 @@ namespace OpenTemple.Core.TigSubsystems
             }
         }
 
-        private static IFileSystem CreateFileSystem(string installationFolder, string dataDirectory)
+        public static IFileSystem CreateFileSystem(string installationFolder, string dataDirectory)
         {
             Logger.Info("Using ToEE installation from '{0}'", installationFolder);
 

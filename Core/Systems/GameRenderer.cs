@@ -168,7 +168,7 @@ namespace OpenTemple.Core.Systems
 
             // TODO mGmeshRenderer.Render();
 
-            GameSystems.Vfx.Render();
+            GameSystems.Vfx.Render(viewport);
 
             _particleSysRenderer.Render(viewport);
 

@@ -71,7 +71,15 @@ namespace OpenTemple.DynamicScripting
 
         public DynamicScripting()
         {
-            var workspace = new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies));
+            // The default will try to load VisualBasic, which we explicitly want to exclude
+            var mefServices = MefHostServices.Create(new []
+            {
+                Assembly.Load("Microsoft.CodeAnalysis.Workspaces"),
+                Assembly.Load("Microsoft.CodeAnalysis.CSharp.Workspaces"),
+                Assembly.Load("Microsoft.CodeAnalysis.Features"),
+                Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features")
+            });
+            var workspace = new AdhocWorkspace(mefServices);
 
             var scriptProjectInfo = ProjectInfo.Create(
                     ProjectId.CreateNewId(),

@@ -33,6 +33,7 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.Systems.Vfx;
 using OpenTemple.Core.Systems.Waypoints;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
