@@ -142,20 +142,9 @@ namespace OpenTemple.Core.Systems.Vfx
             throw new NotImplementedException();
         }
 
-        private void RenderChainLightning()
-        {
-            throw new NotImplementedException();
-        }
-
         private void RenderLightningBolt()
         {
             throw new NotImplementedException();
-        }
-
-
-        public void render_pfx_lightning_related(IGameViewport viewport)
-        {
-
         }
 
         public void Dispose()
