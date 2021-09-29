@@ -1,0 +1,8 @@
+General
+MaterialBlendType AlphaAdd
+Texture 0 "art/meshes/lightning.tga"
+NotLit
+ColorFillOnly
+Double
+// OT addition: enable linear filtering for the lightning effect
+LinearFiltering
