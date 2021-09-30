@@ -16,27 +16,18 @@ namespace OpenTemple.Core.Systems.Vfx
         [TempleDllLocation(0x10b397b4)]
         private int pfx_lightning_render;
 
-        [TempleDllLocation(0x10ab7f8c)]
-        private int pfx_render_lightning_bolt;
-
         [TempleDllLocation(0x10B397B8)]
         private Vector2 lightning_start;
 
         [TempleDllLocation(0x10b397b0)]
         private TimePoint call_lightning_start;
 
-        [TempleDllLocation(0x10ab7f88)]
-        private TimePoint lightning_bolt_start;
-
-        [TempleDllLocation(0x10ab7f90)]
-        private Vector3 lightning_bolt_source;
-
-        [TempleDllLocation(0x10ab7f9c)]
-        private Vector3 lightning_bolt_target;
-
         private readonly ChainLightningRenderer _chainLightningRenderer;
+        private readonly LightningBoltRenderer _lightningBoltRenderer;
 
         private ChainLightningEffect _chainLightningEffect;
+
+        private LightningBoltEffect _lightningBoltEffect;
 
         public PerlinNoise Noise { get; } = new();
 
@@ -45,9 +36,9 @@ namespace OpenTemple.Core.Systems.Vfx
         public VfxSystem()
         {
             pfx_lightning_render = 0;
-            pfx_render_lightning_bolt = 0;
 
             _chainLightningRenderer = new ChainLightningRenderer(Noise);
+            _lightningBoltRenderer = new LightningBoltRenderer(Noise);
         }
 
         [TempleDllLocation(0x10087440)]
@@ -73,14 +64,12 @@ namespace OpenTemple.Core.Systems.Vfx
         public void LightningBolt(GameObjectBody caster, LocAndOffsets targetLocation)
         {
             // Make it so the lightning bolt originates directly at the caster's fingertips
-            lightning_bolt_source = GetCastingRef(caster);
+            var source = GetCastingRef(caster);
 
             // Calculate a normalized direction vector and multiply with 1440 (which is the max. lightning bolt range)
-            var target = targetLocation.ToInches3D(lightning_bolt_source.Y);
-            var dir = Vector3.Normalize(target - lightning_bolt_source);
-            lightning_bolt_target = dir * 1440.0f;
+            var target = targetLocation.ToInches3D(source.Y);
 
-            pfx_render_lightning_bolt = 1;
+            _lightningBoltEffect = new LightningBoltEffect(_lightningBoltRenderer, TimePoint.Now, source, target);
         }
 
         [TempleDllLocation(0x10087480)]
@@ -124,16 +113,13 @@ namespace OpenTemple.Core.Systems.Vfx
                 }
             }
 
-            if (pfx_render_lightning_bolt == 1)
+            if (_lightningBoltEffect != null)
             {
-                lightning_bolt_start = TimePoint.Now;
-                pfx_render_lightning_bolt = 2;
-
-                RenderLightningBolt();
-            }
-            else if (pfx_render_lightning_bolt == 2)
-            {
-                RenderLightningBolt();
+                _lightningBoltEffect.Render(viewport);
+                if (_lightningBoltEffect.AtEnd)
+                {
+                    _lightningBoltEffect = null;
+                }
             }
         }
 
@@ -142,13 +128,9 @@ namespace OpenTemple.Core.Systems.Vfx
             throw new NotImplementedException();
         }
 
-        private void RenderLightningBolt()
-        {
-            throw new NotImplementedException();
-        }
-
         public void Dispose()
         {
+            _chainLightningRenderer.Dispose();
         }
     }
 }
