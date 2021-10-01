@@ -88,7 +88,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             // Smoothly animate moving towards the clicked location
             if (localY < _thumbImage.Y || localY >= _thumbImage.Y + _thumbHeight)
             {
-                if ((msg.flags & MouseEventFlag.LeftDown) != 0)
+                if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
                 {
                     _targetValue = GetValueFromTrackPos(localY);
                     _lastAnimationTime = TimePoint.Now;
@@ -97,7 +97,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                 return true;
             }
 
-            if ((msg.flags & MouseEventFlag.LeftDown) != 0)
+            if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
             {
                 Globals.UiManager.SetMouseCaptureWidget(this);
             }

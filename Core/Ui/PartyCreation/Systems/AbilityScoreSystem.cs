@@ -171,7 +171,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                     }
                 }
             }
-            else if ((msg.flags & MouseEventFlag.LeftDown) != 0)
+            else if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
             {
                 if (!Globals.UiManager.SetMouseCaptureWidget(widget))
                 {

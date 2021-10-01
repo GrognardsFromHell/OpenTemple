@@ -40,9 +40,10 @@ namespace OpenTemple.Core.Platform
         LeftClick = 0x001,
         RightClick = 0x010,
         MiddleClick = 0x100,
-        LeftDown = 0x002,
-        RightDown = 0x020,
-        MiddleDown = 0x200,
+        // Sent continuously if button held for 250ms or more
+        LeftHeld = 0x002,
+        RightHeld = 0x020,
+        MiddleHeld = 0x200,
         LeftReleased = 0x004, // Left button
         RightReleased = 0x040, // Right button
         MiddleReleased = 0x400, // Middle button

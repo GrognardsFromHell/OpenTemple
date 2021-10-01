@@ -77,7 +77,7 @@ namespace OpenTemple.Core.TigSubsystems
         {
             Released,
             Pressed,
-            Unknown
+            Held
         }
 
         public TigMouse()
@@ -94,58 +94,42 @@ namespace OpenTemple.Core.TigSubsystems
 
         public void SetButtonState(MouseButton button, bool pressed)
         {
-            int buttonIndex = (int) button;
-
-            var currentFlags = mouseState.flags;
-            mouseState.flags = 0;
-
+            var buttonIndex = (int)button;
+            var newFlags = 0;
             var now = TimePoint.Now;
 
             if (pressed)
             {
-                if ((currentFlags & (buttonStatePressed2[buttonIndex] | buttonStatePressed1[buttonIndex])) != 0)
+                if (!IsPressed(button))
                 {
-                    mouseState.flags = buttonStatePressed2[buttonIndex];
-                    // Clicked less than 250ms after the first click?
-                    if ((now - tig_mouse_button_time[buttonIndex]).TotalMilliseconds <= 250)
-                    {
-                        if ((currentFlags & FlagHideCursor) != 0)
-                            mouseState.flags |= FlagHideCursor;
-                        return;
-                    }
-
-                    mouseState.flags |= buttonStatePressed1[buttonIndex];
-                    if ((currentFlags & 1) != 0)
-                        mouseState.flags |= 1;
+                    newFlags = buttonStatePressed1[buttonIndex];
                     tig_mouse_button_time[buttonIndex] = now;
-
-                    QueueMouseButtonMessage(button, MouseEventAction.Unknown);
-                    return;
+                    QueueMouseButtonMessage(button, MouseEventAction.Pressed);
                 }
-
-                mouseState.flags = buttonStatePressed1[buttonIndex];
-                if ((currentFlags & 1) != 0)
-                    mouseState.flags |= 1;
-                tig_mouse_button_time[buttonIndex] = now;
-
-                QueueMouseButtonMessage(button, MouseEventAction.Pressed);
             }
             else
             {
-                if (((buttonStatePressed1[buttonIndex] | buttonStatePressed2[buttonIndex]) & currentFlags) == 0)
+                if (IsPressed(button))
                 {
-                    if ((currentFlags & 1) != 0)
-                        mouseState.flags |= 1;
-                    return;
+                    newFlags = buttonStateReleased[buttonIndex];
+                    tig_mouse_button_time[buttonIndex] = TimePoint.Now;
+
+                    QueueMouseButtonMessage(button, MouseEventAction.Released);
                 }
-
-                mouseState.flags = buttonStateReleased[buttonIndex];
-                if ((currentFlags & 1) != 0)
-                    mouseState.flags |= 1;
-                tig_mouse_button_time[buttonIndex] = TimePoint.Now;
-
-                QueueMouseButtonMessage(button, MouseEventAction.Released);
             }
+
+            if ((mouseState.flags & FlagHideCursor) != 0)
+            {
+                newFlags |= FlagHideCursor;
+            }
+
+            mouseState.flags = newFlags;
+        }
+
+        private bool IsPressed(MouseButton button)
+        {
+            var buttonIndex = (int)button;
+            return (mouseState.flags & (buttonStatePressed1[buttonIndex] | buttonStatePressed2[buttonIndex])) != 0;
         }
 
         private void QueueMouseButtonMessage(MouseButton button, MouseEventAction action)
@@ -166,8 +150,8 @@ namespace OpenTemple.Core.TigSubsystems
                             return MouseEventFlag.LeftReleased;
                         case MouseEventAction.Pressed:
                             return MouseEventFlag.LeftClick;
-                        case MouseEventAction.Unknown:
-                            return MouseEventFlag.LeftDown;
+                        case MouseEventAction.Held:
+                            return MouseEventFlag.LeftHeld;
                     }
 
                     break;
@@ -178,8 +162,8 @@ namespace OpenTemple.Core.TigSubsystems
                             return MouseEventFlag.RightReleased;
                         case MouseEventAction.Pressed:
                             return MouseEventFlag.RightClick;
-                        case MouseEventAction.Unknown:
-                            return MouseEventFlag.RightDown;
+                        case MouseEventAction.Held:
+                            return MouseEventFlag.RightHeld;
                     }
 
                     break;
@@ -190,8 +174,8 @@ namespace OpenTemple.Core.TigSubsystems
                             return MouseEventFlag.MiddleReleased;
                         case MouseEventAction.Pressed:
                             return MouseEventFlag.MiddleClick;
-                        case MouseEventAction.Unknown:
-                            return MouseEventFlag.MiddleDown;
+                        case MouseEventAction.Held:
+                            return MouseEventFlag.MiddleHeld;
                     }
 
                     break;
@@ -326,7 +310,9 @@ namespace OpenTemple.Core.TigSubsystems
         [TempleDllLocation(0x101dd7c0)]
         public void AdvanceTime()
         {
-            if (!mouseStoppedMoving && TimePoint.Now - lastMousePosChange > DelayUntilMousePosStable)
+            var now = TimePoint.Now;
+
+            if (!mouseStoppedMoving && now - lastMousePosChange > DelayUntilMousePosStable)
             {
                 var eventFlags = MouseEventFlag.PosChangeSlow | GetEventFlagsFromButtonState();
                 mouseStoppedMoving = true;
@@ -335,6 +321,29 @@ namespace OpenTemple.Core.TigSubsystems
                 );
                 Tig.MessageQueue.Enqueue(new Message(args));
             }
+
+            // This sends messages if buttons are held for 250ms or longer.
+            // This was previously handled by the DirectInput polling code in 0x101dd7c0
+            void TrySendHeldMessage(MouseButton button)
+            {
+                if (IsPressed(button))
+                {
+                    var buttonIndex = (int)button;
+                    mouseState.flags = buttonStatePressed2[buttonIndex];
+                    // I think this essentially means: Button was held for 250ms or more
+                    if ((now - tig_mouse_button_time[buttonIndex]).TotalMilliseconds > 250)
+                    {
+                        mouseState.flags |= buttonStatePressed1[buttonIndex];
+                        tig_mouse_button_time[buttonIndex] = now;
+
+                        QueueMouseButtonMessage(button, MouseEventAction.Held);
+                    }
+                }
+            }
+
+            TrySendHeldMessage(MouseButton.LEFT);
+            TrySendHeldMessage(MouseButton.RIGHT);
+            TrySendHeldMessage(MouseButton.MIDDLE);
         }
 
         [TempleDllLocation(0x101DD070)]
@@ -384,17 +393,17 @@ namespace OpenTemple.Core.TigSubsystems
 
             if (((buttonStatePressed1[0] | buttonStatePressed2[0]) & mouseState.flags) != 0)
             {
-                eventFlags |= GetMouseEventFlag(MouseButton.LEFT, MouseEventAction.Unknown);
+                eventFlags |= GetMouseEventFlag(MouseButton.LEFT, MouseEventAction.Held);
             }
 
             if (((buttonStatePressed1[1] | buttonStatePressed2[1]) & mouseState.flags) != 0)
             {
-                eventFlags |= GetMouseEventFlag(MouseButton.RIGHT, MouseEventAction.Unknown);
+                eventFlags |= GetMouseEventFlag(MouseButton.RIGHT, MouseEventAction.Held);
             }
 
             if (((buttonStatePressed1[2] | buttonStatePressed2[2]) & mouseState.flags) != 0)
             {
-                eventFlags |= GetMouseEventFlag(MouseButton.MIDDLE, MouseEventAction.Unknown);
+                eventFlags |= GetMouseEventFlag(MouseButton.MIDDLE, MouseEventAction.Held);
             }
 
             return eventFlags;

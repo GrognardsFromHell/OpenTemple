@@ -200,7 +200,7 @@ namespace OpenTemple.Core.Ui.Party
         [TempleDllLocation(0x101331e0)]
         private void HandlePortraitMouseMessage(PartyUiPortrait portrait, MessageMouseArgs msg)
         {
-            if (msg.flags.HasFlag(MouseEventFlag.LeftDown))
+            if (msg.flags.HasFlag(MouseEventFlag.LeftHeld))
             {
                 if (dword_10BE33E8 && !_canSwapPartyMembers)
                 {

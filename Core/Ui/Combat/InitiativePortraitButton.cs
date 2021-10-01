@@ -194,7 +194,7 @@ namespace OpenTemple.Core.Ui.Combat
             if (msg.type == MessageType.MOUSE)
             {
                 var mouseArgs = msg.MouseArgs;
-                if ((mouseArgs.flags & MouseEventFlag.LeftDown) != 0
+                if ((mouseArgs.flags & MouseEventFlag.LeftHeld) != 0
                     && InitiativeUi.uiPortraitState1 && !InitiativeUi.draggingPortrait)
                 {
                     InitiativeUi.draggingPortrait = true;

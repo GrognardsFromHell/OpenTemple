@@ -256,7 +256,7 @@ namespace OpenTemple.Core.Ui.InGame
                     HandleNormalLeftMouseReleased(viewport, args);
                 }
                 else if (flags.HasFlag(MouseEventFlag.LeftClick) ||
-                         (flags & (MouseEventFlag.PosChange | MouseEventFlag.LeftDown)) != default)
+                         (flags & (MouseEventFlag.PosChange | MouseEventFlag.LeftHeld)) != default)
                 {
                     HandleNormalLeftMouseDragHandler(viewport, args);
                 }
@@ -338,7 +338,7 @@ namespace OpenTemple.Core.Ui.InGame
         private bool uiDragSelectOn;
 
         [TempleDllLocation(0x10113f30)]
-        public GameObjectBody GetMouseTarget(IGameViewport viewport, int x, int y)
+        private GameObjectBody GetMouseTarget(IGameViewport viewport, int x, int y)
         {
             // Pick the object using the screen coordinates first
             var mousedOver = PickObject(viewport, x, y, GameRaycastFlags.HITTEST_3D);
@@ -879,27 +879,27 @@ namespace OpenTemple.Core.Ui.InGame
         [TempleDllLocation(0x101148b0)]
         private void HandleNormalLeftMouseDragHandler(IGameViewport viewport, MessageMouseArgs args)
         {
-            GameObjectBody mouseTgt_ = null;
+            GameObjectBody target = null;
             var leftClick = args.flags.HasFlag(MouseEventFlag.LeftClick);
-            var leftDown = args.flags.HasFlag(MouseEventFlag.LeftDown);
+            var leftDown = args.flags.HasFlag(MouseEventFlag.LeftHeld);
             if (leftClick || leftDown)
             {
-                mouseTgt_ = GetMouseTarget(viewport, args.X, args.Y);
+                target = GetMouseTarget(viewport, args.X, args.Y);
             }
 
             if (leftClick)
             {
                 if (_normalLmbClicked)
                     return;
-                mouseDragTgt = mouseTgt_;
+                mouseDragTgt = target;
                 _normalLmbClicked = true;
                 uiDragSelectXMax = args.X;
                 uiDragSelectYMax = args.Y;
-                qword_10BD3AE0 = mouseTgt_;
-                uiDragViewport = mouseTgt_ == null;
+                qword_10BD3AE0 = target;
+                uiDragViewport = target == null;
             }
 
-            if (args.flags.HasFlag(MouseEventFlag.PosChange) && leftDown && _normalLmbClicked)
+            if ((args.flags.HasFlag(MouseEventFlag.PosChange) || leftDown) && _normalLmbClicked)
             {
                 if (!UiSystems.Dialog.IsConversationOngoing && !UiSystems.RadialMenu.IsOpen)
                 {
@@ -916,17 +916,17 @@ namespace OpenTemple.Core.Ui.InGame
                     UiSystems.InGameSelect.SetFocusToRect(viewport, uiDragSelectXMax, uiDragSelectYMax, args.X, args.Y);
                 }
 
-                if (mouseTgt_ != null
+                if (target != null
                     && !uiDragViewport
-                    && mouseTgt_ == mouseDragTgt
+                    && target == mouseDragTgt
                     && UiSystems.CharSheet.State != CharInventoryState.LevelUp
                     && (UiSystems.CharSheet.Looting.GetLootingState() != CharInventoryState.Looting
                         && UiSystems.CharSheet.Looting.GetLootingState() != CharInventoryState.Bartering
-                        || UiSystems.CharSheet.Looting.LootingContainer != mouseTgt_
-                        || mouseTgt_.type.IsEquipment()))
+                        || UiSystems.CharSheet.Looting.LootingContainer != target
+                        || target.type.IsEquipment()))
                 {
-                    UiSystems.InGameSelect.AddToFocusGroup(mouseTgt_);
-                    UiSystems.Party.ForcePressed = mouseTgt_;
+                    UiSystems.InGameSelect.AddToFocusGroup(target);
+                    UiSystems.Party.ForcePressed = target;
                 }
             }
         }

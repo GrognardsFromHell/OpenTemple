@@ -487,7 +487,7 @@ namespace OpenTemple.Core.Ui
 
             if (uiIntgameAcquireByRaycastOn)
             {
-                if (mouseArgs.flags == (MouseEventFlag.PosChange | MouseEventFlag.LeftDown))
+                if (mouseArgs.flags == (MouseEventFlag.PosChange | MouseEventFlag.LeftHeld))
                 {
                     IntgameValidateMouseSelection(viewport, mouseArgs);
                 }

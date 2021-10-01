@@ -271,7 +271,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 }
                 else
                 {
-                    if (msg.flags.HasFlag(MouseEventFlag.LeftDown))
+                    if (msg.flags.HasFlag(MouseEventFlag.LeftHeld))
                     {
                         Globals.UiManager.SetMouseCaptureWidget(this);
                         mDragGrabPoint = msg.Y;
