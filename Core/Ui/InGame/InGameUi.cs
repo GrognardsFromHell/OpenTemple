@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using JetBrains.Annotations;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
@@ -32,6 +33,10 @@ namespace OpenTemple.Core.Ui.InGame
         [TempleDllLocation(0x10BD3B54)]
         private bool isCombatModeMessage;
 
+        // Is set to the widget that we capture input for during drag-selection.
+        [CanBeNull]
+        private WidgetBase _capturedInputWidget;
+
         private static readonly TimeSpan DoubleClickWindow = TimeSpan.FromMilliseconds(200);
 
         [TempleDllLocation(0x10112e70)]
@@ -50,16 +55,15 @@ namespace OpenTemple.Core.Ui.InGame
         {
             uiDragSelectOn = false;
             _normalLmbClicked = false;
-            // TODO: This should obviously be the one we captured...
-            Globals.UiManager.UnsetMouseCaptureWidget((WidgetBase)GameViews.Primary);
+            ReleaseMouseCapture();
 
             UiSystems.InGameSelect.FocusClear();
         }
 
         [TempleDllLocation(0x10113280)]
-        public void radialmenu_ignore_close_till_move(int x, int y)
+        public void radialmenu_ignore_close_till_move(IGameViewport viewport, int x, int y)
         {
-            UiSystems.RadialMenu.Spawn(x, y);
+            UiSystems.RadialMenu.Spawn(viewport, x, y);
             UiSystems.RadialMenu.HandleRightMouseClick(x, y);
             Logger.Info("intgame_radialmenu_ignore_close_till_move()");
             UiSystems.RadialMenu.dword_10BE6D70 = true;
@@ -88,17 +92,14 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10114EF0)]
-        public void HandleMessage(Message msg)
+        public void HandleMessage(IGameViewport viewport, Message msg)
         {
-            // TODO: This should be the viewport that receives the mouse event and x,y should be local to it
-            var viewport = GameViews.Primary;
-
-            if (UiSystems.RadialMenu.HandleMessage(msg))
+            if (UiSystems.RadialMenu.HandleMessage(viewport, msg))
             {
                 return;
             }
 
-            if (UiSystems.InGameSelect.HandleMessage(msg))
+            if (UiSystems.InGameSelect.HandleMessage(viewport, msg))
             {
                 return;
             }
@@ -156,7 +157,7 @@ namespace OpenTemple.Core.Ui.InGame
                 if (mouseArgs.flags.HasFlag(MouseEventFlag.PosChange)
                     || mouseArgs.flags.HasFlag(MouseEventFlag.PosChangeSlow))
                 {
-                    CombatMouseHandler(viewport, mouseArgs);
+                    HandleMouseMove(viewport, mouseArgs);
                 }
             }
             else if (msg.type == MessageType.KEYSTATECHANGE)
@@ -265,17 +266,17 @@ namespace OpenTemple.Core.Ui.InGame
                 }
                 else if (flags.HasFlag(MouseEventFlag.PosChange) || flags.HasFlag(MouseEventFlag.PosChangeSlow))
                 {
-                    CombatMouseHandler(viewport, args);
+                    HandleMouseMove(viewport, args);
                 }
             }
             else if (msg.type == MessageType.KEYSTATECHANGE)
             {
-                HandleNormalKeyStateChange(msg.KeyStateChangeArgs);
+                HandleNormalKeyStateChange(viewport, msg.KeyStateChangeArgs);
             }
         }
 
         [TempleDllLocation(0x101130B0)]
-        private void HandleNormalKeyStateChange(MessageKeyStateChangeArgs args)
+        private void HandleNormalKeyStateChange(IGameViewport viewport, MessageKeyStateChangeArgs args)
         {
             if (args.down)
             {
@@ -302,14 +303,10 @@ namespace OpenTemple.Core.Ui.InGame
                     {
                         // assign hotkey
                         var leaderLoc = leader.GetLocationFull();
-                        if (GameViews.Primary != null)
-                        {
-                            var screenPos = GameViews.Primary.WorldToScreen(leaderLoc.ToInches3D());
+                        var screenPos = viewport.WorldToScreen(leaderLoc.ToInches3D());
 
-                            UiSystems.RadialMenu.Spawn((int)screenPos.X, (int)screenPos.Y);
-                            UiSystems.RadialMenu.HandleKeyMessage(args);
-                        }
-
+                        UiSystems.RadialMenu.Spawn(viewport, (int)screenPos.X, (int)screenPos.Y);
+                        UiSystems.RadialMenu.HandleKeyMessage(args);
                         return;
                     }
 
@@ -443,10 +440,9 @@ namespace OpenTemple.Core.Ui.InGame
                 var right = Math.Max(uiDragSelectXMax, args.X);
                 var bottom = Math.Max(uiDragSelectYMax, args.Y);
                 var rect = Rectangle.FromLTRB(left, top, right, bottom);
-                UiSystems.InGameSelect.SelectInRectangle(rect);
+                UiSystems.InGameSelect.SelectInRectangle(viewport, rect);
                 uiDragSelectOn = false;
-                // TODO: This should obviously be the one we captured...
-                Globals.UiManager.UnsetMouseCaptureWidget((WidgetBase)viewport);
+                ReleaseMouseCapture();
                 return;
             }
 
@@ -458,8 +454,7 @@ namespace OpenTemple.Core.Ui.InGame
                     return;
                 }
 
-                // TODO: This should be moved to the event handlers of an actual game view widget
-                var worldPos = GameViews.Primary.ScreenToTile(args.X, args.Y);
+                var worldPos = viewport.ScreenToTile(args.X, args.Y);
 
                 // This is a new feature
                 var centerScreen = TimePoint.Now - _lastMoveCommandTime < DoubleClickWindow;
@@ -516,6 +511,26 @@ namespace OpenTemple.Core.Ui.InGame
             }
 
             TriggerClickActionOnObject(mouseTgt);
+        }
+
+        private void CaptureMouse(IGameViewport viewport)
+        {
+            // Release previous mouse capture if applicable
+            ReleaseMouseCapture();
+
+            if (viewport is WidgetBase widget && Globals.UiManager.SetMouseCaptureWidget(widget))
+            {
+                _capturedInputWidget = widget;
+            }
+        }
+
+        private void ReleaseMouseCapture()
+        {
+            if (_capturedInputWidget != null)
+            {
+                Globals.UiManager.UnsetMouseCaptureWidget(_capturedInputWidget);
+                _capturedInputWidget = null;
+            }
         }
 
         [TempleDllLocation(0x101140F0)]
@@ -891,14 +906,14 @@ namespace OpenTemple.Core.Ui.InGame
                     if (GetEstimatedSelectionSize(args.X, args.Y) > 25)
                     {
                         uiDragSelectOn = true;
-                        Globals.UiManager.SetMouseCaptureWidget((WidgetBase)viewport);
+                        CaptureMouse(viewport);
                     }
                 }
 
                 if (uiDragSelectOn)
                 {
                     UiSystems.InGameSelect.FocusClear();
-                    UiSystems.InGameSelect.SetFocusToRect(uiDragSelectXMax, uiDragSelectYMax, args.X, args.Y);
+                    UiSystems.InGameSelect.SetFocusToRect(viewport, uiDragSelectXMax, uiDragSelectYMax, args.X, args.Y);
                 }
 
                 if (mouseTgt_ != null
@@ -935,19 +950,14 @@ namespace OpenTemple.Core.Ui.InGame
                 else
                 {
                     Logger.Info("state_default_process_mouse_right_down");
-                    radialmenu_ignore_close_till_move(args.X, args.Y);
+                    radialmenu_ignore_close_till_move(viewport, args.X, args.Y);
                 }
             }
         }
 
         [TempleDllLocation(0x10114690)]
-        private void CombatMouseHandler(IGameViewport viewport, MessageMouseArgs msg)
+        private void HandleMouseMove(IGameViewport viewport, MessageMouseArgs msg)
         {
-            if (viewport == null)
-            {
-                return; // TODO: This shouldn't even get here
-            }
-
             UiSystems.Party.ForcePressed = null;
             UiSystems.Party.ForceHovered = null;
             UiSystems.InGameSelect.Focus = null;

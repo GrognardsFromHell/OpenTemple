@@ -13,7 +13,6 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.RadialMenus;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
@@ -140,6 +139,12 @@ namespace OpenTemple.Core.Ui.RadialMenu
         private GameObjectBody _openedAtTarget;
 
         /// <summary>
+        /// On which viewport has the radial menu been opened. See <see cref="RadialMenuSystem.ActiveMenuWorldPosition"/> for
+        /// where the menu is opened in the world.
+        /// </summary>
+        private IGameViewport _openedAtViewport;
+
+        /// <summary>
         /// The current on-screen position of the opened Radial Menu's center.
         /// </summary>
         private Point CurrentMenuCenterOnScreen
@@ -151,15 +156,14 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 worldPos.X = worldPos2D.X;
                 worldPos.Z = worldPos2D.Y;
 
-                // TODO If this is the case, the radial menu should actually be bound to the game view it was opened in
-                var screenPos = GameViews.Primary.WorldToScreen(worldPos);
+                var screenPos = _openedAtViewport.WorldToScreen(worldPos);
                 return new Point((int) screenPos.X, (int) screenPos.Y);
             }
         }
 
         [TempleDllLocation(0x1013dc90)]
         [TemplePlusLocation("radialmenu.cpp:128")]
-        public bool HandleMessage(Message message)
+        public bool HandleMessage(IGameViewport viewport, Message message)
         {
             var shiftPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT)
                                || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT);
@@ -176,7 +180,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
             }
             else if (message.type == MessageType.MOUSE)
             {
-                return HandleMouseMessage(message.MouseArgs);
+                return HandleMouseMessage(viewport, message.MouseArgs);
             }
             else
             {
@@ -186,7 +190,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
         [TempleDllLocation(0x1013dc90)]
         [TemplePlusLocation("radialmenu.cpp:128")]
-        private bool HandleMouseMessage(MessageMouseArgs msg)
+        private bool HandleMouseMessage(IGameViewport viewport, MessageMouseArgs msg)
         {
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
@@ -239,7 +243,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
             if ((msg.flags & MouseEventFlag.RightReleased) != 0)
             {
-                return UiRadialMenuRmbReleased(msg);
+                return UiRadialMenuRmbReleased(viewport, msg);
             }
 
             if ((msg.flags & MouseEventFlag.RightClick) != 0)
@@ -249,7 +253,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
             if ((msg.flags & MouseEventFlag.PosChange) != 0)
             {
-                return RadialMenu_Processing(msg.X, msg.Y);
+                return HandleMouseMove(msg.X, msg.Y);
             }
 
             return false;
@@ -272,7 +276,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
         }
 
         [TempleDllLocation(0x1013d910)]
-        private bool UiRadialMenuRmbReleased(MessageMouseArgs msg)
+        private bool UiRadialMenuRmbReleased(IGameViewport viewport, MessageMouseArgs msg)
         {
             if (_ignoreClose)
             {
@@ -281,7 +285,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
                     if (msg.X != _lastRmbClickX || msg.Y != _lastRmbClickY)
                     {
                         // NOTE: Vanilla previously didn't check whether the target was untargetable here...
-                        UpdateRadialMenuTarget(msg.X, msg.Y);
+                        UpdateRadialMenuTarget(viewport, msg.X, msg.Y);
                     }
                     else
                     {
@@ -358,7 +362,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
         }
 
         [TempleDllLocation(0x1013b250)]
-        public void Spawn(int screenX, int screenY)
+        public void Spawn(IGameViewport viewport, int screenX, int screenY)
         {
             UiSystems.InGame.ResetInput();
             if (RadialMenus.GetCurrentNode() != -1 /* Already opened */
@@ -370,7 +374,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
             _ignoreClose = false;
 
-            UpdateRadialMenuTarget(screenX, screenY);
+            UpdateRadialMenuTarget(viewport, screenX, screenY);
 
             var leader = GameSystems.Party.GetConsciousLeader();
             GameSystems.D20.Actions.TurnBasedStatusInit(leader);
@@ -387,11 +391,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
             UiSystems.Party.ForceHovered = null;
         }
 
-        private void UpdateRadialMenuTarget(int screenX, int screenY)
+        private void UpdateRadialMenuTarget(IGameViewport viewport, int screenX, int screenY)
         {
-            // TODO: This is not quite correct, it should be tied into which viewport was clicked
-            var viewport = GameViews.Primary;
-
             // Remember where we're opening the radial menu at / on which object, to auto-target chosen abilities
             if (GameSystems.Raycast.PickObjectOnScreen(viewport, screenX, screenY, out var objUnderMouse,
                     GameRaycastFlags.HITTEST_3D)
@@ -403,8 +404,10 @@ namespace OpenTemple.Core.Ui.RadialMenu
             else
             {
                 _openedAtTarget = null;
-                _openedAtLocation = GameViews.Primary.ScreenToTile(screenX, screenY);
+                _openedAtLocation = viewport.ScreenToTile(screenX, screenY);
             }
+
+            _openedAtViewport = viewport;
         }
 
         [TempleDllLocation(0x10139e60)]
@@ -441,7 +444,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
             }
             else
             {
-                return RadialMenu_Processing(x, y);
+                return HandleMouseMove(x, y);
             }
         }
 
@@ -456,7 +459,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
         }
 
         [TempleDllLocation(0x1013d640)]
-        private bool RadialMenu_Processing(int x, int y)
+        private bool HandleMouseMove(int x, int y)
         {
             if (_ignoreClose)
             {
@@ -464,7 +467,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 var screenX = x + RadialMenus.RelativeMousePosX;
                 var screenY = y + RadialMenus.RelativeMousePosY;
                 dword_10BE6D70 = false;
-                var mouseLoc = GameViews.Primary.ScreenToTile(screenX, screenY);
+                var mouseLoc = _openedAtViewport.ScreenToTile(screenX, screenY);
                 RadialMenus.ActiveMenuWorldPosition = mouseLoc.ToInches2D();
                 return false;
             }
@@ -1478,13 +1481,11 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 return;
             }
 
-            // TODO If this is the case, the radial menu should actually be bound to the game view it was opened in
-            var viewport = GameViews.Primary;
-            var mousePosWorld = viewport.ScreenToWorld(screenPos.X, screenPos.Y);
+            var mousePosWorld = _openedAtViewport.ScreenToWorld(screenPos.X, screenPos.Y);
             var leaderPosWorld = leader.GetLocationFull().ToInches3D();
 
             var color = new PackedLinearColorA(0xFF80FFD2);
-            Tig.ShapeRenderer3d.DrawLine(viewport, mousePosWorld, leaderPosWorld, color);
+            Tig.ShapeRenderer3d.DrawLine(_openedAtViewport, mousePosWorld, leaderPosWorld, color);
         }
 
         private static readonly TimeSpan HundredFiftyMs = TimeSpan.FromMilliseconds(150);

@@ -248,10 +248,9 @@ namespace OpenTemple.Core.Ui
                                 var leaderLoc = leader.GetLocationFull();
 
                                 var pnt = leaderLoc.ToInches3D();
-                                // TODO: This should be moved to the event handlers of an actual game view widget
-                                var screenPos = GameViews.Primary.Camera.WorldToScreen(pnt);
-                                UiSystems.RadialMenu.Spawn((int) screenPos.X, (int) screenPos.Y);
-                                return UiSystems.RadialMenu.HandleMessage(msg);
+                                var screenPos = viewport.Camera.WorldToScreen(pnt);
+                                UiSystems.RadialMenu.Spawn(viewport, (int) screenPos.X, (int) screenPos.Y);
+                                return UiSystems.RadialMenu.HandleMessage(viewport, msg);
                             }
 
                             GameSystems.D20.Actions.TurnBasedStatusInit(leader);
@@ -367,7 +366,7 @@ namespace OpenTemple.Core.Ui
             float distSqr = 0;
             if (!UiIntgameRaycast(viewport, mouseArgs.X, mouseArgs.Y, GameRaycastFlags.HITTEST_3D, out var objFromRaycast)) {
                 // TODO: This should be moved to the event handlers of an actual game view widget
-                var mouseTile = GameViews.Primary.ScreenToTile(mouseArgs.X, mouseArgs.Y);
+                var mouseTile = viewport.ScreenToTile(mouseArgs.X, mouseArgs.Y);
                 var prevPntNode = locFromScreenLoc.ToInches2D();
                 var pntNode = mouseTile.ToInches2D();
                 objFromRaycast = null;
@@ -546,8 +545,7 @@ namespace OpenTemple.Core.Ui
                     if (!GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var pickedObject, raycastFlags))
                     {
                         intgameTargetFromRaycast = null;
-                        // TODO: This should be moved to the event handlers of an actual game view widget
-                        locFromScreenLoc = GameViews.Primary.ScreenToTile(x, y);
+                        locFromScreenLoc = viewport.ScreenToTile(x, y);
                         actionLoc = locFromScreenLoc;
 
                         if (IsWithinRadiusOfWaypointLoc(locFromScreenLoc))
@@ -576,8 +574,7 @@ namespace OpenTemple.Core.Ui
                 if (!GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var pickedObject, raycastFlags))
                 {
                     intgameTargetFromRaycast = null;
-                    // TODO: This should be moved to the event handlers of an actual game view widget
-                    locFromScreenLoc = GameViews.Primary.ScreenToTile(x, y);
+                    locFromScreenLoc = viewport.ScreenToTile(x, y);
                     actionLoc = locFromScreenLoc;
                 }
                 else
@@ -586,8 +583,7 @@ namespace OpenTemple.Core.Ui
                 }
             }
 
-            // TODO: This should be moved to the event handlers of an actual game view widget
-            var mouseLoc = GameViews.Primary.ScreenToTile(x, y);
+            var mouseLoc = viewport.ScreenToTile(x, y);
 
             var canGenerate = intgameTargetFromRaycast != null;
             if (!canGenerate)
@@ -816,7 +812,7 @@ namespace OpenTemple.Core.Ui
                     }
 
                     Logger.Info("intgame_turnbased: _mouse_right_down");
-                    UiSystems.InGame.radialmenu_ignore_close_till_move(mouseArgs.X, mouseArgs.Y);
+                    UiSystems.InGame.radialmenu_ignore_close_till_move(viewport, mouseArgs.X, mouseArgs.Y);
                 }
             }
 

@@ -186,7 +186,7 @@ namespace OpenTemple.Core.Ui
                 return true;
             }
 
-            UiSystems.InGame.HandleMessage(msg);
+            UiSystems.InGame.HandleMessage(this, msg);
 
             return base.HandleMessage(msg);
         }

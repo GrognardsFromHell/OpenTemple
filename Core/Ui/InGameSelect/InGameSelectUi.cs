@@ -211,7 +211,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x101375e0)]
         [TemplePlusLocation("ui_picker.cpp:144")]
         [TempleDllLocation(0x10135f00)]
-        public bool HandleMessage(Message msg)
+        public bool HandleMessage(IGameViewport viewport, Message msg)
         {
             if (!IsPicking)
             {
@@ -222,7 +222,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
             if (msg.type == MessageType.MOUSE)
             {
-                return HandleMouseMessage(msg.MouseArgs);
+                return HandleMouseMessage(viewport, msg.MouseArgs);
             }
             else if (msg.type == MessageType.KEYSTATECHANGE)
             {
@@ -236,11 +236,8 @@ namespace OpenTemple.Core.Ui.InGameSelect
             return false;
         }
 
-        private bool HandleMouseMessage(MessageMouseArgs msgMouse)
+        private bool HandleMouseMessage(IGameViewport viewport, MessageMouseArgs msgMouse)
         {
-            // TODO: This needs to come from the viewport which received the mouse message
-            var viewport = GameViews.Primary;
-
             var picker = ActivePicker;
             var pickerSpec = picker.Behavior;
 
@@ -373,10 +370,9 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10138cf0)]
-        private bool IsInScreenRect(GameObjectBody obj, RectangleF screenRect)
+        private bool IsInScreenRect(IGameViewport viewport, GameObjectBody obj, RectangleF screenRect)
         {
-            // TODO: This should be fired from the game view that actually contains the selection
-            var screenPos = GameSystems.MapObject.GetScreenPosOfObject(GameViews.Primary, obj);
+            var screenPos = GameSystems.MapObject.GetScreenPosOfObject(viewport, obj);
             return screenPos.X - 10.0f <= screenRect.Right
                    && screenPos.X + 10.0f >= screenRect.Left
                    && screenPos.Y - 10.0f <= screenRect.Bottom
@@ -384,12 +380,12 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10139b60)]
-        private List<GameObjectBody> FindPartyMembersInRect(RectangleF screenRect)
+        private List<GameObjectBody> FindPartyMembersInRect(IGameViewport viewport, RectangleF screenRect)
         {
             var result = new List<GameObjectBody>();
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (IsInScreenRect(partyMember, screenRect))
+                if (IsInScreenRect(viewport, partyMember, screenRect))
                 {
                     result.Add(partyMember);
                 }
@@ -399,11 +395,11 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10139CE0)]
-        public void SelectInRectangle(Rectangle rectangle)
+        public void SelectInRectangle(IGameViewport viewport, Rectangle rectangle)
         {
             var screenRect = new RectangleF(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height);
 
-            var partyMembers = FindPartyMembersInRect(screenRect);
+            var partyMembers = FindPartyMembersInRect(viewport, screenRect);
             foreach (var obj in partyMembers)
             {
                 GameSystems.Party.AddToSelection(obj);
@@ -428,19 +424,15 @@ namespace OpenTemple.Core.Ui.InGameSelect
         private Vector2 uiIntgameBoxSelectUL;
 
         [TempleDllLocation(0x10139c20)]
-        public void SetFocusToRect(int x1, int y1, int x2, int y2)
+        public void SetFocusToRect(IGameViewport viewport, int x1, int y1, int x2, int y2)
         {
             if (x1 > x2)
             {
-                var tmp = x2;
-                x2 = x1;
-                x1 = tmp;
+                (x2, x1) = (x1, x2);
             }
             if (y1 > y2)
             {
-                var tmp = y2;
-                y2 = y1;
-                y1 = tmp;
+                (y2, y1) = (y1, y2);
             }
 
             var screenRect = RectangleF.FromLTRB(x1, y1, x2, y2);
@@ -451,7 +443,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             uiIntgameBoxSelectBR.Y = y2;
             uiIntgameBoxSelectOn = true;
 
-            foreach (var partyMember in FindPartyMembersInRect(screenRect))
+            foreach (var partyMember in FindPartyMembersInRect(viewport, screenRect))
             {
                 if (!_selection.Contains(partyMember))
                 {
