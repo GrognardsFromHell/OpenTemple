@@ -57,7 +57,7 @@ namespace OpenTemple.Core.Systems.Vfx
                 RenderFork(camera, from, to, segments, perpenNormal, timeFade, 16, 196);
             }
 
-            RenderStartingCap(camera, from, normal, timeFade);
+            RenderStartingCap(camera, from, normal, perpenNormal, timeFade);
         }
 
         protected override float GetMainArcDistanceFade(int i, int segments)

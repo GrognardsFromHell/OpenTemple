@@ -3,7 +3,6 @@ using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.Vfx
 {
@@ -63,12 +62,9 @@ namespace OpenTemple.Core.Systems.Vfx
 
             RenderMainArc(camera, from, to, segments, perpenNormal, colorRamp);
 
-            if (segments > MinForkSegments)
+            for (var i = 0; i < ForkCount; i++)
             {
-                for (var i = 0; i < ForkCount; i++)
-                {
-                    RenderFork(camera, from, to, segments, perpenNormal, colorRamp, MinForkSegments, segments);
-                }
+                RenderFork(camera, from, to, segments, perpenNormal, colorRamp, MinForkSegments, segments);
             }
         }
 
