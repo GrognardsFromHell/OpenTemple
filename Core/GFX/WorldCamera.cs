@@ -245,8 +245,8 @@ namespace OpenTemple.Core.GFX
 
         public LocAndOffsets ScreenToTile(float screenX, float screenY)
         {
-            var tmpX = (int) ((screenX - _xTranslation) / 2);
-            var tmpY = (int) (((screenY - _yTranslation) / 2) / 0.7f);
+            var tmpX = (int)((screenX - _xTranslation) / 2);
+            var tmpY = (int)(((screenY - _yTranslation) / 2) / 0.7f);
 
             var unrotatedX = tmpY - tmpX;
             var unrotatedY = tmpY + tmpX;
@@ -349,7 +349,7 @@ namespace OpenTemple.Core.GFX
 
             mViewProjection = view * projection;
 
-            Matrix4x4.Invert(projection, out mInvViewProjection);
+            Matrix4x4.Invert(mViewProjection, out mInvViewProjection);
 
             _dirty = false;
         }
@@ -387,17 +387,35 @@ namespace OpenTemple.Core.GFX
 
         public Size ViewportSize
         {
-            get => new((int) GetViewportWidth(), (int) GetViewportHeight());
+            get => new((int)GetViewportWidth(), (int)GetViewportHeight());
             set
             {
                 if (value.Width <= 0 || value.Height <= 0)
                 {
                     throw new ArgumentException("Invalid viewport size: " + value);
                 }
+
                 _viewportWidth = value.Width;
                 _viewportHeight = value.Height;
                 _dirty = true;
             }
+        }
+
+        /// <summary>
+        /// Get a normal vector that faces in Positive Z direction outwards of the screen.
+        /// </summary>
+        public (Vector3, Vector3) GetBillboardNormals()
+        {
+            if (_dirty)
+            {
+                Update();
+            }
+
+            // In D3D, negative Z extends outwards from the screen (left-handed coordinates)
+            // 2 / width, 2 / height translates to 1 pixel due to screen-space being [-1,1]
+            var up = Vector3.TransformNormal(new Vector3(0, 2 / _viewportHeight, 0), mInvViewProjection);
+            var right = Vector3.TransformNormal(new Vector3(2 / _viewportWidth, 0, 0), mInvViewProjection);
+            return (right, up);
         }
     }
 }

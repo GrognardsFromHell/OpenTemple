@@ -110,7 +110,7 @@ namespace OpenTemple.Core.Systems.Vfx
 
         protected void CalculateLineJitter(int elapsedMs, int segments, float lengthPerSegment, float noiseY)
         {
-            var timePeriod = (elapsedMs % 127) / 200f;
+            var timePeriod = GetJitterTimePeriod(elapsedMs);
             Jitter[0] = _noise.Noise2D(timePeriod, noiseY) * MaxJitterOffset;
 
             for (var i = 1; i < segments; i++)
@@ -124,9 +124,14 @@ namespace OpenTemple.Core.Systems.Vfx
             Jitter[0] = 0f;
         }
 
+        protected virtual float GetJitterTimePeriod(int elapsedMs)
+        {
+            return (elapsedMs % 127) / 200f;
+        }
+
         // Offset the line segment with noise-based jitter
         // The second term is used to bring the arc back closer to its target at the end
-        protected float GetOffsetAt(int i, int segments)
+        protected virtual float GetOffsetAt(int i, int segments)
         {
             return Jitter[i] - (Jitter[segments - 1] - Jitter[0]) * i / (segments - 1);
         }
@@ -162,8 +167,13 @@ namespace OpenTemple.Core.Systems.Vfx
             Vector3 perpenNormal, float timeFade, int minLength, int maxLength)
         {
             Debug.Assert(minLength < maxLength);
+            if (segments < minLength)
+            {
+                return;
+            }
 
-            var forkSegments = minLength + (ThreadSafeRandom.Next() % (maxLength - minLength));
+            var forkSegments = minLength + ThreadSafeRandom.Next() % (maxLength - minLength);
+
             // "Reuse" a different segment of the arc's jitter to make the offsets for the fork look different
             var jitterOverlayStart = ThreadSafeRandom.Next() % (segments - forkSegments);
             var forkStartSegment = ThreadSafeRandom.Next() % (segments - forkSegments);
@@ -225,7 +235,7 @@ namespace OpenTemple.Core.Systems.Vfx
         /// Renders a "starting cap" on the starting point of the lightning bolt so it doesn't start with a jagged
         /// edge.
         /// </summary>
-        protected void RenderStartingCap(WorldCamera camera, Vector3 from, Vector3 normal, float timeFade)
+        protected void RenderStartingCap(WorldCamera camera, Vector3 from, Vector3 normal, Vector3 perpendicularNormal, float timeFade)
         {
             _capVertices[0].pos = from;
             _capVertices[0].uv.X = 0.5f;
@@ -233,22 +243,18 @@ namespace OpenTemple.Core.Systems.Vfx
             var alpha = (byte)(timeFade * 255);
             _capVertices[0].diffuse = new PackedLinearColorA(alpha, alpha, alpha, alpha);
 
-            // The cap should resemble the main arc in width
-            normal *= MainArcWidth / 2;
+            var rotationAxis = Vector3.Normalize(Vector3.Cross(normal, perpendicularNormal));
+
+            perpendicularNormal *= MainArcWidth / 2;
 
             for (var i = 1; i < _capVertices.Length; i++)
             {
                 ref var vertex = ref _capVertices[i];
 
-                // -0.5PI because we rotate the normal 90° to the left to start the cap
-                var rotation = ((i - 1) / (float) (_capVertices.Length - 2) - 0.5f) * MathF.PI;
-                vertex.pos.X = from.X
-                               - MathF.Cos(rotation) * normal.X
-                               - MathF.Sin(rotation) * normal.Z;
-                vertex.pos.Y = from.Y;
-                vertex.pos.Z = from.Z
-                               + MathF.Sin(rotation) * normal.X
-                               - MathF.Cos(rotation) * normal.Z;
+                var rotation = (i - 1) / (float) (_capVertices.Length - 2) * MathF.PI;
+                var q = Quaternion.CreateFromAxisAngle(rotationAxis, rotation);
+                var n = Vector3.Transform(perpendicularNormal, q);
+                vertex.pos = from + n;
 
                 vertex.diffuse = _capVertices[0].diffuse;
                 vertex.uv.X = 1f;

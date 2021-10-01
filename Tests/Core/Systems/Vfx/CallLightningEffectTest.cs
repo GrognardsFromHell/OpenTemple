@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using NUnit.Framework;
 using OpenTemple.Core.Systems;
@@ -6,34 +8,33 @@ using OpenTemple.Core.Systems.Vfx;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Utils;
 using OpenTemple.Tests.TestUtils;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace OpenTemple.Tests.Core.Systems.Vfx
 {
-    public class LightningBoltEffectTest : RenderingTest
+    public class CallLightningEffectTest : RenderingTest
     {
-        private LightningBoltRenderer _renderer;
+        private CallLightningRenderer _renderer;
 
         [SetUp]
         public void SetUp()
         {
             // Fixed seed ensures this test is repeatable
             ThreadSafeRandom.Seed = 12345;
-            _renderer = new LightningBoltRenderer(Device, MdfFactory, new PerlinNoise());
+            _renderer = new CallLightningRenderer(Device, MdfFactory, new PerlinNoise());
         }
 
         [Test]
         public void TestRender()
         {
             var startTime = TimePoint.Now;
-            var from = CameraCenter - new Vector3(0, 0, 0);
-            var to = CameraCenter - new Vector3(300, 0, 0);
-            var locations = new[] { from, to };
+            var target = CameraCenter + new Vector3(300, 0, 300);
 
-            var effect = new LightningBoltEffect(
+            var effect = new CallLightningEffect(
                 _renderer,
                 startTime,
-                from,
-                to
+                target
             );
 
             void Render(int timeSinceStart)
@@ -42,12 +43,13 @@ namespace OpenTemple.Tests.Core.Systems.Vfx
                 effect.Render(Viewport);
             }
 
-            var frames = RenderFrameSequence(37, Render, locations);
+            var frames = RenderFrameSequence(36, Render, new []{target}, interval: 25);
 
-            ScreenshotCommandWrapper.AttachVideo("lightning_bolt.mp4", frames);
+            AttachVideo("call_lightning.mp4", frames);
 
             // Assert against reference images at certain intervals
-            CompareReferenceFrames(frames, "Core/Systems/Vfx/LightningBolt", 0, 300, 550, 1800);
+            // Points are chosen where arcs become visible/invisible.
+            CompareReferenceFrames(frames, "Core/Systems/Vfx/CallLightning", 0, 150, 200, 500, 800);
         }
 
         public override void Dispose()

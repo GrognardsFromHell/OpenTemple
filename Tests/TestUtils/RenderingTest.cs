@@ -1,9 +1,13 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using NUnit.Framework;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -46,6 +50,66 @@ namespace OpenTemple.Tests.TestUtils
             Window?.Dispose();
 
             base.Dispose();
+        }
+
+        /// <summary>
+        /// Renders a number of frames in 50ms intervals and returns them.
+        /// Additionally, certain in-world positions are marked in the images.
+        /// </summary>
+        protected List<(TimePoint, Image<Bgra32>)> RenderFrameSequence(
+            int frameCount,
+            Action<int> render,
+            Vector3[] markPositions = null,
+            int interval = 50)
+        {
+            var frames = new List<(TimePoint, Image<Bgra32>)>();
+            for (var i = 0; i < frameCount; i++)
+            {
+                var timeSinceStart = i * interval;
+
+                Device.BeginDraw();
+                render(timeSinceStart);
+                Device.EndDraw();
+
+                var screenshot = TakeScreenshot();
+                if (markPositions != null)
+                {
+                    MarkWorldPositions(screenshot, markPositions);
+                }
+
+                frames.Add((new TimePoint(TimePoint.TicksPerMillisecond * timeSinceStart), screenshot));
+            }
+
+            return frames;
+        }
+
+        /// <summary>
+        /// Compares certain time points in a list of rendered frames against reference images.
+        /// </summary>
+        protected void CompareReferenceFrames(IList<(TimePoint, Image<Bgra32>)> frames,
+            string refImagesPrefix,
+            params int[] timePointsInMs)
+        {
+            foreach (var timePointInMs in timePointsInMs)
+            {
+                var timePoint = new TimePoint(TimePoint.TicksPerMillisecond * timePointInMs);
+                var frame = frames.FirstOrDefault(f => f.Item1 == timePoint);
+                if (frame.Item2 == null)
+                {
+                    throw new ArgumentException("No frame was rendered @ "
+                                                + timePointInMs
+                                                + ". Available: "
+                                                + string.Join(", ", frames.Select(f => f.Item1.Milliseconds)));
+                }
+
+                var refImage = refImagesPrefix + "Ref" + timePointInMs + ".png";
+                ImageComparison.AssertImagesEqual(frame.Item2, refImage);
+            }
+        }
+
+        protected void AttachVideo(string path, IList<(TimePoint, Image<Bgra32>)> frames)
+        {
+            ScreenshotCommandWrapper.AttachVideo(path, frames);
         }
 
         protected Image<Bgra32> TakeScreenshot()
