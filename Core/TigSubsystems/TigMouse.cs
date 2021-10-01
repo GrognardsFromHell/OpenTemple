@@ -45,6 +45,9 @@ namespace OpenTemple.Core.TigSubsystems
 
         private const int FlagHideCursor = 1;
 
+        // Millisecond interval in which mouse button held messages are sent
+        private static readonly TimeSpan HeldMessageInterval = TimeSpan.FromMilliseconds(250);
+
         [TempleDllLocation(0x10D2558C)]
         private ResourceRef<ITexture> _iconUnderCursor;
 
@@ -330,8 +333,8 @@ namespace OpenTemple.Core.TigSubsystems
                 {
                     var buttonIndex = (int)button;
                     mouseState.flags = buttonStatePressed2[buttonIndex];
-                    // I think this essentially means: Button was held for 250ms or more
-                    if ((now - tig_mouse_button_time[buttonIndex]).TotalMilliseconds > 250)
+                    // Send a mouse button held message every 250ms after it was initially pressed
+                    if (now - tig_mouse_button_time[buttonIndex] > HeldMessageInterval)
                     {
                         mouseState.flags |= buttonStatePressed1[buttonIndex];
                         tig_mouse_button_time[buttonIndex] = now;

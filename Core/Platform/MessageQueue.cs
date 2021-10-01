@@ -19,7 +19,7 @@ namespace OpenTemple.Core.Platform
 
     public enum MessageType : uint {
         MOUSE = 0,
-        WIDGET = 1, // seems to be sent in response to type0 msg, also from int __cdecl sub_101F9E20(int a1, int a2) and sub_101FA410
+        WIDGET = 1,
         TMT_UNK2 = 2,
         EXIT = 3, // may be exit game, queued on WM_CLOSE and WM_QUIT
         CHAR = 4, // arg1 is the character, in Virtual Key terms
@@ -40,7 +40,7 @@ namespace OpenTemple.Core.Platform
         LeftClick = 0x001,
         RightClick = 0x010,
         MiddleClick = 0x100,
-        // Sent continuously if button held for 250ms or more
+        // Sent every 250ms while a button is being held
         LeftHeld = 0x002,
         RightHeld = 0x020,
         MiddleHeld = 0x200,
