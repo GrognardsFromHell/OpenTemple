@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Logging
     {
         private static readonly List<WeakReference<DelegatingLogger>> Loggers = new();
 
-        private static LoggerBase _realLogger = new ConsoleLogger();
+        private static LoggerBase _realLogger = new ColoredConsoleLogger();
 
         static LoggingSystem()
         {
