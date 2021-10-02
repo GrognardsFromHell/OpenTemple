@@ -39,11 +39,29 @@ namespace OpenTemple.Core.Systems
 
         public event Action<bool> OnCombatStatusChanged;
 
+        [TempleDllLocation(0x10AA8420)]
+        private int combatSubturnTimeEvent;
+
+        [TempleDllLocation(0x10AA8440)]
+        private int combatTimeEventSthg;
+
+        [TempleDllLocation(0x10AA8438)]
+        private GameObjectBody combatActor;
+
+        [TempleDllLocation(0x10AA8444)]
+        private bool combatTimeEventIndicator;
+
+        /// <summary>
+        /// Used to timeout NPC combat activity after 20 seconds.
+        /// </summary>
+        [TempleDllLocation(0x10AA8404)]
+        private readonly ActionBar.ActionBar _npcActionTimeout;
+
         [TempleDllLocation(0x10063ba0)]
         public CombatSystem()
         {
-            barPkt = GameSystems.Vagrant.AllocateActionBar();
-            barPkt.resetCallback = ActionBarReset;
+            _npcActionTimeout = GameSystems.Vagrant.AllocateActionBar();
+            _npcActionTimeout.OnEndRampCallback = ActionBarReset;
         }
 
         [TempleDllLocation(0x10062e60)]
@@ -321,11 +339,12 @@ namespace OpenTemple.Core.Systems
             Logger.Debug("TurnStart2: \t Starting new turn for {0}. InitiativeIdx: {1}", actor, curActorInitIdx);
             Subturn();
 
-            // set action bar values
-            GameSystems.Vagrant.ActionbarUnsetFlag1(barPkt);
+            // Initiate a 20 second timeout for NPCs that causes their activity to be reset.
+            // Used as a last resort to avoid stuck NPCs from resulting in a soft-lock
+            GameSystems.Vagrant.ActionBarStopActivity(_npcActionTimeout);
             if (!GameSystems.Party.IsPlayerControlled(actor))
             {
-                GameSystems.Vagrant.ActionBarSetMovementValues(barPkt, 0.0f, 20.0f, 1.0f);
+                GameSystems.Vagrant.ActionBarStartRamp(_npcActionTimeout, 0.0f, 20.0f, 1.0f);
             }
 
             // handle simuls
@@ -1211,21 +1230,6 @@ namespace OpenTemple.Core.Systems
                 }
             }
         }
-
-        [TempleDllLocation(0x10AA8420)]
-        private int combatSubturnTimeEvent;
-
-        [TempleDllLocation(0x10AA8440)]
-        private int combatTimeEventSthg;
-
-        [TempleDllLocation(0x10AA8438)]
-        private GameObjectBody combatActor;
-
-        [TempleDllLocation(0x10AA8444)]
-        private bool combatTimeEventIndicator;
-
-        [TempleDllLocation(0x10AA8404)]
-        private ActionBar barPkt;
 
         [TempleDllLocation(0x100628F0)]
         private void TbCombatScheduleEventAndAiSthg()

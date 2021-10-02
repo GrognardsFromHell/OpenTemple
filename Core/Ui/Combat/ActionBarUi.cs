@@ -4,6 +4,7 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.ActionBar;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.TigSubsystems;
@@ -215,14 +216,14 @@ namespace OpenTemple.Core.Ui.Combat
 
                     if (actor != actionBarActor)
                     {
-                        GameSystems.Vagrant.ActionbarUnsetFlag1(_actionBar);
+                        GameSystems.Vagrant.ActionBarStopActivity(_actionBar);
                         actionBarEndingMoveDist = 0;
                     }
 
                     float actualRemainingMoveDist;
-                    if (GameSystems.Vagrant.ActionBarIsFlag1Set(_actionBar))
+                    if (GameSystems.Vagrant.ActionBarIsActive(_actionBar))
                     {
-                        actualRemainingMoveDist = GameSystems.Vagrant.ActionBarGetPulseMinVal(_actionBar);
+                        actualRemainingMoveDist = GameSystems.Vagrant.ActionBarGetValue(_actionBar);
                         v21 = false;
                     }
                     else if (GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
@@ -292,7 +293,7 @@ namespace OpenTemple.Core.Ui.Combat
                                 a1.destRect = destRect;
                                 a1.customTexture = _combatBarHighlight2.Resource;
 
-                                var alpha = GameSystems.Vagrant.ActionBarGetPulseMinVal(_pulseAnimation);
+                                var alpha = GameSystems.Vagrant.ActionBarGetValue(_pulseAnimation);
                                 var color = new PackedLinearColorA(255, 255, 255, (byte) alpha);
                                 a1.vertexColors = new[]
                                 {
@@ -394,7 +395,7 @@ namespace OpenTemple.Core.Ui.Combat
             GameSystems.D20.Actions.seqCheckFuncs(out var statusAfterAction);
             var endDist = UiCombatActionBarGetRemainingMoveDistance(statusAfterAction);
 
-            GameSystems.Vagrant.ActionBarSetMovementValues(_actionBar, startDist, endDist,
+            GameSystems.Vagrant.ActionBarStartRamp(_actionBar, startDist, endDist,
                 20.0f /* This was configurable in a MES file before */);
             actionBarActor = GameSystems.D20.Initiative.CurrentActor;
             actionBarEndingMoveDist = endDist;
