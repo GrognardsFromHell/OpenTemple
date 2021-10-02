@@ -35,6 +35,23 @@ namespace OpenTemple.Tests.Core.Systems.Vfx
         }
 
         [Test]
+        public void TestHeightDifferenceChainLightning()
+        {
+            var a = CameraCenter - new Vector3(200, -25, 0);
+            var b = CameraCenter;
+            var c = CameraCenter + new Vector3(200, 25, 0);
+
+            Device.BeginDraw();
+            _renderer.Render(Viewport.Camera, 0, 0, a, b);
+            _renderer.Render(Viewport.Camera, 0, 250, b, c);
+            Device.EndDraw();
+
+            var screenshot = TakeScreenshot();
+            MarkWorldPositions(screenshot, a, b, c);
+            ImageComparison.AssertImagesEqual(screenshot, "Core/Systems/Vfx/ChainLightningHeightDifference.png");
+        }
+
+        [Test]
         public void TestRender()
         {
             var startTime = TimePoint.Now;
