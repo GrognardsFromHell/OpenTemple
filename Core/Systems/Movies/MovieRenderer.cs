@@ -107,7 +107,7 @@ namespace OpenTemple.Core.Systems.Movies
 
         internal static void ProcessMessages(ref bool keyPressed)
         {
-            while (Tig.MessageQueue.Process(out var msg))
+            while (Tig.MessageQueue.TryGetMessage(out var msg))
             {
                 // Allow skipping the movie via key-press or mouse-press
                 if (msg.type == MessageType.KEYSTATECHANGE && msg.KeyStateChangeArgs.down

@@ -103,26 +103,38 @@ namespace OpenTemple.Core
         private void ProcessMessages()
         {
             // Why does it process msgs AFTER rendering???
-            while (!_quit && _messageQueue.Process(out var msg))
+            while (!_quit && _messageQueue.TryGetMessage(out var msg))
             {
-                // Pressing the F10 key toggles the diag screen
-                if (msg.type == MessageType.KEYSTATECHANGE)
-                {
-                    var keyArgs = msg.KeyStateChangeArgs;
-                    if (keyArgs.key == DIK.DIK_F10 && keyArgs.down)
-                    {
-                        // TODO mDiagScreen->Toggle();
-                        // TODO UIShowDebug();
-                        Stub.TODO();
-                    }
-                }
-                else if (msg.type == MessageType.EXIT)
-                {
-                    Stop();
-                }
+                HandleMessage(msg);
+            }
+        }
 
-                // I have not found any place where message type 7 is queued,
-                // so i removed the out of place re-rendering of the game frame
+        private void HandleMessage(Message message)
+        {
+            // Pressing the F10 key toggles the diag screen
+            if (message.type == MessageType.KEYSTATECHANGE)
+            {
+                var keyArgs = message.KeyStateChangeArgs;
+                if (keyArgs.key == DIK.DIK_F10 && keyArgs.down)
+                {
+                    // TODO mDiagScreen->Toggle();
+                    // TODO UIShowDebug();
+                    Stub.TODO();
+                }
+            }
+            else if (message.type == MessageType.EXIT)
+            {
+                Stop();
+                return;
+            }
+
+            if (message.type == MessageType.MOUSE && Globals.UiManager.TranslateMouseMessage(message.MouseArgs)) {
+                return;
+            }
+
+            if (!Globals.UiManager.ProcessMessage(message)) {
+                // TODO: Decide if the message should be re-dispatched to the primary game view as a fallback
+                return;
             }
         }
 

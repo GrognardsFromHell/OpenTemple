@@ -208,43 +208,22 @@ namespace OpenTemple.Core.Platform
 
     public class MessageQueue
     {
-
         public void Enqueue(Message msg)
         {
             _messages.Enqueue(msg);
         }
 
-        public bool Process(out Message unhandledMsgOut)
+        public bool TryGetMessage(out Message unhandledMsgOut)
         {
-            while (_messages.TryDequeue(out var message)) {
-                if (!HandleMessage(message)) {
-                    unhandledMsgOut = message;
-                    return true;
-                }
+            if (_messages.TryDequeue(out var message)) {
+                unhandledMsgOut = message;
+                return true;
             }
 
             unhandledMsgOut = null;
             return false;
         }
 
-        public bool HandleMessage(Message message)
-        {
-            if (message.type == MessageType.MOUSE && Globals.UiManager.TranslateMouseMessage(message.MouseArgs)) {
-                return true;
-            }
-
-            if (Globals.UiManager.ProcessMessage(message)) {
-                if (message.type == MessageType.TMT_UNK7) {
-                    return false;
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
         private readonly Queue<Message> _messages = new(100);
-
     }
 }
