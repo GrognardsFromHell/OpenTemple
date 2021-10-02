@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using NUnit.Framework;
+using OpenTemple.Core;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.Styles;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -41,6 +43,8 @@ namespace OpenTemple.Tests.TestUtils
             camera.ViewportSize = Device.UiCanvasSize.ToSize();
             camera.CenterOn(CameraCenter.X, CameraCenter.Y, CameraCenter.Z);
             Viewport = new MockViewport(camera, Window);
+
+            Globals.UiStyles = new UiStyles();
         }
 
         public override void Dispose()

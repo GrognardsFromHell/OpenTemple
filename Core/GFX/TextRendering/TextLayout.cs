@@ -56,21 +56,31 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public float LayoutWidth
         {
-            get => _metrics.LayoutWidth;
+            get
+            {
+                RefreshMetrics();
+                return _metrics.LayoutWidth;
+            }
             set
             {
                 NativeTextLayout.SetMaxWidth(value);
                 _metricsInvalid = true;
+                _lineMetricsInvalid = true;
             }
         }
 
         public float LayoutHeight
         {
-            get => _metrics.LayoutHeight;
+            get
+            {
+                RefreshMetrics();
+                return _metrics.LayoutHeight;
+            }
             set
             {
                 NativeTextLayout.SetMaxHeight(value);
                 _metricsInvalid = true;
+                _lineMetricsInvalid = true;
             }
         }
 
