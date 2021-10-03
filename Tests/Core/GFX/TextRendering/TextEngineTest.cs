@@ -24,8 +24,7 @@ namespace OpenTemple.Tests.Core.GFX.TextRendering
             paragraph.AppendContent(", nisl ");
             paragraph.AppendContent("dapibus", new StyleDefinition()
             {
-                FontStyle = FontStyle.Italic,
-                FontStretch = FontStretch.Condensed
+                FontStyle = FontStyle.Italic
             });
             paragraph.AppendContent(" per lobortis diam cubilia ");
             paragraph.AppendContent("odio", new StyleDefinition()
