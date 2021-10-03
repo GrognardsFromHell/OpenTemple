@@ -1,14 +1,16 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using OpenTemple.Core;
+using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Tests.TestUtils;
 
 namespace OpenTemple.Tests.Game
@@ -39,6 +41,15 @@ namespace OpenTemple.Tests.Game
             ClearGameObjects();
             // Wait for combat to stop
             Game.RunUntil(() => !GameSystems.Combat.IsCombatActive());
+        }
+
+        [TearDown]
+        public void ResetConfig()
+        {
+            var defaultConfig = new GameConfig();
+            Globals.Config.ConcurrentTurnsEnabled = defaultConfig.ConcurrentTurnsEnabled;
+            Globals.Config.AITurnTimeout = defaultConfig.AITurnTimeout;
+            Globals.Config.AITurnMaxActions = defaultConfig.AITurnMaxActions;
         }
 
         [Test]
@@ -109,6 +120,74 @@ namespace OpenTemple.Tests.Game
 
             // Since both zombies just moved, there should be no combat entries
             CombatLog.Should().BeEmpty();
+        }
+
+        /// <summary>
+        /// When presented with the possibility to take multiple actions (i.e. simultaneous turns),
+        /// the AI should be limited to the configured maximum number of followup actions.
+        /// This was hard-coded to 5 in Vanilla, but due to how the comparison worked, it ended up being 6.
+        /// </summary>
+        [Test]
+        [RecordFailureVideo]
+        public void AITurnMaxActionsShouldBeEnforced()
+        {
+            Globals.Config.ConcurrentTurnsEnabled = false;
+            Globals.Config.AITurnMaxActions = 3;
+            SetupScenarioForTwoZombies(out var zombie1, out var zombie2);
+
+            // It should be zombie1's turn.
+            GameSystems.D20.Initiative.CurrentActor.Should().Be(zombie1);
+            List<D20Action> GetZombie1Actions() => CompletedActions.Where(a => a.d20APerformer == zombie1).ToList();
+            GetZombie1Actions().Should().HaveCount(0);
+
+            // Ensure the zombie has infinite movement, essentially
+            GameSystems.D20.Actions.CurrentSequence.tbStatus.surplusMoveDistance = 100;
+
+            // Complete the action 3 times total
+            GameSystems.D20.Actions.PerformOnAnimComplete(zombie1, GameSystems.D20.Actions.CurrentAction.animID);
+            GetZombie1Actions().Should().HaveCount(1);
+            GameSystems.D20.Initiative.CurrentActor.Should().Be(zombie1);
+
+            GameSystems.D20.Actions.PerformOnAnimComplete(zombie1, GameSystems.D20.Actions.CurrentAction.animID);
+            GetZombie1Actions().Should().HaveCount(2);
+            GameSystems.D20.Initiative.CurrentActor.Should().Be(zombie1);
+
+            GameSystems.D20.Actions.PerformOnAnimComplete(zombie1, GameSystems.D20.Actions.CurrentAction.animID);
+            GetZombie1Actions().Should().HaveCount(3);
+            GameSystems.D20.Initiative.CurrentActor.Should().Be(zombie2);
+        }
+
+        [Test]
+        [RecordFailureVideo]
+        public void AITurnTimeoutShouldBeEnforced()
+        {
+            Globals.Config.ConcurrentTurnsEnabled = false;
+            Globals.Config.AITurnTimeout = 5;
+            SetupScenarioForTwoZombies(out var zombie1, out var zombie2);
+
+            // It should be zombie1's turn.
+            GameSystems.D20.Initiative.CurrentActor.Should().Be(zombie1);
+
+            // To ensure the zombie doesn't attempt to move to the player *again* since it has time left,
+            // we ensure there's no remaining movement.
+            GameSystems.D20.Actions.CurrentSequence!.tbStatus.surplusMoveDistance = 0;
+
+            // To trigger the greybar reset, we need to ensure that zombie1 can never complete it's move action
+            // We do this by moving it back to its starting position on every frame. Poor Zombie.
+            var startOfTurn = GameSystems.TimeEvent.AnimTime;
+            var startPos = zombie1.GetLocationFull();
+            Game.RunUntil(() =>
+            {
+                zombie1.Move(startPos);
+                return GameSystems.D20.Initiative.CurrentActor == zombie2;
+            }, 10000);
+
+            // The switch to the 2nd zombie should have happened after the timeout
+            var timeoutAfter = (GameSystems.TimeEvent.AnimTime - startOfTurn).TotalSeconds;
+            timeoutAfter.Should().BeApproximately(Globals.Config.AITurnTimeout, 0.1f);
+
+            // The zombie should only have attempted one action, unsuccessfully
+            ActionLog.Count(a => a.d20APerformer == zombie1).Should().Be(1);
         }
 
         private void SetupScenarioForTwoZombies(out GameObjectBody zombie1, out GameObjectBody zombie2)

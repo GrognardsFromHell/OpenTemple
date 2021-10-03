@@ -1,9 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SharpDX.Direct3D11;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 
 namespace OpenTemple.Core.Config
@@ -116,6 +112,19 @@ namespace OpenTemple.Core.Config
 
         public bool alertAiThroughDoors { get; set; }
 
+        /// <summary>
+        /// Maximum time in seconds that AI turns can last. If they exceed it, their turn is ended.
+        /// Also known as "greybar reset", due to the grey action bar while the AI takes its turn.
+        /// </summary>
+        public int AITurnTimeout { get; set; } = 20;
+
+        /// <summary>
+        /// Maximum number of actions AI can take during a turn. This is useful to avoid loops where
+        /// AI tries to perform an action that runs into the AITurnTimeout, but doesn't use up all
+        /// movement, only to repeat the same idea indefinitely. This will stop it after 5 attempts.
+        /// </summary>
+        public int AITurnMaxActions { get; set; } = 5;
+
         public TextFloaterCategory ActiveTextFloaters { get; set; } =
             TextFloaterCategory.Damage | TextFloaterCategory.Generic;
 
@@ -189,5 +198,6 @@ namespace OpenTemple.Core.Config
         public int PointBuyBudget { get; set; } = 25;
 
         public string DefaultUiFont { get; set; } = "Arial";
+
     }
 }

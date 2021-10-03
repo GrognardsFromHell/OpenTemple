@@ -55,13 +55,13 @@ namespace OpenTemple.Core.Systems
         /// Used to timeout NPC combat activity after 20 seconds.
         /// </summary>
         [TempleDllLocation(0x10AA8404)]
-        private readonly ActionBar.ActionBar _npcActionTimeout;
+        private readonly ActionBar.ActionBar _aiTurnTimeout;
 
         [TempleDllLocation(0x10063ba0)]
         public CombatSystem()
         {
-            _npcActionTimeout = GameSystems.Vagrant.AllocateActionBar();
-            _npcActionTimeout.OnEndRampCallback = ActionBarReset;
+            _aiTurnTimeout = GameSystems.Vagrant.AllocateActionBar();
+            _aiTurnTimeout.OnEndRampCallback = ActionBarReset;
         }
 
         [TempleDllLocation(0x10062e60)]
@@ -74,6 +74,13 @@ namespace OpenTemple.Core.Systems
                 if (!GameSystems.Party.IsPlayerControlled(currentActor))
                 {
                     GameSystems.D20.Actions.GreybarReset();
+
+                    // If the same actor is _still_ the actor, (no turn was ended), make sure
+                    // the watchdog is restarted
+                    if (currentActor == GameSystems.D20.Initiative.CurrentActor)
+                    {
+                        RestartTurnTimeout();
+                    }
                 }
             }
         }
@@ -339,13 +346,7 @@ namespace OpenTemple.Core.Systems
             Logger.Debug("TurnStart2: \t Starting new turn for {0}. InitiativeIdx: {1}", actor, curActorInitIdx);
             Subturn();
 
-            // Initiate a 20 second timeout for NPCs that causes their activity to be reset.
-            // Used as a last resort to avoid stuck NPCs from resulting in a soft-lock
-            GameSystems.Vagrant.ActionBarStopActivity(_npcActionTimeout);
-            if (!GameSystems.Party.IsPlayerControlled(actor))
-            {
-                GameSystems.Vagrant.ActionBarStartRamp(_npcActionTimeout, 0.0f, 20.0f, 1.0f);
-            }
+            RestartTurnTimeout();
 
             // handle simuls
             if (GameSystems.D20.Actions.SimulsAdvance())
@@ -353,6 +354,20 @@ namespace OpenTemple.Core.Systems
                 actor = GameSystems.D20.Initiative.CurrentActor;
                 Logger.Debug("TurnStart2: \t Actor {0} starting turn...(simul)", actor);
                 AdvanceTurn(actor);
+            }
+        }
+
+        /// <summary>
+        /// Initiate a (configurable) 20 second timeout for AI turns
+        /// Used as a last resort to avoid stuck AI from resulting in a soft-lock
+        /// </summary>
+        private void RestartTurnTimeout()
+        {
+            GameSystems.Vagrant.ActionBarStopActivity(_aiTurnTimeout);
+            if (!GameSystems.Party.IsPlayerControlled(GameSystems.D20.Initiative.CurrentActor)
+                && Globals.Config.AITurnTimeout > 0)
+            {
+                GameSystems.Vagrant.ActionBarStartRamp(_aiTurnTimeout, 0.0f, Globals.Config.AITurnTimeout, 1.0f);
             }
         }
 

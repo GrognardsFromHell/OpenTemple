@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using SharpDX.Multimedia;
@@ -184,9 +185,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10B3D5BC)]
         private int simulsIdx;
 
-        // MAYBE this counts how many turns the AI was acting on its own???
         [TempleDllLocation(0x10B3D59C)]
-        private int seqSthg_10B3D59C;
+        private int _aiTurnActions;
 
         [TempleDllLocation(0x1186A8E8)]
         private ResourceRef<ITexture> _aooIcon;
@@ -765,15 +765,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008b140)]
         public bool SequenceSwitch(GameObjectBody performer)
         {
-            int seqIdx = -1;
-            for (int i = 0; i < actSeqArray.Count; i++)
+            ActionSequence? newSequence = null;
+            foreach (var seq in actSeqArray)
             {
-                var seq = actSeqArray[i];
                 if (seq.IsPerforming)
                 {
                     if (seq.performer == performer)
                     {
-                        seqIdx = i;
+                        newSequence = seq;
                     }
                 }
                 else
@@ -788,10 +787,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 }
             }
 
-            if (seqIdx >= 0)
+            if (newSequence != null)
             {
-                Logger.Debug("SequenceSwitch: \t doing for {0}. Previous Current Seq: {1}", performer, CurrentSequence);
-                CurrentSequence = actSeqArray[seqIdx];
+                if (CurrentSequence != newSequence)
+                {
+                    Logger.Debug("SequenceSwitch: \t doing for {0}. Previous Current Seq: {1}", performer,
+                        CurrentSequence);
+                    CurrentSequence = newSequence;
+                }
                 Logger.Debug("SequenceSwitch: \t new Current Seq: {0}", CurrentSequence);
                 return true;
             }
@@ -1103,16 +1106,21 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
                 if (!GameSystems.Party.IsPlayerControlled(CurrentSequence.performer))
                 {
-                    if (isSimultPerformer(CurrentSequence.performer)
-                        || actnProcState != ActionErrorCode.AEC_OK
-                        || seqSthg_10B3D59C > 5)
+                    _aiTurnActions++;
+
+                    if (isSimultPerformer(CurrentSequence.performer) || actnProcState != ActionErrorCode.AEC_OK)
                     {
+                        GameSystems.Combat.AdvanceTurn(GameSystems.D20.Initiative.CurrentActor);
+                    }
+                    else if (_aiTurnActions >= Globals.Config.AITurnMaxActions)
+                    {
+                        Logger.Debug("Advancing turn for {0} because it exceeded the max. number of follow-up AI actions per turn: {1}",
+                            CurrentSequence.performer, _aiTurnActions);
                         GameSystems.Combat.AdvanceTurn(GameSystems.D20.Initiative.CurrentActor);
                     }
                     else
                     {
                         CurrentSequence.IsPerforming = false;
-                        seqSthg_10B3D59C++;
                         GameSystems.AI.AiProcess(CurrentSequence.performer);
                     }
                 }
@@ -2175,7 +2183,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         public bool IsCurrentlyPerforming(GameObjectBody performer) => IsCurrentlyPerforming(performer, out _);
 
         [TempleDllLocation(0x1008a050)]
-        public bool IsCurrentlyPerforming(GameObjectBody performer, out ActionSequence sequenceOut)
+        public bool IsCurrentlyPerforming(GameObjectBody performer, [NotNullWhen(true)] out ActionSequence? sequenceOut)
         {
             foreach (var actionSequence in actSeqArray)
             {
@@ -3516,7 +3524,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             Logger.Debug("*** NEXT TURN *** starting for {0}. CurSeq: {1}", obj, CurrentSequence);
 
             // NOTE: Previously wrote 0 to 0x1189FB60, but found no other uses for it
-            seqSthg_10B3D59C = 0;
+            _aiTurnActions = 0;
             performedDefaultAction = false;
 
             if (globD20Action.d20APerformer != null && globD20Action.d20APerformer != obj)
@@ -4040,13 +4048,23 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
 
             Logger.Debug("Greybar reset function");
-            foreach (var seq in actSeqArray)
+
+            // Defensive copy, since we'll likely modify this array below
+            var sequences = new List<ActionSequence>(actSeqArray);
+
+            foreach (var seq in sequences)
             {
                 if (!seq.IsPerforming || !SequenceSwitch(seq.performer))
                     continue;
 
                 foreach (var action in seq.d20ActArray)
                 {
+                    if ((action.d20Caf & D20CAF.NEED_ANIM_COMPLETED) != 0)
+                    {
+                        // Cancel the corresponding animation in the animation system...
+                        GameSystems.Anim.Interrupt(action.d20APerformer, AnimGoalPriority.AGP_HIGHEST);
+                    }
+
                     action.d20Caf &= ~(D20CAF.NEED_ANIM_COMPLETED | D20CAF.NEED_PROJECTILE_HIT);
                 }
 
@@ -4054,7 +4072,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 {
                     ActionPerform();
                     bool foundOtherSeq = false;
-                    foreach (var otherSequence in actSeqArray)
+                    foreach (var otherSequence in sequences)
                     {
                         if (otherSequence.IsPerforming && otherSequence.performer == seq.performer)
                         {

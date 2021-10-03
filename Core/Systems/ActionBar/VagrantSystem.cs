@@ -79,8 +79,8 @@ namespace OpenTemple.Core.Systems.ActionBar
                 actionBar.Value = actionBar.ToValue;
             }
 
-            actionBar.OnEndRampCallback?.Invoke();
             actionBar.Activity = ActionBarActivity.None;
+            actionBar.OnEndRampCallback?.Invoke();
         }
 
         [TempleDllLocation(0x10086c60)]
