@@ -12,6 +12,24 @@ video recording during tests.
 
 ### Features
 
+#### Debugging Scripts
+
+Any `.csx` files you place in `Data/scripts` can be run using the scripts menu of the debug
+toolbar at the top of the screen. You can use any C# code within these scripts. Some
+example scripts are already included.
+
+#### Startup Script
+
+Place a startup script file in `Data/scripts/startup.csx` to run C# script code immediately
+after entering the main menu. This is very effective for quickly testing certain scenarios.
+
+For example, the following script would immediately enter the tutorial after launching
+the game:
+
+```csharp
+await UiSystems.MainMenu.LaunchTutorial();
+```
+
 #### Patching MES files
 
 MES files in the game directory can be patched easily by placing additional
