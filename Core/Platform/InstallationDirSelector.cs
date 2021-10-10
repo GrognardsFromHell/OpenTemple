@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Platform
 
             // In case a directory was selected, but it did not contain a valid ToEE installation, show an actual error
             // rather an an informational message
-            if (validationErrors != null && !validationErrors.IsValid)
+            if (currentDirectory != null && validationErrors is {IsValid: false})
             {
                 promptEmphasized = "Incomplete Temple of Elemental Evil Installation";
                 errorIcon = true;
