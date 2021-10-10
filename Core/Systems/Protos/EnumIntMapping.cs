@@ -82,10 +82,10 @@ namespace OpenTemple.Core.Systems.Protos
                 return false;
             }
 
-            for (int i = 0; i < a.Length; i++)
+            for (var i = 0; i < a.Length; i++)
             {
                 var charA = a[i];
-                var charB = a[i];
+                var charB = b[i];
                 if (charA != charB && char.ToUpperInvariant((char) charA) != char.ToUpperInvariant((char) charB))
                 {
                     return false;
