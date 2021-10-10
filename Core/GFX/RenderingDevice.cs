@@ -807,7 +807,7 @@ namespace OpenTemple.Core.GFX
         }
 
         public ResourceRef<RenderTargetTexture> CreateRenderTargetTexture(BufferFormat format, int width, int height,
-            MultiSampleSettings multiSample = default)
+            MultiSampleSettings multiSample = default, string debugName = null)
         {
             var size = new Size(width, height);
 
@@ -819,18 +819,16 @@ namespace OpenTemple.Core.GFX
 
             if (multiSample.IsEnabled)
             {
-                Logger.Info("using multisampling");
                 // If this is a multi sample render target, we cannot use it as a texture, or at least, we shouldn't
                 bindFlags = BindFlags.RenderTarget;
                 sampleCount = multiSample.Samples;
                 sampleQuality = multiSample.Quality;
             }
-            else
-            {
-                Logger.Info("not using multisampling");
-            }
 
-            Logger.Info("width {0} height {1}", width, height);
+            debugName ??= "RenderTarget";
+            Logger.Info("Creating render target '{0}' with size {1}x{2}, format: {3}, MSAA: {4}", debugName,
+                width, height, format, multiSample);
+
             var textureDesc = new Texture2DDescription();
             textureDesc.Format = formatDx;
             textureDesc.Width = width;
@@ -843,7 +841,7 @@ namespace OpenTemple.Core.GFX
             textureDesc.SampleDescription.Quality = sampleQuality;
 
             var texture = new Texture2D(Device, textureDesc);
-            SetDebugName(texture, "RenderTargetTexture");
+            SetDebugName(texture, debugName + "Texture");
 
             // Create the render target view of the backing buffer
             var rtViewDesc = new RenderTargetViewDescription();
@@ -869,7 +867,7 @@ namespace OpenTemple.Core.GFX
                 textureDesc.SampleDescription.Quality = 0;
 
                 resolvedTexture = new Texture2D(Device, textureDesc);
-                SetDebugName(resolvedTexture, "RenderTargetResolvedTexture");
+                SetDebugName(resolvedTexture, debugName + "ResolvedTexture");
                 srvTexture = resolvedTexture;
             }
 
@@ -1344,7 +1342,8 @@ namespace OpenTemple.Core.GFX
 
                 // Create a texture the size of the target and stretch into it via a blt
                 // the target also needs to be a render target for that to work
-                using var stretchedRt = CreateRenderTargetTexture(renderTarget.Format, width, height);
+                using var stretchedRt = CreateRenderTargetTexture(renderTarget.Format, width, height,
+                    debugName: "StretchedReadBuffer");
 
                 PushRenderTarget(stretchedRt.Resource, null);
                 var renderer = new ShapeRenderer2d(this);
@@ -1993,7 +1992,7 @@ namespace OpenTemple.Core.GFX
                 // For off-screen rendering, we just create normal backbuffer/depthstencil without an associated swapchain
                 var offscreenSize = new Size(1024, 768);
                 return device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, offscreenSize.Width,
-                    offscreenSize.Height);
+                    offscreenSize.Height, debugName: "BackBuffer");
             }
 
             public void Present(RenderingDevice device)

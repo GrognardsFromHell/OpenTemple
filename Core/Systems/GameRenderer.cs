@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using JetBrains.Annotations;
-using OpenTemple.Core.AAS;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -11,20 +10,12 @@ using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems
 {
     public class GameRenderer : IDisposable
     {
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
-        private readonly IAnimatedModel _model;
-        private TimePoint _lastUpdate = TimePoint.Now;
-
-        private readonly AasRenderer _aasRenderer;
-
         private readonly RenderingDevice _device;
 
         private readonly MapObjectRenderer _mapObjectRenderer;
@@ -44,8 +35,6 @@ namespace OpenTemple.Core.Systems
 
         public bool DebugPathFinding { get; set; }
 
-        public ParticleSystemsRenderer GetParticleSysRenderer() => _particleSysRenderer;
-
         public MapObjectRenderer GetMapObjectRenderer() => _mapObjectRenderer;
 
         public MapFogDebugRenderer MapFogDebugRenderer { get; }
@@ -53,8 +42,7 @@ namespace OpenTemple.Core.Systems
         private readonly IGameViewport _viewport;
 
         // A texture containing the last rendered scene
-        [CanBeNull]
-        public ITexture SceneTexture => _sceneColor.Resource;
+        [CanBeNull] public ITexture SceneTexture => _sceneColor.Resource;
 
         // The pixel size of the render texture to create
         private Size _renderSize;
@@ -68,9 +56,8 @@ namespace OpenTemple.Core.Systems
         {
             _device = renderingDevice;
             _viewport = viewport;
-            _aasRenderer = GameSystems.AAS.Renderer;
 
-            _mapObjectRenderer = new MapObjectRenderer(renderingDevice, Tig.MdfFactory, _aasRenderer);
+            _mapObjectRenderer = new MapObjectRenderer(renderingDevice, Tig.MdfFactory, GameSystems.AAS.Renderer);
             _sectorDebugRenderer = new SectorDebugRenderer();
             _sectorVisibilityRenderer = new SectorVisibilityRenderer();
 
@@ -80,7 +67,7 @@ namespace OpenTemple.Core.Systems
                 renderingDevice,
                 Tig.ShapeRenderer2d,
                 GameSystems.AAS.ModelFactory,
-                _aasRenderer,
+                GameSystems.AAS.Renderer,
                 GameSystems.ParticleSys
             );
         }
@@ -199,16 +186,15 @@ namespace OpenTemple.Core.Systems
                 GameUiBridge.RenderTurnBasedUI(viewport);
                 GameSystems.TextBubble.Render(viewport);
                 GameSystems.TextFloater.Render(viewport);
-
             }
 
-            UiSystems.RadialMenu.Render(); // TODO: Radial Menu should not become a "game" render aspect, but rather a UI render aspect
+            UiSystems.RadialMenu
+                .Render(); // TODO: Radial Menu should not become a "game" render aspect, but rather a UI render aspect
 
             AnimGoalsDebugRenderer.RenderAllAnimGoals(
                 viewport,
                 tileRect.x1, tileRect.x2,
                 tileRect.y1, tileRect.y2);
-
         }
 
         private void RenderDebugPathfinding(IGameViewport viewport)
@@ -257,7 +243,8 @@ namespace OpenTemple.Core.Systems
 
             // Create the buffers for the scaled game view
             _sceneColor = _device.CreateRenderTargetTexture(
-                BufferFormat.A8R8G8B8, _renderSize.Width, _renderSize.Height, _multiSampleSettings
+                BufferFormat.A8R8G8B8, _renderSize.Width, _renderSize.Height, _multiSampleSettings,
+                "WorldView"
             );
             _sceneDepth = _device.CreateRenderTargetDepthStencil(
                 _renderSize.Width, _renderSize.Height, _multiSampleSettings

@@ -71,6 +71,13 @@ namespace OpenTemple.Core.Ui
             OnSizeChanged();
 
             _scrollingController = new GameViewScrollingController(this, this);
+
+            Globals.ConfigManager.OnConfigChanged += OnConfigChange;
+        }
+
+        private void OnConfigChange()
+        {
+            ReloadConfig(Globals.Config.Rendering);
         }
 
         private void ReloadConfig(RenderingConfig config)

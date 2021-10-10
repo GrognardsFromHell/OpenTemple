@@ -32,8 +32,10 @@ namespace OpenTemple.Core.AAS
             mShapeRenderer2d = shapeRenderer2d;
             mShapeRenderer3d = shapeRenderer3d;
             mGeometryShadowMaterial = CreateGeometryShadowMaterial(device);
-            mShadowTarget = device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, ShadowMapWidth, ShadowMapHeight);
-            mShadowTargetTmp = device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, ShadowMapWidth, ShadowMapHeight);
+            mShadowTarget = device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, ShadowMapWidth, ShadowMapHeight,
+                debugName: "AASShadowTarget");
+            mShadowTargetTmp = device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, ShadowMapWidth, ShadowMapHeight,
+                debugName: "AASShadowTargetTmp");
             mShadowMapMaterial = CreateShadowMapMaterial(device);
             mGaussBlurHor = CreateGaussBlurMaterial(device, mShadowTarget, true);
             mGaussBlurVer = CreateGaussBlurMaterial(device, mShadowTargetTmp, false);
