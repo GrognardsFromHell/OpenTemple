@@ -63,7 +63,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
         public static WidgetText CreateQuantityLabel()
         {
-            return new ("", "inventory-slot-quantity");
+            return new("", "inventory-slot-quantity");
         }
 
         public override void Render()
@@ -136,8 +136,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
             if (currentItem.type == ObjectType.weapon)
             {
-                var weaponType = currentItem.GetWeaponType();
-                if (GameSystems.Feat.IsProficientWithWeaponType(critter, weaponType))
+                if (!GameSystems.Feat.IsProficientWithWeapon(critter, currentItem))
                 {
                     color = SlotRedOutline;
                 }
@@ -147,7 +146,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
                 var wearFlags = currentItem.GetItemWearFlags();
                 if (wearFlags.HasFlag(ItemWearFlag.ARMOR))
                 {
-                    if ( !currentItem.GetArmorFlags().HasFlag(ArmorFlag.TYPE_NONE) )
+                    if (!currentItem.GetArmorFlags().HasFlag(ArmorFlag.TYPE_NONE))
                     {
                         if (!GameSystems.Feat.IsProficientWithArmor(critter, currentItem))
                         {

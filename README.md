@@ -12,7 +12,7 @@ video recording during tests.
 
 ### Features
 
-#### Debugging Scripts
+#### Scripts for Debugging
 
 Any `.csx` files you place in `Data/scripts` can be run using the scripts menu of the debug
 toolbar at the top of the screen. You can use any C# code within these scripts. Some
