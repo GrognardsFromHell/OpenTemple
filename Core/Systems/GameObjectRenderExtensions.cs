@@ -17,7 +17,6 @@ namespace OpenTemple.Core.Systems
         public static float GetRadius(this GameObjectBody obj)
         {
             var radiusSet = obj.GetFlags().HasFlag(ObjectFlag.RADIUS_SET);
-            GameObjectBody protoHandle;
             float protoRadius;
             if (radiusSet)
             {
@@ -25,7 +24,7 @@ namespace OpenTemple.Core.Systems
 
                 if (currentRadius < 2000.0 && currentRadius > 0)
                 {
-                    protoHandle = obj.GetProtoObj();
+                    var protoHandle = obj.GetProtoObj();
                     if (protoHandle != null)
                     {
                         protoRadius = protoHandle.GetFloat(obj_f.radius);
@@ -52,8 +51,8 @@ namespace OpenTemple.Core.Systems
             if (model == null)
             {
                 Logger.Warn("GetRadius: Null AAS handle!");
-                protoHandle = obj.GetProtoObj();
-                protoRadius = protoHandle.GetFloat(obj_f.radius);
+                var protoHandle = obj.GetProtoObj();
+                protoRadius = protoHandle?.GetFloat(obj_f.radius) ?? 0;
                 if (protoRadius > 0.0)
                 {
                     Logger.Debug("Returning radius from Proto: {0}", protoRadius);

@@ -8,7 +8,7 @@ namespace OpenTemple.Core.DebugUI
 {
     public static class ObjectEditors
     {
-        private static readonly List<ObjectEditor> Editors = new List<ObjectEditor>();
+        private static readonly List<ObjectEditor> Editors = new();
 
         public static void Edit(GameObjectBody obj)
         {
@@ -26,8 +26,11 @@ namespace OpenTemple.Core.DebugUI
 
         public static void Render()
         {
-            foreach (var editor in Editors)
+            // i-based loop because the list can be modified
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < Editors.Count; i++)
             {
+                var editor = Editors[i];
                 ImGui.SetNextWindowSize(new Vector2(400, 600));
 
                 var flags = ImGuiWindowFlags.AlwaysVerticalScrollbar

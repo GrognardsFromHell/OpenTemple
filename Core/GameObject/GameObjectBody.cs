@@ -197,8 +197,12 @@ namespace OpenTemple.Core.GameObject
             {
                 // GetProtoObj already validates and Protos can never be invalidated either
                 var protoObj = GetProtoObj();
+                if (protoObj == null)
+                {
+                    Logger.Warn("Object {0} references non-existing proto {1}.", this, ProtoId);
+                }
                 objOut = protoObj;
-                return true;
+                return objOut != null;
             }
 
             objOut = GetObject(field);
@@ -1545,7 +1549,7 @@ namespace OpenTemple.Core.GameObject
             }
             else
             {
-                throw new InvalidOperationException();
+                return null;
             }
         }
 

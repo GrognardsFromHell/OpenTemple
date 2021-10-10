@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
-using System.Reflection;
 using System.Text;
 using ImGuiNET;
 using OpenTemple.Core.GameObject;
@@ -12,7 +11,6 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Script.Extensions;
-using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.DebugUI
@@ -30,7 +28,14 @@ namespace OpenTemple.Core.DebugUI
         public ObjectEditor(GameObjectBody o)
         {
             Object = o;
-            Title = $"{GameSystems.MapObject.GetDisplayName(Object)} [{Object.type}, {Object.ProtoId}]";
+            if (Object.IsProto())
+            {
+                Title = $"{GameSystems.MapObject.GetDisplayName(Object)} [{Object.type}, Prototype]";                 
+            }
+            else
+            {
+                Title = $"{GameSystems.MapObject.GetDisplayName(Object)} [{Object.type}, ${Object.ProtoId}]";
+            }
 
             if (Object.IsPC())
             {
@@ -67,6 +72,33 @@ namespace OpenTemple.Core.DebugUI
                     SingleField($"Radius", obj_f.radius)
                 )
             );
+
+            if (Object.type == ObjectType.weapon)
+            {
+                AddGroup(
+                    "Weapon Properties",
+                    Field("Range", obj_f.weapon_range),
+                    Field("Ammo Type", obj_f.weapon_ammo_type),
+                    Field("Ammo Consumption", obj_f.weapon_ammo_consumption),
+                    Field("Crit Hit Chart", obj_f.weapon_crit_hit_chart),
+                    Field("Attack Type", obj_f.weapon_attacktype),
+                    Field("Damage Dice", obj_f.weapon_damage_dice),
+                    Field("Anim Type", obj_f.weapon_animtype),
+                    Field("Type", obj_f.weapon_type),
+                    Field("Crit Range", obj_f.weapon_crit_range)
+                );
+            }
+        }
+
+        private IPropertyEditor Field(string label, obj_f field)
+        {
+            return (ObjectFields.GetType(field)) switch
+            {
+                ObjectFieldType.Int32 => Int32Field(label, field),
+                ObjectFieldType.String => StringField(label, field),
+                ObjectFieldType.Float32 => SingleField(label, field),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         private IEnumerable<IPropertyEditor> GetHpFields()
@@ -106,7 +138,8 @@ namespace OpenTemple.Core.DebugUI
             return new Int32Editor(
                 label,
                 () => Object.GetInt32(field),
-                value => Object.SetInt32(field, value)
+                value => Object.SetInt32(field, value),
+                Object.GetProtoObj()?.GetInt32(field)
             );
         }
 
@@ -115,7 +148,8 @@ namespace OpenTemple.Core.DebugUI
             return new SingleEditor(
                 label,
                 () => Object.GetFloat(field),
-                value => Object.SetFloat(field, value)
+                value => Object.SetFloat(field, value),
+                Object.GetProtoObj()?.GetFloat(field)
             );
         }
 
@@ -124,12 +158,18 @@ namespace OpenTemple.Core.DebugUI
             return new Int32Editor(
                 label,
                 () => Object.GetBaseStat(field),
-                value => Object.SetBaseStat(field, value)
+                value => Object.SetBaseStat(field, value),
+                Object.GetProtoObj()?.GetBaseStat(field)
             );
         }
 
         public void Render()
         {
+            if (Object.GetProtoObj() != null && ImGui.Button("Open Proto"))
+            {
+                ObjectEditors.Edit(Object.GetProtoObj());
+            }
+            
             if (Object.IsCritter())
             {
                 RenderNameLabelPairs(
@@ -354,20 +394,35 @@ namespace OpenTemple.Core.DebugUI
 
     public abstract class AbstractPropertyEditor<T> : IPropertyEditor
     {
-        protected readonly string _label;
+        protected readonly string Label;
 
-        protected readonly Func<T> _getter;
+        protected readonly Func<T> Getter;
 
-        protected readonly Action<T> _setter;
+        protected readonly Action<T> Setter;
 
         protected AbstractPropertyEditor(string label, Func<T> getter, Action<T> setter)
         {
-            _label = label;
-            _getter = getter;
-            _setter = setter;
+            Label = label;
+            Getter = getter;
+            Setter = setter;
         }
 
         public abstract void Render();
+
+        protected virtual bool IsValueInherited => false;
+
+        protected void RenderLabel()
+        {
+            Tig.DebugUI.PushSmallFont();
+            ImGui.TextColored(new Vector4(0.9f, 0.9f, 0.9f, 1.0f), Label);
+            if (IsValueInherited)
+            {
+                ImGui.SameLine();
+                ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1.0f), " [Inherited]");
+            }
+            ImGui.PopFont();
+            ImGui.PushItemWidth(-1);
+        }
     }
 
     public class OneLineStringEditor : AbstractPropertyEditor<string>
@@ -383,54 +438,54 @@ namespace OpenTemple.Core.DebugUI
 
         public override void Render()
         {
-            if (_lastKnownObjectValue == null || _lastKnownObjectValue != _getter())
+            if (_lastKnownObjectValue == null || _lastKnownObjectValue != Getter())
             {
-                _lastKnownObjectValue = _getter();
+                _lastKnownObjectValue = Getter();
                 _currentValue = _lastKnownObjectValue;
             }
 
-            if (ImGui.InputText(_label, ref _currentValue, 1000, ImGuiInputTextFlags.EnterReturnsTrue))
+            if (ImGui.InputText(Label, ref _currentValue, 1000, ImGuiInputTextFlags.EnterReturnsTrue))
             {
-                _setter(_currentValue);
+                Setter(_currentValue);
             }
         }
     }
 
     public class Int32Editor : AbstractPropertyEditor<int>
     {
+        private readonly int? _inheritedValue;
+        
         private int _lastKnownObjectValue;
 
         private string _currentValue;
 
-        public Int32Editor(string label, Func<int> getter, Action<int> setter) : base(label, getter, setter)
+        public Int32Editor(string label, Func<int> getter, Action<int> setter, int? inheritedValue) : base(label, getter, setter)
         {
             UpdateValue();
+            _inheritedValue = inheritedValue;
         }
 
         private void UpdateValue()
         {
-            _lastKnownObjectValue = _getter();
+            _lastKnownObjectValue = Getter();
             _currentValue = _lastKnownObjectValue.ToString();
         }
 
         public override void Render()
         {
-            if (_lastKnownObjectValue != _getter())
+            if (_lastKnownObjectValue != Getter())
             {
                 UpdateValue();
             }
 
             ImGui.BeginGroup();
-            Tig.DebugUI.PushSmallFont();
-            ImGui.TextColored(new Vector4(0.9f, 0.9f, 0.9f, 1.0f), _label);
-            ImGui.PopFont();
-            ImGui.PushItemWidth(-1);
-            if (ImGui.InputText("##" + _label, ref _currentValue, 32, ImGuiInputTextFlags.EnterReturnsTrue))
+            RenderLabel();
+            if (ImGui.InputText("##" + Label, ref _currentValue, 32, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 if (int.TryParse(_currentValue, NumberStyles.Integer, CultureInfo.InvariantCulture,
                     out int newValue))
                 {
-                    _setter(newValue);
+                    Setter(newValue);
                 }
 
                 UpdateValue();
@@ -439,43 +494,45 @@ namespace OpenTemple.Core.DebugUI
             ImGui.PopItemWidth();
             ImGui.EndGroup();
         }
+
+        protected override bool IsValueInherited => _inheritedValue == _lastKnownObjectValue;
     }
 
     public class SingleEditor : AbstractPropertyEditor<float>
     {
+        private readonly float? _inheritedValue;
+        
         private float _lastKnownObjectValue;
 
         private string _currentValue;
 
-        public SingleEditor(string label, Func<float> getter, Action<float> setter) : base(label, getter, setter)
+        public SingleEditor(string label, Func<float> getter, Action<float> setter, float? inheritedValue) : base(label, getter, setter)
         {
             UpdateValue();
+            _inheritedValue = inheritedValue;
         }
 
         private void UpdateValue()
         {
-            _lastKnownObjectValue = _getter();
+            _lastKnownObjectValue = Getter();
             _currentValue = _lastKnownObjectValue.ToString();
         }
 
         public override void Render()
         {
-            if (_lastKnownObjectValue != _getter())
+            if (_lastKnownObjectValue != Getter())
             {
                 UpdateValue();
             }
 
             ImGui.BeginGroup();
-            Tig.DebugUI.PushSmallFont();
-            ImGui.TextColored(new Vector4(0.9f, 0.9f, 0.9f, 1.0f), _label);
-            ImGui.PopFont();
-            ImGui.PushItemWidth(-1);
-            if (ImGui.InputText("##" + _label, ref _currentValue, 32, ImGuiInputTextFlags.EnterReturnsTrue))
+            RenderLabel();
+            if (ImGui.InputText("##" + Label, ref _currentValue, 32, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 if (int.TryParse(_currentValue, NumberStyles.Integer, CultureInfo.InvariantCulture,
                     out int newValue))
                 {
-                    _setter(newValue);
+                    Setter(newValue);
                 }
 
                 UpdateValue();
@@ -484,6 +541,9 @@ namespace OpenTemple.Core.DebugUI
             ImGui.PopItemWidth();
             ImGui.EndGroup();
         }
+        
+        protected override bool IsValueInherited => _inheritedValue.HasValue 
+                                                    && MathF.Abs(_lastKnownObjectValue - _inheritedValue.Value) < 0.0001f;
     }
 
     internal class AbilityModifierLabel : IPropertyEditor
