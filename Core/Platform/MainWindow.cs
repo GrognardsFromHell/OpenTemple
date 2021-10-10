@@ -76,24 +76,56 @@ namespace OpenTemple.Core.Platform
             get => _config;
             set
             {
+                var changingFullscreen = _config.Windowed != value.Windowed;
                 _config = value.Copy();
-                CreateWindowRectAndStyles(out var windowRect, out var style, out var styleEx);
 
-                var currentStyles = unchecked((WindowStyles)(long)GetWindowLongPtr(_windowHandle, GWL_STYLE));
-                currentStyles &= ~(WindowStyles.WS_OVERLAPPEDWINDOW | WindowStyles.WS_POPUP);
-                currentStyles |= style;
+                if (changingFullscreen)
+                {
+                    CreateWindowRectAndStyles(out var windowRect, out var style, out var styleEx);
 
-                SetWindowLongPtr(_windowHandle, GWL_STYLE, (IntPtr)currentStyles);
-                SetWindowLongPtr(_windowHandle, GWL_EXSTYLE, (IntPtr)styleEx);
-                SetWindowPos(
-                    _windowHandle,
-                    IntPtr.Zero,
-                    windowRect.Left,
-                    windowRect.Top,
-                    windowRect.Width,
-                    windowRect.Height,
-                    SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER
-                );
+                    var currentStyles = unchecked((WindowStyles) (long) GetWindowLongPtr(_windowHandle, GWL_STYLE));
+                    currentStyles &= ~(WindowStyles.WS_OVERLAPPEDWINDOW | WindowStyles.WS_POPUP |
+                                       WindowStyles.WS_MAXIMIZE);
+                    currentStyles |= style;
+
+                    SetWindowLongPtr(_windowHandle, GWL_STYLE, (IntPtr) currentStyles);
+                    SetWindowLongPtr(_windowHandle, GWL_EXSTYLE, (IntPtr) styleEx);
+                    
+                    var wasMaximized = _config.Maximized;
+
+                    // Just update window styles first, this will clear the maximized flag and send a WM_SIZE though!
+                    SetWindowPos(
+                        _windowHandle,
+                        IntPtr.Zero,
+                        0,
+                        0,
+                        0,
+                        0,
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
+                    );
+
+                    if (!_config.Windowed || !wasMaximized)
+                    {
+                        // When going full-screen, this positions the window at full screen size. This uses
+                        // screen coordinates, not "workspace"
+                        SetWindowPos(
+                            _windowHandle,
+                            IntPtr.Zero,
+                            windowRect.Left,
+                            windowRect.Top,
+                            windowRect.Width,
+                            windowRect.Height,
+                            SWP_NOZORDER
+                        );
+                    }
+                    else
+                    {
+                        var placement = WINDOWPLACEMENT.Default;
+                        GetWindowPlacement(_windowHandle, ref placement);
+                        placement.ShowCmd = SW_MAXIMIZE;
+                        SetWindowPlacement(_windowHandle, ref placement);
+                    }
+                }
             }
         }
 
@@ -271,6 +303,12 @@ namespace OpenTemple.Core.Platform
 
             style |= WindowStyles.WS_VISIBLE;
 
+            // Show initially maximized in window mode, if the game was previously maximized
+            if (_config.Windowed && _config.Maximized)
+            {
+                style |= WindowStyles.WS_MAXIMIZE;
+            }
+
             var width = windowRect.Width;
             var height = windowRect.Height;
             Logger.Info("Creating window with dimensions {0}x{1}", width, height);
@@ -291,6 +329,19 @@ namespace OpenTemple.Core.Platform
             if (_windowHandle == IntPtr.Zero)
             {
                 throw new Exception("Unable to create main window: " + Marshal.GetLastWin32Error());
+            }
+            
+            // Retrieve the *actual* size, because we don't seem to get a WM_SIZE message for this,
+            // especially in case we use WS_MAXIMIZE, the size can be wrong
+            if (GetClientRect(_windowHandle, out var clientRect))
+            {
+                // The returned size should never be zero, unless the window was forced by some hook to be minimized
+                if (clientRect.Width > 0 && clientRect.Height > 0)
+                {
+                    _width = clientRect.Width;
+                    _height = clientRect.Height;
+                    Logger.Info("Actual window dimensions {0}x{1}", width, height);
+                }
             }
 
             // Store our this pointer in the window
@@ -324,7 +375,6 @@ namespace OpenTemple.Core.Platform
                 windowRect.Right = windowRect.Left + _config.Width;
                 windowRect.Bottom = windowRect.Top + _config.Height;
 
-                // style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
                 style = WindowStyles.WS_OVERLAPPEDWINDOW;
 
                 AdjustWindowRectEx(ref windowRect, style, false, styleEx);
@@ -410,9 +460,31 @@ namespace OpenTemple.Core.Platform
 
                     break;
                 case WM_SIZE:
+                    // Ignore resizes to 0 (i.e. due to being minimized)
+                    if (WindowsMessageUtils.GetWidthParam(lParam) == 0
+                        || WindowsMessageUtils.GetHeightParam(lParam) == 0)
+                    {
+                        break;
+                    }
+                    
                     // Update width/height with window client size
                     _width = WindowsMessageUtils.GetWidthParam(lParam);
                     _height = WindowsMessageUtils.GetHeightParam(lParam);
+                    // If the window was maximized by the user, store that in the config
+                    if (_config.Windowed)
+                    {
+                        if (wParam == SIZE_MAXIMIZED)
+                        {
+                            _config.Maximized = true;
+                        }
+                        else if (wParam == SIZE_RESTORED)
+                        {
+                            _config.Maximized = false;
+                        }
+
+                        Globals.Config.Window.Maximized = _config.Maximized;
+                        Globals.ConfigManager.Save();
+                    }
                     Resized?.Invoke(Size);
                     UpdateUiCanvasSize();
                     break;
@@ -475,6 +547,19 @@ namespace OpenTemple.Core.Platform
                 case WM_SYSKEYDOWN:
                 case WM_KEYDOWN:
                 {
+                    // Handle Alt+Enter here
+                    if (IsAltEnter(wParam, lParam))
+                    {
+                        // Ignore repeats
+                        if ((GetKeyMessageFlags(lParam) & KeyMessageFlag.KF_REPEAT) == 0)
+                        {
+                            var config = _config.Copy();
+                            config.Windowed = !config.Windowed;
+                            WindowConfig = config;
+                        }
+                        return IntPtr.Zero;
+                    }
+                    
                     var key = (DIK)ToDirectInputKey((VirtualKey)wParam);
                     if (key != 0)
                     {
@@ -492,6 +577,12 @@ namespace OpenTemple.Core.Platform
                 case WM_KEYUP:
                 case WM_SYSKEYUP:
                 {
+                    if (IsAltEnter(wParam, lParam))
+                    {
+                        // Since we handle the key-down of this, we should not pass through the key-up
+                        return IntPtr.Zero;
+                    }
+
                     var key = (DIK)ToDirectInputKey((VirtualKey)wParam);
                     if (key != 0)
                     {
@@ -522,6 +613,19 @@ namespace OpenTemple.Core.Platform
 
             // Previously, ToEE called a global window proc here but it did nothing useful.
             return DefWindowProc(hWnd, msg, wParam, lParam);
+        }
+
+        private static bool IsAltEnter(nuint wParam, nint lParam)
+        {
+            var flags = GetKeyMessageFlags(lParam);
+            return (VirtualKey) wParam == VirtualKey.VK_RETURN
+                   // And only if alt is being held
+                   && (flags & KeyMessageFlag.KF_ALTDOWN) != 0;
+        }
+
+        private static KeyMessageFlag GetKeyMessageFlags(nint lParam)
+        {
+            return (KeyMessageFlag) ((lParam >> 16) & 0xFFFF);
         }
 
         private void HandleMouseWheelEvent(IntPtr hWnd, ulong wParam, long lParam)
@@ -671,6 +775,9 @@ namespace OpenTemple.Core.Platform
         private const uint SC_KEYMENU = 0xF100;
         private const uint SC_SCREENSAVE = 0xF140;
         private const uint SC_MONITORPOWER = 0xF170;
+
+        private const uint SIZE_RESTORED = 0;
+        private const uint SIZE_MAXIMIZED = 2;
 
         private uint ToDirectInputKey(VirtualKey vk)
         {
@@ -929,6 +1036,69 @@ namespace OpenTemple.Core.Platform
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
             uint uFlags);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPlacement(IntPtr hWnd, [In] ref WINDOWPLACEMENT lpwndpl);
+        
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        
+        /// <summary>
+        /// Contains information about the placement of a window on the screen.
+        /// </summary>
+        [Serializable]
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct WINDOWPLACEMENT
+        {
+            /// <summary>
+            /// The length of the structure, in bytes. Before calling the GetWindowPlacement or SetWindowPlacement functions, set this member to sizeof(WINDOWPLACEMENT).
+            /// <para>
+            /// GetWindowPlacement and SetWindowPlacement fail if this member is not set correctly.
+            /// </para>
+            /// </summary>
+            public int Length;
+
+            /// <summary>
+            /// Specifies flags that control the position of the minimized window and the method by which the window is restored.
+            /// </summary>
+            public int Flags;
+
+            /// <summary>
+            /// The current show state of the window.
+            /// </summary>
+            public uint ShowCmd;
+
+            /// <summary>
+            /// The coordinates of the window's upper-left corner when the window is minimized.
+            /// </summary>
+            public POINT MinPosition;
+
+            /// <summary>
+            /// The coordinates of the window's upper-left corner when the window is maximized.
+            /// </summary>
+            public POINT MaxPosition;
+
+            /// <summary>
+            /// The window's coordinates when the window is in the restored position.
+            /// </summary>
+            public RECT NormalPosition;
+
+            /// <summary>
+            /// Gets the default (empty) value.
+            /// </summary>
+            public static WINDOWPLACEMENT Default
+            {
+                get
+                {
+                    WINDOWPLACEMENT result = new WINDOWPLACEMENT();
+                    result.Length = Marshal.SizeOf( result );
+                    return result;
+                }
+            }    
+        }
+        
         /// <summary>
         /// SetWindowPos Flags
         /// </summary>
@@ -997,6 +1167,9 @@ namespace OpenTemple.Core.Platform
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
         private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
 
+        [DllImport("user32.dll")]
+        private static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+        
         private static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
         {
             if (IntPtr.Size == 8)
@@ -1026,6 +1199,12 @@ namespace OpenTemple.Core.Platform
                 return SetWindowLongPtr32(hWnd, nIndex, dwNewLong);
             }
         }
+        
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        public const uint SW_RESTORE = 9;
+        public const uint SW_MAXIMIZE = 3;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr LoadIcon(IntPtr hInstance, string lpIconName);
@@ -1056,5 +1235,34 @@ namespace OpenTemple.Core.Platform
             IntPtr hMenu,
             IntPtr hInstance,
             IntPtr lpParam);
+
+        [Flags]
+        private enum KeyMessageFlag
+        {
+            /// <summary>
+            /// Manipulates the extended key flag.
+            /// </summary>
+            KF_EXTENDED =  0x0100,
+            /// <summary>
+            /// Manipulates the dialog mode flag, which indicates whether a dialog box is active.
+            /// </summary>
+            KF_DLGMODE =  0x0800,
+            /// <summary>
+            /// Manipulates the menu mode flag, which indicates whether a menu is active.
+            /// </summary>
+            KF_MENUMODE =  0x1000,
+            /// <summary>
+            /// Manipulates the ALT key flag, which indicated if the ALT key is pressed.
+            /// </summary>
+            KF_ALTDOWN =  0x2000,
+            /// <summary>
+            /// Manipulates the repeat count.
+            /// </summary>
+            KF_REPEAT =  0x4000,
+            /// <summary>
+            /// Manipulates the transition state flag.
+            /// </summary>
+            KF_UP =  0x8000
+        }
     }
 }

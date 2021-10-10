@@ -48,7 +48,7 @@ namespace OpenTemple.Core
                 return false;
             }
 
-            Tig.Startup(config, new TigSettings(){DataFolder = DataFolder});
+            Tig.Startup(config, new TigSettings {DataFolder = DataFolder});
             Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
             Globals.UiManager = new UiManager(Tig.MainWindow);
