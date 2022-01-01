@@ -427,11 +427,19 @@ namespace OpenTemple.Core.IO.TroikaArchives
                     using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, true))
                     {
                         var uncompressedOut = uncompressedData.Memory.Span;
-                        var actualRead = deflateStream.Read(uncompressedOut);
-                        if (actualRead != uncompressedOut.Length)
+                        // The deflate stream may not return everything in one read operation due to how it works internally
+                        var readTotal = 0;
+                        int bytesRead;
+                        do
+                        {
+                            bytesRead = deflateStream.Read(uncompressedOut[readTotal..]);
+                            readTotal += bytesRead;
+                        } while (bytesRead != 0 && readTotal < uncompressedOut.Length);
+
+                        if (readTotal != uncompressedOut.Length)
                         {
                             throw new Exception(
-                                $"Failed to read {uncompressedOut.Length} bytes for {GetFullPath(in entry)}, only got {actualRead}"
+                                $"Failed to read {uncompressedOut.Length} bytes for {GetFullPath(in entry)}, only got {readTotal}"
                             );
                         }
 
