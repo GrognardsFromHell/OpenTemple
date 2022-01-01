@@ -12,7 +12,7 @@
 /u:System.Text
 /u:System.Threading.Tasks
 
-/r:../../Launcher.Win/bin/Debug/net5.0/OpenTemple.Core.dll
+/r:../../Launcher.Win/bin/Debug/net6.0/OpenTemple.Core.dll
 /u:OpenTemple.Core.Systems
 /u:OpenTemple.Core.Ui
 /u:OpenTemple.Core.GameObject
