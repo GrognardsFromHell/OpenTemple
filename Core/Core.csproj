@@ -13,7 +13,7 @@
         <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
         <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
 
-        <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.149" />
+        <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.152" />
         <PackageReference Include="FfmpegBink.Interop" Version="1.0.0-pre.31" />
     </ItemGroup>
 

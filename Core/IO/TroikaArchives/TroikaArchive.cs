@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.IO.MemoryMappedFiles;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core.IO.TroikaArchives
 {
@@ -75,21 +76,20 @@ namespace OpenTemple.Core.IO.TroikaArchives
     /// </summary>
     public sealed class TroikaArchive : IDisposable
     {
-        private static readonly uint SignatureV0 = 0x44_41_54_20; // "DAT " in little-endian
+        private const uint SignatureV0 = 0x44_41_54_20; // "DAT " in little-endian
 
-        private static readonly uint SignatureV1 = 0x44_41_54_31; // "DAT1" in little-endian
+        private const uint SignatureV1 = 0x44_41_54_31; // "DAT1" in little-endian
 
-        private readonly MemoryMappedFile _file;
+        private readonly SafeFileHandle _fileHandle;
+
+        private readonly FileStream _fileStream;
 
         /// <summary>
-        ///     We have to query the actual on-disk file length because the memory mapped region might end on
-        ///     the end of the memory page, rather than ending at the actual end of the file!
+        /// We query this when we open the file.
         /// </summary>
         private readonly long _fileLength;
 
         private readonly MemoryPool<byte> _pool = MemoryPool<byte>.Shared;
-
-        private readonly MemoryMappedViewAccessor _view;
 
         private ArchiveEntry[] _entries;
 
@@ -101,19 +101,24 @@ namespace OpenTemple.Core.IO.TroikaArchives
         {
             Path = path;
 
-            _file = MemoryMappedFile.CreateFromFile(path, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
-            _view = _file.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
-            _fileLength = new FileInfo(path).Length;
-
+            _fileHandle = File.OpenHandle(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                FileOptions.RandomAccess
+            );
+            _fileStream = new FileStream(_fileHandle, FileAccess.Read);
+            _fileLength = RandomAccess.GetLength(_fileHandle);
+            
             // Read the file table
             try
             {
-                ReadFileTable(_file);
+                ReadFileTable(_fileHandle);
             }
             catch
             {
-                _view.Dispose();
-                _file.Dispose();
+                _fileHandle.Dispose();
                 throw;
             }
         }
@@ -126,23 +131,22 @@ namespace OpenTemple.Core.IO.TroikaArchives
 
         public void Dispose()
         {
-            _view.Dispose();
-            _file.Dispose();
+            _fileStream.Dispose();
         }
 
-        private void ReadFileTable(MemoryMappedFile file)
+        private void ReadFileTable(SafeFileHandle handle)
         {
-            using var stream = file.CreateViewStream(0, _fileLength, MemoryMappedFileAccess.Read);
-            stream.Seek(-12, SeekOrigin.End);
+            // Read the 12 byte footer at the end of the file
+            Span<byte> fileFooter = stackalloc byte[12];
+            if (RandomAccess.Read(_fileHandle, fileFooter, _fileLength - fileFooter.Length) < fileFooter.Length)
+            {
+                throw new InvalidDataException("Couldn't read file footer");
+            }
 
-            var reader = new BinaryReader(stream, Encoding.ASCII, true);
+            var signature = BitConverter.ToUInt32(fileFooter[..4]);
+            var fileTableSize = BitConverter.ToUInt32(fileFooter[8..12]);
 
-            var signature = reader.ReadUInt32();
-            reader.ReadUInt32(); // Skip the string heap, we'll deduce it later
-
-            var fileTableSize = reader.ReadUInt32();
-
-            Debug.Assert(fileTableSize <= stream.Length);
+            Debug.Assert(fileTableSize <= _fileLength);
 
             // Seek back to read the archive GUID if it's a newer version of the file format
             if (signature == SignatureV0)
@@ -151,19 +155,22 @@ namespace OpenTemple.Core.IO.TroikaArchives
             }
             else if (signature == SignatureV1)
             {
-                stream.Seek(-24, SeekOrigin.End);
-
                 Span<byte> guidData = stackalloc byte[16];
-                stream.Read(guidData);
+                if (RandomAccess.Read(_fileHandle, guidData, _fileLength - 24) != guidData.Length)
+                {
+                    throw new InvalidDataException("Failed to read GUID from archive");
+                }
+
                 ArchiveGuid = new Guid(guidData);
             }
             else
             {
-                throw new Exception("Corrupted header in Troika archive " + Path);
+                throw new InvalidDataException("Corrupted header in Troika archive " + Path);
             }
 
             // Seek to the start of the file allocation table
-            stream.Seek(-(int) fileTableSize, SeekOrigin.End);
+            using var reader = new BinaryReader(_fileStream, Encoding.ASCII, true);
+            _fileStream.Seek(-(int) fileTableSize, SeekOrigin.End);
 
             // Read number of entries and allocate memory for them
             var entryCount = reader.ReadUInt32();
@@ -354,8 +361,14 @@ namespace OpenTemple.Core.IO.TroikaArchives
             // Uncompressed entries are trivial
             if (!entry.IsCompressed)
             {
-                return new MappedFileMemoryManager(_view.SafeMemoryMappedViewHandle, entry.StartOfData,
-                    entry.SizeOnDisk);
+                var memory = new ConstrainedMemoryOwner(_pool.Rent((int) entry.SizeOnDisk), (int) entry.SizeOnDisk);
+                var data = memory.Memory.Span;
+                if (RandomAccess.Read(_fileHandle, data, entry.StartOfData) != data.Length)
+                {
+                    throw new IOException($"Failed to read {data.Length} @ {entry.StartOfData} from {Path}");
+                }
+
+                return memory;
             }
 
             // Compressed data is much harder to handle
@@ -409,143 +422,30 @@ namespace OpenTemple.Core.IO.TroikaArchives
         /// </summary>
         private IMemoryOwner<byte> DecompressEntry(in ArchiveEntry entry)
         {
-            var originalSize = (int) entry.OriginalSize;
-            var uncompressedData = new ConstrainedMemoryOwner(_pool.Rent(originalSize), originalSize);
+            var compressedSize = (int) entry.SizeOnDisk;
+            using var compressedDataOwner = _pool.Rent(compressedSize);
+            var compressedData = compressedDataOwner.Memory.Span[..compressedSize];
+            var uncompressedSize = (int) entry.OriginalSize;
+            var uncompressedDataOwner = new ConstrainedMemoryOwner(_pool.Rent(uncompressedSize), uncompressedSize);
+            var uncompressedData = uncompressedDataOwner.Memory.Span[..uncompressedSize];
+
+            if (RandomAccess.Read(_fileHandle, compressedData, entry.StartOfData) != compressedSize)
+            {
+                throw new IOException($"Couldn't read uncompressed data for {GetFullPath(entry)}");
+            }
 
             try
             {
-                using (var compressedStream = new UnmanagedMemoryStream(_view.SafeMemoryMappedViewHandle,
-                    entry.StartOfData, entry.SizeOnDisk, FileAccess.Read))
-                {
-                    // C#'s DeflateStream operates on raw deflate data, while ToEE
-                    // uses the ZLib storage format (detailed in RFC1950).
-                    // Essentially deflate has a 2-byte header (when not using dictionaries,
-                    // which ToEE doesn't), and a 4-byte Adler32 footer.
-                    // The footer is ignored by DeflateStream however, so we only need to skip the header.
-                    compressedStream.Seek(2, SeekOrigin.Current);
-
-                    using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, true))
-                    {
-                        var uncompressedOut = uncompressedData.Memory.Span;
-                        // The deflate stream may not return everything in one read operation due to how it works internally
-                        var readTotal = 0;
-                        int bytesRead;
-                        do
-                        {
-                            bytesRead = deflateStream.Read(uncompressedOut[readTotal..]);
-                            readTotal += bytesRead;
-                        } while (bytesRead != 0 && readTotal < uncompressedOut.Length);
-
-                        if (readTotal != uncompressedOut.Length)
-                        {
-                            throw new Exception(
-                                $"Failed to read {uncompressedOut.Length} bytes for {GetFullPath(in entry)}, only got {readTotal}"
-                            );
-                        }
-
-                        // check that we are actually at EOF
-                        Span<byte> tmp = stackalloc byte[1];
-                        if (deflateStream.Read(tmp) != 0)
-                        {
-                            throw new Exception(
-                                $"The decompressed stream for {GetFullPath(in entry)} is longer than the {uncompressedOut.Length} bytes indicated in the archive!"
-                            );
-                        }
-                    }
-                }
+                Inflate.Uncompress(compressedData, uncompressedData);
             }
-            catch
+            catch (Exception e)
             {
-                uncompressedData.Dispose();
-                throw;
+                uncompressedDataOwner.Dispose();
+                throw new IOException($"Failed to decompress entry ${GetFullPath(entry)}", e);
             }
 
-            return uncompressedData;
+            return uncompressedDataOwner;
         }
     }
 
-    public unsafe class MappedFileMemoryManager : MemoryManager<byte>
-    {
-        private readonly int _length;
-
-        private readonly SafeMemoryMappedViewHandle _viewHandle;
-
-        private byte* _data = null;
-
-        public MappedFileMemoryManager(SafeMemoryMappedViewHandle viewHandle, uint offset, uint length)
-        {
-            _viewHandle = viewHandle;
-
-            if (viewHandle.ByteLength < offset + length)
-            {
-                throw new ArgumentException(
-                    $"The file has length {viewHandle.ByteLength}, but requesting range {offset} to {offset + length}"
-                );
-            }
-
-            // Span takes only an int in it's constructor, so we need to bounds check
-            if (length > int.MaxValue)
-            {
-                throw new ArgumentException($"Length {length} cannot be > {int.MaxValue}");
-            }
-
-            _length = (int) length;
-
-            // Acquire the raw pointer to the underlying view, this increments
-            // the internal ref-count for the mapped view
-            viewHandle.AcquirePointer(ref _data);
-
-            if (_data == null)
-            {
-                throw new Exception("Failed to obtain a pointer to the underlying memory mapped file");
-            }
-
-            _data += offset;
-        }
-
-        public Stream CreateStream()
-        {
-            return new UnmanagedMemoryStream(_data, _length, _length, FileAccess.Read);
-        }
-
-        public override Span<byte> GetSpan()
-        {
-            if (_data == null)
-            {
-                throw new InvalidOperationException("The underlying memory has already been released.");
-            }
-
-            return new Span<byte>(_data, _length);
-        }
-
-        public override MemoryHandle Pin(int elementIndex = 0)
-        {
-            if (_data == null)
-            {
-                throw new InvalidOperationException("The underlying memory has already been released.");
-            }
-
-            if (elementIndex < 0 || elementIndex >= _length)
-            {
-                throw new ArgumentException("elementIndex was out of range.", nameof(elementIndex));
-            }
-
-            // Memory mapped files are unmanaged resources and thus don't need pinning
-            return new MemoryHandle(_data + elementIndex);
-        }
-
-        public override void Unpin()
-        {
-            // The underlying pointer is in unmanaged memory, so there's nothing to unpin.
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (_data != null)
-            {
-                _viewHandle.ReleasePointer();
-                _data = null;
-            }
-        }
-    }
 }
