@@ -19,67 +19,66 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(136)]
+public class ManAtArmsPrisoner1Dialog : ManAtArmsPrisoner1, IDialogScript
 {
-    [DialogScript(136)]
-    public class ManAtArmsPrisoner1Dialog : ManAtArmsPrisoner1, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 51:
-                case 52:
-                case 153:
-                case 154:
-                    originalScript = "game.party_npc_size() == 0";
-                    return GameSystems.Party.NPCFollowersSize == 0;
-                case 55:
-                case 56:
-                    originalScript = "game.party_npc_size() >= 1";
-                    return GameSystems.Party.NPCFollowersSize >= 1;
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 51:
+            case 52:
+            case 153:
+            case 154:
+                originalScript = "game.party_npc_size() == 0";
+                return GameSystems.Party.NPCFollowersSize == 0;
+            case 55:
+            case 56:
+                originalScript = "game.party_npc_size() >= 1";
+                return GameSystems.Party.NPCFollowersSize >= 1;
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 4:
-                case 5:
-                case 81:
-                case 82:
-                    originalScript = "game.global_flags[133] = 1; get_rep( npc, pc )";
-                    SetGlobalFlag(133, true);
-                    get_rep(npc, pc);
-                    ;
-                    break;
-                case 120:
-                case 171:
-                case 181:
-                case 182:
-                    originalScript = "pc.follower_remove(npc)";
-                    pc.RemoveFollower(npc);
-                    break;
-                case 140:
-                    originalScript = "pc.follower_add(npc)";
-                    pc.AddFollower(npc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 4:
+            case 5:
+            case 81:
+            case 82:
+                originalScript = "game.global_flags[133] = 1; get_rep( npc, pc )";
+                SetGlobalFlag(133, true);
+                get_rep(npc, pc);
+                ;
+                break;
+            case 120:
+            case 171:
+            case 181:
+            case 182:
+                originalScript = "pc.follower_remove(npc)";
+                pc.RemoveFollower(npc);
+                break;
+            case 140:
+                originalScript = "pc.follower_add(npc)";
+                pc.AddFollower(npc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

@@ -18,42 +18,41 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(246)]
+public class TutorialDialogue : BaseObjectScript
 {
-    [ObjectScript(246)]
-    public class TutorialDialogue : BaseObjectScript
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
         {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            if ((!Utilities.critter_is_unconscious(obj)))
             {
-                if ((!Utilities.critter_is_unconscious(obj)))
+                if (!GetGlobalFlag(0))
                 {
-                    if (!GetGlobalFlag(0))
+                    if (!UiSystems.HelpManager.IsTutorialActive)
                     {
-                        if (!UiSystems.HelpManager.IsTutorialActive)
-                        {
-                            UiSystems.HelpManager.ToggleTutorial();
-                        }
-
-                        UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Dialogue);
-                        SetGlobalFlag(0, true);
-                        SetGlobalFlag(10, true);
-                    }
-                    else if (GetGlobalFlag(10))
-                    {
-                        // if not game.tutorial_is_active():
-                        obj.BeginDialog(attachee, 1);
-                        DetachScript();
-                        SetGlobalFlag(10, false);
+                        UiSystems.HelpManager.ToggleTutorial();
                     }
 
+                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Dialogue);
+                    SetGlobalFlag(0, true);
+                    SetGlobalFlag(10, true);
+                }
+                else if (GetGlobalFlag(10))
+                {
+                    // if not game.tutorial_is_active():
+                    obj.BeginDialog(attachee, 1);
+                    DetachScript();
+                    SetGlobalFlag(10, false);
                 }
 
             }
 
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

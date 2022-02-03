@@ -1,28 +1,27 @@
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.Options
+namespace OpenTemple.Core.Ui.Options;
+
+public abstract class Option
 {
-    public abstract class Option
+    public string Label { get; }
+
+    protected Option(string label)
     {
-        public string Label { get; }
+        Label = label;
+    }
 
-        protected Option(string label)
-        {
-            Label = label;
-        }
+    public abstract void AddTo(WidgetContainer container);
 
-        public abstract void AddTo(WidgetContainer container);
+    public virtual void Reset()
+    {
+    }
 
-        public virtual void Reset()
-        {
-        }
+    public virtual void Apply()
+    {
+    }
 
-        public virtual void Apply()
-        {
-        }
-
-        public virtual void Cancel()
-        {
-        }
+    public virtual void Cancel()
+    {
     }
 }

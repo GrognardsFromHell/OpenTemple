@@ -18,33 +18,32 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(243)]
-    public class TutorialRoom3 : BaseObjectScript
-    {
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-            {
-                if (((!Utilities.critter_is_unconscious(obj)) && (obj.DistanceTo(attachee) < 25)))
-                {
-                    // attachee.turn_towards(obj)
-                    if (!UiSystems.HelpManager.IsTutorialActive)
-                    {
-                        UiSystems.HelpManager.ToggleTutorial();
-                    }
+namespace Scripts;
 
-                    SetGlobalFlag(4, true);
-                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Room3Overview);
-                    DetachScript();
-                    return RunDefault;
+[ObjectScript(243)]
+public class TutorialRoom3 : BaseObjectScript
+{
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+        {
+            if (((!Utilities.critter_is_unconscious(obj)) && (obj.DistanceTo(attachee) < 25)))
+            {
+                // attachee.turn_towards(obj)
+                if (!UiSystems.HelpManager.IsTutorialActive)
+                {
+                    UiSystems.HelpManager.ToggleTutorial();
                 }
 
+                SetGlobalFlag(4, true);
+                UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Room3Overview);
+                DetachScript();
+                return RunDefault;
             }
 
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

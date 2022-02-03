@@ -17,29 +17,28 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(94)]
+public class Laszlo : BaseObjectScript
 {
-    [ObjectScript(94)]
-    public class Laszlo : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(331, true);
-            SetGlobalVar(23, GetGlobalVar(23) + 1);
-            if ((GetGlobalVar(23) >= 2))
-            {
-                PartyLeader.AddReputation(1);
-            }
-
-            return RunDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(331, true);
+        SetGlobalVar(23, GetGlobalVar(23) + 1);
+        if ((GetGlobalVar(23) >= 2))
+        {
+            PartyLeader.AddReputation(1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

@@ -17,22 +17,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(32)]
+public class TeleportDungeonFromKeep : BaseObjectScript
 {
-    [ObjectScript(32)]
-    public class TeleportDungeonFromKeep : BaseObjectScript
+
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        if ((triggerer.type == ObjectType.pc))
         {
-            if ((triggerer.type == ObjectType.pc))
-            {
-                FadeAndTeleport(0, 0, 0, 5005, 419, 404);
-            }
-
-            return SkipDefault;
+            FadeAndTeleport(0, 0, 0, 5005, 419, 404);
         }
 
-
+        return SkipDefault;
     }
+
+
 }

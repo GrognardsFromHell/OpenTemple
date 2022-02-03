@@ -19,68 +19,67 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(322)]
+public class CaptainAsaphDialog : CaptainAsaph, IDialogScript
 {
-    [DialogScript(322)]
-    public class CaptainAsaphDialog : CaptainAsaph, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 41:
-                case 42:
-                case 61:
-                case 62:
-                case 71:
-                case 72:
-                    originalScript = "not pc.follower_atmax()";
-                    return !pc.HasMaxFollowers();
-                case 43:
-                case 63:
-                case 73:
-                    originalScript = "pc.follower_atmax()";
-                    return pc.HasMaxFollowers();
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 41:
+            case 42:
+            case 61:
+            case 62:
+            case 71:
+            case 72:
+                originalScript = "not pc.follower_atmax()";
+                return !pc.HasMaxFollowers();
+            case 43:
+            case 63:
+            case 73:
+                originalScript = "pc.follower_atmax()";
+                return pc.HasMaxFollowers();
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 51:
-                    originalScript = "pc.follower_add(npc); game.sound( 4016 ); kill_asaph_guards( npc, pc )";
-                    pc.AddFollower(npc);
-                    Sound(4016);
-                    kill_asaph_guards(npc, pc);
-                    ;
-                    break;
-                case 72:
-                case 73:
-                    originalScript = "game.sound( 4016 ); kill_asaph( npc, pc )";
-                    Sound(4016);
-                    kill_asaph(npc, pc);
-                    ;
-                    break;
-                case 92:
-                    originalScript = "pc.follower_remove( npc )";
-                    pc.RemoveFollower(npc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 51:
+                originalScript = "pc.follower_add(npc); game.sound( 4016 ); kill_asaph_guards( npc, pc )";
+                pc.AddFollower(npc);
+                Sound(4016);
+                kill_asaph_guards(npc, pc);
+                ;
+                break;
+            case 72:
+            case 73:
+                originalScript = "game.sound( 4016 ); kill_asaph( npc, pc )";
+                Sound(4016);
+                kill_asaph(npc, pc);
+                ;
+                break;
+            case 92:
+                originalScript = "pc.follower_remove( npc )";
+                pc.RemoveFollower(npc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

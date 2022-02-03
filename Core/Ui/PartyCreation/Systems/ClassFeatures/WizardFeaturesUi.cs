@@ -3,58 +3,57 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
+namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures;
+
+internal class WizardFeaturesUi : IChargenSystem
 {
-    internal class WizardFeaturesUi : IChargenSystem
+    private CharEditorSelectionPacket _pkt;
+
+    public WizardFeaturesUi()
     {
-        private CharEditorSelectionPacket _pkt;
+        var doc = WidgetDoc.Load("ui/pc_creation/abilities_wizard_ui.json");
+        Container = doc.GetRootContainer();
+        Container.Visible = false;
+    }
 
-        public WizardFeaturesUi()
+    public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
+
+    public string HelpTopic { get; }
+
+    public WidgetContainer Container { get; }
+
+    public void Reset(CharEditorSelectionPacket pkt)
+    {
+        _pkt = pkt;
+        _pkt.wizSchool = 0;
+        _pkt.forbiddenSchool1 = 0;
+        _pkt.forbiddenSchool2 = 0;
+    }
+
+    public bool CheckComplete()
+    {
+        if (_pkt.wizSchool == SchoolOfMagic.None)
         {
-            var doc = WidgetDoc.Load("ui/pc_creation/abilities_wizard_ui.json");
-            Container = doc.GetRootContainer();
-            Container.Visible = false;
+            return true;
         }
 
-        public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
-
-        public string HelpTopic { get; }
-
-        public WidgetContainer Container { get; }
-
-        public void Reset(CharEditorSelectionPacket pkt)
+        if (_pkt.forbiddenSchool1 != SchoolOfMagic.None)
         {
-            _pkt = pkt;
-            _pkt.wizSchool = 0;
-            _pkt.forbiddenSchool1 = 0;
-            _pkt.forbiddenSchool2 = 0;
+            // Divination only needs to pick a single forbidden school
+            return _pkt.wizSchool == SchoolOfMagic.Divination
+                   || _pkt.forbiddenSchool2 != SchoolOfMagic.None;
         }
 
-        public bool CheckComplete()
-        {
-            if (_pkt.wizSchool == SchoolOfMagic.None)
-            {
-                return true;
-            }
+        return false;
+    }
 
-            if (_pkt.forbiddenSchool1 != SchoolOfMagic.None)
-            {
-                // Divination only needs to pick a single forbidden school
-                return _pkt.wizSchool == SchoolOfMagic.Divination
-                       || _pkt.forbiddenSchool2 != SchoolOfMagic.None;
-            }
-
-            return false;
-        }
-
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
-        {
-            GameSystems.Spell.SetSchoolSpecialization(
-                playerObj,
-                charSpec.wizSchool,
-                charSpec.forbiddenSchool1,
-                charSpec.forbiddenSchool2
-            );
-        }
+    public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
+    {
+        GameSystems.Spell.SetSchoolSpecialization(
+            playerObj,
+            charSpec.wizSchool,
+            charSpec.forbiddenSchool1,
+            charSpec.forbiddenSchool2
+        );
     }
 }

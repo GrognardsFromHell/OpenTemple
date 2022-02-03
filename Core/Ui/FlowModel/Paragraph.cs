@@ -3,106 +3,105 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenTemple.Core.Ui.FlowModel
+namespace OpenTemple.Core.Ui.FlowModel;
+
+public class Paragraph : Block, IInlineContainer
 {
-    public class Paragraph : Block, IInlineContainer
+    private InlineChildren _children;
+
+    private TextFlow? _textFlow;
+
+    public IInlineContainer? Parent => null;
+
+    public IReadOnlyList<InlineElement> Children => _children.Children;
+
+    public void AppendContent(InlineElement inlineElement) => _children.Append(this, inlineElement);
+
+    public void RemoveContent(InlineElement inlineElement) => _children.Remove(this, inlineElement);
+
+    public void ClearContent()
     {
-        private InlineChildren _children;
+        _children.Clear(this);
+    }
 
-        private TextFlow? _textFlow;
+    public bool IsEmpty => _children.Children.Count == 0;
 
-        public IInlineContainer? Parent => null;
-
-        public IReadOnlyList<InlineElement> Children => _children.Children;
-
-        public void AppendContent(InlineElement inlineElement) => _children.Append(this, inlineElement);
-
-        public void RemoveContent(InlineElement inlineElement) => _children.Remove(this, inlineElement);
-
-        public void ClearContent()
+    public SimpleInlineElement? GetSourceElementAt(int index)
+    {
+        foreach (var element in TextFlow.Elements)
         {
-            _children.Clear(this);
+            if (index >= element.Start && index < element.Start + element.Length)
+            {
+                return element.Source;
+            }
         }
 
-        public bool IsEmpty => _children.Children.Count == 0;
+        return null;
+    }
 
-        public SimpleInlineElement? GetSourceElementAt(int index)
+    public string TextContent
+    {
+        get
         {
-            foreach (var element in TextFlow.Elements)
+            var result = new StringBuilder();
+            ((IInlineContainer) this).VisitInFlowDirection(element => { result.Append(element.Text ?? ""); });
+            return result.ToString();
+        }
+    }
+
+    public void Invalidate(InvalidationFlags flags)
+    {
+        if ((flags & InvalidationFlags.TextFlow) != 0)
+        {
+            _textFlow = null;
+            Host?.NotifyTextFlowChanged();
+        }
+
+        if ((flags & InvalidationFlags.Style) != 0)
+        {
+            Host?.NotifyStyleChanged();
+        }
+    }
+
+    public TextFlow TextFlow
+    {
+        get
+        {
+            if (_textFlow == null)
             {
-                if (index >= element.Start && index < element.Start + element.Length)
+                var text = new StringBuilder();
+                var flow = new List<TextFlow.Element>();
+                ((IInlineContainer) this).VisitInFlowDirection(element =>
                 {
-                    return element.Source;
-                }
+                    var elementText = element.Text ?? "";
+                    var flowElement = new TextFlow.Element(text.Length, elementText.Length, element);
+                    flow.Add(flowElement);
+                    text.Append(elementText);
+                });
+
+                _textFlow = new TextFlow(text.ToString(), flow);
             }
 
-            return null;
+            return _textFlow;
         }
+    }
 
-        public string TextContent
+    [Flags]
+    public enum InvalidationFlags
+    {
+        TextFlow = 1,
+        Style = 2
+    }
+
+    /// <summary>
+    /// React to external changes to styles.
+    /// </summary>
+    protected override void OnStylesInvalidated()
+    {
+        base.OnStylesInvalidated();
+        foreach (var child in _children.Children)
         {
-            get
-            {
-                var result = new StringBuilder();
-                ((IInlineContainer) this).VisitInFlowDirection(element => { result.Append(element.Text ?? ""); });
-                return result.ToString();
-            }
-        }
-
-        public void Invalidate(InvalidationFlags flags)
-        {
-            if ((flags & InvalidationFlags.TextFlow) != 0)
-            {
-                _textFlow = null;
-                Host?.NotifyTextFlowChanged();
-            }
-
-            if ((flags & InvalidationFlags.Style) != 0)
-            {
-                Host?.NotifyStyleChanged();
-            }
-        }
-
-        public TextFlow TextFlow
-        {
-            get
-            {
-                if (_textFlow == null)
-                {
-                    var text = new StringBuilder();
-                    var flow = new List<TextFlow.Element>();
-                    ((IInlineContainer) this).VisitInFlowDirection(element =>
-                    {
-                        var elementText = element.Text ?? "";
-                        var flowElement = new TextFlow.Element(text.Length, elementText.Length, element);
-                        flow.Add(flowElement);
-                        text.Append(elementText);
-                    });
-
-                    _textFlow = new TextFlow(text.ToString(), flow);
-                }
-
-                return _textFlow;
-            }
-        }
-
-        [Flags]
-        public enum InvalidationFlags
-        {
-            TextFlow = 1,
-            Style = 2
-        }
-
-        /// <summary>
-        /// React to external changes to styles.
-        /// </summary>
-        protected override void OnStylesInvalidated()
-        {
-            base.OnStylesInvalidated();
-            foreach (var child in _children.Children)
-            {
-                child.InvalidateStyles();
-            }
+            child.InvalidateStyles();
         }
     }
 }

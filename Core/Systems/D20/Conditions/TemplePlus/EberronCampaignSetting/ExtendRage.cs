@@ -18,21 +18,20 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
-{
-    public class ExtendRage
-    {
-        public static void AddCondition(in DispatcherCallbackArgs evt)
-        {
-            // Add 5 rounds for the extend rage feat
-            if (evt.objHndCaller.HasFeat((FeatId) ElfHash.Hash("Extend Rage")))
-            {
-                evt.SetConditionArg1(evt.GetConditionArg1() + 5);
-            }
-        }
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
-        [AutoRegister] public static readonly ConditionSpec ExtendRageExtension = ConditionSpec.Extend(StatusEffects.BarbarianRaged)
-            .AddHandler(DispatcherType.ConditionAdd, AddCondition)
-            .Build();
+public class ExtendRage
+{
+    public static void AddCondition(in DispatcherCallbackArgs evt)
+    {
+        // Add 5 rounds for the extend rage feat
+        if (evt.objHndCaller.HasFeat((FeatId) ElfHash.Hash("Extend Rage")))
+        {
+            evt.SetConditionArg1(evt.GetConditionArg1() + 5);
+        }
     }
+
+    [AutoRegister] public static readonly ConditionSpec ExtendRageExtension = ConditionSpec.Extend(StatusEffects.BarbarianRaged)
+        .AddHandler(DispatcherType.ConditionAdd, AddCondition)
+        .Build();
 }

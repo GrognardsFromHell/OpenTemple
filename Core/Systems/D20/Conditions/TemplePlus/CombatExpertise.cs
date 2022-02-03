@@ -18,21 +18,20 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+public class CombatExpertise
 {
-    public class CombatExpertise
+
+    public static void CombatExpertiseValue(in DispatcherCallbackArgs evt)
     {
-
-        public static void CombatExpertiseValue(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoD20Query();
-            dispIo.return_val = evt.GetConditionArg1();
-        }
-
-        [AutoRegister] public static readonly ConditionSpec CombatExpertiseExtension = ConditionSpec
-            .Extend(FeatConditions.FeatExpertise)
-            .AddQueryHandler("Combat Expertise Value", CombatExpertiseValue)
-            .Build();
-
+        var dispIo = evt.GetDispIoD20Query();
+        dispIo.return_val = evt.GetConditionArg1();
     }
+
+    [AutoRegister] public static readonly ConditionSpec CombatExpertiseExtension = ConditionSpec
+        .Extend(FeatConditions.FeatExpertise)
+        .AddQueryHandler("Combat Expertise Value", CombatExpertiseValue)
+        .Build();
+
 }

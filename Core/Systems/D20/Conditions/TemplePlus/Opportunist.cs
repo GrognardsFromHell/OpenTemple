@@ -18,19 +18,18 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
-{
-    public class Opportunist
-    {
-        public static void OpportunistReset(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoD20Signal();
-            evt.SetConditionArg1(1);
-        }
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
-        [AutoRegister]
-        public static readonly ConditionSpec OpportunistExtension = ConditionSpec.Extend(FeatConditions.Opportunist)
-            .AddHandler(DispatcherType.BeginRound, OpportunistReset)
-            .Build();
+public class Opportunist
+{
+    public static void OpportunistReset(in DispatcherCallbackArgs evt)
+    {
+        var dispIo = evt.GetDispIoD20Signal();
+        evt.SetConditionArg1(1);
     }
+
+    [AutoRegister]
+    public static readonly ConditionSpec OpportunistExtension = ConditionSpec.Extend(FeatConditions.Opportunist)
+        .AddHandler(DispatcherType.BeginRound, OpportunistReset)
+        .Build();
 }

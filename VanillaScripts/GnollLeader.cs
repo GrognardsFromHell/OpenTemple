@@ -17,44 +17,42 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(75)]
+public class GnollLeader : BaseObjectScript
 {
-    [ObjectScript(75)]
-    public class GnollLeader : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
         {
-            if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 100);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-                {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
-                    {
-                        if ((!attachee.HasMet(obj)))
-                        {
-                            if ((obj.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
-                            {
-                                obj.BeginDialog(attachee, 100);
-                            }
-                            else
-                            {
-                                obj.BeginDialog(attachee, 1);
-                            }
+            triggerer.BeginDialog(attachee, 1);
+        }
 
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            {
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
+                {
+                    if ((!attachee.HasMet(obj)))
+                    {
+                        if ((obj.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
+                        {
+                            obj.BeginDialog(attachee, 100);
+                        }
+                        else
+                        {
+                            obj.BeginDialog(attachee, 1);
                         }
 
                     }
@@ -63,17 +61,18 @@ namespace VanillaScripts
 
             }
 
-            return RunDefault;
-        }
-        public static void run_off(GameObject npc, GameObject pc)
-        {
-            SetGlobalFlag(288, true);
-            var location = new locXY(484, 490);
-
-            npc.RunOff(location);
-            return;
         }
 
-
+        return RunDefault;
     }
+    public static void run_off(GameObject npc, GameObject pc)
+    {
+        SetGlobalFlag(288, true);
+        var location = new locXY(484, 490);
+
+        npc.RunOff(location);
+        return;
+    }
+
+
 }

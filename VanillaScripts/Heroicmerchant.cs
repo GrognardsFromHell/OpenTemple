@@ -17,44 +17,43 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(236)]
+public class Heroicmerchant : BaseObjectScript
 {
-    [ObjectScript(236)]
-    public class Heroicmerchant : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetGlobalFlag(355)))
-            {
-                DetachScript();
-
-                attachee.RunOff();
-            }
-
-            return RunDefault;
-        }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GetGlobalFlag(353)))
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
-        }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(355, true);
-            attachee.RunOff();
-            return RunDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(355)))
+        {
+            DetachScript();
+
+            attachee.RunOff();
+        }
+
+        return RunDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GetGlobalFlag(353)))
+        {
+            attachee.SetObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(355, true);
+        attachee.RunOff();
+        return RunDefault;
+    }
+
+
 }

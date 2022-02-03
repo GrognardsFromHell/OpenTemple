@@ -18,34 +18,33 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(239)]
+public class SnakeDeath : BaseObjectScript
 {
-    [ObjectScript(239)]
-    public class SnakeDeath : BaseObjectScript
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            if ((attachee.GetMap() == 5066))
-            {
-                SetGlobalFlag(117, true);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetMap() == 5066))
-            {
-                SetGlobalFlag(117, false);
-            }
-
-            return RunDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
 
+        if ((attachee.GetMap() == 5066))
+        {
+            SetGlobalFlag(117, true);
+        }
+
+        return RunDefault;
     }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetMap() == 5066))
+        {
+            SetGlobalFlag(117, false);
+        }
+
+        return RunDefault;
+    }
+
 }

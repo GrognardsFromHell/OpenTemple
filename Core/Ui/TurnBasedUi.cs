@@ -16,884 +16,862 @@ using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui
+namespace OpenTemple.Core.Ui;
+
+[Flags]
+enum UiIntgameTurnbasedFlags
 {
-    [Flags]
-    enum UiIntgameTurnbasedFlags
+    ShowPathPreview = 0x1,
+    IsLastSequenceActionWithPath = 0x2
+}
+
+public class TurnBasedUi : IResetAwareSystem
+{
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+    [TempleDllLocation(0x10c040e8)]
+    public GameObject intgameTargetFromRaycast { get; private set; }
+
+    [TempleDllLocation(0x102fc640)]
+    public bool uiIntgameWidgetEnteredForRender { get; private set; }
+
+    [TempleDllLocation(0x102fc644)]
+    [TempleDllLocation(0x10173ce0)]
+    public bool WidgetEnteredForGameplay { get; private set; }
+
+    [TempleDllLocation(0x10174d70)]
+    public TurnBasedUi()
     {
-        ShowPathPreview = 0x1,
-        IsLastSequenceActionWithPath = 0x2
     }
 
-    public class TurnBasedUi : IResetAwareSystem
+    [TempleDllLocation(0x10c04114)]
+    private bool uiIntgameWaypointMode;
+
+    [TempleDllLocation(0x10c0410c)]
+    private bool uiIntgameAcquireByRaycastOn;
+
+    [TempleDllLocation(0x10c04110)]
+    private bool uiIntgameSelectionConfirmed;
+
+    [TempleDllLocation(0x10c040f0)]
+    private int screenXfromMouseEvent;
+
+    [TempleDllLocation(0x10c040e0)]
+    private int screenYfromMouseEvent;
+
+    [TempleDllLocation(0x10C040F8)]
+    private LocAndOffsets uiIntgameWaypointLoc;
+
+    private WidgetTooltipRenderer _tooltipRenderer = new();
+
+    [TempleDllLocation(0x10173f70)]
+    [TemplePlusLocation("ui_intgame_turnbased.cpp:178")]
+    public void Render(IGameViewport viewport)
     {
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
-        [TempleDllLocation(0x10c040e8)]
-        public GameObject intgameTargetFromRaycast { get; private set; }
-
-        [TempleDllLocation(0x102fc640)]
-        public bool uiIntgameWidgetEnteredForRender { get; private set; }
-
-        [TempleDllLocation(0x102fc644)]
-        [TempleDllLocation(0x10173ce0)]
-        public bool WidgetEnteredForGameplay { get; private set; }
-
-        [TempleDllLocation(0x10174d70)]
-        public TurnBasedUi()
+        var widEntered = uiIntgameWidgetEnteredForRender;
+        if (!widEntered)
         {
+            UiSystems.InGameSelect.Focus = null;
         }
 
-        [TempleDllLocation(0x10c04114)]
-        private bool uiIntgameWaypointMode;
-
-        [TempleDllLocation(0x10c0410c)]
-        private bool uiIntgameAcquireByRaycastOn;
-
-        [TempleDllLocation(0x10c04110)]
-        private bool uiIntgameSelectionConfirmed;
-
-        [TempleDllLocation(0x10c040f0)]
-        private int screenXfromMouseEvent;
-
-        [TempleDllLocation(0x10c040e0)]
-        private int screenYfromMouseEvent;
-
-        [TempleDllLocation(0x10C040F8)]
-        private LocAndOffsets uiIntgameWaypointLoc;
-
-        private WidgetTooltipRenderer _tooltipRenderer = new();
-
-        [TempleDllLocation(0x10173f70)]
-        [TemplePlusLocation("ui_intgame_turnbased.cpp:178")]
-        public void Render(IGameViewport viewport)
+        if (UiSystems.InGameSelect.IsPicking)
         {
-            var widEntered = uiIntgameWidgetEnteredForRender;
-            if (!widEntered)
+            var flags = uiIntgameWaypointMode;
+            if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
             {
-                UiSystems.InGameSelect.Focus = null;
+                flags = true;
             }
 
-            if (UiSystems.InGameSelect.IsPicking)
-            {
-                var flags = uiIntgameWaypointMode;
-                if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
-                {
-                    flags = true;
-                }
-
-                GameSystems.D20.Actions.HourglassUpdate(viewport, uiIntgameAcquireByRaycastOn, uiIntgameSelectionConfirmed,
-                    flags);
-                return;
-            }
-
-            if (widEntered)
-            {
-                var showPreview = uiIntgameWaypointMode;
-                if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
-                {
-                    showPreview = true;
-                }
-
-                GameSystems.D20.Actions.HourglassUpdate(viewport, uiIntgameAcquireByRaycastOn, uiIntgameSelectionConfirmed,
-                    showPreview);
-
-                if (GameSystems.Combat.IsCombatActive())
-                {
-                    // display hovered character tooltip
-                    if (GameSystems.D20.Actions.GetTooltipTextFromIntgameUpdateOutput(out var tooltipText))
-                    {
-                        // trim last \n
-                        tooltipText = tooltipText.Trim('\n');
-
-                        var x = screenXfromMouseEvent;
-                        var y = screenYfromMouseEvent;
-
-                        _tooltipRenderer.TooltipText = tooltipText;
-                        _tooltipRenderer.Render(x, y);
-                    }
-
-                    RenderThreatRanges(viewport); // TODO: This shit needs to be moved into a scene-render-only method querying this state
-
-                    // draw circle at waypoint / destination location
-                    if (uiIntgameWaypointMode)
-                    {
-                        var actor = GameSystems.D20.Initiative.CurrentActor;
-                        var actorRadius = actor.GetRadius();
-                        var loc = uiIntgameWaypointLoc;
-                        var fillColor = new PackedLinearColorA(0x80008000);
-                        var borderColor = new PackedLinearColorA(0xFF00FF00);
-                        GameSystems.PathXRender.DrawCircle3d(viewport, loc, 1.0f, fillColor, borderColor, actorRadius, false);
-                    }
-                }
-
-                return;
-            }
-
-            // else
-            GameSystems.D20.Actions.ResetCursor();
+            GameSystems.D20.Actions.HourglassUpdate(viewport, uiIntgameAcquireByRaycastOn, uiIntgameSelectionConfirmed,
+                flags);
+            return;
         }
 
-        [TempleDllLocation(0x10C04118)]
-        private GameObject intgameActor;
-
-        private int _panicKeys = 0;
-
-        [TempleDllLocation(0x10174A30)]
-        public bool HandleMessage(IGameViewport viewport, Message msg)
+        if (widEntered)
         {
-            // TODO: DM System
-
-            var initialSeq = GameSystems.D20.Actions.CurrentSequence;
-            var result = false;
-
-            if (msg.type == MessageType.MOUSE)
+            var showPreview = uiIntgameWaypointMode;
+            if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
             {
-                screenXfromMouseEvent = msg.MouseArgs.X;
-                screenYfromMouseEvent = msg.MouseArgs.Y;
+                showPreview = true;
             }
 
-            if (!GameSystems.Combat.IsCombatActive() || UiSystems.RadialMenu.IsOpen)
+            GameSystems.D20.Actions.HourglassUpdate(viewport, uiIntgameAcquireByRaycastOn, uiIntgameSelectionConfirmed,
+                showPreview);
+
+            if (GameSystems.Combat.IsCombatActive())
             {
-                intgameActor = null;
+                // display hovered character tooltip
+                if (GameSystems.D20.Actions.GetTooltipTextFromIntgameUpdateOutput(out var tooltipText))
+                {
+                    // trim last \n
+                    tooltipText = tooltipText.Trim('\n');
+
+                    var x = screenXfromMouseEvent;
+                    var y = screenYfromMouseEvent;
+
+                    _tooltipRenderer.TooltipText = tooltipText;
+                    _tooltipRenderer.Render(x, y);
+                }
+
+                RenderThreatRanges(viewport); // TODO: This shit needs to be moved into a scene-render-only method querying this state
+
+                // draw circle at waypoint / destination location
+                if (uiIntgameWaypointMode)
+                {
+                    var actor = GameSystems.D20.Initiative.CurrentActor;
+                    var actorRadius = actor.GetRadius();
+                    var loc = uiIntgameWaypointLoc;
+                    var fillColor = new PackedLinearColorA(0x80008000);
+                    var borderColor = new PackedLinearColorA(0xFF00FF00);
+                    GameSystems.PathXRender.DrawCircle3d(viewport, loc, 1.0f, fillColor, borderColor, actorRadius, false);
+                }
+            }
+
+            return;
+        }
+
+        // else
+        GameSystems.D20.Actions.ResetCursor();
+    }
+
+    [TempleDllLocation(0x10C04118)]
+    private GameObject intgameActor;
+
+    private int _panicKeys = 0;
+
+    [TempleDllLocation(0x10174A30)]
+    public bool HandleMessage(IGameViewport viewport, Message msg)
+    {
+        // TODO: DM System
+
+        var initialSeq = GameSystems.D20.Actions.CurrentSequence;
+        var result = false;
+
+        if (msg.type == MessageType.MOUSE)
+        {
+            screenXfromMouseEvent = msg.MouseArgs.X;
+            screenYfromMouseEvent = msg.MouseArgs.Y;
+        }
+
+        if (!GameSystems.Combat.IsCombatActive() || UiSystems.RadialMenu.IsOpen)
+        {
+            intgameActor = null;
+            uiIntgameAcquireByRaycastOn = false;
+            uiIntgameSelectionConfirmed = false;
+        }
+        else
+        {
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+            if (actor != intgameActor)
+            {
+                intgameActor = actor;
+                uiIntgameWaypointMode = false;
                 uiIntgameAcquireByRaycastOn = false;
                 uiIntgameSelectionConfirmed = false;
-            }
-            else
-            {
-                var actor = GameSystems.D20.Initiative.CurrentActor;
-                if (actor != intgameActor)
+                if (GameSystems.Party.IsPlayerControlled(actor))
                 {
-                    intgameActor = actor;
-                    uiIntgameWaypointMode = false;
-                    uiIntgameAcquireByRaycastOn = false;
-                    uiIntgameSelectionConfirmed = false;
-                    if (GameSystems.Party.IsPlayerControlled(actor))
+                    UiIntgameGenerateSequence(viewport, false);
+                }
+            }
+
+            if (GameSystems.Party.IsPlayerControlled(intgameActor))
+            {
+                var tigMsgType = msg.type;
+                if (tigMsgType == MessageType.MOUSE)
+                {
+                    var mouseArgs = msg.MouseArgs;
+
+                    if ((mouseArgs.flags & MouseEventFlag.LeftClick) != 0)
                     {
-                        UiIntgameGenerateSequence(viewport, false);
+                        if (ToggleAcquisition(viewport, msg.MouseArgs))
+                            result = true;
                     }
-                }
 
-                if (GameSystems.Party.IsPlayerControlled(intgameActor))
-                {
-                    var tigMsgType = msg.type;
-                    if (tigMsgType == MessageType.MOUSE)
+                    if ((mouseArgs.flags & MouseEventFlag.LeftReleased) != 0)
                     {
-                        var mouseArgs = msg.MouseArgs;
-
-                        if ((mouseArgs.flags & MouseEventFlag.LeftClick) != 0)
-                        {
-                            if (ToggleAcquisition(viewport, msg.MouseArgs))
-                                result = true;
-                        }
-
-                        if ((mouseArgs.flags & MouseEventFlag.LeftReleased) != 0)
-                        {
-                            if (UiIntgamePathSequenceHandler(viewport, msg.MouseArgs))
-                                result = true;
-                        }
-
-                        if ((mouseArgs.flags & MouseEventFlag.RightClick) != 0)
-                        {
-                            if (HandleRightMousePressed(viewport, mouseArgs))
-                                result = true;
-                        }
-
-                        if ((mouseArgs.flags & MouseEventFlag.RightReleased) != 0)
-                        {
-                            if (ResetViaRmb(viewport, mouseArgs))
-                                result = true;
-                        }
-
-                        if ((mouseArgs.flags & MouseEventFlag.PosChange) != 0)
-                        {
-                            IntgameValidateMouseSelection(viewport, mouseArgs);
-                        }
+                        if (UiIntgamePathSequenceHandler(viewport, msg.MouseArgs))
+                            result = true;
                     }
-                    else
+
+                    if ((mouseArgs.flags & MouseEventFlag.RightClick) != 0)
                     {
-                        // widget or keyboard msg
-                        if (tigMsgType == MessageType.KEYSTATECHANGE && !msg.KeyStateChangeArgs.down)
-                        {
-                            var keyArgs = msg.KeyStateChangeArgs;
-                            Logger.Debug("UiIntgameMsgHandler (KEYSTATECHANGE): msg key={0} down={1}", keyArgs.key,
-                                keyArgs.down);
-                            var leader = GameSystems.Party.GetConsciousLeader();
-                            if (GameSystems.D20.Actions.IsCurrentlyPerforming(leader))
-                            {
-                                if (keyArgs.key == DIK.DIK_T)
-                                {
-                                    _panicKeys++;
-                                }
-
-                                if (_panicKeys >= 4)
-                                {
-                                    GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_HIGHEST, true);
-                                    GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_1, true);
-                                    GameSystems.D20.Actions.CurrentSequence.IsPerforming = false;
-                                }
-
-                                return true;
-                            }
-                            else
-                            {
-                                _panicKeys = 0;
-                            }
-
-                            // bind hotkey
-                            if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(keyArgs.key)
-                                && (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL) ||
-                                    Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL)))
-                            {
-                                var leaderLoc = leader.GetLocationFull();
-
-                                var pnt = leaderLoc.ToInches3D();
-                                var screenPos = viewport.Camera.WorldToScreen(pnt);
-                                UiSystems.RadialMenu.Spawn(viewport, (int) screenPos.X, (int) screenPos.Y);
-                                return UiSystems.RadialMenu.HandleMessage(viewport, msg);
-                            }
-
-                            GameSystems.D20.Actions.TurnBasedStatusInit(leader);
-                            if (uiIntgameWaypointMode)
-                            {
-                                UiIntgameRestoreSeqBackup();
-                            }
-                            else
-                            {
-                                Logger.Info("Intgame: Resetting sequence.");
-                                GameSystems.D20.Actions.CurSeqReset(leader);
-                            }
-
-                            GameSystems.D20.Actions.GlobD20ActnInit();
-                            if (GameSystems.D20.Hotkeys.RadmenuHotkeySthg(leader, keyArgs.key))
-                            {
-                                GameSystems.D20.Actions.ActionAddToSeq();
-                                GameSystems.D20.Actions.sequencePerform();
-
-                                var comrade = GameSystems.Dialog.GetListeningPartyMember(leader);
-                                if (GameSystems.Dialog.TryGetOkayVoiceLine(actor, comrade, out var text, out var soundId))
-                                {
-                                    GameSystems.Dialog.PlayCritterVoiceLine(actor, comrade, text, soundId);
-                                }
-
-                                result = true;
-                            }
-                        }
-                        else if (tigMsgType == MessageType.WIDGET)
-                        {
-                            var widgetArgs = msg.WidgetArgs;
-                            if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Exited)
-                            {
-                                uiIntgameAcquireByRaycastOn = false;
-                                uiIntgameSelectionConfirmed = false;
-                                intgameTargetFromRaycast = null;
-                                WidgetEnteredForGameplay = false;
-                            }
-                            else if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Entered)
-                            {
-                                WidgetEnteredForGameplay = true;
-                            }
-                        }
+                        if (HandleRightMousePressed(viewport, mouseArgs))
+                            result = true;
                     }
-                }
-            }
 
-            if (msg.type == MessageType.WIDGET)
-            {
-                var widgetArgs = msg.WidgetArgs;
-                if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Exited)
-                {
-                    uiIntgameWidgetEnteredForRender = false;
-                    return result;
-                }
-
-                if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Entered)
-                {
-                    uiIntgameWidgetEnteredForRender = true;
-                }
-            }
-
-            if (GameSystems.D20.Actions.CurrentSequence != initialSeq)
-            {
-                Logger.Info("Sequence switch from Ui Intgame Msg Handler to {0}",
-                    GameSystems.D20.Actions.CurrentSequence);
-            }
-
-            return result;
-        }
-
-        [TempleDllLocation(0x10174930)]
-        private bool ResetViaRmb(IGameViewport viewport, MessageMouseArgs mouseArgs)
-        {
-            if (UiSystems.InGameSelect.IsPicking)
-            {
-                return false;
-            }
-
-            if (uiIntgameWaypointMode)
-            {
-                uiIntgameWaypointMode = false;
-                IntgameValidateMouseSelection(viewport, mouseArgs);
-                return true;
-            }
-
-            if (GameSystems.D20.Actions.seqPickerTargetingType == D20TargetClassification.Invalid)
-            {
-                return false;
-            }
-
-            GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
-            return true;
-        }
-
-        [TempleDllLocation(0x101745e0)]
-        private void IntgameValidateMouseSelection(IGameViewport viewport, MessageMouseArgs mouseArgs) {
-            if (UiSystems.InGameSelect.IsPicking || UiSystems.RadialMenu.IsOpen)
-            {
-                return;
-            }
-            var actor = GameSystems.D20.Initiative.CurrentActor;
-            var actorRadiusSqr = actor.GetRadius();
-            actorRadiusSqr *= actorRadiusSqr;
-
-            GameSystems.TimeEvent.RemoveAll(TimeEventType.IntgameTurnbased);
-            if (!uiIntgameAcquireByRaycastOn)
-            {
-                UiIntgameGenerateSequence(viewport, true);
-                return;
-            }
-
-            float distSqr = 0;
-            if (!UiIntgameRaycast(viewport, mouseArgs.X, mouseArgs.Y, GameRaycastFlags.HITTEST_3D, out var objFromRaycast)) {
-                // TODO: This should be moved to the event handlers of an actual game view widget
-                var mouseTile = viewport.ScreenToTile(mouseArgs.X, mouseArgs.Y);
-                var prevPntNode = locFromScreenLoc.ToInches2D();
-                var pntNode = mouseTile.ToInches2D();
-                objFromRaycast = null;
-                distSqr = (prevPntNode - pntNode).LengthSquared();
-            }
-
-            if (uiIntgameSelectionConfirmed) {
-                if (objFromRaycast != intgameTargetFromRaycast
-                    || intgameTargetFromRaycast == null && distSqr > actorRadiusSqr)
-                {
-                    uiIntgameSelectionConfirmed = false;
-                    return;
-                }
-            } else if (objFromRaycast == intgameTargetFromRaycast
-                       && (intgameTargetFromRaycast != null || distSqr < actorRadiusSqr))
-            {
-                uiIntgameSelectionConfirmed = true;
-                return;
-            }
-        }
-
-        [TempleDllLocation(0x10173f30)]
-        private bool UiIntgameRaycast(IGameViewport viewport, int screenX, int screenY, GameRaycastFlags flags, out GameObject obj)
-        {
-            if ( uiIntgameTargetObjFromPortraits != null )
-            {
-                obj = uiIntgameTargetObjFromPortraits;
-                return true;
-            }
-
-            return GameSystems.Raycast.PickObjectOnScreen(viewport, screenX, screenY, out obj, flags);
-        }
-
-        [TempleDllLocation(0x10174790)]
-        [TemplePlusLocation("ui_intgame_turnbased.cpp:180")]
-        private bool UiIntgamePathSequenceHandler(IGameViewport viewport, MessageMouseArgs mouseArgs)
-        {
-            if (UiSystems.InGameSelect.IsPicking)
-            {
-                return false;
-            }
-
-            bool performSeq = true;
-            var actor = GameSystems.D20.Initiative.CurrentActor;
-
-            if (uiIntgameAcquireByRaycastOn)
-            {
-                if (uiIntgameSelectionConfirmed &&
-                    !GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
-                {
-                    var altIsPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) ||
-                                       Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU);
-
-                    if ((altIsPressed || uiIntgameWaypointMode) && intgameTargetFromRaycast == null)
+                    if ((mouseArgs.flags & MouseEventFlag.RightReleased) != 0)
                     {
-                        GameSystems.D20.Actions.GetPathTargetLocFromCurD20Action(out var curd20aTgtLoc);
-                        if (curd20aTgtLoc.DistanceTo(locFromScreenLoc) >= 24.0f)
-                        {
-                            performSeq = false;
-                        }
-                        else if (!uiIntgameWaypointMode
-                                 || locFromScreenLoc.location != uiIntgameWaypointLoc.location)
-                        {
-                            // this initiates waypoint mode
-                            uiIntgameWaypointMode = true;
-                            uiIntgameWaypointLoc = locFromScreenLoc;
-                            UiIntgameBackupCurSeq();
-                            performSeq = false;
-                        }
+                        if (ResetViaRmb(viewport, mouseArgs))
+                            result = true;
+                    }
+
+                    if ((mouseArgs.flags & MouseEventFlag.PosChange) != 0)
+                    {
+                        IntgameValidateMouseSelection(viewport, mouseArgs);
                     }
                 }
                 else
                 {
-                    performSeq = false;
+                    // widget or keyboard msg
+                    if (tigMsgType == MessageType.KEYSTATECHANGE && !msg.KeyStateChangeArgs.down)
+                    {
+                        var keyArgs = msg.KeyStateChangeArgs;
+                        Logger.Debug("UiIntgameMsgHandler (KEYSTATECHANGE): msg key={0} down={1}", keyArgs.key,
+                            keyArgs.down);
+                        var leader = GameSystems.Party.GetConsciousLeader();
+                        if (GameSystems.D20.Actions.IsCurrentlyPerforming(leader))
+                        {
+                            if (keyArgs.key == DIK.DIK_T)
+                            {
+                                _panicKeys++;
+                            }
+
+                            if (_panicKeys >= 4)
+                            {
+                                GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_HIGHEST, true);
+                                GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_1, true);
+                                GameSystems.D20.Actions.CurrentSequence.IsPerforming = false;
+                            }
+
+                            return true;
+                        }
+                        else
+                        {
+                            _panicKeys = 0;
+                        }
+
+                        // bind hotkey
+                        if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(keyArgs.key)
+                            && (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL) ||
+                                Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL)))
+                        {
+                            var leaderLoc = leader.GetLocationFull();
+
+                            var pnt = leaderLoc.ToInches3D();
+                            var screenPos = viewport.Camera.WorldToScreen(pnt);
+                            UiSystems.RadialMenu.Spawn(viewport, (int) screenPos.X, (int) screenPos.Y);
+                            return UiSystems.RadialMenu.HandleMessage(viewport, msg);
+                        }
+
+                        GameSystems.D20.Actions.TurnBasedStatusInit(leader);
+                        if (uiIntgameWaypointMode)
+                        {
+                            UiIntgameRestoreSeqBackup();
+                        }
+                        else
+                        {
+                            Logger.Info("Intgame: Resetting sequence.");
+                            GameSystems.D20.Actions.CurSeqReset(leader);
+                        }
+
+                        GameSystems.D20.Actions.GlobD20ActnInit();
+                        if (GameSystems.D20.Hotkeys.RadmenuHotkeySthg(leader, keyArgs.key))
+                        {
+                            GameSystems.D20.Actions.ActionAddToSeq();
+                            GameSystems.D20.Actions.sequencePerform();
+
+                            var comrade = GameSystems.Dialog.GetListeningPartyMember(leader);
+                            if (GameSystems.Dialog.TryGetOkayVoiceLine(actor, comrade, out var text, out var soundId))
+                            {
+                                GameSystems.Dialog.PlayCritterVoiceLine(actor, comrade, text, soundId);
+                            }
+
+                            result = true;
+                        }
+                    }
+                    else if (tigMsgType == MessageType.WIDGET)
+                    {
+                        var widgetArgs = msg.WidgetArgs;
+                        if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Exited)
+                        {
+                            uiIntgameAcquireByRaycastOn = false;
+                            uiIntgameSelectionConfirmed = false;
+                            intgameTargetFromRaycast = null;
+                            WidgetEnteredForGameplay = false;
+                        }
+                        else if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Entered)
+                        {
+                            WidgetEnteredForGameplay = true;
+                        }
+                    }
                 }
             }
+        }
 
-            if (performSeq)
+        if (msg.type == MessageType.WIDGET)
+        {
+            var widgetArgs = msg.WidgetArgs;
+            if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Exited)
             {
-                UiSystems.Combat.ActionBar.StartMovement();
-                Logger.Info("UiIntgame: \t Issuing Sequence for current actor {0} ({1}), cur seq: {2}",
-                    GameSystems.MapObject.GetDisplayName(actor), actor, GameSystems.D20.Actions.CurrentSequence);
-                GameSystems.D20.Actions.sequencePerform();
-                uiIntgameTargetObjFromPortraits = null;
-                uiIntgameWaypointMode = false;
-                GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
-
-                var comrade = GameSystems.Dialog.GetListeningPartyMember(actor);
-                if (GameSystems.Dialog.TryGetOkayVoiceLine(actor, comrade, out var text, out var soundId))
-                {
-                    GameSystems.Dialog.PlayCritterVoiceLine(actor, comrade, text, soundId);
-                }
+                uiIntgameWidgetEnteredForRender = false;
+                return result;
             }
 
-            uiIntgameAcquireByRaycastOn = false;
-            intgameTargetFromRaycast = null;
+            if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Entered)
+            {
+                uiIntgameWidgetEnteredForRender = true;
+            }
+        }
+
+        if (GameSystems.D20.Actions.CurrentSequence != initialSeq)
+        {
+            Logger.Info("Sequence switch from Ui Intgame Msg Handler to {0}",
+                GameSystems.D20.Actions.CurrentSequence);
+        }
+
+        return result;
+    }
+
+    [TempleDllLocation(0x10174930)]
+    private bool ResetViaRmb(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    {
+        if (UiSystems.InGameSelect.IsPicking)
+        {
+            return false;
+        }
+
+        if (uiIntgameWaypointMode)
+        {
+            uiIntgameWaypointMode = false;
             IntgameValidateMouseSelection(viewport, mouseArgs);
             return true;
         }
 
-        [TempleDllLocation(0x1008a020)]
-        [TemplePlusLocation("ui_intgame_turnbased.cpp:290")]
-        private void UiIntgameBackupCurSeq()
+        if (GameSystems.D20.Actions.seqPickerTargetingType == D20TargetClassification.Invalid)
         {
-            uiIntgameCurSeqBackup = GameSystems.D20.Actions.CurrentSequence.Copy();
+            return false;
         }
 
-        [TempleDllLocation(0x10c04120)]
-        private GameObject uiIntgameTargetObjFromPortraits;
+        GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
+        return true;
+    }
 
-        [TempleDllLocation(0x10174750)]
-        private bool ToggleAcquisition(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    [TempleDllLocation(0x101745e0)]
+    private void IntgameValidateMouseSelection(IGameViewport viewport, MessageMouseArgs mouseArgs) {
+        if (UiSystems.InGameSelect.IsPicking || UiSystems.RadialMenu.IsOpen)
         {
-            if (UiSystems.InGameSelect.IsPicking)
+            return;
+        }
+        var actor = GameSystems.D20.Initiative.CurrentActor;
+        var actorRadiusSqr = actor.GetRadius();
+        actorRadiusSqr *= actorRadiusSqr;
+
+        GameSystems.TimeEvent.RemoveAll(TimeEventType.IntgameTurnbased);
+        if (!uiIntgameAcquireByRaycastOn)
+        {
+            UiIntgameGenerateSequence(viewport, true);
+            return;
+        }
+
+        float distSqr = 0;
+        if (!UiIntgameRaycast(viewport, mouseArgs.X, mouseArgs.Y, GameRaycastFlags.HITTEST_3D, out var objFromRaycast)) {
+            // TODO: This should be moved to the event handlers of an actual game view widget
+            var mouseTile = viewport.ScreenToTile(mouseArgs.X, mouseArgs.Y);
+            var prevPntNode = locFromScreenLoc.ToInches2D();
+            var pntNode = mouseTile.ToInches2D();
+            objFromRaycast = null;
+            distSqr = (prevPntNode - pntNode).LengthSquared();
+        }
+
+        if (uiIntgameSelectionConfirmed) {
+            if (objFromRaycast != intgameTargetFromRaycast
+                || intgameTargetFromRaycast == null && distSqr > actorRadiusSqr)
             {
-                return false;
+                uiIntgameSelectionConfirmed = false;
+                return;
             }
-
-            if (uiIntgameAcquireByRaycastOn)
-            {
-                if (mouseArgs.flags == (MouseEventFlag.PosChange | MouseEventFlag.LeftHeld))
-                {
-                    IntgameValidateMouseSelection(viewport, mouseArgs);
-                }
-
-                return true;
-            }
-
-            uiIntgameAcquireByRaycastOn = true;
+        } else if (objFromRaycast == intgameTargetFromRaycast
+                   && (intgameTargetFromRaycast != null || distSqr < actorRadiusSqr))
+        {
             uiIntgameSelectionConfirmed = true;
+            return;
+        }
+    }
+
+    [TempleDllLocation(0x10173f30)]
+    private bool UiIntgameRaycast(IGameViewport viewport, int screenX, int screenY, GameRaycastFlags flags, out GameObject obj)
+    {
+        if ( uiIntgameTargetObjFromPortraits != null )
+        {
+            obj = uiIntgameTargetObjFromPortraits;
             return true;
         }
 
-        [TempleDllLocation(0x10C040D0)]
-        private LocAndOffsets locFromScreenLoc;
+        return GameSystems.Raycast.PickObjectOnScreen(viewport, screenX, screenY, out obj, flags);
+    }
 
-        [TempleDllLocation(0x10174100)]
-        [TemplePlusLocation("ui_intgame_turnbased.cpp:179")]
-        private void UiIntgameGenerateSequence(IGameViewport viewport, bool isUnnecessary)
+    [TempleDllLocation(0x10174790)]
+    [TemplePlusLocation("ui_intgame_turnbased.cpp:180")]
+    private bool UiIntgamePathSequenceHandler(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    {
+        if (UiSystems.InGameSelect.IsPicking)
         {
-            var curSeq = GameSystems.D20.Actions.CurrentSequence;
-            // replacing this just for debug purposes really
+            return false;
+        }
 
-            var actor = GameSystems.D20.Initiative.CurrentActor;
+        bool performSeq = true;
+        var actor = GameSystems.D20.Initiative.CurrentActor;
 
-            if (GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
+        if (uiIntgameAcquireByRaycastOn)
+        {
+            if (uiIntgameSelectionConfirmed &&
+                !GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
             {
-                return;
-            }
+                var altIsPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) ||
+                                   Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU);
 
-            CurSeqBackup();
-
-            var altIsPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) ||
-                               Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU);
-
-            var isWaypointMode = uiIntgameWaypointMode;
-
-            var tgtFromPortraits = uiIntgameTargetObjFromPortraits;
-
-            var x = screenXfromMouseEvent;
-            var y = screenYfromMouseEvent;
-
-            var actionLoc = locFromScreenLoc; //
-
-            if (isWaypointMode || altIsPressed)
-            {
-                if (tgtFromPortraits != null)
+                if ((altIsPressed || uiIntgameWaypointMode) && intgameTargetFromRaycast == null)
                 {
-                    intgameTargetFromRaycast = tgtFromPortraits;
-                }
-                else
-                {
-                    var raycastFlags = GameRaycastFlags.ExcludeUnconscious | GameRaycastFlags.ExcludePortals |
-                                       GameRaycastFlags.ExcludeItems | GameRaycastFlags.HITTEST_SEL_CIRCLE;
-
-                    if (!GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var pickedObject, raycastFlags))
+                    GameSystems.D20.Actions.GetPathTargetLocFromCurD20Action(out var curd20aTgtLoc);
+                    if (curd20aTgtLoc.DistanceTo(locFromScreenLoc) >= 24.0f)
                     {
-                        intgameTargetFromRaycast = null;
-                        locFromScreenLoc = viewport.ScreenToTile(x, y);
-                        actionLoc = locFromScreenLoc;
-
-                        if (IsWithinRadiusOfWaypointLoc(locFromScreenLoc))
-                        {
-                            UiIntgameRestoreSeqBackup();
-                            locFromScreenLoc = uiIntgameWaypointLoc;
-                            return;
-                        }
+                        performSeq = false;
                     }
-                    else
+                    else if (!uiIntgameWaypointMode
+                             || locFromScreenLoc.location != uiIntgameWaypointLoc.location)
                     {
-                        intgameTargetFromRaycast = pickedObject;
+                        // this initiates waypoint mode
+                        uiIntgameWaypointMode = true;
+                        uiIntgameWaypointLoc = locFromScreenLoc;
+                        UiIntgameBackupCurSeq();
+                        performSeq = false;
                     }
                 }
             }
+            else
+            {
+                performSeq = false;
+            }
+        }
 
-            else if (tgtFromPortraits != null)
+        if (performSeq)
+        {
+            UiSystems.Combat.ActionBar.StartMovement();
+            Logger.Info("UiIntgame: \t Issuing Sequence for current actor {0} ({1}), cur seq: {2}",
+                GameSystems.MapObject.GetDisplayName(actor), actor, GameSystems.D20.Actions.CurrentSequence);
+            GameSystems.D20.Actions.sequencePerform();
+            uiIntgameTargetObjFromPortraits = null;
+            uiIntgameWaypointMode = false;
+            GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
+
+            var comrade = GameSystems.Dialog.GetListeningPartyMember(actor);
+            if (GameSystems.Dialog.TryGetOkayVoiceLine(actor, comrade, out var text, out var soundId))
+            {
+                GameSystems.Dialog.PlayCritterVoiceLine(actor, comrade, text, soundId);
+            }
+        }
+
+        uiIntgameAcquireByRaycastOn = false;
+        intgameTargetFromRaycast = null;
+        IntgameValidateMouseSelection(viewport, mouseArgs);
+        return true;
+    }
+
+    [TempleDllLocation(0x1008a020)]
+    [TemplePlusLocation("ui_intgame_turnbased.cpp:290")]
+    private void UiIntgameBackupCurSeq()
+    {
+        uiIntgameCurSeqBackup = GameSystems.D20.Actions.CurrentSequence.Copy();
+    }
+
+    [TempleDllLocation(0x10c04120)]
+    private GameObject uiIntgameTargetObjFromPortraits;
+
+    [TempleDllLocation(0x10174750)]
+    private bool ToggleAcquisition(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    {
+        if (UiSystems.InGameSelect.IsPicking)
+        {
+            return false;
+        }
+
+        if (uiIntgameAcquireByRaycastOn)
+        {
+            if (mouseArgs.flags == (MouseEventFlag.PosChange | MouseEventFlag.LeftHeld))
+            {
+                IntgameValidateMouseSelection(viewport, mouseArgs);
+            }
+
+            return true;
+        }
+
+        uiIntgameAcquireByRaycastOn = true;
+        uiIntgameSelectionConfirmed = true;
+        return true;
+    }
+
+    [TempleDllLocation(0x10C040D0)]
+    private LocAndOffsets locFromScreenLoc;
+
+    [TempleDllLocation(0x10174100)]
+    [TemplePlusLocation("ui_intgame_turnbased.cpp:179")]
+    private void UiIntgameGenerateSequence(IGameViewport viewport, bool isUnnecessary)
+    {
+        var curSeq = GameSystems.D20.Actions.CurrentSequence;
+        // replacing this just for debug purposes really
+
+        var actor = GameSystems.D20.Initiative.CurrentActor;
+
+        if (GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
+        {
+            return;
+        }
+
+        CurSeqBackup();
+
+        var altIsPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) ||
+                           Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU);
+
+        var isWaypointMode = uiIntgameWaypointMode;
+
+        var tgtFromPortraits = uiIntgameTargetObjFromPortraits;
+
+        var x = screenXfromMouseEvent;
+        var y = screenYfromMouseEvent;
+
+        var actionLoc = locFromScreenLoc; //
+
+        if (isWaypointMode || altIsPressed)
+        {
+            if (tgtFromPortraits != null)
             {
                 intgameTargetFromRaycast = tgtFromPortraits;
             }
-
             else
             {
-                var raycastFlags = GameRaycastFlags.HITTEST_3D | GameRaycastFlags.ExcludePortals;
+                var raycastFlags = GameRaycastFlags.ExcludeUnconscious | GameRaycastFlags.ExcludePortals |
+                                   GameRaycastFlags.ExcludeItems | GameRaycastFlags.HITTEST_SEL_CIRCLE;
 
                 if (!GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var pickedObject, raycastFlags))
                 {
                     intgameTargetFromRaycast = null;
                     locFromScreenLoc = viewport.ScreenToTile(x, y);
                     actionLoc = locFromScreenLoc;
+
+                    if (IsWithinRadiusOfWaypointLoc(locFromScreenLoc))
+                    {
+                        UiIntgameRestoreSeqBackup();
+                        locFromScreenLoc = uiIntgameWaypointLoc;
+                        return;
+                    }
                 }
                 else
                 {
                     intgameTargetFromRaycast = pickedObject;
                 }
             }
-
-            var mouseLoc = viewport.ScreenToTile(x, y);
-
-            var canGenerate = intgameTargetFromRaycast != null;
-            if (!canGenerate)
-            {
-                if (!GameSystems.Tile.IsSubtileBlocked(mouseLoc, true))
-                {
-                    var fogFlags = GameSystems.MapFogging.GetFogStatus(mouseLoc);
-                    if ((fogFlags & 4) != 0)
-                    {
-                        // explored
-                        canGenerate = true;
-                    }
-                }
-            }
-
-            if (!canGenerate)
-            {
-                actor = GameSystems.D20.Initiative.CurrentActor;
-                if (GameSystems.Party.IsPlayerControlled(actor))
-                {
-                    if (isWaypointMode)
-                    {
-                        UiIntgameRestoreSeqBackup();
-                    }
-                    else
-                    {
-                        GameSystems.D20.Actions.CurSeqReset(actor);
-                    }
-
-                    GameSystems.D20.Actions.TurnBasedStatusInit(actor);
-                    GameSystems.D20.Actions.GlobD20ActnInit();
-                    intgameTargetFromRaycast = null;
-                }
-
-                return;
-            }
-
-
-            if (!GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
-            {
-                if (intgameTargetFromRaycast != null)
-                {
-                    if (!GameSystems.Critter.IsCombatModeActive(actor))
-                    {
-                        GameSystems.Combat.EnterCombat(actor);
-                    }
-
-
-                    switch (intgameTargetFromRaycast.type)
-                    {
-                        case ObjectType.container:
-                            if (isWaypointMode)
-                                UiIntgameRestoreSeqBackup();
-                            else
-                                GameSystems.D20.Actions.CurSeqReset(actor);
-                            if (isUnnecessary)
-                                GameSystems.D20.Actions.GlobD20ActnSetD20CAF(D20CAF.UNNECESSARY);
-                            GameSystems.D20.Actions.TurnBasedStatusInit(actor);
-                            GameSystems.D20.Actions.GlobD20ActnInit();
-                            GameSystems.D20.Actions.ActionTypeAutomatedSelection(intgameTargetFromRaycast);
-                            if (GameSystems.D20.Actions.GlobD20ActnSetTarget(intgameTargetFromRaycast, null) ==
-                                ActionErrorCode.AEC_OK)
-                            {
-                                GameSystems.D20.Actions.ActionAddToSeq();
-                            }
-
-                            break;
-                        case ObjectType.weapon:
-                        case ObjectType.ammo:
-                        case ObjectType.armor:
-                        case ObjectType.money:
-                        case ObjectType.food:
-                        case ObjectType.scroll:
-                        case ObjectType.key:
-                        case ObjectType.written:
-                        case ObjectType.generic:
-                            if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
-                                return;
-                            if (isWaypointMode)
-                            {
-                                UiIntgameRestoreSeqBackup();
-                            }
-                            else
-                            {
-                                Logger.Debug("Generate Sequence: Reseting sequence");
-                                GameSystems.D20.Actions.CurSeqReset(actor);
-                            }
-
-                            if (isUnnecessary)
-                                GameSystems.D20.Actions.GlobD20ActnSetD20CAF(D20CAF.UNNECESSARY);
-                            GameSystems.D20.Actions.TurnBasedStatusInit(actor);
-                            GameSystems.D20.Actions.GlobD20ActnInit();
-                            GameSystems.D20.Actions.ActionTypeAutomatedSelection(intgameTargetFromRaycast);
-                            if (GameSystems.D20.Actions.GlobD20ActnSetTarget(intgameTargetFromRaycast, null) ==
-                                ActionErrorCode.AEC_OK)
-                            {
-                                GameSystems.D20.Actions.ActionAddToSeq();
-                            }
-
-                            break;
-                        case ObjectType.pc:
-                        case ObjectType.npc:
-                            if (isWaypointMode)
-                            {
-                                UiIntgameRestoreSeqBackup();
-                            }
-                            else
-                            {
-                                GameSystems.D20.Actions.CurSeqReset(actor);
-                            }
-
-                            if (isUnnecessary)
-                                GameSystems.D20.Actions.GlobD20ActnSetD20CAF(D20CAF.UNNECESSARY);
-                            GameSystems.D20.Actions.TurnBasedStatusInit(actor);
-                            GameSystems.D20.Actions.GlobD20ActnInit();
-                            GameSystems.D20.Actions.ActionTypeAutomatedSelection(intgameTargetFromRaycast);
-                            if (GameSystems.D20.Actions.GlobD20ActnSetTarget(intgameTargetFromRaycast, null) ==
-                                ActionErrorCode.AEC_OK)
-                            {
-                                GameSystems.D20.Actions.ActionAddToSeq();
-                            }
-
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else if (!GameSystems.Critter.IsDeadOrUnconscious(actor))
-                {
-                    if (isWaypointMode)
-                    {
-                        UiIntgameRestoreSeqBackup();
-                    }
-                    else
-                    {
-                        GameSystems.D20.Actions.CurSeqReset(actor);
-                    }
-
-                    GameSystems.D20.Actions.TurnBasedStatusInit(actor);
-                    GameSystems.D20.Actions.GlobD20ActnInit();
-                    if (isUnnecessary)
-                        GameSystems.D20.Actions.GlobD20ActnSetD20CAF(D20CAF.UNNECESSARY);
-
-                    GameSystems.D20.Actions.ActionTypeAutomatedSelection(null);
-                    if (GameSystems.D20.Actions.GlobD20ActnSetTarget(null, actionLoc) == ActionErrorCode.AEC_OK)
-                    {
-                        GameSystems.D20.Actions.ActionAddToSeq();
-                    }
-                }
-            }
-
-            if (GameSystems.D20.Actions.rollbackSequenceFlag)
-            {
-                actSeqCurBackup_GenerateSequence.CopyTo(GameSystems.D20.Actions.CurrentSequence);
-            }
-
-            // orgUiIntgameGenerateSequence(isUnnecessary);
-            if (GameSystems.D20.Actions.CurrentSequence != curSeq)
-            {
-                Logger.Info("Sequence switch from Generate Sequence to {0}", GameSystems.D20.Actions.CurrentSequence);
-                int dummy = 1;
-            }
         }
 
-        [TempleDllLocation(0x10173cf0)]
-        private bool IsWithinRadiusOfWaypointLoc(LocAndOffsets loc)
+        else if (tgtFromPortraits != null)
         {
-            if (uiIntgameWaypointMode)
-            {
-                var actor = GameSystems.D20.Initiative.CurrentActor;
-                var actorRadius = actor.GetRadius();
-                var waypointPos = uiIntgameWaypointLoc.ToInches2D();
-                var locPos = loc.ToInches2D();
-                if ((waypointPos - locPos).LengthSquared() <= actorRadius * actorRadius)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            intgameTargetFromRaycast = tgtFromPortraits;
         }
 
-        [TempleDllLocation(0x10B3BF50)]
-        private ActionSequence actSeqCurBackup_GenerateSequence;
-
-        [TempleDllLocation(0x10092790)]
-        private bool CurSeqBackup()
+        else
         {
-            if (GameSystems.D20.Actions.CurrentSequence != null)
+            var raycastFlags = GameRaycastFlags.HITTEST_3D | GameRaycastFlags.ExcludePortals;
+
+            if (!GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var pickedObject, raycastFlags))
             {
-                actSeqCurBackup_GenerateSequence = GameSystems.D20.Actions.CurrentSequence.Copy();
-                return true;
+                intgameTargetFromRaycast = null;
+                locFromScreenLoc = viewport.ScreenToTile(x, y);
+                actionLoc = locFromScreenLoc;
             }
             else
             {
-                return false;
+                intgameTargetFromRaycast = pickedObject;
             }
         }
 
-        [TempleDllLocation(0x10173d70)]
-        private bool HandleRightMousePressed(IGameViewport viewport, MessageMouseArgs mouseArgs)
+        var mouseLoc = viewport.ScreenToTile(x, y);
+
+        var canGenerate = intgameTargetFromRaycast != null;
+        if (!canGenerate)
         {
-            if (UiSystems.InGameSelect.IsPicking)
+            if (!GameSystems.Tile.IsSubtileBlocked(mouseLoc, true))
             {
-                return false;
-            }
-
-            if (!uiIntgameWaypointMode)
-            {
-                var partyLeader = GameSystems.Party.GetConsciousLeader();
-                if (!GameSystems.Combat.IsCombatActive() || !GameSystems.D20.Actions.IsCurrentlyPerforming(partyLeader))
+                var fogFlags = GameSystems.MapFogging.GetFogStatus(mouseLoc);
+                if ((fogFlags & 4) != 0)
                 {
-                    if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
-                    {
-                        GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
-                        return true;
-                    }
-
-                    if (uiIntgameWaypointMode)
-                    {
-                        UiIntgameRestoreSeqBackup();
-                    }
-                    else
-                    {
-                        GameSystems.D20.Actions.CurSeqReset(partyLeader);
-                    }
-
-                    Logger.Info("intgame_turnbased: _mouse_right_down");
-                    UiSystems.InGame.radialmenu_ignore_close_till_move(viewport, mouseArgs.X, mouseArgs.Y);
+                    // explored
+                    canGenerate = true;
                 }
             }
+        }
 
+        if (!canGenerate)
+        {
+            actor = GameSystems.D20.Initiative.CurrentActor;
+            if (GameSystems.Party.IsPlayerControlled(actor))
+            {
+                if (isWaypointMode)
+                {
+                    UiIntgameRestoreSeqBackup();
+                }
+                else
+                {
+                    GameSystems.D20.Actions.CurSeqReset(actor);
+                }
+
+                GameSystems.D20.Actions.TurnBasedStatusInit(actor);
+                GameSystems.D20.Actions.GlobD20ActnInit();
+                intgameTargetFromRaycast = null;
+            }
+
+            return;
+        }
+
+
+        if (!GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
+        {
+            if (intgameTargetFromRaycast != null)
+            {
+                if (!GameSystems.Critter.IsCombatModeActive(actor))
+                {
+                    GameSystems.Combat.EnterCombat(actor);
+                }
+
+
+                switch (intgameTargetFromRaycast.type)
+                {
+                    case ObjectType.container:
+                        if (isWaypointMode)
+                            UiIntgameRestoreSeqBackup();
+                        else
+                            GameSystems.D20.Actions.CurSeqReset(actor);
+                        if (isUnnecessary)
+                            GameSystems.D20.Actions.GlobD20ActnSetD20CAF(D20CAF.UNNECESSARY);
+                        GameSystems.D20.Actions.TurnBasedStatusInit(actor);
+                        GameSystems.D20.Actions.GlobD20ActnInit();
+                        GameSystems.D20.Actions.ActionTypeAutomatedSelection(intgameTargetFromRaycast);
+                        if (GameSystems.D20.Actions.GlobD20ActnSetTarget(intgameTargetFromRaycast, null) ==
+                            ActionErrorCode.AEC_OK)
+                        {
+                            GameSystems.D20.Actions.ActionAddToSeq();
+                        }
+
+                        break;
+                    case ObjectType.weapon:
+                    case ObjectType.ammo:
+                    case ObjectType.armor:
+                    case ObjectType.money:
+                    case ObjectType.food:
+                    case ObjectType.scroll:
+                    case ObjectType.key:
+                    case ObjectType.written:
+                    case ObjectType.generic:
+                        if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
+                            return;
+                        if (isWaypointMode)
+                        {
+                            UiIntgameRestoreSeqBackup();
+                        }
+                        else
+                        {
+                            Logger.Debug("Generate Sequence: Reseting sequence");
+                            GameSystems.D20.Actions.CurSeqReset(actor);
+                        }
+
+                        if (isUnnecessary)
+                            GameSystems.D20.Actions.GlobD20ActnSetD20CAF(D20CAF.UNNECESSARY);
+                        GameSystems.D20.Actions.TurnBasedStatusInit(actor);
+                        GameSystems.D20.Actions.GlobD20ActnInit();
+                        GameSystems.D20.Actions.ActionTypeAutomatedSelection(intgameTargetFromRaycast);
+                        if (GameSystems.D20.Actions.GlobD20ActnSetTarget(intgameTargetFromRaycast, null) ==
+                            ActionErrorCode.AEC_OK)
+                        {
+                            GameSystems.D20.Actions.ActionAddToSeq();
+                        }
+
+                        break;
+                    case ObjectType.pc:
+                    case ObjectType.npc:
+                        if (isWaypointMode)
+                        {
+                            UiIntgameRestoreSeqBackup();
+                        }
+                        else
+                        {
+                            GameSystems.D20.Actions.CurSeqReset(actor);
+                        }
+
+                        if (isUnnecessary)
+                            GameSystems.D20.Actions.GlobD20ActnSetD20CAF(D20CAF.UNNECESSARY);
+                        GameSystems.D20.Actions.TurnBasedStatusInit(actor);
+                        GameSystems.D20.Actions.GlobD20ActnInit();
+                        GameSystems.D20.Actions.ActionTypeAutomatedSelection(intgameTargetFromRaycast);
+                        if (GameSystems.D20.Actions.GlobD20ActnSetTarget(intgameTargetFromRaycast, null) ==
+                            ActionErrorCode.AEC_OK)
+                        {
+                            GameSystems.D20.Actions.ActionAddToSeq();
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (!GameSystems.Critter.IsDeadOrUnconscious(actor))
+            {
+                if (isWaypointMode)
+                {
+                    UiIntgameRestoreSeqBackup();
+                }
+                else
+                {
+                    GameSystems.D20.Actions.CurSeqReset(actor);
+                }
+
+                GameSystems.D20.Actions.TurnBasedStatusInit(actor);
+                GameSystems.D20.Actions.GlobD20ActnInit();
+                if (isUnnecessary)
+                    GameSystems.D20.Actions.GlobD20ActnSetD20CAF(D20CAF.UNNECESSARY);
+
+                GameSystems.D20.Actions.ActionTypeAutomatedSelection(null);
+                if (GameSystems.D20.Actions.GlobD20ActnSetTarget(null, actionLoc) == ActionErrorCode.AEC_OK)
+                {
+                    GameSystems.D20.Actions.ActionAddToSeq();
+                }
+            }
+        }
+
+        if (GameSystems.D20.Actions.rollbackSequenceFlag)
+        {
+            actSeqCurBackup_GenerateSequence.CopyTo(GameSystems.D20.Actions.CurrentSequence);
+        }
+
+        // orgUiIntgameGenerateSequence(isUnnecessary);
+        if (GameSystems.D20.Actions.CurrentSequence != curSeq)
+        {
+            Logger.Info("Sequence switch from Generate Sequence to {0}", GameSystems.D20.Actions.CurrentSequence);
+            int dummy = 1;
+        }
+    }
+
+    [TempleDllLocation(0x10173cf0)]
+    private bool IsWithinRadiusOfWaypointLoc(LocAndOffsets loc)
+    {
+        if (uiIntgameWaypointMode)
+        {
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+            var actorRadius = actor.GetRadius();
+            var waypointPos = uiIntgameWaypointLoc.ToInches2D();
+            var locPos = loc.ToInches2D();
+            if ((waypointPos - locPos).LengthSquared() <= actorRadius * actorRadius)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    [TempleDllLocation(0x10B3BF50)]
+    private ActionSequence actSeqCurBackup_GenerateSequence;
+
+    [TempleDllLocation(0x10092790)]
+    private bool CurSeqBackup()
+    {
+        if (GameSystems.D20.Actions.CurrentSequence != null)
+        {
+            actSeqCurBackup_GenerateSequence = GameSystems.D20.Actions.CurrentSequence.Copy();
             return true;
         }
-
-        [TempleDllLocation(0x118692a0)]
-        private ActionSequence uiIntgameCurSeqBackup;
-
-        [TempleDllLocation(0x10093110)]
-        private void UiIntgameRestoreSeqBackup()
+        else
         {
-            // Free paths in the current sequence
-            foreach (var action in GameSystems.D20.Actions.CurrentSequence.d20ActArray)
-            {
-                GameSystems.D20.Actions.ReleasePooledPathQueryResult(ref action.path);
-            }
+            return false;
+        }
+    }
 
-            uiIntgameCurSeqBackup.CopyTo(GameSystems.D20.Actions.CurrentSequence);
-            GameSystems.D20.Actions.performingDefaultAction = false;
+    [TempleDllLocation(0x10173d70)]
+    private bool HandleRightMousePressed(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    {
+        if (UiSystems.InGameSelect.IsPicking)
+        {
+            return false;
         }
 
-        [TempleDllLocation(0x10173c00)]
-        public void RenderThreatRanges(IGameViewport viewport)
+        if (!uiIntgameWaypointMode)
         {
-            var currentActor = GameSystems.D20.Initiative.CurrentActor;
-
-            if (!GameSystems.D20.Actions.IsCurrentlyPerforming(currentActor))
+            var partyLeader = GameSystems.Party.GetConsciousLeader();
+            if (!GameSystems.Combat.IsCombatActive() || !GameSystems.D20.Actions.IsCurrentlyPerforming(partyLeader))
             {
-                if (GameSystems.Party.IsPlayerControlled(currentActor))
+                if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
                 {
-                    foreach (var combatant in GameSystems.D20.Initiative)
-                    {
-                        if (ShouldRenderThreatRange(combatant))
-                        {
-                            var reach = combatant.GetReach() * locXY.INCH_PER_FEET;
-                            var radius = combatant.GetRadius();
-                            var center = combatant.GetLocationFull();
-                            var circleRadius = radius + reach;
+                    GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
+                    return true;
+                }
 
-                            var fillColor = new PackedLinearColorA(0x40808000);
-                            var borderColor = new PackedLinearColorA(0xFF808000);
-                            GameSystems.PathXRender.DrawCircle3d(viewport, center, 1.0f, fillColor, borderColor, circleRadius,
-                                false);
-                        }
+                if (uiIntgameWaypointMode)
+                {
+                    UiIntgameRestoreSeqBackup();
+                }
+                else
+                {
+                    GameSystems.D20.Actions.CurSeqReset(partyLeader);
+                }
+
+                Logger.Info("intgame_turnbased: _mouse_right_down");
+                UiSystems.InGame.radialmenu_ignore_close_till_move(viewport, mouseArgs.X, mouseArgs.Y);
+            }
+        }
+
+        return true;
+    }
+
+    [TempleDllLocation(0x118692a0)]
+    private ActionSequence uiIntgameCurSeqBackup;
+
+    [TempleDllLocation(0x10093110)]
+    private void UiIntgameRestoreSeqBackup()
+    {
+        // Free paths in the current sequence
+        foreach (var action in GameSystems.D20.Actions.CurrentSequence.d20ActArray)
+        {
+            GameSystems.D20.Actions.ReleasePooledPathQueryResult(ref action.path);
+        }
+
+        uiIntgameCurSeqBackup.CopyTo(GameSystems.D20.Actions.CurrentSequence);
+        GameSystems.D20.Actions.performingDefaultAction = false;
+    }
+
+    [TempleDllLocation(0x10173c00)]
+    public void RenderThreatRanges(IGameViewport viewport)
+    {
+        var currentActor = GameSystems.D20.Initiative.CurrentActor;
+
+        if (!GameSystems.D20.Actions.IsCurrentlyPerforming(currentActor))
+        {
+            if (GameSystems.Party.IsPlayerControlled(currentActor))
+            {
+                foreach (var combatant in GameSystems.D20.Initiative)
+                {
+                    if (ShouldRenderThreatRange(combatant))
+                    {
+                        var reach = combatant.GetReach() * locXY.INCH_PER_FEET;
+                        var radius = combatant.GetRadius();
+                        var center = combatant.GetLocationFull();
+                        var circleRadius = radius + reach;
+
+                        var fillColor = new PackedLinearColorA(0x40808000);
+                        var borderColor = new PackedLinearColorA(0xFF808000);
+                        GameSystems.PathXRender.DrawCircle3d(viewport, center, 1.0f, fillColor, borderColor, circleRadius,
+                            false);
                     }
                 }
             }
         }
+    }
 
-        [TempleDllLocation(0x10173b30)]
-        [TemplePlusLocation("ui_intgame_turnbased.cpp:186")]
-        private bool ShouldRenderThreatRange(GameObject obj)
+    [TempleDllLocation(0x10173b30)]
+    [TemplePlusLocation("ui_intgame_turnbased.cpp:186")]
+    private bool ShouldRenderThreatRange(GameObject obj)
+    {
+        var isFocus = obj == UiSystems.InGameSelect.Focus;
+        if (isFocus)
         {
-            var isFocus = obj == UiSystems.InGameSelect.Focus;
-            if (isFocus)
-            {
 
-                if (GameSystems.D20.D20QueryWithObject(obj, D20DispatcherKey.QUE_AOOPossible, obj) == 0)
-                {
-                    return false;
-                }
-
-                return GameSystems.D20.Combat.CanMeleeTargetAtLocation(obj, obj, obj.GetLocationFull());
-            }
-
-            if (GameSystems.Party.IsPlayerControlled(obj))
-            {
-                return false;
-            }
-
-            var showPreview = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU)
-                              || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU)
-                              || uiIntgameWaypointMode;
-            if (!showPreview && (!uiIntgameAcquireByRaycastOn || !uiIntgameSelectionConfirmed))
-            {
-                return false;
-            }
-
-            if (GameSystems.Critter.IsConcealed(obj)
-                || GameSystems.D20.D20QueryWithObject(obj, D20DispatcherKey.QUE_AOOPossible, obj) == 0)
+            if (GameSystems.D20.D20QueryWithObject(obj, D20DispatcherKey.QUE_AOOPossible, obj) == 0)
             {
                 return false;
             }
@@ -901,40 +879,61 @@ namespace OpenTemple.Core.Ui
             return GameSystems.D20.Combat.CanMeleeTargetAtLocation(obj, obj, obj.GetLocationFull());
         }
 
-        [TempleDllLocation(0x101749D0)]
-        public void sub_101749D0()
+        if (GameSystems.Party.IsPlayerControlled(obj))
         {
-            if (uiIntgameTargetObjFromPortraits != null)
-            {
-                var actor = GameSystems.D20.Initiative.CurrentActor;
-                if (GameSystems.Party.IsPlayerControlled(actor))
-                {
-                    var mouseArgs = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
-                    UiSystems.TurnBased.ToggleAcquisition(GameViews.Primary, mouseArgs);
-                    UiSystems.TurnBased.UiIntgamePathSequenceHandler(GameViews.Primary, mouseArgs);
-                }
-            }
+            return false;
         }
 
-        [TempleDllLocation(0x10174970)]
-        public void TargetFromPortrait(GameObject obj)
+        var showPreview = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU)
+                          || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU)
+                          || uiIntgameWaypointMode;
+        if (!showPreview && (!uiIntgameAcquireByRaycastOn || !uiIntgameSelectionConfirmed))
         {
-            if ( GameSystems.D20.Actions.SeqPickerHasTargetingType() )
-            {
-                UiSystems.TurnBased.uiIntgameTargetObjFromPortraits = obj;
-                if ( obj != null )
-                {
-                    UiSystems.InGameSelect.Focus = obj;
-                    var msg = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
-                    UiSystems.TurnBased.IntgameValidateMouseSelection(GameViews.Primary, msg);
-                }
-            }
+            return false;
         }
 
-        [TempleDllLocation(0x10173ac0)]
-        public void Reset()
+        if (GameSystems.Critter.IsConcealed(obj)
+            || GameSystems.D20.D20QueryWithObject(obj, D20DispatcherKey.QUE_AOOPossible, obj) == 0)
         {
-            uiIntgameTargetObjFromPortraits = null;
+            return false;
         }
+
+        return GameSystems.D20.Combat.CanMeleeTargetAtLocation(obj, obj, obj.GetLocationFull());
+    }
+
+    [TempleDllLocation(0x101749D0)]
+    public void sub_101749D0()
+    {
+        if (uiIntgameTargetObjFromPortraits != null)
+        {
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+            if (GameSystems.Party.IsPlayerControlled(actor))
+            {
+                var mouseArgs = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
+                UiSystems.TurnBased.ToggleAcquisition(GameViews.Primary, mouseArgs);
+                UiSystems.TurnBased.UiIntgamePathSequenceHandler(GameViews.Primary, mouseArgs);
+            }
+        }
+    }
+
+    [TempleDllLocation(0x10174970)]
+    public void TargetFromPortrait(GameObject obj)
+    {
+        if ( GameSystems.D20.Actions.SeqPickerHasTargetingType() )
+        {
+            UiSystems.TurnBased.uiIntgameTargetObjFromPortraits = obj;
+            if ( obj != null )
+            {
+                UiSystems.InGameSelect.Focus = obj;
+                var msg = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
+                UiSystems.TurnBased.IntgameValidateMouseSelection(GameViews.Primary, msg);
+            }
+        }
+    }
+
+    [TempleDllLocation(0x10173ac0)]
+    public void Reset()
+    {
+        uiIntgameTargetObjFromPortraits = null;
     }
 }

@@ -17,18 +17,17 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(33)]
+public class SpiderDeath : BaseObjectScript
 {
-    [ObjectScript(33)]
-    public class SpiderDeath : BaseObjectScript
+
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(3, GetGlobalVar(3) + 1);
-            return RunDefault;
-        }
-
-
+        SetGlobalVar(3, GetGlobalVar(3) + 1);
+        return RunDefault;
     }
+
+
 }

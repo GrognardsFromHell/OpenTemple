@@ -17,62 +17,61 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(209)]
+public class KOSOnNonWater : BaseObjectScript
 {
-    [ObjectScript(209)]
-    public class KOSOnNonWater : BaseObjectScript
+
+    public override bool OnWillKos(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(345)))
         {
-            if ((GetGlobalFlag(345)))
+            return SkipDefault;
+        }
+
+        var saw_ally_robe = false;
+
+        var saw_greater_robe = false;
+
+        var saw_enemy_robe = false;
+
+        foreach (var obj in triggerer.GetPartyMembers())
+        {
+            if ((obj.FindItemByName(3016) != null))
             {
-                return SkipDefault;
-            }
-
-            var saw_ally_robe = false;
-
-            var saw_greater_robe = false;
-
-            var saw_enemy_robe = false;
-
-            foreach (var obj in triggerer.GetPartyMembers())
-            {
-                if ((obj.FindItemByName(3016) != null))
-                {
-                    saw_ally_robe = true;
-
-                }
-                else if ((obj.FindItemByName(3021) != null))
-                {
-                    saw_greater_robe = true;
-
-                    break;
-
-                }
-                else if (((obj.FindItemByName(3020) != null) || (obj.FindItemByName(3017) != null) || (obj.FindItemByName(3010) != null)))
-                {
-                    saw_enemy_robe = true;
-
-                }
+                saw_ally_robe = true;
 
             }
+            else if ((obj.FindItemByName(3021) != null))
+            {
+                saw_greater_robe = true;
 
-            if (saw_greater_robe)
-            {
-                return SkipDefault;
+                break;
+
             }
-            else if (((saw_ally_robe) && (!saw_enemy_robe)))
+            else if (((obj.FindItemByName(3020) != null) || (obj.FindItemByName(3017) != null) || (obj.FindItemByName(3010) != null)))
             {
-                return SkipDefault;
-            }
-            else
-            {
-                return RunDefault;
+                saw_enemy_robe = true;
+
             }
 
         }
 
+        if (saw_greater_robe)
+        {
+            return SkipDefault;
+        }
+        else if (((saw_ally_robe) && (!saw_enemy_robe)))
+        {
+            return SkipDefault;
+        }
+        else
+        {
+            return RunDefault;
+        }
 
     }
+
+
 }

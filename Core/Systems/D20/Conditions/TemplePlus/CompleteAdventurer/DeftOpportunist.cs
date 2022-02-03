@@ -18,32 +18,31 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+public class DeftOpportunist
 {
-    public class DeftOpportunist
+    public const string Name = "Deft Opportunist";
+
+    public static readonly FeatId Id = (FeatId) ElfHash.Hash(Name);
+
+    public static void DOAOO(in DispatcherCallbackArgs evt)
     {
-        public const string Name = "Deft Opportunist";
-
-        public static readonly FeatId Id = (FeatId) ElfHash.Hash(Name);
-
-        public static void DOAOO(in DispatcherCallbackArgs evt)
+        var dispIo = evt.GetDispIoAttackBonus();
+        if (evt.objHndCaller.HasFeat(Id))
         {
-            var dispIo = evt.GetDispIoAttackBonus();
-            if (evt.objHndCaller.HasFeat(Id))
+            // Check if it's an AOO, if so add 4 to the Attack Roll
+            if ((dispIo.attackPacket.flags & D20CAF.ATTACK_OF_OPPORTUNITY) != D20CAF.NONE)
             {
-                // Check if it's an AOO, if so add 4 to the Attack Roll
-                if ((dispIo.attackPacket.flags & D20CAF.ATTACK_OF_OPPORTUNITY) != D20CAF.NONE)
-                {
-                    dispIo.bonlist.AddBonus(4, 0, "Target Deft Opportunist bonus");
-                }
+                dispIo.bonlist.AddBonus(4, 0, "Target Deft Opportunist bonus");
             }
         }
-
-        [FeatCondition(Name)]
-        [AutoRegister]
-        public static readonly ConditionSpec eDO = ConditionSpec.Create("Deft Opportunist Feat", 2)
-            .SetUnique()
-            .AddHandler(DispatcherType.ToHitBonus2, DOAOO)
-            .Build();
     }
+
+    [FeatCondition(Name)]
+    [AutoRegister]
+    public static readonly ConditionSpec eDO = ConditionSpec.Create("Deft Opportunist Feat", 2)
+        .SetUnique()
+        .AddHandler(DispatcherType.ToHitBonus2, DOAOO)
+        .Build();
 }

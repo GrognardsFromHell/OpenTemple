@@ -17,83 +17,82 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(158)]
+public class Jaer : BaseObjectScript
 {
-    [ObjectScript(158)]
-    public class Jaer : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 90);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 100);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else if ((!attachee.HasMet(triggerer)))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-                {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
-                    {
-                        DetachScript();
-
-                        obj.BeginDialog(attachee, 1);
-                        return RunDefault;
-                    }
-
-                }
-
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (((attachee.GetArea() == 1) || (attachee.GetArea() == 3)))
-            {
-                var obj = attachee.GetLeader();
-
-                if ((obj != null))
-                {
-                    obj.BeginDialog(attachee, 140);
-                }
-
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 90);
         }
-        public static bool transfer_fire_balls(GameObject attachee, GameObject triggerer)
+
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            while ((attachee.FindItemByName(2207) != null))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                if (!attachee.TransferItemByNameTo(triggerer, 2207))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
+                    DetachScript();
+
+                    obj.BeginDialog(attachee, 1);
                     return RunDefault;
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
-        {
-            attachee.RunOff();
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+    public override bool OnNewMap(GameObject attachee, GameObject triggerer)
+    {
+        if (((attachee.GetArea() == 1) || (attachee.GetArea() == 3)))
+        {
+            var obj = attachee.GetLeader();
+
+            if ((obj != null))
+            {
+                obj.BeginDialog(attachee, 140);
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public static bool transfer_fire_balls(GameObject attachee, GameObject triggerer)
+    {
+        while ((attachee.FindItemByName(2207) != null))
+        {
+            if (!attachee.TransferItemByNameTo(triggerer, 2207))
+            {
+                return RunDefault;
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        attachee.RunOff();
+        return RunDefault;
+    }
+
+
 }

@@ -7,54 +7,53 @@ using OpenTemple.Core.Time;
 using OpenTemple.Core.Utils;
 using OpenTemple.Tests.TestUtils;
 
-namespace OpenTemple.Tests.Core.Systems.Vfx
+namespace OpenTemple.Tests.Core.Systems.Vfx;
+
+public class LightningBoltEffectTest : RenderingTest
 {
-    public class LightningBoltEffectTest : RenderingTest
+    private LightningBoltRenderer _renderer;
+
+    [SetUp]
+    public void SetUp()
     {
-        private LightningBoltRenderer _renderer;
+        // Fixed seed ensures this test is repeatable
+        ThreadSafeRandom.Seed = 12345;
+        _renderer = new LightningBoltRenderer(Device, MdfFactory, new PerlinNoise());
+    }
 
-        [SetUp]
-        public void SetUp()
+    [Test]
+    public void TestRender()
+    {
+        var startTime = TimePoint.Now;
+        var from = CameraCenter - new Vector3(0, 0, 0);
+        var to = CameraCenter - new Vector3(300, 0, 0);
+        var locations = new[] { from, to };
+
+        var effect = new LightningBoltEffect(
+            _renderer,
+            startTime,
+            from,
+            to
+        );
+
+        void Render(int timeSinceStart)
         {
-            // Fixed seed ensures this test is repeatable
-            ThreadSafeRandom.Seed = 12345;
-            _renderer = new LightningBoltRenderer(Device, MdfFactory, new PerlinNoise());
+            TimePoint.SetFakeTime(startTime + TimeSpan.FromMilliseconds(timeSinceStart));
+            effect.Render(Viewport);
         }
 
-        [Test]
-        public void TestRender()
-        {
-            var startTime = TimePoint.Now;
-            var from = CameraCenter - new Vector3(0, 0, 0);
-            var to = CameraCenter - new Vector3(300, 0, 0);
-            var locations = new[] { from, to };
+        var frames = RenderFrameSequence(37, Render, locations);
 
-            var effect = new LightningBoltEffect(
-                _renderer,
-                startTime,
-                from,
-                to
-            );
+        ScreenshotCommandWrapper.AttachVideo("lightning_bolt.mp4", frames);
 
-            void Render(int timeSinceStart)
-            {
-                TimePoint.SetFakeTime(startTime + TimeSpan.FromMilliseconds(timeSinceStart));
-                effect.Render(Viewport);
-            }
+        // Assert against reference images at certain intervals
+        CompareReferenceFrames(frames, "Core/Systems/Vfx/LightningBolt", 0, 300, 550, 1800);
+    }
 
-            var frames = RenderFrameSequence(37, Render, locations);
-
-            ScreenshotCommandWrapper.AttachVideo("lightning_bolt.mp4", frames);
-
-            // Assert against reference images at certain intervals
-            CompareReferenceFrames(frames, "Core/Systems/Vfx/LightningBolt", 0, 300, 550, 1800);
-        }
-
-        public override void Dispose()
-        {
-            TimePoint.ClearFakeTime();
-            _renderer?.Dispose();
-            base.Dispose();
-        }
+    public override void Dispose()
+    {
+        TimePoint.ClearFakeTime();
+        _renderer?.Dispose();
+        base.Dispose();
     }
 }

@@ -18,42 +18,41 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(22)]
+public class Teamster : BaseObjectScript
 {
-    [ObjectScript(22)]
-    public class Teamster : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if (((GetGlobalFlag(5) == true) || (GetGlobalFlag(7) == true)))
         {
-            if (((GetGlobalFlag(5) == true) || (GetGlobalFlag(7) == true)))
-            {
-                triggerer.BeginDialog(attachee, 120);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 120);
         }
-        public static bool make_hate(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((attachee.GetReaction(triggerer) >= 20))
-            {
-                attachee.SetReaction(triggerer, 20);
-            }
-
-            return SkipDefault;
-        }
-        public static bool make_worry(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetReaction(triggerer) >= 40))
-            {
-                attachee.SetReaction(triggerer, 40);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+    public static bool make_hate(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetReaction(triggerer) >= 20))
+        {
+            attachee.SetReaction(triggerer, 20);
+        }
+
+        return SkipDefault;
+    }
+    public static bool make_worry(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetReaction(triggerer) >= 40))
+        {
+            attachee.SetReaction(triggerer, 40);
+        }
+
+        return SkipDefault;
+    }
+
 }

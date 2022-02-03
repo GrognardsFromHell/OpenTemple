@@ -18,26 +18,25 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(165)]
+public class TubalsBugbears : BaseObjectScript
 {
-    [ObjectScript(165)]
-    public class TubalsBugbears : BaseObjectScript
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetGlobalVar(15, GetGlobalVar(15) + 1);
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(15, GetGlobalVar(15) - 1);
-            return RunDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
 
+        SetGlobalVar(15, GetGlobalVar(15) + 1);
+        return RunDefault;
     }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(15, GetGlobalVar(15) - 1);
+        return RunDefault;
+    }
+
 }

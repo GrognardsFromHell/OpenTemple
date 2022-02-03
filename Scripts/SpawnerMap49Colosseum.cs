@@ -18,18 +18,17 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(521)]
-    public class SpawnerMap49Colosseum : BaseObjectScript
-    {
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            var mota = GameSystems.MapObject.CreateObject(14578, new locXY(504, 462));
-            mota.Rotation = 2.5f;
-            attachee.Destroy();
-            return RunDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(521)]
+public class SpawnerMap49Colosseum : BaseObjectScript
+{
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        var mota = GameSystems.MapObject.CreateObject(14578, new locXY(504, 462));
+        mota.Rotation = 2.5f;
+        attachee.Destroy();
+        return RunDefault;
     }
+
 }

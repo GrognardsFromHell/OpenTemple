@@ -17,18 +17,17 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(228)]
+public class KidsOff : BaseObjectScript
 {
-    [ObjectScript(228)]
-    public class KidsOff : BaseObjectScript
+
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            attachee.SetObjectFlag(ObjectFlag.OFF);
-            return RunDefault;
-        }
-
-
+        attachee.SetObjectFlag(ObjectFlag.OFF);
+        return RunDefault;
     }
+
+
 }

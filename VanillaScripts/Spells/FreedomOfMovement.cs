@@ -17,39 +17,38 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(188)]
+public class FreedomOfMovement : BaseSpellScript
 {
-    [SpellScript(188)]
-    public class FreedomOfMovement : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
+        Logger.Info("Freedom of Movement OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-conjuration-conjure", spell.caster);
+    }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Freedom of Movement OnSpellEffect");
+        spell.duration = 100 * spell.casterLevel;
 
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Freedom of Movement OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Freedom of Movement OnSpellEffect");
-            spell.duration = 100 * spell.casterLevel;
+        var target = spell.Targets[0];
 
-            var target = spell.Targets[0];
-
-            target.Object.AddCondition("sp-Freedom of Movement", spell.spellId, spell.duration, 0);
-            target.ParticleSystem = AttachParticles("sp-Freedom of Movement", target.Object);
-
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Freedom of Movement OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Freedom of Movement OnEndSpellCast");
-        }
-
+        target.Object.AddCondition("sp-Freedom of Movement", spell.spellId, spell.duration, 0);
+        target.ParticleSystem = AttachParticles("sp-Freedom of Movement", target.Object);
 
     }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Freedom of Movement OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Freedom of Movement OnEndSpellCast");
+    }
+
+
 }

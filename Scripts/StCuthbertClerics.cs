@@ -18,44 +18,43 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(37)]
+public class StCuthbertClerics : BaseObjectScript
 {
-    [ObjectScript(37)]
-    public class StCuthbertClerics : BaseObjectScript
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetMap() == 5011 || attachee.GetMap() == 5012))
         {
-            if ((attachee.GetMap() == 5011 || attachee.GetMap() == 5012))
+            if ((GetGlobalVar(501) == 4 || GetGlobalVar(501) == 5 || GetGlobalVar(501) == 6 || GetGlobalVar(510) == 2))
             {
-                if ((GetGlobalVar(501) == 4 || GetGlobalVar(501) == 5 || GetGlobalVar(501) == 6 || GetGlobalVar(510) == 2))
-                {
-                    attachee.SetObjectFlag(ObjectFlag.OFF);
-                }
-                else
+                attachee.SetObjectFlag(ObjectFlag.OFF);
+            }
+            else
+            {
+                attachee.ClearObjectFlag(ObjectFlag.OFF);
+            }
+
+        }
+        else if ((attachee.GetMap() == 5013))
+        {
+            if ((GetGlobalVar(510) != 2))
+            {
+                if ((GetGlobalVar(501) == 4 || GetGlobalVar(501) == 5 || GetGlobalVar(501) == 6))
                 {
                     attachee.ClearObjectFlag(ObjectFlag.OFF);
                 }
 
             }
-            else if ((attachee.GetMap() == 5013))
+            else
             {
-                if ((GetGlobalVar(510) != 2))
-                {
-                    if ((GetGlobalVar(501) == 4 || GetGlobalVar(501) == 5 || GetGlobalVar(501) == 6))
-                    {
-                        attachee.ClearObjectFlag(ObjectFlag.OFF);
-                    }
-
-                }
-                else
-                {
-                    attachee.SetObjectFlag(ObjectFlag.OFF);
-                }
-
+                attachee.SetObjectFlag(ObjectFlag.OFF);
             }
 
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

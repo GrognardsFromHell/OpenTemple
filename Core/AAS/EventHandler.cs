@@ -1,63 +1,62 @@
 using System;
 
-namespace OpenTemple.Core.AAS
+namespace OpenTemple.Core.AAS;
+
+public enum AnimEventType
 {
-    public enum AnimEventType
+    Script,
+    End,
+    Action
+}
+
+internal class EventHandler
+{
+    private readonly Action<AasEvent> _animEventHandler;
+
+    private readonly LegacyScriptConverter _scriptConverter = new LegacyScriptConverter();
+
+    private AnimEvents _flagsOut;
+
+    public EventHandler(Action<AasEvent> animEventHandler)
     {
-        Script,
-        End,
-        Action
+        _animEventHandler = animEventHandler;
     }
 
-    internal class EventHandler
+    public void SetFlagsOut(AnimEvents flagsOut)
     {
-        private readonly Action<AasEvent> _animEventHandler;
+        _flagsOut = flagsOut;
+    }
 
-        private readonly LegacyScriptConverter _scriptConverter = new LegacyScriptConverter();
+    public void ClearFlagsOut()
+    {
+        _flagsOut = null;
+    }
 
-        private AnimEvents _flagsOut;
-
-        public EventHandler(Action<AasEvent> animEventHandler)
+    public void HandleEvent(int frame, float frameTime, AnimEventType type, string args)
+    {
+        switch (type)
         {
-            _animEventHandler = animEventHandler;
-        }
+            case AnimEventType.Action:
+                if (_flagsOut != null)
+                {
+                    _flagsOut.action = true;
+                }
 
-        public void SetFlagsOut(AnimEvents flagsOut)
-        {
-            _flagsOut = flagsOut;
-        }
+                break;
+            case AnimEventType.End:
+                if (_flagsOut != null)
+                {
+                    _flagsOut.end = true;
+                }
 
-        public void ClearFlagsOut()
-        {
-            _flagsOut = null;
-        }
+                break;
+            case AnimEventType.Script:
+                if (_animEventHandler != null && _scriptConverter.TryConvert(args, out var scriptEvt))
+                {
+                    _animEventHandler(scriptEvt);
+                }
 
-        public void HandleEvent(int frame, float frameTime, AnimEventType type, string args)
-        {
-            switch (type)
-            {
-                case AnimEventType.Action:
-                    if (_flagsOut != null)
-                    {
-                        _flagsOut.action = true;
-                    }
-
-                    break;
-                case AnimEventType.End:
-                    if (_flagsOut != null)
-                    {
-                        _flagsOut.end = true;
-                    }
-
-                    break;
-                case AnimEventType.Script:
-                    if (_animEventHandler != null && _scriptConverter.TryConvert(args, out var scriptEvt))
-                    {
-                        _animEventHandler(scriptEvt);
-                    }
-
-                    break;
-            }
+                break;
         }
     }
 }

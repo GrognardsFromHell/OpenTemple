@@ -17,40 +17,39 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(2)]
+public class BlackJay : BaseObjectScript
 {
-    [ObjectScript(2)]
-    public class BlackJay : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if (((GetQuestState(3) == QuestState.Completed) || (GetQuestState(4) == QuestState.Completed)))
         {
-            if (((GetQuestState(3) == QuestState.Completed) || (GetQuestState(4) == QuestState.Completed)))
-            {
-                triggerer.BeginDialog(attachee, 20);
-            }
-            else if (((attachee.HasMet(triggerer)) || (GetQuestState(3) == QuestState.Accepted) || (GetQuestState(4) == QuestState.Accepted)))
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 20);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if (((attachee.HasMet(triggerer)) || (GetQuestState(3) == QuestState.Accepted) || (GetQuestState(4) == QuestState.Accepted)))
         {
-            SetGlobalVar(23, GetGlobalVar(23) + 1);
-            if ((GetGlobalVar(23) >= 2))
-            {
-                PartyLeader.AddReputation(1);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 10);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(23, GetGlobalVar(23) + 1);
+        if ((GetGlobalVar(23) >= 2))
+        {
+            PartyLeader.AddReputation(1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

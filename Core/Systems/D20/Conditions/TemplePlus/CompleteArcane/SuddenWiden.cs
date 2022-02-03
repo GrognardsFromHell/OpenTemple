@@ -18,28 +18,27 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+public class SuddenWiden
 {
-    public class SuddenWiden
+
+    public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Widen");
+
+    // Sudden Widen:  Complete Arcane, p. 83
+    private static void ApplyWiden(ref MetaMagicData metaMagicData)
     {
-
-        public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Widen");
-
-        // Sudden Widen:  Complete Arcane, p. 83
-        private static void ApplyWiden(ref MetaMagicData metaMagicData)
+        // Don't widen more than once
+        if (metaMagicData.metaMagicWidenSpellCount < 1)
         {
-            // Don't widen more than once
-            if (metaMagicData.metaMagicWidenSpellCount < 1)
-            {
-                metaMagicData.metaMagicWidenSpellCount = 1;
-            }
+            metaMagicData.metaMagicWidenSpellCount = 1;
         }
-
-        // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Widen");
-
-        [AutoRegister, FeatCondition("Sudden Widen")]
-        public static readonly ConditionSpec Condition = SuddenMetamagic
-            .Create("Sudden Widen Feat", "Sudden Widen", ApplyWiden)
-            .Build();
     }
+
+    // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Widen");
+
+    [AutoRegister, FeatCondition("Sudden Widen")]
+    public static readonly ConditionSpec Condition = SuddenMetamagic
+        .Create("Sudden Widen Feat", "Sudden Widen", ApplyWiden)
+        .Build();
 }

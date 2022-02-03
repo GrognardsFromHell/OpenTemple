@@ -18,68 +18,67 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(504)]
+public class Kwerd : BaseObjectScript
 {
-    [ObjectScript(504)]
-    public class Kwerd : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.HasMet(triggerer)))
         {
-            if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.TurnTowards(attachee);
-                triggerer.BeginDialog(attachee, 30);
-            }
-            else
-            {
-                triggerer.TurnTowards(attachee);
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.TurnTowards(attachee);
+            triggerer.BeginDialog(attachee, 30);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
+            triggerer.TurnTowards(attachee);
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    if ((!attachee.HasMet(obj)))
                     {
-                        if ((!attachee.HasMet(obj)))
-                        {
-                            attachee.TurnTowards(obj);
-                            obj.BeginDialog(attachee, 1);
-                            DetachScript();
-                        }
-
+                        attachee.TurnTowards(obj);
+                        obj.BeginDialog(attachee, 1);
+                        DetachScript();
                     }
 
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
-        {
-            foreach (var pc in GameSystems.Party.PartyMembers)
-            {
-                attachee.AIRemoveFromShitlist(pc);
-            }
-
-            attachee.RunOff();
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var pc in GameSystems.Party.PartyMembers)
+        {
+            attachee.AIRemoveFromShitlist(pc);
+        }
+
+        attachee.RunOff();
+        return RunDefault;
+    }
+
 }

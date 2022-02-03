@@ -18,48 +18,47 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(384)]
+public class DrowNote : BaseObjectScript
 {
-    [ObjectScript(384)]
-    public class DrowNote : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
-        {
-            var loc = triggerer.GetLocation();
-            var n = 0;
-            foreach (var pc in GameSystems.Party.PartyMembers)
-            {
-                var item = pc.FindItemByProto(9999);
-                var FLAGS = item.GetItemFlags();
-                if (((FLAGS & ItemFlag.IDENTIFIED)) != 0)
-                {
-                    n = 1;
-                }
-
-            }
-
-            if ((attachee.GetNameId() == 9999))
-            {
-                if ((n == 1))
-                {
-                    var npc = GameSystems.MapObject.CreateObject(14643, loc);
-                    triggerer.BeginDialog(npc, 1);
-                }
-                else
-                {
-                    var npc = GameSystems.MapObject.CreateObject(14643, loc);
-                    triggerer.BeginDialog(npc, 100);
-                }
-
-            }
-
-            return SkipDefault;
-        }
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
+    {
+        var loc = triggerer.GetLocation();
+        var n = 0;
+        foreach (var pc in GameSystems.Party.PartyMembers)
+        {
+            var item = pc.FindItemByProto(9999);
+            var FLAGS = item.GetItemFlags();
+            if (((FLAGS & ItemFlag.IDENTIFIED)) != 0)
+            {
+                n = 1;
+            }
+
+        }
+
+        if ((attachee.GetNameId() == 9999))
+        {
+            if ((n == 1))
+            {
+                var npc = GameSystems.MapObject.CreateObject(14643, loc);
+                triggerer.BeginDialog(npc, 1);
+            }
+            else
+            {
+                var npc = GameSystems.MapObject.CreateObject(14643, loc);
+                triggerer.BeginDialog(npc, 100);
+            }
+
+        }
+
+        return SkipDefault;
+    }
+
 }

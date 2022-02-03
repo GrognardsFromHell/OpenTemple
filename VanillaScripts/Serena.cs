@@ -17,48 +17,47 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(214)]
+public class Serena : BaseObjectScript
 {
-    [ObjectScript(214)]
-    public class Serena : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 100);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            SetQuestState(59, QuestState.Botched);
-            return RunDefault;
-        }
-        public static bool buttin(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8058);
-
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 240);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetQuestState(59, QuestState.Botched);
+        return RunDefault;
+    }
+    public static bool buttin(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8058);
+
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 240);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

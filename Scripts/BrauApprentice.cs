@@ -18,34 +18,33 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(64)]
+public class BrauApprentice : BaseObjectScript
 {
-    [ObjectScript(64)]
-    public class BrauApprentice : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(501) == 4 || GetGlobalVar(501) == 5 || GetGlobalVar(501) == 6 || GetGlobalVar(510) == 2))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            attachee.SetObjectFlag(ObjectFlag.OFF);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((GetGlobalVar(501) == 4 || GetGlobalVar(501) == 5 || GetGlobalVar(501) == 6 || GetGlobalVar(510) == 2))
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+            if (GetGlobalFlag(205))
             {
                 attachee.SetObjectFlag(ObjectFlag.OFF);
             }
-            else
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-                if (GetGlobalFlag(205))
-                {
-                    attachee.SetObjectFlag(ObjectFlag.OFF);
-                }
 
-            }
-
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

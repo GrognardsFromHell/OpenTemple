@@ -18,51 +18,50 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(443)]
+public class SolidFog : BaseSpellScript
 {
-    [SpellScript(443)]
-    public class SolidFog : BaseSpellScript
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Solid Fog OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Solid Fog OnSpellEffect");
-            spell.duration = 100 * spell.casterLevel;
-            // spawn one spell_object object
-            var spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, spell.aoeCenter);
-            // add to d20initiative
-            var caster_init_value = spell.caster.GetInitiative();
-            spell_obj.InitD20Status();
-            spell_obj.SetInitiative(caster_init_value);
-            // put sp-Solid Fog condition on obj
-            var spell_obj_partsys_id = AttachParticles("sp-Solid Fog", spell_obj);
-            spell_obj.AddCondition("sp-Solid Fog", spell.spellId, spell.duration, 0, spell_obj_partsys_id);
-        }
-        // spell_obj.condition_add_arg_x( 3, spell_obj_partsys_id )
-        // objectevent_id = spell_obj.condition_get_arg_x( 2 )
-
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Solid Fog OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Solid Fog OnEndSpellCast");
-        }
-        public override void OnAreaOfEffectHit(SpellPacketBody spell)
-        {
-            Logger.Info("Solid Fog OnAreaOfEffectHit");
-        }
-        public override void OnSpellStruck(SpellPacketBody spell)
-        {
-            Logger.Info("Solid Fog OnSpellStruck");
-        }
-
+        Logger.Info("Solid Fog OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-conjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Solid Fog OnSpellEffect");
+        spell.duration = 100 * spell.casterLevel;
+        // spawn one spell_object object
+        var spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, spell.aoeCenter);
+        // add to d20initiative
+        var caster_init_value = spell.caster.GetInitiative();
+        spell_obj.InitD20Status();
+        spell_obj.SetInitiative(caster_init_value);
+        // put sp-Solid Fog condition on obj
+        var spell_obj_partsys_id = AttachParticles("sp-Solid Fog", spell_obj);
+        spell_obj.AddCondition("sp-Solid Fog", spell.spellId, spell.duration, 0, spell_obj_partsys_id);
+    }
+    // spell_obj.condition_add_arg_x( 3, spell_obj_partsys_id )
+    // objectevent_id = spell_obj.condition_get_arg_x( 2 )
+
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Solid Fog OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Solid Fog OnEndSpellCast");
+    }
+    public override void OnAreaOfEffectHit(SpellPacketBody spell)
+    {
+        Logger.Info("Solid Fog OnAreaOfEffectHit");
+    }
+    public override void OnSpellStruck(SpellPacketBody spell)
+    {
+        Logger.Info("Solid Fog OnSpellStruck");
+    }
+
 }

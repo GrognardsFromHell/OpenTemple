@@ -4,48 +4,48 @@ using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.Spells;
 
-namespace OpenTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions;
+
+public static class FeatConditionMapping
 {
-    public static class FeatConditionMapping
+    public readonly struct FeatCondition
     {
-        public readonly struct FeatCondition
+        public ConditionSpec Condition { get; }
+        public int Arg { get; }
+
+        public FeatCondition(ConditionSpec condition)
         {
-            public ConditionSpec Condition { get; }
-            public int Arg { get; }
-
-            public FeatCondition(ConditionSpec condition)
-            {
-                Condition = condition;
-                Arg = 0;
-            }
-
-            public FeatCondition(ConditionSpec condition, int arg)
-            {
-                Condition = condition;
-                Arg = arg;
-            }
-
-            public FeatCondition(ConditionSpec condition, SkillId arg)
-            {
-                Condition = condition;
-                Arg = (int) arg;
-            }
-
-            public FeatCondition(ConditionSpec condition, WeaponType arg)
-            {
-                Condition = condition;
-                Arg = (int) arg;
-            }
-
-            public FeatCondition(ConditionSpec condition, SchoolOfMagic arg)
-            {
-                Condition = condition;
-                Arg = (int) arg;
-            }
+            Condition = condition;
+            Arg = 0;
         }
 
-        public static readonly Dictionary<FeatId, FeatCondition> Mapping = new Dictionary<FeatId, FeatCondition>
+        public FeatCondition(ConditionSpec condition, int arg)
         {
+            Condition = condition;
+            Arg = arg;
+        }
+
+        public FeatCondition(ConditionSpec condition, SkillId arg)
+        {
+            Condition = condition;
+            Arg = (int) arg;
+        }
+
+        public FeatCondition(ConditionSpec condition, WeaponType arg)
+        {
+            Condition = condition;
+            Arg = (int) arg;
+        }
+
+        public FeatCondition(ConditionSpec condition, SchoolOfMagic arg)
+        {
+            Condition = condition;
+            Arg = (int) arg;
+        }
+    }
+
+    public static readonly Dictionary<FeatId, FeatCondition> Mapping = new Dictionary<FeatId, FeatCondition>
+    {
             // @formatter:off
             {FeatId.NATURE_SENSE, new FeatCondition(FeatConditions.NatureSense)},
             {FeatId.CRAFT_STAFF, new FeatCondition(FeatConditions.CraftStaff)},
@@ -571,7 +571,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             // {FeatId.IRON_WILL, new FeatCondition(FeatConditions.IronWill, 0)},
             {FeatId.IRON_WILL, new FeatCondition(TemplePlusFeatConditions.IronWill, 0)},
 
-            // @formatter:on
-        };
-    }
+        // @formatter:on
+    };
 }

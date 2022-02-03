@@ -1,17 +1,16 @@
-namespace OpenTemple.Core.Systems
+namespace OpenTemple.Core.Systems;
+
+public static class GameDrawing
 {
-    public static class GameDrawing
+
+    public static void EnableDrawing()
     {
-
-        public static void EnableDrawing()
-        {
-            Stub.TODO();
-        }
-
-        public static void DisableDrawing()
-        {
-            Stub.TODO();
-        }
-
+        Stub.TODO();
     }
+
+    public static void DisableDrawing()
+    {
+        Stub.TODO();
+    }
+
 }

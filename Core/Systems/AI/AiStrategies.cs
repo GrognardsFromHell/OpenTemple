@@ -5,91 +5,88 @@ using OpenTemple.Core.IO.TabFiles;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 
-namespace OpenTemple.Core.Systems.AI
+namespace OpenTemple.Core.Systems.AI;
+
+internal class AiStrategies
 {
-    internal class AiStrategies
+    private const int AI_PREFAB_STRAT_MAX = 10000;
+
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+    private readonly List<AiStrategy> aiStrategies = new List<AiStrategy>();
+
+    private readonly Dictionary<int, AiStrategy> aiCustomStrats = new Dictionary<int, AiStrategy>();
+
+    internal void LoadStrategies(string path)
     {
-        private const int AI_PREFAB_STRAT_MAX = 10000;
+        TabFile.ParseFile(path, ProcessStrategy);
+    }
 
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+    private void ProcessStrategy(in TabFileRecord record)
+    {
+        var newStrategy = new AiStrategy(record[0].AsString());
 
-        private readonly List<AiStrategy> aiStrategies = new List<AiStrategy>();
-
-        private readonly Dictionary<int, AiStrategy> aiCustomStrats = new Dictionary<int, AiStrategy>();
-
-        internal void LoadStrategies(string path)
+        for (var i = 1; i + 3 < record.ColumnCount; i += 3)
         {
-            TabFile.ParseFile(path, ProcessStrategy);
+            var tacName = record[i].AsString();
+            var middleString = record[i + 1].AsString();
+            var spellString = record[i + 2].AsString();
+            StrategyTabLineParseTactic(newStrategy, tacName, middleString, spellString);
         }
 
-        private void ProcessStrategy(in TabFileRecord record)
-        {
-            var newStrategy = new AiStrategy(record[0].AsString());
+        aiStrategies.Add(newStrategy);
+    }
 
-            for (var i = 1; i + 3 < record.ColumnCount; i += 3)
-            {
-                var tacName = record[i].AsString();
-                var middleString = record[i + 1].AsString();
-                var spellString = record[i + 2].AsString();
-                StrategyTabLineParseTactic(newStrategy, tacName, middleString, spellString);
-            }
-
-            aiStrategies.Add(newStrategy);
+    // this functions matches the tactic strings (3 strings) to a tactic def
+    private void StrategyTabLineParseTactic(AiStrategy aiStrat, string tacName, string middleString, string spellString)
+    {
+        if (tacName.Length == 0) {
+            return;
         }
 
-        // this functions matches the tactic strings (3 strings) to a tactic def
-        private void StrategyTabLineParseTactic(AiStrategy aiStrat, string tacName, string middleString, string spellString)
+        // first check the vanilla tactic defs
+        if (DefaultTactics.TryGetByName(tacName, out var tacticDef))
         {
-            if (tacName.Length == 0) {
-                return;
-            }
+            aiStrat.aiTacDefs.Add(tacticDef);
+            aiStrat.field54.Add(0);
 
-            // first check the vanilla tactic defs
-            if (DefaultTactics.TryGetByName(tacName, out var tacticDef))
+            if (spellString.Length > 0 && GameSystems.Spell.TryParseSpellSpecString(spellString, out var parsedSpell))
             {
-                aiStrat.aiTacDefs.Add(tacticDef);
-                aiStrat.field54.Add(0);
-
-                if (spellString.Length > 0 && GameSystems.Spell.TryParseSpellSpecString(spellString, out var parsedSpell))
-                {
-                    aiStrat.spellsKnown.Add(parsedSpell);
-                }
-                else
-                {
-                    aiStrat.spellsKnown.Add(new SpellStoreData(-1, 0, 0));
-                }
-
-                return;
+                aiStrat.spellsKnown.Add(parsedSpell);
+            }
+            else
+            {
+                aiStrat.spellsKnown.Add(new SpellStoreData(-1, 0, 0));
             }
 
-            Stub.TODO(); // TODO: New TemplePlus tactics
-
-            Logger.Warn("Error: No Such Tactic {0} for Strategy {1}", tacName, aiStrat.name);
+            return;
         }
 
-        internal AiStrategy GetAiStrategy(int stratId) {
-            // Check if "normal" strategy ID
-            if (stratId < AI_PREFAB_STRAT_MAX)
-            {
-                if (stratId < aiStrategies.Count)
-                {
-                    return aiStrategies[stratId];
-                }
-                Logger.Warn("Strategy {0} not found", stratId);
-                return aiStrategies[0];
-            }
+        Stub.TODO(); // TODO: New TemplePlus tactics
 
-            // otherwise - fetch custom strategy
-            if (aiCustomStrats.TryGetValue(stratId, out var strat))
-            {
-                return strat;
-            }
+        Logger.Warn("Error: No Such Tactic {0} for Strategy {1}", tacName, aiStrat.name);
+    }
 
-            Logger.Warn("Custom strat ID {0} not found!", stratId);
+    internal AiStrategy GetAiStrategy(int stratId) {
+        // Check if "normal" strategy ID
+        if (stratId < AI_PREFAB_STRAT_MAX)
+        {
+            if (stratId < aiStrategies.Count)
+            {
+                return aiStrategies[stratId];
+            }
+            Logger.Warn("Strategy {0} not found", stratId);
             return aiStrategies[0];
         }
 
-    }
+        // otherwise - fetch custom strategy
+        if (aiCustomStrats.TryGetValue(stratId, out var strat))
+        {
+            return strat;
+        }
 
+        Logger.Warn("Custom strat ID {0} not found!", stratId);
+        return aiStrategies[0];
+    }
 
 }

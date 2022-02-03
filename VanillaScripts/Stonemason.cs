@@ -17,18 +17,17 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(19)]
+public class Stonemason : BaseObjectScript
 {
-    [ObjectScript(19)]
-    public class Stonemason : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+
+
 }

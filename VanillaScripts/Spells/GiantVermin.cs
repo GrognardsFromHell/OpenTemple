@@ -17,38 +17,37 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(195)]
+public class GiantVermin : BaseSpellScript
 {
-    [SpellScript(195)]
-    public class GiantVermin : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Giant Vermin OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-transmutation-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Giant Vermin OnSpellEffect");
-            spell.duration = 1 * spell.casterLevel;
-
-            var monster_proto_id = spell.GetMenuArg(RadialMenuParam.MinSetting);
-
-            spell.SummonMonsters(true, monster_proto_id);
-            spell.EndSpell();
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Giant Vermin OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Giant Vermin OnEndSpellCast");
-        }
-
-
+        Logger.Info("Giant Vermin OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-transmutation-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Giant Vermin OnSpellEffect");
+        spell.duration = 1 * spell.casterLevel;
+
+        var monster_proto_id = spell.GetMenuArg(RadialMenuParam.MinSetting);
+
+        spell.SummonMonsters(true, monster_proto_id);
+        spell.EndSpell();
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Giant Vermin OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Giant Vermin OnEndSpellCast");
+    }
+
+
 }

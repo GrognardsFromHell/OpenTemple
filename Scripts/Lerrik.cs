@@ -18,77 +18,76 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(382)]
+public class Lerrik : BaseObjectScript
 {
-    [ObjectScript(382)]
-    public class Lerrik : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
         {
-            if ((GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
-            {
-                attachee.TurnTowards(triggerer);
-                triggerer.BeginDialog(attachee, 360);
-            }
-            else
-            {
-                attachee.TurnTowards(triggerer);
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            attachee.TurnTowards(triggerer);
+            triggerer.BeginDialog(attachee, 360);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((GetGlobalFlag(974)))
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-            }
-            else if ((attachee.GetMap() == 5170 && GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-            }
-            else if ((attachee.GetMap() == 5169 && GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetGlobalFlag(974, true);
-            if ((GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
-            {
-                PartyLeader.AddReputation(43);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(974, false);
-            return RunDefault;
-        }
-        public static int party_spot_check()
-        {
-            var highest_spot = -999;
-            foreach (var pc in GameSystems.Party.PartyMembers)
-            {
-                if (pc.GetSkillLevel(SkillId.spot) > highest_spot)
-                {
-                    highest_spot = pc.GetSkillLevel(SkillId.spot);
-                }
-
-            }
-
-            return highest_spot;
+            attachee.TurnTowards(triggerer);
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(974)))
+        {
+            attachee.SetObjectFlag(ObjectFlag.OFF);
+        }
+        else if ((attachee.GetMap() == 5170 && GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
+        {
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+        }
+        else if ((attachee.GetMap() == 5169 && GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
+        {
+            attachee.SetObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        SetGlobalFlag(974, true);
+        if ((GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
+        {
+            PartyLeader.AddReputation(43);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(974, false);
+        return RunDefault;
+    }
+    public static int party_spot_check()
+    {
+        var highest_spot = -999;
+        foreach (var pc in GameSystems.Party.PartyMembers)
+        {
+            if (pc.GetSkillLevel(SkillId.spot) > highest_spot)
+            {
+                highest_spot = pc.GetSkillLevel(SkillId.spot);
+            }
+
+        }
+
+        return highest_spot;
+    }
+
 }

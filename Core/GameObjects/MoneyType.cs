@@ -1,13 +1,12 @@
-namespace OpenTemple.Core.GameObjects
+namespace OpenTemple.Core.GameObjects;
+
+/// <summary>
+/// Stored in <see cref="obj_f.money_type"/>.
+/// </summary>
+public enum MoneyType
 {
-    /// <summary>
-    /// Stored in <see cref="obj_f.money_type"/>.
-    /// </summary>
-    public enum MoneyType
-    {
-        Copper = 0,
-        Silver = 1,
-        Gold = 2,
-        Platinum = 3
-    }
+    Copper = 0,
+    Silver = 1,
+    Gold = 2,
+    Platinum = 3
 }

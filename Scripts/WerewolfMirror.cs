@@ -18,35 +18,33 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(150)]
+public class WerewolfMirror : BaseObjectScript
 {
-    [ObjectScript(150)]
-    public class WerewolfMirror : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!GetGlobalFlag(154) && !GetGlobalFlag(155)))
+        {
+            triggerer.BeginDialog(attachee, 1);
+        }
+
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
             if ((!GetGlobalFlag(154) && !GetGlobalFlag(155)))
             {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                if ((!GetGlobalFlag(154) && !GetGlobalFlag(155)))
+                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                    if ((Utilities.is_safe_to_talk(attachee, obj)))
                     {
-                        if ((Utilities.is_safe_to_talk(attachee, obj)))
+                        if ((attachee.DistanceTo(obj) <= 10))
                         {
-                            if ((attachee.DistanceTo(obj) <= 10))
-                            {
-                                obj.BeginDialog(attachee, 1);
-                            }
-
+                            obj.BeginDialog(attachee, 1);
                         }
 
                     }
@@ -55,8 +53,9 @@ namespace Scripts
 
             }
 
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

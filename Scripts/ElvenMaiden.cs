@@ -18,78 +18,77 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(184)]
+public class ElvenMaiden : BaseObjectScript
 {
-    [ObjectScript(184)]
-    public class ElvenMaiden : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
 
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            GameObject near_pc = null;
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                GameObject near_pc = null;
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    near_pc = obj;
+                    if (((obj.GetAlignment() == Alignment.LAWFUL_GOOD) || (obj.GetAlignment() == Alignment.NEUTRAL_GOOD) || (obj.GetAlignment() == Alignment.CHAOTIC_GOOD)))
                     {
-                        near_pc = obj;
-                        if (((obj.GetAlignment() == Alignment.LAWFUL_GOOD) || (obj.GetAlignment() == Alignment.NEUTRAL_GOOD) || (obj.GetAlignment() == Alignment.CHAOTIC_GOOD)))
-                        {
-                            obj.BeginDialog(attachee, 1);
-                            DetachScript();
-                            return RunDefault;
-                        }
-
+                        obj.BeginDialog(attachee, 1);
+                        DetachScript();
+                        return RunDefault;
                     }
 
                 }
 
-                if ((near_pc != null))
-                {
-                    near_pc.BeginDialog(attachee, 1);
-                    DetachScript();
-                }
-
             }
 
-            return RunDefault;
-        }
-        public static bool money_handout(GameObject npc, GameObject pc)
-        {
-            foreach (var obj in pc.GetPartyMembers())
+            if ((near_pc != null))
             {
-                obj.AdjustMoney(100000);
+                near_pc.BeginDialog(attachee, 1);
+                DetachScript();
             }
 
-            return RunDefault;
-        }
-        public static void all_run_off(GameObject npc, GameObject pc)
-        {
-            foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_NPC))
-            {
-                if ((obj.GetLeader() == null && !((SelectedPartyLeader.GetPartyMembers()).Contains(obj))))
-                {
-                    obj.RunOff();
-                }
-
-            }
-
-            return;
         }
 
+        return RunDefault;
     }
+    public static bool money_handout(GameObject npc, GameObject pc)
+    {
+        foreach (var obj in pc.GetPartyMembers())
+        {
+            obj.AdjustMoney(100000);
+        }
+
+        return RunDefault;
+    }
+    public static void all_run_off(GameObject npc, GameObject pc)
+    {
+        foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_NPC))
+        {
+            if ((obj.GetLeader() == null && !((SelectedPartyLeader.GetPartyMembers()).Contains(obj))))
+            {
+                obj.RunOff();
+            }
+
+        }
+
+        return;
+    }
+
 }

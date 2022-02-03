@@ -18,31 +18,30 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(232)]
-    public class JuggernautStatueController : BaseObjectScript
-    {
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
-        {
-            foreach (var statue in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_SCENERY))
-            {
-                if ((statue.GetNameId() == 1618))
-                {
-                    var loc = statue.GetLocation();
-                    var rot = statue.Rotation;
-                    statue.Destroy();
-                    var juggernaut = GameSystems.MapObject.CreateObject(14426, loc);
-                    juggernaut.Rotation = rot;
-                    AttachParticles("ef-MinoCloud", juggernaut);
-                    attachee.Destroy();
-                    return SkipDefault;
-                }
+namespace Scripts;
 
+[ObjectScript(232)]
+public class JuggernautStatueController : BaseObjectScript
+{
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var statue in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_SCENERY))
+        {
+            if ((statue.GetNameId() == 1618))
+            {
+                var loc = statue.GetLocation();
+                var rot = statue.Rotation;
+                statue.Destroy();
+                var juggernaut = GameSystems.MapObject.CreateObject(14426, loc);
+                juggernaut.Rotation = rot;
+                AttachParticles("ef-MinoCloud", juggernaut);
+                attachee.Destroy();
+                return SkipDefault;
             }
 
-            return SkipDefault;
         }
 
+        return SkipDefault;
     }
+
 }

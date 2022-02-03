@@ -19,54 +19,53 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(56)]
+public class LeatherworkerWifeDialog : LeatherworkerWife, IDialogScript
 {
-    [DialogScript(56)]
-    public class LeatherworkerWifeDialog : LeatherworkerWife, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 2:
-                case 3:
-                    originalScript = "not npc.has_met( pc )";
-                    return !npc.HasMet(pc);
-                case 4:
-                case 5:
-                case 8:
-                    originalScript = "npc.has_met( pc )";
-                    return npc.HasMet(pc);
-                case 6:
-                case 7:
-                    originalScript = "npc.has_met( pc ) and game.global_vars[996] >= 1";
-                    return npc.HasMet(pc) && GetGlobalVar(996) >= 1;
-                case 21:
-                case 22:
-                    originalScript = "game.quests[11].state >= qs_mentioned and game.global_vars[996] == 0";
-                    return GetQuestState(11) >= QuestState.Mentioned && GetGlobalVar(996) == 0;
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 2:
+            case 3:
+                originalScript = "not npc.has_met( pc )";
+                return !npc.HasMet(pc);
+            case 4:
+            case 5:
+            case 8:
+                originalScript = "npc.has_met( pc )";
+                return npc.HasMet(pc);
+            case 6:
+            case 7:
+                originalScript = "npc.has_met( pc ) and game.global_vars[996] >= 1";
+                return npc.HasMet(pc) && GetGlobalVar(996) >= 1;
+            case 21:
+            case 22:
+                originalScript = "game.quests[11].state >= qs_mentioned and game.global_vars[996] == 0";
+                return GetQuestState(11) >= QuestState.Mentioned && GetGlobalVar(996) == 0;
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    originalScript = null;
-                    return;
-            }
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

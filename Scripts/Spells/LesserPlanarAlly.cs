@@ -18,26 +18,25 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
-{
-    [SpellScript(270)]
-    public class LesserPlanarAlly : BaseSpellScript
-    {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            var selection = PlanarAllies.choose_allies(spell.caster, 3, 6, 1);
-            spell.duration = 10 * spell.casterLevel;
-            SpawnParticles("sp-Summon Monster III", spell.aoeCenter);
-            spell.SummonMonsters(true, selection[0]);
-            // There seems to be no provision for experience costs, so
-            // this is the best we can do.
-            spell.caster.AwardExperience(-100);
-            spell.EndSpell();
-        }
+namespace Scripts.Spells;
 
+[SpellScript(270)]
+public class LesserPlanarAlly : BaseSpellScript
+{
+    public override void OnBeginSpellCast(SpellPacketBody spell)
+    {
+        AttachParticles("sp-conjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        var selection = PlanarAllies.choose_allies(spell.caster, 3, 6, 1);
+        spell.duration = 10 * spell.casterLevel;
+        SpawnParticles("sp-Summon Monster III", spell.aoeCenter);
+        spell.SummonMonsters(true, selection[0]);
+        // There seems to be no provision for experience costs, so
+        // this is the best we can do.
+        spell.caster.AwardExperience(-100);
+        spell.EndSpell();
+    }
+
 }

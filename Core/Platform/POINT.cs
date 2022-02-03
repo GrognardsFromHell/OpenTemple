@@ -1,10 +1,9 @@
 using System.Runtime.InteropServices;
 
-namespace OpenTemple.Core.Platform
+namespace OpenTemple.Core.Platform;
+
+[StructLayout(LayoutKind.Sequential)]
+public struct POINT
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct POINT
-    {
-        public int X, Y;
-    }
+    public int X, Y;
 }

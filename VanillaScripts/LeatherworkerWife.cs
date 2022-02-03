@@ -17,29 +17,28 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(56)]
+public class LeatherworkerWife : BaseObjectScript
 {
-    [ObjectScript(56)]
-    public class LeatherworkerWife : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetQuestState(11, QuestState.Botched);
-            SetGlobalVar(23, GetGlobalVar(23) + 1);
-            if ((GetGlobalVar(23) >= 2))
-            {
-                PartyLeader.AddReputation(1);
-            }
-
-            return RunDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetQuestState(11, QuestState.Botched);
+        SetGlobalVar(23, GetGlobalVar(23) + 1);
+        if ((GetGlobalVar(23) >= 2))
+        {
+            PartyLeader.AddReputation(1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

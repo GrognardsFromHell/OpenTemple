@@ -1,10 +1,9 @@
 using System;
 
-namespace OpenTemple.Core.GameObjects
+namespace OpenTemple.Core.GameObjects;
+
+[Flags]
+public enum AmmoFlag
 {
-    [Flags]
-    public enum AmmoFlag
-    {
-        NONE = 1
-    }
+    NONE = 1
 }

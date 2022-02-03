@@ -18,70 +18,69 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(128)]
+public class Juffer : BaseObjectScript
 {
-    [ObjectScript(128)]
-    public class Juffer : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!GetGlobalFlag(127)))
         {
-            if ((!GetGlobalFlag(127)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 60);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
-        }
-        public static bool jufferlaugh(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8024);
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 40);
-            }
-
-            return SkipDefault;
-        }
-        public static bool jufferhelp(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8024);
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 50);
-            }
-
-            return SkipDefault;
-        }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
-        {
-            attachee.RunOff();
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 60);
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public static bool jufferlaugh(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8024);
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 40);
+        }
+
+        return SkipDefault;
+    }
+    public static bool jufferhelp(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8024);
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 50);
+        }
+
+        return SkipDefault;
+    }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        attachee.RunOff();
+        return RunDefault;
+    }
+
 }

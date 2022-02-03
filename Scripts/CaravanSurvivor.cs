@@ -18,78 +18,77 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(187)]
+public class CaravanSurvivor : BaseObjectScript
 {
-    [ObjectScript(187)]
-    public class CaravanSurvivor : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
+            attachee.TurnTowards(obj);
+            if ((Utilities.is_safe_to_talk(attachee, obj)))
             {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+                obj.BeginDialog(attachee, 1);
+                DetachScript();
+                return RunDefault;
             }
 
-            return RunDefault;
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+
+        return RunDefault;
+    }
+    public static void loot_caravan_bandits(GameObject pc, int charity = 0)
+    {
+        var pc_index = 0;
+        foreach (var obj in ObjList.ListVicinity(pc.GetLocation(), ObjectListFilter.OLC_NPC))
         {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            if (obj.GetNameId() == 14317) // Caravan Bandits
             {
-                attachee.TurnTowards(obj);
-                if ((Utilities.is_safe_to_talk(attachee, obj)))
+                var listt = new[] { 6042, 6043, 6044, 6045, 6046, 4074, 4071, 4067, 4116, 4036, 4096, 6034 };
+                if (charity == 0)
                 {
-                    obj.BeginDialog(attachee, 1);
-                    DetachScript();
-                    return RunDefault;
+                    listt.Append(7001);
                 }
 
-            }
-
-            return RunDefault;
-        }
-        public static void loot_caravan_bandits(GameObject pc, int charity = 0)
-        {
-            var pc_index = 0;
-            foreach (var obj in ObjList.ListVicinity(pc.GetLocation(), ObjectListFilter.OLC_NPC))
-            {
-                if (obj.GetNameId() == 14317) // Caravan Bandits
+                foreach (var item_number in listt)
                 {
-                    var listt = new[] { 6042, 6043, 6044, 6045, 6046, 4074, 4071, 4067, 4116, 4036, 4096, 6034 };
-                    if (charity == 0)
+                    var countt = 0;
+                    while (obj.FindItemByName(item_number) != null && countt <= 20 && pc_index < GameSystems.Party.PartySize)
                     {
-                        listt.Append(7001);
-                    }
-
-                    foreach (var item_number in listt)
-                    {
-                        var countt = 0;
-                        while (obj.FindItemByName(item_number) != null && countt <= 20 && pc_index < GameSystems.Party.PartySize)
+                        // while obj.item_find(item_number) != OBJ_HANDLE_NULL and countt <= 20 and pc_index < len(game.party): ## count <= added as failsafe (in case PC is overloaded and something freaky happens...)
+                        var tempp = GameSystems.Party.GetPartyGroupMemberN(pc_index).GetItem(obj.FindItemByName(item_number));
+                        if (!tempp)
                         {
-                            // while obj.item_find(item_number) != OBJ_HANDLE_NULL and countt <= 20 and pc_index < len(game.party): ## count <= added as failsafe (in case PC is overloaded and something freaky happens...)
-                            var tempp = GameSystems.Party.GetPartyGroupMemberN(pc_index).GetItem(obj.FindItemByName(item_number));
-                            if (!tempp)
-                            {
-                                pc_index += 1;
-                            }
-
-                            countt += 1;
+                            pc_index += 1;
                         }
 
+                        countt += 1;
                     }
 
                 }
 
             }
 
-            Fade(0, 0, 1009, 0);
-            Utilities.start_game_with_quest(22);
         }
 
+        Fade(0, 0, 1009, 0);
+        Utilities.start_game_with_quest(22);
     }
+
 }

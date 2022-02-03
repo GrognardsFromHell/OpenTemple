@@ -4,156 +4,155 @@ using OpenTemple.Core.AAS;
 using OpenTemple.Core.GFX.RenderMaterials;
 using EventHandler = OpenTemple.Core.AAS.EventHandler;
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+/*
+    Represents the events that can trigger when the animation
+    of an animated model is advanced.
+*/
+public readonly struct AnimatedModelEvents
 {
-    /*
-        Represents the events that can trigger when the animation
-        of an animated model is advanced.
-    */
-    public readonly struct AnimatedModelEvents
-    {
-        public bool IsEnd { get; }
-        public bool IsAction { get; }
+    public bool IsEnd { get; }
+    public bool IsAction { get; }
 
-        public AnimatedModelEvents(bool isEnd, bool isAction)
+    public AnimatedModelEvents(bool isEnd, bool isAction)
+    {
+        IsEnd = isEnd;
+        IsAction = isAction;
+    }
+}
+
+public struct AnimatedModelParams
+{
+    // see: objects.GetAnimParams(handle)
+    public int x;
+    public int y;
+    public float offsetX;
+    public float offsetY;
+    public float offsetZ;
+    public float rotation;
+    public float scale;
+    public float rotationRoll;
+    public float rotationPitch;
+    public float rotationYaw;
+    public IAnimatedModel parentAnim;
+    public string attachedBoneName;
+    public bool rotation3d; // Enables use of rotationRoll/rotationPitch/rotationYaw
+
+    public static AnimatedModelParams Default =>
+        new AnimatedModelParams
         {
-            IsEnd = isEnd;
-            IsAction = isAction;
-        }
-    }
+            scale = 1.0f
+        };
+}
 
-    public struct AnimatedModelParams
-    {
-        // see: objects.GetAnimParams(handle)
-        public int x;
-        public int y;
-        public float offsetX;
-        public float offsetY;
-        public float offsetZ;
-        public float rotation;
-        public float scale;
-        public float rotationRoll;
-        public float rotationPitch;
-        public float rotationYaw;
-        public IAnimatedModel parentAnim;
-        public string attachedBoneName;
-        public bool rotation3d; // Enables use of rotationRoll/rotationPitch/rotationYaw
+public interface IRenderState : IDisposable
+{
+}
 
-        public static AnimatedModelParams Default =>
-            new AnimatedModelParams
-            {
-                scale = 1.0f
-            };
-    }
+public interface IAnimatedModelFactory
+{
+    IAnimatedModel FromIds(
+        int meshId,
+        int skeletonId,
+        EncodedAnimId idleAnimId,
+        in AnimatedModelParams animParams,
+        bool borrow = false);
 
-    public interface IRenderState : IDisposable
-    {
-    }
+    IAnimatedModel FromFilenames(
+        string meshFilename,
+        string skeletonFilename,
+        EncodedAnimId idleAnimId,
+        in AnimatedModelParams animParams);
 
-    public interface IAnimatedModelFactory
-    {
-        IAnimatedModel FromIds(
-            int meshId,
-            int skeletonId,
-            EncodedAnimId idleAnimId,
-            in AnimatedModelParams animParams,
-            bool borrow = false);
+    IAnimatedModel BorrowByHandle(uint handle);
 
-        IAnimatedModel FromFilenames(
-            string meshFilename,
-            string skeletonFilename,
-            EncodedAnimId idleAnimId,
-            in AnimatedModelParams animParams);
+    void FreeHandle(uint handle);
 
-        IAnimatedModel BorrowByHandle(uint handle);
+    void FreeAll();
+}
 
-        void FreeHandle(uint handle);
+public interface IAnimatedModel
+{
+    uint GetHandle();
 
-        void FreeAll();
-    }
+    bool AddAddMesh(string filename);
 
-    public interface IAnimatedModel
-    {
-        uint GetHandle();
+    bool ClearAddMeshes();
 
-        bool AddAddMesh(string filename);
+    AnimatedModelEvents Advance(float deltaTime,
+        float deltaDistance,
+        float deltaRotation,
+        in AnimatedModelParams animParams);
 
-        bool ClearAddMeshes();
+    EncodedAnimId GetAnimId();
 
-        AnimatedModelEvents Advance(float deltaTime,
-            float deltaDistance,
-            float deltaRotation,
-            in AnimatedModelParams animParams);
+    int GetBoneCount();
 
-        EncodedAnimId GetAnimId();
+    string GetBoneName(int boneId);
 
-        int GetBoneCount();
+    int GetBoneParentId(int boneId);
 
-        string GetBoneName(int boneId);
+    bool GetBoneWorldMatrixByName(
+        in AnimatedModelParams animParams,
+        ReadOnlySpan<char> boneName,
+        out Matrix4x4 worldMatrixOut);
 
-        int GetBoneParentId(int boneId);
-
-        bool GetBoneWorldMatrixByName(
-            in AnimatedModelParams animParams,
-            ReadOnlySpan<char> boneName,
-            out Matrix4x4 worldMatrixOut);
-
-        bool GetBoneWorldMatrixByNameForChild(IAnimatedModel child,
-            in AnimatedModelParams animParams,
-            ReadOnlySpan<char> boneName,
-            out Matrix4x4 worldMatrixOut);
+    bool GetBoneWorldMatrixByNameForChild(IAnimatedModel child,
+        in AnimatedModelParams animParams,
+        ReadOnlySpan<char> boneName,
+        out Matrix4x4 worldMatrixOut);
 
 
-        float GetDistPerSec();
+    float GetDistPerSec();
 
-        float GetRotationPerSec();
+    float GetRotationPerSec();
 
-        bool HasAnim(EncodedAnimId animId);
+    bool HasAnim(EncodedAnimId animId);
 
-        void SetTime(in AnimatedModelParams animParams, float timeInSecs);
+    void SetTime(in AnimatedModelParams animParams, float timeInSecs);
 
-        [TempleDllLocation(0x10263a10)]
-        bool HasBone(ReadOnlySpan<char> boneName);
+    [TempleDllLocation(0x10263a10)]
+    bool HasBone(ReadOnlySpan<char> boneName);
 
-        void AddReplacementMaterial(MaterialPlaceholderSlot slot, IMdfRenderMaterial material);
+    void AddReplacementMaterial(MaterialPlaceholderSlot slot, IMdfRenderMaterial material);
 
-        void SetAnimId(EncodedAnimId animId);
+    void SetAnimId(EncodedAnimId animId);
 
-        // This seems to reset cloth simulation state
-        void SetClothFlag();
+    // This seems to reset cloth simulation state
+    void SetClothFlag();
 
-        IMdfRenderMaterial[] GetSubmeshes();
+    IMdfRenderMaterial[] GetSubmeshes();
 
-        ISubmesh GetSubmesh(in AnimatedModelParams animParams, int submeshIdx);
+    ISubmesh GetSubmesh(in AnimatedModelParams animParams, int submeshIdx);
 
-        ISubmesh GetSubmeshForParticles(in AnimatedModelParams animParams, int submeshIdx);
+    ISubmesh GetSubmeshForParticles(in AnimatedModelParams animParams, int submeshIdx);
 
-        bool HitTestRay(in AnimatedModelParams animParams, in Ray3d ray, out float hitDistance);
+    bool HitTestRay(in AnimatedModelParams animParams, in Ray3d ray, out float hitDistance);
 
-        /**
+    /**
          * Find the closest distance that the given point is away from the surface of this mesh.
          */
-        float GetDistanceToMesh(in AnimatedModelParams animParams, Vector3 pos);
+    float GetDistanceToMesh(in AnimatedModelParams animParams, Vector3 pos);
 
-        /**
+    /**
             This calculates the effective height in world coordinate units of the model in its current
             state. Scale is the model scale in percent.
         */
-        float GetHeight(int scale = 100);
+    float GetHeight(int scale = 100);
 
-        /**
+    /**
             This calculates the visible radius of the model in its current state.
             The radius is the maximum distance of any vertex on the x,z plane from the models origin.
             If the model has no vertices, 0 is returned.
             Scale is model scale in percent.
         */
-        float GetRadius(int scale = 100);
+    float GetRadius(int scale = 100);
 
-        /**
+    /**
          * Sets a custom render state pointer that will be freed when this model is freed.
          */
-        IRenderState RenderState { get; set; }
+    IRenderState RenderState { get; set; }
 
-        event Action<AasEvent> OnAnimEvent;
-    }
+    event Action<AasEvent> OnAnimEvent;
 }

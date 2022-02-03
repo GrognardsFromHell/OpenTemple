@@ -1,11 +1,10 @@
-namespace OpenTemple.Core.Particles.Spec
+namespace OpenTemple.Core.Particles.Spec;
+
+public enum PartSysParticleType
 {
-    public enum PartSysParticleType
-    {
-        Point,
-        Sprite,
-        Disc,
-        Billboard,
-        Model
-    }
+    Point,
+    Sprite,
+    Disc,
+    Billboard,
+    Model
 }

@@ -18,18 +18,17 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(407)]
-    public class Retirement : BaseObjectScript
-    {
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
-        {
-            // play slides and end game
-            Utilities.set_end_slides_co8(attachee, triggerer);
-            GameSystems.Movies.MovieQueuePlayAndEndGame();
-            return RunDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(407)]
+public class Retirement : BaseObjectScript
+{
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
+    {
+        // play slides and end game
+        Utilities.set_end_slides_co8(attachee, triggerer);
+        GameSystems.Movies.MovieQueuePlayAndEndGame();
+        return RunDefault;
     }
+
 }

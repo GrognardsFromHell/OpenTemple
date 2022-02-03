@@ -19,81 +19,80 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(201)]
+public class IkianDialog : Ikian, IDialogScript
 {
-    [DialogScript(201)]
-    public class IkianDialog : Ikian, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 33:
-                case 34:
-                    originalScript = "game.story_state == 1";
-                    return StoryState == 1;
-                case 35:
-                case 36:
-                    originalScript = "game.story_state == 2";
-                    return StoryState == 2;
-                case 37:
-                case 38:
-                    originalScript = "game.story_state == 3";
-                    return StoryState == 3;
-                case 39:
-                case 40:
-                    originalScript = "game.story_state == 4";
-                    return StoryState == 4;
-                case 41:
-                case 42:
-                    originalScript = "game.story_state == 5";
-                    return StoryState == 5;
-                case 43:
-                case 44:
-                    originalScript = "game.story_state == 6";
-                    return StoryState == 6;
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 33:
+            case 34:
+                originalScript = "game.story_state == 1";
+                return StoryState == 1;
+            case 35:
+            case 36:
+                originalScript = "game.story_state == 2";
+                return StoryState == 2;
+            case 37:
+            case 38:
+                originalScript = "game.story_state == 3";
+                return StoryState == 3;
+            case 39:
+            case 40:
+                originalScript = "game.story_state == 4";
+                return StoryState == 4;
+            case 41:
+            case 42:
+                originalScript = "game.story_state == 5";
+                return StoryState == 5;
+            case 43:
+            case 44:
+                originalScript = "game.story_state == 6";
+                return StoryState == 6;
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 10:
-                case 20:
-                case 30:
-                case 50:
-                case 60:
-                case 70:
-                case 80:
-                    originalScript = "buff_npc( npc, pc )";
-                    buff_npc(npc, pc);
-                    break;
-                case 53:
-                    originalScript = "all_run_off(npc,pc)";
-                    all_run_off(npc, pc);
-                    break;
-                case 81:
-                    originalScript = "npc.attack(pc); pc.condition_add_with_args(\"Fallen_Paladin\",0,0)";
-                    npc.Attack(pc);
-                    pc.AddCondition("Fallen_Paladin", 0, 0);
-                    ;
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 10:
+            case 20:
+            case 30:
+            case 50:
+            case 60:
+            case 70:
+            case 80:
+                originalScript = "buff_npc( npc, pc )";
+                buff_npc(npc, pc);
+                break;
+            case 53:
+                originalScript = "all_run_off(npc,pc)";
+                all_run_off(npc, pc);
+                break;
+            case 81:
+                originalScript = "npc.attack(pc); pc.condition_add_with_args(\"Fallen_Paladin\",0,0)";
+                npc.Attack(pc);
+                pc.AddCondition("Fallen_Paladin", 0, 0);
+                ;
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

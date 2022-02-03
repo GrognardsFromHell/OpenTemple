@@ -18,358 +18,323 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(75)]
+public class GnollLeader : BaseObjectScript
 {
-    [ObjectScript(75)]
-    public class GnollLeader : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(288) && GetGlobalFlag(856) && GetGlobalFlag(857)))
         {
-            if ((GetGlobalFlag(288) && GetGlobalFlag(856) && GetGlobalFlag(857)))
-            {
-                triggerer.BeginDialog(attachee, 200);
-            }
-
-            if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 200);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
 
-            return RunDefault;
+        if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
+        {
+            triggerer.BeginDialog(attachee, 100);
         }
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (attachee.GetMap() == 5005)
-            {
-                foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-                {
-                    if ((new[] { 14067, 14078, 14079, 14080 }).Contains(npc.GetNameId()) && npc.GetLeader() == null && npc.GetScriptId(ObjScriptEvent.StartCombat) == 0)
-                    {
-                        npc.SetScriptId(ObjScriptEvent.StartCombat, 75);
-                    }
-
-                }
-
-            }
-
-            if ((GetGlobalVar(709) == 1 && attachee.GetMap() == 5005))
-            {
-                SetGlobalVar(709, 2);
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-                {
-                    if ((obj.GetNameId() == 14079 || obj.GetNameId() == 14080 || obj.GetNameId() == 14067 || obj.GetNameId() == 14078 || obj.GetNameId() == 14066))
-                    {
-                        obj.TurnTowards(triggerer);
-                        obj.Attack(triggerer);
-                    }
-
-                }
-
-                DetachScript();
-            }
-
-            if ((attachee.GetMap() == 5066)) // change to ==
-            {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-                {
-                    if ((obj.GetNameId() == 14078 || obj.GetNameId() == 14079 || obj.GetNameId() == 14078 || obj.GetNameId() == 14631 || obj.GetNameId() == 14632 || obj.GetNameId() == 14633 || obj.GetNameId() == 14634 || obj.GetNameId() == 14067 || obj.GetNameId() == 14066 || obj.GetNameId() == 14635))
-                    {
-                        obj.TurnTowards(triggerer);
-                        obj.Attack(triggerer);
-                    }
-
-                }
-
-                DetachScript();
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if (attachee.GetMap() == 5005) // Moathouse Dungeon
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+    {
+        if (attachee.GetMap() == 5005)
+        {
+            foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
-                foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+                if ((new[] { 14067, 14078, 14079, 14080 }).Contains(npc.GetNameId()) && npc.GetLeader() == null && npc.GetScriptId(ObjScriptEvent.StartCombat) == 0)
                 {
-                    if ((new[] { 14066, 14067, 14078, 14079, 14080 }).Contains(npc.GetNameId()) && npc.GetLeader() == null && npc.GetScriptId(ObjScriptEvent.StartCombat) == 0)
-                    {
-                        npc.SetScriptId(ObjScriptEvent.StartCombat, 75);
-                    }
-
-                }
-
-            }
-            else if (attachee.GetMap() == 5066) // Temple level 1
-            {
-                foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-                {
-                    if (npc.GetLeader() == null && npc.GetScriptId(ObjScriptEvent.StartCombat) == 0)
-                    {
-                        npc.SetScriptId(ObjScriptEvent.StartCombat, 2);
-                    }
-
+                    npc.SetScriptId(ObjScriptEvent.StartCombat, 75);
                 }
 
             }
 
-            if ((GetGlobalVar(709) == 2 && attachee.GetMap() == 5005))
-            {
-                SetGlobalVar(709, 3);
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-                {
-                    if ((obj.GetNameId() == 14079 || obj.GetNameId() == 14080 || obj.GetNameId() == 14067 || obj.GetNameId() == 14078 || obj.GetNameId() == 14066))
-                    {
-                        obj.TurnTowards(triggerer);
-                        obj.Attack(triggerer);
-                    }
+        }
 
+        if ((GetGlobalVar(709) == 1 && attachee.GetMap() == 5005))
+        {
+            SetGlobalVar(709, 2);
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+            {
+                if ((obj.GetNameId() == 14079 || obj.GetNameId() == 14080 || obj.GetNameId() == 14067 || obj.GetNameId() == 14078 || obj.GetNameId() == 14066))
+                {
+                    obj.TurnTowards(triggerer);
+                    obj.Attack(triggerer);
                 }
 
             }
 
-            if (attachee.GetMap() == 5066 && (!ScriptDaemon.get_f("j_ogre_temple_1"))) // temple level 1 - gnolls near southern stairs
+            DetachScript();
+        }
+
+        if ((attachee.GetMap() == 5066)) // change to ==
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
-                var (xx, yy) = attachee.GetLocation();
-                if ((Math.Pow((xx - 564), 2) + Math.Pow((yy - 599), 2)) < 200)
+                if ((obj.GetNameId() == 14078 || obj.GetNameId() == 14079 || obj.GetNameId() == 14078 || obj.GetNameId() == 14631 || obj.GetNameId() == 14632 || obj.GetNameId() == 14633 || obj.GetNameId() == 14634 || obj.GetNameId() == 14067 || obj.GetNameId() == 14066 || obj.GetNameId() == 14635))
                 {
-                    ScriptDaemon.set_f("j_ogre_temple_1");
-                    var xxp_min = 564;
-                    var xxp_o = 564;
-                    foreach (var pc in PartyLeader.GetPartyMembers())
+                    obj.TurnTowards(triggerer);
+                    obj.Attack(triggerer);
+                }
+
+            }
+
+            DetachScript();
+        }
+
+        return RunDefault;
+    }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        if (attachee.GetMap() == 5005) // Moathouse Dungeon
+        {
+            foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+            {
+                if ((new[] { 14066, 14067, 14078, 14079, 14080 }).Contains(npc.GetNameId()) && npc.GetLeader() == null && npc.GetScriptId(ObjScriptEvent.StartCombat) == 0)
+                {
+                    npc.SetScriptId(ObjScriptEvent.StartCombat, 75);
+                }
+
+            }
+
+        }
+        else if (attachee.GetMap() == 5066) // Temple level 1
+        {
+            foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+            {
+                if (npc.GetLeader() == null && npc.GetScriptId(ObjScriptEvent.StartCombat) == 0)
+                {
+                    npc.SetScriptId(ObjScriptEvent.StartCombat, 2);
+                }
+
+            }
+
+        }
+
+        if ((GetGlobalVar(709) == 2 && attachee.GetMap() == 5005))
+        {
+            SetGlobalVar(709, 3);
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+            {
+                if ((obj.GetNameId() == 14079 || obj.GetNameId() == 14080 || obj.GetNameId() == 14067 || obj.GetNameId() == 14078 || obj.GetNameId() == 14066))
+                {
+                    obj.TurnTowards(triggerer);
+                    obj.Attack(triggerer);
+                }
+
+            }
+
+        }
+
+        if (attachee.GetMap() == 5066 && (!ScriptDaemon.get_f("j_ogre_temple_1"))) // temple level 1 - gnolls near southern stairs
+        {
+            var (xx, yy) = attachee.GetLocation();
+            if ((Math.Pow((xx - 564), 2) + Math.Pow((yy - 599), 2)) < 200)
+            {
+                ScriptDaemon.set_f("j_ogre_temple_1");
+                var xxp_min = 564;
+                var xxp_o = 564;
+                foreach (var pc in PartyLeader.GetPartyMembers())
+                {
+                    var (xxp, yyp) = pc.GetLocation();
+                    if (yyp >= 599)
                     {
-                        var (xxp, yyp) = pc.GetLocation();
-                        if (yyp >= 599)
+                        if (xxp < xxp_min)
                         {
-                            if (xxp < xxp_min)
-                            {
-                                xxp_min = xxp;
-                            }
-
-                        }
-                        else if (yyp < 599 && xxp >= 519 && xxp <= 546 && yyp >= 589)
-                        {
-                            if (xxp < xxp_o)
-                            {
-                                xxp_o = xxp;
-                            }
-
+                            xxp_min = xxp;
                         }
 
                     }
-
-                    var x_ogre = Math.Min(xxp_min, xxp_o) - 20;
-                    x_ogre = Math.Max(507, x_ogre);
-                    foreach (var npc in ObjList.ListVicinity(new locXY(507, 603), ObjectListFilter.OLC_NPC))
+                    else if (yyp < 599 && xxp >= 519 && xxp <= 546 && yyp >= 589)
                     {
-                        if (npc.GetNameId() == 14448 && npc.GetLeader() == null && !npc.IsUnconscious())
+                        if (xxp < xxp_o)
                         {
-                            npc.Move(new locXY(x_ogre, 601), 0, 0);
-                            npc.Attack(SelectedPartyLeader);
+                            xxp_o = xxp;
                         }
 
                     }
 
                 }
 
-            }
-
-            // THIS IS USED FOR BREAK FREE
-            var found_nearby = 0;
-            foreach (var obj in PartyLeader.GetPartyMembers())
-            {
-                if ((obj.DistanceTo(attachee) <= 3 && obj.GetStat(Stat.hp_current) >= -9))
+                var x_ogre = Math.Min(xxp_min, xxp_o) - 20;
+                x_ogre = Math.Max(507, x_ogre);
+                foreach (var npc in ObjList.ListVicinity(new locXY(507, 603), ObjectListFilter.OLC_NPC))
                 {
-                    found_nearby = 1;
+                    if (npc.GetNameId() == 14448 && npc.GetLeader() == null && !npc.IsUnconscious())
+                    {
+                        npc.Move(new locXY(x_ogre, 601), 0, 0);
+                        npc.Attack(SelectedPartyLeader);
+                    }
+
                 }
 
             }
 
-            if (found_nearby == 0)
-            {
-                while ((attachee.FindItemByName(8903) != null))
-                {
-                    attachee.FindItemByName(8903).Destroy();
-                }
+        }
 
+        // THIS IS USED FOR BREAK FREE
+        var found_nearby = 0;
+        foreach (var obj in PartyLeader.GetPartyMembers())
+        {
+            if ((obj.DistanceTo(attachee) <= 3 && obj.GetStat(Stat.hp_current) >= -9))
+            {
+                found_nearby = 1;
             }
 
-            // if (attachee.d20_query(Q_Is_BreakFree_Possible)): # workaround no longer necessary!
-            // create_item_in_inventory( 8903, attachee )
-            // attachee.d20_send_signal(S_BreakFree)
-            // Spiritual Weapon Shenanigens	#
-            CombatStandardRoutines.Spiritual_Weapon_Begone(attachee);
+        }
+
+        if (found_nearby == 0)
+        {
+            while ((attachee.FindItemByName(8903) != null))
+            {
+                attachee.FindItemByName(8903).Destroy();
+            }
+
+        }
+
+        // if (attachee.d20_query(Q_Is_BreakFree_Possible)): # workaround no longer necessary!
+        // create_item_in_inventory( 8903, attachee )
+        // attachee.d20_send_signal(S_BreakFree)
+        // Spiritual Weapon Shenanigens	#
+        CombatStandardRoutines.Spiritual_Weapon_Begone(attachee);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GetGlobalFlag(854) && attachee.GetMap() == 5066))
+        {
+            SetGlobalFlag(854, true);
+            var newNPC = GameSystems.MapObject.CreateObject(14459, new locXY(551, 600));
+            newNPC = GameSystems.MapObject.CreateObject(14458, new locXY(511, 540));
+            newNPC = GameSystems.MapObject.CreateObject(14452, new locXY(455, 535));
+        }
+
+        if ((attachee.GetNameId() == 14078 && attachee.GetLeader() == null && attachee.GetMap() == 5005 && GetGlobalVar(760) == 1))
+        {
+            SetGlobalVar(760, 2);
+            DetachScript();
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+
+        if ((attachee.GetNameId() == 14078 && attachee.GetLeader() == null && attachee.GetMap() == 5005))
         {
-            if ((!GetGlobalFlag(854) && attachee.GetMap() == 5066))
+            if ((GetGlobalVar(760) == 2))
             {
-                SetGlobalFlag(854, true);
-                var newNPC = GameSystems.MapObject.CreateObject(14459, new locXY(551, 600));
-                newNPC = GameSystems.MapObject.CreateObject(14458, new locXY(511, 540));
-                newNPC = GameSystems.MapObject.CreateObject(14452, new locXY(455, 535));
+                attachee.SetStandpoint(StandPointType.Night, 272);
+                attachee.SetStandpoint(StandPointType.Day, 272);
             }
 
-            if ((attachee.GetNameId() == 14078 && attachee.GetLeader() == null && attachee.GetMap() == 5005 && GetGlobalVar(760) == 1))
+            if ((GetGlobalVar(760) == 13))
+            {
+                attachee.SetStandpoint(StandPointType.Night, 271);
+                attachee.SetStandpoint(StandPointType.Day, 271);
+            }
+
+            SetGlobalVar(760, GetGlobalVar(760) + 1);
+            if ((GetGlobalVar(760) >= 22))
             {
                 SetGlobalVar(760, 2);
-                DetachScript();
-                return RunDefault;
             }
 
-            if ((attachee.GetNameId() == 14078 && attachee.GetLeader() == null && attachee.GetMap() == 5005))
+        }
+
+        if ((attachee.GetNameId() == 14635 && attachee.GetLeader() == null && attachee.GetMap() == 5066))
+        {
+            // Make the barbarian gnolls patrol around Temple level 1 near Ogre Chief
+            var rr = RandomRange(1, 30);
+            if ((rr == 1))
             {
-                if ((GetGlobalVar(760) == 2))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 272);
-                    attachee.SetStandpoint(StandPointType.Day, 272);
-                }
-
-                if ((GetGlobalVar(760) == 13))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 271);
-                    attachee.SetStandpoint(StandPointType.Day, 271);
-                }
-
-                SetGlobalVar(760, GetGlobalVar(760) + 1);
-                if ((GetGlobalVar(760) >= 22))
-                {
-                    SetGlobalVar(760, 2);
-                }
-
+                attachee.SetStandpoint(StandPointType.Night, 273);
+                attachee.SetStandpoint(StandPointType.Day, 273);
             }
 
-            if ((attachee.GetNameId() == 14635 && attachee.GetLeader() == null && attachee.GetMap() == 5066))
+            if ((rr == 2))
             {
-                // Make the barbarian gnolls patrol around Temple level 1 near Ogre Chief
-                var rr = RandomRange(1, 30);
-                if ((rr == 1))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 273);
-                    attachee.SetStandpoint(StandPointType.Day, 273);
-                }
-
-                if ((rr == 2))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 274);
-                    attachee.SetStandpoint(StandPointType.Day, 274);
-                }
-
-                if ((rr == 3))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 275);
-                    attachee.SetStandpoint(StandPointType.Day, 275);
-                }
-
-                if ((rr == 4))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 276);
-                    attachee.SetStandpoint(StandPointType.Day, 276);
-                }
-
-                if ((rr == 5))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 277);
-                    attachee.SetStandpoint(StandPointType.Day, 277);
-                }
-
-                rr = 0;
+                attachee.SetStandpoint(StandPointType.Night, 274);
+                attachee.SetStandpoint(StandPointType.Day, 274);
             }
 
-            if ((attachee.GetNameId() == 14636 && attachee.GetLeader() == null && attachee.GetMap() == 5066))
+            if ((rr == 3))
             {
-                // Make the goblin patrol around Temple level 1 near Ogre Chief
-                var rr = RandomRange(1, 30);
-                if ((rr == 1))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 288);
-                    attachee.SetStandpoint(StandPointType.Day, 288);
-                }
-
-                if ((rr == 2))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 289);
-                    attachee.SetStandpoint(StandPointType.Day, 289);
-                }
-
-                if ((rr == 3))
-                {
-                    attachee.SetStandpoint(StandPointType.Night, 290);
-                    attachee.SetStandpoint(StandPointType.Day, 290);
-                }
-
-                rr = 0;
+                attachee.SetStandpoint(StandPointType.Night, 275);
+                attachee.SetStandpoint(StandPointType.Day, 275);
             }
 
-            if ((!GameSystems.Combat.IsCombatActive() && attachee.GetNameId() == 14066 && attachee.GetMap() == 5005))
+            if ((rr == 4))
             {
-                if ((!attachee.HasMet(PartyLeader)))
-                {
-                    if ((is_better_to_talk(attachee, PartyLeader)))
-                    {
-                        if ((!Utilities.critter_is_unconscious(PartyLeader)))
-                        {
-                            if ((PartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
-                            {
-                                attachee.TurnTowards(PartyLeader);
-                                PartyLeader.BeginDialog(attachee, 100);
-                            }
-                            else
-                            {
-                                attachee.TurnTowards(PartyLeader);
-                                PartyLeader.BeginDialog(attachee, 1);
-                            }
-
-                        }
-
-                    }
-                    else
-                    {
-                        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-                        {
-                            if ((Utilities.is_safe_to_talk(attachee, obj)))
-                            {
-                                if ((PartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
-                                {
-                                    attachee.TurnTowards(obj);
-                                    obj.BeginDialog(attachee, 100);
-                                }
-                                else
-                                {
-                                    attachee.TurnTowards(obj);
-                                    obj.BeginDialog(attachee, 1);
-                                }
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
+                attachee.SetStandpoint(StandPointType.Night, 276);
+                attachee.SetStandpoint(StandPointType.Day, 276);
             }
 
-            if ((GetGlobalFlag(288) && GetGlobalFlag(856) && GetGlobalFlag(857)))
+            if ((rr == 5))
             {
-                DetachScript();
+                attachee.SetStandpoint(StandPointType.Night, 277);
+                attachee.SetStandpoint(StandPointType.Day, 277);
+            }
+
+            rr = 0;
+        }
+
+        if ((attachee.GetNameId() == 14636 && attachee.GetLeader() == null && attachee.GetMap() == 5066))
+        {
+            // Make the goblin patrol around Temple level 1 near Ogre Chief
+            var rr = RandomRange(1, 30);
+            if ((rr == 1))
+            {
+                attachee.SetStandpoint(StandPointType.Night, 288);
+                attachee.SetStandpoint(StandPointType.Day, 288);
+            }
+
+            if ((rr == 2))
+            {
+                attachee.SetStandpoint(StandPointType.Night, 289);
+                attachee.SetStandpoint(StandPointType.Day, 289);
+            }
+
+            if ((rr == 3))
+            {
+                attachee.SetStandpoint(StandPointType.Night, 290);
+                attachee.SetStandpoint(StandPointType.Day, 290);
+            }
+
+            rr = 0;
+        }
+
+        if ((!GameSystems.Combat.IsCombatActive() && attachee.GetNameId() == 14066 && attachee.GetMap() == 5005))
+        {
+            if ((!attachee.HasMet(PartyLeader)))
+            {
                 if ((is_better_to_talk(attachee, PartyLeader)))
                 {
-                    attachee.TurnTowards(PartyLeader);
-                    PartyLeader.BeginDialog(attachee, 200);
+                    if ((!Utilities.critter_is_unconscious(PartyLeader)))
+                    {
+                        if ((PartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
+                        {
+                            attachee.TurnTowards(PartyLeader);
+                            PartyLeader.BeginDialog(attachee, 100);
+                        }
+                        else
+                        {
+                            attachee.TurnTowards(PartyLeader);
+                            PartyLeader.BeginDialog(attachee, 1);
+                        }
+
+                    }
+
                 }
                 else
                 {
@@ -377,8 +342,17 @@ namespace Scripts
                     {
                         if ((Utilities.is_safe_to_talk(attachee, obj)))
                         {
-                            attachee.TurnTowards(obj);
-                            obj.BeginDialog(attachee, 200);
+                            if ((PartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
+                            {
+                                attachee.TurnTowards(obj);
+                                obj.BeginDialog(attachee, 100);
+                            }
+                            else
+                            {
+                                attachee.TurnTowards(obj);
+                                obj.BeginDialog(attachee, 1);
+                            }
+
                         }
 
                     }
@@ -387,95 +361,120 @@ namespace Scripts
 
             }
 
-            return RunDefault;
         }
-        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
+
+        if ((GetGlobalFlag(288) && GetGlobalFlag(856) && GetGlobalFlag(857)))
         {
-            if ((GetGlobalVar(709) >= 2 && attachee.GetMap() == 5005))
+            DetachScript();
+            if ((is_better_to_talk(attachee, PartyLeader)))
             {
-                attachee.Attack(SelectedPartyLeader);
-                DetachScript();
-                return RunDefault;
+                attachee.TurnTowards(PartyLeader);
+                PartyLeader.BeginDialog(attachee, 200);
             }
-
-            if ((GetGlobalVar(709) <= 1 && attachee.GetMap() == 5005))
+            else
             {
-                return SkipDefault;
-            }
-
-            if (attachee.GetMap() == 5091)
-            {
-                return SkipDefault;
-            }
-
-            return RunDefault;
-        }
-        public static bool run_off(GameObject npc, GameObject pc)
-        {
-            SetGlobalFlag(288, true);
-            var location = new locXY(484, 490);
-            npc.RunOff(location);
-            Co8.Timed_Destroy(npc, 5000);
-            // game.timevent_add( give_reward, (), 1209600000 )
-            // game.timevent_add( give_reward, (), 720000 )
-            QueueRandomEncounter(3605);
-            foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_NPC))
-            {
-                if ((obj.GetNameId() == 14079 || obj.GetNameId() == 14080 || obj.GetNameId() == 14067 || obj.GetNameId() == 14078))
+                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    obj.RunOff(location);
-                    Co8.Timed_Destroy(obj, 5000);
+                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    {
+                        attachee.TurnTowards(obj);
+                        obj.BeginDialog(attachee, 200);
+                    }
+
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static bool give_reward()
-        {
-            QueueRandomEncounter(3579);
-            return RunDefault;
-        }
-        public static bool give_item(GameObject npc)
-        {
-            SetGlobalVar(769, 0);
-            var item = GetGlobalVar(768);
-            Utilities.create_item_in_inventory(item, npc);
-            SetGlobalVar(768, 0);
-            SetGlobalVar(776, GetGlobalVar(776) + 1);
-            return RunDefault;
-        }
-        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
-        {
-            if ((speaker.HasLineOfSight(listener)))
-            {
-                if ((speaker.DistanceTo(listener) <= 20))
-                {
-                    return true;
-                }
-
-            }
-
-            return false;
-        }
-        public static void call_leader(GameObject npc, GameObject pc)
-        {
-            var leader = PartyLeader;
-            leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
-            leader.BeginDialog(npc, 1);
-        }
-        public static void call_leaderplease(GameObject npc, GameObject pc)
-        {
-            var leader = PartyLeader;
-            leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
-            leader.BeginDialog(npc, 100);
-        }
-        public static void call_leadersvp(GameObject npc, GameObject pc)
-        {
-            var leader = PartyLeader;
-            leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
-            leader.BeginDialog(npc, 200);
         }
 
+        return RunDefault;
     }
+    public override bool OnWillKos(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(709) >= 2 && attachee.GetMap() == 5005))
+        {
+            attachee.Attack(SelectedPartyLeader);
+            DetachScript();
+            return RunDefault;
+        }
+
+        if ((GetGlobalVar(709) <= 1 && attachee.GetMap() == 5005))
+        {
+            return SkipDefault;
+        }
+
+        if (attachee.GetMap() == 5091)
+        {
+            return SkipDefault;
+        }
+
+        return RunDefault;
+    }
+    public static bool run_off(GameObject npc, GameObject pc)
+    {
+        SetGlobalFlag(288, true);
+        var location = new locXY(484, 490);
+        npc.RunOff(location);
+        Co8.Timed_Destroy(npc, 5000);
+        // game.timevent_add( give_reward, (), 1209600000 )
+        // game.timevent_add( give_reward, (), 720000 )
+        QueueRandomEncounter(3605);
+        foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_NPC))
+        {
+            if ((obj.GetNameId() == 14079 || obj.GetNameId() == 14080 || obj.GetNameId() == 14067 || obj.GetNameId() == 14078))
+            {
+                obj.RunOff(location);
+                Co8.Timed_Destroy(obj, 5000);
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public static bool give_reward()
+    {
+        QueueRandomEncounter(3579);
+        return RunDefault;
+    }
+    public static bool give_item(GameObject npc)
+    {
+        SetGlobalVar(769, 0);
+        var item = GetGlobalVar(768);
+        Utilities.create_item_in_inventory(item, npc);
+        SetGlobalVar(768, 0);
+        SetGlobalVar(776, GetGlobalVar(776) + 1);
+        return RunDefault;
+    }
+    public static bool is_better_to_talk(GameObject speaker, GameObject listener)
+    {
+        if ((speaker.HasLineOfSight(listener)))
+        {
+            if ((speaker.DistanceTo(listener) <= 20))
+            {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+    public static void call_leader(GameObject npc, GameObject pc)
+    {
+        var leader = PartyLeader;
+        leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
+        leader.BeginDialog(npc, 1);
+    }
+    public static void call_leaderplease(GameObject npc, GameObject pc)
+    {
+        var leader = PartyLeader;
+        leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
+        leader.BeginDialog(npc, 100);
+    }
+    public static void call_leadersvp(GameObject npc, GameObject pc)
+    {
+        var leader = PartyLeader;
+        leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
+        leader.BeginDialog(npc, 200);
+    }
+
 }

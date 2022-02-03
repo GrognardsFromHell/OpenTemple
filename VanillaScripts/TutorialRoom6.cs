@@ -17,38 +17,37 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(247)]
+public class TutorialRoom6 : BaseObjectScript
 {
-    [ObjectScript(247)]
-    public class TutorialRoom6 : BaseObjectScript
+
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
         {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            if ((Utilities.critter_is_unconscious(obj) == 0))
             {
-                if ((Utilities.critter_is_unconscious(obj) == 0))
+                if (obj.DistanceTo(attachee) < 30)
                 {
-                    if (obj.DistanceTo(attachee) < 30)
+                    if (!UiSystems.HelpManager.IsTutorialActive)
                     {
-                        if (!UiSystems.HelpManager.IsTutorialActive)
-                        {
-                            UiSystems.HelpManager.ToggleTutorial();
-                        }
-
-                        UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Room6Overview);
-                        DetachScript();
-
-                        return RunDefault;
+                        UiSystems.HelpManager.ToggleTutorial();
                     }
 
+                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Room6Overview);
+                    DetachScript();
+
+                    return RunDefault;
                 }
 
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

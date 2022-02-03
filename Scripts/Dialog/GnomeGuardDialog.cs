@@ -19,58 +19,57 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(386)]
+public class GnomeGuardDialog : GnomeGuard, IDialogScript
 {
-    [DialogScript(386)]
-    public class GnomeGuardDialog : GnomeGuard, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 1:
-                    originalScript = "guard_backup(npc,pc)";
-                    guard_backup(npc, pc);
-                    break;
-                case 2:
-                case 32:
-                    originalScript = "npc.attack(pc)";
-                    npc.Attack(pc);
-                    break;
-                case 30:
-                    originalScript = "game.global_vars[969] = 1";
-                    SetGlobalVar(969, 1);
-                    break;
-                case 40:
-                    originalScript = "game.global_vars[969] = 2";
-                    SetGlobalVar(969, 2);
-                    break;
-                case 41:
-                    originalScript = "game.fade_and_teleport(0,0,0,5172,471,489)";
-                    FadeAndTeleport(0, 0, 0, 5172, 471, 489);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 1:
+                originalScript = "guard_backup(npc,pc)";
+                guard_backup(npc, pc);
+                break;
+            case 2:
+            case 32:
+                originalScript = "npc.attack(pc)";
+                npc.Attack(pc);
+                break;
+            case 30:
+                originalScript = "game.global_vars[969] = 1";
+                SetGlobalVar(969, 1);
+                break;
+            case 40:
+                originalScript = "game.global_vars[969] = 2";
+                SetGlobalVar(969, 2);
+                break;
+            case 41:
+                originalScript = "game.fade_and_teleport(0,0,0,5172,471,489)";
+                FadeAndTeleport(0, 0, 0, 5172, 471, 489);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

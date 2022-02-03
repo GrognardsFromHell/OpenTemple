@@ -17,52 +17,51 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(157)]
+public class BugbearChieftain : BaseObjectScript
 {
-    [ObjectScript(157)]
-    public class BugbearChieftain : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
+            if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8023))))
             {
-                if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8023))))
-                {
-                    triggerer.BeginDialog(attachee, 60);
-                }
-                else if ((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3020))))
-                {
-                    triggerer.BeginDialog(attachee, 120);
-                }
-                else if ((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3017))))
-                {
-                    triggerer.BeginDialog(attachee, 140);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-
+                triggerer.BeginDialog(attachee, 60);
+            }
+            else if ((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3020))))
+            {
+                triggerer.BeginDialog(attachee, 120);
+            }
+            else if ((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3017))))
+            {
+                triggerer.BeginDialog(attachee, 140);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 100);
+                triggerer.BeginDialog(attachee, 1);
             }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            SetGlobalVar(11, GetGlobalVar(11) + 1);
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(11, GetGlobalVar(11) - 1);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 100);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(11, GetGlobalVar(11) + 1);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(11, GetGlobalVar(11) - 1);
+        return RunDefault;
+    }
+
+
 }

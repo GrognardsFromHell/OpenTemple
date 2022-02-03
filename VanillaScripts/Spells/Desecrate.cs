@@ -17,51 +17,50 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(107)]
+public class Desecrate : BaseSpellScript
 {
-    [SpellScript(107)]
-    public class Desecrate : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Desecrate OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-evocation-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Desecrate OnSpellEffect");
-            spell.duration = 1200 * spell.casterLevel;
-
-            var spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, spell.aoeCenter);
-
-            var caster_init_value = spell.caster.GetInitiative();
-
-            spell_obj.InitD20Status();
-            spell_obj.SetInitiative(caster_init_value);
-            var spell_obj_partsys_id = AttachParticles("sp-Desecrate", spell_obj);
-
-            spell_obj.AddCondition("sp-Desecrate", spell.spellId, spell.duration, 0, spell_obj_partsys_id);
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Desecrate OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Desecrate OnEndSpellCast");
-        }
-        public override void OnAreaOfEffectHit(SpellPacketBody spell)
-        {
-            Logger.Info("Desecrate OnAreaOfEffectHit");
-        }
-        public override void OnSpellStruck(SpellPacketBody spell)
-        {
-            Logger.Info("Desecrate OnSpellStruck");
-        }
-
-
+        Logger.Info("Desecrate OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-evocation-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Desecrate OnSpellEffect");
+        spell.duration = 1200 * spell.casterLevel;
+
+        var spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, spell.aoeCenter);
+
+        var caster_init_value = spell.caster.GetInitiative();
+
+        spell_obj.InitD20Status();
+        spell_obj.SetInitiative(caster_init_value);
+        var spell_obj_partsys_id = AttachParticles("sp-Desecrate", spell_obj);
+
+        spell_obj.AddCondition("sp-Desecrate", spell.spellId, spell.duration, 0, spell_obj_partsys_id);
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Desecrate OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Desecrate OnEndSpellCast");
+    }
+    public override void OnAreaOfEffectHit(SpellPacketBody spell)
+    {
+        Logger.Info("Desecrate OnAreaOfEffectHit");
+    }
+    public override void OnSpellStruck(SpellPacketBody spell)
+    {
+        Logger.Info("Desecrate OnSpellStruck");
+    }
+
+
 }

@@ -18,21 +18,20 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+// Sudden Silent:  Complete Arcane, p. 83
+public class SuddenSilent
 {
-    // Sudden Silent:  Complete Arcane, p. 83
-    public class SuddenSilent
+    private static void ApplySilent(ref MetaMagicData metaMagicData)
     {
-        private static void ApplySilent(ref MetaMagicData metaMagicData)
-        {
-            metaMagicData.IsSilent = true;
-        }
-
-        // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Silent");
-
-        [AutoRegister, FeatCondition("Sudden Silent")]
-        public static readonly ConditionSpec Condition = SuddenMetamagic
-            .Create("Sudden Silent Feat", "Sudden Silent", ApplySilent)
-            .Build();
+        metaMagicData.IsSilent = true;
     }
+
+    // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Silent");
+
+    [AutoRegister, FeatCondition("Sudden Silent")]
+    public static readonly ConditionSpec Condition = SuddenMetamagic
+        .Create("Sudden Silent Feat", "Sudden Silent", ApplySilent)
+        .Build();
 }

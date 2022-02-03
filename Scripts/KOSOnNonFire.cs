@@ -18,59 +18,58 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(208)]
+public class KOSOnNonFire : BaseObjectScript
 {
-    [ObjectScript(208)]
-    public class KOSOnNonFire : BaseObjectScript
+    public override bool OnWillKos(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(344)))
         {
-            if ((GetGlobalFlag(344)))
-            {
-                return SkipDefault;
-            }
+            return SkipDefault;
+        }
 
-            var saw_ally_robe = false;
-            var saw_greater_robe = false;
-            var saw_enemy_robe = false;
-            foreach (var obj in triggerer.GetPartyMembers())
+        var saw_ally_robe = false;
+        var saw_greater_robe = false;
+        var saw_enemy_robe = false;
+        foreach (var obj in triggerer.GetPartyMembers())
+        {
+            var robe = obj.ItemWornAt(EquipSlot.Robes);
+            if ((robe != null))
             {
-                var robe = obj.ItemWornAt(EquipSlot.Robes);
-                if ((robe != null))
+                if ((robe.GetNameId() == 3017))
                 {
-                    if ((robe.GetNameId() == 3017))
-                    {
-                        saw_ally_robe = true;
-                    }
-                    else if ((robe.GetNameId() == 3021))
-                    {
-                        saw_greater_robe = true;
-                        break;
+                    saw_ally_robe = true;
+                }
+                else if ((robe.GetNameId() == 3021))
+                {
+                    saw_greater_robe = true;
+                    break;
 
-                    }
-                    else if (((robe.GetNameId() == 3020) || (robe.GetNameId() == 3016) || (robe.GetNameId() == 3010)))
-                    {
-                        saw_enemy_robe = true;
-                    }
-
+                }
+                else if (((robe.GetNameId() == 3020) || (robe.GetNameId() == 3016) || (robe.GetNameId() == 3010)))
+                {
+                    saw_enemy_robe = true;
                 }
 
             }
 
-            if ((saw_greater_robe))
-            {
-                return SkipDefault;
-            }
-            else if (((saw_ally_robe) && (!saw_enemy_robe)))
-            {
-                return SkipDefault;
-            }
-            else
-            {
-                return RunDefault;
-            }
+        }
 
+        if ((saw_greater_robe))
+        {
+            return SkipDefault;
+        }
+        else if (((saw_ally_robe) && (!saw_enemy_robe)))
+        {
+            return SkipDefault;
+        }
+        else
+        {
+            return RunDefault;
         }
 
     }
+
 }

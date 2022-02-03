@@ -18,38 +18,37 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(24)]
+public class Widow : BaseObjectScript
 {
-    [ObjectScript(24)]
-    public class Widow : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetQuestState(6, QuestState.Botched);
-            SetGlobalFlag(334, true);
-            SetGlobalVar(23, GetGlobalVar(23) + 1);
-            if ((GetGlobalVar(23) >= 2))
-            {
-                PartyLeader.AddReputation(92);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(334, false);
-            return RunDefault;
-        }
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        SetQuestState(6, QuestState.Botched);
+        SetGlobalFlag(334, true);
+        SetGlobalVar(23, GetGlobalVar(23) + 1);
+        if ((GetGlobalVar(23) >= 2))
+        {
+            PartyLeader.AddReputation(92);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(334, false);
+        return RunDefault;
+    }
+
 }

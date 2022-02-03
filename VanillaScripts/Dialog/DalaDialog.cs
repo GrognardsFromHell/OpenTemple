@@ -19,76 +19,75 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Dialog
+namespace VanillaScripts.Dialog;
+
+[DialogScript(109)]
+public class DalaDialog : Dala, IDialogScript
 {
-    [DialogScript(109)]
-    public class DalaDialog : Dala, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 62:
-                case 64:
-                    originalScript = "pc.stat_level_get(stat_charisma) >= 6";
-                    return pc.GetStat(Stat.charisma) >= 6;
-                case 65:
-                case 66:
-                    originalScript = "pc.stat_level_get(stat_charisma) <= 5";
-                    return pc.GetStat(Stat.charisma) <= 5;
-                case 71:
-                case 73:
-                    originalScript = "pc.money_get() >= 5";
-                    return pc.GetMoney() >= 5;
-                case 72:
-                case 74:
-                    originalScript = "pc.money_get() < 5";
-                    return pc.GetMoney() < 5;
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 62:
+            case 64:
+                originalScript = "pc.stat_level_get(stat_charisma) >= 6";
+                return pc.GetStat(Stat.charisma) >= 6;
+            case 65:
+            case 66:
+                originalScript = "pc.stat_level_get(stat_charisma) <= 5";
+                return pc.GetStat(Stat.charisma) <= 5;
+            case 71:
+            case 73:
+                originalScript = "pc.money_get() >= 5";
+                return pc.GetMoney() >= 5;
+            case 72:
+            case 74:
+                originalScript = "pc.money_get() < 5";
+                return pc.GetMoney() < 5;
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 71:
-                case 73:
-                    originalScript = "pc.money_adj(-5)";
-                    pc.AdjustMoney(-5);
-                    break;
-                case 120:
-                    originalScript = "game.quests[37].state == qs_completed";
-                    SetQuestState(37, QuestState.Completed);
-                    break;
-                case 121:
-                case 122:
-                    originalScript = "make_dick_talk(npc,pc,1)";
-                    make_dick_talk(npc, pc, 1);
-                    break;
-                case 133:
-                case 136:
-                    originalScript = "npc.attack(pc)";
-                    npc.Attack(pc);
-                    break;
-                case 150:
-                    originalScript = "create_item_in_inventory( 8004, pc )";
-                    Utilities.create_item_in_inventory(8004, pc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 71:
+            case 73:
+                originalScript = "pc.money_adj(-5)";
+                pc.AdjustMoney(-5);
+                break;
+            case 120:
+                originalScript = "game.quests[37].state == qs_completed";
+                SetQuestState(37, QuestState.Completed);
+                break;
+            case 121:
+            case 122:
+                originalScript = "make_dick_talk(npc,pc,1)";
+                make_dick_talk(npc, pc, 1);
+                break;
+            case 133:
+            case 136:
+                originalScript = "npc.attack(pc)";
+                npc.Attack(pc);
+                break;
+            case 150:
+                originalScript = "create_item_in_inventory( 8004, pc )";
+                Utilities.create_item_in_inventory(8004, pc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

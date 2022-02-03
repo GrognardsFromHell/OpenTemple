@@ -4,139 +4,138 @@ using OpenTemple.Interop.Drawing;
 
 #nullable enable
 
-namespace OpenTemple.Core.GFX.TextRendering
+namespace OpenTemple.Core.GFX.TextRendering;
+
+public sealed class TextLayout : IDisposable
 {
-    public sealed class TextLayout : IDisposable
+    internal NativeTextLayout NativeTextLayout;
+
+    private bool _metricsInvalid = true;
+    private bool _lineMetricsInvalid = true;
+
+    private NativeMetrics _metrics;
+    private NativeLineMetrics[] _lineMetrics;
+
+    private bool _isTrimmed;
+
+    public float OverallWidth
     {
-        internal NativeTextLayout NativeTextLayout;
-
-        private bool _metricsInvalid = true;
-        private bool _lineMetricsInvalid = true;
-
-        private NativeMetrics _metrics;
-        private NativeLineMetrics[] _lineMetrics;
-
-        private bool _isTrimmed;
-
-        public float OverallWidth
+        get
         {
-            get
-            {
-                RefreshMetrics();
-                return _metrics.Left + _metrics.Width;
-            }
+            RefreshMetrics();
+            return _metrics.Left + _metrics.Width;
         }
+    }
 
-        public float OverallHeight
+    public float OverallHeight
+    {
+        get
         {
-            get
-            {
-                RefreshMetrics();
-                return _metrics.Top + _metrics.Height;
-            }
+            RefreshMetrics();
+            return _metrics.Top + _metrics.Height;
         }
+    }
 
-        public int LineCount
+    public int LineCount
+    {
+        get
         {
-            get
-            {
-                RefreshMetrics();
-                return _metrics.LineCount;
-            }
+            RefreshMetrics();
+            return _metrics.LineCount;
         }
+    }
 
-        public bool IsTrimmed
+    public bool IsTrimmed
+    {
+        get
         {
-            get
-            {
-                RefreshLineMetrics();
-                return _isTrimmed;
-            }
+            RefreshLineMetrics();
+            return _isTrimmed;
         }
+    }
 
-        public float LayoutWidth
+    public float LayoutWidth
+    {
+        get
         {
-            get
-            {
-                RefreshMetrics();
-                return _metrics.LayoutWidth;
-            }
-            set
-            {
-                NativeTextLayout.SetMaxWidth(value);
-                _metricsInvalid = true;
-                _lineMetricsInvalid = true;
-            }
+            RefreshMetrics();
+            return _metrics.LayoutWidth;
         }
-
-        public float LayoutHeight
+        set
         {
-            get
-            {
-                RefreshMetrics();
-                return _metrics.LayoutHeight;
-            }
-            set
-            {
-                NativeTextLayout.SetMaxHeight(value);
-                _metricsInvalid = true;
-                _lineMetricsInvalid = true;
-            }
+            NativeTextLayout.SetMaxWidth(value);
+            _metricsInvalid = true;
+            _lineMetricsInvalid = true;
         }
+    }
 
-        private void RefreshMetrics()
+    public float LayoutHeight
+    {
+        get
         {
-            if (_metricsInvalid)
-            {
-                NativeTextLayout.GetMetrics(out _metrics);
-                _metricsInvalid = false;
-            }
+            RefreshMetrics();
+            return _metrics.LayoutHeight;
         }
-
-        private void RefreshLineMetrics()
+        set
         {
-            if (_lineMetricsInvalid)
+            NativeTextLayout.SetMaxHeight(value);
+            _metricsInvalid = true;
+            _lineMetricsInvalid = true;
+        }
+    }
+
+    private void RefreshMetrics()
+    {
+        if (_metricsInvalid)
+        {
+            NativeTextLayout.GetMetrics(out _metrics);
+            _metricsInvalid = false;
+        }
+    }
+
+    private void RefreshLineMetrics()
+    {
+        if (_lineMetricsInvalid)
+        {
+            _lineMetrics = NativeTextLayout.GetLineMetrics();
+            _isTrimmed = false;
+            foreach (var lineMetric in _lineMetrics)
             {
-                _lineMetrics = NativeTextLayout.GetLineMetrics();
-                _isTrimmed = false;
-                foreach (var lineMetric in _lineMetrics)
+                if (lineMetric.IsTrimmed)
                 {
-                    if (lineMetric.IsTrimmed)
-                    {
-                        _isTrimmed = true;
-                        break;
-                    }
+                    _isTrimmed = true;
+                    break;
                 }
-                _lineMetricsInvalid = false;
             }
+            _lineMetricsInvalid = false;
         }
+    }
 
-        public TextLayout(NativeTextLayout layout)
-        {
-            _lineMetrics = Array.Empty<NativeLineMetrics>();
-            NativeTextLayout = layout;
-        }
+    public TextLayout(NativeTextLayout layout)
+    {
+        _lineMetrics = Array.Empty<NativeLineMetrics>();
+        NativeTextLayout = layout;
+    }
 
-        public bool TryHitTest(float x, float y, out int start, out int length)
-        {
-            return NativeTextLayout.HitTest(x, y, out start, out length, out _);
-        }
+    public bool TryHitTest(float x, float y, out int start, out int length)
+    {
+        return NativeTextLayout.HitTest(x, y, out start, out length, out _);
+    }
 
-        public void Dispose()
-        {
-            NativeTextLayout.Dispose();
-        }
+    public void Dispose()
+    {
+        NativeTextLayout.Dispose();
+    }
 
-        /// <summary>
-        /// The bounding rectangle of the text, relative to the layout box initially given to the text layout
-        /// </summary>
-        public RectangleF BoundingRectangle
+    /// <summary>
+    /// The bounding rectangle of the text, relative to the layout box initially given to the text layout
+    /// </summary>
+    public RectangleF BoundingRectangle
+    {
+        get
         {
-            get
-            {
-                RefreshMetrics();
-                return new RectangleF(_metrics.Left, _metrics.Top, _metrics.Width, _metrics.Height);
-            }
+            RefreshMetrics();
+            return new RectangleF(_metrics.Left, _metrics.Top, _metrics.Width, _metrics.Height);
         }
     }
 }

@@ -3,16 +3,15 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Feats;
 
-namespace OpenTemple.Core.Startup.Discovery
+namespace OpenTemple.Core.Startup.Discovery;
+
+public interface IContentProvider
 {
-    public interface IContentProvider
-    {
-        IEnumerable<ConditionSpec> Conditions { get; }
+    IEnumerable<ConditionSpec> Conditions { get; }
 
-        IEnumerable<(FeatId, ConditionSpec)> FeatConditions { get; }
+    IEnumerable<(FeatId, ConditionSpec)> FeatConditions { get; }
 
-        IEnumerable<D20ClassSpec> Classes { get; }
+    IEnumerable<D20ClassSpec> Classes { get; }
 
-        IEnumerable<RaceSpec> Races { get; }
-    }
+    IEnumerable<RaceSpec> Races { get; }
 }

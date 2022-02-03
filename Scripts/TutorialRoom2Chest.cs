@@ -18,22 +18,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(242)]
-    public class TutorialRoom2Chest : BaseObjectScript
-    {
-        public override bool OnUnlockAttempt(GameObject attachee, GameObject triggerer)
-        {
-            if (!UiSystems.HelpManager.IsTutorialActive)
-            {
-                UiSystems.HelpManager.ToggleTutorial();
-            }
+namespace Scripts;
 
-            UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Picklock);
-            DetachScript();
-            return SkipDefault;
+[ObjectScript(242)]
+public class TutorialRoom2Chest : BaseObjectScript
+{
+    public override bool OnUnlockAttempt(GameObject attachee, GameObject triggerer)
+    {
+        if (!UiSystems.HelpManager.IsTutorialActive)
+        {
+            UiSystems.HelpManager.ToggleTutorial();
         }
 
+        UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Picklock);
+        DetachScript();
+        return SkipDefault;
     }
+
 }

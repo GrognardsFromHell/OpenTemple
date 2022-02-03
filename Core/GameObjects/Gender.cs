@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.GameObjects
+namespace OpenTemple.Core.GameObjects;
+
+public enum Gender
 {
-    public enum Gender
-    {
-        Female = 0,
-        Male = 1,
-        Invalid
-    }
+    Female = 0,
+    Male = 1,
+    Invalid
 }

@@ -3,96 +3,95 @@ using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
 
-namespace OpenTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets;
+
+public class WidgetImage : WidgetContent, IDisposable
 {
-    public class WidgetImage : WidgetContent, IDisposable
+    public WidgetImage(string path)
     {
-        public WidgetImage(string path)
+        SetTexture(path);
+    }
+
+    public WidgetImage()
+    {
+    }
+
+    public Rectangle? SourceRect { get; set; }
+
+    public PackedLinearColorA Color { get; set; } = PackedLinearColorA.White;
+
+    public override void Render()
+    {
+        if (!mTexture.IsValid)
         {
-            SetTexture(path);
+            return;
         }
 
-        public WidgetImage()
+        var renderer = Tig.ShapeRenderer2d;
+        if (SourceRect.HasValue)
         {
-        }
-
-        public Rectangle? SourceRect { get; set; }
-
-        public PackedLinearColorA Color { get; set; } = PackedLinearColorA.White;
-
-        public override void Render()
-        {
-            if (!mTexture.IsValid)
+            var drawArgs = new Render2dArgs();
+            drawArgs.srcRect = SourceRect.Value;
+            drawArgs.destRect = ContentArea;
+            drawArgs.customTexture = mTexture.Resource;
+            drawArgs.flags = Render2dFlag.BUFFERTEXTURE;
+            if (Color != PackedLinearColorA.White)
             {
-                return;
-            }
-
-            var renderer = Tig.ShapeRenderer2d;
-            if (SourceRect.HasValue)
-            {
-                var drawArgs = new Render2dArgs();
-                drawArgs.srcRect = SourceRect.Value;
-                drawArgs.destRect = ContentArea;
-                drawArgs.customTexture = mTexture.Resource;
-                drawArgs.flags = Render2dFlag.BUFFERTEXTURE;
-                if (Color != PackedLinearColorA.White)
+                drawArgs.flags |= Render2dFlag.VERTEXALPHA|Render2dFlag.VERTEXCOLORS;
+                drawArgs.vertexColors = new[]
                 {
-                    drawArgs.flags |= Render2dFlag.VERTEXALPHA|Render2dFlag.VERTEXCOLORS;
-                    drawArgs.vertexColors = new[]
-                    {
-                        Color,
-                        Color,
-                        Color,
-                        Color
-                    };
-                }
-                renderer.DrawRectangle(ref drawArgs);
-            }
-            else
-            {
-                renderer.DrawRectangle(
-                    ContentArea.X,
-                    ContentArea.Y,
-                    ContentArea.Width,
-                    ContentArea.Height,
-                    mTexture.Resource,
+                    Color,
+                    Color,
+                    Color,
                     Color
-                );
+                };
             }
+            renderer.DrawRectangle(ref drawArgs);
         }
-
-        public void SetTexture(string path)
+        else
         {
-            mPath = path;
-            mTexture.Dispose();
-            if (path != null)
-            {
-                mTexture = Tig.RenderingDevice.GetTextures().Resolve(path, false);
-                if (mTexture.Resource.IsValid())
-                {
-                    PreferredSize = mTexture.Resource.GetSize();
-                }
-            }
+            renderer.DrawRectangle(
+                ContentArea.X,
+                ContentArea.Y,
+                ContentArea.Width,
+                ContentArea.Height,
+                mTexture.Resource,
+                Color
+            );
         }
+    }
 
-        public void SetTexture(ITexture texture)
+    public void SetTexture(string path)
+    {
+        mPath = path;
+        mTexture.Dispose();
+        if (path != null)
         {
-            mPath = texture.GetName();
-            mTexture.Dispose();
-            mTexture = texture.Ref();
+            mTexture = Tig.RenderingDevice.GetTextures().Resolve(path, false);
             if (mTexture.Resource.IsValid())
             {
                 PreferredSize = mTexture.Resource.GetSize();
             }
         }
+    }
 
-        private string mPath;
-
-        private ResourceRef<ITexture> mTexture;
-
-        public void Dispose()
+    public void SetTexture(ITexture texture)
+    {
+        mPath = texture.GetName();
+        mTexture.Dispose();
+        mTexture = texture.Ref();
+        if (mTexture.Resource.IsValid())
         {
-            mTexture.Dispose();
+            PreferredSize = mTexture.Resource.GetSize();
         }
-    };
-}
+    }
+
+    private string mPath;
+
+    private ResourceRef<ITexture> mTexture;
+
+    public void Dispose()
+    {
+        mTexture.Dispose();
+    }
+};

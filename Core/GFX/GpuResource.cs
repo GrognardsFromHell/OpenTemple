@@ -1,43 +1,41 @@
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public interface IRefCounted
+{
+    void Reference();
+
+    void Dereference();
+
+}
+
+public static class RefCountedExtensions
 {
 
-    public interface IRefCounted
+    public static ResourceRef<T> Ref<T>(this T obj) where T : class, IRefCounted
     {
-        void Reference();
-
-        void Dereference();
-
+        return new ResourceRef<T>(obj);
     }
 
-    public static class RefCountedExtensions
+}
+
+public abstract class GpuResource<T> : IRefCounted where T : GpuResource<T>
+{
+    private int _refs = 0;
+
+    protected abstract void FreeResource();
+
+    public void Reference()
     {
-
-        public static ResourceRef<T> Ref<T>(this T obj) where T : class, IRefCounted
-        {
-            return new ResourceRef<T>(obj);
-        }
-
+        ++_refs;
     }
 
-    public abstract class GpuResource<T> : IRefCounted where T : GpuResource<T>
+    public void Dereference()
     {
-        private int _refs = 0;
-
-        protected abstract void FreeResource();
-
-        public void Reference()
+        if (--_refs <= 0)
         {
-            ++_refs;
+            FreeResource();
         }
-
-        public void Dereference()
-        {
-            if (--_refs <= 0)
-            {
-                FreeResource();
-            }
-        }
-
     }
+
 }

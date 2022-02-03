@@ -1,11 +1,10 @@
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public enum PrimitiveType
 {
-    public enum PrimitiveType
-    {
-        TriangleList,
-        TriangleStrip,
-        LineStrip,
-        LineList,
-        PointList
-    }
+    TriangleList,
+    TriangleStrip,
+    LineStrip,
+    LineList,
+    PointList
 }

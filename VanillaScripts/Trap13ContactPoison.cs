@@ -17,35 +17,34 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(32012)]
+public class Trap13ContactPoison : BaseObjectScript
 {
-    [ObjectScript(32012)]
-    public class Trap13ContactPoison : BaseObjectScript
+
+    public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
     {
-
-        public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
+        AttachParticles(trap.Type.ParticleSystemId, trap.Object);
+        foreach (var dmg in trap.Type.Damage)
         {
-            AttachParticles(trap.Type.ParticleSystemId, trap.Object);
-            foreach (var dmg in trap.Type.Damage)
+            if ((dmg.Type == DamageType.Poison))
             {
-                if ((dmg.Type == DamageType.Poison))
+                if ((!triggerer.SavingThrow(13, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                 {
-                    if ((!triggerer.SavingThrow(13, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
-                    {
-                        triggerer.AddCondition("Poisoned", dmg.Dice.Modifier, 0);
-                    }
-
-                }
-                else
-                {
-                    triggerer.Damage(trap.Object, dmg.Type, dmg.Dice);
+                    triggerer.AddCondition("Poisoned", dmg.Dice.Modifier, 0);
                 }
 
             }
+            else
+            {
+                triggerer.Damage(trap.Object, dmg.Type, dmg.Dice);
+            }
 
-            return SkipDefault;
         }
 
-
+        return SkipDefault;
     }
+
+
 }

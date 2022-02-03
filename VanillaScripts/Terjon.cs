@@ -17,82 +17,81 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(23)]
+public class Terjon : BaseObjectScript
 {
-    [ObjectScript(23)]
-    public class Terjon : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(28) && !triggerer.HasReputation(2)))
         {
-            if ((GetGlobalFlag(28) && !triggerer.HasReputation(2)))
-            {
-                triggerer.AddReputation(2);
-            }
+            triggerer.AddReputation(2);
+        }
 
-            if ((attachee.HasMet(triggerer)))
+        if ((attachee.HasMet(triggerer)))
+        {
+            if ((GetGlobalVar(5) >= 9))
             {
-                if ((GetGlobalVar(5) >= 9))
-                {
-                    triggerer.BeginDialog(attachee, 50);
-                }
-                else if ((PartyAlignment == Alignment.NEUTRAL_EVIL))
-                {
-                    triggerer.BeginDialog(attachee, 90);
-                }
-                else if ((GetGlobalVar(5) <= 4))
-                {
-                    triggerer.BeginDialog(attachee, 30);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 40);
-                }
-
+                triggerer.BeginDialog(attachee, 50);
             }
-            else if ((PartyAlignment == Alignment.NEUTRAL_GOOD || PartyAlignment == Alignment.LAWFUL_GOOD || PartyAlignment == Alignment.LAWFUL_NEUTRAL))
+            else if ((PartyAlignment == Alignment.NEUTRAL_EVIL))
             {
-                SetGlobalVar(5, 3);
-                triggerer.BeginDialog(attachee, 1);
+                triggerer.BeginDialog(attachee, 90);
             }
-            else if ((PartyAlignment == Alignment.NEUTRAL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL || PartyAlignment == Alignment.CHAOTIC_NEUTRAL))
+            else if ((GetGlobalVar(5) <= 4))
             {
-                SetGlobalVar(5, 5);
-                triggerer.BeginDialog(attachee, 20);
+                triggerer.BeginDialog(attachee, 30);
             }
             else
             {
-                SetGlobalVar(5, 4);
-                triggerer.BeginDialog(attachee, 10);
+                triggerer.BeginDialog(attachee, 40);
             }
 
-            return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else if ((PartyAlignment == Alignment.NEUTRAL_GOOD || PartyAlignment == Alignment.LAWFUL_GOOD || PartyAlignment == Alignment.LAWFUL_NEUTRAL))
         {
-            if ((GetGlobalFlag(21)))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-            }
-            else
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
+            SetGlobalVar(5, 3);
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((PartyAlignment == Alignment.NEUTRAL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL || PartyAlignment == Alignment.CHAOTIC_NEUTRAL))
         {
-            SetGlobalFlag(299, true);
-            SetGlobalVar(23, GetGlobalVar(23) + 1);
-            if (GetGlobalVar(23) >= 2)
-            {
-                PartyLeader.AddReputation(1);
-            }
-
-            return RunDefault;
+            SetGlobalVar(5, 5);
+            triggerer.BeginDialog(attachee, 20);
+        }
+        else
+        {
+            SetGlobalVar(5, 4);
+            triggerer.BeginDialog(attachee, 10);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(21)))
+        {
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+        }
+        else
+        {
+            attachee.SetObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(299, true);
+        SetGlobalVar(23, GetGlobalVar(23) + 1);
+        if (GetGlobalVar(23) >= 2)
+        {
+            PartyLeader.AddReputation(1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

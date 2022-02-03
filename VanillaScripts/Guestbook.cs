@@ -17,18 +17,17 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(223)]
+public class Guestbook : BaseObjectScript
 {
-    [ObjectScript(223)]
-    public class Guestbook : BaseObjectScript
+
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
-        {
-            UiSystems.PartyPool.Show(true);
-            return SkipDefault;
-        }
-
-
+        UiSystems.PartyPool.Show(true);
+        return SkipDefault;
     }
+
+
 }

@@ -18,23 +18,22 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(267)]
-    public class PrisonGuardDeath : BaseObjectScript
-    {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(12, GetGlobalVar(12) + 1);
-            if (attachee.GetNameId() == 8065)
-            {
-                var x = attachee.GetInt(obj_f.critter_flags2);
-                x = x | 64;
-                attachee.SetInt(obj_f.critter_flags2, x);
-            }
+namespace Scripts;
 
-            return RunDefault;
+[ObjectScript(267)]
+public class PrisonGuardDeath : BaseObjectScript
+{
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(12, GetGlobalVar(12) + 1);
+        if (attachee.GetNameId() == 8065)
+        {
+            var x = attachee.GetInt(obj_f.critter_flags2);
+            x = x | 64;
+            attachee.SetInt(obj_f.critter_flags2, x);
         }
 
+        return RunDefault;
     }
+
 }

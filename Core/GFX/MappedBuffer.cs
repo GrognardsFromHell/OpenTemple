@@ -1,36 +1,35 @@
 using System;
 using SharpDX.Direct3D11;
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public ref struct MappedBuffer<T>
 {
-    public ref struct MappedBuffer<T>
+    private Resource _resource;
+
+    private DeviceContext _context;
+
+    public int RowPitch { get; }
+
+    public Span<T> Data { get; private set; }
+
+    public MappedBuffer(Resource resource, DeviceContext context, Span<T> data, int rowPitch) : this()
     {
-        private Resource _resource;
+        _resource = resource;
+        _context = context;
+        Data = data;
+        RowPitch = rowPitch;
+    }
 
-        private DeviceContext _context;
-
-        public int RowPitch { get; }
-
-        public Span<T> Data { get; private set; }
-
-        public MappedBuffer(Resource resource, DeviceContext context, Span<T> data, int rowPitch) : this()
+    public void Dispose()
+    {
+        if (_resource != null)
         {
-            _resource = resource;
-            _context = context;
-            Data = data;
-            RowPitch = rowPitch;
-        }
+            Data = Span<T>.Empty;
 
-        public void Dispose()
-        {
-            if (_resource != null)
-            {
-                Data = Span<T>.Empty;
-
-                _context.UnmapSubresource(_resource, 0);
-                _resource = null;
-                _context = null;
-            }
+            _context.UnmapSubresource(_resource, 0);
+            _resource = null;
+            _context = null;
         }
     }
 }

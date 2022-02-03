@@ -13,208 +13,207 @@ using OpenTemple.Core.GFX;
 using Point = System.Drawing.Point;
 using PointF = System.Drawing.PointF;
 
-namespace OpenTemple.Tests.TestUtils
+namespace OpenTemple.Tests.TestUtils;
+
+/// <summary>
+/// Provides a running game instance that can render to an off-screen surface for tests.
+/// </summary>
+public class HeadlessGameHelper : IDisposable
 {
-    /// <summary>
-    /// Provides a running game instance that can render to an off-screen surface for tests.
-    /// </summary>
-    public class HeadlessGameHelper : IDisposable
+    private readonly TempDirectory _userData = new();
+
+    private static HeadlessGameHelper _activeInstance;
+
+    private TimePoint _currentTime = new(0);
+
+    private HeadlessGame Game { get; }
+
+    public HeadlessMainWindow Window { get; }
+
+    public event Action OnRenderFrame;
+
+    public HeadlessGameHelper()
     {
-        private readonly TempDirectory _userData = new();
-
-        private static HeadlessGameHelper _activeInstance;
-
-        private TimePoint _currentTime = new(0);
-
-        private HeadlessGame Game { get; }
-
-        public HeadlessMainWindow Window { get; }
-
-        public event Action OnRenderFrame;
-
-        public HeadlessGameHelper()
+        if (_activeInstance != null)
         {
-            if (_activeInstance != null)
-            {
-                throw new InvalidOperationException(
-                    "There can only be a single HeadlessGameHelper active at the same time"
-                );
-            }
-
-            var toeeDir = Environment.GetEnvironmentVariable("TOEE_DIR");
-            if (toeeDir == null)
-            {
-                throw new NotSupportedException(
-                    "Cannot run a test based on real data because TOEE_DIR environment variable is not set."
-                );
-            }
-
-            // In test cases and CLIs we want to see the error immediately
-            ErrorReporting.DisableErrorReporting = true;
-
-            LoggingSystem.ChangeLogger(new TestLogger());
-
-            var options = new HeadlessGameOptions(toeeDir)
-            {
-                UserDataFolder = _userData.Path,
-                WithUserInterface = true
-            };
-
-            Game = HeadlessGame.Start(options);
-
-            Window = (HeadlessMainWindow)Tig.MainWindow;
-
-            Globals.GameLoop = new GameLoop(
-                Tig.MessageQueue,
-                Tig.RenderingDevice,
-                Tig.DebugUI
+            throw new InvalidOperationException(
+                "There can only be a single HeadlessGameHelper active at the same time"
             );
-
-            TimePoint.SetFakeTime(_currentTime);
         }
 
-        public void Dispose()
+        var toeeDir = Environment.GetEnvironmentVariable("TOEE_DIR");
+        if (toeeDir == null)
         {
-            if (_activeInstance == this)
-            {
-                _activeInstance = null;
-            }
-
-            Game.Dispose();
-            _userData.Dispose();
-            TimePoint.ClearFakeTime();
+            throw new NotSupportedException(
+                "Cannot run a test based on real data because TOEE_DIR environment variable is not set."
+            );
         }
 
-        public void RenderFrame()
+        // In test cases and CLIs we want to see the error immediately
+        ErrorReporting.DisableErrorReporting = true;
+
+        LoggingSystem.ChangeLogger(new TestLogger());
+
+        var options = new HeadlessGameOptions(toeeDir)
         {
-            Globals.GameLoop.RenderFrame();
-            OnRenderFrame?.Invoke();
+            UserDataFolder = _userData.Path,
+            WithUserInterface = true
+        };
+
+        Game = HeadlessGame.Start(options);
+
+        Window = (HeadlessMainWindow)Tig.MainWindow;
+
+        Globals.GameLoop = new GameLoop(
+            Tig.MessageQueue,
+            Tig.RenderingDevice,
+            Tig.DebugUI
+        );
+
+        TimePoint.SetFakeTime(_currentTime);
+    }
+
+    public void Dispose()
+    {
+        if (_activeInstance == this)
+        {
+            _activeInstance = null;
         }
 
-        // Advance one "frame"
-        public void AdvanceTimeAndRender(int time)
+        Game.Dispose();
+        _userData.Dispose();
+        TimePoint.ClearFakeTime();
+    }
+
+    public void RenderFrame()
+    {
+        Globals.GameLoop.RenderFrame();
+        OnRenderFrame?.Invoke();
+    }
+
+    // Advance one "frame"
+    public void AdvanceTimeAndRender(int time)
+    {
+        _currentTime = new TimePoint(_currentTime.Time + TimePoint.TicksPerMillisecond * time);
+        TimePoint.SetFakeTime(_currentTime);
+        Globals.GameLoop.RunOneIteration();
+        OnRenderFrame?.Invoke();
+    }
+
+    public void RunUntil(Func<bool> condition, int maxSimulationTime = 1000)
+    {
+        if (condition())
         {
-            _currentTime = new TimePoint(_currentTime.Time + TimePoint.TicksPerMillisecond * time);
-            TimePoint.SetFakeTime(_currentTime);
-            Globals.GameLoop.RunOneIteration();
-            OnRenderFrame?.Invoke();
+            return;
         }
 
-        public void RunUntil(Func<bool> condition, int maxSimulationTime = 1000)
+        // When advancing time, simulate 30fps
+        var advancePerRound = 1000 / 30;
+        var totalAdvanced = 0;
+        for (var i = 0; i < maxSimulationTime / advancePerRound; i++)
         {
+            AdvanceTimeAndRender(advancePerRound);
+            totalAdvanced += advancePerRound;
             if (condition())
             {
                 return;
             }
+        }
 
-            // When advancing time, simulate 30fps
-            var advancePerRound = 1000 / 30;
-            var totalAdvanced = 0;
-            for (var i = 0; i < maxSimulationTime / advancePerRound; i++)
+        if (totalAdvanced < maxSimulationTime)
+        {
+            AdvanceTimeAndRender(maxSimulationTime - totalAdvanced);
+        }
+
+        condition().Should().BeTrue("Condition didn't become true after running for " + totalAdvanced);
+    }
+
+    public void RunFor(int milliseconds)
+    {
+        // When advancing time, simulate 30fps
+        var advancePerRound = 1000 / 30;
+        var totalAdvanced = 0;
+        for (var i = 0; i < milliseconds / advancePerRound; i++)
+        {
+            AdvanceTimeAndRender(advancePerRound);
+            totalAdvanced += advancePerRound;
+        }
+
+        if (totalAdvanced < milliseconds)
+        {
+            AdvanceTimeAndRender(milliseconds - totalAdvanced);
+        }
+    }
+
+    public void RunOneIteration()
+    {
+        Globals.GameLoop.RunOneIteration();
+    }
+
+    public Image<Bgra32> TakeScreenshot()
+    {
+        return TakeScreenshot(Tig.RenderingDevice);
+    }
+
+    public static Image<Bgra32> TakeScreenshot(RenderingDevice device)
+    {
+        Image<Bgra32> result = null;
+
+        device.ReadRenderTarget(
+            device.GetCurrentRenderTargetColorBuffer(),
+            (data, stride, width, height) =>
             {
-                AdvanceTimeAndRender(advancePerRound);
-                totalAdvanced += advancePerRound;
-                if (condition())
+                // Boooo.... It doesn't support stride
+                if (stride == width * 4)
                 {
-                    return;
+                    result = Image.LoadPixelData<Bgra32>(data, width, height);
                 }
-            }
-
-            if (totalAdvanced < maxSimulationTime)
-            {
-                AdvanceTimeAndRender(maxSimulationTime - totalAdvanced);
-            }
-
-            condition().Should().BeTrue("Condition didn't become true after running for " + totalAdvanced);
-        }
-
-        public void RunFor(int milliseconds)
-        {
-            // When advancing time, simulate 30fps
-            var advancePerRound = 1000 / 30;
-            var totalAdvanced = 0;
-            for (var i = 0; i < milliseconds / advancePerRound; i++)
-            {
-                AdvanceTimeAndRender(advancePerRound);
-                totalAdvanced += advancePerRound;
-            }
-
-            if (totalAdvanced < milliseconds)
-            {
-                AdvanceTimeAndRender(milliseconds - totalAdvanced);
-            }
-        }
-
-        public void RunOneIteration()
-        {
-            Globals.GameLoop.RunOneIteration();
-        }
-
-        public Image<Bgra32> TakeScreenshot()
-        {
-            return TakeScreenshot(Tig.RenderingDevice);
-        }
-
-        public static Image<Bgra32> TakeScreenshot(RenderingDevice device)
-        {
-            Image<Bgra32> result = null;
-
-            device.ReadRenderTarget(
-                device.GetCurrentRenderTargetColorBuffer(),
-                (data, stride, width, height) =>
+                else
                 {
-                    // Boooo.... It doesn't support stride
-                    if (stride == width * 4)
+                    result = new Image<Bgra32>(width, height);
+                    for (var i = 0; i < height; i++)
                     {
-                        result = Image.LoadPixelData<Bgra32>(data, width, height);
-                    }
-                    else
-                    {
-                        result = new Image<Bgra32>(width, height);
-                        for (var i = 0; i < height; i++)
-                        {
-                            var destRow = MemoryMarshal.Cast<Bgra32, byte>(result.GetPixelRowSpan(i));
-                            data.Slice(i + stride, width * 4).CopyTo(destRow);
-                        }
+                        var destRow = MemoryMarshal.Cast<Bgra32, byte>(result.GetPixelRowSpan(i));
+                        data.Slice(i + stride, width * 4).CopyTo(destRow);
                     }
                 }
-            );
-
-            return result;
-        }
-
-        public PointF ToUiCanvas(Point screenPoint) => new Point(
-            (int)(screenPoint.X / Window.UiScale),
-            (int)(screenPoint.Y / Window.UiScale)
+            }
         );
 
-        public Point FromUiCanvas(PointF uiPoint) => new Point(
-            (int)(uiPoint.X * Window.UiScale),
-            (int)(uiPoint.Y * Window.UiScale)
-        );
+        return result;
+    }
 
-        public void SendMouseEvent(WindowEventType type, Point screenPoint, MouseButton button)
-        {
-            Window.SendInput(new MouseWindowEvent(
-                type,
-                Window,
-                screenPoint,
-                ToUiCanvas(screenPoint)
-            )
-            {
-                Button = button
-            });
-        }
+    public PointF ToUiCanvas(Point screenPoint) => new Point(
+        (int)(screenPoint.X / Window.UiScale),
+        (int)(screenPoint.Y / Window.UiScale)
+    );
 
-        public void Click(Point screenPoint, MouseButton button = MouseButton.LEFT)
-        {
-            SendMouseEvent(WindowEventType.MouseDown, screenPoint, button);
-            SendMouseEvent(WindowEventType.MouseUp, screenPoint, button);
-        }
+    public Point FromUiCanvas(PointF uiPoint) => new Point(
+        (int)(uiPoint.X * Window.UiScale),
+        (int)(uiPoint.Y * Window.UiScale)
+    );
 
-        public void ClickUi(float x, float y, MouseButton button = MouseButton.LEFT)
+    public void SendMouseEvent(WindowEventType type, Point screenPoint, MouseButton button)
+    {
+        Window.SendInput(new MouseWindowEvent(
+            type,
+            Window,
+            screenPoint,
+            ToUiCanvas(screenPoint)
+        )
         {
-            Click(FromUiCanvas(new PointF(x, y)), button);
-        }
+            Button = button
+        });
+    }
+
+    public void Click(Point screenPoint, MouseButton button = MouseButton.LEFT)
+    {
+        SendMouseEvent(WindowEventType.MouseDown, screenPoint, button);
+        SendMouseEvent(WindowEventType.MouseUp, screenPoint, button);
+    }
+
+    public void ClickUi(float x, float y, MouseButton button = MouseButton.LEFT)
+    {
+        Click(FromUiCanvas(new PointF(x, y)), button);
     }
 }

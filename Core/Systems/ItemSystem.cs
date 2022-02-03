@@ -21,2306 +21,2268 @@ using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
 
-namespace OpenTemple.Core.Systems
+namespace OpenTemple.Core.Systems;
+
+public class ItemSystem : IGameSystem
 {
-    public class ItemSystem : IGameSystem
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+    private const bool IsEditor = false;
+
+    private readonly Dictionary<int, int[]> _startEquipment;
+
+    private readonly Dictionary<ItemErrorCode, string> _itemErrorCodeText;
+
+    [TempleDllLocation(0x10AA847C)]
+    private bool _junkpileActive;
+
+    [TempleDllLocation(0x10063c70)]
+    public ItemSystem()
     {
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+        _startEquipment = Tig.FS.ReadMesFile("rules/start_equipment.mes")
+            .ToDictionary(
+                kp => kp.Key,
+                kp => kp.Value.Split(new[] {' ', '\t', '\n'}, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToArray()
+            );
 
-        private const bool IsEditor = false;
-
-        private readonly Dictionary<int, int[]> _startEquipment;
-
-        private readonly Dictionary<ItemErrorCode, string> _itemErrorCodeText;
-
-        [TempleDllLocation(0x10AA847C)]
-        private bool _junkpileActive;
-
-        [TempleDllLocation(0x10063c70)]
-        public ItemSystem()
+        _itemErrorCodeText = new Dictionary<ItemErrorCode, string>(ItemErrorCodes.Codes.Count);
+        var itemMes = Tig.FS.ReadMesFile("mes/item.mes");
+        foreach (var code in ItemErrorCodes.Codes)
         {
-            _startEquipment = Tig.FS.ReadMesFile("rules/start_equipment.mes")
-                .ToDictionary(
-                    kp => kp.Key,
-                    kp => kp.Value.Split(new[] {' ', '\t', '\n'}, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(int.Parse)
-                        .ToArray()
-                );
-
-            _itemErrorCodeText = new Dictionary<ItemErrorCode, string>(ItemErrorCodes.Codes.Count);
-            var itemMes = Tig.FS.ReadMesFile("mes/item.mes");
-            foreach (var code in ItemErrorCodes.Codes)
-            {
-                _itemErrorCodeText[code] = itemMes[100 + (int) code];
-            }
-
-            _junkpileActive = true;
-
-            Stub.TODO();
+            _itemErrorCodeText[code] = itemMes[100 + (int) code];
         }
 
-        public void Dispose()
+        _junkpileActive = true;
+
+        Stub.TODO();
+    }
+
+    public void Dispose()
+    {
+    }
+
+    [TempleDllLocation(0x10063e80)]
+    public GameObject GetParent(GameObject item)
+    {
+        if (item == null || !item.IsItem())
         {
-        }
-
-        [TempleDllLocation(0x10063e80)]
-        public GameObject GetParent(GameObject item)
-        {
-            if (item == null || !item.IsItem())
-            {
-                Logger.Warn("GetParent called on non-item: {0}", item);
-                return null;
-            }
-
-            if (!item.HasFlag(ObjectFlag.INVENTORY))
-            {
-                return null;
-            }
-
-            return item.GetObject(obj_f.item_parent);
-        }
-
-        public const int CRITTER_INVENTORY_SLOT_COUNT = 24; // amount of inventory slots visible
-        public const int INVENTORY_WORN_IDX_START = 200; // the first inventory index for worn items
-        public const int INVENTORY_WORN_IDX_END = 216; // the last index for worn items (non-inclusive, actually)
-        public const int INVENTORY_WORN_IDX_COUNT = 16;
-        public const int INVENTORY_BAG_IDX_START = 217;
-        public const int INVENTORY_BAG_IDX_END = 221;
-        public const int INVENTORY_IDX_UNDEFINED = -1;
-
-        public const int
-            INVENTORY_IDX_HOTBAR_START =
-                2000; // seems to be Arcanum leftover (appears in some IF conditions but associated callbacks are stubs)
-
-        public const int INVENTORY_IDX_HOTBAR_END = 2009; // last index for hotbar items
-
-        private const string sBoneLeftForearm = "Bip01 L Forearm";
-
-        private static readonly string[] sBoneNames =
-        {
-            "HEAD_REF", // helm
-            "CHEST_REF", // necklace
-            null, // gloves
-            "HANDR_REF", //main hand
-            "HANDL_REF", // offhand
-            "CHEST_REF", // armor
-            "HANDR_REF", // left ring
-            "HANDL_REF", // right ring
-            null, // arrows
-            null, // cloak
-            null, // shield
-            null, // robe
-            null, // bracers
-            null, // bardic instrument
-            null // misc (thieves' tools, belt etc)
-        };
-
-        public int GetInventoryLocationForSlot(EquipSlot slot)
-        {
-            switch (slot)
-            {
-                case EquipSlot.Helmet:
-                    return 200;
-                case EquipSlot.Necklace:
-                    return 201;
-                case EquipSlot.Gloves:
-                    return 202;
-                case EquipSlot.WeaponPrimary:
-                    return 203;
-                case EquipSlot.WeaponSecondary:
-                    return 204;
-                case EquipSlot.Armor:
-                    return 205;
-                case EquipSlot.RingPrimary:
-                    return 206;
-                case EquipSlot.RingSecondary:
-                    return 207;
-                case EquipSlot.Boots:
-                    return 208;
-                case EquipSlot.Ammo:
-                    return 209;
-                case EquipSlot.Cloak:
-                    return 210;
-                case EquipSlot.Shield:
-                    return 211;
-                case EquipSlot.Robes:
-                    return 212;
-                case EquipSlot.Bracers:
-                    return 213;
-                case EquipSlot.BardicItem:
-                    return 214;
-                case EquipSlot.Lockpicks:
-                    return 215;
-                case EquipSlot.Bag1:
-                    return 218;
-                case EquipSlot.Bag2:
-                    return 219;
-                case EquipSlot.Bag3:
-                    return 220;
-                case EquipSlot.Bag4:
-                    return 221;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(slot), slot, null);
-            }
-        }
-
-        public string GetAttachBone(GameObject obj)
-        {
-            var wearFlags = obj.GetItemWearFlags();
-            var slot = obj.GetItemInventoryLocation();
-
-            if (slot < INVENTORY_WORN_IDX_START)
-            {
-                return null; // Apparently not equipped
-            }
-
-            var type = obj.type;
-            if (wearFlags.HasFlag(ItemWearFlag.TWOHANDED_REQUIRED) && type == ObjectType.weapon)
-            {
-                var weaponType = obj.GetWeaponType();
-                if (weaponType == WeaponType.shortbow || weaponType == WeaponType.longbow ||
-                    weaponType == WeaponType.spike_chain)
-                    return sBoneNames[4]; // HANDL_REF
-            }
-            else if (type == ObjectType.armor)
-            {
-                return sBoneLeftForearm;
-            }
-
-            return sBoneNames[slot - INVENTORY_WORN_IDX_START];
-        }
-
-        [TempleDllLocation(0x10065010)]
-        public GameObject ItemWornAt(GameObject wearer, EquipSlot slot)
-        {
-            if (wearer == null)
-            {
-                return null;
-            }
-
-            if (GameSystems.D20.D20Query(wearer, D20DispatcherKey.QUE_Polymorphed))
-            {
-                return null;
-            }
-
-            var expectedLocation = GetInventoryLocationForSlot(slot);
-
-            foreach (var wornItem in wearer.EnumerateChildren())
-            {
-                var location = wornItem.GetItemInventoryLocation();
-                if (location == expectedLocation)
-                {
-                    return wornItem;
-                }
-            }
-
+            Logger.Warn("GetParent called on non-item: {0}", item);
             return null;
         }
 
-        [TempleDllLocation(0x100651B0)]
-        public GameObject GetItemAtInvIdx(GameObject container, int index)
+        if (!item.HasFlag(ObjectFlag.INVENTORY))
         {
-            if (container.IsCritter() && GameSystems.D20.D20Query(container, D20DispatcherKey.QUE_Polymorphed))
-            {
-                return null;
-            }
-
-            foreach (var childItem in container.EnumerateChildren())
-            {
-                if (childItem.type.IsEquipment() && childItem.GetItemInventoryLocation() == index)
-                {
-                    return childItem;
-                }
-            }
-
             return null;
         }
 
-        [TempleDllLocation(0x10066730)]
-        public WeaponAnimType GetWeaponAnimType(GameObject weapon, GameObject wielder)
-        {
-            var wieldType = GetWieldType(wielder, weapon);
-            IImmutableDictionary<WeaponType, WeaponAnimType> weaponAnimTypes;
-            if (wieldType == 2)
-            {
-                weaponAnimTypes = WeaponAnimMapping.TwoHanded;
-            }
-            else
-            {
-                if (wieldType != 1 && wieldType != 0)
-                    return WeaponAnimType.Unarmed; // Wield type 3 most likely
-                weaponAnimTypes = WeaponAnimMapping.SingleHanded;
-            }
+        return item.GetObject(obj_f.item_parent);
+    }
 
-            var weaponType = weapon.GetWeaponType();
-            return weaponAnimTypes[weaponType];
+    public const int CRITTER_INVENTORY_SLOT_COUNT = 24; // amount of inventory slots visible
+    public const int INVENTORY_WORN_IDX_START = 200; // the first inventory index for worn items
+    public const int INVENTORY_WORN_IDX_END = 216; // the last index for worn items (non-inclusive, actually)
+    public const int INVENTORY_WORN_IDX_COUNT = 16;
+    public const int INVENTORY_BAG_IDX_START = 217;
+    public const int INVENTORY_BAG_IDX_END = 221;
+    public const int INVENTORY_IDX_UNDEFINED = -1;
+
+    public const int
+        INVENTORY_IDX_HOTBAR_START =
+            2000; // seems to be Arcanum leftover (appears in some IF conditions but associated callbacks are stubs)
+
+    public const int INVENTORY_IDX_HOTBAR_END = 2009; // last index for hotbar items
+
+    private const string sBoneLeftForearm = "Bip01 L Forearm";
+
+    private static readonly string[] sBoneNames =
+    {
+        "HEAD_REF", // helm
+        "CHEST_REF", // necklace
+        null, // gloves
+        "HANDR_REF", //main hand
+        "HANDL_REF", // offhand
+        "CHEST_REF", // armor
+        "HANDR_REF", // left ring
+        "HANDL_REF", // right ring
+        null, // arrows
+        null, // cloak
+        null, // shield
+        null, // robe
+        null, // bracers
+        null, // bardic instrument
+        null // misc (thieves' tools, belt etc)
+    };
+
+    public int GetInventoryLocationForSlot(EquipSlot slot)
+    {
+        switch (slot)
+        {
+            case EquipSlot.Helmet:
+                return 200;
+            case EquipSlot.Necklace:
+                return 201;
+            case EquipSlot.Gloves:
+                return 202;
+            case EquipSlot.WeaponPrimary:
+                return 203;
+            case EquipSlot.WeaponSecondary:
+                return 204;
+            case EquipSlot.Armor:
+                return 205;
+            case EquipSlot.RingPrimary:
+                return 206;
+            case EquipSlot.RingSecondary:
+                return 207;
+            case EquipSlot.Boots:
+                return 208;
+            case EquipSlot.Ammo:
+                return 209;
+            case EquipSlot.Cloak:
+                return 210;
+            case EquipSlot.Shield:
+                return 211;
+            case EquipSlot.Robes:
+                return 212;
+            case EquipSlot.Bracers:
+                return 213;
+            case EquipSlot.BardicItem:
+                return 214;
+            case EquipSlot.Lockpicks:
+                return 215;
+            case EquipSlot.Bag1:
+                return 218;
+            case EquipSlot.Bag2:
+                return 219;
+            case EquipSlot.Bag3:
+                return 220;
+            case EquipSlot.Bag4:
+                return 221;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(slot), slot, null);
+        }
+    }
+
+    public string GetAttachBone(GameObject obj)
+    {
+        var wearFlags = obj.GetItemWearFlags();
+        var slot = obj.GetItemInventoryLocation();
+
+        if (slot < INVENTORY_WORN_IDX_START)
+        {
+            return null; // Apparently not equipped
         }
 
-        /// <summary>
-        /// 0 if it's light weapon (smaller than your size)
-        /// 1 if it's your size cat (can single wield)
-        /// 2 if requires double wield
-        /// 3 for special stuff? (item too large)
-        /// </summary>
-        [TempleDllLocation(0x10066580)]
-        public int GetWieldType(GameObject wearer, GameObject item, bool regardEnlargement = false)
+        var type = obj.type;
+        if (wearFlags.HasFlag(ItemWearFlag.TWOHANDED_REQUIRED) && type == ObjectType.weapon)
         {
-            var wieldType = 3;
-            if (!item.id)
-                return 4;
+            var weaponType = obj.GetWeaponType();
+            if (weaponType == WeaponType.shortbow || weaponType == WeaponType.longbow ||
+                weaponType == WeaponType.spike_chain)
+                return sBoneNames[4]; // HANDL_REF
+        }
+        else if (type == ObjectType.armor)
+        {
+            return sBoneLeftForearm;
+        }
 
-            var wearFlags = item.GetItemWearFlags();
+        return sBoneNames[slot - INVENTORY_WORN_IDX_START];
+    }
 
-            if (item.type == ObjectType.armor)
+    [TempleDllLocation(0x10065010)]
+    public GameObject ItemWornAt(GameObject wearer, EquipSlot slot)
+    {
+        if (wearer == null)
+        {
+            return null;
+        }
+
+        if (GameSystems.D20.D20Query(wearer, D20DispatcherKey.QUE_Polymorphed))
+        {
+            return null;
+        }
+
+        var expectedLocation = GetInventoryLocationForSlot(slot);
+
+        foreach (var wornItem in wearer.EnumerateChildren())
+        {
+            var location = wornItem.GetItemInventoryLocation();
+            if (location == expectedLocation)
             {
-                var v4 = item.GetArmorFlags();
-                if (!v4.HasFlag(ArmorFlag.TYPE_NONE) && (v4 & ArmorFlag.TYPE_SHIELD) == ArmorFlag.TYPE_SHIELD)
-                {
-                    return wearFlags.HasFlag(ItemWearFlag.BUCKLER) ? 0 : 1;
-                }
+                return wornItem;
             }
+        }
 
-            var wearerSizeCategory = GameSystems.Stat.DispatchGetSizeCategory(wearer);
-            var wielderSizeBase = regardEnlargement ? (SizeCategory) wearer.GetInt32(obj_f.size) : wearerSizeCategory;
-            var itemSizeCategory = (SizeCategory) item.GetInt32(obj_f.size);
-            if (itemSizeCategory < wielderSizeBase)
-            {
-                wieldType = 0;
-            }
-            else if (itemSizeCategory == wielderSizeBase)
-            {
-                wieldType = 1;
-            }
-            else if (itemSizeCategory == wielderSizeBase + 1)
-            {
-                wieldType = 2;
-            }
-            else if (itemSizeCategory == wearerSizeCategory + 1)
-            {
-                wieldType = 2;
-            }
+        return null;
+    }
 
-            if (wearFlags.HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
+    [TempleDllLocation(0x100651B0)]
+    public GameObject GetItemAtInvIdx(GameObject container, int index)
+    {
+        if (container.IsCritter() && GameSystems.D20.D20Query(container, D20DispatcherKey.QUE_Polymorphed))
+        {
+            return null;
+        }
+
+        foreach (var childItem in container.EnumerateChildren())
+        {
+            if (childItem.type.IsEquipment() && childItem.GetItemInventoryLocation() == index)
             {
-                wieldType = 2;
+                return childItem;
             }
+        }
 
-            if (item.type != ObjectType.weapon)
+        return null;
+    }
+
+    [TempleDllLocation(0x10066730)]
+    public WeaponAnimType GetWeaponAnimType(GameObject weapon, GameObject wielder)
+    {
+        var wieldType = GetWieldType(wielder, weapon);
+        IImmutableDictionary<WeaponType, WeaponAnimType> weaponAnimTypes;
+        if (wieldType == 2)
+        {
+            weaponAnimTypes = WeaponAnimMapping.TwoHanded;
+        }
+        else
+        {
+            if (wieldType != 1 && wieldType != 0)
+                return WeaponAnimType.Unarmed; // Wield type 3 most likely
+            weaponAnimTypes = WeaponAnimMapping.SingleHanded;
+        }
+
+        var weaponType = weapon.GetWeaponType();
+        return weaponAnimTypes[weaponType];
+    }
+
+    /// <summary>
+    /// 0 if it's light weapon (smaller than your size)
+    /// 1 if it's your size cat (can single wield)
+    /// 2 if requires double wield
+    /// 3 for special stuff? (item too large)
+    /// </summary>
+    [TempleDllLocation(0x10066580)]
+    public int GetWieldType(GameObject wearer, GameObject item, bool regardEnlargement = false)
+    {
+        var wieldType = 3;
+        if (!item.id)
+            return 4;
+
+        var wearFlags = item.GetItemWearFlags();
+
+        if (item.type == ObjectType.armor)
+        {
+            var v4 = item.GetArmorFlags();
+            if (!v4.HasFlag(ArmorFlag.TYPE_NONE) && (v4 & ArmorFlag.TYPE_SHIELD) == ArmorFlag.TYPE_SHIELD)
             {
-                return wieldType;
+                return wearFlags.HasFlag(ItemWearFlag.BUCKLER) ? 0 : 1;
             }
+        }
 
-            var weaponType = item.GetWeaponType();
-            if (weaponType == WeaponType.bastard_sword)
+        var wearerSizeCategory = GameSystems.Stat.DispatchGetSizeCategory(wearer);
+        var wielderSizeBase = regardEnlargement ? (SizeCategory) wearer.GetInt32(obj_f.size) : wearerSizeCategory;
+        var itemSizeCategory = (SizeCategory) item.GetInt32(obj_f.size);
+        if (itemSizeCategory < wielderSizeBase)
+        {
+            wieldType = 0;
+        }
+        else if (itemSizeCategory == wielderSizeBase)
+        {
+            wieldType = 1;
+        }
+        else if (itemSizeCategory == wielderSizeBase + 1)
+        {
+            wieldType = 2;
+        }
+        else if (itemSizeCategory == wearerSizeCategory + 1)
+        {
+            wieldType = 2;
+        }
+
+        if (wearFlags.HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
+        {
+            wieldType = 2;
+        }
+
+        if (item.type != ObjectType.weapon)
+        {
+            return wieldType;
+        }
+
+        var weaponType = item.GetWeaponType();
+        if (weaponType == WeaponType.bastard_sword)
+        {
+            if (!GameSystems.Feat.HasFeat(wearer, FeatId.EXOTIC_WEAPON_PROFICIENCY_BASTARD_SWORD))
             {
-                if (!GameSystems.Feat.HasFeat(wearer, FeatId.EXOTIC_WEAPON_PROFICIENCY_BASTARD_SWORD))
-                {
-                    wieldType = (wielderSizeBase <= SizeCategory.Small ? 3 : 2);
-                }
-
-                return wieldType;
-            }
-
-            if (weaponType == WeaponType.dwarven_waraxe)
-            {
-                if (GameSystems.Feat.HasFeat(wearer, FeatId.EXOTIC_WEAPON_PROFICIENCY_DWARVEN_WARAXE)
-                    || GameSystems.Stat.StatLevelGet(wearer, Stat.race) == 1)
-                {
-                    return wieldType;
-                }
-
-                if (wearerSizeCategory < SizeCategory.Medium)
-                {
-                    return 3;
-                }
-                else if (wearerSizeCategory == SizeCategory.Medium)
-                {
-                    return 2;
-                }
-                else
-                {
-                    return 1;
-                }
+                wieldType = (wielderSizeBase <= SizeCategory.Small ? 3 : 2);
             }
 
             return wieldType;
         }
 
-        public bool IsStackable(GameObject item)
+        if (weaponType == WeaponType.dwarven_waraxe)
         {
-            switch (item.type)
+            if (GameSystems.Feat.HasFeat(wearer, FeatId.EXOTIC_WEAPON_PROFICIENCY_DWARVEN_WARAXE)
+                || GameSystems.Stat.StatLevelGet(wearer, Stat.race) == 1)
             {
-                case ObjectType.weapon:
-                    return item.GetWeaponType() == WeaponType.shuriken;
-                case ObjectType.food:
-                    var flags = item.GetItemFlags();
-                    return flags.HasFlag(ItemFlag.IS_MAGICAL) && flags.HasFlag(ItemFlag.EXPIRES_AFTER_USE);
+                return wieldType;
+            }
 
-                case ObjectType.generic:
-                    return item.GetInt32(obj_f.category) == 5; // jewelry / gems
-                case ObjectType.armor:
-                    return item.GetInt32(obj_f.category) == 17; // necklaces
-                case ObjectType.ammo:
-                case ObjectType.money:
-                case ObjectType.scroll:
-                    return true;
-                default:
-                    return false;
+            if (wearerSizeCategory < SizeCategory.Medium)
+            {
+                return 3;
+            }
+            else if (wearerSizeCategory == SizeCategory.Medium)
+            {
+                return 2;
+            }
+            else
+            {
+                return 1;
             }
         }
 
-        [TempleDllLocation(0x100641B0)]
-        public bool GetQuantityField(GameObject item, out obj_f field)
-        {
-            switch (item.type)
-            {
-                case ObjectType.money:
-                    field = obj_f.money_quantity;
-                    return true;
-                case ObjectType.ammo:
-                    field = obj_f.ammo_quantity;
-                    return true;
-                case ObjectType.food:
-                    var itemFlags = item.GetItemFlags();
-                    if (itemFlags.HasFlag(ItemFlag.IS_MAGICAL) && itemFlags.HasFlag(ItemFlag.EXPIRES_AFTER_USE))
-                    {
-                        field = obj_f.item_quantity;
-                        return true;
-                    }
+        return wieldType;
+    }
 
-                    field = default;
-                    return false;
-                case ObjectType.scroll:
+    public bool IsStackable(GameObject item)
+    {
+        switch (item.type)
+        {
+            case ObjectType.weapon:
+                return item.GetWeaponType() == WeaponType.shuriken;
+            case ObjectType.food:
+                var flags = item.GetItemFlags();
+                return flags.HasFlag(ItemFlag.IS_MAGICAL) && flags.HasFlag(ItemFlag.EXPIRES_AFTER_USE);
+
+            case ObjectType.generic:
+                return item.GetInt32(obj_f.category) == 5; // jewelry / gems
+            case ObjectType.armor:
+                return item.GetInt32(obj_f.category) == 17; // necklaces
+            case ObjectType.ammo:
+            case ObjectType.money:
+            case ObjectType.scroll:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    [TempleDllLocation(0x100641B0)]
+    public bool GetQuantityField(GameObject item, out obj_f field)
+    {
+        switch (item.type)
+        {
+            case ObjectType.money:
+                field = obj_f.money_quantity;
+                return true;
+            case ObjectType.ammo:
+                field = obj_f.ammo_quantity;
+                return true;
+            case ObjectType.food:
+                var itemFlags = item.GetItemFlags();
+                if (itemFlags.HasFlag(ItemFlag.IS_MAGICAL) && itemFlags.HasFlag(ItemFlag.EXPIRES_AFTER_USE))
+                {
                     field = obj_f.item_quantity;
                     return true;
-                case ObjectType.weapon:
-                    if (item.GetWeaponType() == WeaponType.shuriken)
-                    {
-                        field = obj_f.item_quantity;
-                        return true;
-                    }
+                }
 
-                    field = default;
-                    return false;
-                case ObjectType.generic:
-                    if (item.GetInt32(obj_f.category) == 5) // jewelry / gems
-                    {
-                        field = obj_f.item_quantity;
-                        return true;
-                    }
+                field = default;
+                return false;
+            case ObjectType.scroll:
+                field = obj_f.item_quantity;
+                return true;
+            case ObjectType.weapon:
+                if (item.GetWeaponType() == WeaponType.shuriken)
+                {
+                    field = obj_f.item_quantity;
+                    return true;
+                }
 
-                    field = default;
-                    return false;
-                case ObjectType.armor:
-                    if (item.GetInt32(obj_f.category) == 17) // necklaces
-                    {
-                        field = obj_f.item_quantity;
-                        return true;
-                    }
+                field = default;
+                return false;
+            case ObjectType.generic:
+                if (item.GetInt32(obj_f.category) == 5) // jewelry / gems
+                {
+                    field = obj_f.item_quantity;
+                    return true;
+                }
 
-                    field = default;
-                    return false;
-                default:
-                    field = default;
-                    return false;
-            }
+                field = default;
+                return false;
+            case ObjectType.armor:
+                if (item.GetInt32(obj_f.category) == 17) // necklaces
+                {
+                    field = obj_f.item_quantity;
+                    return true;
+                }
+
+                field = default;
+                return false;
+            default:
+                field = default;
+                return false;
         }
+    }
 
-        [TempleDllLocation(0x10066C60)]
-        public int GetItemWeight(GameObject item)
+    [TempleDllLocation(0x10066C60)]
+    public int GetItemWeight(GameObject item)
+    {
+        if (item.type == ObjectType.money)
         {
-            if (item.type == ObjectType.money)
-            {
-                return 0;
-            }
-            else
-            {
-                var weight = item.GetInt32(obj_f.item_weight);
-                if (GetQuantityField(item, out var field))
-                {
-                    weight = weight * item.GetInt32(field) / 4;
-                }
-
-                return weight;
-            }
-        }
-
-        [TempleDllLocation(0x10067B80)]
-        public int GetTotalCarriedWeight(GameObject obj)
-        {
-            if (obj.type == ObjectType.container)
-            {
-                var itemCount = obj.GetInt32(obj_f.container_inventory_num);
-                var result = 0;
-                for (int i = 0; i < itemCount; i++)
-                {
-                    var item = obj.GetObject(obj_f.container_inventory_list_idx, i);
-                    result += GetItemWeight(item);
-                }
-
-                return result;
-            }
-            else if (obj.IsCritter())
-            {
-                // TODO: Clean this up, this is iterating over the children n * n times.
-                var result = 0;
-                var slotCount = GetBagSlotCount(1);
-                for (int i = 0; i < slotCount; i++)
-                {
-                    var item = GetItemAtInvIdx(obj, i);
-                    if (item != null)
-                    {
-                        result += GetItemWeight(item);
-                    }
-                }
-
-                for (int i = 200; i < 216; i++)
-                {
-                    var item = GetItemAtInvIdx(obj, i);
-                    if (item != null)
-                    {
-                        result += GetItemWeight(item);
-                    }
-                }
-
-                return result;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        [TempleDllLocation(0x10066AC0)]
-        public int GetBagSlotCount(int bagNumber)
-        {
-            int rows;
-            if (bagNumber == 1)
-            {
-                rows = 4;
-            }
-            else if (bagNumber == 2)
-            {
-                rows = 2;
-            }
-            else
-            {
-                rows = 0;
-            }
-
-            if (bagNumber == 1)
-            {
-                return 6 * rows;
-            }
-            else if (bagNumber == 2)
-            {
-                return 4 * rows;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        [TempleDllLocation(0x1006d890)]
-        public void PoopInventory(GameObject obj, bool unsetNoTransfer, bool onlyInvulnerable = false)
-        {
-            // Note: Also replaces 0x1006db80 by introducing "onlyInvulnerable" param and moving
-            // check for proto 1000 to callers
-
-            var type = obj.type;
-            if (type == ObjectType.container)
-            {
-                if (!IsEditor)
-                {
-                    if (obj.GetContainerFlags().HasFlag(ContainerFlag.INVEN_SPAWN_ONCE))
-                    {
-                        SpawnInventorySource(obj);
-                    }
-                }
-            }
-
-            if (!GameSystems.Object.GetInventoryFields(obj.type, out var indexField, out var numField))
-            {
-                return;
-            }
-
-            var itemCount = obj.GetInt32(numField);
-            var moveTo = obj.GetLocation();
-            for (var i = itemCount - 1; i >= 0; i--)
-            {
-                var item = obj.GetObject(indexField, i);
-
-                // Skip items that are not invulnerable - if requested. Applies if the items are being
-                // pooped because the parent obj is being destroyed
-                if (onlyInvulnerable && !item.GetFlags().HasFlag(ObjectFlag.INVULNERABLE))
-                {
-                    continue;
-                }
-
-                ForceRemove(item, obj);
-                if (unsetNoTransfer)
-                {
-                    item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
-                }
-
-                GameSystems.MapObject.MoveItem(item, moveTo);
-
-                if (item.GetItemFlags().HasFlag(ItemFlag.NO_LOOT))
-                {
-                    GameSystems.Object.Destroy(item);
-                }
-            }
-        }
-
-        [TempleDllLocation(0x10069ae0)]
-        public void ForceRemove(GameObject item, GameObject parent)
-        {
-            if (parent == null)
-            {
-                Logger.Warn("ForceRemove called on null parent!");
-                return;
-            }
-
-            var realParent = GetParent(item);
-            if (realParent == null)
-            {
-                Logger.Warn("ForceRemove called on item that doesn't think it has a parent.");
-                // return;
-            }
-            else
-            {
-                if (parent != realParent)
-                {
-                    Logger.Warn("ForceRemove called on item with different parent");
-                }
-            }
-
-            if (!GameSystems.Object.GetInventoryFields(parent.type, out var listField, out var numfield))
-            {
-                throw new ArgumentException("ForceRemove called on something that is not a container: "
-                                            + parent);
-            }
-
-            var itemCount = parent.GetInt32(numfield);
-            var idx = -1;
-            for (var i = 0; i < itemCount; i++)
-            {
-                if (item == parent.GetObject(listField, i))
-                {
-                    idx = i;
-                    break;
-                }
-            }
-
-            if (idx < 0)
-            {
-                Logger.Error("ForceRemove: Couldn't match object in parent!");
-                return;
-            }
-
-            if (parent.IsCritter() && !parent.HasFlag(ObjectFlag.DESTROYED))
-            {
-                var dispatcher = parent.GetDispatcher();
-                dispatcher?.Process(DispatcherType.ItemForceRemove, D20DispatcherKey.NONE, null);
-            }
-
-            // Delete item from inventory list
-            var invIdxOrg = item.GetItemInventoryLocation();
-
-            // Move everything foward one spot, then reduce the count
-            while (idx < itemCount - 1)
-            {
-                var tmp = parent.GetObject(listField, idx + 1);
-                parent.SetObject(listField, idx, tmp);
-                idx++;
-            }
-
-            parent.RemoveObject(listField, itemCount - 1);
-            parent.SetInt32(numfield, itemCount - 1);
-            item.SetInt32(obj_f.item_inv_location, -1);
-
-            if (IsInvIdxWorn(invIdxOrg))
-            {
-                if (IsNormalCrossbow(item))
-                {
-                    // unset OWF_WEAPON_LOADED
-                    item.WeaponFlags &= ~WeaponFlag.WEAPON_LOADED;
-                }
-
-                UpdateCritterLightFlags(item, parent);
-                GameSystems.Script.ExecuteObjectScript(parent, item, ObjScriptEvent.WieldOff);
-                GameSystems.Critter.UpdateModelEquipment(parent);
-            }
-
-            if (parent.IsContainer())
-            {
-                if (!IsEditor && _junkpileActive)
-                {
-                    JunkpileOnRemoveItem(parent);
-                }
-            }
-            else if (parent.IsNPC())
-            {
-                parent.AiFlags |= AiFlag.CheckWield;
-            }
-
-            GameSystems.Anim.NotifySpeedRecalc(parent);
-            GameSystems.Script.ExecuteObjectScript(parent, item, ObjScriptEvent.RemoveItem);
-            if (parent.IsCritter() && !parent.HasFlag(ObjectFlag.DESTROYED))
-            {
-                GameSystems.D20.Status.UpdateItemConditions(parent);
-                GameSystems.Critter.BuildRadialMenu(parent);
-            }
-        }
-
-        public bool IsNormalCrossbow(GameObject obj)
-        {
-            if (obj.type == ObjectType.weapon)
-            {
-                var weapType = obj.GetWeaponType();
-                if (weapType == WeaponType.heavy_crossbow || weapType == WeaponType.light_crossbow)
-                    return
-                        true; // TODO: should this include repeating crossbow? I think the context is reloading action in some cases
-                // || weapType == wt_hand_crossbow
-            }
-
-            return false;
-        }
-
-        public void AddItemToContainer(GameObject container, int protoId, int quantity = 1)
-        {
-            if (quantity <= 0)
-            {
-                return;
-            }
-
-            var proto = GameSystems.Proto.GetProtoById(protoId);
-            var canStack = IsStackable(proto);
-
-            if (!canStack && quantity > 1)
-            {
-                for (var i = 0; i < quantity; i++)
-                {
-                    AddItemToContainer(container, protoId);
-                }
-
-                return;
-            }
-
-            var item = GameSystems.MapObject.CreateObject(proto, container.GetLocationFull());
-            if (quantity > 1)
-            {
-                item.SetQuantity(quantity);
-            }
-
-            if (!SetItemParent(item, container, ItemInsertFlag.Use_Max_Idx_200))
-            {
-                GameSystems.MapObject.RemoveMapObj(item);
-                return;
-            }
-
-            SpawnAmmoForWeapon(container, item);
-        }
-
-        [TempleDllLocation(0x1006d3d0)]
-        public void SpawnInventorySource(GameObject obj)
-        {
-            var spawnOnce = false;
-            int invSrcId;
-            if (obj.IsContainer())
-            {
-                if ((obj.GetContainerFlags() & ContainerFlag.INVEN_SPAWN_ONCE) != 0)
-                {
-                    if (IsEditor)
-                    {
-                        return;
-                    }
-
-                    spawnOnce = true;
-                }
-
-                invSrcId = obj.GetInt32(obj_f.container_inventory_source);
-            }
-            else if (obj.IsCritter())
-            {
-                invSrcId = obj.GetInt32(obj_f.critter_inventory_source);
-            }
-            else
-            {
-                return;
-            }
-
-            GameSystems.Item.ClearInventory(obj, true);
-            if (invSrcId == 0)
-            {
-                return;
-            }
-
-            if (!GameSystems.InvenSource.TryGetById(invSrcId, out var invenSource))
-            {
-                Logger.Error("Invalid inventory source {0} attached to {1}", invSrcId, obj);
-                return;
-            }
-
-            if (spawnOnce)
-            {
-                int randomSeed = obj.GetLocation().locx;
-                foreach (var partyMember in GameSystems.Party.PartyMembers)
-                {
-                    var name = GameSystems.MapObject.GetDisplayName(partyMember);
-                    for (var i = 0; i + 1 < name.Length; i += 2)
-                    {
-                        randomSeed += name[i] * name[i + 1];
-                    }
-                }
-
-                GameSystems.Random.SetSeed(randomSeed);
-            }
-
-            var copperCoins = GameSystems.Random.GetInt(invenSource.CopperMin, invenSource.CopperMax);
-            if (copperCoins > 0)
-            {
-                AddItemToContainer(obj, WellKnownProtos.CopperCoin, copperCoins);
-            }
-
-            var silverCoins = GameSystems.Random.GetInt(invenSource.SilverMin, invenSource.SilverMax);
-            if (silverCoins > 0)
-            {
-                AddItemToContainer(obj, WellKnownProtos.SilverCoin, silverCoins);
-            }
-
-            var goldCoins = GameSystems.Random.GetInt(invenSource.GoldMin, invenSource.GoldMax);
-            if (goldCoins > 0)
-            {
-                AddItemToContainer(obj, WellKnownProtos.GoldCoin, goldCoins);
-            }
-
-            var platinumCoins = GameSystems.Random.GetInt(invenSource.PlatinumMin, invenSource.PlatinumMax);
-            if (platinumCoins > 0)
-            {
-                AddItemToContainer(obj, WellKnownProtos.PlatinumCoin, platinumCoins);
-            }
-
-            AddValuablesToContainer(invenSource.GemsMinValue, invenSource.GemsMaxValue, obj, GemTypes);
-            AddValuablesToContainer(invenSource.JewelryMaxValue, invenSource.JewelryMaxValue, obj, JewelryTypes);
-
-            foreach (var itemSpec in invenSource.Items)
-            {
-                if (GameSystems.Random.GetInt(1, 100) <= itemSpec.PercentChance)
-                {
-                    AddItemToContainer(obj, itemSpec.ProtoId);
-                }
-            }
-
-            foreach (var oneOfList in invenSource.OneOfLists)
-            {
-                var protoId = GameSystems.Random.PickRandom(oneOfList);
-                AddItemToContainer(obj, protoId);
-            }
-
-            if (obj.type == ObjectType.npc)
-            {
-                if ((obj.GetNPCFlags() & NpcFlag.KOS) != 0)
-                {
-                    WieldBestAll(obj);
-                }
-                else
-                {
-                    WieldBestAllExceptWeapons(obj);
-                }
-            }
-
-            if (obj.IsContainer() && spawnOnce)
-            {
-                obj.SetInt32(obj_f.container_inventory_source, 0);
-                var flags = obj.GetContainerFlags();
-                obj.SetContainerFlags(flags & ~ContainerFlag.INVEN_SPAWN_ONCE);
-            }
-        }
-
-        [TempleDllLocation(0x1006bd30)]
-        private void SpawnAmmoForWeapon(GameObject container, GameObject item)
-        {
-            if (item.type == ObjectType.weapon)
-            {
-                var ammoType = item.GetWeaponAmmoType();
-                if (ammoType != WeaponAmmoType.no_ammo)
-                {
-                    SpawnAmmoForWeapon(container, ammoType, 20);
-                }
-            }
-        }
-
-        [TempleDllLocation(0x1006bba0)]
-        [TempleDllLocation(0x10065400)]
-        public void SpawnAmmoForWeapon(GameObject container, WeaponAmmoType ammoType, int quantity)
-        {
-            if (quantity <= 0)
-            {
-                return;
-            }
-
-            int ammoProtoId;
-            switch (ammoType)
-            {
-                case WeaponAmmoType.arrow:
-                    ammoProtoId = 5004;
-                    break;
-                case WeaponAmmoType.bolt:
-                    ammoProtoId = 5005;
-                    break;
-                case WeaponAmmoType.bullet:
-                    ammoProtoId = 5007;
-                    break;
-                default:
-                    return;
-            }
-
-            var existingItem = GameSystems.Item.FindAmmoItem(container, ammoType);
-            if (existingItem != null)
-            {
-                existingItem.IncreaseQuantity(quantity);
-            }
-            else
-            {
-                AddItemToContainer(container, ammoProtoId, quantity);
-            }
-
-            GameSystems.Anim.NotifySpeedRecalc(container);
-        }
-
-        private class ValuableSpec
-        {
-            public int CopperValue { get; }
-
-            public IReadOnlyList<int> ProtoIds { get; }
-
-            public ValuableSpec(int copperValue, params int[] protoIds)
-            {
-                CopperValue = copperValue;
-                ProtoIds = protoIds.ToImmutableList();
-            }
-        }
-
-        // These MUST be sorted in ascending order of value
-        [TempleDllLocation(0x102be7a4)]
-        private static readonly ValuableSpec[] GemTypes =
-        {
-            new ValuableSpec(50, 12041, 12042),
-            // NOTE: Vanilla skipped the following line of gems
-            new ValuableSpec(100, 12035, 12040),
-            new ValuableSpec(500, 12034, 12039),
-            new ValuableSpec(1000, 12010, 12038),
-            new ValuableSpec(5000, 12036, 12037)
-        };
-
-        // These MUST be sorted in ascending order of value
-        [TempleDllLocation(0x102BE7EC)]
-        private static readonly ValuableSpec[] JewelryTypes =
-        {
-            new ValuableSpec(50, 6180, 6190),
-            // NOTE: Vanilla skipped the following line of valuables
-            new ValuableSpec(100, 6181, 6185),
-            new ValuableSpec(250, 6182, 6194),
-            new ValuableSpec(500, 6186, 6191),
-            new ValuableSpec(750, 6183, 6193),
-            new ValuableSpec(1000, 6184, 6192),
-            new ValuableSpec(2500, 6187, 6197),
-            new ValuableSpec(5000, 6188, 6195),
-            new ValuableSpec(7500, 6189, 6196)
-        };
-
-        [TempleDllLocation(0x1006b780)]
-        [TempleDllLocation(0x1006b860)]
-        private void AddValuablesToContainer(int minValue, int maxValue,
-            GameObject container, ValuableSpec[] valuableTypes)
-        {
-            if (minValue <= 0 && maxValue <= 0)
-            {
-                return;
-            }
-
-            var lowestItemValue = valuableTypes[0].CopperValue;
-
-            var overallValue = GameSystems.Random.GetInt(minValue, maxValue);
-
-            // Calculate the item count when using the item of the lowest value (because it'll be used as filler)
-            var itemCount = (overallValue + lowestItemValue - 1) / lowestItemValue;
-            var remainingValue = Math.Max(lowestItemValue, itemCount * lowestItemValue);
-
-            for (var i = valuableTypes.Length - 1; i >= 0 && remainingValue > 0; i--)
-            {
-                var type = valuableTypes[i];
-                // How many valuables needed to give the requested value
-                var quantity = remainingValue / type.CopperValue;
-                if (quantity >= GameSystems.Random.GetInt(1, 4) || i == 0)
-                {
-                    var protoId = GameSystems.Random.PickRandom(type.ProtoIds);
-                    AddItemToContainer(container, protoId, quantity);
-                    remainingValue -= quantity * type.CopperValue;
-                }
-            }
-        }
-
-        [TempleDllLocation(0x1006dcf0)]
-        public void PossiblySpawnInvenSource(GameObject obj)
-        {
-            var inventorySource = GetInventorySource(obj);
-            if (inventorySource == 0)
-            {
-                return;
-            }
-
-            if (obj.IsCritter())
-            {
-                if (!GameSystems.Critter.IsDeadNullDestroyed(obj)
-                    && (obj.type != ObjectType.npc || GameSystems.Critter.GetLeaderRecursive(obj) == null))
-                {
-                    GameSystems.Item.SpawnInventorySource(obj);
-                }
-            }
-            else
-            {
-                if (obj.type != ObjectType.container)
-                {
-                    return;
-                }
-
-                // The INVEN_SPAWN_INDEPENDENT flag is needed if it's a standalone container
-                var containerFlags = obj.GetContainerFlags();
-                if ((containerFlags & ContainerFlag.INVEN_SPAWN_INDEPENDENT) != 0)
-                {
-                    GameSystems.Item.SpawnInventorySource(obj);
-                    return;
-                }
-
-                // If the container is currently on screen, do not immediately restock, rather
-                // schedule a restock for later
-                if (GameSystems.MapObject.IsOnScreen(obj))
-                {
-                    ScheduleContainerRestock(obj);
-                    return;
-                }
-
-                // Find the NPC that the container is the substitute inventory for and respawn it's inventory,
-                using var npcs = ObjList.ListVicinity(obj, ObjectListFilter.OLC_NPC);
-                foreach (var npc in npcs)
-                {
-                    var substituteInv = npc.GetSubstituteInventory();
-                    if (substituteInv == obj)
-                    {
-                        GameSystems.Item.PossiblySpawnInvenSource(npc);
-                        return;
-                    }
-                }
-            }
-        }
-
-        [TempleDllLocation(0x10064be0)]
-        public int GetInventorySource(GameObject obj)
-        {
-            if (obj.IsContainer())
-            {
-                return obj.GetInt32(obj_f.container_inventory_source);
-            }
-            else if (obj.IsCritter())
-            {
-                return obj.GetInt32(obj_f.critter_inventory_source);
-            }
-
             return 0;
         }
-
-        [TempleDllLocation(0x10069f60)]
-        public void Remove(GameObject item)
+        else
         {
-            var parent = GetParent(item);
-            if (parent == null)
+            var weight = item.GetInt32(obj_f.item_weight);
+            if (GetQuantityField(item, out var field))
             {
-                Logger.Warn("Warning: item_remove called on item that doesn't think it has a parent_obj.");
-                return;
+                weight = weight * item.GetInt32(field) / 4;
             }
 
-            ForceRemove(item, parent);
+            return weight;
+        }
+    }
 
-            if (parent.IsCritter())
+    [TempleDllLocation(0x10067B80)]
+    public int GetTotalCarriedWeight(GameObject obj)
+    {
+        if (obj.type == ObjectType.container)
+        {
+            var itemCount = obj.GetInt32(obj_f.container_inventory_num);
+            var result = 0;
+            for (int i = 0; i < itemCount; i++)
             {
-                GameSystems.D20.D20SendSignal(parent, D20DispatcherKey.SIG_Inventory_Update, item);
+                var item = obj.GetObject(obj_f.container_inventory_list_idx, i);
+                result += GetItemWeight(item);
             }
+
+            return result;
+        }
+        else if (obj.IsCritter())
+        {
+            // TODO: Clean this up, this is iterating over the children n * n times.
+            var result = 0;
+            var slotCount = GetBagSlotCount(1);
+            for (int i = 0; i < slotCount; i++)
+            {
+                var item = GetItemAtInvIdx(obj, i);
+                if (item != null)
+                {
+                    result += GetItemWeight(item);
+                }
+            }
+
+            for (int i = 200; i < 216; i++)
+            {
+                var item = GetItemAtInvIdx(obj, i);
+                if (item != null)
+                {
+                    result += GetItemWeight(item);
+                }
+            }
+
+            return result;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    [TempleDllLocation(0x10066AC0)]
+    public int GetBagSlotCount(int bagNumber)
+    {
+        int rows;
+        if (bagNumber == 1)
+        {
+            rows = 4;
+        }
+        else if (bagNumber == 2)
+        {
+            rows = 2;
+        }
+        else
+        {
+            rows = 0;
         }
 
-        [TempleDllLocation(0x10063e20)]
-        public static void SetWeaponSlotDefaults(GameObject obj)
+        if (bagNumber == 1)
         {
-            if (obj.IsPC())
+            return 6 * rows;
+        }
+        else if (bagNumber == 2)
+        {
+            return 4 * rows;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    [TempleDllLocation(0x1006d890)]
+    public void PoopInventory(GameObject obj, bool unsetNoTransfer, bool onlyInvulnerable = false)
+    {
+        // Note: Also replaces 0x1006db80 by introducing "onlyInvulnerable" param and moving
+        // check for proto 1000 to callers
+
+        var type = obj.type;
+        if (type == ObjectType.container)
+        {
+            if (!IsEditor)
             {
-                obj.SetInt32(obj_f.pc_weaponslots_idx, 0, 0);
-                for (int i = 1; i <= 20; i++)
+                if (obj.GetContainerFlags().HasFlag(ContainerFlag.INVEN_SPAWN_ONCE))
                 {
-                    obj.SetInt32(obj_f.pc_weaponslots_idx, i, -1);
+                    SpawnInventorySource(obj);
                 }
             }
         }
 
-        [TempleDllLocation(0x10069e00)]
-        public void ClearInventory(GameObject obj, bool keepPersistent)
+        if (!GameSystems.Object.GetInventoryFields(obj.type, out var indexField, out var numField))
         {
-            // Objects are moved here temporarily to be deleted
-            var targetLocation = obj.GetLocation();
+            return;
+        }
 
-            var children = new List<GameObject>(obj.EnumerateChildren());
+        var itemCount = obj.GetInt32(numField);
+        var moveTo = obj.GetLocation();
+        for (var i = itemCount - 1; i >= 0; i--)
+        {
+            var item = obj.GetObject(indexField, i);
 
-            foreach (var child in children)
+            // Skip items that are not invulnerable - if requested. Applies if the items are being
+            // pooped because the parent obj is being destroyed
+            if (onlyInvulnerable && !item.GetFlags().HasFlag(ObjectFlag.INVULNERABLE))
             {
-                if (keepPersistent && child.GetItemFlags().HasFlag(ItemFlag.PERSISTENT))
+                continue;
+            }
+
+            ForceRemove(item, obj);
+            if (unsetNoTransfer)
+            {
+                item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
+            }
+
+            GameSystems.MapObject.MoveItem(item, moveTo);
+
+            if (item.GetItemFlags().HasFlag(ItemFlag.NO_LOOT))
+            {
+                GameSystems.Object.Destroy(item);
+            }
+        }
+    }
+
+    [TempleDllLocation(0x10069ae0)]
+    public void ForceRemove(GameObject item, GameObject parent)
+    {
+        if (parent == null)
+        {
+            Logger.Warn("ForceRemove called on null parent!");
+            return;
+        }
+
+        var realParent = GetParent(item);
+        if (realParent == null)
+        {
+            Logger.Warn("ForceRemove called on item that doesn't think it has a parent.");
+            // return;
+        }
+        else
+        {
+            if (parent != realParent)
+            {
+                Logger.Warn("ForceRemove called on item with different parent");
+            }
+        }
+
+        if (!GameSystems.Object.GetInventoryFields(parent.type, out var listField, out var numfield))
+        {
+            throw new ArgumentException("ForceRemove called on something that is not a container: "
+                                        + parent);
+        }
+
+        var itemCount = parent.GetInt32(numfield);
+        var idx = -1;
+        for (var i = 0; i < itemCount; i++)
+        {
+            if (item == parent.GetObject(listField, i))
+            {
+                idx = i;
+                break;
+            }
+        }
+
+        if (idx < 0)
+        {
+            Logger.Error("ForceRemove: Couldn't match object in parent!");
+            return;
+        }
+
+        if (parent.IsCritter() && !parent.HasFlag(ObjectFlag.DESTROYED))
+        {
+            var dispatcher = parent.GetDispatcher();
+            dispatcher?.Process(DispatcherType.ItemForceRemove, D20DispatcherKey.NONE, null);
+        }
+
+        // Delete item from inventory list
+        var invIdxOrg = item.GetItemInventoryLocation();
+
+        // Move everything foward one spot, then reduce the count
+        while (idx < itemCount - 1)
+        {
+            var tmp = parent.GetObject(listField, idx + 1);
+            parent.SetObject(listField, idx, tmp);
+            idx++;
+        }
+
+        parent.RemoveObject(listField, itemCount - 1);
+        parent.SetInt32(numfield, itemCount - 1);
+        item.SetInt32(obj_f.item_inv_location, -1);
+
+        if (IsInvIdxWorn(invIdxOrg))
+        {
+            if (IsNormalCrossbow(item))
+            {
+                // unset OWF_WEAPON_LOADED
+                item.WeaponFlags &= ~WeaponFlag.WEAPON_LOADED;
+            }
+
+            UpdateCritterLightFlags(item, parent);
+            GameSystems.Script.ExecuteObjectScript(parent, item, ObjScriptEvent.WieldOff);
+            GameSystems.Critter.UpdateModelEquipment(parent);
+        }
+
+        if (parent.IsContainer())
+        {
+            if (!IsEditor && _junkpileActive)
+            {
+                JunkpileOnRemoveItem(parent);
+            }
+        }
+        else if (parent.IsNPC())
+        {
+            parent.AiFlags |= AiFlag.CheckWield;
+        }
+
+        GameSystems.Anim.NotifySpeedRecalc(parent);
+        GameSystems.Script.ExecuteObjectScript(parent, item, ObjScriptEvent.RemoveItem);
+        if (parent.IsCritter() && !parent.HasFlag(ObjectFlag.DESTROYED))
+        {
+            GameSystems.D20.Status.UpdateItemConditions(parent);
+            GameSystems.Critter.BuildRadialMenu(parent);
+        }
+    }
+
+    public bool IsNormalCrossbow(GameObject obj)
+    {
+        if (obj.type == ObjectType.weapon)
+        {
+            var weapType = obj.GetWeaponType();
+            if (weapType == WeaponType.heavy_crossbow || weapType == WeaponType.light_crossbow)
+                return
+                    true; // TODO: should this include repeating crossbow? I think the context is reloading action in some cases
+            // || weapType == wt_hand_crossbow
+        }
+
+        return false;
+    }
+
+    public void AddItemToContainer(GameObject container, int protoId, int quantity = 1)
+    {
+        if (quantity <= 0)
+        {
+            return;
+        }
+
+        var proto = GameSystems.Proto.GetProtoById(protoId);
+        var canStack = IsStackable(proto);
+
+        if (!canStack && quantity > 1)
+        {
+            for (var i = 0; i < quantity; i++)
+            {
+                AddItemToContainer(container, protoId);
+            }
+
+            return;
+        }
+
+        var item = GameSystems.MapObject.CreateObject(proto, container.GetLocationFull());
+        if (quantity > 1)
+        {
+            item.SetQuantity(quantity);
+        }
+
+        if (!SetItemParent(item, container, ItemInsertFlag.Use_Max_Idx_200))
+        {
+            GameSystems.MapObject.RemoveMapObj(item);
+            return;
+        }
+
+        SpawnAmmoForWeapon(container, item);
+    }
+
+    [TempleDllLocation(0x1006d3d0)]
+    public void SpawnInventorySource(GameObject obj)
+    {
+        var spawnOnce = false;
+        int invSrcId;
+        if (obj.IsContainer())
+        {
+            if ((obj.GetContainerFlags() & ContainerFlag.INVEN_SPAWN_ONCE) != 0)
+            {
+                if (IsEditor)
                 {
-                    continue;
+                    return;
                 }
 
-                ForceRemove(child, obj);
-                GameSystems.MapObject.MoveItem(child, targetLocation);
-                GameSystems.Object.Destroy(child);
+                spawnOnce = true;
             }
 
-            if (obj.IsCritter())
-            {
-                GameSystems.Critter.ClearMoney(obj);
-            }
+            invSrcId = obj.GetInt32(obj_f.container_inventory_source);
+        }
+        else if (obj.IsCritter())
+        {
+            invSrcId = obj.GetInt32(obj_f.critter_inventory_source);
+        }
+        else
+        {
+            return;
         }
 
-        [TempleDllLocation(0x1006d300)]
-        public void SpawnTutorialEquipment(GameObject obj)
+        GameSystems.Item.ClearInventory(obj, true);
+        if (invSrcId == 0)
         {
-            ClearInventory(obj, false);
+            return;
+        }
 
-            if (_startEquipment.TryGetValue(11, out var equipment))
+        if (!GameSystems.InvenSource.TryGetById(invSrcId, out var invenSource))
+        {
+            Logger.Error("Invalid inventory source {0} attached to {1}", invSrcId, obj);
+            return;
+        }
+
+        if (spawnOnce)
+        {
+            int randomSeed = obj.GetLocation().locx;
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                foreach (var protoId in equipment)
+                var name = GameSystems.MapObject.GetDisplayName(partyMember);
+                for (var i = 0; i + 1 < name.Length; i += 2)
                 {
-                    GiveItemByProto(obj, (ushort) protoId);
+                    randomSeed += name[i] * name[i + 1];
                 }
             }
 
-            WieldBestAll(obj, null);
+            GameSystems.Random.SetSeed(randomSeed);
         }
 
-        [TempleDllLocation(0x1006d100)]
-        public void WieldBestAll(GameObject critter, GameObject target = null)
+        var copperCoins = GameSystems.Random.GetInt(invenSource.CopperMin, invenSource.CopperMax);
+        if (copperCoins > 0)
         {
-            for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
+            AddItemToContainer(obj, WellKnownProtos.CopperCoin, copperCoins);
+        }
+
+        var silverCoins = GameSystems.Random.GetInt(invenSource.SilverMin, invenSource.SilverMax);
+        if (silverCoins > 0)
+        {
+            AddItemToContainer(obj, WellKnownProtos.SilverCoin, silverCoins);
+        }
+
+        var goldCoins = GameSystems.Random.GetInt(invenSource.GoldMin, invenSource.GoldMax);
+        if (goldCoins > 0)
+        {
+            AddItemToContainer(obj, WellKnownProtos.GoldCoin, goldCoins);
+        }
+
+        var platinumCoins = GameSystems.Random.GetInt(invenSource.PlatinumMin, invenSource.PlatinumMax);
+        if (platinumCoins > 0)
+        {
+            AddItemToContainer(obj, WellKnownProtos.PlatinumCoin, platinumCoins);
+        }
+
+        AddValuablesToContainer(invenSource.GemsMinValue, invenSource.GemsMaxValue, obj, GemTypes);
+        AddValuablesToContainer(invenSource.JewelryMaxValue, invenSource.JewelryMaxValue, obj, JewelryTypes);
+
+        foreach (var itemSpec in invenSource.Items)
+        {
+            if (GameSystems.Random.GetInt(1, 100) <= itemSpec.PercentChance)
             {
-                WieldBest(critter, invIdx, target);
+                AddItemToContainer(obj, itemSpec.ProtoId);
             }
         }
 
-        [TempleDllLocation(0x1006d140)]
-        private void WieldBestAllExceptWeapons(GameObject critter)
+        foreach (var oneOfList in invenSource.OneOfLists)
         {
-            for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
-            {
-                if (invIdx == InvIdxWeaponPrimary || invIdx == InvIdxWeaponSecondary || invIdx == InvIdxShield)
-                {
-                    continue;
-                }
-
-                WieldBest(critter, invIdx, null);
-            }
+            var protoId = GameSystems.Random.PickRandom(oneOfList);
+            AddItemToContainer(obj, protoId);
         }
 
-        [TempleDllLocation(0x1006aa80)]
-        public bool UnequipItemInSlot(GameObject critter, EquipSlot slot)
+        if (obj.type == ObjectType.npc)
         {
-            var item = ItemWornAt(critter, slot);
-            if (item != null)
+            if ((obj.GetNPCFlags() & NpcFlag.KOS) != 0)
             {
-                return UnequipItem(item);
+                WieldBestAll(obj);
             }
             else
             {
-                return true;
+                WieldBestAllExceptWeapons(obj);
             }
         }
 
-        [TempleDllLocation(0x1006a640)]
-        public bool UnequipItem(GameObject item)
+        if (obj.IsContainer() && spawnOnce)
         {
-            var invIdx = item.GetItemInventoryLocation();
-            if (IsInvIdxWorn(invIdx))
+            obj.SetInt32(obj_f.container_inventory_source, 0);
+            var flags = obj.GetContainerFlags();
+            obj.SetContainerFlags(flags & ~ContainerFlag.INVEN_SPAWN_ONCE);
+        }
+    }
+
+    [TempleDllLocation(0x1006bd30)]
+    private void SpawnAmmoForWeapon(GameObject container, GameObject item)
+    {
+        if (item.type == ObjectType.weapon)
+        {
+            var ammoType = item.GetWeaponAmmoType();
+            if (ammoType != WeaponAmmoType.no_ammo)
             {
-                var receiver = GetParent(item);
-                var itemInsertLocation = INVENTORY_IDX_UNDEFINED;
-                if (IsItemNonTransferrable(item, receiver) != ItemErrorCode.OK)
-                {
-                    return false;
-                }
-
-                if (ItemInsertGetLocation(item, receiver, ref itemInsertLocation, null, default) != ItemErrorCode.OK)
-                {
-                    return false;
-                }
-
-                Remove(item);
-                InsertAtLocation(item, receiver, itemInsertLocation);
+                SpawnAmmoForWeapon(container, ammoType, 20);
             }
+        }
+    }
 
-            return true;
+    [TempleDllLocation(0x1006bba0)]
+    [TempleDllLocation(0x10065400)]
+    public void SpawnAmmoForWeapon(GameObject container, WeaponAmmoType ammoType, int quantity)
+    {
+        if (quantity <= 0)
+        {
+            return;
         }
 
-        [TempleDllLocation(0x10064c40)]
-        public bool IsMagical(GameObject item) => item.GetItemFlags().HasFlag(ItemFlag.IS_MAGICAL);
-
-        /// <summary>
-        /// Identifies all items in the given container / critter.
-        /// </summary>
-        [TempleDllLocation(0x10064c70)]
-        public void IdentifyAll(GameObject container)
+        int ammoProtoId;
+        switch (ammoType)
         {
-            foreach (var item in container.EnumerateChildren())
+            case WeaponAmmoType.arrow:
+                ammoProtoId = 5004;
+                break;
+            case WeaponAmmoType.bolt:
+                ammoProtoId = 5005;
+                break;
+            case WeaponAmmoType.bullet:
+                ammoProtoId = 5007;
+                break;
+            default:
+                return;
+        }
+
+        var existingItem = GameSystems.Item.FindAmmoItem(container, ammoType);
+        if (existingItem != null)
+        {
+            existingItem.IncreaseQuantity(quantity);
+        }
+        else
+        {
+            AddItemToContainer(container, ammoProtoId, quantity);
+        }
+
+        GameSystems.Anim.NotifySpeedRecalc(container);
+    }
+
+    private class ValuableSpec
+    {
+        public int CopperValue { get; }
+
+        public IReadOnlyList<int> ProtoIds { get; }
+
+        public ValuableSpec(int copperValue, params int[] protoIds)
+        {
+            CopperValue = copperValue;
+            ProtoIds = protoIds.ToImmutableList();
+        }
+    }
+
+    // These MUST be sorted in ascending order of value
+    [TempleDllLocation(0x102be7a4)]
+    private static readonly ValuableSpec[] GemTypes =
+    {
+        new ValuableSpec(50, 12041, 12042),
+        // NOTE: Vanilla skipped the following line of gems
+        new ValuableSpec(100, 12035, 12040),
+        new ValuableSpec(500, 12034, 12039),
+        new ValuableSpec(1000, 12010, 12038),
+        new ValuableSpec(5000, 12036, 12037)
+    };
+
+    // These MUST be sorted in ascending order of value
+    [TempleDllLocation(0x102BE7EC)]
+    private static readonly ValuableSpec[] JewelryTypes =
+    {
+        new ValuableSpec(50, 6180, 6190),
+        // NOTE: Vanilla skipped the following line of valuables
+        new ValuableSpec(100, 6181, 6185),
+        new ValuableSpec(250, 6182, 6194),
+        new ValuableSpec(500, 6186, 6191),
+        new ValuableSpec(750, 6183, 6193),
+        new ValuableSpec(1000, 6184, 6192),
+        new ValuableSpec(2500, 6187, 6197),
+        new ValuableSpec(5000, 6188, 6195),
+        new ValuableSpec(7500, 6189, 6196)
+    };
+
+    [TempleDllLocation(0x1006b780)]
+    [TempleDllLocation(0x1006b860)]
+    private void AddValuablesToContainer(int minValue, int maxValue,
+        GameObject container, ValuableSpec[] valuableTypes)
+    {
+        if (minValue <= 0 && maxValue <= 0)
+        {
+            return;
+        }
+
+        var lowestItemValue = valuableTypes[0].CopperValue;
+
+        var overallValue = GameSystems.Random.GetInt(minValue, maxValue);
+
+        // Calculate the item count when using the item of the lowest value (because it'll be used as filler)
+        var itemCount = (overallValue + lowestItemValue - 1) / lowestItemValue;
+        var remainingValue = Math.Max(lowestItemValue, itemCount * lowestItemValue);
+
+        for (var i = valuableTypes.Length - 1; i >= 0 && remainingValue > 0; i--)
+        {
+            var type = valuableTypes[i];
+            // How many valuables needed to give the requested value
+            var quantity = remainingValue / type.CopperValue;
+            if (quantity >= GameSystems.Random.GetInt(1, 4) || i == 0)
             {
-                item.SetItemFlag(ItemFlag.IDENTIFIED, true);
+                var protoId = GameSystems.Random.PickRandom(type.ProtoIds);
+                AddItemToContainer(container, protoId, quantity);
+                remainingValue -= quantity * type.CopperValue;
             }
         }
+    }
 
-        /// <summary>
-        /// The sum of copper coins to add to an items worth for considering it the best item to wear.
-        /// </summary>
-        private const int MagicalItemWorthBonus = 1000000;
-
-        [TempleDllLocation(0x1006CCC0)]
-        public void WieldBest(GameObject critter, int invIdx, GameObject target)
+    [TempleDllLocation(0x1006dcf0)]
+    public void PossiblySpawnInvenSource(GameObject obj)
+    {
+        var inventorySource = GetInventorySource(obj);
+        if (inventorySource == 0)
         {
-            if (invIdx == InvIdxWeaponSecondary)
+            return;
+        }
+
+        if (obj.IsCritter())
+        {
+            if (!GameSystems.Critter.IsDeadNullDestroyed(obj)
+                && (obj.type != ObjectType.npc || GameSystems.Critter.GetLeaderRecursive(obj) == null))
+            {
+                GameSystems.Item.SpawnInventorySource(obj);
+            }
+        }
+        else
+        {
+            if (obj.type != ObjectType.container)
             {
                 return;
             }
 
-            var bestItem = GetItemAtInvIdx(critter, invIdx);
-            var bestItemWorth = (float) int.MinValue;
-            if (bestItem != null)
+            // The INVEN_SPAWN_INDEPENDENT flag is needed if it's a standalone container
+            var containerFlags = obj.GetContainerFlags();
+            if ((containerFlags & ContainerFlag.INVEN_SPAWN_INDEPENDENT) != 0)
             {
-                if (CheckTransferToWieldSlot(bestItem, invIdx, critter) != ItemErrorCode.OK)
-                {
-                    UnequipItemInSlot(critter, SlotByInvIdx(invIdx));
-                    bestItem = null;
-                }
-                else if (invIdx != InvIdxWeaponPrimary)
-                {
-                    bestItemWorth = GetItemWorthRegardIdentified(bestItem);
-                    if (IsMagical(bestItem))
-                    {
-                        bestItemWorth += MagicalItemWorthBonus;
-                    }
-                }
+                GameSystems.Item.SpawnInventorySource(obj);
+                return;
             }
 
-            GameObject bestSecondaryWeapon = null;
-
-            var inventory = critter.EnumerateChildren().ToArray();
-
-            for (var i = 0; i < inventory.Length; i++)
+            // If the container is currently on screen, do not immediately restock, rather
+            // schedule a restock for later
+            if (GameSystems.MapObject.IsOnScreen(obj))
             {
-                var itemCandidate = inventory[i];
-                if (CheckTransferToWieldSlot(itemCandidate, invIdx, critter) != ItemErrorCode.OK)
+                ScheduleContainerRestock(obj);
+                return;
+            }
+
+            // Find the NPC that the container is the substitute inventory for and respawn it's inventory,
+            using var npcs = ObjList.ListVicinity(obj, ObjectListFilter.OLC_NPC);
+            foreach (var npc in npcs)
+            {
+                var substituteInv = npc.GetSubstituteInventory();
+                if (substituteInv == obj)
                 {
-                    // Skip anything that cannot be worn in the desired slot
-                    continue;
+                    GameSystems.Item.PossiblySpawnInvenSource(npc);
+                    return;
                 }
+            }
+        }
+    }
 
-                // Anything but the primary weapon is chosen only based on it's monetary worth,
-                // preferring anything that is magical
-                if (invIdx != InvIdxWeaponPrimary)
+    [TempleDllLocation(0x10064be0)]
+    public int GetInventorySource(GameObject obj)
+    {
+        if (obj.IsContainer())
+        {
+            return obj.GetInt32(obj_f.container_inventory_source);
+        }
+        else if (obj.IsCritter())
+        {
+            return obj.GetInt32(obj_f.critter_inventory_source);
+        }
+
+        return 0;
+    }
+
+    [TempleDllLocation(0x10069f60)]
+    public void Remove(GameObject item)
+    {
+        var parent = GetParent(item);
+        if (parent == null)
+        {
+            Logger.Warn("Warning: item_remove called on item that doesn't think it has a parent_obj.");
+            return;
+        }
+
+        ForceRemove(item, parent);
+
+        if (parent.IsCritter())
+        {
+            GameSystems.D20.D20SendSignal(parent, D20DispatcherKey.SIG_Inventory_Update, item);
+        }
+    }
+
+    [TempleDllLocation(0x10063e20)]
+    public static void SetWeaponSlotDefaults(GameObject obj)
+    {
+        if (obj.IsPC())
+        {
+            obj.SetInt32(obj_f.pc_weaponslots_idx, 0, 0);
+            for (int i = 1; i <= 20; i++)
+            {
+                obj.SetInt32(obj_f.pc_weaponslots_idx, i, -1);
+            }
+        }
+    }
+
+    [TempleDllLocation(0x10069e00)]
+    public void ClearInventory(GameObject obj, bool keepPersistent)
+    {
+        // Objects are moved here temporarily to be deleted
+        var targetLocation = obj.GetLocation();
+
+        var children = new List<GameObject>(obj.EnumerateChildren());
+
+        foreach (var child in children)
+        {
+            if (keepPersistent && child.GetItemFlags().HasFlag(ItemFlag.PERSISTENT))
+            {
+                continue;
+            }
+
+            ForceRemove(child, obj);
+            GameSystems.MapObject.MoveItem(child, targetLocation);
+            GameSystems.Object.Destroy(child);
+        }
+
+        if (obj.IsCritter())
+        {
+            GameSystems.Critter.ClearMoney(obj);
+        }
+    }
+
+    [TempleDllLocation(0x1006d300)]
+    public void SpawnTutorialEquipment(GameObject obj)
+    {
+        ClearInventory(obj, false);
+
+        if (_startEquipment.TryGetValue(11, out var equipment))
+        {
+            foreach (var protoId in equipment)
+            {
+                GiveItemByProto(obj, (ushort) protoId);
+            }
+        }
+
+        WieldBestAll(obj, null);
+    }
+
+    [TempleDllLocation(0x1006d100)]
+    public void WieldBestAll(GameObject critter, GameObject target = null)
+    {
+        for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
+        {
+            WieldBest(critter, invIdx, target);
+        }
+    }
+
+    [TempleDllLocation(0x1006d140)]
+    private void WieldBestAllExceptWeapons(GameObject critter)
+    {
+        for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
+        {
+            if (invIdx == InvIdxWeaponPrimary || invIdx == InvIdxWeaponSecondary || invIdx == InvIdxShield)
+            {
+                continue;
+            }
+
+            WieldBest(critter, invIdx, null);
+        }
+    }
+
+    [TempleDllLocation(0x1006aa80)]
+    public bool UnequipItemInSlot(GameObject critter, EquipSlot slot)
+    {
+        var item = ItemWornAt(critter, slot);
+        if (item != null)
+        {
+            return UnequipItem(item);
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    [TempleDllLocation(0x1006a640)]
+    public bool UnequipItem(GameObject item)
+    {
+        var invIdx = item.GetItemInventoryLocation();
+        if (IsInvIdxWorn(invIdx))
+        {
+            var receiver = GetParent(item);
+            var itemInsertLocation = INVENTORY_IDX_UNDEFINED;
+            if (IsItemNonTransferrable(item, receiver) != ItemErrorCode.OK)
+            {
+                return false;
+            }
+
+            if (ItemInsertGetLocation(item, receiver, ref itemInsertLocation, null, default) != ItemErrorCode.OK)
+            {
+                return false;
+            }
+
+            Remove(item);
+            InsertAtLocation(item, receiver, itemInsertLocation);
+        }
+
+        return true;
+    }
+
+    [TempleDllLocation(0x10064c40)]
+    public bool IsMagical(GameObject item) => item.GetItemFlags().HasFlag(ItemFlag.IS_MAGICAL);
+
+    /// <summary>
+    /// Identifies all items in the given container / critter.
+    /// </summary>
+    [TempleDllLocation(0x10064c70)]
+    public void IdentifyAll(GameObject container)
+    {
+        foreach (var item in container.EnumerateChildren())
+        {
+            item.SetItemFlag(ItemFlag.IDENTIFIED, true);
+        }
+    }
+
+    /// <summary>
+    /// The sum of copper coins to add to an items worth for considering it the best item to wear.
+    /// </summary>
+    private const int MagicalItemWorthBonus = 1000000;
+
+    [TempleDllLocation(0x1006CCC0)]
+    public void WieldBest(GameObject critter, int invIdx, GameObject target)
+    {
+        if (invIdx == InvIdxWeaponSecondary)
+        {
+            return;
+        }
+
+        var bestItem = GetItemAtInvIdx(critter, invIdx);
+        var bestItemWorth = (float) int.MinValue;
+        if (bestItem != null)
+        {
+            if (CheckTransferToWieldSlot(bestItem, invIdx, critter) != ItemErrorCode.OK)
+            {
+                UnequipItemInSlot(critter, SlotByInvIdx(invIdx));
+                bestItem = null;
+            }
+            else if (invIdx != InvIdxWeaponPrimary)
+            {
+                bestItemWorth = GetItemWorthRegardIdentified(bestItem);
+                if (IsMagical(bestItem))
                 {
-                    if (!IsInvIdxWorn(itemCandidate.GetItemInventoryLocation()))
-                    {
-                        var candidateWorth = GetItemWorthRegardIdentified(itemCandidate);
-                        if (IsMagical(itemCandidate))
-                        {
-                            candidateWorth += MagicalItemWorthBonus;
-                        }
+                    bestItemWorth += MagicalItemWorthBonus;
+                }
+            }
+        }
 
-                        if (candidateWorth > bestItemWorth)
-                        {
-                            bestItemWorth = candidateWorth;
-                            bestItem = itemCandidate;
-                        }
+        GameObject bestSecondaryWeapon = null;
+
+        var inventory = critter.EnumerateChildren().ToArray();
+
+        for (var i = 0; i < inventory.Length; i++)
+        {
+            var itemCandidate = inventory[i];
+            if (CheckTransferToWieldSlot(itemCandidate, invIdx, critter) != ItemErrorCode.OK)
+            {
+                // Skip anything that cannot be worn in the desired slot
+                continue;
+            }
+
+            // Anything but the primary weapon is chosen only based on it's monetary worth,
+            // preferring anything that is magical
+            if (invIdx != InvIdxWeaponPrimary)
+            {
+                if (!IsInvIdxWorn(itemCandidate.GetItemInventoryLocation()))
+                {
+                    var candidateWorth = GetItemWorthRegardIdentified(itemCandidate);
+                    if (IsMagical(itemCandidate))
+                    {
+                        candidateWorth += MagicalItemWorthBonus;
                     }
 
-                    continue;
+                    if (candidateWorth > bestItemWorth)
+                    {
+                        bestItemWorth = candidateWorth;
+                        bestItem = itemCandidate;
+                    }
                 }
 
-                var weaponAmmoType = itemCandidate.GetWeaponAmmoType();
-                if (weaponAmmoType == WeaponAmmoType.no_ammo)
+                continue;
+            }
+
+            var weaponAmmoType = itemCandidate.GetWeaponAmmoType();
+            if (weaponAmmoType == WeaponAmmoType.no_ammo)
+            {
+                if (GameSystems.Feat.HasFeat(critter, FeatId.TWO_WEAPON_FIGHTING))
                 {
-                    if (GameSystems.Feat.HasFeat(critter, FeatId.TWO_WEAPON_FIGHTING))
+                    for (int j = 0; j < inventory.Length; j++)
                     {
-                        for (int j = 0; j < inventory.Length; j++)
+                        if (j != i)
                         {
-                            if (j != i)
+                            var offHandWeapon = inventory[j];
+                            if (CheckTransferToWieldSlot(offHandWeapon, InvIdxWeaponSecondary, critter) ==
+                                ItemErrorCode.OK &&
+                                offHandWeapon.GetWeaponAmmoType() == WeaponAmmoType.no_ammo)
                             {
-                                var offHandWeapon = inventory[j];
-                                if (CheckTransferToWieldSlot(offHandWeapon, InvIdxWeaponSecondary, critter) ==
-                                    ItemErrorCode.OK &&
-                                    offHandWeapon.GetWeaponAmmoType() == WeaponAmmoType.no_ammo)
+                                var v17 = GetExpectedWeaponDamage(itemCandidate, offHandWeapon, critter, target);
+                                if (v17 > bestItemWorth)
                                 {
-                                    var v17 = GetExpectedWeaponDamage(itemCandidate, offHandWeapon, critter, target);
-                                    if (v17 > bestItemWorth)
-                                    {
-                                        bestItemWorth = v17;
-                                        bestItem = itemCandidate;
-                                        bestSecondaryWeapon = offHandWeapon;
-                                    }
+                                    bestItemWorth = v17;
+                                    bestItem = itemCandidate;
+                                    bestSecondaryWeapon = offHandWeapon;
                                 }
                             }
                         }
                     }
+                }
 
-                    var expectedDamage = GetExpectedWeaponDamage(itemCandidate, null, critter, target);
+                var expectedDamage = GetExpectedWeaponDamage(itemCandidate, null, critter, target);
+                if (expectedDamage > bestItemWorth)
+                {
+                    bestItemWorth = expectedDamage;
+                    bestItem = itemCandidate;
+                    bestSecondaryWeapon = null;
+                }
+            }
+            else
+            {
+                // Check that the considered weapon has enough ammo to be used
+                var availableAmmo = GetAmmoQuantity(critter, weaponAmmoType);
+                var requiredAmmo = itemCandidate.GetInt32(obj_f.weapon_ammo_consumption);
+                if (availableAmmo >= requiredAmmo)
+                {
+                    var expectedDamage = GetExpectedWeaponDamage(itemCandidate, null,
+                        critter, target);
+
+                    // Ammo types with a (potential) infinite supply seem to be preferred
+                    if (weaponAmmoType.TryGetInfiniteSupplyProtoId(out _))
+                    {
+                        expectedDamage *= 3.0f;
+                    }
+
                     if (expectedDamage > bestItemWorth)
                     {
                         bestItemWorth = expectedDamage;
                         bestItem = itemCandidate;
                         bestSecondaryWeapon = null;
                     }
-                }
-                else
-                {
-                    // Check that the considered weapon has enough ammo to be used
-                    var availableAmmo = GetAmmoQuantity(critter, weaponAmmoType);
-                    var requiredAmmo = itemCandidate.GetInt32(obj_f.weapon_ammo_consumption);
-                    if (availableAmmo >= requiredAmmo)
-                    {
-                        var expectedDamage = GetExpectedWeaponDamage(itemCandidate, null,
-                            critter, target);
 
-                        // Ammo types with a (potential) infinite supply seem to be preferred
-                        if (weaponAmmoType.TryGetInfiniteSupplyProtoId(out _))
-                        {
-                            expectedDamage *= 3.0f;
-                        }
-
-                        if (expectedDamage > bestItemWorth)
-                        {
-                            bestItemWorth = expectedDamage;
-                            bestItem = itemCandidate;
-                            bestSecondaryWeapon = null;
-                        }
-
-                        continue;
-                    }
+                    continue;
                 }
             }
+        }
 
-            if (invIdx != InvIdxWeaponPrimary)
-            {
-                if (bestItem != null)
-                {
-                    ItemPlaceInIndex(bestItem, invIdx);
-                }
-
-                return;
-            }
-
+        if (invIdx != InvIdxWeaponPrimary)
+        {
             if (bestItem != null)
             {
                 ItemPlaceInIndex(bestItem, invIdx);
             }
-            else
-            {
-                UnequipItemInSlot(critter, EquipSlot.WeaponPrimary);
-            }
 
-            if (bestSecondaryWeapon != null)
+            return;
+        }
+
+        if (bestItem != null)
+        {
+            ItemPlaceInIndex(bestItem, invIdx);
+        }
+        else
+        {
+            UnequipItemInSlot(critter, EquipSlot.WeaponPrimary);
+        }
+
+        if (bestSecondaryWeapon != null)
+        {
+            ItemPlaceInIndex(bestSecondaryWeapon, InvIdxWeaponSecondary);
+        }
+        else
+        {
+            UnequipItemInSlot(critter, EquipSlot.WeaponSecondary);
+        }
+    }
+
+    [TempleDllLocation(0x10067310)]
+    private int GetAmmoQuantity(GameObject critter, WeaponAmmoType ammoType)
+    {
+        var ammoItem = FindAmmoItem(critter, ammoType);
+
+        if (ammoItem != null)
+        {
+            return ammoItem.GetInt32(obj_f.ammo_quantity);
+        }
+
+        return 0;
+    }
+
+    [TempleDllLocation(0x10065320)]
+    private GameObject FindAmmoItem(GameObject container, WeaponAmmoType ammoType)
+    {
+        foreach (var item in container.EnumerateChildren())
+        {
+            if (item.type == ObjectType.ammo && item.GetInt32(obj_f.ammo_type) == (int) ammoType)
             {
-                ItemPlaceInIndex(bestSecondaryWeapon, InvIdxWeaponSecondary);
-            }
-            else
-            {
-                UnequipItemInSlot(critter, EquipSlot.WeaponSecondary);
+                return item;
             }
         }
 
-        [TempleDllLocation(0x10067310)]
-        private int GetAmmoQuantity(GameObject critter, WeaponAmmoType ammoType)
+        return null;
+    }
+
+    [TempleDllLocation(0x1006bd90)]
+    private float GetExpectedWeaponDamage(GameObject weapon,
+        GameObject offhandWeapon,
+        GameObject attacker,
+        GameObject target)
+    {
+        var primaryWeaponExpectedDmg = 0.0f;
+        var secondaryWeapExpectedDmg = 0.0f;
+        var tgtAc = 15;
+
+        // Unequip current main and offhand weapons
+        var currentMainHand = ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+        var currentOffHand = ItemWornAt(attacker, EquipSlot.WeaponSecondary);
+        if (currentMainHand != null)
         {
-            var ammoItem = FindAmmoItem(critter, ammoType);
-
-            if (ammoItem != null)
-            {
-                return ammoItem.GetInt32(obj_f.ammo_quantity);
-            }
-
-            return 0;
+            UnequipItem(currentMainHand);
         }
 
-        [TempleDllLocation(0x10065320)]
-        private GameObject FindAmmoItem(GameObject container, WeaponAmmoType ammoType)
+        if (currentOffHand != null)
         {
-            foreach (var item in container.EnumerateChildren())
-            {
-                if (item.type == ObjectType.ammo && item.GetInt32(obj_f.ammo_type) == (int) ammoType)
-                {
-                    return item;
-                }
-            }
-
-            return null;
+            UnequipItem(currentOffHand);
         }
 
-        [TempleDllLocation(0x1006bd90)]
-        private float GetExpectedWeaponDamage(GameObject weapon,
-            GameObject offhandWeapon,
-            GameObject attacker,
-            GameObject target)
+        if (weapon != null)
         {
-            var primaryWeaponExpectedDmg = 0.0f;
-            var secondaryWeapExpectedDmg = 0.0f;
-            var tgtAc = 15;
-
-            // Unequip current main and offhand weapons
-            var currentMainHand = ItemWornAt(attacker, EquipSlot.WeaponPrimary);
-            var currentOffHand = ItemWornAt(attacker, EquipSlot.WeaponSecondary);
-            if (currentMainHand != null)
-            {
-                UnequipItem(currentMainHand);
-            }
-
-            if (currentOffHand != null)
-            {
-                UnequipItem(currentOffHand);
-            }
-
-            if (weapon != null)
-            {
-                ItemPlaceInIndex(weapon, 203);
-            }
-
-            if (offhandWeapon != null)
-            {
-                ItemPlaceInIndex(offhandWeapon, 204);
-            }
-
-            if (target != null)
-            {
-                var acDispIo = DispIoAttackBonus.Default;
-                acDispIo.attackPacket.attacker = target;
-                acDispIo.attackPacket.victim = attacker;
-                acDispIo.attackPacket.weaponUsed = weapon;
-                acDispIo.attackPacket.ammoItem = CheckRangedWeaponAmmo(attacker);
-                tgtAc = GameSystems.Stat.GetAC(target, acDispIo);
-            }
-
-            var primaryToHitDispIo = DispIoAttackBonus.Default;
-            primaryToHitDispIo.attackPacket.victim = target;
-            primaryToHitDispIo.attackPacket.d20ActnType = D20ActionType.FULL_ATTACK;
-            primaryToHitDispIo.attackPacket.attacker = attacker;
-            primaryToHitDispIo.attackPacket.weaponUsed = weapon;
-            primaryToHitDispIo.attackPacket.ammoItem = CheckRangedWeaponAmmo(attacker);
-            primaryToHitDispIo.attackPacket.dispKey = 1;
-            if (offhandWeapon != null)
-            {
-                primaryToHitDispIo.attackPacket.dispKey = 5;
-            }
-
-            var toHitBonPrimaryAtk = GameSystems.Stat.Dispatch16GetToHitBonus(attacker, primaryToHitDispIo);
-
-            var toHitBonSecondaryAtk = 0;
-            if (offhandWeapon != null && offhandWeapon.type == ObjectType.weapon)
-            {
-                var secondaryToHitDispIo = DispIoAttackBonus.Default;
-                secondaryToHitDispIo.attackPacket.victim = target;
-                secondaryToHitDispIo.attackPacket.d20ActnType = D20ActionType.FULL_ATTACK;
-                secondaryToHitDispIo.attackPacket.attacker = attacker;
-                secondaryToHitDispIo.attackPacket.dispKey = 6;
-                secondaryToHitDispIo.attackPacket.weaponUsed = offhandWeapon;
-                secondaryToHitDispIo.attackPacket.ammoItem = null;
-                secondaryToHitDispIo.attackPacket.flags = D20CAF.SECONDARY_WEAPON;
-                toHitBonSecondaryAtk = GameSystems.Stat.Dispatch16GetToHitBonus(attacker, secondaryToHitDispIo);
-            }
-
-            var hitChancePrimary = 1.0f - (tgtAc - toHitBonPrimaryAtk) / 20.0f;
-            var hitChanceSecondary = 1.0f - (tgtAc - toHitBonSecondaryAtk) / 20.0f;
-            if (weapon != null && weapon.type == ObjectType.weapon)
-            {
-                var damDice = Dice.Unpack(weapon.GetUInt32(obj_f.weapon_damage_dice));
-                primaryWeaponExpectedDmg = damDice.ExpectedValue;
-            }
-
-            if (offhandWeapon != null && offhandWeapon.type == ObjectType.weapon)
-            {
-                var damDice = Dice.Unpack(offhandWeapon.GetUInt32(obj_f.weapon_damage_dice));
-                secondaryWeapExpectedDmg = damDice.ExpectedValue;
-            }
-
-            // Re-Equip the previous weapons
-            if (currentMainHand != null)
-            {
-                ItemPlaceInIndex(currentMainHand, 203);
-            }
-            else
-            {
-                var currentItem = ItemWornAt(attacker, EquipSlot.WeaponPrimary);
-                if (currentItem != null)
-                {
-                    UnequipItem(currentItem);
-                }
-            }
-
-            if (currentOffHand != null)
-            {
-                ItemPlaceInIndex(currentOffHand, 204);
-            }
-            else
-            {
-                var currentItem = ItemWornAt(attacker, EquipSlot.WeaponSecondary);
-                if (currentItem != null)
-                {
-                    UnequipItem(currentItem);
-                }
-            }
-
-            return secondaryWeapExpectedDmg * hitChanceSecondary
-                   + primaryWeaponExpectedDmg * hitChancePrimary;
+            ItemPlaceInIndex(weapon, 203);
         }
 
-        [TempleDllLocation(0x1006bb50)]
-        public void ItemPlaceInIndex(GameObject item, int invIdx)
+        if (offhandWeapon != null)
         {
-            var parent = GetParent(item);
-            ItemTransferWithFlags(item, parent, invIdx, ItemInsertFlag.Unk4, null);
+            ItemPlaceInIndex(offhandWeapon, 204);
         }
 
-        [TempleDllLocation(0x1006AA60)]
-        public bool ItemDrop(GameObject item)
+        if (target != null)
         {
-            throw new NotImplementedException();
+            var acDispIo = DispIoAttackBonus.Default;
+            acDispIo.attackPacket.attacker = target;
+            acDispIo.attackPacket.victim = attacker;
+            acDispIo.attackPacket.weaponUsed = weapon;
+            acDispIo.attackPacket.ammoItem = CheckRangedWeaponAmmo(attacker);
+            tgtAc = GameSystems.Stat.GetAC(target, acDispIo);
         }
 
-        [TempleDllLocation(0x1006b040)]
-        public ItemErrorCode ItemTransferWithFlags(GameObject item, GameObject receiver, int invIdx,
-            ItemInsertFlag flags, GameObject bag)
+        var primaryToHitDispIo = DispIoAttackBonus.Default;
+        primaryToHitDispIo.attackPacket.victim = target;
+        primaryToHitDispIo.attackPacket.d20ActnType = D20ActionType.FULL_ATTACK;
+        primaryToHitDispIo.attackPacket.attacker = attacker;
+        primaryToHitDispIo.attackPacket.weaponUsed = weapon;
+        primaryToHitDispIo.attackPacket.ammoItem = CheckRangedWeaponAmmo(attacker);
+        primaryToHitDispIo.attackPacket.dispKey = 1;
+        if (offhandWeapon != null)
         {
-            var parent = GetParent(item);
-            if (parent == null || receiver == null || item == null)
+            primaryToHitDispIo.attackPacket.dispKey = 5;
+        }
+
+        var toHitBonPrimaryAtk = GameSystems.Stat.Dispatch16GetToHitBonus(attacker, primaryToHitDispIo);
+
+        var toHitBonSecondaryAtk = 0;
+        if (offhandWeapon != null && offhandWeapon.type == ObjectType.weapon)
+        {
+            var secondaryToHitDispIo = DispIoAttackBonus.Default;
+            secondaryToHitDispIo.attackPacket.victim = target;
+            secondaryToHitDispIo.attackPacket.d20ActnType = D20ActionType.FULL_ATTACK;
+            secondaryToHitDispIo.attackPacket.attacker = attacker;
+            secondaryToHitDispIo.attackPacket.dispKey = 6;
+            secondaryToHitDispIo.attackPacket.weaponUsed = offhandWeapon;
+            secondaryToHitDispIo.attackPacket.ammoItem = null;
+            secondaryToHitDispIo.attackPacket.flags = D20CAF.SECONDARY_WEAPON;
+            toHitBonSecondaryAtk = GameSystems.Stat.Dispatch16GetToHitBonus(attacker, secondaryToHitDispIo);
+        }
+
+        var hitChancePrimary = 1.0f - (tgtAc - toHitBonPrimaryAtk) / 20.0f;
+        var hitChanceSecondary = 1.0f - (tgtAc - toHitBonSecondaryAtk) / 20.0f;
+        if (weapon != null && weapon.type == ObjectType.weapon)
+        {
+            var damDice = Dice.Unpack(weapon.GetUInt32(obj_f.weapon_damage_dice));
+            primaryWeaponExpectedDmg = damDice.ExpectedValue;
+        }
+
+        if (offhandWeapon != null && offhandWeapon.type == ObjectType.weapon)
+        {
+            var damDice = Dice.Unpack(offhandWeapon.GetUInt32(obj_f.weapon_damage_dice));
+            secondaryWeapExpectedDmg = damDice.ExpectedValue;
+        }
+
+        // Re-Equip the previous weapons
+        if (currentMainHand != null)
+        {
+            ItemPlaceInIndex(currentMainHand, 203);
+        }
+        else
+        {
+            var currentItem = ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+            if (currentItem != null)
             {
-                return ItemErrorCode.Cannot_Transfer;
+                UnequipItem(currentItem);
+            }
+        }
+
+        if (currentOffHand != null)
+        {
+            ItemPlaceInIndex(currentOffHand, 204);
+        }
+        else
+        {
+            var currentItem = ItemWornAt(attacker, EquipSlot.WeaponSecondary);
+            if (currentItem != null)
+            {
+                UnequipItem(currentItem);
+            }
+        }
+
+        return secondaryWeapExpectedDmg * hitChanceSecondary
+               + primaryWeaponExpectedDmg * hitChancePrimary;
+    }
+
+    [TempleDllLocation(0x1006bb50)]
+    public void ItemPlaceInIndex(GameObject item, int invIdx)
+    {
+        var parent = GetParent(item);
+        ItemTransferWithFlags(item, parent, invIdx, ItemInsertFlag.Unk4, null);
+    }
+
+    [TempleDllLocation(0x1006AA60)]
+    public bool ItemDrop(GameObject item)
+    {
+        throw new NotImplementedException();
+    }
+
+    [TempleDllLocation(0x1006b040)]
+    public ItemErrorCode ItemTransferWithFlags(GameObject item, GameObject receiver, int invIdx,
+        ItemInsertFlag flags, GameObject bag)
+    {
+        var parent = GetParent(item);
+        if (parent == null || receiver == null || item == null)
+        {
+            return ItemErrorCode.Cannot_Transfer;
+        }
+
+        ItemErrorCode ReportInsertFailed(ItemErrorCode code)
+        {
+            Logger.Warn("TransferWithFlags: item '{0}' cannot be inserted into inventory of '{1}', reason={2}",
+                item, parent, code.ToString());
+            return code;
+        }
+
+        var itemInvLocation = item.GetInt32(obj_f.item_inv_location);
+        var itemInsertLocation = INVENTORY_IDX_UNDEFINED;
+        if (invIdx != INVENTORY_IDX_UNDEFINED)
+            itemInsertLocation = invIdx;
+
+        if (!receiver.IsCritter() && invIdx != INVENTORY_IDX_UNDEFINED && IsInvIdxWorn(invIdx))
+        {
+            return ItemErrorCode.No_Room_For_Item;
+        }
+
+        var isNonTransferable = IsItemNonTransferrable(item, receiver);
+        if (isNonTransferable != ItemErrorCode.OK)
+        {
+            if (isNonTransferable > 0)
+            {
+                Logger.Warn("TransferWithFlags: item {0} cannot be removed from {1}'s inventory, reason = {2}.",
+                    item, parent, isNonTransferable);
             }
 
-            ItemErrorCode ReportInsertFailed(ItemErrorCode code)
+            return isNonTransferable;
+        }
+
+        var result = ItemInsertGetLocation(item, receiver, ref itemInsertLocation, bag, flags);
+        if (result == ItemErrorCode.Wrong_Type_For_Slot)
+        {
+            /* Handle Wrong Type For Slot error
+             try to transfer to matching equip slot
+            */
+
+            if (invIdx == INVENTORY_IDX_UNDEFINED || !(flags.HasFlag(ItemInsertFlag.Use_Wield_Slots)))
             {
-                Logger.Warn("TransferWithFlags: item '{0}' cannot be inserted into inventory of '{1}', reason={2}",
-                    item, parent, code.ToString());
-                return code;
+                return ReportInsertFailed(ItemErrorCode.Wrong_Type_For_Slot);
             }
 
-            var itemInvLocation = item.GetInt32(obj_f.item_inv_location);
-            var itemInsertLocation = INVENTORY_IDX_UNDEFINED;
-            if (invIdx != INVENTORY_IDX_UNDEFINED)
-                itemInsertLocation = invIdx;
+            result = ItemTransferToSuitableEquipSlot(parent, receiver, item, itemInsertLocation,
+                flags);
+            TransferPcInvLocation(item, itemInvLocation);
+            return result;
+        }
 
-            if (!receiver.IsCritter() && invIdx != INVENTORY_IDX_UNDEFINED && IsInvIdxWorn(invIdx))
+        if (result != ItemErrorCode.OK)
+        {
+            // Handle Wield Slot Occupied error
+            // try to swap with existing item.
+            if (result != ItemErrorCode.Wield_Slot_Occupied || !(flags.HasFlag(ItemInsertFlag.Allow_Swap)))
             {
-                return ItemErrorCode.No_Room_For_Item;
+                return ReportInsertFailed(result);
             }
 
-            var isNonTransferable = IsItemNonTransferrable(item, receiver);
-            if (isNonTransferable != ItemErrorCode.OK)
+            // try to swap Secondary Weapon with Shield slot (this looks a bit weird but eh)
+            if (itemInsertLocation == InvIdxWeaponSecondary)
             {
-                if (isNonTransferable > 0)
-                {
-                    Logger.Warn("TransferWithFlags: item {0} cannot be removed from {1}'s inventory, reason = {2}.",
-                        item, parent, isNonTransferable);
-                }
-
-                return isNonTransferable;
-            }
-
-            var result = ItemInsertGetLocation(item, receiver, ref itemInsertLocation, bag, flags);
-            if (result == ItemErrorCode.Wrong_Type_For_Slot)
-            {
-                /* Handle Wrong Type For Slot error
-                 try to transfer to matching equip slot
-                */
-
-                if (invIdx == INVENTORY_IDX_UNDEFINED || !(flags.HasFlag(ItemInsertFlag.Use_Wield_Slots)))
-                {
-                    return ReportInsertFailed(ItemErrorCode.Wrong_Type_For_Slot);
-                }
-
-                result = ItemTransferToSuitableEquipSlot(parent, receiver, item, itemInsertLocation,
-                    flags);
-                TransferPcInvLocation(item, itemInvLocation);
-                return result;
-            }
-
-            if (result != ItemErrorCode.OK)
-            {
-                // Handle Wield Slot Occupied error
-                // try to swap with existing item.
-                if (result != ItemErrorCode.Wield_Slot_Occupied || !(flags.HasFlag(ItemInsertFlag.Allow_Swap)))
-                {
-                    return ReportInsertFailed(result);
-                }
-
-                // try to swap Secondary Weapon with Shield slot (this looks a bit weird but eh)
-                if (itemInsertLocation == InvIdxWeaponSecondary)
-                {
-                    var shield = ItemWornAt(parent, EquipSlot.Shield);
-                    if (shield != null)
-                    {
-                        return ReportInsertFailed(ItemErrorCode.Wield_Slot_Occupied);
-                    }
-                }
-
-                var swapWithItem = GetItemAtInvIdx(receiver, itemInsertLocation);
-                if (swapWithItem == null)
+                var shield = ItemWornAt(parent, EquipSlot.Shield);
+                if (shield != null)
                 {
                     return ReportInsertFailed(ItemErrorCode.Wield_Slot_Occupied);
                 }
+            }
 
-                result = PerformSwap(parent, receiver, item, swapWithItem, itemInsertLocation, itemInsertLocation,
-                    flags);
+            var swapWithItem = GetItemAtInvIdx(receiver, itemInsertLocation);
+            if (swapWithItem == null)
+            {
+                return ReportInsertFailed(ItemErrorCode.Wield_Slot_Occupied);
+            }
+
+            result = PerformSwap(parent, receiver, item, swapWithItem, itemInsertLocation, itemInsertLocation,
+                flags);
+            TransferPcInvLocation(item, itemInvLocation);
+            return result;
+        }
+
+
+        // ItemErrorCode.OK
+        if (itemInsertLocation == invIdx || itemInsertLocation != INVENTORY_IDX_UNDEFINED)
+        {
+            if ((flags.HasFlag(ItemInsertFlag.Allow_Swap)) && GetItemAtInvIdx(parent, invIdx) != null)
+            {
+                itemInsertLocation = invIdx;
+            }
+
+            result = PerformTransfer(parent, receiver, item, itemInsertLocation, flags);
+            TransferPcInvLocation(item, itemInvLocation);
+            return result;
+        }
+
+        // Unspecified Inventory Slot
+        if (invIdx == INVENTORY_IDX_UNDEFINED)
+        {
+            if (flags.HasFlag(ItemInsertFlag.Use_Wield_Slots))
+            {
+                result = ItemTransferToSuitableEquipSlot(parent, receiver, item,
+                    INVENTORY_IDX_UNDEFINED, flags);
                 TransferPcInvLocation(item, itemInvLocation);
                 return result;
             }
 
-
-            // ItemErrorCode.OK
-            if (itemInsertLocation == invIdx || itemInsertLocation != INVENTORY_IDX_UNDEFINED)
+            if (flags.HasFlag(ItemInsertFlag.Unk4))
             {
-                if ((flags.HasFlag(ItemInsertFlag.Allow_Swap)) && GetItemAtInvIdx(parent, invIdx) != null)
-                {
-                    itemInsertLocation = invIdx;
-                }
-
-                result = PerformTransfer(parent, receiver, item, itemInsertLocation, flags);
-                TransferPcInvLocation(item, itemInvLocation);
-                return result;
-            }
-
-            // Unspecified Inventory Slot
-            if (invIdx == INVENTORY_IDX_UNDEFINED)
-            {
-                if (flags.HasFlag(ItemInsertFlag.Use_Wield_Slots))
-                {
-                    result = ItemTransferToSuitableEquipSlot(parent, receiver, item,
-                        INVENTORY_IDX_UNDEFINED, flags);
-                    TransferPcInvLocation(item, itemInvLocation);
-                    return result;
-                }
-
-                if (flags.HasFlag(ItemInsertFlag.Unk4))
-                {
-                    result = PerformTransfer(parent, receiver, item, INVENTORY_IDX_UNDEFINED, flags);
-                    TransferPcInvLocation(item, itemInvLocation);
-                    return result;
-                }
-
-                return ReportInsertFailed(ItemErrorCode.Cannot_Transfer);
-            }
-
-            // Specified Slot
-            // Check if slot is clear
-            var existingItem = GetItemAtInvIdx(receiver, invIdx);
-            if (existingItem == null)
-            {
-                result = PerformTransfer(parent, receiver, item, invIdx, flags);
-                TransferPcInvLocation(item, itemInvLocation);
-                return result;
-            }
-
-            // If not, check swappage
-            if (flags.HasFlag(ItemInsertFlag.Allow_Swap))
-            {
-                result = PerformSwap(parent, receiver, item, existingItem, invIdx, INVENTORY_IDX_UNDEFINED,
-                    flags);
-                TransferPcInvLocation(item, itemInvLocation);
-                return result;
-            }
-
-            // If not, try unspecified slot
-            if (!(flags.HasFlag(ItemInsertFlag.Use_Wield_Slots)))
-            {
-                if (!(flags.HasFlag(ItemInsertFlag.Unk4)))
-                {
-                    return ItemErrorCode.No_Room_For_Item;
-                }
-
                 result = PerformTransfer(parent, receiver, item, INVENTORY_IDX_UNDEFINED, flags);
                 TransferPcInvLocation(item, itemInvLocation);
                 return result;
             }
 
-            // Go over wield slots
-            foreach (var equipSlot in EquipSlots.Slots)
-            {
-                if (ItemWornAt(receiver, equipSlot) != null)
-                {
-                    continue;
-                }
+            return ReportInsertFailed(ItemErrorCode.Cannot_Transfer);
+        }
 
-                int slotInvIdx = GetInventoryLocationForSlot(equipSlot);
-                if (CheckTransferToWieldSlot(item, slotInvIdx, receiver) != ItemErrorCode.OK)
-                {
-                    result = PerformTransfer(parent, receiver, item, slotInvIdx, flags);
-                    TransferPcInvLocation(item, itemInvLocation);
-                    return result;
-                }
+        // Specified Slot
+        // Check if slot is clear
+        var existingItem = GetItemAtInvIdx(receiver, invIdx);
+        if (existingItem == null)
+        {
+            result = PerformTransfer(parent, receiver, item, invIdx, flags);
+            TransferPcInvLocation(item, itemInvLocation);
+            return result;
+        }
+
+        // If not, check swappage
+        if (flags.HasFlag(ItemInsertFlag.Allow_Swap))
+        {
+            result = PerformSwap(parent, receiver, item, existingItem, invIdx, INVENTORY_IDX_UNDEFINED,
+                flags);
+            TransferPcInvLocation(item, itemInvLocation);
+            return result;
+        }
+
+        // If not, try unspecified slot
+        if (!(flags.HasFlag(ItemInsertFlag.Use_Wield_Slots)))
+        {
+            if (!(flags.HasFlag(ItemInsertFlag.Unk4)))
+            {
+                return ItemErrorCode.No_Room_For_Item;
             }
 
+            result = PerformTransfer(parent, receiver, item, INVENTORY_IDX_UNDEFINED, flags);
+            TransferPcInvLocation(item, itemInvLocation);
+            return result;
+        }
+
+        // Go over wield slots
+        foreach (var equipSlot in EquipSlots.Slots)
+        {
+            if (ItemWornAt(receiver, equipSlot) != null)
+            {
+                continue;
+            }
+
+            int slotInvIdx = GetInventoryLocationForSlot(equipSlot);
+            if (CheckTransferToWieldSlot(item, slotInvIdx, receiver) != ItemErrorCode.OK)
+            {
+                result = PerformTransfer(parent, receiver, item, slotInvIdx, flags);
+                TransferPcInvLocation(item, itemInvLocation);
+                return result;
+            }
+        }
+
+        return ItemErrorCode.Cannot_Transfer;
+    }
+
+    [TempleDllLocation(0x10067b10)]
+    private void TransferPcInvLocation(GameObject item, int itemInvLocation)
+    {
+        var parent = GetParent(item);
+        if (parent == null)
+        {
+            return;
+        }
+
+        if (parent.IsPC())
+        {
+            var oldInvLocation = item.GetItemInventoryLocation();
+            PcInvLocationSet(parent, itemInvLocation, oldInvLocation);
+        }
+    }
+
+    [TempleDllLocation(0x10067970)]
+    private void PcInvLocationSet(GameObject parent, int itemInvLocation, int itemInvLocationNew)
+    {
+        for (var i = 1; i < 21; ++i)
+        {
+            if (parent.GetInt32(obj_f.pc_weaponslots_idx, i) == itemInvLocation)
+            {
+                parent.SetInt32(obj_f.pc_weaponslots_idx, i, itemInvLocationNew);
+            }
+        }
+    }
+
+    [TempleDllLocation(0x1006A6E0)]
+    private ItemErrorCode ItemTransferToSuitableEquipSlot(GameObject owner, GameObject receiver,
+        GameObject item, int a6, ItemInsertFlag flags)
+    {
+        if (!receiver.IsCritter())
+        {
             return ItemErrorCode.Cannot_Transfer;
         }
 
-        [TempleDllLocation(0x10067b10)]
-        private void TransferPcInvLocation(GameObject item, int itemInvLocation)
+        foreach (var equipSlot in EquipSlots.Slots)
         {
-            var parent = GetParent(item);
-            if (parent == null)
+            var invIdx = GetInventoryLocationForSlot(equipSlot);
+
+            // TODO: Shouldn't this use CanCurrentlyEquipItem??
+            if (ItemCheckSlotAndWieldFlags(item, receiver, invIdx) != ItemErrorCode.OK)
             {
-                return;
+                continue;
             }
 
-            if (parent.IsPC())
+            var itemAlreadyWorn = ItemWornAt(receiver, equipSlot);
+            if (itemAlreadyWorn == null)
             {
-                var oldInvLocation = item.GetItemInventoryLocation();
-                PcInvLocationSet(parent, itemInvLocation, oldInvLocation);
+                return PerformTransfer(owner, receiver, item, invIdx, flags);
             }
-        }
 
-        [TempleDllLocation(0x10067970)]
-        private void PcInvLocationSet(GameObject parent, int itemInvLocation, int itemInvLocationNew)
-        {
-            for (var i = 1; i < 21; ++i)
+            var v10 = itemAlreadyWorn.GetItemInventoryLocation();
+            if (flags.HasFlag(ItemInsertFlag.Allow_Swap))
             {
-                if (parent.GetInt32(obj_f.pc_weaponslots_idx, i) == itemInvLocation)
-                {
-                    parent.SetInt32(obj_f.pc_weaponslots_idx, i, itemInvLocationNew);
-                }
+                return PerformSwap(owner, receiver, item, itemAlreadyWorn, v10, a6, flags);
             }
         }
 
-        [TempleDllLocation(0x1006A6E0)]
-        private ItemErrorCode ItemTransferToSuitableEquipSlot(GameObject owner, GameObject receiver,
-            GameObject item, int a6, ItemInsertFlag flags)
+        return ItemErrorCode.Cannot_Transfer;
+    }
+
+    [TempleDllLocation(0x1006AB50)]
+    private ItemErrorCode PerformSwap(GameObject owner, GameObject receiver, GameObject item,
+        GameObject itemPrevious, int equippedItemSlot, int a7, ItemInsertFlag flags)
+    {
+        if (IsItemNonTransferrable(itemPrevious, receiver) != ItemErrorCode.OK)
         {
-            if (!receiver.IsCritter())
+            if (flags.HasFlag(ItemInsertFlag.Use_Wield_Slots))
+            {
+                return ItemTransferToSuitableEquipSlot(owner, receiver, item, a7, flags);
+            }
+            else if (flags.HasFlag(ItemInsertFlag.Unk4))
+            {
+                return PerformTransfer(owner, receiver, item, a7, flags);
+            }
+            else
             {
                 return ItemErrorCode.Cannot_Transfer;
             }
-
-            foreach (var equipSlot in EquipSlots.Slots)
-            {
-                var invIdx = GetInventoryLocationForSlot(equipSlot);
-
-                // TODO: Shouldn't this use CanCurrentlyEquipItem??
-                if (ItemCheckSlotAndWieldFlags(item, receiver, invIdx) != ItemErrorCode.OK)
-                {
-                    continue;
-                }
-
-                var itemAlreadyWorn = ItemWornAt(receiver, equipSlot);
-                if (itemAlreadyWorn == null)
-                {
-                    return PerformTransfer(owner, receiver, item, invIdx, flags);
-                }
-
-                var v10 = itemAlreadyWorn.GetItemInventoryLocation();
-                if (flags.HasFlag(ItemInsertFlag.Allow_Swap))
-                {
-                    return PerformSwap(owner, receiver, item, itemAlreadyWorn, v10, a6, flags);
-                }
-            }
-
-            return ItemErrorCode.Cannot_Transfer;
         }
 
-        [TempleDllLocation(0x1006AB50)]
-        private ItemErrorCode PerformSwap(GameObject owner, GameObject receiver, GameObject item,
-            GameObject itemPrevious, int equippedItemSlot, int a7, ItemInsertFlag flags)
+        var v10 = item;
+        var itemInsertLocation = item.GetItemInventoryLocation();
+        if (IsInvIdxWorn(equippedItemSlot))
         {
-            if (IsItemNonTransferrable(itemPrevious, receiver) != ItemErrorCode.OK)
+            if (equippedItemSlot == InvIdxArmor)
             {
-                if (flags.HasFlag(ItemInsertFlag.Use_Wield_Slots))
+                if (IsIncompatibleWithDruid(item, receiver))
                 {
-                    return ItemTransferToSuitableEquipSlot(owner, receiver, item, a7, flags);
-                }
-                else if (flags.HasFlag(ItemInsertFlag.Unk4))
-                {
-                    return PerformTransfer(owner, receiver, item, a7, flags);
-                }
-                else
-                {
-                    return ItemErrorCode.Cannot_Transfer;
+                    return ItemErrorCode.ItemCannotBeUsed;
                 }
             }
-
-            var v10 = item;
-            var itemInsertLocation = item.GetItemInventoryLocation();
-            if (IsInvIdxWorn(equippedItemSlot))
+            else if (equippedItemSlot == InvIdxShield)
             {
-                if (equippedItemSlot == InvIdxArmor)
+                var primaryWeapon = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
+                if (primaryWeapon != null)
                 {
-                    if (IsIncompatibleWithDruid(item, receiver))
+                    if (GetWieldType(receiver, primaryWeapon) >= 2
+                        || primaryWeapon.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
                     {
-                        return ItemErrorCode.ItemCannotBeUsed;
+                        return ItemErrorCode.No_Free_Hand;
                     }
                 }
-                else if (equippedItemSlot == InvIdxShield)
+            }
+            else if (equippedItemSlot == InvIdxWeaponPrimary)
+            {
+                if (GetWieldType(receiver, item) == 2 ||
+                    item.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
                 {
-                    var primaryWeapon = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
-                    if (primaryWeapon != null)
+                    // Check for a free hand if trying to equip a two-handed weapon
+                    var secondaryWeapon = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
+                    if (secondaryWeapon != null)
                     {
-                        if (GetWieldType(receiver, primaryWeapon) >= 2
-                            || primaryWeapon.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
+                        return ItemErrorCode.No_Free_Hand;
+                    }
+
+                    var shield = ItemWornAt(receiver, EquipSlot.Shield);
+                    if (shield != null)
+                    {
+                        if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
                         {
                             return ItemErrorCode.No_Free_Hand;
                         }
                     }
                 }
-                else if (equippedItemSlot == InvIdxWeaponPrimary)
+                else if (GetWieldType(receiver, item) == 3)
                 {
-                    if (GetWieldType(receiver, item) == 2 ||
-                        item.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
-                    {
-                        // Check for a free hand if trying to equip a two-handed weapon
-                        var secondaryWeapon = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
-                        if (secondaryWeapon != null)
-                        {
-                            return ItemErrorCode.No_Free_Hand;
-                        }
-
-                        var shield = ItemWornAt(receiver, EquipSlot.Shield);
-                        if (shield != null)
-                        {
-                            if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
-                            {
-                                return ItemErrorCode.No_Free_Hand;
-                            }
-                        }
-                    }
-                    else if (GetWieldType(receiver, item) == 3)
-                    {
-                        return ItemErrorCode.Item_Too_Large;
-                    }
-                }
-
-                var result = ItemCheckSlotAndWieldFlags(v10, receiver, equippedItemSlot);
-                if (result != ItemErrorCode.OK)
-                {
-                    return result;
+                    return ItemErrorCode.Item_Too_Large;
                 }
             }
 
-            if (IsInvIdxWorn(itemInsertLocation) &&
-                ItemCheckSlotAndWieldFlags(itemPrevious, owner, itemInsertLocation) != ItemErrorCode.OK)
+            var result = ItemCheckSlotAndWieldFlags(v10, receiver, equippedItemSlot);
+            if (result != ItemErrorCode.OK)
             {
-                return PerformTransfer(owner, receiver, v10, a7, flags);
+                return result;
             }
-
-            if (owner != receiver)
-            {
-                v10.SetItemFlag(ItemFlag.NO_TRANSFER, false);
-            }
-
-            Remove(itemPrevious);
-            if (v10 != itemPrevious)
-            {
-                Remove(v10);
-            }
-
-            InsertAtLocation(v10, receiver, equippedItemSlot);
-            InsertAtLocation(itemPrevious, owner, itemInsertLocation);
-            return ItemErrorCode.OK;
         }
 
-        [TempleDllLocation(0x1006a000)]
-        private ItemErrorCode PerformTransfer(GameObject owner, GameObject receiver, GameObject item,
-            int invSlot, ItemInsertFlag flags)
+        if (IsInvIdxWorn(itemInsertLocation) &&
+            ItemCheckSlotAndWieldFlags(itemPrevious, owner, itemInsertLocation) != ItemErrorCode.OK)
         {
-            if (owner != null && owner.IsCritter() && IsInvIdxWorn(invSlot))
+            return PerformTransfer(owner, receiver, v10, a7, flags);
+        }
+
+        if (owner != receiver)
+        {
+            v10.SetItemFlag(ItemFlag.NO_TRANSFER, false);
+        }
+
+        Remove(itemPrevious);
+        if (v10 != itemPrevious)
+        {
+            Remove(v10);
+        }
+
+        InsertAtLocation(v10, receiver, equippedItemSlot);
+        InsertAtLocation(itemPrevious, owner, itemInsertLocation);
+        return ItemErrorCode.OK;
+    }
+
+    [TempleDllLocation(0x1006a000)]
+    private ItemErrorCode PerformTransfer(GameObject owner, GameObject receiver, GameObject item,
+        int invSlot, ItemInsertFlag flags)
+    {
+        if (owner != null && owner.IsCritter() && IsInvIdxWorn(invSlot))
+        {
+            var result = CheckTransferToWieldSlot(item, invSlot, receiver);
+            if (result != ItemErrorCode.OK)
             {
-                var result = CheckTransferToWieldSlot(item, invSlot, receiver);
-                if (result != ItemErrorCode.OK)
+                if (!(flags.HasFlag(ItemInsertFlag.Allow_Swap)))
                 {
-                    if (!(flags.HasFlag(ItemInsertFlag.Allow_Swap)))
-                    {
-                        return result;
-                    }
-
-                    var existingItem = GetItemAtInvIdx(owner, invSlot);
-                    if (existingItem == null)
-                    {
-                        return result;
-                    }
-
-                    result = PerformSwap(owner, receiver, item, existingItem, invSlot, invSlot, flags);
                     return result;
                 }
-            }
 
-            if (owner == receiver)
-            {
-                Remove(item);
-                InsertAtLocation(item, receiver, invSlot);
-                return ItemErrorCode.OK;
-            }
+                var existingItem = GetItemAtInvIdx(owner, invSlot);
+                if (existingItem == null)
+                {
+                    return result;
+                }
 
-            // owner != receiver
+                result = PerformSwap(owner, receiver, item, existingItem, invSlot, invSlot, flags);
+                return result;
+            }
+        }
+
+        if (owner == receiver)
+        {
             Remove(item);
-            item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
             InsertAtLocation(item, receiver, invSlot);
             return ItemErrorCode.OK;
         }
 
-        [TempleDllLocation(0x100654e0)]
-        public GameObject CheckRangedWeaponAmmo(GameObject critter)
+        // owner != receiver
+        Remove(item);
+        item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
+        InsertAtLocation(item, receiver, invSlot);
+        return ItemErrorCode.OK;
+    }
+
+    [TempleDllLocation(0x100654e0)]
+    public GameObject CheckRangedWeaponAmmo(GameObject critter)
+    {
+        if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
-            {
-                return null;
-            }
-
-            var ammoItem = ItemWornAt(critter, EquipSlot.Ammo);
-            if (ammoItem == null || ammoItem.type != ObjectType.ammo)
-            {
-                return null;
-            }
-
-            var primaryWeapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
-            if (primaryWeapon != null)
-            {
-                // TODO: This is weird. There is no check whether the ammo matches the primary weapon in Vanilla.
-                return primaryWeapon;
-            }
-
-            var secondaryWeapon = ItemWornAt(critter, EquipSlot.WeaponSecondary);
-            if (secondaryWeapon != null && AmmoMatchesWeapon(secondaryWeapon, ammoItem))
-            {
-                return ammoItem;
-            }
-
             return null;
         }
 
-        [TempleDllLocation(0x10065470)]
-        public bool AmmoMatchesWeapon(GameObject weapon, GameObject ammoItem)
+        var ammoItem = ItemWornAt(critter, EquipSlot.Ammo);
+        if (ammoItem == null || ammoItem.type != ObjectType.ammo)
         {
-            if (weapon.type != ObjectType.weapon)
-            {
-                return false;
-            }
-
-            var ammoType = weapon.GetWeaponAmmoType();
-            if (ammoType.IsThrown())
-            {
-                // Thrown weapons don't need an ammo item
-                return true;
-            }
-
-            if (ammoItem == null)
-            {
-                return false;
-            }
-
-            return ammoItem.GetInt32(obj_f.ammo_type) == (int) ammoType;
+            return null;
         }
 
-        [TempleDllLocation(0x10065990)]
-        public bool AmmoMatchesItemAtSlot(GameObject critter, EquipSlot slot)
+        var primaryWeapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
+        if (primaryWeapon != null)
         {
-            var ammo = CheckRangedWeaponAmmo(critter);
-            var weapon = ItemWornAt(critter, slot);
-            return weapon != null && AmmoMatchesWeapon(weapon, ammo);
+            // TODO: This is weird. There is no check whether the ammo matches the primary weapon in Vanilla.
+            return primaryWeapon;
         }
 
-        /// <summary>
-        /// Returned value is in copper coins.
-        /// </summary>
-        [TempleDllLocation(0x10067c90)]
-        private int GetItemWorthRegardIdentified(GameObject item)
+        var secondaryWeapon = ItemWornAt(critter, EquipSlot.WeaponSecondary);
+        if (secondaryWeapon != null && AmmoMatchesWeapon(secondaryWeapon, ammoItem))
         {
-            if (item.type == ObjectType.money)
+            return ammoItem;
+        }
+
+        return null;
+    }
+
+    [TempleDllLocation(0x10065470)]
+    public bool AmmoMatchesWeapon(GameObject weapon, GameObject ammoItem)
+    {
+        if (weapon.type != ObjectType.weapon)
+        {
+            return false;
+        }
+
+        var ammoType = weapon.GetWeaponAmmoType();
+        if (ammoType.IsThrown())
+        {
+            // Thrown weapons don't need an ammo item
+            return true;
+        }
+
+        if (ammoItem == null)
+        {
+            return false;
+        }
+
+        return ammoItem.GetInt32(obj_f.ammo_type) == (int) ammoType;
+    }
+
+    [TempleDllLocation(0x10065990)]
+    public bool AmmoMatchesItemAtSlot(GameObject critter, EquipSlot slot)
+    {
+        var ammo = CheckRangedWeaponAmmo(critter);
+        var weapon = ItemWornAt(critter, slot);
+        return weapon != null && AmmoMatchesWeapon(weapon, ammo);
+    }
+
+    /// <summary>
+    /// Returned value is in copper coins.
+    /// </summary>
+    [TempleDllLocation(0x10067c90)]
+    private int GetItemWorthRegardIdentified(GameObject item)
+    {
+        if (item.type == ObjectType.money)
+        {
+            return GetTotalCurrencyAmount(item);
+        }
+        else if (IsIdentified(item))
+        {
+            var result = item.GetInt32(obj_f.item_worth);
+            if (result < 2)
+                result = 2;
+            return result;
+        }
+        else
+        {
+            if (item.type == ObjectType.food)
             {
-                return GetTotalCurrencyAmount(item);
+                return 1500;
             }
-            else if (IsIdentified(item))
+            else if (item.type == ObjectType.scroll)
             {
-                var result = item.GetInt32(obj_f.item_worth);
-                if (result < 2)
-                    result = 2;
-                return result;
+                return 1000;
             }
             else
             {
-                if (item.type == ObjectType.food)
+                return 10000;
+            }
+        }
+    }
+
+    [TempleDllLocation(0x10064d20)]
+    public int GetTotalCurrencyAmount(GameObject obj)
+    {
+        switch (obj.type)
+        {
+            case ObjectType.container:
+                // Just sum up the container's content
+                var sum = 0;
+                foreach (var item in obj.EnumerateChildren())
                 {
-                    return 1500;
-                }
-                else if (item.type == ObjectType.scroll)
-                {
-                    return 1000;
-                }
-                else
-                {
-                    return 10000;
-                }
-            }
-        }
-
-        [TempleDllLocation(0x10064d20)]
-        public int GetTotalCurrencyAmount(GameObject obj)
-        {
-            switch (obj.type)
-            {
-                case ObjectType.container:
-                    // Just sum up the container's content
-                    var sum = 0;
-                    foreach (var item in obj.EnumerateChildren())
-                    {
-                        sum += GetTotalCurrencyAmount(item);
-                    }
-
-                    return sum;
-                case ObjectType.money:
-                    var amount = obj.GetInt32(obj_f.money_quantity);
-                    switch ((MoneyType) obj.GetInt32(obj_f.money_type))
-                    {
-                        case MoneyType.Copper:
-                            return GameSystems.Party.GetCoinWorth(copperCoins: amount);
-                        case MoneyType.Silver:
-                            return GameSystems.Party.GetCoinWorth(silverCoins: amount);
-                        case MoneyType.Gold:
-                            return GameSystems.Party.GetCoinWorth(goldCoins: amount);
-                        case MoneyType.Platinum:
-                            return GameSystems.Party.GetCoinWorth(platinCoins: amount);
-                        default:
-                            return 0;
-                    }
-
-                case ObjectType.pc:
-                case ObjectType.npc:
-                    return GameSystems.Critter.GetMoney(obj);
-                default:
-                    return 0;
-            }
-        }
-
-        [TempleDllLocation(0x10067100)]
-        public bool IsIdentified(GameObject item)
-        {
-            if (!item.IsItem())
-            {
-                return false;
-            }
-
-            var itemFlags = item.GetItemFlags();
-
-            return !itemFlags.HasFlag(ItemFlag.IS_MAGICAL) || itemFlags.HasFlag(ItemFlag.IDENTIFIED);
-        }
-
-        [TempleDllLocation(0x1006cc30)]
-        public GameObject GiveItemByProto(GameObject obj, ushort protoId)
-        {
-            var proto = GameSystems.Proto.GetProtoById(protoId);
-            var item = GameSystems.MapObject.CreateObject(proto, obj.GetLocation());
-
-            item.SetItemFlags(item.GetItemFlags() | ItemFlag.IDENTIFIED);
-            SetItemParent(item, obj, ItemInsertFlag.Use_Max_Idx_200);
-
-            return item;
-        }
-
-        [TempleDllLocation(0x1006b6c0)]
-        public bool SetItemParent(GameObject item, GameObject receiver, ItemInsertFlag flags = default)
-        {
-            if (receiver.IsContainer())
-            {
-                return SetParentAdvanced(item, receiver, INVENTORY_IDX_UNDEFINED, ItemInsertFlag.Use_Max_Idx_200);
-            }
-
-            if (!receiver.IsCritter())
-            {
-                return false;
-            }
-
-            // Darley's Necklace special casing
-            if (item.ProtoId == 6239)
-            {
-                return SetParentAdvanced(item, receiver, InvIdxNecklace, flags);
-            }
-
-            return SetParentAdvanced(item, receiver, INVENTORY_IDX_UNDEFINED, flags);
-        }
-
-        [TempleDllLocation(0x1006a810)]
-        public bool SetParentAdvanced(GameObject item, GameObject parent, int invIdx, ItemInsertFlag flags)
-        {
-            var itemInsertLocation = INVENTORY_IDX_UNDEFINED;
-
-            if (!item.IsItem())
-            {
-                Logger.Error("SetParentAdvanced call on non-item!");
-                return false;
-            }
-
-            // if is already inventory item
-            if (item.HasFlag(ObjectFlag.INVENTORY))
-            {
-                return false;
-            }
-
-            // run the object's san_get script
-            if (GameSystems.Script.ExecuteObjectScript(parent, item, ObjScriptEvent.Get) == 0)
-            {
-                return false;
-            }
-
-            GameObject itemAtSlot = null;
-            var invIdxIsWornSlot = false;
-            if (IsInvIdxWorn(invIdx))
-            {
-                invIdxIsWornSlot = true;
-                itemAtSlot = GetItemAtInvIdx(parent, invIdx);
-            }
-
-            var insertionErrorCode = ItemInsertGetLocation(item, parent, ref itemInsertLocation, null, flags);
-
-            // handle insertion error
-            if (insertionErrorCode != ItemErrorCode.OK
-                && (insertionErrorCode != ItemErrorCode.No_Room_For_Item || itemAtSlot != null || !invIdxIsWornSlot))
-            {
-                if (parent.type == ObjectType.npc)
-                {
-                    var errorText = GetItemErrorString(insertionErrorCode);
-                    GameSystems.TextFloater.FloatLine(parent, TextFloaterCategory.Generic,
-                        TextFloaterColor.White, errorText);
+                    sum += GetTotalCurrencyAmount(item);
                 }
 
-                return false;
+                return sum;
+            case ObjectType.money:
+                var amount = obj.GetInt32(obj_f.money_quantity);
+                switch ((MoneyType) obj.GetInt32(obj_f.money_type))
+                {
+                    case MoneyType.Copper:
+                        return GameSystems.Party.GetCoinWorth(copperCoins: amount);
+                    case MoneyType.Silver:
+                        return GameSystems.Party.GetCoinWorth(silverCoins: amount);
+                    case MoneyType.Gold:
+                        return GameSystems.Party.GetCoinWorth(goldCoins: amount);
+                    case MoneyType.Platinum:
+                        return GameSystems.Party.GetCoinWorth(platinCoins: amount);
+                    default:
+                        return 0;
+                }
+
+            case ObjectType.pc:
+            case ObjectType.npc:
+                return GameSystems.Critter.GetMoney(obj);
+            default:
+                return 0;
+        }
+    }
+
+    [TempleDllLocation(0x10067100)]
+    public bool IsIdentified(GameObject item)
+    {
+        if (!item.IsItem())
+        {
+            return false;
+        }
+
+        var itemFlags = item.GetItemFlags();
+
+        return !itemFlags.HasFlag(ItemFlag.IS_MAGICAL) || itemFlags.HasFlag(ItemFlag.IDENTIFIED);
+    }
+
+    [TempleDllLocation(0x1006cc30)]
+    public GameObject GiveItemByProto(GameObject obj, ushort protoId)
+    {
+        var proto = GameSystems.Proto.GetProtoById(protoId);
+        var item = GameSystems.MapObject.CreateObject(proto, obj.GetLocation());
+
+        item.SetItemFlags(item.GetItemFlags() | ItemFlag.IDENTIFIED);
+        SetItemParent(item, obj, ItemInsertFlag.Use_Max_Idx_200);
+
+        return item;
+    }
+
+    [TempleDllLocation(0x1006b6c0)]
+    public bool SetItemParent(GameObject item, GameObject receiver, ItemInsertFlag flags = default)
+    {
+        if (receiver.IsContainer())
+        {
+            return SetParentAdvanced(item, receiver, INVENTORY_IDX_UNDEFINED, ItemInsertFlag.Use_Max_Idx_200);
+        }
+
+        if (!receiver.IsCritter())
+        {
+            return false;
+        }
+
+        // Darley's Necklace special casing
+        if (item.ProtoId == 6239)
+        {
+            return SetParentAdvanced(item, receiver, InvIdxNecklace, flags);
+        }
+
+        return SetParentAdvanced(item, receiver, INVENTORY_IDX_UNDEFINED, flags);
+    }
+
+    [TempleDllLocation(0x1006a810)]
+    public bool SetParentAdvanced(GameObject item, GameObject parent, int invIdx, ItemInsertFlag flags)
+    {
+        var itemInsertLocation = INVENTORY_IDX_UNDEFINED;
+
+        if (!item.IsItem())
+        {
+            Logger.Error("SetParentAdvanced call on non-item!");
+            return false;
+        }
+
+        // if is already inventory item
+        if (item.HasFlag(ObjectFlag.INVENTORY))
+        {
+            return false;
+        }
+
+        // run the object's san_get script
+        if (GameSystems.Script.ExecuteObjectScript(parent, item, ObjScriptEvent.Get) == 0)
+        {
+            return false;
+        }
+
+        GameObject itemAtSlot = null;
+        var invIdxIsWornSlot = false;
+        if (IsInvIdxWorn(invIdx))
+        {
+            invIdxIsWornSlot = true;
+            itemAtSlot = GetItemAtInvIdx(parent, invIdx);
+        }
+
+        var insertionErrorCode = ItemInsertGetLocation(item, parent, ref itemInsertLocation, null, flags);
+
+        // handle insertion error
+        if (insertionErrorCode != ItemErrorCode.OK
+            && (insertionErrorCode != ItemErrorCode.No_Room_For_Item || itemAtSlot != null || !invIdxIsWornSlot))
+        {
+            if (parent.type == ObjectType.npc)
+            {
+                var errorText = GetItemErrorString(insertionErrorCode);
+                GameSystems.TextFloater.FloatLine(parent, TextFloaterCategory.Generic,
+                    TextFloaterColor.White, errorText);
             }
 
-            // on success
-            GameSystems.MapObject.MakeItemParented(item, parent);
-            if (invIdx == INVENTORY_IDX_UNDEFINED)
+            return false;
+        }
+
+        // on success
+        GameSystems.MapObject.MakeItemParented(item, parent);
+        if (invIdx == INVENTORY_IDX_UNDEFINED)
+        {
+            invIdx = itemInsertLocation;
+        }
+        else if (invIdxIsWornSlot)
+        {
+            if (itemAtSlot != null)
             {
                 invIdx = itemInsertLocation;
             }
-            else if (invIdxIsWornSlot)
+        }
+        else
+        {
+            if (!CheckInvIdxOrStackable(item, parent, invIdx))
             {
-                if (itemAtSlot != null)
-                {
-                    invIdx = itemInsertLocation;
-                }
+                invIdx = itemInsertLocation;
             }
-            else
-            {
-                if (!CheckInvIdxOrStackable(item, parent, invIdx))
-                {
-                    invIdx = itemInsertLocation;
-                }
-            }
-
-            InsertAtLocation(item, parent, invIdx);
-
-            RemoveDecayTimer(item);
-            return true;
         }
 
-        [TempleDllLocation(0x10066120)]
-        public string GetItemErrorString(ItemErrorCode code)
-        {
-            if (code == ItemErrorCode.OK)
-            {
-                return null;
-            }
+        InsertAtLocation(item, parent, invIdx);
 
-            return _itemErrorCodeText[code];
+        RemoveDecayTimer(item);
+        return true;
+    }
+
+    [TempleDllLocation(0x10066120)]
+    public string GetItemErrorString(ItemErrorCode code)
+    {
+        if (code == ItemErrorCode.OK)
+        {
+            return null;
         }
 
-        [TempleDllLocation(0x1006A3A0)]
-        private bool TransferTo(GameObject item, GameObject parent, int itemInsertLocation)
+        return _itemErrorCodeText[code];
+    }
+
+    [TempleDllLocation(0x1006A3A0)]
+    private bool TransferTo(GameObject item, GameObject parent, int itemInsertLocation)
+    {
+        var currentParent = GetParent(item);
+        if (currentParent == null)
+            return SetParentAdvanced(item, parent, itemInsertLocation, 0);
+        if (GameSystems.Script.ExecuteObjectScript(currentParent, parent, item, ObjScriptEvent.Transfer,
+                0) == 0)
         {
-            var currentParent = GetParent(item);
-            if (currentParent == null)
-                return SetParentAdvanced(item, parent, itemInsertLocation, 0);
-            if (GameSystems.Script.ExecuteObjectScript(currentParent, parent, item, ObjScriptEvent.Transfer,
-                    0) == 0)
-            {
-                return false;
-            }
+            return false;
+        }
 
-            var errorCode = IsItemNonTransferrable(item, parent);
-            if (errorCode != ItemErrorCode.OK)
-            {
-                Logger.Debug($"Transfer of {item} from {currentParent} to {parent} failed: {errorCode}");
-                return false;
-            }
+        var errorCode = IsItemNonTransferrable(item, parent);
+        if (errorCode != ItemErrorCode.OK)
+        {
+            Logger.Debug($"Transfer of {item} from {currentParent} to {parent} failed: {errorCode}");
+            return false;
+        }
 
-            GameObject currentItemAtIdx = null;
-            var isEquipmentSlot = false;
-            if (itemInsertLocation != -1 & IsInvIdxWorn(itemInsertLocation))
-            {
-                isEquipmentSlot = true;
-                currentItemAtIdx = GetItemAtInvIdx(parent, itemInsertLocation);
-            }
+        GameObject currentItemAtIdx = null;
+        var isEquipmentSlot = false;
+        if (itemInsertLocation != -1 & IsInvIdxWorn(itemInsertLocation))
+        {
+            isEquipmentSlot = true;
+            currentItemAtIdx = GetItemAtInvIdx(parent, itemInsertLocation);
+        }
 
-            var v14 = INVENTORY_IDX_UNDEFINED;
-            var v13 = ItemInsertGetLocation(item, parent, ref v14, null, default);
-            if (v13 != ItemErrorCode.OK && (!(v13 == ItemErrorCode.No_Room_For_Item & currentItemAtIdx == null) ||
-                                            !isEquipmentSlot))
-            {
-                Logger.Debug($"Transfer of {item} from {currentParent} to {parent} failed: {v13}");
-                return false;
-            }
+        var v14 = INVENTORY_IDX_UNDEFINED;
+        var v13 = ItemInsertGetLocation(item, parent, ref v14, null, default);
+        if (v13 != ItemErrorCode.OK && (!(v13 == ItemErrorCode.No_Room_For_Item & currentItemAtIdx == null) ||
+                                        !isEquipmentSlot))
+        {
+            Logger.Debug($"Transfer of {item} from {currentParent} to {parent} failed: {v13}");
+            return false;
+        }
 
-            if (parent != currentParent)
-            {
-                item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
-            }
+        if (parent != currentParent)
+        {
+            item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
+        }
 
-            Remove(item);
+        Remove(item);
 
-            if (itemInsertLocation != INVENTORY_IDX_UNDEFINED)
+        if (itemInsertLocation != INVENTORY_IDX_UNDEFINED)
+        {
+            if (!isEquipmentSlot)
             {
-                if (!isEquipmentSlot)
+                if (CheckInvIdxOrStackable(item, parent, itemInsertLocation))
                 {
-                    if (CheckInvIdxOrStackable(item, parent, itemInsertLocation))
-                    {
-                        InsertAtLocation(item, parent, itemInsertLocation);
-                    }
-                    else
-                    {
-                        InsertAtLocation(item, parent, v14);
-                    }
+                    InsertAtLocation(item, parent, itemInsertLocation);
                 }
                 else
                 {
-                    if (currentItemAtIdx != null)
-                    {
-                        InsertAtLocation(item, parent, v14);
-                    }
-                    else
-                    {
-                        InsertAtLocation(item, parent, itemInsertLocation);
-                    }
+                    InsertAtLocation(item, parent, v14);
                 }
             }
             else
             {
-                InsertAtLocation(item, parent, v14);
+                if (currentItemAtIdx != null)
+                {
+                    InsertAtLocation(item, parent, v14);
+                }
+                else
+                {
+                    InsertAtLocation(item, parent, itemInsertLocation);
+                }
             }
-
-            RemoveDecayTimer(item);
-            return true;
+        }
+        else
+        {
+            InsertAtLocation(item, parent, v14);
         }
 
-        private const int ContainerRows = 96;
-        private const int CritterRows = 12;
-        private const int Columns = 10;
+        RemoveDecayTimer(item);
+        return true;
+    }
 
-        [TempleDllLocation(0x10068e80)]
-        private bool CheckInvIdxOrStackable(GameObject item, GameObject parent, int invIdx)
+    private const int ContainerRows = 96;
+    private const int CritterRows = 12;
+    private const int Columns = 10;
+
+    [TempleDllLocation(0x10068e80)]
+    private bool CheckInvIdxOrStackable(GameObject item, GameObject parent, int invIdx)
+    {
+        if (IsInvIdxWorn(invIdx))
         {
-            if (IsInvIdxWorn(invIdx))
-            {
-                return false;
-            }
-
-            if (!GameSystems.Object.GetInventoryFields(parent.type, out var invField, out var invCountField))
-            {
-                return false;
-            }
-
-            if (IsStackable(item))
-            {
-                var stackableItem = FindMatchingStackableItem(parent, item);
-                if (stackableItem != null && stackableItem != item)
-                {
-                    return true;
-                }
-            }
-
-            int rows = parent.IsContainer() ? ContainerRows : CritterRows;
-
-            // TODO: How can the first condition ever be true???
-            if (invIdx % Columns >= Columns || invIdx / Columns >= rows)
-            {
-                return false;
-            }
-
-            return GetItemAtInvIdx(parent, invIdx) == null;
+            return false;
         }
 
-        [TempleDllLocation(0x10067640)]
-        private void RemoveDecayTimer(GameObject item)
+        if (!GameSystems.Object.GetInventoryFields(parent.type, out var invField, out var invCountField))
         {
-            GameSystems.TimeEvent.Remove(TimeEventType.ItemDecay, evt => evt.arg1.handle == item);
+            return false;
         }
 
-        [TempleDllLocation(0x100694b0)]
-        public void InsertAtLocation(GameObject item, GameObject receiver, int itemInsertLocation)
+        if (IsStackable(item))
         {
-            if (itemInsertLocation == -1)
+            var stackableItem = FindMatchingStackableItem(parent, item);
+            if (stackableItem != null && stackableItem != item)
             {
-                Logger.Error("InsertAtLocation: Attempt to insert an item at location -1!");
+                return true;
+            }
+        }
+
+        int rows = parent.IsContainer() ? ContainerRows : CritterRows;
+
+        // TODO: How can the first condition ever be true???
+        if (invIdx % Columns >= Columns || invIdx / Columns >= rows)
+        {
+            return false;
+        }
+
+        return GetItemAtInvIdx(parent, invIdx) == null;
+    }
+
+    [TempleDllLocation(0x10067640)]
+    private void RemoveDecayTimer(GameObject item)
+    {
+        GameSystems.TimeEvent.Remove(TimeEventType.ItemDecay, evt => evt.arg1.handle == item);
+    }
+
+    [TempleDllLocation(0x100694b0)]
+    public void InsertAtLocation(GameObject item, GameObject receiver, int itemInsertLocation)
+    {
+        if (itemInsertLocation == -1)
+        {
+            Logger.Error("InsertAtLocation: Attempt to insert an item at location -1!");
+        }
+
+        var itemType = item.type;
+        var isQuantity = GetQuantityField(item, out var qtyField);
+
+        var mergeStackables = false;
+
+        if (itemType == ObjectType.money)
+        {
+            if (receiver.IsPC())
+            {
+                GameSystems.Party.GiveMoneyFromItem(item);
+                var loc = receiver.GetLocation();
+                GameSystems.MapObject.MoveItem(item, loc);
+                GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
+                GameSystems.Object.Destroy(item);
+                return;
             }
 
-            var itemType = item.type;
-            var isQuantity = GetQuantityField(item, out var qtyField);
-
-            var mergeStackables = false;
-
-            if (itemType == ObjectType.money)
-            {
-                if (receiver.IsPC())
-                {
-                    GameSystems.Party.GiveMoneyFromItem(item);
-                    var loc = receiver.GetLocation();
-                    GameSystems.MapObject.MoveItem(item, loc);
-                    GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
-                    GameSystems.Object.Destroy(item);
-                    return;
-                }
-
-                if (receiver.IsNPC())
-                {
-                    var stackable = FindMatchingStackableItem(receiver, item);
-                    if (stackable != null)
-                    {
-                        var itemQty = item.GetInt32(qtyField);
-                        var stackQty = stackable.GetInt32(qtyField);
-                        stackable.SetInt32(qtyField, itemQty + stackQty);
-                        var loc = receiver.GetLocation();
-                        GameSystems.MapObject.MoveItem(item, loc);
-                        GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
-                        GameSystems.Object.Destroy(item);
-                        return;
-                    }
-                }
-            }
-            else if (itemType == ObjectType.key)
-            {
-                if (receiver.IsPC())
-                {
-                    var keyId = item.GetInt32(obj_f.key_key_id);
-                    GameUiBridge.OnKeyReceived(keyId, GameSystems.TimeEvent.GameTime);
-                    var loc = receiver.GetLocation();
-                    GameSystems.MapObject.MoveItem(item, loc);
-                    GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
-                    GameSystems.Object.Destroy(item);
-                    return;
-                }
-            }
-            else if (itemType == ObjectType.ammo)
-            {
-                mergeStackables = true;
-            }
-            else if (!IsInvIdxWorn(itemInsertLocation))
-            {
-                mergeStackables = true;
-            }
-
-            if (mergeStackables && isQuantity)
+            if (receiver.IsNPC())
             {
                 var stackable = FindMatchingStackableItem(receiver, item);
                 if (stackable != null)
@@ -2330,295 +2292,276 @@ namespace OpenTemple.Core.Systems
                     stackable.SetInt32(qtyField, itemQty + stackQty);
                     var loc = receiver.GetLocation();
                     GameSystems.MapObject.MoveItem(item, loc);
-                    GameSystems.Anim.NotifySpeedRecalc(receiver);
                     GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
                     GameSystems.Object.Destroy(item);
                     return;
                 }
             }
-
-            // Set internal fields
-            if (!GameSystems.Object.GetInventoryFields(receiver.type, out var invenField, out var invenNumField))
+        }
+        else if (itemType == ObjectType.key)
+        {
+            if (receiver.IsPC())
             {
-                throw new ArgumentException("Trying to insert an item into a non-container!");
+                var keyId = item.GetInt32(obj_f.key_key_id);
+                GameUiBridge.OnKeyReceived(keyId, GameSystems.TimeEvent.GameTime);
+                var loc = receiver.GetLocation();
+                GameSystems.MapObject.MoveItem(item, loc);
+                GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
+                GameSystems.Object.Destroy(item);
+                return;
             }
-
-            var invenCount = receiver.GetInt32(invenNumField);
-            receiver.SetInt32(invenNumField, invenCount + 1);
-            receiver.SetObject(invenField, invenCount, item);
-            item.SetInt32(obj_f.item_inv_location, itemInsertLocation);
-            item.SetObject(obj_f.item_parent, receiver);
-
-            // Do updates and notifications
-            if (IsInvIdxWorn(itemInsertLocation))
-            {
-                UpdateCritterLightFlags(item, receiver);
-                GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.WieldOn);
-                GameSystems.Critter.UpdateModelEquipment(receiver);
-            }
-
-            if (receiver.IsNPC())
-            {
-                receiver.AiFlags |= AiFlag.CheckWield;
-            }
-
-            if (receiver.IsCritter())
-            {
-                GameSystems.D20.Status.UpdateItemConditions(receiver);
-                GameSystems.D20.D20SendSignal(receiver, D20DispatcherKey.SIG_Inventory_Update, item);
-            }
-
-            GameSystems.Anim.NotifySpeedRecalc(receiver);
-            GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
+        }
+        else if (itemType == ObjectType.ammo)
+        {
+            mergeStackables = true;
+        }
+        else if (!IsInvIdxWorn(itemInsertLocation))
+        {
+            mergeStackables = true;
         }
 
-        /// <summary>
-        /// Updates the critter's light flags based on the equipped item's light flags.
-        /// </summary>
-        [TempleDllLocation(0x10066260)]
-        private void UpdateCritterLightFlags(GameObject item, GameObject receiver)
+        if (mergeStackables && isQuantity)
         {
-            const ItemFlag lightMask = ItemFlag.LIGHT_XLARGE
-                                       | ItemFlag.LIGHT_LARGE
-                                       | ItemFlag.LIGHT_MEDIUM
-                                       | ItemFlag.LIGHT_SMALL;
-
-            if (item == null || (item.GetItemFlags() & lightMask) != 0)
+            var stackable = FindMatchingStackableItem(receiver, item);
+            if (stackable != null)
             {
-                ItemFlag activeLight = default;
+                var itemQty = item.GetInt32(qtyField);
+                var stackQty = stackable.GetInt32(qtyField);
+                stackable.SetInt32(qtyField, itemQty + stackQty);
+                var loc = receiver.GetLocation();
+                GameSystems.MapObject.MoveItem(item, loc);
+                GameSystems.Anim.NotifySpeedRecalc(receiver);
+                GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
+                GameSystems.Object.Destroy(item);
+                return;
+            }
+        }
 
-                foreach (var slot in EquipSlots.Slots)
+        // Set internal fields
+        if (!GameSystems.Object.GetInventoryFields(receiver.type, out var invenField, out var invenNumField))
+        {
+            throw new ArgumentException("Trying to insert an item into a non-container!");
+        }
+
+        var invenCount = receiver.GetInt32(invenNumField);
+        receiver.SetInt32(invenNumField, invenCount + 1);
+        receiver.SetObject(invenField, invenCount, item);
+        item.SetInt32(obj_f.item_inv_location, itemInsertLocation);
+        item.SetObject(obj_f.item_parent, receiver);
+
+        // Do updates and notifications
+        if (IsInvIdxWorn(itemInsertLocation))
+        {
+            UpdateCritterLightFlags(item, receiver);
+            GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.WieldOn);
+            GameSystems.Critter.UpdateModelEquipment(receiver);
+        }
+
+        if (receiver.IsNPC())
+        {
+            receiver.AiFlags |= AiFlag.CheckWield;
+        }
+
+        if (receiver.IsCritter())
+        {
+            GameSystems.D20.Status.UpdateItemConditions(receiver);
+            GameSystems.D20.D20SendSignal(receiver, D20DispatcherKey.SIG_Inventory_Update, item);
+        }
+
+        GameSystems.Anim.NotifySpeedRecalc(receiver);
+        GameSystems.Script.ExecuteObjectScript(receiver, item, ObjScriptEvent.InsertItem);
+    }
+
+    /// <summary>
+    /// Updates the critter's light flags based on the equipped item's light flags.
+    /// </summary>
+    [TempleDllLocation(0x10066260)]
+    private void UpdateCritterLightFlags(GameObject item, GameObject receiver)
+    {
+        const ItemFlag lightMask = ItemFlag.LIGHT_XLARGE
+                                   | ItemFlag.LIGHT_LARGE
+                                   | ItemFlag.LIGHT_MEDIUM
+                                   | ItemFlag.LIGHT_SMALL;
+
+        if (item == null || (item.GetItemFlags() & lightMask) != 0)
+        {
+            ItemFlag activeLight = default;
+
+            foreach (var slot in EquipSlots.Slots)
+            {
+                var equipped = ItemWornAt(receiver, slot);
+                if (equipped != null)
                 {
-                    var equipped = ItemWornAt(receiver, slot);
-                    if (equipped != null)
+                    activeLight |= equipped.GetItemFlags() & lightMask;
+                }
+            }
+
+            const CritterFlag critterLightMask = CritterFlag.LIGHT_XLARGE
+                                                 | CritterFlag.LIGHT_LARGE
+                                                 | CritterFlag.LIGHT_MEDIUM
+                                                 | CritterFlag.LIGHT_SMALL;
+
+            var critterFlags = receiver.GetCritterFlags() & ~critterLightMask;
+            if (activeLight.HasFlag(ItemFlag.LIGHT_XLARGE))
+            {
+                critterFlags |= CritterFlag.LIGHT_XLARGE;
+            }
+            else if (activeLight.HasFlag(ItemFlag.LIGHT_LARGE))
+            {
+                critterFlags |= CritterFlag.LIGHT_LARGE;
+            }
+            else if (activeLight.HasFlag(ItemFlag.LIGHT_MEDIUM))
+            {
+                critterFlags |= CritterFlag.LIGHT_MEDIUM;
+            }
+            else if (activeLight.HasFlag(ItemFlag.LIGHT_SMALL))
+            {
+                critterFlags |= CritterFlag.LIGHT_SMALL;
+            }
+
+            receiver.SetCritterFlags(critterFlags);
+        }
+    }
+
+    public static bool IsInvIdxWorn(int invIdx)
+    {
+        return invIdx >= INVENTORY_WORN_IDX_START && invIdx <= INVENTORY_WORN_IDX_END;
+    }
+
+    public int InvIdxForSlot(EquipSlot slot)
+    {
+        return (int) slot + INVENTORY_WORN_IDX_START;
+    }
+
+    [TempleDllLocation(0x10069000)]
+    public ItemErrorCode ItemInsertGetLocation(GameObject item, GameObject receiver,
+        ref int itemInsertLocation, GameObject bag, ItemInsertFlag flags)
+    {
+        var hasLocationOutput = true;
+        var invIdx = INVENTORY_IDX_UNDEFINED;
+
+        if (GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
+        {
+            return ItemErrorCode.Cannot_Use_While_Polymorphed;
+        }
+
+        var isUseWieldSlots = (flags & ItemInsertFlag.Use_Wield_Slots) != 0;
+
+        if (receiver.IsCritter() && hasLocationOutput)
+        {
+            if (flags.HasFlag(ItemInsertFlag.Allow_Swap) || (!IsInvIdxWorn(itemInsertLocation) && !isUseWieldSlots))
+            {
+                if (isUseWieldSlots)
+                {
+                    foreach (var equipSlot in EquipSlots.Slots)
                     {
-                        activeLight |= equipped.GetItemFlags() & lightMask;
-                    }
-                }
+                        var itemWornAtSlot = ItemWornAt(receiver, equipSlot);
+                        var itemFlagCheck = ItemCheckSlotAndWieldFlags(item, receiver, InvIdxForSlot(equipSlot)) ==
+                                            ItemErrorCode.OK;
+                        var slotIsOccupied =
+                            itemInsertLocation == INVENTORY_IDX_UNDEFINED
+                            && isUseWieldSlots
+                            && itemWornAtSlot != null
+                            && itemFlagCheck;
 
-                const CritterFlag critterLightMask = CritterFlag.LIGHT_XLARGE
-                                                     | CritterFlag.LIGHT_LARGE
-                                                     | CritterFlag.LIGHT_MEDIUM
-                                                     | CritterFlag.LIGHT_SMALL;
-
-                var critterFlags = receiver.GetCritterFlags() & ~critterLightMask;
-                if (activeLight.HasFlag(ItemFlag.LIGHT_XLARGE))
-                {
-                    critterFlags |= CritterFlag.LIGHT_XLARGE;
-                }
-                else if (activeLight.HasFlag(ItemFlag.LIGHT_LARGE))
-                {
-                    critterFlags |= CritterFlag.LIGHT_LARGE;
-                }
-                else if (activeLight.HasFlag(ItemFlag.LIGHT_MEDIUM))
-                {
-                    critterFlags |= CritterFlag.LIGHT_MEDIUM;
-                }
-                else if (activeLight.HasFlag(ItemFlag.LIGHT_SMALL))
-                {
-                    critterFlags |= CritterFlag.LIGHT_SMALL;
-                }
-
-                receiver.SetCritterFlags(critterFlags);
-            }
-        }
-
-        public static bool IsInvIdxWorn(int invIdx)
-        {
-            return invIdx >= INVENTORY_WORN_IDX_START && invIdx <= INVENTORY_WORN_IDX_END;
-        }
-
-        public int InvIdxForSlot(EquipSlot slot)
-        {
-            return (int) slot + INVENTORY_WORN_IDX_START;
-        }
-
-        [TempleDllLocation(0x10069000)]
-        public ItemErrorCode ItemInsertGetLocation(GameObject item, GameObject receiver,
-            ref int itemInsertLocation, GameObject bag, ItemInsertFlag flags)
-        {
-            var hasLocationOutput = true;
-            var invIdx = INVENTORY_IDX_UNDEFINED;
-
-            if (GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
-            {
-                return ItemErrorCode.Cannot_Use_While_Polymorphed;
-            }
-
-            var isUseWieldSlots = (flags & ItemInsertFlag.Use_Wield_Slots) != 0;
-
-            if (receiver.IsCritter() && hasLocationOutput)
-            {
-                if (flags.HasFlag(ItemInsertFlag.Allow_Swap) || (!IsInvIdxWorn(itemInsertLocation) && !isUseWieldSlots))
-                {
-                    if (isUseWieldSlots)
-                    {
-                        foreach (var equipSlot in EquipSlots.Slots)
+                        if (slotIsOccupied)
                         {
-                            var itemWornAtSlot = ItemWornAt(receiver, equipSlot);
-                            var itemFlagCheck = ItemCheckSlotAndWieldFlags(item, receiver, InvIdxForSlot(equipSlot)) ==
-                                                ItemErrorCode.OK;
-                            var slotIsOccupied =
-                                itemInsertLocation == INVENTORY_IDX_UNDEFINED
-                                && isUseWieldSlots
-                                && itemWornAtSlot != null
-                                && itemFlagCheck;
-
-                            if (slotIsOccupied)
-                            {
-                                if (ItemWornAt(receiver, equipSlot) != item)
-                                {
-                                    itemInsertLocation = InvIdxForSlot(equipSlot);
-                                    return ItemErrorCode.Wield_Slot_Occupied;
-                                }
-                            }
-                            else if (itemWornAtSlot == null
-                                     && itemFlagCheck
-                                     && itemWornAtSlot != item)
+                            if (ItemWornAt(receiver, equipSlot) != item)
                             {
                                 itemInsertLocation = InvIdxForSlot(equipSlot);
-                                return ItemErrorCode.OK;
+                                return ItemErrorCode.Wield_Slot_Occupied;
                             }
                         }
-                    }
-                }
-                else
-                {
-                    var shouldTrySlots = true;
-                    var result = ItemErrorCode.Wrong_Type_For_Slot;
-                    if (itemInsertLocation != INVENTORY_IDX_UNDEFINED)
-                    {
-                        result = CheckTransferToWieldSlot(item, itemInsertLocation, receiver);
-                        if (result == ItemErrorCode.OK)
+                        else if (itemWornAtSlot == null
+                                 && itemFlagCheck
+                                 && itemWornAtSlot != item)
                         {
-                            shouldTrySlots = false;
-                            invIdx = itemInsertLocation;
-                        }
-                        else
-                        {
-                            if (result != ItemErrorCode.Wrong_Type_For_Slot &&
-                                result != ItemErrorCode.Wield_Slot_Occupied)
-                                return result;
+                            itemInsertLocation = InvIdxForSlot(equipSlot);
+                            return ItemErrorCode.OK;
                         }
                     }
-
-                    if (shouldTrySlots)
-                    {
-                        var found = false;
-                        for (var i = 0; i < INVENTORY_WORN_IDX_COUNT; i++)
-                        {
-                            var equipSlot = (EquipSlot) i;
-                            if (ItemWornAt(receiver, equipSlot) == null)
-                            {
-                                result = CheckTransferToWieldSlot(item, i + INVENTORY_WORN_IDX_START, receiver);
-                                if (result == ItemErrorCode.OK)
-                                {
-                                    found = true;
-                                    invIdx = i + INVENTORY_WORN_IDX_START;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (!found)
-                            return result;
-                    }
                 }
-            }
-
-            // handling for stackable items, and money for PCs
-            // this is vanilla; I suppose it doesn't matter, since it'll stack it anyway in the calling
-            // function (but I wonder if it isn't better to return the stackable item's index?)
-            if (IsStackable(item) && FindMatchingStackableItem(receiver, item) != null
-                || item.type == ObjectType.money && receiver.IsPC())
-            {
-                if (hasLocationOutput)
-                    itemInsertLocation = 0;
-                return ItemErrorCode.OK;
-            }
-
-            // if already found it in the above section
-            if (invIdx != INVENTORY_IDX_UNDEFINED)
-            {
-                if (hasLocationOutput)
-                    itemInsertLocation = invIdx;
-                return ItemErrorCode.OK;
-            }
-
-            var maxSlot = 120;
-
-            // already provided with designated location
-            if (itemInsertLocation != INVENTORY_IDX_UNDEFINED && IsInvIdxWorn(itemInsertLocation))
-            {
-                invIdx = itemInsertLocation;
-            }
-            // Containers
-            else if (!receiver.IsCritter())
-            {
-                if (!receiver.IsContainer())
-                    return ItemErrorCode.No_Room_For_Item;
-
-                if (itemInsertLocation != INVENTORY_IDX_UNDEFINED &&
-                    GetItemAtInvIdx(receiver, itemInsertLocation) == null)
-                {
-                    invIdx = itemInsertLocation;
-                    if (hasLocationOutput)
-                    {
-                        itemInsertLocation = invIdx;
-                    }
-
-                    return ItemErrorCode.OK;
-                }
-
-                maxSlot = 120;
-                if (flags.HasFlag(ItemInsertFlag.Use_Max_Idx_200)) // fix - vanilla lacked this line
-                    maxSlot = INVENTORY_WORN_IDX_START;
-                invIdx = FindEmptyInvIdx(item, receiver, 0, maxSlot);
-            }
-            // Critters
-            else if (itemInsertLocation != INVENTORY_IDX_UNDEFINED &&
-                     GetItemAtInvIdx(receiver, itemInsertLocation) == null)
-            {
-                invIdx = itemInsertLocation;
             }
             else
             {
-                if (flags.HasFlag(ItemInsertFlag.Use_Max_Idx_200))
+                var shouldTrySlots = true;
+                var result = ItemErrorCode.Wrong_Type_For_Slot;
+                if (itemInsertLocation != INVENTORY_IDX_UNDEFINED)
                 {
-                    maxSlot = INVENTORY_WORN_IDX_START;
-                    invIdx = FindEmptyInvIdx(item, receiver, 0, maxSlot);
-                }
-                else if ((flags.HasFlag(ItemInsertFlag.Use_Bags)) && BagFindLast(receiver) != null)
-                {
-                    var receiverBag = BagFindLast(receiver);
-                    if (receiverBag != null)
+                    result = CheckTransferToWieldSlot(item, itemInsertLocation, receiver);
+                    if (result == ItemErrorCode.OK)
                     {
-                        var bagMaxIdx = BagGetContentMaxIdx(receiver, receiverBag);
-                        invIdx = FindEmptyInvIdx(item, receiver, 0, bagMaxIdx); // todo BUG!
+                        shouldTrySlots = false;
+                        invIdx = itemInsertLocation;
+                    }
+                    else
+                    {
+                        if (result != ItemErrorCode.Wrong_Type_For_Slot &&
+                            result != ItemErrorCode.Wield_Slot_Occupied)
+                            return result;
                     }
                 }
-                else if (flags.HasFlag(ItemInsertFlag.Allow_Swap))
+
+                if (shouldTrySlots)
                 {
-                    // bug?
-                    if (itemInsertLocation != INVENTORY_IDX_UNDEFINED)
-                        return ItemErrorCode.Wield_Slot_Occupied;
-                    return ItemErrorCode.No_Room_For_Item;
-                }
-                else if (bag != null)
-                {
-                    var bagMaxIdx = BagGetContentMaxIdx(receiver, bag);
-                    var bagBaseIdx = BagGetContentStartIdx(receiver, bag);
-                    invIdx = FindEmptyInvIdx(item, receiver, bagBaseIdx, bagMaxIdx);
-                }
-                else
-                {
-                    maxSlot = CRITTER_INVENTORY_SLOT_COUNT;
-                    invIdx = FindEmptyInvIdx(item, receiver, 0, maxSlot);
+                    var found = false;
+                    for (var i = 0; i < INVENTORY_WORN_IDX_COUNT; i++)
+                    {
+                        var equipSlot = (EquipSlot) i;
+                        if (ItemWornAt(receiver, equipSlot) == null)
+                        {
+                            result = CheckTransferToWieldSlot(item, i + INVENTORY_WORN_IDX_START, receiver);
+                            if (result == ItemErrorCode.OK)
+                            {
+                                found = true;
+                                invIdx = i + INVENTORY_WORN_IDX_START;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!found)
+                        return result;
                 }
             }
+        }
 
-            if (invIdx != INVENTORY_IDX_UNDEFINED)
+        // handling for stackable items, and money for PCs
+        // this is vanilla; I suppose it doesn't matter, since it'll stack it anyway in the calling
+        // function (but I wonder if it isn't better to return the stackable item's index?)
+        if (IsStackable(item) && FindMatchingStackableItem(receiver, item) != null
+            || item.type == ObjectType.money && receiver.IsPC())
+        {
+            if (hasLocationOutput)
+                itemInsertLocation = 0;
+            return ItemErrorCode.OK;
+        }
+
+        // if already found it in the above section
+        if (invIdx != INVENTORY_IDX_UNDEFINED)
+        {
+            if (hasLocationOutput)
+                itemInsertLocation = invIdx;
+            return ItemErrorCode.OK;
+        }
+
+        var maxSlot = 120;
+
+        // already provided with designated location
+        if (itemInsertLocation != INVENTORY_IDX_UNDEFINED && IsInvIdxWorn(itemInsertLocation))
+        {
+            invIdx = itemInsertLocation;
+        }
+        // Containers
+        else if (!receiver.IsCritter())
+        {
+            if (!receiver.IsContainer())
+                return ItemErrorCode.No_Room_For_Item;
+
+            if (itemInsertLocation != INVENTORY_IDX_UNDEFINED &&
+                GetItemAtInvIdx(receiver, itemInsertLocation) == null)
             {
+                invIdx = itemInsertLocation;
                 if (hasLocationOutput)
                 {
                     itemInsertLocation = invIdx;
@@ -2627,1447 +2570,1503 @@ namespace OpenTemple.Core.Systems
                 return ItemErrorCode.OK;
             }
 
-            return ItemErrorCode.No_Room_For_Item;
+            maxSlot = 120;
+            if (flags.HasFlag(ItemInsertFlag.Use_Max_Idx_200)) // fix - vanilla lacked this line
+                maxSlot = INVENTORY_WORN_IDX_START;
+            invIdx = FindEmptyInvIdx(item, receiver, 0, maxSlot);
         }
-
-        private const int InvIdxHelmet = 200;
-        private const int InvIdxNecklace = 201;
-        private const int InvIdxGloves = 202;
-        private const int InvIdxWeaponPrimary = 203;
-        private const int InvIdxWeaponSecondary = 204;
-        private const int InvIdxArmor = 205;
-        private const int InvIdxRingPrimary = 206;
-        private const int InvIdxRingSecondary = 207;
-        private const int InvIdxBoots = 208;
-        private const int InvIdxAmmo = 209;
-        private const int InvIdxCloak = 210;
-        private const int InvIdxShield = 211;
-        private const int InvIdxRobes = 212;
-        private const int InvIdxBracers = 213;
-        private const int InvIdxBardicItem = 214;
-        private const int InvIdxLockpicks = 215;
-
-        [TempleDllLocation(0x10067F90)]
-        private ItemErrorCode CheckTransferToWieldSlot(GameObject item, int itemInsertLocation,
-            GameObject receiver)
+        // Critters
+        else if (itemInsertLocation != INVENTORY_IDX_UNDEFINED &&
+                 GetItemAtInvIdx(receiver, itemInsertLocation) == null)
         {
-            // These might be old Arkanum polymorph spell flags not used in ToEE
-            var spellFlags = receiver.GetSpellFlags();
-            if ((spellFlags & (SpellFlag.POLYMORPHED | SpellFlag.BODY_OF_WATER | SpellFlag.BODY_OF_FIRE |
-                               SpellFlag.BODY_OF_EARTH | SpellFlag.BODY_OF_AIR)) != 0)
+            invIdx = itemInsertLocation;
+        }
+        else
+        {
+            if (flags.HasFlag(ItemInsertFlag.Use_Max_Idx_200))
             {
-                return ItemErrorCode.Has_No_Art;
+                maxSlot = INVENTORY_WORN_IDX_START;
+                invIdx = FindEmptyInvIdx(item, receiver, 0, maxSlot);
             }
-
-            if (GameSystems.Critter.IsAnimal(receiver)
-                || receiver.IsNPC() && receiver.GetNPCFlags().HasFlag(NpcFlag.NO_EQUIP))
+            else if ((flags.HasFlag(ItemInsertFlag.Use_Bags)) && BagFindLast(receiver) != null)
             {
-                return ItemErrorCode.ItemCannotBeUsed;
-            }
-
-            var wieldFlagResult = ItemCheckSlotAndWieldFlags(item, receiver, itemInsertLocation);
-            if (wieldFlagResult != ItemErrorCode.OK)
-            {
-                return wieldFlagResult;
-            }
-
-            if (IsInvIdxWorn(itemInsertLocation))
-            {
-                var wornItem = ItemWornAt(receiver, SlotByInvIdx(itemInsertLocation));
-                if (wornItem != null)
+                var receiverBag = BagFindLast(receiver);
+                if (receiverBag != null)
                 {
-                    return ItemErrorCode.Wield_Slot_Occupied;
+                    var bagMaxIdx = BagGetContentMaxIdx(receiver, receiverBag);
+                    invIdx = FindEmptyInvIdx(item, receiver, 0, bagMaxIdx); // todo BUG!
                 }
             }
-
-            switch (itemInsertLocation)
+            else if (flags.HasFlag(ItemInsertFlag.Allow_Swap))
             {
-                case InvIdxWeaponPrimary:
-                    return CheckHandOccupancy(item, receiver);
-
-                case InvIdxWeaponSecondary:
-                    return CheckHandOccupancy2(item, receiver);
-
-                case InvIdxArmor:
-                    if (IsIncompatibleWithDruid(item, receiver))
-                    {
-                        return ItemErrorCode.ItemCannotBeUsed;
-                    }
-
-                    return ItemErrorCode.OK;
-
-                case InvIdxShield:
-                    if (item.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
-                    {
-                        return CheckHandOccupancyForBuckler(item, receiver);
-                    }
-                    else
-                    {
-                        return CheckHandOccupancyForShield(item, receiver);
-                    }
-
-                default:
-                    return ItemErrorCode.OK;
+                // bug?
+                if (itemInsertLocation != INVENTORY_IDX_UNDEFINED)
+                    return ItemErrorCode.Wield_Slot_Occupied;
+                return ItemErrorCode.No_Room_For_Item;
+            }
+            else if (bag != null)
+            {
+                var bagMaxIdx = BagGetContentMaxIdx(receiver, bag);
+                var bagBaseIdx = BagGetContentStartIdx(receiver, bag);
+                invIdx = FindEmptyInvIdx(item, receiver, bagBaseIdx, bagMaxIdx);
+            }
+            else
+            {
+                maxSlot = CRITTER_INVENTORY_SLOT_COUNT;
+                invIdx = FindEmptyInvIdx(item, receiver, 0, maxSlot);
             }
         }
 
-        private ItemErrorCode CheckHandOccupancyForBuckler(GameObject item, GameObject receiver)
+        if (invIdx != INVENTORY_IDX_UNDEFINED)
         {
-            var offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
-            var shield = ItemWornAt(receiver, EquipSlot.Shield);
-            if (shield != null)
+            if (hasLocationOutput)
+            {
+                itemInsertLocation = invIdx;
+            }
+
+            return ItemErrorCode.OK;
+        }
+
+        return ItemErrorCode.No_Room_For_Item;
+    }
+
+    private const int InvIdxHelmet = 200;
+    private const int InvIdxNecklace = 201;
+    private const int InvIdxGloves = 202;
+    private const int InvIdxWeaponPrimary = 203;
+    private const int InvIdxWeaponSecondary = 204;
+    private const int InvIdxArmor = 205;
+    private const int InvIdxRingPrimary = 206;
+    private const int InvIdxRingSecondary = 207;
+    private const int InvIdxBoots = 208;
+    private const int InvIdxAmmo = 209;
+    private const int InvIdxCloak = 210;
+    private const int InvIdxShield = 211;
+    private const int InvIdxRobes = 212;
+    private const int InvIdxBracers = 213;
+    private const int InvIdxBardicItem = 214;
+    private const int InvIdxLockpicks = 215;
+
+    [TempleDllLocation(0x10067F90)]
+    private ItemErrorCode CheckTransferToWieldSlot(GameObject item, int itemInsertLocation,
+        GameObject receiver)
+    {
+        // These might be old Arkanum polymorph spell flags not used in ToEE
+        var spellFlags = receiver.GetSpellFlags();
+        if ((spellFlags & (SpellFlag.POLYMORPHED | SpellFlag.BODY_OF_WATER | SpellFlag.BODY_OF_FIRE |
+                           SpellFlag.BODY_OF_EARTH | SpellFlag.BODY_OF_AIR)) != 0)
+        {
+            return ItemErrorCode.Has_No_Art;
+        }
+
+        if (GameSystems.Critter.IsAnimal(receiver)
+            || receiver.IsNPC() && receiver.GetNPCFlags().HasFlag(NpcFlag.NO_EQUIP))
+        {
+            return ItemErrorCode.ItemCannotBeUsed;
+        }
+
+        var wieldFlagResult = ItemCheckSlotAndWieldFlags(item, receiver, itemInsertLocation);
+        if (wieldFlagResult != ItemErrorCode.OK)
+        {
+            return wieldFlagResult;
+        }
+
+        if (IsInvIdxWorn(itemInsertLocation))
+        {
+            var wornItem = ItemWornAt(receiver, SlotByInvIdx(itemInsertLocation));
+            if (wornItem != null)
+            {
+                return ItemErrorCode.Wield_Slot_Occupied;
+            }
+        }
+
+        switch (itemInsertLocation)
+        {
+            case InvIdxWeaponPrimary:
+                return CheckHandOccupancy(item, receiver);
+
+            case InvIdxWeaponSecondary:
+                return CheckHandOccupancy2(item, receiver);
+
+            case InvIdxArmor:
+                if (IsIncompatibleWithDruid(item, receiver))
+                {
+                    return ItemErrorCode.ItemCannotBeUsed;
+                }
+
+                return ItemErrorCode.OK;
+
+            case InvIdxShield:
+                if (item.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
+                {
+                    return CheckHandOccupancyForBuckler(item, receiver);
+                }
+                else
+                {
+                    return CheckHandOccupancyForShield(item, receiver);
+                }
+
+            default:
+                return ItemErrorCode.OK;
+        }
+    }
+
+    private ItemErrorCode CheckHandOccupancyForBuckler(GameObject item, GameObject receiver)
+    {
+        var offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
+        var shield = ItemWornAt(receiver, EquipSlot.Shield);
+        if (shield != null)
+        {
+            return ItemErrorCode.Wield_Slot_Occupied;
+        }
+
+        if (offHand != item && offHand != null && offHand.type == ObjectType.armor)
+        {
+            return ItemErrorCode.No_Free_Hand;
+        }
+
+        return ItemErrorCode.OK;
+    }
+
+    private ItemErrorCode CheckHandOccupancyForShield(GameObject item, GameObject receiver)
+    {
+        var secondarya = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
+
+        if (secondarya != null && secondarya != item)
+        {
+            if (secondarya.type == ObjectType.armor)
+            {
+                if (secondarya.GetArmorFlags().IsShield())
+                    return ItemErrorCode.No_Free_Hand;
+            }
+
+            if (GetWieldType(receiver, secondarya) >= 2
+                || secondarya.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
+            {
+                return ItemErrorCode.No_Free_Hand;
+            }
+        }
+
+        var offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
+        if (offHand != null)
+        {
+            if (offHand == item)
+            {
+                return ItemErrorCode.OK;
+            }
+
+            if (secondarya != null)
+            {
+                if (offHand.type == ObjectType.armor)
+                {
+                    return ItemErrorCode.No_Free_Hand;
+                }
+
+                return ItemErrorCode.No_Free_Hand;
+            }
+        }
+
+        if (offHand != item && offHand != null && offHand.type == ObjectType.armor &&
+            item.type == ObjectType.armor)
+        {
+            return ItemErrorCode.No_Free_Hand;
+        }
+
+        return ItemErrorCode.OK;
+    }
+
+    private ItemErrorCode CheckHandOccupancy2(GameObject item, GameObject receiver)
+    {
+        GameObject mainHand = null;
+        GameObject offHand = null;
+        GameObject shield = null;
+        if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
+        {
+            mainHand = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
+            offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
+            shield = ItemWornAt(receiver, EquipSlot.Shield);
+
+            if (mainHand != null && mainHand != item)
+            {
+                if (GetWieldType(receiver, item) >= 2
+                    || GetWieldType(receiver, mainHand) >= 2
+                    || item.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
+                {
+                    return ItemErrorCode.No_Free_Hand;
+                }
+
+                if (shield != null && shield != item)
+                {
+                    if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
+                        return ItemErrorCode.No_Free_Hand;
+                }
+
+                if (mainHand.type == ObjectType.armor)
+                {
+                    if (!mainHand.GetArmorFlags().IsShield())
+                        return ItemErrorCode.Wrong_Type_For_Slot;
+                }
+                else if (mainHand.type == ObjectType.weapon
+                         && mainHand.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
+                {
+                    return ItemErrorCode.No_Free_Hand;
+                }
+            }
+        }
+
+        if (GetWieldType(receiver, item) == 3)
+            return ItemErrorCode.Item_Too_Large;
+
+        LABEL_97:
+        if (shield != null)
+        {
+            if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
+            {
+                if (shield != item)
+                    return ItemErrorCode.No_Free_Hand;
+            }
+
+            if (item.type == ObjectType.armor && shield != item)
+                return ItemErrorCode.No_Free_Hand;
+        }
+
+        var animId = GameSystems.Critter.GetWeaponAnim(receiver, item, offHand, WeaponAnim.Idle);
+        if (GameSystems.MapObject.HasAnim(receiver, animId))
+            return ItemErrorCode.OK;
+        return ItemErrorCode.Has_No_Art;
+    }
+
+    private ItemErrorCode CheckHandOccupancy(GameObject item, GameObject receiver)
+    {
+        GameObject offHand = null;
+        GameObject shield = null;
+        if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
+        {
+            offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
+            shield = ItemWornAt(receiver, EquipSlot.Shield);
+        }
+
+        if (offHand == null
+            || offHand == item
+            || offHand.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
+        {
+            if (GetWieldType(receiver, item) >= 2
+                && offHand != null
+                && offHand.type == ObjectType.armor)
             {
                 return ItemErrorCode.Wield_Slot_Occupied;
             }
 
-            if (offHand != item && offHand != null && offHand.type == ObjectType.armor)
-            {
-                return ItemErrorCode.No_Free_Hand;
-            }
-
-            return ItemErrorCode.OK;
-        }
-
-        private ItemErrorCode CheckHandOccupancyForShield(GameObject item, GameObject receiver)
-        {
-            var secondarya = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
-
-            if (secondarya != null && secondarya != item)
-            {
-                if (secondarya.type == ObjectType.armor)
-                {
-                    if (secondarya.GetArmorFlags().IsShield())
-                        return ItemErrorCode.No_Free_Hand;
-                }
-
-                if (GetWieldType(receiver, secondarya) >= 2
-                    || secondarya.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
-                {
-                    return ItemErrorCode.No_Free_Hand;
-                }
-            }
-
-            var offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
-            if (offHand != null)
-            {
-                if (offHand == item)
-                {
-                    return ItemErrorCode.OK;
-                }
-
-                if (secondarya != null)
-                {
-                    if (offHand.type == ObjectType.armor)
-                    {
-                        return ItemErrorCode.No_Free_Hand;
-                    }
-
-                    return ItemErrorCode.No_Free_Hand;
-                }
-            }
-
-            if (offHand != item && offHand != null && offHand.type == ObjectType.armor &&
-                item.type == ObjectType.armor)
-            {
-                return ItemErrorCode.No_Free_Hand;
-            }
-
-            return ItemErrorCode.OK;
-        }
-
-        private ItemErrorCode CheckHandOccupancy2(GameObject item, GameObject receiver)
-        {
-            GameObject mainHand = null;
-            GameObject offHand = null;
-            GameObject shield = null;
-            if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
-            {
-                mainHand = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
-                offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
-                shield = ItemWornAt(receiver, EquipSlot.Shield);
-
-                if (mainHand != null && mainHand != item)
-                {
-                    if (GetWieldType(receiver, item) >= 2
-                        || GetWieldType(receiver, mainHand) >= 2
-                        || item.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
-                    {
-                        return ItemErrorCode.No_Free_Hand;
-                    }
-
-                    if (shield != null && shield != item)
-                    {
-                        if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
-                            return ItemErrorCode.No_Free_Hand;
-                    }
-
-                    if (mainHand.type == ObjectType.armor)
-                    {
-                        if (!mainHand.GetArmorFlags().IsShield())
-                            return ItemErrorCode.Wrong_Type_For_Slot;
-                    }
-                    else if (mainHand.type == ObjectType.weapon
-                             && mainHand.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
-                    {
-                        return ItemErrorCode.No_Free_Hand;
-                    }
-                }
-            }
-
             if (GetWieldType(receiver, item) == 3)
                 return ItemErrorCode.Item_Too_Large;
-
-            LABEL_97:
-            if (shield != null)
-            {
-                if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
-                {
-                    if (shield != item)
-                        return ItemErrorCode.No_Free_Hand;
-                }
-
-                if (item.type == ObjectType.armor && shield != item)
-                    return ItemErrorCode.No_Free_Hand;
-            }
-
-            var animId = GameSystems.Critter.GetWeaponAnim(receiver, item, offHand, WeaponAnim.Idle);
-            if (GameSystems.MapObject.HasAnim(receiver, animId))
-                return ItemErrorCode.OK;
-            return ItemErrorCode.Has_No_Art;
         }
-
-        private ItemErrorCode CheckHandOccupancy(GameObject item, GameObject receiver)
+        else
         {
-            GameObject offHand = null;
-            GameObject shield = null;
-            if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
+            // The other hand is occupied
+
+            if (GetWieldType(receiver, item) >= 2
+                || item.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
             {
-                offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
-                shield = ItemWornAt(receiver, EquipSlot.Shield);
+                // The off-hand is occupied but wielding the item requires two hands
+                return ItemErrorCode.No_Free_Hand;
             }
 
-            if (offHand == null
-                || offHand == item
-                || offHand.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))
+            if (offHand.type == ObjectType.armor)
             {
-                if (GetWieldType(receiver, item) >= 2
-                    && offHand != null
-                    && offHand.type == ObjectType.armor)
+                if (!offHand.GetArmorFlags().IsShield())
                 {
-                    return ItemErrorCode.Wield_Slot_Occupied;
-                }
-
-                if (GetWieldType(receiver, item) == 3)
-                    return ItemErrorCode.Item_Too_Large;
-            }
-            else
-            {
-                // The other hand is occupied
-
-                if (GetWieldType(receiver, item) >= 2
-                    || item.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
-                {
-                    // The off-hand is occupied but wielding the item requires two hands
-                    return ItemErrorCode.No_Free_Hand;
-                }
-
-                if (offHand.type == ObjectType.armor)
-                {
-                    if (!offHand.GetArmorFlags().IsShield())
-                    {
-                        // There is a non-shield (what??) in the off-hand
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    }
-                }
-                else if (offHand.type == ObjectType.weapon
-                         && offHand.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
-                {
-                    // There is a two-handed weapon in the off-hand
-                    return ItemErrorCode.No_Free_Hand;
-                }
-            }
-
-            if (shield != null)
-            {
-                if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER)
-                    && (GetWieldType(receiver, item) >= 2
-                        || item.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED)
-                        || offHand != item && offHand != null))
-                {
-                    return ItemErrorCode.No_Free_Hand;
-                }
-            }
-
-            var animId = GameSystems.Critter.GetWeaponAnim(receiver, item, offHand, WeaponAnim.Idle);
-            if (GameSystems.MapObject.HasAnim(receiver, animId))
-                return ItemErrorCode.OK;
-            return ItemErrorCode.Has_No_Art;
-        }
-
-        [TempleDllLocation(0x10067680)]
-        private ItemErrorCode ItemCheckSlotAndWieldFlags(GameObject item, GameObject receiver, in int invIdx)
-        {
-            var wearFlags = item.GetItemWearFlags();
-            switch (invIdx)
-            {
-                case InvIdxHelmet:
-                    if (!wearFlags.HasFlag(ItemWearFlag.HELMET))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxNecklace:
-                    if (!wearFlags.HasFlag(ItemWearFlag.NECKLACE))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxGloves:
-                    if (!wearFlags.HasFlag(ItemWearFlag.GLOVES))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxWeaponSecondary:
-                    if (wearFlags.HasFlag(ItemWearFlag.TWOHANDED_REQUIRED) ||
-                        (item.type == ObjectType.weapon && GetWieldType(receiver, item) >= 2))
-                    {
-                        return ItemErrorCode.No_Free_Hand;
-                    }
-
-                    if (item.type != ObjectType.weapon)
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxWeaponPrimary:
-                    if (item.type != ObjectType.weapon)
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxArmor:
-                    if (!wearFlags.HasFlag(ItemWearFlag.ARMOR))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    if (item.type != ObjectType.armor)
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    if (item.GetArmorFlags().IsShield())
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxRingPrimary:
-                case InvIdxRingSecondary:
-                    if (!wearFlags.HasFlag(ItemWearFlag.RING))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxBoots:
-                    if (!wearFlags.HasFlag(ItemWearFlag.BOOTS))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxAmmo:
-                    if (!wearFlags.HasFlag(ItemWearFlag.AMMO))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxCloak:
-                    if (!wearFlags.HasFlag(ItemWearFlag.CLOAK))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxShield:
-                    if (item.type != ObjectType.armor)
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    if (!item.GetArmorFlags().IsShield())
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxRobes:
-                    if (!wearFlags.HasFlag(ItemWearFlag.ROBES))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxBracers:
-                    if (!wearFlags.HasFlag(ItemWearFlag.BRACERS))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxBardicItem:
-                    if (!wearFlags.HasFlag(ItemWearFlag.BARDIC_ITEM))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                case InvIdxLockpicks:
-                    if (!wearFlags.HasFlag(ItemWearFlag.LOCKPICKS))
-                        return ItemErrorCode.Wrong_Type_For_Slot;
-                    return ItemErrorCode.OK;
-                default:
+                    // There is a non-shield (what??) in the off-hand
                     return ItemErrorCode.Wrong_Type_For_Slot;
-            }
-        }
-
-        public EquipSlot SlotByInvIdx(int invIdx)
-        {
-            if (IsInvIdxWorn(invIdx))
-            {
-                return (EquipSlot) (invIdx - 200);
-            }
-
-            throw new ArgumentOutOfRangeException();
-        }
-
-        public bool TryGetSlotByInvIdx(int invIdx, out EquipSlot slot)
-        {
-            if (IsInvIdxWorn(invIdx))
-            {
-                slot = (EquipSlot) (invIdx - INVENTORY_WORN_IDX_START);
-                return true;
-            }
-
-            slot = default;
-            return false;
-        }
-
-        [TempleDllLocation(0x10065fa0)]
-        private int FindEmptyInvIdx(GameObject item, GameObject parent, int idxMin, int idxMax)
-        {
-            for (var i = idxMin; i < idxMax; i++)
-            {
-                if (GetItemAtInvIdx(parent, i) == null)
-                {
-                    return i;
                 }
             }
-
-            return INVENTORY_IDX_UNDEFINED;
+            else if (offHand.type == ObjectType.weapon
+                     && offHand.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED))
+            {
+                // There is a two-handed weapon in the off-hand
+                return ItemErrorCode.No_Free_Hand;
+            }
         }
 
-        [TempleDllLocation(0x10067DF0)]
-        public GameObject FindMatchingStackableItem(GameObject receiver, GameObject item)
+        if (shield != null)
         {
-            if (!IsIdentified(item))
+            if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER)
+                && (GetWieldType(receiver, item) >= 2
+                    || item.GetItemWearFlags().HasFlag(ItemWearFlag.TWOHANDED_REQUIRED)
+                    || offHand != item && offHand != null))
             {
-                // if not identified - does not stack
-                return null;
+                return ItemErrorCode.No_Free_Hand;
             }
-
-            var itemProto = item.ProtoId;
-            if (itemProto == 12000)
-            {
-                // generic item proto
-                return null;
-            }
-
-            // cycle thru inventory
-            foreach (var invenItem in receiver.EnumerateChildren())
-            {
-                // ensure not same item handle
-                if (item == invenItem)
-                {
-                    continue;
-                }
-
-                // ensure same proto ID
-                if (invenItem.ProtoId != itemProto)
-                {
-                    continue;
-                }
-
-                // ensure is identified
-                if (!IsIdentified(invenItem))
-                {
-                    continue;
-                }
-
-                // if item worn - ensure is ammo
-                var invenItemLoc = invenItem.GetInt32(obj_f.item_inv_location);
-                if (IsInvIdxWorn(invenItemLoc))
-                {
-                    if (invenItem.type != ObjectType.ammo)
-                    {
-                        continue;
-                    }
-                }
-
-                if (item.type == ObjectType.scroll || item.type == ObjectType.food)
-                {
-                    // ensure potions/scrolls of different levels / schools do not stack
-                    var itemSpell = item.GetSpell(obj_f.item_spell_idx, 0);
-                    var invenItemSpell = invenItem.GetSpell(obj_f.item_spell_idx, 0);
-                    if (itemSpell.spellLevel != invenItemSpell.spellLevel
-                        || (item.type == ObjectType.scroll
-                            && GameSystems.Spell.IsArcaneSpellClass(itemSpell.classCode)
-                            != GameSystems.Spell.IsArcaneSpellClass(invenItemSpell.classCode)))
-                        continue;
-                }
-
-                return invenItem;
-            }
-
-            return null;
         }
 
-        [TempleDllLocation(0x100679c0)]
-        private GameObject BagFindLast(GameObject parent)
-        {
-            for (var i = INVENTORY_BAG_IDX_END; i >= INVENTORY_BAG_IDX_START; i--)
-            {
-                var res = GetItemAtInvIdx(parent, i);
-                if (res != null)
-                {
-                    return res;
-                }
-            }
-
-            return null;
-        }
-
-        [TempleDllLocation(0x10066a50)]
-        private int BagFindInvenIdx(GameObject parent, GameObject receiverBag)
-        {
-            for (var i = INVENTORY_BAG_IDX_START; i <= INVENTORY_BAG_IDX_END; i++)
-            {
-                if (GetItemAtInvIdx(parent, i) == receiverBag)
-                    return i;
-            }
-
-            return INVENTORY_IDX_UNDEFINED;
-        }
-
-        [TempleDllLocation(0x100698b0)]
-        public bool BagIsEmpty(GameObject critter, GameObject bag)
-        {
-            return GetBagItemsCount(critter, bag) == 0;
-        }
-
-        [TempleDllLocation(0x10067aa0)]
-        public int GetBagItemsCount(GameObject critter, GameObject bag)
-        {
-            var count = 0;
-            var startIdx = BagGetContentStartIdx(critter, bag);
-            var maxIdx = BagGetContentMaxIdx(critter, bag);
-            for (; startIdx < maxIdx; ++startIdx)
-            {
-                if (GetItemAtInvIdx(critter, startIdx) != null)
-                {
-                    ++count;
-                }
-            }
-
-            return count;
-        }
-
-        [TempleDllLocation(0x100679f0)]
-        private int BagGetContentStartIdx(GameObject parent, GameObject receiverBag)
-        {
-            var bagIdx = BagFindInvenIdx(parent, receiverBag);
-            return 24 * (bagIdx - INVENTORY_BAG_IDX_START);
-        }
-
-        [TempleDllLocation(0x10067a20)]
-        private int BagGetContentMaxIdx(GameObject parent, GameObject receiverBag)
-        {
-            var bagContentStartIdx = BagGetContentStartIdx(parent, receiverBag);
-
-            var bagSize = receiverBag.GetInt32(obj_f.bag_size);
-
-            var bagRows = 0;
-            switch (bagSize)
-            {
-                case 1:
-                    bagRows = 4;
-                    break;
-                case 2:
-                    bagRows = 2;
-                    break;
-                default:
-                    bagRows = 0;
-                    break;
-            }
-
-            if (bagSize == 1)
-            {
-                return bagContentStartIdx + 6 * bagRows;
-            }
-            else if (bagSize == 2)
-            {
-                return bagContentStartIdx + 4 * bagRows;
-            }
-
-            return bagContentStartIdx;
-        }
-
-        [TempleDllLocation(0x10066010)]
-        public ItemErrorCode IsItemNonTransferrable(GameObject item, GameObject receiver)
-        {
-            var parent = GetParent(item);
-            var itemFlags = item.GetItemFlags();
-            if (itemFlags.HasFlag(ItemFlag.NO_DROP)
-                && (receiver == null || parent == null || item.ProtoId == 6239 || receiver != parent))
-            {
-                return ItemErrorCode.Item_Cannot_Be_Dropped;
-            }
-
-            if (itemFlags.HasFlag(ItemFlag.NO_TRANSFER)
-                && receiver != parent && parent != null && !GameSystems.Critter.IsDeadNullDestroyed(parent))
-            {
-                return ItemErrorCode.NPC_Will_Not_Drop;
-            }
-
-            if (itemFlags.HasFlag(ItemFlag.NO_TRANSFER_SPECIAL) && receiver != parent)
-            {
-                return ItemErrorCode.Item_Cannot_Be_Dropped;
-            }
-
+        var animId = GameSystems.Critter.GetWeaponAnim(receiver, item, offHand, WeaponAnim.Idle);
+        if (GameSystems.MapObject.HasAnim(receiver, animId))
             return ItemErrorCode.OK;
-        }
+        return ItemErrorCode.Has_No_Art;
+    }
 
-        [TempleDllLocation(0x10066430)]
-        public bool IsIncompatibleWithDruid(GameObject item, GameObject wearer)
+    [TempleDllLocation(0x10067680)]
+    private ItemErrorCode ItemCheckSlotAndWieldFlags(GameObject item, GameObject receiver, in int invIdx)
+    {
+        var wearFlags = item.GetItemWearFlags();
+        switch (invIdx)
         {
-            if (GameSystems.Stat.StatLevelGet(wearer, Stat.level_druid) >= 1 && item.GetMaterial() == Material.metal)
-            {
-                var wearFlags = item.GetItemWearFlags();
-                if (wearFlags.HasFlag(ItemWearFlag.ARMOR)
-                    || wearFlags.HasFlag(ItemWearFlag.BUCKLER)
-                    || item.GetArmorFlags().IsShield())
+            case InvIdxHelmet:
+                if (!wearFlags.HasFlag(ItemWearFlag.HELMET))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxNecklace:
+                if (!wearFlags.HasFlag(ItemWearFlag.NECKLACE))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxGloves:
+                if (!wearFlags.HasFlag(ItemWearFlag.GLOVES))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxWeaponSecondary:
+                if (wearFlags.HasFlag(ItemWearFlag.TWOHANDED_REQUIRED) ||
+                    (item.type == ObjectType.weapon && GetWieldType(receiver, item) >= 2))
                 {
-                    return true;
+                    return ItemErrorCode.No_Free_Hand;
                 }
-            }
 
-            return false;
+                if (item.type != ObjectType.weapon)
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxWeaponPrimary:
+                if (item.type != ObjectType.weapon)
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxArmor:
+                if (!wearFlags.HasFlag(ItemWearFlag.ARMOR))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                if (item.type != ObjectType.armor)
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                if (item.GetArmorFlags().IsShield())
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxRingPrimary:
+            case InvIdxRingSecondary:
+                if (!wearFlags.HasFlag(ItemWearFlag.RING))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxBoots:
+                if (!wearFlags.HasFlag(ItemWearFlag.BOOTS))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxAmmo:
+                if (!wearFlags.HasFlag(ItemWearFlag.AMMO))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxCloak:
+                if (!wearFlags.HasFlag(ItemWearFlag.CLOAK))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxShield:
+                if (item.type != ObjectType.armor)
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                if (!item.GetArmorFlags().IsShield())
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxRobes:
+                if (!wearFlags.HasFlag(ItemWearFlag.ROBES))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxBracers:
+                if (!wearFlags.HasFlag(ItemWearFlag.BRACERS))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxBardicItem:
+                if (!wearFlags.HasFlag(ItemWearFlag.BARDIC_ITEM))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            case InvIdxLockpicks:
+                if (!wearFlags.HasFlag(ItemWearFlag.LOCKPICKS))
+                    return ItemErrorCode.Wrong_Type_For_Slot;
+                return ItemErrorCode.OK;
+            default:
+                return ItemErrorCode.Wrong_Type_For_Slot;
+        }
+    }
+
+    public EquipSlot SlotByInvIdx(int invIdx)
+    {
+        if (IsInvIdxWorn(invIdx))
+        {
+            return (EquipSlot) (invIdx - 200);
         }
 
-        [TempleDllLocation(0x10AA84BC)]
-        private bool _workingOnJunkpile;
+        throw new ArgumentOutOfRangeException();
+    }
 
-        [TempleDllLocation(0x10069A20)]
-        private bool JunkpileOnRemoveItem(GameObject parent)
+    public bool TryGetSlotByInvIdx(int invIdx, out EquipSlot slot)
+    {
+        if (IsInvIdxWorn(invIdx))
         {
-            var result = false;
-            if (_workingOnJunkpile)
-            {
-                return false;
-            }
-
-            _workingOnJunkpile = true;
-            if (parent.ProtoId == 1000)
-            {
-                var itemCount = parent.GetInt32(obj_f.container_inventory_num);
-                if (itemCount == 0)
-                {
-                    GameSystems.Object.Destroy(parent);
-                    result = true;
-                }
-                else if (itemCount == 1)
-                {
-                    var lastItem = parent.GetObject(obj_f.container_inventory_list_idx, 0);
-                    Remove(lastItem);
-                    var worldLocation = parent.GetLocation();
-                    GameSystems.Object.Destroy(parent);
-                    MoveItemClearNoTransfer(lastItem, worldLocation);
-                    result = true;
-                }
-            }
-
-            _workingOnJunkpile = false;
-            return result;
-        }
-
-        [TempleDllLocation(0x10069870)]
-        public void MoveItemClearNoTransfer(GameObject item, locXY location)
-        {
-            item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
-            GameSystems.MapObject.MoveItem(item, location);
-        }
-
-        [TempleDllLocation(0x100669a0)]
-        public int GetWeaponSlotsIndex(GameObject pc)
-        {
-            return pc.GetInt32(obj_f.pc_weaponslots_idx, 0);
-        }
-
-        public bool IsSlotPartOfWeaponSet(EquipSlot slot)
-        {
-            return slot == EquipSlot.WeaponPrimary
-                   || slot == EquipSlot.WeaponSecondary
-                   || slot == EquipSlot.Ammo
-                   || slot == EquipSlot.Shield;
-        }
-
-        [TempleDllLocation(0x10069970)]
-        public int GetAppraisedWorth(GameObject item, GameObject appraise, GameObject seller, int a4 = 0)
-        {
-            // TODO: a4 was always zero
-            Stub.TODO();
-            return 0;
-        }
-
-        [TempleDllLocation(0x10064e20)]
-        public void SplitMoney(int money, bool usePlat, out int plat,
-            bool useGold, out int gold,
-            bool useSilver, out int silver,
-            out int copper)
-        {
-            if (usePlat)
-            {
-                plat = money / 1000;
-                money = money % 1000;
-            }
-            else
-            {
-                plat = 0;
-            }
-
-            if (useGold)
-            {
-                gold = money / 100;
-                money %= 100;
-            }
-            else
-            {
-                gold = 0;
-            }
-
-            if (useSilver)
-            {
-                silver = money / 10;
-                money %= 10;
-            }
-            else
-            {
-                silver = 0;
-            }
-
-            copper = money;
-        }
-
-        public bool IsEquipped(GameObject item)
-        {
-            var parent = GameSystems.Item.GetParent(item);
-            if (parent == null)
-            {
-                return false;
-            }
-
-            var invLoc = item.GetInt32(obj_f.item_inv_location);
-            return (invLoc >= INVENTORY_WORN_IDX_START && invLoc <= INVENTORY_BAG_IDX_END);
-        }
-
-        [TempleDllLocation(0x1007d190)]
-        public bool ItemCanBePickpocketed(GameObject item)
-        {
-            if (IsEquipped(item) || GetItemWeight(item) > 1)
-            {
-                return false;
-            }
-
-            return !item.GetItemFlags().HasFlag(ItemFlag.NO_PICKPOCKET);
-        }
-
-        [TempleDllLocation(0x10064a50)]
-        public bool HasKey(GameObject critter, int keyId)
-        {
-            if (GameUiBridge.IsKeyAcquired(keyId))
-            {
-                return true;
-            }
-
-            var leader = GameSystems.Critter.GetLeaderRecursive(critter);
-            if (leader == null)
-            {
-                leader = GameSystems.Critter.GetLeader(critter) ?? critter;
-            }
-
-            if (HasKeyInInventory(leader, keyId))
-            {
-                return true;
-            }
-
-            foreach (var follower in leader.EnumerateFollowers(true))
-            {
-                if (HasKeyInInventory(follower, keyId))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        [TempleDllLocation(0x100649b0)]
-        private bool HasKeyInInventory(GameObject obj, int keyId)
-        {
-            if (keyId == 0)
-            {
-                return false;
-            }
-
-            foreach (var child in obj.EnumerateChildren())
-            {
-                if (child.type == ObjectType.key)
-                {
-                    var itemKeyId = child.GetInt32(obj_f.key_key_id);
-                    if (keyId == 1 || itemKeyId == 1 || itemKeyId == keyId)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        [TempleDllLocation(0x10066e90)]
-        public void UseOnObject(GameObject user, GameObject item, GameObject target)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10066fe0)]
-        public void UseOnLocation(GameObject critter, GameObject item, LocAndOffsets location)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10065c30)]
-        public int GetReachWithWeapon(GameObject weapon, GameObject critter)
-        {
-            if (weapon != null && weapon.type == ObjectType.weapon)
-            {
-                var v2 = weapon.WeaponFlags;
-                if (v2.HasFlag(WeaponFlag.RANGED_WEAPON))
-                {
-                    return weapon.GetInt32(obj_f.weapon_range);
-                }
-                else
-                {
-                    var critterReach = critter.GetInt32(obj_f.critter_reach);
-                    return critterReach + weapon.GetInt32(obj_f.weapon_range);
-                }
-            }
-            else
-            {
-                return critter.GetInt32(obj_f.critter_reach);
-            }
-        }
-
-        [TempleDllLocation(0x100643a0)]
-        public bool IsThrownWeaponProjectile(GameObject item)
-        {
-            switch (item.ProtoId)
-            {
-                case 3005:
-                case 3006:
-                case 3011:
-                case 3012:
-                case 3014:
-                case 3015:
-                case 3016:
-                case 3018:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        [TempleDllLocation(0x100648b0)]
-        public void ItemSpellChargeConsume(GameObject item, int chargesUsedUp = 1)
-        {
-            var spellCharges = item.GetInt32(obj_f.item_spell_charges_idx);
-            if (spellCharges == -1)
-            {
-                return;
-            }
-
-            // stacked items (scrolls, potions)
-            var itemQty = item.GetQuantity();
-            if (itemQty > 1)
-            {
-                item.SetQuantity(itemQty - 1);
-                return;
-            }
-            else if (itemQty == 1)
-            {
-                GameSystems.Object.Destroy(item);
-                return;
-            }
-
-            // items with charges
-            item.SetInt32(obj_f.item_spell_charges_idx, spellCharges - chargesUsedUp);
-
-            var itemFlags = item.GetItemFlags();
-            if (!itemFlags.HasFlag(ItemFlag.EXPIRES_AFTER_USE))
-            {
-                return;
-            }
-
-            if (spellCharges - chargesUsedUp <= 0)
-            {
-                GameSystems.Object.Destroy(item);
-            }
-        }
-
-        [TempleDllLocation(0x10064b40)]
-        public bool UsesWandAnim(GameObject item)
-        {
-            return item != null
-                   && item.type.IsEquipment()
-                   && item.GetItemFlags().HasFlag(ItemFlag.USES_WAND_ANIM);
-        }
-
-        [TempleDllLocation(0x100659e0)]
-        public bool IsWieldingUnloadedCrossbow(GameObject critter)
-        {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
-            {
-                return false;
-            }
-
-            var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
-
-            if (weapon == null)
-            {
-                return false;
-            }
-
-            if (!IsCrossbow(weapon))
-            {
-                return false;
-            }
-
-            return !weapon.WeaponFlags.HasFlag(WeaponFlag.WEAPON_LOADED);
-        }
-
-        [TempleDllLocation(0x10065780)]
-        public bool IsCrossbow(GameObject weapon)
-        {
-            return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsCrossbow(weapon.GetWeaponType());
-        }
-
-        [TempleDllLocation(0x1008f330)]
-        public bool IsThrowingWeapon(GameObject weapon)
-        {
-            return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsThrowingWeapon(weapon.GetWeaponType());
-        }
-
-        public bool IsRangedWeapon(GameObject weapon)
-        {
-            return weapon.type == ObjectType.weapon && weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON);
-        }
-
-        public bool IsTripWeapon(GameObject weapon)
-        {
-            return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsTripWeapon(weapon.GetWeaponType());
-        }
-
-        [TempleDllLocation(0x10065760)]
-        public int GetWeaponProjectileProto(GameObject weapon)
-        {
-            return weapon.GetWeaponAmmoType().GetProjectileProtoId();
-        }
-
-        [TempleDllLocation(0x10066b00)]
-        public GameObject SplitObjectFromStack(GameObject itemStack, LocAndOffsets placeAt)
-        {
-            var canSplit = IsStackable(itemStack);
-
-            if (!canSplit || itemStack.GetQuantity() <= 1)
-            {
-                return itemStack;
-            }
-
-            var handleOut = GameSystems.MapObject.CreateObject(itemStack.GetProtoObj(), placeAt);
-            handleOut.SetQuantity(1); // Seems unnecessary since it's not cloned
-            itemStack.ReduceQuantity(1);
-            return handleOut;
-        }
-
-        /// <summary>
-        /// TODO: Weird function. It gives the item to the receiver and finds a matching stack.
-        /// Why not merge it directly?
-        /// </summary>
-        [TempleDllLocation(0x1006cb10)]
-        public GameObject GiveItemAndFindMatchingStack(GameObject item, GameObject receiver)
-        {
-            if (!GameSystems.Item.SetItemParent(item, receiver))
-            {
-                return item;
-            }
-
-            if (!IsStackable(item))
-            {
-                return item;
-            }
-
-            return GameSystems.Item.FindMatchingStackableItem(receiver, item) ?? item;
-        }
-
-        [TempleDllLocation(0x10067360)]
-        public void RangedWeaponDeductAmmo(GameObject attacker)
-        {
-            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Polymorphed))
-            {
-                return;
-            }
-
-            var weapon = ItemWornAt(attacker, EquipSlot.WeaponPrimary);
-            if (weapon == null)
-            {
-                return;
-            }
-
-            var ammoType = weapon.GetWeaponAmmoType();
-
-            if (!ammoType.IsThrown())
-            {
-                var ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(attacker);
-                if (ammoItem != null)
-                {
-                    var ammoQuantity = ammoItem.GetInt32(obj_f.ammo_quantity) - 1;
-                    ammoItem.SetInt32(obj_f.ammo_quantity, ammoQuantity);
-                    if (ammoQuantity == 0)
-                    {
-                        GameSystems.Object.Destroy(ammoItem);
-                    }
-
-                    if (IsCrossbow(weapon))
-                    {
-                        weapon.WeaponFlags &= ~WeaponFlag.WEAPON_LOADED;
-                    }
-                }
-            }
-        }
-
-        [TempleDllLocation(0x10065890)]
-        public bool MainWeaponUsesAmmo(GameObject critter)
-        {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
-            {
-                return false;
-            }
-
-            var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
-            if (weapon == null || weapon.type != ObjectType.weapon)
-            {
-                return false;
-            }
-
-            return weapon.GetWeaponAmmoType() != WeaponAmmoType.no_ammo;
-        }
-
-        [TempleDllLocation(0x10065ad0)]
-        public bool ReloadEquippedWeapon(GameObject critter)
-        {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
-            {
-                return false;
-            }
-
-            var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
-            if (weapon == null || !IsCrossbow(weapon))
-            {
-                return false;
-            }
-
-            weapon.WeaponFlags |= WeaponFlag.WEAPON_LOADED;
+            slot = (EquipSlot) (invIdx - INVENTORY_WORN_IDX_START);
             return true;
         }
 
-        [TempleDllLocation(0x10064870)]
-        public int GetItemSpellCharges(GameObject item)
+        slot = default;
+        return false;
+    }
+
+    [TempleDllLocation(0x10065fa0)]
+    private int FindEmptyInvIdx(GameObject item, GameObject parent, int idxMin, int idxMax)
+    {
+        for (var i = idxMin; i < idxMax; i++)
         {
-            return item.GetInt32(obj_f.item_spell_charges_idx);
+            if (GetItemAtInvIdx(parent, i) == null)
+            {
+                return i;
+            }
         }
 
-        [TempleDllLocation(0x11eb6453)]
-        public bool IsProtoWornAt(GameObject wearer, EquipSlot slot, int protoId)
+        return INVENTORY_IDX_UNDEFINED;
+    }
+
+    [TempleDllLocation(0x10067DF0)]
+    public GameObject FindMatchingStackableItem(GameObject receiver, GameObject item)
+    {
+        if (!IsIdentified(item))
         {
-            var item = ItemWornAt(wearer, slot);
-            return item != null && item.ProtoId == protoId;
+            // if not identified - does not stack
+            return null;
         }
 
-        public bool IsBuckler(GameObject shield)
+        var itemProto = item.ProtoId;
+        if (itemProto == 12000)
         {
-            if (!shield.type.IsEquipment())
-            {
-                return false;
-            }
-
-            return (shield.GetItemWearFlags() & ItemWearFlag.BUCKLER) != 0;
+            // generic item proto
+            return null;
         }
 
-        [TempleDllLocation(0x10067080)]
-        public void ScheduleContainerRestock(GameObject container)
+        // cycle thru inventory
+        foreach (var invenItem in receiver.EnumerateChildren())
         {
-            // We cannot respawn the content of container that do not have an inventory source specified
-            if (GameSystems.Item.GetInventorySource(container) == 0)
+            // ensure not same item handle
+            if (item == invenItem)
             {
-                return;
+                continue;
             }
 
-            // TODO: I think it's fishy that it resets the respawn time if you talk to a vendor...
-            GameSystems.TimeEvent.Remove(TimeEventType.NPCRespawn, evt => evt.arg1.handle == container);
+            // ensure same proto ID
+            if (invenItem.ProtoId != itemProto)
+            {
+                continue;
+            }
 
-            var newEvt = new TimeEvent(TimeEventType.NPCRespawn);
-            newEvt.arg1.handle = container;
-            // Between 12 and 24 hours
-            var delay = GameSystems.Random.GetInt(43200000, 86400000);
-            Logger.Info("Scheduling NPC inventory restock for {0} in {1}ms", container, delay);
-            GameSystems.TimeEvent.Schedule(newEvt, delay, out _);
+            // ensure is identified
+            if (!IsIdentified(invenItem))
+            {
+                continue;
+            }
+
+            // if item worn - ensure is ammo
+            var invenItemLoc = invenItem.GetInt32(obj_f.item_inv_location);
+            if (IsInvIdxWorn(invenItemLoc))
+            {
+                if (invenItem.type != ObjectType.ammo)
+                {
+                    continue;
+                }
+            }
+
+            if (item.type == ObjectType.scroll || item.type == ObjectType.food)
+            {
+                // ensure potions/scrolls of different levels / schools do not stack
+                var itemSpell = item.GetSpell(obj_f.item_spell_idx, 0);
+                var invenItemSpell = invenItem.GetSpell(obj_f.item_spell_idx, 0);
+                if (itemSpell.spellLevel != invenItemSpell.spellLevel
+                    || (item.type == ObjectType.scroll
+                        && GameSystems.Spell.IsArcaneSpellClass(itemSpell.classCode)
+                        != GameSystems.Spell.IsArcaneSpellClass(invenItemSpell.classCode)))
+                    continue;
+            }
+
+            return invenItem;
         }
 
-        [TempleDllLocation(0x100664b0)]
-        public int WeaponSizeSthg(GameObject critter, WeaponType wpnType)
+        return null;
+    }
+
+    [TempleDllLocation(0x100679c0)]
+    private GameObject BagFindLast(GameObject parent)
+    {
+        for (var i = INVENTORY_BAG_IDX_END; i >= INVENTORY_BAG_IDX_START; i--)
         {
-            SizeCategory weaponSize;
-
-            var critterSize = (SizeCategory) critter.GetStat(Stat.size);
-            switch ( wpnType )
+            var res = GetItemAtInvIdx(parent, i);
+            if (res != null)
             {
-                case WeaponType.light_mace:
-                case WeaponType.sickle:
-                case WeaponType.light_crossbow:
-                case WeaponType.dart:
-                case WeaponType.sling:
-                case WeaponType.throwing_axe:
-                case WeaponType.light_hammer:
-                case WeaponType.handaxe:
-                case WeaponType.light_lance:
-                case WeaponType.light_pick:
-                case WeaponType.sap:
-                case WeaponType.short_sword:
-                case WeaponType.kama:
-                case WeaponType.nunchaku:
-                case WeaponType.siangham:
-                case WeaponType.whip:
-                    weaponSize = SizeCategory.Small;
-                    break;
-                case WeaponType.club:
-                case WeaponType.shortspear:
-                case WeaponType.heavy_mace:
-                case WeaponType.morningstar:
-                case WeaponType.heavy_crossbow:
-                case WeaponType.javelin:
-                case WeaponType.battleaxe:
-                case WeaponType.light_flail:
-                case WeaponType.heavy_lance:
-                case WeaponType.longsword:
-                case WeaponType.heavy_pick:
-                case WeaponType.rapier:
-                case WeaponType.scimitar:
-                case WeaponType.trident:
-                case WeaponType.warhammer:
-                case WeaponType.shortbow:
-                case WeaponType.composite_shortbow:
-                case WeaponType.bastard_sword:
-                case WeaponType.dwarven_waraxe:
-                case WeaponType.gnome_hooked_hammer:
-                case WeaponType.repeating_crossbow:
-                case WeaponType.net:
-                    weaponSize = SizeCategory.Medium;
-                    break;
-                case WeaponType.quarterstaff:
-                case WeaponType.spear:
-                case WeaponType.falchion:
-                case WeaponType.heavy_flail:
-                case WeaponType.glaive:
-                case WeaponType.greataxe:
-                case WeaponType.greatclub:
-                case WeaponType.greatsword:
-                case WeaponType.guisarme:
-                case WeaponType.halberd:
-                case WeaponType.longspear:
-                case WeaponType.ranseur:
-                case WeaponType.scythe:
-                case WeaponType.longbow:
-                case WeaponType.composite_longbow:
-                case WeaponType.orc_double_axe:
-                case WeaponType.spike_chain:
-                case WeaponType.dire_flail:
-                case WeaponType.two_bladed_sword:
-                case WeaponType.dwarven_urgrosh:
-                    weaponSize = SizeCategory.Large;
-                    break;
-                default:
-                    weaponSize = SizeCategory.Tiny;
-                    break;
+                return res;
             }
+        }
 
-            int result;
-            if (weaponSize < critterSize)
+        return null;
+    }
+
+    [TempleDllLocation(0x10066a50)]
+    private int BagFindInvenIdx(GameObject parent, GameObject receiverBag)
+    {
+        for (var i = INVENTORY_BAG_IDX_START; i <= INVENTORY_BAG_IDX_END; i++)
+        {
+            if (GetItemAtInvIdx(parent, i) == receiverBag)
+                return i;
+        }
+
+        return INVENTORY_IDX_UNDEFINED;
+    }
+
+    [TempleDllLocation(0x100698b0)]
+    public bool BagIsEmpty(GameObject critter, GameObject bag)
+    {
+        return GetBagItemsCount(critter, bag) == 0;
+    }
+
+    [TempleDllLocation(0x10067aa0)]
+    public int GetBagItemsCount(GameObject critter, GameObject bag)
+    {
+        var count = 0;
+        var startIdx = BagGetContentStartIdx(critter, bag);
+        var maxIdx = BagGetContentMaxIdx(critter, bag);
+        for (; startIdx < maxIdx; ++startIdx)
+        {
+            if (GetItemAtInvIdx(critter, startIdx) != null)
             {
-                result = 0;
+                ++count;
             }
-            else if (weaponSize == critterSize)
+        }
+
+        return count;
+    }
+
+    [TempleDllLocation(0x100679f0)]
+    private int BagGetContentStartIdx(GameObject parent, GameObject receiverBag)
+    {
+        var bagIdx = BagFindInvenIdx(parent, receiverBag);
+        return 24 * (bagIdx - INVENTORY_BAG_IDX_START);
+    }
+
+    [TempleDllLocation(0x10067a20)]
+    private int BagGetContentMaxIdx(GameObject parent, GameObject receiverBag)
+    {
+        var bagContentStartIdx = BagGetContentStartIdx(parent, receiverBag);
+
+        var bagSize = receiverBag.GetInt32(obj_f.bag_size);
+
+        var bagRows = 0;
+        switch (bagSize)
+        {
+            case 1:
+                bagRows = 4;
+                break;
+            case 2:
+                bagRows = 2;
+                break;
+            default:
+                bagRows = 0;
+                break;
+        }
+
+        if (bagSize == 1)
+        {
+            return bagContentStartIdx + 6 * bagRows;
+        }
+        else if (bagSize == 2)
+        {
+            return bagContentStartIdx + 4 * bagRows;
+        }
+
+        return bagContentStartIdx;
+    }
+
+    [TempleDllLocation(0x10066010)]
+    public ItemErrorCode IsItemNonTransferrable(GameObject item, GameObject receiver)
+    {
+        var parent = GetParent(item);
+        var itemFlags = item.GetItemFlags();
+        if (itemFlags.HasFlag(ItemFlag.NO_DROP)
+            && (receiver == null || parent == null || item.ProtoId == 6239 || receiver != parent))
+        {
+            return ItemErrorCode.Item_Cannot_Be_Dropped;
+        }
+
+        if (itemFlags.HasFlag(ItemFlag.NO_TRANSFER)
+            && receiver != parent && parent != null && !GameSystems.Critter.IsDeadNullDestroyed(parent))
+        {
+            return ItemErrorCode.NPC_Will_Not_Drop;
+        }
+
+        if (itemFlags.HasFlag(ItemFlag.NO_TRANSFER_SPECIAL) && receiver != parent)
+        {
+            return ItemErrorCode.Item_Cannot_Be_Dropped;
+        }
+
+        return ItemErrorCode.OK;
+    }
+
+    [TempleDllLocation(0x10066430)]
+    public bool IsIncompatibleWithDruid(GameObject item, GameObject wearer)
+    {
+        if (GameSystems.Stat.StatLevelGet(wearer, Stat.level_druid) >= 1 && item.GetMaterial() == Material.metal)
+        {
+            var wearFlags = item.GetItemWearFlags();
+            if (wearFlags.HasFlag(ItemWearFlag.ARMOR)
+                || wearFlags.HasFlag(ItemWearFlag.BUCKLER)
+                || item.GetArmorFlags().IsShield())
             {
-                result = 1;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    [TempleDllLocation(0x10AA84BC)]
+    private bool _workingOnJunkpile;
+
+    [TempleDllLocation(0x10069A20)]
+    private bool JunkpileOnRemoveItem(GameObject parent)
+    {
+        var result = false;
+        if (_workingOnJunkpile)
+        {
+            return false;
+        }
+
+        _workingOnJunkpile = true;
+        if (parent.ProtoId == 1000)
+        {
+            var itemCount = parent.GetInt32(obj_f.container_inventory_num);
+            if (itemCount == 0)
+            {
+                GameSystems.Object.Destroy(parent);
+                result = true;
+            }
+            else if (itemCount == 1)
+            {
+                var lastItem = parent.GetObject(obj_f.container_inventory_list_idx, 0);
+                Remove(lastItem);
+                var worldLocation = parent.GetLocation();
+                GameSystems.Object.Destroy(parent);
+                MoveItemClearNoTransfer(lastItem, worldLocation);
+                result = true;
+            }
+        }
+
+        _workingOnJunkpile = false;
+        return result;
+    }
+
+    [TempleDllLocation(0x10069870)]
+    public void MoveItemClearNoTransfer(GameObject item, locXY location)
+    {
+        item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
+        GameSystems.MapObject.MoveItem(item, location);
+    }
+
+    [TempleDllLocation(0x100669a0)]
+    public int GetWeaponSlotsIndex(GameObject pc)
+    {
+        return pc.GetInt32(obj_f.pc_weaponslots_idx, 0);
+    }
+
+    public bool IsSlotPartOfWeaponSet(EquipSlot slot)
+    {
+        return slot == EquipSlot.WeaponPrimary
+               || slot == EquipSlot.WeaponSecondary
+               || slot == EquipSlot.Ammo
+               || slot == EquipSlot.Shield;
+    }
+
+    [TempleDllLocation(0x10069970)]
+    public int GetAppraisedWorth(GameObject item, GameObject appraise, GameObject seller, int a4 = 0)
+    {
+        // TODO: a4 was always zero
+        Stub.TODO();
+        return 0;
+    }
+
+    [TempleDllLocation(0x10064e20)]
+    public void SplitMoney(int money, bool usePlat, out int plat,
+        bool useGold, out int gold,
+        bool useSilver, out int silver,
+        out int copper)
+    {
+        if (usePlat)
+        {
+            plat = money / 1000;
+            money = money % 1000;
+        }
+        else
+        {
+            plat = 0;
+        }
+
+        if (useGold)
+        {
+            gold = money / 100;
+            money %= 100;
+        }
+        else
+        {
+            gold = 0;
+        }
+
+        if (useSilver)
+        {
+            silver = money / 10;
+            money %= 10;
+        }
+        else
+        {
+            silver = 0;
+        }
+
+        copper = money;
+    }
+
+    public bool IsEquipped(GameObject item)
+    {
+        var parent = GameSystems.Item.GetParent(item);
+        if (parent == null)
+        {
+            return false;
+        }
+
+        var invLoc = item.GetInt32(obj_f.item_inv_location);
+        return (invLoc >= INVENTORY_WORN_IDX_START && invLoc <= INVENTORY_BAG_IDX_END);
+    }
+
+    [TempleDllLocation(0x1007d190)]
+    public bool ItemCanBePickpocketed(GameObject item)
+    {
+        if (IsEquipped(item) || GetItemWeight(item) > 1)
+        {
+            return false;
+        }
+
+        return !item.GetItemFlags().HasFlag(ItemFlag.NO_PICKPOCKET);
+    }
+
+    [TempleDllLocation(0x10064a50)]
+    public bool HasKey(GameObject critter, int keyId)
+    {
+        if (GameUiBridge.IsKeyAcquired(keyId))
+        {
+            return true;
+        }
+
+        var leader = GameSystems.Critter.GetLeaderRecursive(critter);
+        if (leader == null)
+        {
+            leader = GameSystems.Critter.GetLeader(critter) ?? critter;
+        }
+
+        if (HasKeyInInventory(leader, keyId))
+        {
+            return true;
+        }
+
+        foreach (var follower in leader.EnumerateFollowers(true))
+        {
+            if (HasKeyInInventory(follower, keyId))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    [TempleDllLocation(0x100649b0)]
+    private bool HasKeyInInventory(GameObject obj, int keyId)
+    {
+        if (keyId == 0)
+        {
+            return false;
+        }
+
+        foreach (var child in obj.EnumerateChildren())
+        {
+            if (child.type == ObjectType.key)
+            {
+                var itemKeyId = child.GetInt32(obj_f.key_key_id);
+                if (keyId == 1 || itemKeyId == 1 || itemKeyId == keyId)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    [TempleDllLocation(0x10066e90)]
+    public void UseOnObject(GameObject user, GameObject item, GameObject target)
+    {
+        throw new NotImplementedException();
+    }
+
+    [TempleDllLocation(0x10066fe0)]
+    public void UseOnLocation(GameObject critter, GameObject item, LocAndOffsets location)
+    {
+        throw new NotImplementedException();
+    }
+
+    [TempleDllLocation(0x10065c30)]
+    public int GetReachWithWeapon(GameObject weapon, GameObject critter)
+    {
+        if (weapon != null && weapon.type == ObjectType.weapon)
+        {
+            var v2 = weapon.WeaponFlags;
+            if (v2.HasFlag(WeaponFlag.RANGED_WEAPON))
+            {
+                return weapon.GetInt32(obj_f.weapon_range);
             }
             else
             {
-                result = 2;
-                if (weaponSize != critterSize + 1)
-                {
-                    result = 3;
-                }
+                var critterReach = critter.GetInt32(obj_f.critter_reach);
+                return critterReach + weapon.GetInt32(obj_f.weapon_range);
             }
-
-            return result;
         }
-
-        [TempleDllLocation(0x1006d190)]
-        [TemplePlusLocation("python_integration_obj.cpp:291")]
-        public void GiveStartingEquipment(GameObject pc)
+        else
         {
-            ClearInventory(pc, false);
-
-            // This checks that the PC has at least one level in any of the classes
-            Stat stat;
-            var classIndex = 0;
-            while (classIndex <= D20ClassSystem.VanillaClasses.Length) {
-                stat = D20ClassSystem.VanillaClasses[classIndex];
-                if (pc.GetStat(stat) > 0)
-                {
-                    break;
-                }
-
-                classIndex++;
-                if (classIndex >= D20ClassSystem.VanillaClasses.Length)
-                    return;
-            }
-
-            var content = Tig.FS.ReadMesFile("rules/start_equipment.mes");
-
-            var key = classIndex;
-
-            // Modify for "small" races
-            var race = GameSystems.Critter.GetRace(pc, true);
-            if (race == RaceId.halfling || race == RaceId.gnome) {
-                key += 100;
-            }
-
-            if (content.TryGetValue(key, out var it)) {
-                var protoIds = it.Split(' ');
-                foreach (var protoIdStr  in  protoIds) {
-                    var protoId = int.Parse(protoIdStr.Trim());
-                    GiveItemByProto(pc, (ushort) protoId);
-                }
-            }
-
-            // Allow scripts to customize starting equipment
-            GameSystems.Script.GetHook<IStartingEquipmentHook>()?.GiveStartingEquipment(pc);
-
-            WieldBestAll(pc);
+            return critter.GetInt32(obj_f.critter_reach);
         }
-
     }
 
-    public enum ItemErrorCode
+    [TempleDllLocation(0x100643a0)]
+    public bool IsThrownWeaponProjectile(GameObject item)
     {
-        OK = 0,
-        Cannot_Transfer = 1,
-        Item_Too_Heavy = 2,
-        No_Room_For_Item = 3,
-        Cannot_Use_While_Polymorphed = 4,
-        Cannot_Pickup_Magical_Items = 5,
-        Cannot_Pickup_Techno_Items = 6,
-        Item_Cannot_Be_Dropped = 7,
-        NPC_Will_Not_Drop = 8,
-        Wrong_Type_For_Slot = 9,
-        No_Free_Hand = 10,
-        Crippled_Arm_Prevents_Wielding = 11,
-        Item_Too_Large = 12,
-        Has_No_Art = 13,
-        Opposite_Gender = 14,
-        Cannot_Wield_Magical = 15,
-        Cannot_Wield_Techno = 16,
-        Wield_Slot_Occupied = 17,
-        Prohibited_Due_To_Class = 18,
-
-        ItemCannotBeUsed = 40,
-        ItemIsBroken = 41,
-        ScrollRequires5Int = 42,
-        CannotUseMagicalItems = 43,
-        CannotUseTechItems = 44,
-        FailedToUseItem = 45,
-
-        CannotBuyItem = 80,
-        CannotSellItem = 81
-    }
-
-    public static class ItemErrorCodes
-    {
-        public static readonly IImmutableList<ItemErrorCode> Codes = ImmutableList.Create(
-            (ItemErrorCode[]) Enum.GetValues(typeof(ItemErrorCode))
-        );
-    }
-
-    [Flags]
-    public enum ItemInsertFlag : byte
-    {
-        None = 0,
-        Allow_Swap = 0x1,
-
-        Use_Wield_Slots =
-            0x2, // will let the item transfer try to insert in the wielded item slots (note: will not replace if there is already an item equipped!)
-        Unk4 = 0x4, // I think this allows to fall back to unspecified slots
-        Use_Max_Idx_200 = 0x8, // will use up to inventory index 200 (invisible slots)
-        Unk10 = 0x10,
-        Use_Bags = 0x20, // use inventory indices of bags (not really supported in ToEE)
-        Unk40 = 0x40,
-        Unk80 = 0x80
-    }
-
-    public static class ItemExtensions
-    {
-        public static int GetItemInventoryLocation(GameObject obj) =>
-            obj.GetInt32(obj_f.item_inv_location);
-
-        public static bool TryGetQuantity(this GameObject obj, out int quantity)
+        switch (item.ProtoId)
         {
-            if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
-            {
-                quantity = obj.GetInt32(quantityField);
+            case 3005:
+            case 3006:
+            case 3011:
+            case 3012:
+            case 3014:
+            case 3015:
+            case 3016:
+            case 3018:
                 return true;
-            }
+            default:
+                return false;
+        }
+    }
 
-            quantity = 0;
+    [TempleDllLocation(0x100648b0)]
+    public void ItemSpellChargeConsume(GameObject item, int chargesUsedUp = 1)
+    {
+        var spellCharges = item.GetInt32(obj_f.item_spell_charges_idx);
+        if (spellCharges == -1)
+        {
+            return;
+        }
+
+        // stacked items (scrolls, potions)
+        var itemQty = item.GetQuantity();
+        if (itemQty > 1)
+        {
+            item.SetQuantity(itemQty - 1);
+            return;
+        }
+        else if (itemQty == 1)
+        {
+            GameSystems.Object.Destroy(item);
+            return;
+        }
+
+        // items with charges
+        item.SetInt32(obj_f.item_spell_charges_idx, spellCharges - chargesUsedUp);
+
+        var itemFlags = item.GetItemFlags();
+        if (!itemFlags.HasFlag(ItemFlag.EXPIRES_AFTER_USE))
+        {
+            return;
+        }
+
+        if (spellCharges - chargesUsedUp <= 0)
+        {
+            GameSystems.Object.Destroy(item);
+        }
+    }
+
+    [TempleDllLocation(0x10064b40)]
+    public bool UsesWandAnim(GameObject item)
+    {
+        return item != null
+               && item.type.IsEquipment()
+               && item.GetItemFlags().HasFlag(ItemFlag.USES_WAND_ANIM);
+    }
+
+    [TempleDllLocation(0x100659e0)]
+    public bool IsWieldingUnloadedCrossbow(GameObject critter)
+    {
+        if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
+        {
             return false;
         }
 
-        [TempleDllLocation(0x100642b0)]
-        public static int GetQuantity(this GameObject obj)
+        var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
+
+        if (weapon == null)
         {
-            if (!TryGetQuantity(obj, out var quantity))
-            {
-                return 1;
-            }
-
-            return quantity;
-        }
-
-        [TempleDllLocation(0x100642f0)]
-        public static bool SetQuantity(this GameObject obj, int quantity)
-        {
-            if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
-            {
-                obj.SetInt32(quantityField, quantity);
-                return true;
-            }
-
             return false;
         }
 
-        [TempleDllLocation(0x10064330)]
-        public static bool ReduceQuantity(this GameObject obj, int byAmount)
+        if (!IsCrossbow(weapon))
         {
-            if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
-            {
-                var quantity = obj.GetInt32(quantityField) - byAmount;
-
-                if (quantity < 0)
-                {
-                    quantity = 0;
-                }
-
-                obj.SetInt32(quantityField, quantity);
-                return true;
-            }
-
             return false;
         }
 
-        public static bool IncreaseQuantity(this GameObject obj, int byAmount)
-        {
-            if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
-            {
-                var quantity = obj.GetInt32(quantityField) + byAmount;
-                obj.SetInt32(quantityField, quantity);
-                return true;
-            }
-
-            return false;
-        }
-
-        public static string GetInventoryIconPath(this GameObject item)
-        {
-            var artId = item.GetInt32(obj_f.item_inv_aid);
-            return GameSystems.UiArtManager.GetInventoryIconPath(artId);
-        }
-
-        [TempleDllLocation(0x100644b0)]
-        public static GameObject FindItemByProto(this GameObject container, int protoId,
-            bool skipEquipment = false)
-        {
-            foreach (var item in container.EnumerateChildren())
-            {
-                if (skipEquipment && ItemSystem.IsInvIdxWorn(item.GetItemInventoryLocation()))
-                {
-                    continue;
-                }
-
-                if (item.ProtoId == protoId)
-                {
-                    return item;
-                }
-            }
-
-            return null;
-        }
-
-        [TempleDllLocation(0x100643f0)]
-        public static GameObject FindItemByName(this GameObject container, int nameId,
-            bool skipEquipment = false)
-        {
-            foreach (var item in container.EnumerateChildren())
-            {
-                if (skipEquipment && ItemSystem.IsInvIdxWorn(item.GetItemInventoryLocation()))
-                {
-                    continue;
-                }
-
-                if (item.GetInt32(obj_f.name) == nameId)
-                {
-                    return item;
-                }
-            }
-
-            return null;
-        }
-
-        [TempleDllLocation(0x100d2f30)]
-        public static void AddConditionToItem(this GameObject item, ConditionSpec condition, params int[] args)
-        {
-            var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
-            var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);
-
-            item.SetInt32(obj_f.item_pad_wielder_condition_array, curCondCount, ElfHash.Hash(condition.condName));
-            for (var i = 0; i < condition.numArgs; ++i)
-            {
-                item.SetInt32(obj_f.item_pad_wielder_argument_array, curArgCount, i < args.Length ? args[i] : 0);
-                ++curArgCount;
-            }
-
-            var parent = GameSystems.Item.GetParent(item);
-            if (parent != null)
-            {
-                GameSystems.D20.Status.UpdateItemConditions(parent);
-            }
-        }
-
-        [TempleDllLocation(0x100d3020)]
-        public static void RemoveConditionFromItem(this GameObject item, ConditionSpec condition)
-        {
-            var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
-            var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);
-
-            var currentCond = item.GetInt32(obj_f.item_pad_wielder_condition_array, curCondCount - 1);
-            if (currentCond != ElfHash.Hash(condition.condName))
-            {
-                // Vanilla did NOT check for this !!!
-                throw new InvalidOperationException();
-            }
-
-            item.RemoveInt32(obj_f.item_pad_wielder_condition_array, curCondCount - 1);
-            for (var i = 0; i < condition.numArgs; ++i)
-            {
-                item.RemoveInt32(obj_f.item_pad_wielder_argument_array, curArgCount - 1);
-                curArgCount--;
-            }
-
-            // TODO: This was ALSO missing from Vanilla... wtf!
-            var parent = GameSystems.Item.GetParent(item);
-            if (parent != null)
-            {
-                GameSystems.D20.Status.UpdateItemConditions(parent);
-            }
-
-            // TODO: The implementation of this is SUPER unsafe because it doesn't actually check which one it removes!!
-            throw new NotImplementedException();
-        }
-
+        return !weapon.WeaponFlags.HasFlag(WeaponFlag.WEAPON_LOADED);
     }
+
+    [TempleDllLocation(0x10065780)]
+    public bool IsCrossbow(GameObject weapon)
+    {
+        return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsCrossbow(weapon.GetWeaponType());
+    }
+
+    [TempleDllLocation(0x1008f330)]
+    public bool IsThrowingWeapon(GameObject weapon)
+    {
+        return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsThrowingWeapon(weapon.GetWeaponType());
+    }
+
+    public bool IsRangedWeapon(GameObject weapon)
+    {
+        return weapon.type == ObjectType.weapon && weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON);
+    }
+
+    public bool IsTripWeapon(GameObject weapon)
+    {
+        return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsTripWeapon(weapon.GetWeaponType());
+    }
+
+    [TempleDllLocation(0x10065760)]
+    public int GetWeaponProjectileProto(GameObject weapon)
+    {
+        return weapon.GetWeaponAmmoType().GetProjectileProtoId();
+    }
+
+    [TempleDllLocation(0x10066b00)]
+    public GameObject SplitObjectFromStack(GameObject itemStack, LocAndOffsets placeAt)
+    {
+        var canSplit = IsStackable(itemStack);
+
+        if (!canSplit || itemStack.GetQuantity() <= 1)
+        {
+            return itemStack;
+        }
+
+        var handleOut = GameSystems.MapObject.CreateObject(itemStack.GetProtoObj(), placeAt);
+        handleOut.SetQuantity(1); // Seems unnecessary since it's not cloned
+        itemStack.ReduceQuantity(1);
+        return handleOut;
+    }
+
+    /// <summary>
+    /// TODO: Weird function. It gives the item to the receiver and finds a matching stack.
+    /// Why not merge it directly?
+    /// </summary>
+    [TempleDllLocation(0x1006cb10)]
+    public GameObject GiveItemAndFindMatchingStack(GameObject item, GameObject receiver)
+    {
+        if (!GameSystems.Item.SetItemParent(item, receiver))
+        {
+            return item;
+        }
+
+        if (!IsStackable(item))
+        {
+            return item;
+        }
+
+        return GameSystems.Item.FindMatchingStackableItem(receiver, item) ?? item;
+    }
+
+    [TempleDllLocation(0x10067360)]
+    public void RangedWeaponDeductAmmo(GameObject attacker)
+    {
+        if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Polymorphed))
+        {
+            return;
+        }
+
+        var weapon = ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+        if (weapon == null)
+        {
+            return;
+        }
+
+        var ammoType = weapon.GetWeaponAmmoType();
+
+        if (!ammoType.IsThrown())
+        {
+            var ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(attacker);
+            if (ammoItem != null)
+            {
+                var ammoQuantity = ammoItem.GetInt32(obj_f.ammo_quantity) - 1;
+                ammoItem.SetInt32(obj_f.ammo_quantity, ammoQuantity);
+                if (ammoQuantity == 0)
+                {
+                    GameSystems.Object.Destroy(ammoItem);
+                }
+
+                if (IsCrossbow(weapon))
+                {
+                    weapon.WeaponFlags &= ~WeaponFlag.WEAPON_LOADED;
+                }
+            }
+        }
+    }
+
+    [TempleDllLocation(0x10065890)]
+    public bool MainWeaponUsesAmmo(GameObject critter)
+    {
+        if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
+        {
+            return false;
+        }
+
+        var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
+        if (weapon == null || weapon.type != ObjectType.weapon)
+        {
+            return false;
+        }
+
+        return weapon.GetWeaponAmmoType() != WeaponAmmoType.no_ammo;
+    }
+
+    [TempleDllLocation(0x10065ad0)]
+    public bool ReloadEquippedWeapon(GameObject critter)
+    {
+        if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
+        {
+            return false;
+        }
+
+        var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
+        if (weapon == null || !IsCrossbow(weapon))
+        {
+            return false;
+        }
+
+        weapon.WeaponFlags |= WeaponFlag.WEAPON_LOADED;
+        return true;
+    }
+
+    [TempleDllLocation(0x10064870)]
+    public int GetItemSpellCharges(GameObject item)
+    {
+        return item.GetInt32(obj_f.item_spell_charges_idx);
+    }
+
+    [TempleDllLocation(0x11eb6453)]
+    public bool IsProtoWornAt(GameObject wearer, EquipSlot slot, int protoId)
+    {
+        var item = ItemWornAt(wearer, slot);
+        return item != null && item.ProtoId == protoId;
+    }
+
+    public bool IsBuckler(GameObject shield)
+    {
+        if (!shield.type.IsEquipment())
+        {
+            return false;
+        }
+
+        return (shield.GetItemWearFlags() & ItemWearFlag.BUCKLER) != 0;
+    }
+
+    [TempleDllLocation(0x10067080)]
+    public void ScheduleContainerRestock(GameObject container)
+    {
+        // We cannot respawn the content of container that do not have an inventory source specified
+        if (GameSystems.Item.GetInventorySource(container) == 0)
+        {
+            return;
+        }
+
+        // TODO: I think it's fishy that it resets the respawn time if you talk to a vendor...
+        GameSystems.TimeEvent.Remove(TimeEventType.NPCRespawn, evt => evt.arg1.handle == container);
+
+        var newEvt = new TimeEvent(TimeEventType.NPCRespawn);
+        newEvt.arg1.handle = container;
+        // Between 12 and 24 hours
+        var delay = GameSystems.Random.GetInt(43200000, 86400000);
+        Logger.Info("Scheduling NPC inventory restock for {0} in {1}ms", container, delay);
+        GameSystems.TimeEvent.Schedule(newEvt, delay, out _);
+    }
+
+    [TempleDllLocation(0x100664b0)]
+    public int WeaponSizeSthg(GameObject critter, WeaponType wpnType)
+    {
+        SizeCategory weaponSize;
+
+        var critterSize = (SizeCategory) critter.GetStat(Stat.size);
+        switch ( wpnType )
+        {
+            case WeaponType.light_mace:
+            case WeaponType.sickle:
+            case WeaponType.light_crossbow:
+            case WeaponType.dart:
+            case WeaponType.sling:
+            case WeaponType.throwing_axe:
+            case WeaponType.light_hammer:
+            case WeaponType.handaxe:
+            case WeaponType.light_lance:
+            case WeaponType.light_pick:
+            case WeaponType.sap:
+            case WeaponType.short_sword:
+            case WeaponType.kama:
+            case WeaponType.nunchaku:
+            case WeaponType.siangham:
+            case WeaponType.whip:
+                weaponSize = SizeCategory.Small;
+                break;
+            case WeaponType.club:
+            case WeaponType.shortspear:
+            case WeaponType.heavy_mace:
+            case WeaponType.morningstar:
+            case WeaponType.heavy_crossbow:
+            case WeaponType.javelin:
+            case WeaponType.battleaxe:
+            case WeaponType.light_flail:
+            case WeaponType.heavy_lance:
+            case WeaponType.longsword:
+            case WeaponType.heavy_pick:
+            case WeaponType.rapier:
+            case WeaponType.scimitar:
+            case WeaponType.trident:
+            case WeaponType.warhammer:
+            case WeaponType.shortbow:
+            case WeaponType.composite_shortbow:
+            case WeaponType.bastard_sword:
+            case WeaponType.dwarven_waraxe:
+            case WeaponType.gnome_hooked_hammer:
+            case WeaponType.repeating_crossbow:
+            case WeaponType.net:
+                weaponSize = SizeCategory.Medium;
+                break;
+            case WeaponType.quarterstaff:
+            case WeaponType.spear:
+            case WeaponType.falchion:
+            case WeaponType.heavy_flail:
+            case WeaponType.glaive:
+            case WeaponType.greataxe:
+            case WeaponType.greatclub:
+            case WeaponType.greatsword:
+            case WeaponType.guisarme:
+            case WeaponType.halberd:
+            case WeaponType.longspear:
+            case WeaponType.ranseur:
+            case WeaponType.scythe:
+            case WeaponType.longbow:
+            case WeaponType.composite_longbow:
+            case WeaponType.orc_double_axe:
+            case WeaponType.spike_chain:
+            case WeaponType.dire_flail:
+            case WeaponType.two_bladed_sword:
+            case WeaponType.dwarven_urgrosh:
+                weaponSize = SizeCategory.Large;
+                break;
+            default:
+                weaponSize = SizeCategory.Tiny;
+                break;
+        }
+
+        int result;
+        if (weaponSize < critterSize)
+        {
+            result = 0;
+        }
+        else if (weaponSize == critterSize)
+        {
+            result = 1;
+        }
+        else
+        {
+            result = 2;
+            if (weaponSize != critterSize + 1)
+            {
+                result = 3;
+            }
+        }
+
+        return result;
+    }
+
+    [TempleDllLocation(0x1006d190)]
+    [TemplePlusLocation("python_integration_obj.cpp:291")]
+    public void GiveStartingEquipment(GameObject pc)
+    {
+        ClearInventory(pc, false);
+
+        // This checks that the PC has at least one level in any of the classes
+        Stat stat;
+        var classIndex = 0;
+        while (classIndex <= D20ClassSystem.VanillaClasses.Length) {
+            stat = D20ClassSystem.VanillaClasses[classIndex];
+            if (pc.GetStat(stat) > 0)
+            {
+                break;
+            }
+
+            classIndex++;
+            if (classIndex >= D20ClassSystem.VanillaClasses.Length)
+                return;
+        }
+
+        var content = Tig.FS.ReadMesFile("rules/start_equipment.mes");
+
+        var key = classIndex;
+
+        // Modify for "small" races
+        var race = GameSystems.Critter.GetRace(pc, true);
+        if (race == RaceId.halfling || race == RaceId.gnome) {
+            key += 100;
+        }
+
+        if (content.TryGetValue(key, out var it)) {
+            var protoIds = it.Split(' ');
+            foreach (var protoIdStr  in  protoIds) {
+                var protoId = int.Parse(protoIdStr.Trim());
+                GiveItemByProto(pc, (ushort) protoId);
+            }
+        }
+
+        // Allow scripts to customize starting equipment
+        GameSystems.Script.GetHook<IStartingEquipmentHook>()?.GiveStartingEquipment(pc);
+
+        WieldBestAll(pc);
+    }
+
+}
+
+public enum ItemErrorCode
+{
+    OK = 0,
+    Cannot_Transfer = 1,
+    Item_Too_Heavy = 2,
+    No_Room_For_Item = 3,
+    Cannot_Use_While_Polymorphed = 4,
+    Cannot_Pickup_Magical_Items = 5,
+    Cannot_Pickup_Techno_Items = 6,
+    Item_Cannot_Be_Dropped = 7,
+    NPC_Will_Not_Drop = 8,
+    Wrong_Type_For_Slot = 9,
+    No_Free_Hand = 10,
+    Crippled_Arm_Prevents_Wielding = 11,
+    Item_Too_Large = 12,
+    Has_No_Art = 13,
+    Opposite_Gender = 14,
+    Cannot_Wield_Magical = 15,
+    Cannot_Wield_Techno = 16,
+    Wield_Slot_Occupied = 17,
+    Prohibited_Due_To_Class = 18,
+
+    ItemCannotBeUsed = 40,
+    ItemIsBroken = 41,
+    ScrollRequires5Int = 42,
+    CannotUseMagicalItems = 43,
+    CannotUseTechItems = 44,
+    FailedToUseItem = 45,
+
+    CannotBuyItem = 80,
+    CannotSellItem = 81
+}
+
+public static class ItemErrorCodes
+{
+    public static readonly IImmutableList<ItemErrorCode> Codes = ImmutableList.Create(
+        (ItemErrorCode[]) Enum.GetValues(typeof(ItemErrorCode))
+    );
+}
+
+[Flags]
+public enum ItemInsertFlag : byte
+{
+    None = 0,
+    Allow_Swap = 0x1,
+
+    Use_Wield_Slots =
+        0x2, // will let the item transfer try to insert in the wielded item slots (note: will not replace if there is already an item equipped!)
+    Unk4 = 0x4, // I think this allows to fall back to unspecified slots
+    Use_Max_Idx_200 = 0x8, // will use up to inventory index 200 (invisible slots)
+    Unk10 = 0x10,
+    Use_Bags = 0x20, // use inventory indices of bags (not really supported in ToEE)
+    Unk40 = 0x40,
+    Unk80 = 0x80
+}
+
+public static class ItemExtensions
+{
+    public static int GetItemInventoryLocation(GameObject obj) =>
+        obj.GetInt32(obj_f.item_inv_location);
+
+    public static bool TryGetQuantity(this GameObject obj, out int quantity)
+    {
+        if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
+        {
+            quantity = obj.GetInt32(quantityField);
+            return true;
+        }
+
+        quantity = 0;
+        return false;
+    }
+
+    [TempleDllLocation(0x100642b0)]
+    public static int GetQuantity(this GameObject obj)
+    {
+        if (!TryGetQuantity(obj, out var quantity))
+        {
+            return 1;
+        }
+
+        return quantity;
+    }
+
+    [TempleDllLocation(0x100642f0)]
+    public static bool SetQuantity(this GameObject obj, int quantity)
+    {
+        if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
+        {
+            obj.SetInt32(quantityField, quantity);
+            return true;
+        }
+
+        return false;
+    }
+
+    [TempleDllLocation(0x10064330)]
+    public static bool ReduceQuantity(this GameObject obj, int byAmount)
+    {
+        if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
+        {
+            var quantity = obj.GetInt32(quantityField) - byAmount;
+
+            if (quantity < 0)
+            {
+                quantity = 0;
+            }
+
+            obj.SetInt32(quantityField, quantity);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool IncreaseQuantity(this GameObject obj, int byAmount)
+    {
+        if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
+        {
+            var quantity = obj.GetInt32(quantityField) + byAmount;
+            obj.SetInt32(quantityField, quantity);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static string GetInventoryIconPath(this GameObject item)
+    {
+        var artId = item.GetInt32(obj_f.item_inv_aid);
+        return GameSystems.UiArtManager.GetInventoryIconPath(artId);
+    }
+
+    [TempleDllLocation(0x100644b0)]
+    public static GameObject FindItemByProto(this GameObject container, int protoId,
+        bool skipEquipment = false)
+    {
+        foreach (var item in container.EnumerateChildren())
+        {
+            if (skipEquipment && ItemSystem.IsInvIdxWorn(item.GetItemInventoryLocation()))
+            {
+                continue;
+            }
+
+            if (item.ProtoId == protoId)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    [TempleDllLocation(0x100643f0)]
+    public static GameObject FindItemByName(this GameObject container, int nameId,
+        bool skipEquipment = false)
+    {
+        foreach (var item in container.EnumerateChildren())
+        {
+            if (skipEquipment && ItemSystem.IsInvIdxWorn(item.GetItemInventoryLocation()))
+            {
+                continue;
+            }
+
+            if (item.GetInt32(obj_f.name) == nameId)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    [TempleDllLocation(0x100d2f30)]
+    public static void AddConditionToItem(this GameObject item, ConditionSpec condition, params int[] args)
+    {
+        var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
+        var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);
+
+        item.SetInt32(obj_f.item_pad_wielder_condition_array, curCondCount, ElfHash.Hash(condition.condName));
+        for (var i = 0; i < condition.numArgs; ++i)
+        {
+            item.SetInt32(obj_f.item_pad_wielder_argument_array, curArgCount, i < args.Length ? args[i] : 0);
+            ++curArgCount;
+        }
+
+        var parent = GameSystems.Item.GetParent(item);
+        if (parent != null)
+        {
+            GameSystems.D20.Status.UpdateItemConditions(parent);
+        }
+    }
+
+    [TempleDllLocation(0x100d3020)]
+    public static void RemoveConditionFromItem(this GameObject item, ConditionSpec condition)
+    {
+        var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
+        var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);
+
+        var currentCond = item.GetInt32(obj_f.item_pad_wielder_condition_array, curCondCount - 1);
+        if (currentCond != ElfHash.Hash(condition.condName))
+        {
+            // Vanilla did NOT check for this !!!
+            throw new InvalidOperationException();
+        }
+
+        item.RemoveInt32(obj_f.item_pad_wielder_condition_array, curCondCount - 1);
+        for (var i = 0; i < condition.numArgs; ++i)
+        {
+            item.RemoveInt32(obj_f.item_pad_wielder_argument_array, curArgCount - 1);
+            curArgCount--;
+        }
+
+        // TODO: This was ALSO missing from Vanilla... wtf!
+        var parent = GameSystems.Item.GetParent(item);
+        if (parent != null)
+        {
+            GameSystems.D20.Status.UpdateItemConditions(parent);
+        }
+
+        // TODO: The implementation of this is SUPER unsafe because it doesn't actually check which one it removes!!
+        throw new NotImplementedException();
+    }
+
 }

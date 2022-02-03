@@ -1,18 +1,15 @@
 using System.Numerics;
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public struct Ray3d
 {
+    public Vector3 origin;
+    public Vector3 direction;
 
-    public struct Ray3d
+    public Ray3d(Vector3 origin, Vector3 direction)
     {
-        public Vector3 origin;
-        public Vector3 direction;
-
-        public Ray3d(Vector3 origin, Vector3 direction)
-        {
-            this.origin = origin;
-            this.direction = direction;
-        }
+        this.origin = origin;
+        this.direction = direction;
     }
-
 }

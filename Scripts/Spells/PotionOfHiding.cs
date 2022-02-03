@@ -18,37 +18,36 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(707)]
+public class PotionOfHiding : BaseSpellScript
 {
-    [SpellScript(707)]
-    public class PotionOfHiding : BaseSpellScript
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Potion of hiding OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-abjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Potion of hiding OnSpellEffect");
-            spell.duration = 600;
-            var target = spell.Targets[0];
-            target.Object.AddCondition("sp-Potion of hiding", spell.spellId, spell.duration, 0);
-        }
-        // target.partsys_id = game.particles( 'sp-Potion of hiding', spell.caster )
-        // spell.target_list.remove_target( target.obj )
-        // spell.spell_end( spell.id )
-
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Potion of hiding OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Potion of hiding OnEndSpellCast");
-        }
-
+        Logger.Info("Potion of hiding OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-abjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Potion of hiding OnSpellEffect");
+        spell.duration = 600;
+        var target = spell.Targets[0];
+        target.Object.AddCondition("sp-Potion of hiding", spell.spellId, spell.duration, 0);
+    }
+    // target.partsys_id = game.particles( 'sp-Potion of hiding', spell.caster )
+    // spell.target_list.remove_target( target.obj )
+    // spell.spell_end( spell.id )
+
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Potion of hiding OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Potion of hiding OnEndSpellCast");
+    }
+
 }

@@ -17,28 +17,27 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(159)]
+public class BugbearDefectors : BaseObjectScript
 {
-    [ObjectScript(159)]
-    public class BugbearDefectors : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(11, GetGlobalVar(11) + 1);
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(11, GetGlobalVar(11) - 1);
-            return RunDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(11, GetGlobalVar(11) + 1);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(11, GetGlobalVar(11) - 1);
+        return RunDefault;
+    }
+
+
 }

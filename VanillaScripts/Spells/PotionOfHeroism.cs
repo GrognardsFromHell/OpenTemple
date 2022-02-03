@@ -17,37 +17,36 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(709)]
+public class PotionOfHeroism : BaseSpellScript
 {
-    [SpellScript(709)]
-    public class PotionOfHeroism : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Potion of heroism OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-abjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Potion of heroism OnSpellEffect");
-            spell.duration = 600;
-
-            var target = spell.Targets[0];
-
-            target.Object.AddCondition("sp-Potion of heroism", spell.spellId, spell.duration, 0);
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Potion of heroism OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Potion of heroism OnEndSpellCast");
-        }
-
-
+        Logger.Info("Potion of heroism OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-abjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Potion of heroism OnSpellEffect");
+        spell.duration = 600;
+
+        var target = spell.Targets[0];
+
+        target.Object.AddCondition("sp-Potion of heroism", spell.spellId, spell.duration, 0);
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Potion of heroism OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Potion of heroism OnEndSpellCast");
+    }
+
+
 }

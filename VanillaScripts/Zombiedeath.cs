@@ -17,31 +17,30 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(250)]
+public class Zombiedeath : BaseObjectScript
 {
-    [ObjectScript(250)]
-    public class Zombiedeath : BaseObjectScript
+
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        SetGlobalVar(0, GetGlobalVar(0) + 1);
+        Logger.Info("Zombies dead={0}", GetGlobalVar(0));
+        if (GetGlobalVar(0) == 3)
         {
-            SetGlobalVar(0, GetGlobalVar(0) + 1);
-            Logger.Info("Zombies dead={0}", GetGlobalVar(0));
-            if (GetGlobalVar(0) == 3)
+            if (!UiSystems.HelpManager.IsTutorialActive)
             {
-                if (!UiSystems.HelpManager.IsTutorialActive)
-                {
-                    UiSystems.HelpManager.ToggleTutorial();
-                }
-
-                UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.LootReminder);
-                DetachScript();
-
+                UiSystems.HelpManager.ToggleTutorial();
             }
 
-            return RunDefault;
+            UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.LootReminder);
+            DetachScript();
+
         }
 
-
+        return RunDefault;
     }
+
+
 }

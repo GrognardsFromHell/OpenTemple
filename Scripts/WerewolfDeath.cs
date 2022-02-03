@@ -18,21 +18,20 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(220)]
-    public class WerewolfDeath : BaseObjectScript
-    {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(155, true);
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(155, false);
-            return RunDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(220)]
+public class WerewolfDeath : BaseObjectScript
+{
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(155, true);
+        return RunDefault;
     }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(155, false);
+        return RunDefault;
+    }
+
 }

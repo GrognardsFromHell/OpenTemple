@@ -1,10 +1,9 @@
 using OpenTemple.Core.IO.SaveGames.UiState;
 
-namespace OpenTemple.Core.Ui
+namespace OpenTemple.Core.Ui;
+
+public interface ISaveGameAwareUi
 {
-    public interface ISaveGameAwareUi
-    {
-        void SaveGame(SavedUiState savedState);
-        void LoadGame(SavedUiState savedState);
-    }
+    void SaveGame(SavedUiState savedState);
+    void LoadGame(SavedUiState savedState);
 }

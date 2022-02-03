@@ -18,39 +18,38 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(66)]
+public class Courier1 : BaseObjectScript
 {
-    [ObjectScript(66)]
-    public class Courier1 : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (!PartyLeader.HasReputation(9))
-            {
-                PartyLeader.AddReputation(9);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                if ((GetQuestState(17) == QuestState.Completed))
-                {
-                    attachee.RunOff();
-                    DetachScript();
-                }
-
-            }
-
-            return RunDefault;
-        }
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (!PartyLeader.HasReputation(9))
+        {
+            PartyLeader.AddReputation(9);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            if ((GetQuestState(17) == QuestState.Completed))
+            {
+                attachee.RunOff();
+                DetachScript();
+            }
+
+        }
+
+        return RunDefault;
+    }
+
 }

@@ -17,35 +17,34 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(199)]
+public class TalkingPeasant : BaseObjectScript
 {
-    [ObjectScript(199)]
-    public class TalkingPeasant : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            if ((Utilities.critter_is_unconscious(obj) == 0))
             {
-                if ((Utilities.critter_is_unconscious(obj) == 0))
-                {
-                    attachee.TurnTowards(obj);
-                    obj.BeginDialog(attachee, 1);
-                    DetachScript();
+                attachee.TurnTowards(obj);
+                obj.BeginDialog(attachee, 1);
+                DetachScript();
 
-                    return RunDefault;
-                }
-
+                return RunDefault;
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

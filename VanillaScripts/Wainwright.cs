@@ -17,47 +17,46 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(58)]
+public class Wainwright : BaseObjectScript
 {
-    [ObjectScript(58)]
-    public class Wainwright : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8001))))
         {
-            if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8001))))
-            {
-                triggerer.BeginDialog(attachee, 150);
-            }
-            else if ((attachee.GetMap() == 5007))
-            {
-                triggerer.BeginDialog(attachee, 340);
-            }
-            else if ((GetGlobalFlag(38)))
-            {
-                triggerer.BeginDialog(attachee, 200);
-            }
-            else if ((GetGlobalFlag(149)))
-            {
-                triggerer.BeginDialog(attachee, 220);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 150);
         }
-        public static bool make_hate(GameObject attachee, GameObject triggerer)
+        else if ((attachee.GetMap() == 5007))
         {
-            if ((attachee.GetReaction(triggerer) >= 20))
-            {
-                attachee.SetReaction(triggerer, 20);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 340);
+        }
+        else if ((GetGlobalFlag(38)))
+        {
+            triggerer.BeginDialog(attachee, 200);
+        }
+        else if ((GetGlobalFlag(149)))
+        {
+            triggerer.BeginDialog(attachee, 220);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public static bool make_hate(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetReaction(triggerer) >= 20))
+        {
+            attachee.SetReaction(triggerer, 20);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

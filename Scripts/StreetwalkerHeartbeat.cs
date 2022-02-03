@@ -18,25 +18,24 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(216)]
+public class StreetwalkerHeartbeat : BaseObjectScript
 {
-    [ObjectScript(216)]
-    public class StreetwalkerHeartbeat : BaseObjectScript
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(322, true);
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
-        }
-
+        SetGlobalFlag(322, true);
+        return RunDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+
 }

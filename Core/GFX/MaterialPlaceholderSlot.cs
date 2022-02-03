@@ -1,13 +1,12 @@
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+/*
+Used as placeholders for special material such as HEAD, GLOVES, etc.
+*/
+public enum MaterialPlaceholderSlot
 {
-    /*
-    Used as placeholders for special material such as HEAD, GLOVES, etc.
-    */
-    public enum MaterialPlaceholderSlot
-    {
-        HEAD,
-        GLOVES,
-        CHEST,
-        BOOTS
-    };
-}
+    HEAD,
+    GLOVES,
+    CHEST,
+    BOOTS
+};

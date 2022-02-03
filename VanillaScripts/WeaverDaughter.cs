@@ -17,48 +17,47 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(84)]
+public class WeaverDaughter : BaseObjectScript
 {
-    [ObjectScript(84)]
-    public class WeaverDaughter : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public static bool argue(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8007);
-
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 30);
-            }
-
-            return SkipDefault;
-        }
-        public static bool make_hate(GameObject attachee, GameObject triggerer)
-        {
-            var r = attachee.GetReaction(triggerer);
-
-            if ((r > 20))
-            {
-                var n = 20 - r;
-
-                attachee.AdjustReaction(triggerer, n);
-            }
-
-            return SkipDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public static bool argue(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8007);
+
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 30);
+        }
+
+        return SkipDefault;
+    }
+    public static bool make_hate(GameObject attachee, GameObject triggerer)
+    {
+        var r = attachee.GetReaction(triggerer);
+
+        if ((r > 20))
+        {
+            var n = 20 - r;
+
+            attachee.AdjustReaction(triggerer, n);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

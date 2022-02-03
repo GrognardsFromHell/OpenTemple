@@ -18,44 +18,43 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(550)]
-    public class GnarleyWitch : BaseObjectScript
-    {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            attachee.TurnTowards(triggerer);
-            if ((attachee.HasMet(triggerer)))
-            {
-                if (triggerer.GetPartyMembers().Any(o => o.HasItemByName(6655)))
-                {
-                    triggerer.BeginDialog(attachee, 120);
-                    return SkipDefault;
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 100);
-                    return SkipDefault;
-                }
+namespace Scripts;
 
+[ObjectScript(550)]
+public class GnarleyWitch : BaseObjectScript
+{
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        attachee.TurnTowards(triggerer);
+        if ((attachee.HasMet(triggerer)))
+        {
+            if (triggerer.GetPartyMembers().Any(o => o.HasItemByName(6655)))
+            {
+                triggerer.BeginDialog(attachee, 120);
+                return SkipDefault;
             }
             else
             {
-                triggerer.BeginDialog(attachee, 1);
+                triggerer.BeginDialog(attachee, 100);
+                return SkipDefault;
             }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+
 }

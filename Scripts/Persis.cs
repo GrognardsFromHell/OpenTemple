@@ -18,45 +18,44 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(348)]
+public class Persis : BaseObjectScript
 {
-    [ObjectScript(348)]
-    public class Persis : BaseObjectScript
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalVar(993) == 2))
         {
-            if ((GetGlobalVar(993) == 2))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-            }
-            else if ((GetGlobalVar(993) == 3))
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((GetGlobalVar(993) == 3))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetGlobalFlag(954, true);
-            if ((GetGlobalFlag(948) && GetGlobalFlag(949) && GetGlobalFlag(950) && GetGlobalFlag(951) && GetGlobalFlag(952) && GetGlobalFlag(953)))
-            {
-                PartyLeader.AddReputation(40);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(954, false);
-            PartyLeader.RemoveReputation(40);
-            return RunDefault;
+            attachee.SetObjectFlag(ObjectFlag.OFF);
         }
 
+        return RunDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        SetGlobalFlag(954, true);
+        if ((GetGlobalFlag(948) && GetGlobalFlag(949) && GetGlobalFlag(950) && GetGlobalFlag(951) && GetGlobalFlag(952) && GetGlobalFlag(953)))
+        {
+            PartyLeader.AddReputation(40);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(954, false);
+        PartyLeader.RemoveReputation(40);
+        return RunDefault;
+    }
+
 }

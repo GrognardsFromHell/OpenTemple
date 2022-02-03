@@ -18,29 +18,28 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
-{
-    public class VexingFlanker
-    {
-        public static readonly FeatId Id = (FeatId) ElfHash.Hash("Vexing Flanker");
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
-        public static void VFing(in DispatcherCallbackArgs evt)
+public class VexingFlanker
+{
+    public static readonly FeatId Id = (FeatId) ElfHash.Hash("Vexing Flanker");
+
+    public static void VFing(in DispatcherCallbackArgs evt)
+    {
+        var dispIo = evt.GetDispIoAttackBonus();
+        if (evt.objHndCaller.HasFeat(Id))
         {
-            var dispIo = evt.GetDispIoAttackBonus();
-            if (evt.objHndCaller.HasFeat(Id))
+            // Vexing Flanker
+            if ((dispIo.attackPacket.flags & D20CAF.FLANKED) != D20CAF.NONE)
             {
-                // Vexing Flanker
-                if ((dispIo.attackPacket.flags & D20CAF.FLANKED) != D20CAF.NONE)
-                {
-                    dispIo.bonlist.AddBonus(2, 0, "Target Vexing flanker bonus");
-                }
+                dispIo.bonlist.AddBonus(2, 0, "Target Vexing flanker bonus");
             }
         }
-
-        [FeatCondition("Vexing Flanker")]
-        [AutoRegister] public static readonly ConditionSpec eVF = ConditionSpec.Create("Vexing Flanker Feat", 2)
-            .SetUnique()
-            .AddHandler(DispatcherType.ToHitBonus2, VFing)
-            .Build();
     }
+
+    [FeatCondition("Vexing Flanker")]
+    [AutoRegister] public static readonly ConditionSpec eVF = ConditionSpec.Create("Vexing Flanker Feat", 2)
+        .SetUnique()
+        .AddHandler(DispatcherType.ToHitBonus2, VFing)
+        .Build();
 }

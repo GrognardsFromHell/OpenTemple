@@ -17,53 +17,44 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(67)]
+public class Command : BaseSpellScript
 {
-    [SpellScript(67)]
-    public class Command : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
+        Logger.Info("Command OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-enchantment-conjure", spell.caster);
+    }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Command OnSpellEffect");
+        spell.duration = 1;
 
-        public override void OnBeginSpellCast(SpellPacketBody spell)
+        var target_item = spell.Targets[0];
+
+        if (!target_item.Object.IsFriendly(spell.caster))
         {
-            Logger.Info("Command OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-enchantment-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Command OnSpellEffect");
-            spell.duration = 1;
-
-            var target_item = spell.Targets[0];
-
-            if (!target_item.Object.IsFriendly(spell.caster))
+            if ((target_item.Object.type == ObjectType.pc) || (target_item.Object.type == ObjectType.npc))
             {
-                if ((target_item.Object.type == ObjectType.pc) || (target_item.Object.type == ObjectType.npc))
+                if (!target_item.Object.IsMonsterCategory(MonsterCategory.animal))
                 {
-                    if (!target_item.Object.IsMonsterCategory(MonsterCategory.animal))
+                    if (GameSystems.Stat.DispatchGetSizeCategory(target_item.Object) < SizeCategory.Large)
                     {
-                        if (GameSystems.Stat.DispatchGetSizeCategory(target_item.Object) < SizeCategory.Large)
+                        if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
                         {
-                            if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
-                            {
-                                target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
-                                target_item.Object.AddCondition("sp-Command", spell.spellId, spell.duration, spell.GetMenuArg(RadialMenuParam.MinSetting));
-                                target_item.ParticleSystem = AttachParticles("sp-Command", target_item.Object);
-
-                            }
-                            else
-                            {
-                                target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
-                                AttachParticles("Fizzle", target_item.Object);
-                                spell.RemoveTarget(target_item.Object);
-                            }
+                            target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
+                            target_item.Object.AddCondition("sp-Command", spell.spellId, spell.duration, spell.GetMenuArg(RadialMenuParam.MinSetting));
+                            target_item.ParticleSystem = AttachParticles("sp-Command", target_item.Object);
 
                         }
                         else
                         {
-                            target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
-                            target_item.Object.FloatMesFileLine("mes/spell.mes", 31005);
+                            target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
                             AttachParticles("Fizzle", target_item.Object);
                             spell.RemoveTarget(target_item.Object);
                         }
@@ -72,7 +63,7 @@ namespace VanillaScripts.Spells
                     else
                     {
                         target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
-                        target_item.Object.FloatMesFileLine("mes/spell.mes", 31004);
+                        target_item.Object.FloatMesFileLine("mes/spell.mes", 31005);
                         AttachParticles("Fizzle", target_item.Object);
                         spell.RemoveTarget(target_item.Object);
                     }
@@ -81,7 +72,7 @@ namespace VanillaScripts.Spells
                 else
                 {
                     target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
-                    target_item.Object.FloatMesFileLine("mes/spell.mes", 31001);
+                    target_item.Object.FloatMesFileLine("mes/spell.mes", 31004);
                     AttachParticles("Fizzle", target_item.Object);
                     spell.RemoveTarget(target_item.Object);
                 }
@@ -89,21 +80,29 @@ namespace VanillaScripts.Spells
             }
             else
             {
+                target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
+                target_item.Object.FloatMesFileLine("mes/spell.mes", 31001);
                 AttachParticles("Fizzle", target_item.Object);
                 spell.RemoveTarget(target_item.Object);
             }
 
-            spell.EndSpell();
         }
-        public override void OnBeginRound(SpellPacketBody spell)
+        else
         {
-            Logger.Info("Command OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Command OnEndSpellCast");
+            AttachParticles("Fizzle", target_item.Object);
+            spell.RemoveTarget(target_item.Object);
         }
 
-
+        spell.EndSpell();
     }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Command OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Command OnEndSpellCast");
+    }
+
+
 }

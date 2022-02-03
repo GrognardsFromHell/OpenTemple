@@ -17,32 +17,31 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(6)]
+public class Captain : BaseObjectScript
 {
-    [ObjectScript(6)]
-    public class Captain : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8014)) && !GetGlobalFlag(309)))
         {
-            if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8014)) && !GetGlobalFlag(309)))
-            {
-                SetGlobalFlag(309, true);
-                triggerer.BeginDialog(attachee, 160);
-            }
-            else if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8000)) && !GetGlobalFlag(308)))
-            {
-                SetGlobalFlag(308, true);
-                triggerer.BeginDialog(attachee, 170);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            SetGlobalFlag(309, true);
+            triggerer.BeginDialog(attachee, 160);
+        }
+        else if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8000)) && !GetGlobalFlag(308)))
+        {
+            SetGlobalFlag(308, true);
+            triggerer.BeginDialog(attachee, 170);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+
+
 }

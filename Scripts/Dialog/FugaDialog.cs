@@ -19,54 +19,53 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(103)]
+public class FugaDialog : Fuga, IDialogScript
 {
-    [DialogScript(103)]
-    public class FugaDialog : Fuga, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 2:
-                case 3:
-                    originalScript = "game.global_flags[78] == 0";
-                    return !GetGlobalFlag(78);
-                case 4:
-                case 5:
-                    originalScript = "game.global_flags[78] == 1";
-                    return GetGlobalFlag(78);
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 2:
+            case 3:
+                originalScript = "game.global_flags[78] == 0";
+                return !GetGlobalFlag(78);
+            case 4:
+            case 5:
+                originalScript = "game.global_flags[78] == 1";
+                return GetGlobalFlag(78);
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 4:
-                case 5:
-                    originalScript = "game.global_flags[78] = 0";
-                    SetGlobalFlag(78, false);
-                    break;
-                case 21:
-                    originalScript = "game.fade(28800,4047,0,4)";
-                    Fade(28800, 4047, 0, 4);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 4:
+            case 5:
+                originalScript = "game.global_flags[78] = 0";
+                SetGlobalFlag(78, false);
+                break;
+            case 21:
+                originalScript = "game.fade(28800,4047,0,4)";
+                Fade(28800, 4047, 0, 4);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

@@ -1,24 +1,23 @@
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public class MaterialSamplerBinding : GpuResource<MaterialSamplerBinding>
 {
-    public class MaterialSamplerBinding : GpuResource<MaterialSamplerBinding>
+    public MaterialSamplerBinding(RenderingDevice device,
+        ITexture texture,
+        SamplerState samplerState) : base()
     {
-        public MaterialSamplerBinding(RenderingDevice device,
-            ITexture texture,
-            SamplerState samplerState) : base()
-        {
-            Texture = texture.Ref();
-            SamplerState = samplerState.Ref();
-        }
+        Texture = texture.Ref();
+        SamplerState = samplerState.Ref();
+    }
 
-        public ResourceRef<ITexture> Texture { get; }
+    public ResourceRef<ITexture> Texture { get; }
 
-        public ResourceRef<SamplerState> SamplerState { get; }
+    public ResourceRef<SamplerState> SamplerState { get; }
 
-        protected override void FreeResource()
-        {
-            Texture.Dispose();
-            SamplerState.Dispose();
-        }
+    protected override void FreeResource()
+    {
+        Texture.Dispose();
+        SamplerState.Dispose();
     }
 }

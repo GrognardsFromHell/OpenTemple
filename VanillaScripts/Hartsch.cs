@@ -17,38 +17,37 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(123)]
+public class Hartsch : BaseObjectScript
 {
-    [ObjectScript(123)]
-    public class Hartsch : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
+            if ((GetQuestState(43) >= QuestState.Mentioned))
             {
-                if ((GetQuestState(43) >= QuestState.Mentioned))
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 10);
-                }
-
-            }
-            else if ((GetQuestState(44) >= QuestState.Accepted))
-            {
-                triggerer.BeginDialog(attachee, 20);
+                triggerer.BeginDialog(attachee, 1);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 30);
+                triggerer.BeginDialog(attachee, 10);
             }
 
-            return SkipDefault;
+        }
+        else if ((GetQuestState(44) >= QuestState.Accepted))
+        {
+            triggerer.BeginDialog(attachee, 20);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 30);
         }
 
-
+        return SkipDefault;
     }
+
+
 }

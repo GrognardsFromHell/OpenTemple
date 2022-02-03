@@ -4,65 +4,64 @@ using System.Diagnostics;
 using IronPython.Compiler.Ast;
 using IronPython.Modules;
 
-namespace ScriptConversion
+namespace ScriptConversion;
+
+internal class FindVariableDeclarations : PythonWalker
 {
-    internal class FindVariableDeclarations : PythonWalker
+    private readonly ExpressionConverter _expressionConverter;
+
+    public Dictionary<string, GuessedType> NewVariables { get; } = new Dictionary<string, GuessedType>();
+
+    public FindVariableDeclarations(ExpressionConverter expressionConverter)
     {
-        private readonly ExpressionConverter _expressionConverter;
+        _expressionConverter = expressionConverter;
+    }
 
-        public Dictionary<string, GuessedType> NewVariables { get; } = new Dictionary<string, GuessedType>();
-
-        public FindVariableDeclarations(ExpressionConverter expressionConverter)
+    // A for statement will also define a variable temporarily
+    public override bool Walk(ForStatement node)
+    {
+        if (node.Left is NameExpression nameExpression)
         {
-            _expressionConverter = expressionConverter;
+            var expressionConverter = _expressionConverter.Clone();
+            expressionConverter.AddVariables(NewVariables);
+
+            var newVar = nameExpression.Name;
+            var newVarType = expressionConverter.GetListElementType(expressionConverter.GetExpressionType(node.List));
+            NewVariables[newVar] = newVarType;
+
+            node.Body?.Walk(this);
+            node.Else?.Walk(this);
+
+            NewVariables.Remove(newVar);
+            return false;
         }
 
-        // A for statement will also define a variable temporarily
-        public override bool Walk(ForStatement node)
+        return base.Walk(node);
+    }
+
+    public override bool Walk(AssignmentStatement node)
+    {
+        foreach (var leftExpression in node.Left)
         {
-            if (node.Left is NameExpression nameExpression)
+            if (leftExpression is NameExpression nameExpression)
             {
-                var expressionConverter = _expressionConverter.Clone();
-                expressionConverter.AddVariables(NewVariables);
-
-                var newVar = nameExpression.Name;
-                var newVarType = expressionConverter.GetListElementType(expressionConverter.GetExpressionType(node.List));
-                NewVariables[newVar] = newVarType;
-
-                node.Body?.Walk(this);
-                node.Else?.Walk(this);
-
-                NewVariables.Remove(newVar);
-                return false;
-            }
-
-            return base.Walk(node);
-        }
-
-        public override bool Walk(AssignmentStatement node)
-        {
-            foreach (var leftExpression in node.Left)
-            {
-                if (leftExpression is NameExpression nameExpression)
+                var variableName = nameExpression.Name;
+                if (!_expressionConverter.IsVariableDefined(variableName))
                 {
-                    var variableName = nameExpression.Name;
-                    if (!_expressionConverter.IsVariableDefined(variableName))
-                    {
-                        var expressionConverter = _expressionConverter.Clone();
-                        expressionConverter.AddVariables(NewVariables);
+                    var expressionConverter = _expressionConverter.Clone();
+                    expressionConverter.AddVariables(NewVariables);
 
-                        var rhsType = expressionConverter.GetExpressionType(node.Right);
-                        if (!NewVariables.TryGetValue(variableName, out var existingType)
-                            || existingType == GuessedType.Unknown)
-                        {
-                            // Only overwrite the decl if the type is more precise
-                            NewVariables[variableName] = rhsType;
-                        }
+                    var rhsType = expressionConverter.GetExpressionType(node.Right);
+                    if (!NewVariables.TryGetValue(variableName, out var existingType)
+                        || existingType == GuessedType.Unknown)
+                    {
+                        // Only overwrite the decl if the type is more precise
+                        NewVariables[variableName] = rhsType;
                     }
                 }
             }
-
-            return true;
         }
+
+        return true;
     }
 }

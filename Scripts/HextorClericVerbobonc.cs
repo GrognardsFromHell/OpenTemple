@@ -18,26 +18,25 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(391)]
+public class HextorClericVerbobonc : BaseObjectScript
 {
-    [ObjectScript(391)]
-    public class HextorClericVerbobonc : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            attachee.TurnTowards(triggerer);
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetGlobalVar(949) == 2 || PartyLeader.HasReputation(47)))
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
-        }
-
+        attachee.TurnTowards(triggerer);
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(949) == 2 || PartyLeader.HasReputation(47)))
+        {
+            attachee.SetObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+
 }

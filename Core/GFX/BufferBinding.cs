@@ -4,153 +4,152 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public enum VertexElementType : uint {
+	Float1,
+	Float2,
+	Float3,
+	Float4,
+	Color, // 4 byte ARGB
+	UByte4, // 4 unsigned bytes
+	Short2, // 2 signed shorts (expanded to (s1, s2, 0, 1))
+	Short4, // 4 signed shorts
+	UByte4N, // 4 unsigned bytes, normalized to [0, 1] by dividing by 255
+	Short2N, // 2 signed shorts normalized to [0, 1] by dividing by 32767
+	Short4N, // 2 signed shorts normalized to [0, 1] by dividing by 32767
+	UShort2N, // 2 unsigned shorts normalized to [0, 1] by dividing by 65535
+	UShort4N, // 4 unsigned shorts normalized to [0, 1] by dividing by 65535
+}
+
+public enum VertexElementSemantic : uint {
+	Position,
+	BlendWeight,
+	BlendIndices,
+	Normal,
+	PointSize,
+	TexCoord,
+	Tangent,
+	BiNormal,
+	TessFactor,
+	PositionT,
+	Color,
+	Fog,
+	Depth,
+	Sample
+}
+
+struct VertexElement {
+	public ushort stream; // Stream index (0 based)
+	public ushort offset; // Offset from the start of the stream in bytes
+	public VertexElementType type; // Data type of the element
+	public VertexElementSemantic semantic; // Semantic for this element
+	// If more than slot exists for the semantic, use this to identify which one
+	public byte semanticIndex;
+};
+
+public ref struct BufferBindingBuilder {
+	public BufferBindingBuilder AddElement(
+		VertexElementType type,
+		VertexElementSemantic semantic,
+		byte semanticIndex = 0
+	)
+	{
+
+		var elemIdx = mBinding._elementCount++;
+		ref var elem = ref mBinding._elements[elemIdx];
+		elem.stream = (ushort) mStreamIdx;
+		elem.offset = (ushort) mCurOffset;
+		elem.type = type;
+		elem.semantic = semantic;
+		elem.semanticIndex = semanticIndex;
+
+		mCurOffset += BufferBinding.GetElementSize(type);
+
+		return this;
+	}
+
+	internal BufferBindingBuilder(BufferBinding binding, int streamIdx)
+	{
+		mBinding = binding;
+		mStreamIdx = streamIdx;
+		mCurOffset = 0;
+	}
+
+	private BufferBinding mBinding;
+	private int mStreamIdx;
+	private int mCurOffset;
+}
+
+public class BufferBinding : GpuResource<BufferBinding>
 {
+	internal VertexElement[] _elements = new VertexElement[16];
+	internal int _elementCount; // Actual number of used elements in _elements
+	private ResourceRef<VertexBuffer>[] _streams = new ResourceRef<VertexBuffer>[16];
+	private int[] _offsets = new int[16];
+	private int[] _strides = new int[16];
+	private int _streamCount; // Actual number of used streams
+	private InputLayout _inputLayout;
+	private ResourceRef<VertexShader> _shader;
+	private RenderingDevice _device;
 
-    public enum VertexElementType : uint {
-        Float1,
-        Float2,
-        Float3,
-        Float4,
-        Color, // 4 byte ARGB
-        UByte4, // 4 unsigned bytes
-        Short2, // 2 signed shorts (expanded to (s1, s2, 0, 1))
-        Short4, // 4 signed shorts
-        UByte4N, // 4 unsigned bytes, normalized to [0, 1] by dividing by 255
-        Short2N, // 2 signed shorts normalized to [0, 1] by dividing by 32767
-        Short4N, // 2 signed shorts normalized to [0, 1] by dividing by 32767
-        UShort2N, // 2 unsigned shorts normalized to [0, 1] by dividing by 65535
-        UShort4N, // 4 unsigned shorts normalized to [0, 1] by dividing by 65535
-    }
+	public BufferBinding(RenderingDevice device, VertexShader shader)
+	{
+		_device = device;
+		_shader = shader.Ref();
+	}
 
-    public enum VertexElementSemantic : uint {
-        Position,
-        BlendWeight,
-        BlendIndices,
-        Normal,
-        PointSize,
-        TexCoord,
-        Tangent,
-        BiNormal,
-        TessFactor,
-        PositionT,
-        Color,
-        Fog,
-        Depth,
-        Sample
-    }
+	public BufferBinding SetBuffer(int streamIdx, VertexBuffer buffer) {
+		_streams[streamIdx].Dispose();
+		_streams[streamIdx] = new ResourceRef<VertexBuffer>(buffer);
+		return this;
+	}
 
-    struct VertexElement {
-        public ushort stream; // Stream index (0 based)
-        public ushort offset; // Offset from the start of the stream in bytes
-        public VertexElementType type; // Data type of the element
-        public VertexElementSemantic semantic; // Semantic for this element
-        // If more than slot exists for the semantic, use this to identify which one
-        public byte semanticIndex;
-    };
+	public BufferBindingBuilder AddBuffer(VertexBuffer buffer, int offset, int stride) {
+		var streamIdx = _streamCount++;
+		_streams[streamIdx] = new ResourceRef<VertexBuffer>(buffer);
+		_offsets[streamIdx] = offset;
+		_strides[streamIdx] = stride;
 
-    public ref struct BufferBindingBuilder {
-        public BufferBindingBuilder AddElement(
-            VertexElementType type,
-            VertexElementSemantic semantic,
-            byte semanticIndex = 0
-        )
-        {
+		return new BufferBindingBuilder(this, streamIdx);
+	}
 
-            var elemIdx = mBinding._elementCount++;
-            ref var elem = ref mBinding._elements[elemIdx];
-            elem.stream = (ushort) mStreamIdx;
-            elem.offset = (ushort) mCurOffset;
-            elem.type = type;
-            elem.semantic = semantic;
-            elem.semanticIndex = semanticIndex;
+	public BufferBindingBuilder AddBuffer<T>(VertexBuffer buffer, int offset) where T : unmanaged {
+		var streamIdx = _streamCount++;
+		_streams[streamIdx] = new ResourceRef<VertexBuffer>(buffer);
+		_offsets[streamIdx] = offset;
+		unsafe {
+			_strides[streamIdx] = sizeof(T);
+		}
 
-            mCurOffset += BufferBinding.GetElementSize(type);
+		return new BufferBindingBuilder(this, streamIdx);
+	}
 
-            return this;
-        }
+	protected override void FreeResource()
+	{
+		_shader.Dispose();
+		_inputLayout?.Dispose();
+		_inputLayout = null;
+		foreach (var stream in _streams)
+		{
+			stream.Dispose();
+		}
+	}
 
-        internal BufferBindingBuilder(BufferBinding binding, int streamIdx)
-        {
-            mBinding = binding;
-            mStreamIdx = streamIdx;
-            mCurOffset = 0;
-        }
+	public void Bind()
+	{
 
-        private BufferBinding mBinding;
-        private int mStreamIdx;
-        private int mCurOffset;
-    }
+		// D3D11 version
+		if (_inputLayout == null)
+		{
+			var inputDesc = new List<InputElement>(16);
 
-    public class BufferBinding : GpuResource<BufferBinding>
-    {
-        internal VertexElement[] _elements = new VertexElement[16];
-        internal int _elementCount; // Actual number of used elements in _elements
-        private ResourceRef<VertexBuffer>[] _streams = new ResourceRef<VertexBuffer>[16];
-        private int[] _offsets = new int[16];
-        private int[] _strides = new int[16];
-        private int _streamCount; // Actual number of used streams
-        private InputLayout _inputLayout;
-        private ResourceRef<VertexShader> _shader;
-        private RenderingDevice _device;
+			for (int i = 0; i < _elementCount; ++i) {
+				ref var elemIn = ref _elements[i];
 
-        public BufferBinding(RenderingDevice device, VertexShader shader)
-        {
-	        _device = device;
-	        _shader = shader.Ref();
-        }
+				var desc = new InputElement();
 
-        public BufferBinding SetBuffer(int streamIdx, VertexBuffer buffer) {
-	        _streams[streamIdx].Dispose();
-            _streams[streamIdx] = new ResourceRef<VertexBuffer>(buffer);
-            return this;
-        }
-
-        public BufferBindingBuilder AddBuffer(VertexBuffer buffer, int offset, int stride) {
-            var streamIdx = _streamCount++;
-            _streams[streamIdx] = new ResourceRef<VertexBuffer>(buffer);
-            _offsets[streamIdx] = offset;
-            _strides[streamIdx] = stride;
-
-            return new BufferBindingBuilder(this, streamIdx);
-        }
-
-		public BufferBindingBuilder AddBuffer<T>(VertexBuffer buffer, int offset) where T : unmanaged {
-            var streamIdx = _streamCount++;
-            _streams[streamIdx] = new ResourceRef<VertexBuffer>(buffer);
-            _offsets[streamIdx] = offset;
-            unsafe {
-	            _strides[streamIdx] = sizeof(T);
-            }
-
-            return new BufferBindingBuilder(this, streamIdx);
-        }
-
-        protected override void FreeResource()
-        {
-            _shader.Dispose();
-            _inputLayout?.Dispose();
-            _inputLayout = null;
-            foreach (var stream in _streams)
-            {
-	            stream.Dispose();
-            }
-        }
-
-        public void Bind()
-        {
-
-			// D3D11 version
-			if (_inputLayout == null)
-			{
-				var inputDesc = new List<InputElement>(16);
-
-				for (int i = 0; i < _elementCount; ++i) {
-					ref var elemIn = ref _elements[i];
-
-					var desc = new InputElement();
-
-					switch (elemIn.semantic) {
+				switch (elemIn.semantic) {
 					case VertexElementSemantic.Position:
 						desc.SemanticName = "POSITION";
 						break;
@@ -165,92 +164,91 @@ namespace OpenTemple.Core.GFX
 						break;
 					default:
 						throw new GfxException("Unsupported semantic");
-					}
-					desc.SemanticIndex = elemIn.semanticIndex;
-					desc.AlignedByteOffset = elemIn.offset;
-					desc.InstanceDataStepRate = 0;
-					desc.Classification = InputClassification.PerVertexData;
-					desc.Slot = elemIn.stream;
+				}
+				desc.SemanticIndex = elemIn.semanticIndex;
+				desc.AlignedByteOffset = elemIn.offset;
+				desc.InstanceDataStepRate = 0;
+				desc.Classification = InputClassification.PerVertexData;
+				desc.Slot = elemIn.stream;
 
-					switch (elemIn.type) {
-						case VertexElementType.Float1:
-							desc.Format = Format.R32_Float;
-							break;
-						case VertexElementType.Float2:
-							desc.Format = Format.R32G32_Float;
-							break;
-						case VertexElementType.Float3:
-							desc.Format = Format.R32G32B32_Float;
-							break;
-						case VertexElementType.Float4:
-							desc.Format = Format.R32G32B32A32_Float;
-							break;
-						case VertexElementType.Color:
-							desc.Format = Format.B8G8R8A8_UNorm;
-							break;
-						default:
-							throw new GfxException("Unsupported vertex element type.");
-					}
-
-					inputDesc.Add(desc);
+				switch (elemIn.type) {
+					case VertexElementType.Float1:
+						desc.Format = Format.R32_Float;
+						break;
+					case VertexElementType.Float2:
+						desc.Format = Format.R32G32_Float;
+						break;
+					case VertexElementType.Float3:
+						desc.Format = Format.R32G32B32_Float;
+						break;
+					case VertexElementType.Float4:
+						desc.Format = Format.R32G32B32A32_Float;
+						break;
+					case VertexElementType.Color:
+						desc.Format = Format.B8G8R8A8_UNorm;
+						break;
+					default:
+						throw new GfxException("Unsupported vertex element type.");
 				}
 
-				_inputLayout = new InputLayout(
-					_device.Device,
-					_shader.Resource.CompiledCode,
-					inputDesc.ToArray()
-					); 
+				inputDesc.Add(desc);
 			}
 
-			_device.Context.InputAssembler.InputLayout = _inputLayout;
+			_inputLayout = new InputLayout(
+				_device.Device,
+				_shader.Resource.CompiledCode,
+				inputDesc.ToArray()
+			); 
+		}
 
-			// Set the stream sources
-			var vertexBuffers = new List<Buffer>(16);
-			for (int i = 0; i < _streamCount; ++i) {
-				vertexBuffers.Add(_streams[i].Resource.Buffer);
-			}
-			for (var i = _streamCount; i < 16; i++) {
-				vertexBuffers.Add(null);
-			}
-			var offsets = new int[16];
+		_device.Context.InputAssembler.InputLayout = _inputLayout;
 
-			_device.Context.InputAssembler.SetVertexBuffers(0, vertexBuffers.ToArray(), _strides, offsets);
-        }
+		// Set the stream sources
+		var vertexBuffers = new List<Buffer>(16);
+		for (int i = 0; i < _streamCount; ++i) {
+			vertexBuffers.Add(_streams[i].Resource.Buffer);
+		}
+		for (var i = _streamCount; i < 16; i++) {
+			vertexBuffers.Add(null);
+		}
+		var offsets = new int[16];
 
-        internal static int GetElementSize(VertexElementType type)
-        {
+		_device.Context.InputAssembler.SetVertexBuffers(0, vertexBuffers.ToArray(), _strides, offsets);
+	}
+
+	internal static int GetElementSize(VertexElementType type)
+	{
 	        
-	        switch (type) {
-		        case VertexElementType.Float1:
-			        return sizeof(float);
-		        case VertexElementType.Float2:
-			        return sizeof(float) * 2;
-		        case VertexElementType.Float3:
-			        return sizeof(float) * 3;
-		        case VertexElementType.Float4:
-			        return sizeof(float) * 4;
-		        case VertexElementType.Color:
-			        return sizeof(byte) * 4;
-		        case VertexElementType.UByte4:
-			        return sizeof(byte) * 4;
-		        case VertexElementType.Short2:
-			        return sizeof(short) * 2;
-		        case VertexElementType.Short4:
-			        return sizeof(short) * 4;
-		        case VertexElementType.UByte4N:
-			        return sizeof(byte) * 4;
-		        case VertexElementType.Short2N:
-			        return sizeof(short) * 2;
-		        case VertexElementType.Short4N:
-			        return sizeof(short) * 4;
-		        case VertexElementType.UShort2N:
-			        return sizeof(ushort) * 2;
-		        case VertexElementType.UShort4N:
-			        return sizeof(ushort) * 4;
-		        default:
-			        throw new ArgumentException("Unknown vertex element type.");
-	        }
-        }
+		switch (type) {
+			case VertexElementType.Float1:
+				return sizeof(float);
+			case VertexElementType.Float2:
+				return sizeof(float) * 2;
+			case VertexElementType.Float3:
+				return sizeof(float) * 3;
+			case VertexElementType.Float4:
+				return sizeof(float) * 4;
+			case VertexElementType.Color:
+				return sizeof(byte) * 4;
+			case VertexElementType.UByte4:
+				return sizeof(byte) * 4;
+			case VertexElementType.Short2:
+				return sizeof(short) * 2;
+			case VertexElementType.Short4:
+				return sizeof(short) * 4;
+			case VertexElementType.UByte4N:
+				return sizeof(byte) * 4;
+			case VertexElementType.Short2N:
+				return sizeof(short) * 2;
+			case VertexElementType.Short4N:
+				return sizeof(short) * 4;
+			case VertexElementType.UShort2N:
+				return sizeof(ushort) * 2;
+			case VertexElementType.UShort4N:
+				return sizeof(ushort) * 4;
+			default:
+				throw new ArgumentException("Unknown vertex element type.");
+		}
+	}
 
-    }
 }

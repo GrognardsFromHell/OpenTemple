@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector;
+
+public enum SectorExplorationState
 {
-    public enum SectorExplorationState
-    {
-        AllExplored,
-        PartiallyExplored,
-        Unexplored
-    }
+    AllExplored,
+    PartiallyExplored,
+    Unexplored
 }

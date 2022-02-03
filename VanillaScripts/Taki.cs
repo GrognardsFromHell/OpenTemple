@@ -17,79 +17,78 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(170)]
+public class Taki : BaseObjectScript
 {
-    [ObjectScript(170)]
-    public class Taki : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
+            triggerer.BeginDialog(attachee, 200);
+        }
+        else if ((!attachee.HasMet(triggerer)))
+        {
+            if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8040))))
             {
-                triggerer.BeginDialog(attachee, 200);
-            }
-            else if ((!attachee.HasMet(triggerer)))
-            {
-                if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8040))))
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 120);
-                }
-
-            }
-            else if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8040))))
-            {
-                triggerer.BeginDialog(attachee, 170);
+                triggerer.BeginDialog(attachee, 1);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 190);
+                triggerer.BeginDialog(attachee, 120);
             }
 
-            return SkipDefault;
         }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+        else if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8040))))
         {
-            var leader = attachee.GetLeader();
-
-            if ((leader != null))
-            {
-                if ((triggerer.type == ObjectType.npc))
-                {
-                    if (((triggerer.GetAlignment() == Alignment.LAWFUL_GOOD) || (triggerer.GetAlignment() == Alignment.NEUTRAL_GOOD) || (triggerer.GetAlignment() == Alignment.CHAOTIC_GOOD)))
-                    {
-                        attachee.FloatLine(RandomRange(220, 222), leader);
-                        return SkipDefault;
-                    }
-
-                }
-
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 170);
         }
-        public static bool switch_to_ashrem(GameObject attachee, GameObject triggerer, int line, int alternate_line)
+        else
         {
-            var ashrem = Utilities.find_npc_near(attachee, 8040);
-
-            if ((ashrem != null))
-            {
-                triggerer.BeginDialog(ashrem, line);
-                ashrem.TurnTowards(attachee);
-                attachee.TurnTowards(ashrem);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, alternate_line);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 190);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        var leader = attachee.GetLeader();
+
+        if ((leader != null))
+        {
+            if ((triggerer.type == ObjectType.npc))
+            {
+                if (((triggerer.GetAlignment() == Alignment.LAWFUL_GOOD) || (triggerer.GetAlignment() == Alignment.NEUTRAL_GOOD) || (triggerer.GetAlignment() == Alignment.CHAOTIC_GOOD)))
+                {
+                    attachee.FloatLine(RandomRange(220, 222), leader);
+                    return SkipDefault;
+                }
+
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public static bool switch_to_ashrem(GameObject attachee, GameObject triggerer, int line, int alternate_line)
+    {
+        var ashrem = Utilities.find_npc_near(attachee, 8040);
+
+        if ((ashrem != null))
+        {
+            triggerer.BeginDialog(ashrem, line);
+            ashrem.TurnTowards(attachee);
+            attachee.TurnTowards(ashrem);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, alternate_line);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

@@ -17,71 +17,69 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(143)]
+public class Paida : BaseObjectScript
 {
-    [ObjectScript(143)]
-    public class Paida : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
+            triggerer.BeginDialog(attachee, 110);
+        }
+        else if ((!GetGlobalFlag(148)))
+        {
+            if ((GetGlobalFlag(325)))
             {
-                triggerer.BeginDialog(attachee, 110);
-            }
-            else if ((!GetGlobalFlag(148)))
-            {
-                if ((GetGlobalFlag(325)))
-                {
-                    triggerer.BeginDialog(attachee, 230);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-
-            }
-            else if ((GetGlobalFlag(38)))
-            {
-                triggerer.BeginDialog(attachee, 170);
+                triggerer.BeginDialog(attachee, 230);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 160);
+                triggerer.BeginDialog(attachee, 1);
             }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((GetGlobalFlag(38)))
         {
-            SetGlobalFlag(153, true);
-            if ((attachee.GetLeader() != null))
-            {
-                SetGlobalVar(29, GetGlobalVar(29) + 1);
-            }
+            triggerer.BeginDialog(attachee, 170);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 160);
+        }
 
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(153, true);
+        if ((attachee.GetLeader() != null))
         {
-            SetGlobalFlag(153, false);
-            return RunDefault;
+            SetGlobalVar(29, GetGlobalVar(29) + 1);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(153, false);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            if ((GetQuestState(20) == QuestState.Completed))
             {
-                if ((GetQuestState(20) == QuestState.Completed))
+                foreach (var pc in GameSystems.Party.PartyMembers)
                 {
-                    foreach (var pc in GameSystems.Party.PartyMembers)
+                    if (pc.HasFollowerByName(8001))
                     {
-                        if (pc.HasFollowerByName(8001))
-                        {
-                            attachee.AdjustReaction(pc, +30);
-                            pc.RemoveFollower(attachee);
-                            DetachScript();
-
-                        }
+                        attachee.AdjustReaction(pc, +30);
+                        pc.RemoveFollower(attachee);
+                        DetachScript();
 
                     }
 
@@ -89,67 +87,68 @@ namespace VanillaScripts
 
             }
 
-            return RunDefault;
-        }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetGlobalFlag(149)))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
-        {
-            if ((spell.spellEnum == WellKnownSpells.DispelMagic || spell.spellEnum == WellKnownSpells.BreakEnchantment || spell.spellEnum == WellKnownSpells.DispelEvil))
-            {
-                SetGlobalFlag(148, true);
-                triggerer.BeginDialog(attachee, 70);
-            }
-
-            return RunDefault;
-        }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
-        {
-            attachee.SetStandpoint(StandPointType.Night, 257);
-            attachee.SetStandpoint(StandPointType.Day, 257);
-            attachee.RunOff();
-            return RunDefault;
-        }
-        public static bool LookHedrack(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8032);
-
-            if ((npc != null) && (!GetGlobalFlag(146)))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-
-            return SkipDefault;
-        }
-        public static bool get_rep(GameObject attachee, GameObject triggerer)
-        {
-            if (!triggerer.HasReputation(7))
-            {
-                triggerer.AddReputation(7);
-            }
-
-            SetGlobalVar(25, GetGlobalVar(25) + 1);
-            if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
-            {
-                triggerer.AddReputation(8);
-            }
-
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(149)))
+        {
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
+    {
+        if ((spell.spellEnum == WellKnownSpells.DispelMagic || spell.spellEnum == WellKnownSpells.BreakEnchantment || spell.spellEnum == WellKnownSpells.DispelEvil))
+        {
+            SetGlobalFlag(148, true);
+            triggerer.BeginDialog(attachee, 70);
+        }
+
+        return RunDefault;
+    }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        attachee.SetStandpoint(StandPointType.Night, 257);
+        attachee.SetStandpoint(StandPointType.Day, 257);
+        attachee.RunOff();
+        return RunDefault;
+    }
+    public static bool LookHedrack(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8032);
+
+        if ((npc != null) && (!GetGlobalFlag(146)))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 10);
+        }
+
+        return SkipDefault;
+    }
+    public static bool get_rep(GameObject attachee, GameObject triggerer)
+    {
+        if (!triggerer.HasReputation(7))
+        {
+            triggerer.AddReputation(7);
+        }
+
+        SetGlobalVar(25, GetGlobalVar(25) + 1);
+        if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
+        {
+            triggerer.AddReputation(8);
+        }
+
+        return RunDefault;
+    }
+
+
 }

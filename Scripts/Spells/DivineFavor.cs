@@ -18,48 +18,47 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(137)]
+public class DivineFavor : BaseSpellScript
 {
-    [SpellScript(137)]
-    public class DivineFavor : BaseSpellScript
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Divine Favor OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-evocation-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Divine Favor OnSpellEffect");
-            int bonus;
-            if (spell.casterLevel >= 9)
-            {
-                bonus = 3;
-            }
-            else if (spell.casterLevel >= 6)
-            {
-                bonus = 2;
-            }
-            else
-            {
-                bonus = 1;
-            }
-
-            spell.duration = 10;
-            var target = spell.Targets[0];
-            target.Object.AddCondition("sp-Divine Favor", spell.spellId, spell.duration, bonus);
-            target.ParticleSystem = AttachParticles("sp-Divine Favor", target.Object);
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Divine Favor OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Divine Favor OnEndSpellCast");
-        }
-
+        Logger.Info("Divine Favor OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-evocation-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Divine Favor OnSpellEffect");
+        int bonus;
+        if (spell.casterLevel >= 9)
+        {
+            bonus = 3;
+        }
+        else if (spell.casterLevel >= 6)
+        {
+            bonus = 2;
+        }
+        else
+        {
+            bonus = 1;
+        }
+
+        spell.duration = 10;
+        var target = spell.Targets[0];
+        target.Object.AddCondition("sp-Divine Favor", spell.spellId, spell.duration, bonus);
+        target.ParticleSystem = AttachParticles("sp-Divine Favor", target.Object);
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Divine Favor OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Divine Favor OnEndSpellCast");
+    }
+
 }

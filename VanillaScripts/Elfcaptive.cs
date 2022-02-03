@@ -17,42 +17,41 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(80)]
+public class Elfcaptive : BaseObjectScript
 {
-    [ObjectScript(80)]
-    public class Elfcaptive : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!GetGlobalFlag(55)))
         {
-            if ((!GetGlobalFlag(55)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 60);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
+        else
         {
-            var loc = new locXY(423, 432);
-
-            attachee.RunOff(loc);
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if (GetGlobalFlag(55))
-            {
-                attachee.RunOff();
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 60);
         }
 
-
+        return SkipDefault;
     }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        var loc = new locXY(423, 432);
+
+        attachee.RunOff(loc);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if (GetGlobalFlag(55))
+        {
+            attachee.RunOff();
+        }
+
+        return RunDefault;
+    }
+
+
 }

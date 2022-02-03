@@ -19,45 +19,44 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(202)]
+public class NodeBalorDialog : NodeBalor, IDialogScript
 {
-    [DialogScript(202)]
-    public class NodeBalorDialog : NodeBalor, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 35:
-                case 36:
-                    originalScript = "game.global_flags[694] == 1";
-                    return GetGlobalFlag(694);
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 35:
+            case 36:
+                originalScript = "game.global_flags[694] == 1";
+                return GetGlobalFlag(694);
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 21:
-                    originalScript = "npc.attack(pc)";
-                    npc.Attack(pc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 21:
+                originalScript = "npc.attack(pc)";
+                npc.Attack(pc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

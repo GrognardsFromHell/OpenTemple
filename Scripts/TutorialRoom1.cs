@@ -18,32 +18,31 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(240)]
-    public class TutorialRoom1 : BaseObjectScript
-    {
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-            {
-                if ((!Utilities.critter_is_unconscious(obj)))
-                {
-                    // attachee.turn_towards(obj)
-                    if (!UiSystems.HelpManager.IsTutorialActive)
-                    {
-                        UiSystems.HelpManager.ToggleTutorial();
-                    }
+namespace Scripts;
 
-                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Room1Overview);
-                    DetachScript();
-                    return RunDefault;
+[ObjectScript(240)]
+public class TutorialRoom1 : BaseObjectScript
+{
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+        {
+            if ((!Utilities.critter_is_unconscious(obj)))
+            {
+                // attachee.turn_towards(obj)
+                if (!UiSystems.HelpManager.IsTutorialActive)
+                {
+                    UiSystems.HelpManager.ToggleTutorial();
                 }
 
+                UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Room1Overview);
+                DetachScript();
+                return RunDefault;
             }
 
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

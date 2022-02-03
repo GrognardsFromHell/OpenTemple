@@ -19,80 +19,78 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+[AutoRegister]
+public class GhostwiseHalfling
 {
 
-    [AutoRegister]
-    public class GhostwiseHalfling
+    public const RaceId Id = RaceId.tallfellow + (4 << 5);
+
+    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.halfling, Subrace.ghostwise_halfling)
     {
+        effectiveLevel = 0,
+        helpTopic = "TAG_GHOSTWISE_HALFLING",
+        flags = RaceDefinitionFlags.RDF_ForgottenRealms,
+        conditionName = "Ghostwise",
+        heightMale = (32, 40),
+        heightFemale = (30, 38),
+        weightMale = (32, 34),
+        weightFemale = (27, 29),
+        statModifiers = {(Stat.strength, -2), (Stat.dexterity, 2)},
+        ProtoId = 13042,
+        materialOffset = 12, // offset into rules/material_ext.mes file,
+        useBaseRaceForDeity = true
+    };
 
-        public const RaceId Id = RaceId.tallfellow + (4 << 5);
-
-        public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.halfling, Subrace.ghostwise_halfling)
-        {
-            effectiveLevel = 0,
-            helpTopic = "TAG_GHOSTWISE_HALFLING",
-            flags = RaceDefinitionFlags.RDF_ForgottenRealms,
-            conditionName = "Ghostwise",
-            heightMale = (32, 40),
-            heightFemale = (30, 38),
-            weightMale = (32, 34),
-            weightFemale = (27, 29),
-            statModifiers = {(Stat.strength, -2), (Stat.dexterity, 2)},
-            ProtoId = 13042,
-            materialOffset = 12, // offset into rules/material_ext.mes file,
-            useBaseRaceForDeity = true
-        };
-
-        // Note:  No general +1 save bonus for ghostwise halfling
-        // Note:  Adding the size +4 bonus to hide as a racial bonus since setting size to small does not grant the bonus
-        public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-            .AddAbilityModifierHooks(RaceSpec)
-            .AddSkillBonuses(
-                    (SkillId.listen, 2),
-                    (SkillId.move_silently, 2),
-                    (SkillId.climb, 2),
-                    (SkillId.jump, 2),
-                    (SkillId.hide, 4)
-            )
-            .AddBaseMoveSpeed(20)
-            .AddFavoredClassHook(Stat.level_barbarian)
-            .AddHandler(DispatcherType.SaveThrowLevel, HalflingFearSaveBonus)
-            .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusSlingsThrownWeapons)
-            .Build();
+    // Note:  No general +1 save bonus for ghostwise halfling
+    // Note:  Adding the size +4 bonus to hide as a racial bonus since setting size to small does not grant the bonus
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
+        .AddAbilityModifierHooks(RaceSpec)
+        .AddSkillBonuses(
+            (SkillId.listen, 2),
+            (SkillId.move_silently, 2),
+            (SkillId.climb, 2),
+            (SkillId.jump, 2),
+            (SkillId.hide, 4)
+        )
+        .AddBaseMoveSpeed(20)
+        .AddFavoredClassHook(Stat.level_barbarian)
+        .AddHandler(DispatcherType.SaveThrowLevel, HalflingFearSaveBonus)
+        .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusSlingsThrownWeapons)
+        .Build();
         
-        public static void HalflingFearSaveBonus(in DispatcherCallbackArgs evt)
+    public static void HalflingFearSaveBonus(in DispatcherCallbackArgs evt)
+    {
+        var dispIo = evt.GetDispIoSavingThrow();
+        var flags = dispIo.flags;
+        if ((flags & D20SavingThrowFlag.SPELL_DESCRIPTOR_FEAR) != 0)
         {
-            var dispIo = evt.GetDispIoSavingThrow();
-            var flags = dispIo.flags;
-            if ((flags & D20SavingThrowFlag.SPELL_DESCRIPTOR_FEAR) != 0)
-            {
-                dispIo.bonlist.AddBonus(2, 13, 139);
-            }
+            dispIo.bonlist.AddBonus(2, 13, 139);
         }
-        // +1 with thrown weapons and slings
-
-        public static void OnGetToHitBonusSlingsThrownWeapons(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoAttackBonus();
-            var thrownWeapon = (dispIo.attackPacket.flags & D20CAF.THROWN) != 0;
-            var isSling = false;
-            var wpn = dispIo.attackPacket.GetWeaponUsed();
-            if (wpn != null)
-            {
-                var weaponType = wpn.GetWeaponType();
-                if (weaponType == WeaponType.sling)
-                {
-                    isSling = true;
-                }
-            }
-
-            // Check for sling or thrown weapon
-            if (thrownWeapon || isSling)
-            {
-                dispIo.bonlist.AddBonus(1, 0, 139);
-            }
-        }
-
     }
+    // +1 with thrown weapons and slings
+
+    public static void OnGetToHitBonusSlingsThrownWeapons(in DispatcherCallbackArgs evt)
+    {
+        var dispIo = evt.GetDispIoAttackBonus();
+        var thrownWeapon = (dispIo.attackPacket.flags & D20CAF.THROWN) != 0;
+        var isSling = false;
+        var wpn = dispIo.attackPacket.GetWeaponUsed();
+        if (wpn != null)
+        {
+            var weaponType = wpn.GetWeaponType();
+            if (weaponType == WeaponType.sling)
+            {
+                isSling = true;
+            }
+        }
+
+        // Check for sling or thrown weapon
+        if (thrownWeapon || isSling)
+        {
+            dispIo.bonlist.AddBonus(1, 0, 139);
+        }
+    }
+
 }

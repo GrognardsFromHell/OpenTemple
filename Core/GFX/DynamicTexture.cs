@@ -2,81 +2,80 @@ using System;
 using System.Drawing;
 using SharpDX.Direct3D11;
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public class DynamicTexture : GpuResource<DynamicTexture>, ITexture
 {
-    public class DynamicTexture : GpuResource<DynamicTexture>, ITexture
+
+    private readonly Size mSize;
+
+    private readonly Rectangle mRectangle;
+
+    private RenderingDevice _device;
+
+    public DynamicTexture(RenderingDevice device,
+        Texture2D texture,
+        ShaderResourceView resourceView,
+        Size size,
+        int bytesPerPixel)
     {
+        _device = device;
+        mResourceView = resourceView;
+        mTexture = texture;
+        mSize = size;
+        mRectangle = new Rectangle(Point.Empty, size);
+        BytesPerPixel = bytesPerPixel;
+    }
 
-        private readonly Size mSize;
+    internal Texture2D mTexture;
 
-        private readonly Rectangle mRectangle;
+    private ShaderResourceView mResourceView;
 
-        private RenderingDevice _device;
+    public int BytesPerPixel { get; }
 
-        public DynamicTexture(RenderingDevice device,
-            Texture2D texture,
-            ShaderResourceView resourceView,
-            Size size,
-            int bytesPerPixel)
-        {
-            _device = device;
-            mResourceView = resourceView;
-            mTexture = texture;
-            mSize = size;
-            mRectangle = new Rectangle(Point.Empty, size);
-            BytesPerPixel = bytesPerPixel;
-        }
+    protected override void FreeResource()
+    {
+        FreeDeviceTexture();
+    }
 
-        internal Texture2D mTexture;
+    public int GetId()
+    {
+        throw new NotSupportedException("Unsupported operation for dynamic textures.");
+    }
 
-        private ShaderResourceView mResourceView;
+    public string GetName() => "<dynamic>";
 
-        public int BytesPerPixel { get; }
+    public Rectangle GetContentRect() => mRectangle;
 
-        protected override void FreeResource()
-        {
-            FreeDeviceTexture();
-        }
+    public Size GetSize() => mSize;
+    public void FreeDeviceTexture()
+    {
+        mTexture?.Dispose();
+        mTexture = null;
+        mResourceView?.Dispose();
+        mResourceView = null;
+    }
 
-        public int GetId()
-        {
-            throw new NotSupportedException("Unsupported operation for dynamic textures.");
-        }
+    public ShaderResourceView GetResourceView() => mResourceView;
 
-        public string GetName() => "<dynamic>";
+    public TextureType Type => TextureType.Dynamic;
 
-        public Rectangle GetContentRect() => mRectangle;
+    public bool IsValid() => true;
 
-        public Size GetSize() => mSize;
-        public void FreeDeviceTexture()
-        {
-            mTexture?.Dispose();
-            mTexture = null;
-            mResourceView?.Dispose();
-            mResourceView = null;
-        }
+    public void UpdateRaw(ReadOnlySpan<byte> data, int pitch)
+    {
+        using var mapped = _device.Map(this);
 
-        public ShaderResourceView GetResourceView() => mResourceView;
-
-        public TextureType Type => TextureType.Dynamic;
-
-        public bool IsValid() => true;
-
-        public void UpdateRaw(ReadOnlySpan<byte> data, int pitch)
-        {
-            using var mapped = _device.Map(this);
-
-            if (mapped.RowPitch == pitch) {
-                data.CopyTo(mapped.Data);
-            } else {
-                var dest = mapped.Data;
-                var rowWidth = Math.Min(pitch, mapped.RowPitch);
-                for (var y = 0; y < mSize.Height; ++y)
-                {
-                    var srcRow = data.Slice(y * pitch, rowWidth);
-                    var destRow = dest.Slice(y * mapped.RowPitch, rowWidth);
-                    srcRow.CopyTo(destRow);
-                }
+        if (mapped.RowPitch == pitch) {
+            data.CopyTo(mapped.Data);
+        } else {
+            var dest = mapped.Data;
+            var rowWidth = Math.Min(pitch, mapped.RowPitch);
+            for (var y = 0; y < mSize.Height; ++y)
+            {
+                var srcRow = data.Slice(y * pitch, rowWidth);
+                var destRow = dest.Slice(y * mapped.RowPitch, rowWidth);
+                srcRow.CopyTo(destRow);
             }
         }
     }

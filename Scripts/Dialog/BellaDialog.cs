@@ -19,44 +19,43 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(350)]
+public class BellaDialog : Bella, IDialogScript
 {
-    [DialogScript(350)]
-    public class BellaDialog : Bella, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 2:
-                    originalScript = "not npc.has_met( pc )";
-                    return !npc.HasMet(pc);
-                case 3:
-                case 4:
-                    originalScript = "npc.has_met( pc )";
-                    return npc.HasMet(pc);
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 2:
+                originalScript = "not npc.has_met( pc )";
+                return !npc.HasMet(pc);
+            case 3:
+            case 4:
+                originalScript = "npc.has_met( pc )";
+                return npc.HasMet(pc);
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    originalScript = null;
-                    return;
-            }
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

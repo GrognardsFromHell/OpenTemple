@@ -17,35 +17,34 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(187)]
+public class CaravanSurvivor : BaseObjectScript
 {
-    [ObjectScript(187)]
-    public class CaravanSurvivor : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            attachee.TurnTowards(obj);
+            if ((Utilities.is_safe_to_talk(attachee, obj)))
             {
-                attachee.TurnTowards(obj);
-                if ((Utilities.is_safe_to_talk(attachee, obj)))
-                {
-                    obj.BeginDialog(attachee, 1);
-                    DetachScript();
+                obj.BeginDialog(attachee, 1);
+                DetachScript();
 
-                    return RunDefault;
-                }
-
+                return RunDefault;
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

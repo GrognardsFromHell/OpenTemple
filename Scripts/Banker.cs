@@ -18,82 +18,81 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(335)]
+public class Banker : BaseObjectScript
 {
-    [ObjectScript(335)]
-    public class Banker : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.HasMet(triggerer)))
         {
-            if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 10);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((!GetGlobalFlag(917)))
-            {
-                StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
-                SetGlobalFlag(917, true);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetGlobalVar(963) == 6))
-            {
-                SetGlobalVar(963, 7);
-                StartTimer(1814400000, () => repo_man()); // 21 days
-            }
-
-            return RunDefault;
-        }
-        public static bool repo_man()
-        {
-            if ((GetGlobalVar(963) == 7))
-            {
-                SetQuestState(82, QuestState.Botched);
-                SetGlobalVar(963, 8);
-                SetGlobalFlag(966, false);
-                PartyLeader.AddReputation(38);
-                PartyLeader.RemoveReputation(37);
-            }
-
-            return RunDefault;
-        }
-        public static void respawn(GameObject attachee)
-        {
-            var box = Utilities.find_container_near(attachee, 1077);
-            InventoryRespawn.RespawnInventory(box);
-            StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
-            return;
-        }
-        public static bool make_withdrawal(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.AdjustMoney(2000000);
-            SetGlobalVar(899, GetGlobalVar(899) + 1);
-            SetGlobalFlag(810, true);
-            time_limit(attachee, triggerer);
-            return RunDefault;
-        }
-        public static bool time_limit(GameObject attachee, GameObject triggerer)
-        {
-            StartTimer(86400000, () => reset_flag_806(attachee)); // 86400000ms is 24 hours
-            return RunDefault;
-        }
-        public static bool reset_flag_806(GameObject attachee)
-        {
-            SetGlobalFlag(810, false);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GetGlobalFlag(917)))
+        {
+            StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
+            SetGlobalFlag(917, true);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(963) == 6))
+        {
+            SetGlobalVar(963, 7);
+            StartTimer(1814400000, () => repo_man()); // 21 days
+        }
+
+        return RunDefault;
+    }
+    public static bool repo_man()
+    {
+        if ((GetGlobalVar(963) == 7))
+        {
+            SetQuestState(82, QuestState.Botched);
+            SetGlobalVar(963, 8);
+            SetGlobalFlag(966, false);
+            PartyLeader.AddReputation(38);
+            PartyLeader.RemoveReputation(37);
+        }
+
+        return RunDefault;
+    }
+    public static void respawn(GameObject attachee)
+    {
+        var box = Utilities.find_container_near(attachee, 1077);
+        InventoryRespawn.RespawnInventory(box);
+        StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
+        return;
+    }
+    public static bool make_withdrawal(GameObject attachee, GameObject triggerer)
+    {
+        triggerer.AdjustMoney(2000000);
+        SetGlobalVar(899, GetGlobalVar(899) + 1);
+        SetGlobalFlag(810, true);
+        time_limit(attachee, triggerer);
+        return RunDefault;
+    }
+    public static bool time_limit(GameObject attachee, GameObject triggerer)
+    {
+        StartTimer(86400000, () => reset_flag_806(attachee)); // 86400000ms is 24 hours
+        return RunDefault;
+    }
+    public static bool reset_flag_806(GameObject attachee)
+    {
+        SetGlobalFlag(810, false);
+        return RunDefault;
+    }
+
 }

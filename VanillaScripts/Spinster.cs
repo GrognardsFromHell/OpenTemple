@@ -17,49 +17,48 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(69)]
+public class Spinster : BaseObjectScript
 {
-    [ObjectScript(69)]
-    public class Spinster : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
-            {
-                triggerer.BeginDialog(attachee, ((attachee.GetArea() * 50) + 150 + (RandomRange(0, 2) * 2)));
-            }
-            else if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 50);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, ((attachee.GetArea() * 50) + 150 + (RandomRange(0, 2) * 2)));
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((attachee.HasMet(triggerer)))
         {
-            SetGlobalFlag(364, true);
-            if ((attachee.GetLeader() == null))
-            {
-                SetGlobalVar(23, GetGlobalVar(23) + 1);
-                if ((GetGlobalVar(23) >= 2))
-                {
-                    PartyLeader.AddReputation(1);
-                }
-
-            }
-            else
-            {
-                SetGlobalVar(29, GetGlobalVar(29) + 1);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 50);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(364, true);
+        if ((attachee.GetLeader() == null))
+        {
+            SetGlobalVar(23, GetGlobalVar(23) + 1);
+            if ((GetGlobalVar(23) >= 2))
+            {
+                PartyLeader.AddReputation(1);
+            }
+
+        }
+        else
+        {
+            SetGlobalVar(29, GetGlobalVar(29) + 1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

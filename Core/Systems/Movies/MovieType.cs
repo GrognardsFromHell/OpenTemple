@@ -1,8 +1,7 @@
-namespace OpenTemple.Core.Systems.Movies
+namespace OpenTemple.Core.Systems.Movies;
+
+public enum MovieType
 {
-    public enum MovieType
-    {
-        BinkVideo,
-        Slide
-    }
+    BinkVideo,
+    Slide
 }

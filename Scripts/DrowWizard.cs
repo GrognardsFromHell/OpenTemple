@@ -18,21 +18,20 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(388)]
-    public class DrowWizard : BaseObjectScript
-    {
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            attachee.CastSpell(WellKnownSpells.Shield, attachee);
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            attachee.CastSpell(WellKnownSpells.Shield, attachee);
-            return RunDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(388)]
+public class DrowWizard : BaseObjectScript
+{
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        attachee.CastSpell(WellKnownSpells.Shield, attachee);
+        return RunDefault;
     }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        attachee.CastSpell(WellKnownSpells.Shield, attachee);
+        return RunDefault;
+    }
+
 }

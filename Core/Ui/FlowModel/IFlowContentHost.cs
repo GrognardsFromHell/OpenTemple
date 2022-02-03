@@ -2,36 +2,35 @@
 using System;
 using OpenTemple.Core.Ui.Styles;
 
-namespace OpenTemple.Core.Ui.FlowModel
+namespace OpenTemple.Core.Ui.FlowModel;
+
+public interface IFlowContentHost : IStyleable
 {
-    public interface IFlowContentHost : IStyleable
-    {
-        void NotifyStyleChanged();
+    void NotifyStyleChanged();
 
-        void NotifyTextFlowChanged();
+    void NotifyTextFlowChanged();
+}
+
+/// <summary>
+/// Basic implementation of a flow content host.
+/// </summary>
+public class FlowContentHost : Styleable, IFlowContentHost
+{
+    private IStyleable? _styleParent;
+
+    public override IStyleable? StyleParent => _styleParent;
+
+    public void SetStyleParent(IStyleable? parent)
+    {
+        _styleParent = parent;
+        NotifyStyleChanged();
     }
 
-    /// <summary>
-    /// Basic implementation of a flow content host.
-    /// </summary>
-    public class FlowContentHost : Styleable, IFlowContentHost
-    {
-        private IStyleable? _styleParent;
+    public event Action? OnStyleChanged;
 
-        public override IStyleable? StyleParent => _styleParent;
+    public event Action? OnTextFlowChanged;
 
-        public void SetStyleParent(IStyleable? parent)
-        {
-            _styleParent = parent;
-            NotifyStyleChanged();
-        }
+    public void NotifyStyleChanged() => OnStyleChanged?.Invoke();
 
-        public event Action? OnStyleChanged;
-
-        public event Action? OnTextFlowChanged;
-
-        public void NotifyStyleChanged() => OnStyleChanged?.Invoke();
-
-        public void NotifyTextFlowChanged() => OnTextFlowChanged?.Invoke();
-    }
+    public void NotifyTextFlowChanged() => OnTextFlowChanged?.Invoke();
 }

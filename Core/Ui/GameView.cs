@@ -11,272 +11,271 @@ using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
-namespace OpenTemple.Core.Ui
+namespace OpenTemple.Core.Ui;
+
+/// <summary>
+/// Shows a view of the ingame world in the user interface. Handles rendering of the world and
+/// interacting with object in the world.
+/// </summary>
+public class GameView : WidgetContainer, IGameViewport
 {
-    /// <summary>
-    /// Shows a view of the ingame world in the user interface. Handles rendering of the world and
-    /// interacting with object in the world.
-    /// </summary>
-    public class GameView : WidgetContainer, IGameViewport
+    private const float MinZoom = 0.5f;
+    private const float MaxZoom = 2.0f;
+
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+    private readonly GameViewScrollingController _scrollingController;
+
+    private readonly RenderingDevice _device;
+
+    private readonly GameRenderer _gameRenderer;
+
+    public WorldCamera Camera { get; } = new();
+
+    [Obsolete]
+    public GameRenderer GameRenderer => _gameRenderer;
+
+    private event Action _onResize;
+
+    private float _renderScale;
+
+    private float _zoom = 1f;
+
+    public float Zoom => _zoom;
+
+    public Size Size => GetSize();
+
+    event Action IGameViewport.OnResize
     {
-        private const float MinZoom = 0.5f;
-        private const float MaxZoom = 2.0f;
+        add => _onResize += value;
+        remove => _onResize -= value;
+    }
 
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+    private readonly IMainWindow _mainWindow;
 
-        private readonly GameViewScrollingController _scrollingController;
+    private bool _isUpscaleLinearFiltering;
 
-        private readonly RenderingDevice _device;
+    public GameView(IMainWindow mainWindow, RenderingDevice device, RenderingConfig config) : base(Globals.UiManager
+        .CanvasSize)
+    {
+        _device = device;
+        _gameRenderer = new GameRenderer(_device, this);
 
-        private readonly GameRenderer _gameRenderer;
+        _mainWindow = mainWindow;
 
-        public WorldCamera Camera { get; } = new();
+        ReloadConfig(config);
 
-        [Obsolete]
-        public GameRenderer GameRenderer => _gameRenderer;
+        GameViews.Add(this);
 
-        private event Action _onResize;
+        SetSizeToParent(true);
+        OnSizeChanged();
 
-        private float _renderScale;
+        _scrollingController = new GameViewScrollingController(this, this);
 
-        private float _zoom = 1f;
+        Globals.ConfigManager.OnConfigChanged += OnConfigChange;
+    }
 
-        public float Zoom => _zoom;
+    private void OnConfigChange()
+    {
+        ReloadConfig(Globals.Config.Rendering);
+    }
 
-        public Size Size => GetSize();
+    private void ReloadConfig(RenderingConfig config)
+    {
+        _isUpscaleLinearFiltering = config.IsUpscaleLinearFiltering;
+        _renderScale = config.RenderScale;
+        _gameRenderer.MultiSampleSettings = new MultiSampleSettings(
+            config.IsAntiAliasing,
+            config.MSAASamples,
+            config.MSAAQuality
+        );
+        OnSizeChanged();
+    }
 
-        event Action IGameViewport.OnResize
+    public void RenderScene()
+    {
+        if (!Visible)
         {
-            add => _onResize += value;
-            remove => _onResize -= value;
+            return;
         }
 
-        private readonly IMainWindow _mainWindow;
+        ApplyAutomaticSizing();
 
-        private bool _isUpscaleLinearFiltering;
-
-        public GameView(IMainWindow mainWindow, RenderingDevice device, RenderingConfig config) : base(Globals.UiManager
-            .CanvasSize)
+        if (!GameViews.IsDrawingEnabled)
         {
-            _device = device;
-            _gameRenderer = new GameRenderer(_device, this);
-
-            _mainWindow = mainWindow;
-
-            ReloadConfig(config);
-
-            GameViews.Add(this);
-
-            SetSizeToParent(true);
-            OnSizeChanged();
-
-            _scrollingController = new GameViewScrollingController(this, this);
-
-            Globals.ConfigManager.OnConfigChanged += OnConfigChange;
+            return;
         }
 
-        private void OnConfigChange()
+        using var _ = _device.CreatePerfGroup("Updating GameView {0}", Name);
+
+        try
         {
-            ReloadConfig(Globals.Config.Rendering);
+            _gameRenderer.Render();
         }
-
-        private void ReloadConfig(RenderingConfig config)
+        catch (Exception e)
         {
-            _isUpscaleLinearFiltering = config.IsUpscaleLinearFiltering;
-            _renderScale = config.RenderScale;
-            _gameRenderer.MultiSampleSettings = new MultiSampleSettings(
-                config.IsAntiAliasing,
-                config.MSAASamples,
-                config.MSAAQuality
-            );
-            OnSizeChanged();
-        }
-
-        public void RenderScene()
-        {
-            if (!Visible)
+            if (!ErrorReporting.ReportException(e))
             {
-                return;
-            }
-
-            ApplyAutomaticSizing();
-
-            if (!GameViews.IsDrawingEnabled)
-            {
-                return;
-            }
-
-            using var _ = _device.CreatePerfGroup("Updating GameView {0}", Name);
-
-            try
-            {
-                _gameRenderer.Render();
-            }
-            catch (Exception e)
-            {
-                if (!ErrorReporting.ReportException(e))
-                {
-                    throw;
-                }
+                throw;
             }
         }
+    }
 
-        public override void Render()
+    public override void Render()
+    {
+        if (!Visible)
         {
-            if (!Visible)
-            {
-                return;
-            }
-
-            ApplyAutomaticSizing();
-
-            var sceneTexture = _gameRenderer.SceneTexture;
-            if (sceneTexture == null)
-            {
-                return;
-            }
-
-            var samplerType = SamplerType2d.CLAMP;
-            if (!_isUpscaleLinearFiltering)
-            {
-                samplerType = SamplerType2d.POINT;
-            }
-
-            Tig.ShapeRenderer2d.DrawRectangle(
-                GetContentArea(),
-                sceneTexture,
-                PackedLinearColorA.White,
-                samplerType
-            );
-
-            UiSystems.TurnBased.Render(this);
+            return;
         }
 
-        protected override void Dispose(bool disposing)
+        ApplyAutomaticSizing();
+
+        var sceneTexture = _gameRenderer.SceneTexture;
+        if (sceneTexture == null)
         {
-            base.Dispose(disposing);
-            GameViews.Remove(this);
+            return;
         }
 
-        protected override void OnSizeChanged()
+        var samplerType = SamplerType2d.CLAMP;
+        if (!_isUpscaleLinearFiltering)
         {
-            // We're trying to render at native resolutions by default, hence we apply
-            // the UI scale to determine the render target size here.
-            _gameRenderer.RenderSize = new Size(
-                (int) (Width * _mainWindow.UiScale * _renderScale),
-                (int) (Height * _mainWindow.UiScale * _renderScale)
-            );
-            Logger.Debug("Rendering @ {0}x{1} ({2}%), MSAA: {3}",
-                _gameRenderer.RenderSize.Width,
-                _gameRenderer.RenderSize.Height,
-                (int) (_renderScale * 100),
-                _gameRenderer.MultiSampleSettings
-            );
+            samplerType = SamplerType2d.POINT;
+        }
 
+        Tig.ShapeRenderer2d.DrawRectangle(
+            GetContentArea(),
+            sceneTexture,
+            PackedLinearColorA.White,
+            samplerType
+        );
+
+        UiSystems.TurnBased.Render(this);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        GameViews.Remove(this);
+    }
+
+    protected override void OnSizeChanged()
+    {
+        // We're trying to render at native resolutions by default, hence we apply
+        // the UI scale to determine the render target size here.
+        _gameRenderer.RenderSize = new Size(
+            (int) (Width * _mainWindow.UiScale * _renderScale),
+            (int) (Height * _mainWindow.UiScale * _renderScale)
+        );
+        Logger.Debug("Rendering @ {0}x{1} ({2}%), MSAA: {3}",
+            _gameRenderer.RenderSize.Width,
+            _gameRenderer.RenderSize.Height,
+            (int) (_renderScale * 100),
+            _gameRenderer.MultiSampleSettings
+        );
+
+        UpdateCamera();
+    }
+
+    public void TakeScreenshot(string path, Size size = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public MapObjectRenderer GetMapObjectRenderer()
+    {
+        return _gameRenderer.GetMapObjectRenderer();
+    }
+
+    public override bool HandleMessage(Message msg)
+    {
+        if (UiSystems.TurnBased.HandleMessage(this, msg))
+        {
+            return true;
+        }
+
+        UiSystems.InGame.HandleMessage(this, msg);
+
+        return base.HandleMessage(msg);
+    }
+
+    public override bool HandleMouseMessage(MessageMouseArgs msg)
+    {
+        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+        {
+            _zoom = Math.Clamp(_zoom + Math.Sign(msg.wheelDelta) * 0.1f, MinZoom, MaxZoom);
             UpdateCamera();
+            return true;
         }
-
-        public void TakeScreenshot(string path, Size size = default)
+        else if ((msg.flags & MouseEventFlag.MiddleClick) != 0)
         {
-            throw new NotImplementedException();
-        }
-
-        public MapObjectRenderer GetMapObjectRenderer()
-        {
-            return _gameRenderer.GetMapObjectRenderer();
-        }
-
-        public override bool HandleMessage(Message msg)
-        {
-            if (UiSystems.TurnBased.HandleMessage(this, msg))
+            var mousePos = new Point(msg.X, msg.Y);
+            if (_scrollingController.MiddleMouseDown(GetRelativeMousePos(mousePos)))
             {
                 return true;
             }
-
-            UiSystems.InGame.HandleMessage(this, msg);
-
-            return base.HandleMessage(msg);
         }
-
-        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        else if ((msg.flags & MouseEventFlag.MiddleReleased) != 0)
         {
-            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+            if (_scrollingController.MiddleMouseUp())
             {
-                _zoom = Math.Clamp(_zoom + Math.Sign(msg.wheelDelta) * 0.1f, MinZoom, MaxZoom);
-                UpdateCamera();
                 return true;
             }
-            else if ((msg.flags & MouseEventFlag.MiddleClick) != 0)
-            {
-                var mousePos = new Point(msg.X, msg.Y);
-                if (_scrollingController.MiddleMouseDown(GetRelativeMousePos(mousePos)))
-                {
-                    return true;
-                }
-            }
-            else if ((msg.flags & MouseEventFlag.MiddleReleased) != 0)
-            {
-                if (_scrollingController.MiddleMouseUp())
-                {
-                    return true;
-                }
-            }
-            else if ((msg.flags & MouseEventFlag.PosChange) != 0)
-            {
-                var mousePos = new Point(msg.X, msg.Y);
-                if (_scrollingController.MouseMoved(GetRelativeMousePos(mousePos)))
-                {
-                    return true;
-                }
-            }
-
-            return base.HandleMouseMessage(msg);
         }
-
-        private void UpdateCamera()
+        else if ((msg.flags & MouseEventFlag.PosChange) != 0)
         {
-            var size = new Size(
-                (int)(Width / _zoom),
-                (int)(Height / _zoom)
-            );
-
-            if (size != Camera.ViewportSize)
+            var mousePos = new Point(msg.X, msg.Y);
+            if (_scrollingController.MouseMoved(GetRelativeMousePos(mousePos)))
             {
-                // Using IGameViewport.CenteredOn will be wrong here if the zoom just changed
-                var currentCenter = Camera.ScreenToTile(Camera.GetViewportWidth() / 2, Camera.GetViewportHeight() / 2);
-
-                Camera.ViewportSize = size;
-
-                // See also @ 0x10028db0
-                var restoreCenter = currentCenter.ToInches3D();
-                Camera.CenterOn(restoreCenter.X, restoreCenter.Y, restoreCenter.Z);
-
-                // Ensure the primary translation is updated, otherwise the next scroll event will undo what we just did
-                if (GameViews.Primary == this)
-                {
-                    var dt = Camera.Get2dTranslation();
-                    GameSystems.Location.LocationTranslationX = (int) dt.X;
-                    GameSystems.Location.LocationTranslationY = (int) dt.Y;
-                    // This clamps the translation to the scroll limit
-                    GameSystems.Scroll.ScrollBy(this, 0, 0);
-                }
-
-                _onResize?.Invoke();
+                return true;
             }
         }
 
-        public override void OnUpdateTime(TimePoint timeMs)
-        {
-            base.OnUpdateTime(timeMs);
-            _scrollingController.UpdateTime(timeMs, GetRelativeMousePos(Tig.Mouse.GetPos()));
-        }
+        return base.HandleMouseMessage(msg);
+    }
 
-        private Point GetRelativeMousePos(Point mousePos)
+    private void UpdateCamera()
+    {
+        var size = new Size(
+            (int)(Width / _zoom),
+            (int)(Height / _zoom)
+        );
+
+        if (size != Camera.ViewportSize)
         {
-            var contentArea = GetContentArea();
-            mousePos.X -= contentArea.X;
-            mousePos.Y -= contentArea.Y;
-            return mousePos;
+            // Using IGameViewport.CenteredOn will be wrong here if the zoom just changed
+            var currentCenter = Camera.ScreenToTile(Camera.GetViewportWidth() / 2, Camera.GetViewportHeight() / 2);
+
+            Camera.ViewportSize = size;
+
+            // See also @ 0x10028db0
+            var restoreCenter = currentCenter.ToInches3D();
+            Camera.CenterOn(restoreCenter.X, restoreCenter.Y, restoreCenter.Z);
+
+            // Ensure the primary translation is updated, otherwise the next scroll event will undo what we just did
+            if (GameViews.Primary == this)
+            {
+                var dt = Camera.Get2dTranslation();
+                GameSystems.Location.LocationTranslationX = (int) dt.X;
+                GameSystems.Location.LocationTranslationY = (int) dt.Y;
+                // This clamps the translation to the scroll limit
+                GameSystems.Scroll.ScrollBy(this, 0, 0);
+            }
+
+            _onResize?.Invoke();
         }
+    }
+
+    public override void OnUpdateTime(TimePoint timeMs)
+    {
+        base.OnUpdateTime(timeMs);
+        _scrollingController.UpdateTime(timeMs, GetRelativeMousePos(Tig.Mouse.GetPos()));
+    }
+
+    private Point GetRelativeMousePos(Point mousePos)
+    {
+        var contentArea = GetContentArea();
+        mousePos.X -= contentArea.X;
+        mousePos.Y -= contentArea.Y;
+        return mousePos;
     }
 }

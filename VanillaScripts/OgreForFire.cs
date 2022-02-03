@@ -17,37 +17,36 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(164)]
+public class OgreForFire : BaseObjectScript
 {
-    [ObjectScript(164)]
-    public class OgreForFire : BaseObjectScript
+
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        SetGlobalVar(14, GetGlobalVar(14) + 1);
+        if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
         {
-            SetGlobalVar(14, GetGlobalVar(14) + 1);
-            if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
-            {
-                SetGlobalVar(13, GetGlobalVar(13) - 1);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(14, GetGlobalVar(14) - 1);
-            return RunDefault;
-        }
-        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
-            {
-                SetGlobalVar(13, GetGlobalVar(13) + 1);
-            }
-
-            return RunDefault;
+            SetGlobalVar(13, GetGlobalVar(13) - 1);
         }
 
-
+        return RunDefault;
     }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(14, GetGlobalVar(14) - 1);
+        return RunDefault;
+    }
+    public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
+        {
+            SetGlobalVar(13, GetGlobalVar(13) + 1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

@@ -1,8 +1,8 @@
 using System;
 
-namespace OpenTemple.Core.Platform
-{
-    [Flags]
+namespace OpenTemple.Core.Platform;
+
+[Flags]
 internal enum ClassStyles : uint
 {
     /// <summary>Aligns the window's client area on a byte boundary (in the x direction). This style affects the width of the window and its horizontal placement on the display.</summary>
@@ -57,6 +57,4 @@ internal enum ClassStyles : uint
 
     /// <summary>Redraws the entire window if a movement or size adjustment changes the height of the client area.</summary>
     VerticalRedraw = 0x1
-}
-
 }

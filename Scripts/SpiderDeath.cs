@@ -18,49 +18,48 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(33)]
+public class SpiderDeath : BaseObjectScript
 {
-    [ObjectScript(33)]
-    public class SpiderDeath : BaseObjectScript
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            if ((attachee.GetMap() == 5069))
-            {
-                SetGlobalVar(3, GetGlobalVar(3) + 1);
-                if ((PartyAlignment == Alignment.LAWFUL_NEUTRAL || PartyAlignment == Alignment.CHAOTIC_NEUTRAL || PartyAlignment == Alignment.NEUTRAL || PartyAlignment == Alignment.LAWFUL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL || PartyAlignment == Alignment.NEUTRAL_EVIL))
-                {
-                    var ring = attachee.FindItemByName(3000);
-                    ring.Destroy();
-                }
-
-            }
-            else if ((attachee.GetMap() == 5002))
-            {
-                if ((PartyAlignment == Alignment.LAWFUL_GOOD || PartyAlignment == Alignment.CHAOTIC_GOOD || PartyAlignment == Alignment.NEUTRAL_GOOD || PartyAlignment == Alignment.LAWFUL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL || PartyAlignment == Alignment.NEUTRAL_EVIL))
-                {
-                    var ring = attachee.FindItemByName(3000);
-                    ring.Destroy();
-                }
-
-            }
-            else if ((attachee.GetMap() == 5003))
-            {
-                if ((PartyAlignment == Alignment.LAWFUL_GOOD || PartyAlignment == Alignment.CHAOTIC_GOOD || PartyAlignment == Alignment.NEUTRAL_GOOD || PartyAlignment == Alignment.LAWFUL_NEUTRAL || PartyAlignment == Alignment.CHAOTIC_NEUTRAL || PartyAlignment == Alignment.NEUTRAL))
-                {
-                    var ring = attachee.FindItemByName(3000);
-                    ring.Destroy();
-                }
-
-            }
-
-            return RunDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
 
+        if ((attachee.GetMap() == 5069))
+        {
+            SetGlobalVar(3, GetGlobalVar(3) + 1);
+            if ((PartyAlignment == Alignment.LAWFUL_NEUTRAL || PartyAlignment == Alignment.CHAOTIC_NEUTRAL || PartyAlignment == Alignment.NEUTRAL || PartyAlignment == Alignment.LAWFUL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL || PartyAlignment == Alignment.NEUTRAL_EVIL))
+            {
+                var ring = attachee.FindItemByName(3000);
+                ring.Destroy();
+            }
+
+        }
+        else if ((attachee.GetMap() == 5002))
+        {
+            if ((PartyAlignment == Alignment.LAWFUL_GOOD || PartyAlignment == Alignment.CHAOTIC_GOOD || PartyAlignment == Alignment.NEUTRAL_GOOD || PartyAlignment == Alignment.LAWFUL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL || PartyAlignment == Alignment.NEUTRAL_EVIL))
+            {
+                var ring = attachee.FindItemByName(3000);
+                ring.Destroy();
+            }
+
+        }
+        else if ((attachee.GetMap() == 5003))
+        {
+            if ((PartyAlignment == Alignment.LAWFUL_GOOD || PartyAlignment == Alignment.CHAOTIC_GOOD || PartyAlignment == Alignment.NEUTRAL_GOOD || PartyAlignment == Alignment.LAWFUL_NEUTRAL || PartyAlignment == Alignment.CHAOTIC_NEUTRAL || PartyAlignment == Alignment.NEUTRAL))
+            {
+                var ring = attachee.FindItemByName(3000);
+                ring.Destroy();
+            }
+
+        }
+
+        return RunDefault;
     }
+
 }

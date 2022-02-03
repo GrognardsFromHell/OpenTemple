@@ -1,7 +1,6 @@
-namespace OpenTemple.Core.Systems
+namespace OpenTemple.Core.Systems;
+
+public class GMeshRenderer
 {
-    public class GMeshRenderer
-    {
         
-    }
 }

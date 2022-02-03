@@ -1,9 +1,8 @@
 using System.Drawing;
 
-namespace OpenTemple.Core.Ui
+namespace OpenTemple.Core.Ui;
+
+public interface IViewportAwareUi
 {
-    public interface IViewportAwareUi
-    {
-        void ResizeViewport(Size size);
-    }
+    void ResizeViewport(Size size);
 }

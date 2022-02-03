@@ -17,38 +17,37 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(607)]
+public class SummonLamia : BaseSpellScript
 {
-    [SpellScript(607)]
-    public class SummonLamia : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("summon lamia OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("summon lamia OnSpellEffect");
-            spell.duration = 6;
-
-            var proto_id = 14428;
-
-            spell.SummonMonsters(true, proto_id);
-            spell.EndSpell();
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("summon lamia OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("summon lamia OnEndSpellCast");
-        }
-
-
+        Logger.Info("summon lamia OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-conjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("summon lamia OnSpellEffect");
+        spell.duration = 6;
+
+        var proto_id = 14428;
+
+        spell.SummonMonsters(true, proto_id);
+        spell.EndSpell();
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("summon lamia OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("summon lamia OnEndSpellCast");
+    }
+
+
 }

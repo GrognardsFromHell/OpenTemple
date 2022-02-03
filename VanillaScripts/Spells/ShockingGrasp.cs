@@ -17,39 +17,38 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(431)]
+public class ShockingGrasp : BaseSpellScript
 {
-    [SpellScript(431)]
-    public class ShockingGrasp : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
+        Logger.Info("Shocking Grasp OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-transmutation-conjure", spell.caster);
+    }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Shocking Grasp OnSpellEffect");
+        spell.duration = 0;
 
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Shocking Grasp OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-transmutation-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Shocking Grasp OnSpellEffect");
-            spell.duration = 0;
+        var target = spell.Targets[0];
 
-            var target = spell.Targets[0];
-
-            target.Object.AddCondition("sp-Shocking Grasp", spell.spellId, spell.duration, 0);
-            target.ParticleSystem = AttachParticles("sp-Shocking Grasp", target.Object);
-
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Shocking Grasp OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Shocking Grasp OnEndSpellCast");
-        }
-
+        target.Object.AddCondition("sp-Shocking Grasp", spell.spellId, spell.duration, 0);
+        target.ParticleSystem = AttachParticles("sp-Shocking Grasp", target.Object);
 
     }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Shocking Grasp OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Shocking Grasp OnEndSpellCast");
+    }
+
+
 }

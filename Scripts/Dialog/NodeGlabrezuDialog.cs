@@ -19,49 +19,48 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(203)]
+public class NodeGlabrezuDialog : NodeGlabrezu, IDialogScript
 {
-    [DialogScript(203)]
-    public class NodeGlabrezuDialog : NodeGlabrezu, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 11:
-                case 13:
-                    originalScript = "pc.stat_level_get(stat_race) == race_dwarf or pc.stat_level_get(stat_race) == race_halfling or pc.stat_level_get(stat_race) == race_gnome";
-                    return pc.GetRace() == RaceId.derro || pc.GetRace() == RaceId.tallfellow || pc.GetRace() == RaceId.svirfneblin;
-                case 12:
-                case 14:
-                    originalScript = "pc.stat_level_get(stat_race) != race_dwarf and pc.stat_level_get(stat_race) != race_halfling and pc.stat_level_get(stat_race) != race_gnome";
-                    return pc.GetRace() != RaceId.derro && pc.GetRace() != RaceId.tallfellow && pc.GetRace() != RaceId.svirfneblin;
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 11:
+            case 13:
+                originalScript = "pc.stat_level_get(stat_race) == race_dwarf or pc.stat_level_get(stat_race) == race_halfling or pc.stat_level_get(stat_race) == race_gnome";
+                return pc.GetRace() == RaceId.derro || pc.GetRace() == RaceId.tallfellow || pc.GetRace() == RaceId.svirfneblin;
+            case 12:
+            case 14:
+                originalScript = "pc.stat_level_get(stat_race) != race_dwarf and pc.stat_level_get(stat_race) != race_halfling and pc.stat_level_get(stat_race) != race_gnome";
+                return pc.GetRace() != RaceId.derro && pc.GetRace() != RaceId.tallfellow && pc.GetRace() != RaceId.svirfneblin;
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 51:
-                    originalScript = "npc.attack(pc)";
-                    npc.Attack(pc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 51:
+                originalScript = "npc.attack(pc)";
+                npc.Attack(pc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

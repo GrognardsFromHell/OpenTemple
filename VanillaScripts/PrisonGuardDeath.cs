@@ -17,18 +17,17 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(267)]
+public class PrisonGuardDeath : BaseObjectScript
 {
-    [ObjectScript(267)]
-    public class PrisonGuardDeath : BaseObjectScript
+
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(12, GetGlobalVar(12) + 1);
-            return RunDefault;
-        }
-
-
+        SetGlobalVar(12, GetGlobalVar(12) + 1);
+        return RunDefault;
     }
+
+
 }

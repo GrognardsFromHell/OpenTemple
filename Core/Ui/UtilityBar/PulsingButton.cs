@@ -2,39 +2,38 @@ using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.UtilityBar
+namespace OpenTemple.Core.Ui.UtilityBar;
+
+public class PulsingButton : WidgetButton
 {
-    public class PulsingButton : WidgetButton
+    private WidgetImage _pulseImage;
+
+    public PackedLinearColorA PulseColor { get; set; } = new PackedLinearColorA(0, 0, 0, 0);
+
+    public PulsingButton(string pulseTexture, Rectangle rect) : base(rect)
     {
-        private WidgetImage _pulseImage;
+        _pulseImage = new WidgetImage(pulseTexture);
+    }
 
-        public PackedLinearColorA PulseColor { get; set; } = new PackedLinearColorA(0, 0, 0, 0);
-
-        public PulsingButton(string pulseTexture, Rectangle rect) : base(rect)
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
         {
-            _pulseImage = new WidgetImage(pulseTexture);
+            _pulseImage.Dispose();
+            _pulseImage = null;
         }
+        base.Dispose(disposing);
+    }
 
-        protected override void Dispose(bool disposing)
+    public override void Render()
+    {
+        base.Render();
+
+        if (PulseColor.A != 0)
         {
-            if (disposing)
-            {
-                _pulseImage.Dispose();
-                _pulseImage = null;
-            }
-            base.Dispose(disposing);
-        }
-
-        public override void Render()
-        {
-            base.Render();
-
-            if (PulseColor.A != 0)
-            {
-                _pulseImage.Color = PulseColor;
-                _pulseImage.SetBounds(GetContentArea());
-                _pulseImage.Render();
-            }
+            _pulseImage.Color = PulseColor;
+            _pulseImage.SetBounds(GetContentArea());
+            _pulseImage.Render();
         }
     }
 }

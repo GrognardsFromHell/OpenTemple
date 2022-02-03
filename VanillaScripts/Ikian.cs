@@ -17,51 +17,50 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(201)]
+public class Ikian : BaseObjectScript
 {
-    [ObjectScript(201)]
-    public class Ikian : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-                {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
-                    {
-                        obj.BeginDialog(attachee, 1);
-                        DetachScript();
-
-                        return RunDefault;
-                    }
-
-                }
-
-            }
-
-            return RunDefault;
-        }
-        public static bool all_run_off(GameObject attachee, GameObject triggerer)
-        {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-            {
-                if ((obj.GetLeader() == null))
-                {
-                    obj.RunOff();
-                }
-
-            }
-
-            return RunDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            {
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
+                {
+                    obj.BeginDialog(attachee, 1);
+                    DetachScript();
+
+                    return RunDefault;
+                }
+
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public static bool all_run_off(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+        {
+            if ((obj.GetLeader() == null))
+            {
+                obj.RunOff();
+            }
+
+        }
+
+        return RunDefault;
+    }
+
+
 }

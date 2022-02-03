@@ -18,34 +18,33 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
-{
-    [SpellScript(138)]
-    public class DivinePower : BaseSpellScript
-    {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Divine Power OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-evocation-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Divine Power OnSpellEffect");
-            spell.duration = 1 * spell.casterLevel;
-            var target_item = spell.Targets[0];
-            target_item.Object.AddCondition("sp-Divine Power", spell.spellId, spell.duration, 0);
-            target_item.ParticleSystem = AttachParticles("sp-Divine Power", target_item.Object);
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Divine Power OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Divine Power OnEndSpellCast");
-        }
+namespace Scripts.Spells;
 
+[SpellScript(138)]
+public class DivinePower : BaseSpellScript
+{
+    public override void OnBeginSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Divine Power OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-evocation-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Divine Power OnSpellEffect");
+        spell.duration = 1 * spell.casterLevel;
+        var target_item = spell.Targets[0];
+        target_item.Object.AddCondition("sp-Divine Power", spell.spellId, spell.duration, 0);
+        target_item.ParticleSystem = AttachParticles("sp-Divine Power", target_item.Object);
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Divine Power OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Divine Power OnEndSpellCast");
+    }
+
 }

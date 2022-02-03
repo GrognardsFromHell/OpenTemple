@@ -17,35 +17,34 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(241)]
+public class TutorialRoom2 : BaseObjectScript
 {
-    [ObjectScript(241)]
-    public class TutorialRoom2 : BaseObjectScript
+
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
         {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            if (((Utilities.critter_is_unconscious(obj) == 0) && (obj.DistanceTo(attachee) < 40)))
             {
-                if (((Utilities.critter_is_unconscious(obj) == 0) && (obj.DistanceTo(attachee) < 40)))
+                if (!UiSystems.HelpManager.IsTutorialActive)
                 {
-                    if (!UiSystems.HelpManager.IsTutorialActive)
-                    {
-                        UiSystems.HelpManager.ToggleTutorial();
-                    }
-
-                    SetGlobalFlag(5, true);
-                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Room2Overview);
-                    DetachScript();
-
-                    return RunDefault;
+                    UiSystems.HelpManager.ToggleTutorial();
                 }
 
+                SetGlobalFlag(5, true);
+                UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Room2Overview);
+                DetachScript();
+
+                return RunDefault;
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

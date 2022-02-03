@@ -18,13 +18,11 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+public class Include
 {
-
-    public class Include
-    {
-        // modules are imported only once, thus this should suffice
+    // modules are imported only once, thus this should suffice
 
 
-    }
 }

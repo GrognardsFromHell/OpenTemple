@@ -17,65 +17,64 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(168)]
+public class Brunk : BaseObjectScript
 {
-    [ObjectScript(168)]
-    public class Brunk : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
+            if ((GetGlobalFlag(177)))
             {
-                if ((GetGlobalFlag(177)))
-                {
-                    triggerer.BeginDialog(attachee, 20);
-                }
-                else if ((triggerer.GetRace() == RaceId.half_orc))
-                {
-                    triggerer.BeginDialog(attachee, 10);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-
+                triggerer.BeginDialog(attachee, 20);
             }
-            else if ((!GetGlobalFlag(178)))
+            else if ((triggerer.GetRace() == RaceId.half_orc))
             {
-                triggerer.BeginDialog(attachee, 40);
-            }
-            else if ((GetGlobalFlag(177)))
-            {
-                triggerer.BeginDialog(attachee, 50);
+                triggerer.BeginDialog(attachee, 10);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 30);
+                triggerer.BeginDialog(attachee, 1);
             }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((!GetGlobalFlag(178)))
         {
-            SetGlobalFlag(174, true);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 40);
         }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+        else if ((GetGlobalFlag(177)))
         {
-            SetGlobalFlag(174, false);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 50);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((GetGlobalFlag(174)))
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 30);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(174, true);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(174, false);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(174)))
+        {
+            attachee.SetObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+
+
 }

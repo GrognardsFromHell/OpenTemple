@@ -17,23 +17,22 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(96)]
+public class Eddie : BaseObjectScript
 {
-    [ObjectScript(96)]
-    public class Eddie : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalVar(9) >= 2 && triggerer.GetGender() == Gender.Female))
         {
-            if ((GetGlobalVar(9) >= 2 && triggerer.GetGender() == Gender.Female))
-            {
-                SetGlobalVar(9, 2 + StoryState);
-            }
-
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            SetGlobalVar(9, 2 + StoryState);
         }
 
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+
+
 }

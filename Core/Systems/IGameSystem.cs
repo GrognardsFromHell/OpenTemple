@@ -1,8 +1,7 @@
 using System;
 
-namespace OpenTemple.Core.Systems
+namespace OpenTemple.Core.Systems;
+
+public interface IGameSystem : IDisposable
 {
-    public interface IGameSystem : IDisposable
-    {
-    }
 }

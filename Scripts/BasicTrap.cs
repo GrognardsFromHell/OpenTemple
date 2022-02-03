@@ -18,21 +18,20 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(32000)]
-    public class BasicTrap : BaseObjectScript
-    {
-        public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
-        {
-            AttachParticles(trap.Type.ParticleSystemId, trap.Object);
-            foreach (var dmg in trap.Type.Damage)
-            {
-                triggerer.Damage(trap.Object, dmg.Type, dmg.Dice);
-            }
+namespace Scripts;
 
-            return SkipDefault;
+[ObjectScript(32000)]
+public class BasicTrap : BaseObjectScript
+{
+    public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
+    {
+        AttachParticles(trap.Type.ParticleSystemId, trap.Object);
+        foreach (var dmg in trap.Type.Damage)
+        {
+            triggerer.Damage(trap.Object, dmg.Type, dmg.Dice);
         }
 
+        return SkipDefault;
     }
+
 }

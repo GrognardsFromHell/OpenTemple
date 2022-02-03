@@ -1,29 +1,28 @@
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Particles.Instances;
 
-namespace OpenTemple.Core.Particles.Render
-{
-    /// <summary>
-    /// The rendering state associated with a point emitter.
-    /// </summary>
-    internal class QuadEmitterRenderState : GeneralEmitterRenderState {
-        public QuadEmitterRenderState(RenderingDevice device, PartSysEmitter emitter) : base(device, emitter, false)
-        {
-            bufferBinding = new BufferBinding(device, material.Resource.VertexShader).Ref();
+namespace OpenTemple.Core.Particles.Render;
 
-            var maxCount = emitter.GetSpec().GetMaxParticles();
+/// <summary>
+/// The rendering state associated with a point emitter.
+/// </summary>
+internal class QuadEmitterRenderState : GeneralEmitterRenderState {
+    public QuadEmitterRenderState(RenderingDevice device, PartSysEmitter emitter) : base(device, emitter, false)
+    {
+        bufferBinding = new BufferBinding(device, material.Resource.VertexShader).Ref();
 
-            vertexBuffer =
-                device.CreateEmptyVertexBuffer(SpriteVertex.Size * 4 * maxCount, debugName:"ParticlesQuadEmitter");
+        var maxCount = emitter.GetSpec().GetMaxParticles();
 
-            bufferBinding.Resource
-                .AddBuffer<SpriteVertex>(vertexBuffer, 0)
-                .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
-                .AddElement(VertexElementType.Color, VertexElementSemantic.Color)
-                .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
-        }
+        vertexBuffer =
+            device.CreateEmptyVertexBuffer(SpriteVertex.Size * 4 * maxCount, debugName:"ParticlesQuadEmitter");
 
-        public ResourceRef<VertexBuffer> vertexBuffer;
-        public ResourceRef<BufferBinding> bufferBinding;
+        bufferBinding.Resource
+            .AddBuffer<SpriteVertex>(vertexBuffer, 0)
+            .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
+            .AddElement(VertexElementType.Color, VertexElementSemantic.Color)
+            .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
     }
+
+    public ResourceRef<VertexBuffer> vertexBuffer;
+    public ResourceRef<BufferBinding> bufferBinding;
 }

@@ -18,71 +18,69 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(398)]
+public class RabbitHole : BaseObjectScript
 {
-    [ObjectScript(398)]
-    public class RabbitHole : BaseObjectScript
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalVar(937) == 0 && GetQuestState(89) >= QuestState.Accepted))
         {
-            if ((GetGlobalVar(937) == 0 && GetQuestState(89) >= QuestState.Accepted))
-            {
-                SetGlobalVar(937, 1);
-            }
-
-            return RunDefault;
+            SetGlobalVar(937, 1);
         }
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetGlobalVar(937) >= 4))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else if ((GetGlobalVar(937) == 3))
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-            else
-            {
-                return SkipDefault;
-            }
 
+        return RunDefault;
+    }
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(937) >= 4))
+        {
+            triggerer.BeginDialog(attachee, 1);
+        }
+        else if ((GetGlobalVar(937) == 3))
+        {
+            triggerer.BeginDialog(attachee, 10);
+        }
+        else
+        {
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetGlobalVar(937) == 1))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-                SetGlobalVar(937, 2);
-            }
 
-            return RunDefault;
-        }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+        return SkipDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(937) == 1))
         {
-            var leader = PartyLeader;
-            Co8.StopCombat(attachee, 0);
-            leader.BeginDialog(attachee, 4000);
-            return RunDefault;
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+            SetGlobalVar(937, 2);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+
+        return RunDefault;
+    }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        var leader = PartyLeader;
+        Co8.StopCombat(attachee, 0);
+        leader.BeginDialog(attachee, 4000);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetMap() == 5143 && GetGlobalVar(937) == 2))
         {
-            if ((attachee.GetMap() == 5143 && GetGlobalVar(937) == 2))
+            if ((!GameSystems.Combat.IsCombatActive()))
             {
-                if ((!GameSystems.Combat.IsCombatActive()))
+                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                    if ((close_enough(attachee, obj)))
                     {
-                        if ((close_enough(attachee, obj)))
+                        if ((obj.GetSkillLevel(attachee, SkillId.spot) >= 15))
                         {
-                            if ((obj.GetSkillLevel(attachee, SkillId.spot) >= 15))
-                            {
-                                obj.BeginDialog(attachee, 20);
-                                SetGlobalVar(937, 3);
-                                attachee.ClearObjectFlag(ObjectFlag.DONTDRAW);
-                            }
-
+                            obj.BeginDialog(attachee, 20);
+                            SetGlobalVar(937, 3);
+                            attachee.ClearObjectFlag(ObjectFlag.DONTDRAW);
                         }
 
                     }
@@ -91,17 +89,18 @@ namespace Scripts
 
             }
 
-            return RunDefault;
-        }
-        public static bool close_enough(GameObject speaker, GameObject listener)
-        {
-            if ((speaker.DistanceTo(listener) <= 5))
-            {
-                return true;
-            }
-
-            return false;
         }
 
+        return RunDefault;
     }
+    public static bool close_enough(GameObject speaker, GameObject listener)
+    {
+        if ((speaker.DistanceTo(listener) <= 5))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 }

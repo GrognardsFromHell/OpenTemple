@@ -19,46 +19,45 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Dialog
+namespace VanillaScripts.Dialog;
+
+[DialogScript(80)]
+public class ElfcaptiveDialog : Elfcaptive, IDialogScript
 {
-    [DialogScript(80)]
-    public class ElfcaptiveDialog : Elfcaptive, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 43:
-                case 44:
-                    originalScript = "pc.stat_level_get(stat_race) == race_gnome";
-                    return pc.GetRace() == RaceId.svirfneblin;
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 43:
+            case 44:
+                originalScript = "pc.stat_level_get(stat_race) == race_gnome";
+                return pc.GetRace() == RaceId.svirfneblin;
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 61:
-                case 62:
-                    originalScript = "run_off(npc,pc)";
-                    run_off(npc, pc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 61:
+            case 62:
+                originalScript = "run_off(npc,pc)";
+                run_off(npc, pc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

@@ -7,37 +7,36 @@ using FluentAssertions;
 using NUnit.Framework;
 using OpenTemple.Core.AAS;
 
-namespace OpenTemple.Tests.AAS
+namespace OpenTemple.Tests.AAS;
+
+public class LegacyScriptHandlerTest
 {
-    public class LegacyScriptHandlerTest
+    [TestCaseSource(nameof(GetTestData))]
+    public void CanConvertLegacyAnimEvent(string legacyScript)
     {
-        [TestCaseSource(nameof(GetTestData))]
-        public void CanConvertLegacyAnimEvent(string legacyScript)
+        var handler = new LegacyScriptConverter();
+        handler.TryConvert(legacyScript, out var newEvent).Should().Be(true);
+    }
+
+    // Reads all known animation scripts from a .txt file (one line per script)
+    public static IEnumerable<object[]> GetTestData()
+    {
+        var stream = typeof(LegacyScriptHandlerTest).Assembly.GetManifestResourceStream(
+            typeof(LegacyScriptHandlerTest),
+            "animscripts.txt"
+        );
+        if (stream == null)
         {
-            var handler = new LegacyScriptConverter();
-            handler.TryConvert(legacyScript, out var newEvent).Should().Be(true);
+            throw new InvalidOperationException("Failed to find embedded resource animscripts.txt");
         }
 
-        // Reads all known animation scripts from a .txt file (one line per script)
-        public static IEnumerable<object[]> GetTestData()
-        {
-            var stream = typeof(LegacyScriptHandlerTest).Assembly.GetManifestResourceStream(
-                typeof(LegacyScriptHandlerTest),
-                "animscripts.txt"
-            );
-            if (stream == null)
-            {
-                throw new InvalidOperationException("Failed to find embedded resource animscripts.txt");
-            }
+        var reader = new StreamReader(stream, Encoding.UTF8);
+        var content = reader.ReadToEnd();
+        stream.Close();
 
-            var reader = new StreamReader(stream, Encoding.UTF8);
-            var content = reader.ReadToEnd();
-            stream.Close();
-
-            return content.Split('\n')
-                .Select(l => l.TrimEnd('\r'))
-                .Where(l => !string.IsNullOrWhiteSpace(l))
-                .Select(l => new object[] { l });
-        }
+        return content.Split('\n')
+            .Select(l => l.TrimEnd('\r'))
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .Select(l => new object[] { l });
     }
 }

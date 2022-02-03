@@ -18,91 +18,90 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(145)]
+public class Aern : BaseObjectScript
 {
-    [ObjectScript(145)]
-    public class Aern : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3016))))
         {
-            if ((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3016))))
-            {
-                triggerer.BeginDialog(attachee, 160);
-            }
-            else if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 170);
-            }
-            else if (((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3015))) || (triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3017)))))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 160);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((attachee.HasMet(triggerer)))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 170);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else if (((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3015))) || (triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3017)))))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            triggerer.BeginDialog(attachee, 1);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 100);
+        }
+
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    if ((obj.GetPartyMembers().Any(o => o.HasEquippedByName(3016))))
                     {
-                        if ((obj.GetPartyMembers().Any(o => o.HasEquippedByName(3016))))
-                        {
-                            obj.BeginDialog(attachee, 160);
-                        }
-                        else if ((attachee.HasMet(obj)))
-                        {
-                            obj.BeginDialog(attachee, 170);
-                        }
-                        else if (((obj.GetPartyMembers().Any(o => o.HasEquippedByName(3015))) || (obj.GetPartyMembers().Any(o => o.HasEquippedByName(3017)))))
-                        {
-                            obj.BeginDialog(attachee, 1);
-                        }
-                        else
-                        {
-                            obj.BeginDialog(attachee, 100);
-                        }
-
-                        DetachScript();
+                        obj.BeginDialog(attachee, 160);
+                    }
+                    else if ((attachee.HasMet(obj)))
+                    {
+                        obj.BeginDialog(attachee, 170);
+                    }
+                    else if (((obj.GetPartyMembers().Any(o => o.HasEquippedByName(3015))) || (obj.GetPartyMembers().Any(o => o.HasEquippedByName(3017)))))
+                    {
+                        obj.BeginDialog(attachee, 1);
+                    }
+                    else
+                    {
+                        obj.BeginDialog(attachee, 100);
                     }
 
+                    DetachScript();
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static bool TalkOohlgrist(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8023);
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 190);
-            }
-
-            return SkipDefault;
         }
 
+        return RunDefault;
     }
+    public static bool TalkOohlgrist(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8023);
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 190);
+        }
+
+        return SkipDefault;
+    }
+
 }

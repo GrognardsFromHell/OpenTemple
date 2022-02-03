@@ -18,26 +18,25 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(324)]
+public class VerboboncCitizenLimiter : BaseObjectScript
 {
-    [ObjectScript(324)]
-    public class VerboboncCitizenLimiter : BaseObjectScript
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetMap() == 5121 && GetGlobalVar(950) == 1))
         {
-            if ((attachee.GetMap() == 5121 && GetGlobalVar(950) == 1))
-            {
-                StartTimer(43200000, () => twelve_hour_time_limit_to_kill_wilfrick()); // 12 hours
-                SetGlobalVar(950, 2);
-            }
-
-            return RunDefault;
-        }
-        public static bool twelve_hour_time_limit_to_kill_wilfrick()
-        {
-            SetGlobalVar(704, 20);
-            return RunDefault;
+            StartTimer(43200000, () => twelve_hour_time_limit_to_kill_wilfrick()); // 12 hours
+            SetGlobalVar(950, 2);
         }
 
+        return RunDefault;
     }
+    public static bool twelve_hour_time_limit_to_kill_wilfrick()
+    {
+        SetGlobalVar(704, 20);
+        return RunDefault;
+    }
+
 }

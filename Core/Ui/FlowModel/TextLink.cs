@@ -1,9 +1,8 @@
 #nullable enable
 
-namespace OpenTemple.Core.Ui.FlowModel
+namespace OpenTemple.Core.Ui.FlowModel;
+
+public class TextLink : SimpleInlineElement
 {
-    public class TextLink : SimpleInlineElement
-    {
-        public string? LinkTarget { get; init; }
-    }
+    public string? LinkTarget { get; init; }
 }

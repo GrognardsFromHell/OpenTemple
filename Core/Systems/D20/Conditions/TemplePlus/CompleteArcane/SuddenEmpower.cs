@@ -20,28 +20,27 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+// Sudden Empower:  Complete Arcane, p. 83
+public class SuddenEmpower
 {
-    // Sudden Empower:  Complete Arcane, p. 83
-    public class SuddenEmpower
+
+    public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Empower");
+
+    private static void ApplyEmpower(ref MetaMagicData metaMagicData)
     {
-
-        public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Empower");
-
-        private static void ApplyEmpower(ref MetaMagicData metaMagicData)
+        // Don't Empower more than once
+        if (metaMagicData.metaMagicEmpowerSpellCount < 1)
         {
-            // Don't Empower more than once
-            if (metaMagicData.metaMagicEmpowerSpellCount < 1)
-            {
-                metaMagicData.metaMagicEmpowerSpellCount = 1;
-            }
+            metaMagicData.metaMagicEmpowerSpellCount = 1;
         }
-
-        // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Empower");
-
-        [AutoRegister, FeatCondition("Sudden Empower")]
-        public static readonly ConditionSpec Condition = SuddenMetamagic
-            .Create("Sudden Empower Feat", "Sudden Empower", ApplyEmpower)
-            .Build();
     }
+
+    // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Empower");
+
+    [AutoRegister, FeatCondition("Sudden Empower")]
+    public static readonly ConditionSpec Condition = SuddenMetamagic
+        .Create("Sudden Empower Feat", "Sudden Empower", ApplyEmpower)
+        .Build();
 }

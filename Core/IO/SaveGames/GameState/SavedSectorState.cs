@@ -5,52 +5,51 @@ using System.Xml.Linq;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.MapSector;
 
-namespace OpenTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState;
+
+public class SavedSectorState
 {
-    public class SavedSectorState
+    public List<SavedSectorTime> SectorTimes { get; set; } = new List<SavedSectorTime>();
+
+    [TempleDllLocation(0x10081d20)]
+    public static SavedSectorState Read(BinaryReader reader)
     {
-        public List<SavedSectorTime> SectorTimes { get; set; } = new List<SavedSectorTime>();
+        var result = new SavedSectorState();
 
-        [TempleDllLocation(0x10081d20)]
-        public static SavedSectorState Read(BinaryReader reader)
+        var timesCount = reader.ReadInt32();
+        result.SectorTimes.Capacity = timesCount;
+
+        for (var i = 0; i < timesCount; i++)
         {
-            var result = new SavedSectorState();
-
-            var timesCount = reader.ReadInt32();
-            result.SectorTimes.Capacity = timesCount;
-
-            for (var i = 0; i < timesCount; i++)
-            {
-                var sectorLoc = SectorLoc.Unpack(reader.ReadUInt64());
-                var lastTime = reader.ReadGameTime();
-                result.SectorTimes.Add(new SavedSectorTime(sectorLoc, lastTime));
-            }
-
-            return result;
+            var sectorLoc = SectorLoc.Unpack(reader.ReadUInt64());
+            var lastTime = reader.ReadGameTime();
+            result.SectorTimes.Add(new SavedSectorTime(sectorLoc, lastTime));
         }
 
-        [TempleDllLocation(0x10081d20)]
-        [SuppressMessage("ReSharper", "RedundantCast")]
-        public void Write(BinaryWriter writer)
-        {
-            writer.WriteInt32( SectorTimes.Count);
-            foreach (var sectorTime in SectorTimes)
-            {
-                writer.Write(sectorTime.Sector.Pack());
-                writer.WriteGameTime(sectorTime.Time);
-            }
-        }
+        return result;
     }
 
-    public struct SavedSectorTime
+    [TempleDllLocation(0x10081d20)]
+    [SuppressMessage("ReSharper", "RedundantCast")]
+    public void Write(BinaryWriter writer)
     {
-        public readonly SectorLoc Sector;
-        public readonly GameTime Time;
-
-        public SavedSectorTime(SectorLoc sector, GameTime time)
+        writer.WriteInt32( SectorTimes.Count);
+        foreach (var sectorTime in SectorTimes)
         {
-            Sector = sector;
-            Time = time;
+            writer.Write(sectorTime.Sector.Pack());
+            writer.WriteGameTime(sectorTime.Time);
         }
+    }
+}
+
+public struct SavedSectorTime
+{
+    public readonly SectorLoc Sector;
+    public readonly GameTime Time;
+
+    public SavedSectorTime(SectorLoc sector, GameTime time)
+    {
+        Sector = sector;
+        Time = time;
     }
 }

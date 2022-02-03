@@ -18,51 +18,50 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(473)]
+public class Carl : BaseObjectScript
 {
-    [ObjectScript(473)]
-    public class Carl : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        attachee.TurnTowards(triggerer);
+        if ((attachee.HasMet(triggerer)))
         {
-            attachee.TurnTowards(triggerer);
-            if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 10);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((!GetGlobalFlag(900)))
-            {
-                StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
-                SetGlobalFlag(900, true);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
-        }
-        public static void respawn(GameObject attachee)
-        {
-            var box = Utilities.find_container_near(attachee, 1075);
-            InventoryRespawn.RespawnInventory(box);
-            StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
-            return;
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GetGlobalFlag(900)))
+        {
+            StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
+            SetGlobalFlag(900, true);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public static void respawn(GameObject attachee)
+    {
+        var box = Utilities.find_container_near(attachee, 1075);
+        InventoryRespawn.RespawnInventory(box);
+        StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
+        return;
+    }
+
 }

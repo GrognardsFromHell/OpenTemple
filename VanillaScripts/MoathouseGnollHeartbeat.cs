@@ -17,24 +17,23 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(181)]
+public class MoathouseGnollHeartbeat : BaseObjectScript
 {
-    [ObjectScript(181)]
-    public class MoathouseGnollHeartbeat : BaseObjectScript
+
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(288)))
         {
-            if ((GetGlobalFlag(288)))
-            {
-                var location = new locXY(484, 490);
+            var location = new locXY(484, 490);
 
-                attachee.RunOff(location);
-            }
-
-            return RunDefault;
+            attachee.RunOff(location);
         }
 
-
+        return RunDefault;
     }
+
+
 }

@@ -1,9 +1,8 @@
 using System;
 
-namespace OpenTemple.Core.Startup.Discovery
+namespace OpenTemple.Core.Startup.Discovery;
+
+[AttributeUsage(AttributeTargets.Assembly)]
+public class GameContentAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Assembly)]
-    public class GameContentAttribute : Attribute
-    {
-    }
 }

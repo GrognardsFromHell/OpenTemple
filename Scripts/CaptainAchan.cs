@@ -18,94 +18,92 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(352)]
+public class CaptainAchan : BaseObjectScript
 {
-    [ObjectScript(352)]
-    public class CaptainAchan : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        attachee.TurnTowards(triggerer);
+        if ((GetGlobalVar(962) == 1))
         {
-            attachee.TurnTowards(triggerer);
-            if ((GetGlobalVar(962) == 1))
-            {
-                triggerer.BeginDialog(attachee, 250);
-            }
-            else if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 20);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 250);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else if ((attachee.HasMet(triggerer)))
         {
-            if ((attachee.GetMap() == 5170 || attachee.GetMap() == 5135))
-            {
-                if ((GetGlobalVar(946) == 1))
-                {
-                    attachee.ClearObjectFlag(ObjectFlag.OFF);
-                }
-                else if ((GetGlobalVar(946) == 2))
-                {
-                    attachee.SetObjectFlag(ObjectFlag.OFF);
-                }
-
-            }
-            else if ((attachee.GetMap() == 5172))
-            {
-                if ((GetGlobalVar(946) == 2) && !ScriptDaemon.tpsts("achan_off_to_arrest", 1 * 60 * 60))
-                {
-                    attachee.SetObjectFlag(ObjectFlag.OFF);
-                }
-                else if ((GetGlobalVar(946) == 3) || ScriptDaemon.tpsts("achan_off_to_arrest", 1 * 60 * 60))
-                {
-                    attachee.ClearObjectFlag(ObjectFlag.OFF);
-                }
-
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 20);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (((attachee.GetMap() == 5170 || attachee.GetMap() == 5135) && GetGlobalVar(946) == 1))
+            triggerer.BeginDialog(attachee, 1);
+        }
+
+        return SkipDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetMap() == 5170 || attachee.GetMap() == 5135))
+        {
+            if ((GetGlobalVar(946) == 1))
             {
-                if ((!GameSystems.Combat.IsCombatActive()))
+                attachee.ClearObjectFlag(ObjectFlag.OFF);
+            }
+            else if ((GetGlobalVar(946) == 2))
+            {
+                attachee.SetObjectFlag(ObjectFlag.OFF);
+            }
+
+        }
+        else if ((attachee.GetMap() == 5172))
+        {
+            if ((GetGlobalVar(946) == 2) && !ScriptDaemon.tpsts("achan_off_to_arrest", 1 * 60 * 60))
+            {
+                attachee.SetObjectFlag(ObjectFlag.OFF);
+            }
+            else if ((GetGlobalVar(946) == 3) || ScriptDaemon.tpsts("achan_off_to_arrest", 1 * 60 * 60))
+            {
+                attachee.ClearObjectFlag(ObjectFlag.OFF);
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if (((attachee.GetMap() == 5170 || attachee.GetMap() == 5135) && GetGlobalVar(946) == 1))
+        {
+            if ((!GameSystems.Combat.IsCombatActive()))
+            {
+                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                    if ((is_groovier_to_talk(attachee, obj)))
                     {
-                        if ((is_groovier_to_talk(attachee, obj)))
-                        {
-                            StartTimer(2000, () => start_talking(attachee, triggerer));
-                            DetachScript();
-                        }
-
+                        StartTimer(2000, () => start_talking(attachee, triggerer));
+                        DetachScript();
                     }
 
                 }
 
             }
-            else
-            {
-                if ((PartyLeader.HasReputation(34) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(42) || PartyLeader.HasReputation(44) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(43) || PartyLeader.HasReputation(46) || (GetGlobalVar(993) == 5 && !GetGlobalFlag(870))))
-                {
-                    if (((GetGlobalVar(969) == 0) && (!GetGlobalFlag(955))))
-                    {
-                        if ((!GameSystems.Combat.IsCombatActive()))
-                        {
-                            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-                            {
-                                if ((is_better_to_talk(attachee, obj)))
-                                {
-                                    attachee.TurnTowards(obj);
-                                    obj.BeginDialog(attachee, 230);
-                                    SetGlobalVar(969, 1);
-                                }
 
+        }
+        else
+        {
+            if ((PartyLeader.HasReputation(34) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(42) || PartyLeader.HasReputation(44) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(43) || PartyLeader.HasReputation(46) || (GetGlobalVar(993) == 5 && !GetGlobalFlag(870))))
+            {
+                if (((GetGlobalVar(969) == 0) && (!GetGlobalFlag(955))))
+                {
+                    if ((!GameSystems.Combat.IsCombatActive()))
+                    {
+                        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                        {
+                            if ((is_better_to_talk(attachee, obj)))
+                            {
+                                attachee.TurnTowards(obj);
+                                obj.BeginDialog(attachee, 230);
+                                SetGlobalVar(969, 1);
                             }
 
                         }
@@ -116,53 +114,54 @@ namespace Scripts
 
             }
 
-            return RunDefault;
         }
-        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
+
+        return RunDefault;
+    }
+    public static bool is_better_to_talk(GameObject speaker, GameObject listener)
+    {
+        if ((speaker.DistanceTo(listener) <= 50))
         {
-            if ((speaker.DistanceTo(listener) <= 50))
+            return true;
+        }
+
+        return false;
+    }
+    public static bool is_groovier_to_talk(GameObject speaker, GameObject listener)
+    {
+        if ((speaker.HasLineOfSight(listener)))
+        {
+            if ((speaker.DistanceTo(listener) <= 40))
             {
                 return true;
             }
 
-            return false;
-        }
-        public static bool is_groovier_to_talk(GameObject speaker, GameObject listener)
-        {
-            if ((speaker.HasLineOfSight(listener)))
-            {
-                if ((speaker.DistanceTo(listener) <= 40))
-                {
-                    return true;
-                }
-
-            }
-
-            return false;
-        }
-        public static bool start_talking(GameObject attachee, GameObject triggerer)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8703);
-            attachee.TurnTowards(npc);
-            PartyLeader.BeginDialog(attachee, 460);
-            return RunDefault;
-        }
-        public static bool switch_to_wilfrick(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8703);
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(triggerer);
-            }
-
-            return SkipDefault;
-        }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
-        {
-            attachee.RunOff();
-            return RunDefault;
         }
 
+        return false;
     }
+    public static bool start_talking(GameObject attachee, GameObject triggerer)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8703);
+        attachee.TurnTowards(npc);
+        PartyLeader.BeginDialog(attachee, 460);
+        return RunDefault;
+    }
+    public static bool switch_to_wilfrick(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8703);
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(triggerer);
+        }
+
+        return SkipDefault;
+    }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        attachee.RunOff();
+        return RunDefault;
+    }
+
 }

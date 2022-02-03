@@ -1,11 +1,10 @@
-namespace OpenTemple.Core.MaterialDefinitions
+namespace OpenTemple.Core.MaterialDefinitions;
+
+public enum MdfTextureBlendType
 {
-    public enum MdfTextureBlendType
-    {
-        Modulate,
-        Add,
-        TextureAlpha,
-        CurrentAlpha,
-        CurrentAlphaAdd
-    }
+    Modulate,
+    Add,
+    TextureAlpha,
+    CurrentAlpha,
+    CurrentAlphaAdd
 }

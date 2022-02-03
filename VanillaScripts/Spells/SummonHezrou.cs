@@ -17,50 +17,49 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(728)]
+public class SummonHezrou : BaseSpellScript
 {
-    [SpellScript(728)]
-    public class SummonHezrou : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Summon Hezrou OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Summon Hezrou OnSpellEffect");
-            spell.duration = 5;
-
-            var monster_proto_id = 14259;
-
-            var monster_obj = GameSystems.MapObject.CreateObject(monster_proto_id, spell.aoeCenter);
-
-            AttachParticles("Orb-Summon-Hezrou", monster_obj);
-            spell.caster.AddAIFollower(monster_obj);
-            var caster_init_value = spell.caster.GetInitiative();
-
-            monster_obj.AddToInitiative();
-            monster_obj.SetInitiative(caster_init_value);
-            UiSystems.Combat.Initiative.UpdateIfNeeded();
-            monster_obj.AddCondition("sp-Summoned", spell.spellId, spell.duration, 0);
-
-            spell.ClearTargets();
-            spell.AddTarget(monster_obj);
-            spell.EndSpell();
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Summon Hezrou OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Summon Hezrou OnEndSpellCast");
-        }
-
-
+        Logger.Info("Summon Hezrou OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-conjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Summon Hezrou OnSpellEffect");
+        spell.duration = 5;
+
+        var monster_proto_id = 14259;
+
+        var monster_obj = GameSystems.MapObject.CreateObject(monster_proto_id, spell.aoeCenter);
+
+        AttachParticles("Orb-Summon-Hezrou", monster_obj);
+        spell.caster.AddAIFollower(monster_obj);
+        var caster_init_value = spell.caster.GetInitiative();
+
+        monster_obj.AddToInitiative();
+        monster_obj.SetInitiative(caster_init_value);
+        UiSystems.Combat.Initiative.UpdateIfNeeded();
+        monster_obj.AddCondition("sp-Summoned", spell.spellId, spell.duration, 0);
+
+        spell.ClearTargets();
+        spell.AddTarget(monster_obj);
+        spell.EndSpell();
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Summon Hezrou OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Summon Hezrou OnEndSpellCast");
+    }
+
+
 }

@@ -18,97 +18,96 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(390)]
+public class CanonThaddeus : BaseObjectScript
 {
-    [ObjectScript(390)]
-    public class CanonThaddeus : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetMap() == 5093 && GetGlobalVar(960) == 3))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+            attachee.CastSpell(WellKnownSpells.DeathWard, attachee);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetMap() == 5093 && GetGlobalVar(960) == 3))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-                attachee.CastSpell(WellKnownSpells.DeathWard, attachee);
-            }
 
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        return RunDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
 
-            foreach (var pc in GameSystems.Party.PartyMembers)
-            {
-                pc.AddCondition("fallen_paladin");
-            }
+        foreach (var pc in GameSystems.Party.PartyMembers)
+        {
+            pc.AddCondition("fallen_paladin");
+        }
 
-            SetGlobalFlag(844, true);
-            return RunDefault;
-        }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+        SetGlobalFlag(844, true);
+        return RunDefault;
+    }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(956) == 1))
         {
-            if ((GetGlobalVar(956) == 1))
-            {
-                attachee.SetInt(obj_f.critter_strategy, 409);
-            }
+            attachee.SetInt(obj_f.critter_strategy, 409);
+        }
 
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(844, false);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            SetGlobalFlag(844, false);
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            if (((attachee.GetMap() == 5093) && (GetGlobalVar(960) == 4)))
             {
-                if (((attachee.GetMap() == 5093) && (GetGlobalVar(960) == 4)))
+                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                    if ((is_better_to_talk(attachee, obj)))
                     {
-                        if ((is_better_to_talk(attachee, obj)))
-                        {
-                            attachee.TurnTowards(obj);
-                            obj.BeginDialog(attachee, 1);
-                            SetGlobalVar(960, 5);
-                        }
-
+                        attachee.TurnTowards(obj);
+                        obj.BeginDialog(attachee, 1);
+                        SetGlobalVar(960, 5);
                     }
 
                 }
 
             }
-            else if ((GameSystems.Combat.IsCombatActive()))
-            {
-                if (((attachee.GetMap() == 5093) && (GetGlobalVar(957) >= 8)))
-                {
-                    attachee.FloatLine(1000, triggerer);
-                    SetGlobalVar(956, 1);
-                    SetGlobalVar(957, 0);
-                }
 
-            }
-
-            return RunDefault;
         }
-        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
+        else if ((GameSystems.Combat.IsCombatActive()))
         {
-            if ((speaker.DistanceTo(listener) <= 60))
+            if (((attachee.GetMap() == 5093) && (GetGlobalVar(957) >= 8)))
             {
-                return true;
+                attachee.FloatLine(1000, triggerer);
+                SetGlobalVar(956, 1);
+                SetGlobalVar(957, 0);
             }
 
-            return false;
         }
 
+        return RunDefault;
     }
+    public static bool is_better_to_talk(GameObject speaker, GameObject listener)
+    {
+        if ((speaker.DistanceTo(listener) <= 60))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 }

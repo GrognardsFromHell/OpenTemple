@@ -18,22 +18,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(219)]
-    public class PowerGem : BaseObjectScript
-    {
-        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
-        {
-            var orb = triggerer.FindItemByName(2203);
-            if ((orb != null))
-            {
-                triggerer.D20SendSignal(D20DispatcherKey.SIG_Golden_Skull_Combine, attachee);
-                attachee.Destroy();
-            }
+namespace Scripts;
 
-            return SkipDefault;
+[ObjectScript(219)]
+public class PowerGem : BaseObjectScript
+{
+    public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
+    {
+        var orb = triggerer.FindItemByName(2203);
+        if ((orb != null))
+        {
+            triggerer.D20SendSignal(D20DispatcherKey.SIG_Golden_Skull_Combine, attachee);
+            attachee.Destroy();
         }
 
+        return SkipDefault;
     }
+
 }

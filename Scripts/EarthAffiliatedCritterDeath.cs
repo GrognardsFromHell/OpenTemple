@@ -18,22 +18,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(442)]
-    public class EarthAffiliatedCritterDeath : BaseObjectScript
-    {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            ScriptDaemon.record_time_stamp(505);
-            ScriptDaemon.set_v(499, ScriptDaemon.get_v(499) + 1);
-            if (Math.Pow((ScriptDaemon.get_v(498) / 75f), 3) + Math.Pow((ScriptDaemon.get_v(499) / 38f), 3) + Math.Pow((ScriptDaemon.get_v(500) / 13f), 3) >= 1)
-            {
-                ScriptDaemon.record_time_stamp(510);
-            }
+namespace Scripts;
 
-            return RunDefault;
+[ObjectScript(442)]
+public class EarthAffiliatedCritterDeath : BaseObjectScript
+{
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        ScriptDaemon.record_time_stamp(505);
+        ScriptDaemon.set_v(499, ScriptDaemon.get_v(499) + 1);
+        if (Math.Pow((ScriptDaemon.get_v(498) / 75f), 3) + Math.Pow((ScriptDaemon.get_v(499) / 38f), 3) + Math.Pow((ScriptDaemon.get_v(500) / 13f), 3) >= 1)
+        {
+            ScriptDaemon.record_time_stamp(510);
         }
 
+        return RunDefault;
     }
+
 }

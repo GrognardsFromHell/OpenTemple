@@ -1,10 +1,9 @@
-namespace OpenTemple.Core.Particles.Spec
+namespace OpenTemple.Core.Particles.Spec;
+
+public enum PartSysBlendMode
 {
-    public enum PartSysBlendMode
-    {
-        Add,
-        Subtract,
-        Blend,
-        Multiply
-    }
+    Add,
+    Subtract,
+    Blend,
+    Multiply
 }

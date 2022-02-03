@@ -18,83 +18,82 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(55)]
+public class CharmMonster : BaseSpellScript
 {
-    [SpellScript(55)]
-    public class CharmMonster : BaseSpellScript
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
+        Logger.Info("Charm Monster OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-enchantment-conjure", spell.caster);
+    }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Charm Monster OnSpellEffect");
+        spell.duration = 600 * spell.casterLevel;
+        var target_item = spell.Targets[0];
+        var target_item_obj = target_item.Object;
+        if (Co8Settings.CharmSpellDCModifier)
         {
-            Logger.Info("Charm Monster OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-enchantment-conjure", spell.caster);
+            if (GameSystems.Combat.IsCombatActive())
+            {
+                spell.dc = spell.dc - 5; // to reflect a bonus to the saving throw for casting charm in combat
+            }
+
         }
-        public override void OnSpellEffect(SpellPacketBody spell)
+
+        if ((!((GameSystems.Party.PartyMembers).Contains(spell.caster))) && (target_item.Object.type != ObjectType.pc) && ((GameSystems.Party.PartyMembers).Contains(target_item.Object)))
         {
-            Logger.Info("Charm Monster OnSpellEffect");
-            spell.duration = 600 * spell.casterLevel;
-            var target_item = spell.Targets[0];
-            var target_item_obj = target_item.Object;
-            if (Co8Settings.CharmSpellDCModifier)
+            // NPC enemy is trying to charm an NPC from your party - this is bad because it effectively kills the NPC (is dismissed from party and becomes hostile, thus becoming unrecruitable unless you use dominate person/monster
+            target_item_obj = Utilities.party_closest(spell.caster, mode_select: 0); // select nearest conscious PC instead, who isn't already charmed
+            if (target_item_obj == null)
             {
-                if (GameSystems.Combat.IsCombatActive())
-                {
-                    spell.dc = spell.dc - 5; // to reflect a bonus to the saving throw for casting charm in combat
-                }
-
+                target_item_obj = target_item.Object;
             }
 
-            if ((!((GameSystems.Party.PartyMembers).Contains(spell.caster))) && (target_item.Object.type != ObjectType.pc) && ((GameSystems.Party.PartyMembers).Contains(target_item.Object)))
+        }
+
+        if (!target_item_obj.IsFriendly(spell.caster))
+        {
+            if (!target_item_obj.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.CHARM, spell.caster, spell.spellId))
             {
-                // NPC enemy is trying to charm an NPC from your party - this is bad because it effectively kills the NPC (is dismissed from party and becomes hostile, thus becoming unrecruitable unless you use dominate person/monster
-                target_item_obj = Utilities.party_closest(spell.caster, mode_select: 0); // select nearest conscious PC instead, who isn't already charmed
-                if (target_item_obj == null)
-                {
-                    target_item_obj = target_item.Object;
-                }
-
-            }
-
-            if (!target_item_obj.IsFriendly(spell.caster))
-            {
-                if (!target_item_obj.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.CHARM, spell.caster, spell.spellId))
-                {
-                    // saving throw unsuccessful
-                    target_item_obj.FloatMesFileLine("mes/spell.mes", 30002);
-                    spell.caster.AddAIFollower(target_item_obj);
-                    target_item_obj.AddCondition("sp-Charm Monster", spell.spellId, spell.duration, GameSystems.Critter.GetHitDiceNum(target_item_obj));
-                    target_item.ParticleSystem = AttachParticles("sp-Charm Monster", target_item_obj);
-                    // add target to initiative, just in case
-                    target_item_obj.AddToInitiative();
-                    UiSystems.Combat.Initiative.UpdateIfNeeded();
-                }
-                else
-                {
-                    // saving throw successful
-                    target_item_obj.FloatMesFileLine("mes/spell.mes", 30001);
-                    AttachParticles("Fizzle", target_item_obj);
-                    spell.RemoveTarget(target_item_obj);
-                }
-
+                // saving throw unsuccessful
+                target_item_obj.FloatMesFileLine("mes/spell.mes", 30002);
+                spell.caster.AddAIFollower(target_item_obj);
+                target_item_obj.AddCondition("sp-Charm Monster", spell.spellId, spell.duration, GameSystems.Critter.GetHitDiceNum(target_item_obj));
+                target_item.ParticleSystem = AttachParticles("sp-Charm Monster", target_item_obj);
+                // add target to initiative, just in case
+                target_item_obj.AddToInitiative();
+                UiSystems.Combat.Initiative.UpdateIfNeeded();
             }
             else
             {
-                // can't target friendlies
+                // saving throw successful
+                target_item_obj.FloatMesFileLine("mes/spell.mes", 30001);
                 AttachParticles("Fizzle", target_item_obj);
                 spell.RemoveTarget(target_item_obj);
             }
 
-            spell.EndSpell();
         }
-        public override void OnBeginRound(SpellPacketBody spell)
+        else
         {
-            Logger.Info("Charm Monster OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Charm Monster OnEndSpellCast");
+            // can't target friendlies
+            AttachParticles("Fizzle", target_item_obj);
+            spell.RemoveTarget(target_item_obj);
         }
 
+        spell.EndSpell();
     }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Charm Monster OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Charm Monster OnEndSpellCast");
+    }
+
 }

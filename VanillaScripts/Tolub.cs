@@ -17,92 +17,91 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(116)]
+public class Tolub : BaseObjectScript
 {
-    [ObjectScript(116)]
-    public class Tolub : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetMap() == 5052))
         {
-            if ((attachee.GetMap() == 5052))
-            {
-                triggerer.BeginDialog(attachee, 200);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 200);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            SetGlobalFlag(97, true);
-            if ((GetQuestState(36) == QuestState.Accepted))
-            {
-                SetQuestState(36, QuestState.Completed);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(97, false);
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetGlobalVar(10) >= 2))
-            {
-                DetachScript();
 
-            }
-            else if ((attachee.GetMap() == 5052))
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(97, true);
+        if ((GetQuestState(36) == QuestState.Accepted))
+        {
+            SetQuestState(36, QuestState.Completed);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(97, false);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(10) >= 2))
+        {
+            DetachScript();
+
+        }
+        else if ((attachee.GetMap() == 5052))
+        {
+            if ((!GameSystems.Combat.IsCombatActive()))
             {
-                if ((!GameSystems.Combat.IsCombatActive()))
+                SetGlobalVar(31, GetGlobalVar(31) + 1);
+                if ((GetGlobalVar(31) > 25))
                 {
-                    SetGlobalVar(31, GetGlobalVar(31) + 1);
-                    if ((GetGlobalVar(31) > 25))
-                    {
-                        SetGlobalVar(31, 0);
-                        var n = RandomRange(190, 194);
+                    SetGlobalVar(31, 0);
+                    var n = RandomRange(190, 194);
 
-                        attachee.FloatLine(n, triggerer);
-                    }
-
+                    attachee.FloatLine(n, triggerer);
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static bool brawl(GameObject attachee, GameObject triggerer)
-        {
-            attachee.SetReaction(triggerer, -100);
-            GameSystems.Combat.Brawl(triggerer, attachee);
-            return RunDefault;
-        }
-        public static bool brawl_end(GameObject attachee, GameObject triggerer, int brawl_state)
-        {
-            if ((brawl_state == 0))
-            {
-                attachee.SetReaction(triggerer, 50);
-                triggerer.BeginDialog(attachee, 300);
-            }
-            else if ((brawl_state == 1))
-            {
-                attachee.SetReaction(triggerer, 50);
-                triggerer.BeginDialog(attachee, 330);
-            }
-            else
-            {
-                attachee.FloatLine(290, triggerer);
-            }
-
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+    public static bool brawl(GameObject attachee, GameObject triggerer)
+    {
+        attachee.SetReaction(triggerer, -100);
+        GameSystems.Combat.Brawl(triggerer, attachee);
+        return RunDefault;
+    }
+    public static bool brawl_end(GameObject attachee, GameObject triggerer, int brawl_state)
+    {
+        if ((brawl_state == 0))
+        {
+            attachee.SetReaction(triggerer, 50);
+            triggerer.BeginDialog(attachee, 300);
+        }
+        else if ((brawl_state == 1))
+        {
+            attachee.SetReaction(triggerer, 50);
+            triggerer.BeginDialog(attachee, 330);
+        }
+        else
+        {
+            attachee.FloatLine(290, triggerer);
+        }
+
+        return RunDefault;
+    }
+
+
 }

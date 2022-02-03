@@ -18,41 +18,40 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(307)]
+public class Zugpriest : BaseObjectScript
 {
-    [ObjectScript(307)]
-    public class Zugpriest : BaseObjectScript
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
-        }
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(708, 0);
-            return RunDefault;
-        }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
-        {
-            foreach (var pc in GameSystems.Party.PartyMembers)
-            {
-                var curr = pc.GetStat(Stat.hp_current);
-                if ((curr <= -1 && curr >= -9 && pc.DistanceTo(attachee) <= 10 && GetGlobalVar(708) <= 3))
-                {
-                    SetGlobalVar(708, GetGlobalVar(708) + 1);
-                    Utilities.create_item_in_inventory(8905, attachee);
-                    return RunDefault;
-                }
-
-            }
-
-            return RunDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
 
+        return RunDefault;
     }
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(708, 0);
+        return RunDefault;
+    }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var pc in GameSystems.Party.PartyMembers)
+        {
+            var curr = pc.GetStat(Stat.hp_current);
+            if ((curr <= -1 && curr >= -9 && pc.DistanceTo(attachee) <= 10 && GetGlobalVar(708) <= 3))
+            {
+                SetGlobalVar(708, GetGlobalVar(708) + 1);
+                Utilities.create_item_in_inventory(8905, attachee);
+                return RunDefault;
+            }
+
+        }
+
+        return RunDefault;
+    }
+
 }

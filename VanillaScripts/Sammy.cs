@@ -17,30 +17,29 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(101)]
+public class Sammy : BaseObjectScript
 {
-    [ObjectScript(101)]
-    public class Sammy : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8014))))
         {
-            if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8014))))
-            {
-                triggerer.BeginDialog(attachee, 150);
-            }
-            else if ((GetQuestState(32) >= QuestState.Mentioned))
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 150);
+        }
+        else if ((GetQuestState(32) >= QuestState.Mentioned))
+        {
+            triggerer.BeginDialog(attachee, 100);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+
+
 }

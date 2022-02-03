@@ -17,45 +17,44 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(260)]
+public class RemovingGemHoard : BaseObjectScript
 {
-    [ObjectScript(260)]
-    public class RemovingGemHoard : BaseObjectScript
+
+    public override bool OnRemoveItem(GameObject attachee, GameObject triggerer)
     {
+        var zuggtmoy = Utilities.find_npc_near(triggerer, 8064);
 
-        public override bool OnRemoveItem(GameObject attachee, GameObject triggerer)
+        var loc = triggerer.GetLocation();
+
+        var rot = triggerer.Rotation;
+
+        triggerer.Destroy();
+        var empty_throne = GameSystems.MapObject.CreateObject(1051, loc);
+
+        empty_throne.Rotation = rot;
+
+        UiSystems.CharSheet.Hide();
+        if (((zuggtmoy != null) && (SelectedPartyLeader != null)))
         {
-            var zuggtmoy = Utilities.find_npc_near(triggerer, 8064);
-
-            var loc = triggerer.GetLocation();
-
-            var rot = triggerer.Rotation;
-
-            triggerer.Destroy();
-            var empty_throne = GameSystems.MapObject.CreateObject(1051, loc);
-
-            empty_throne.Rotation = rot;
-
-            UiSystems.CharSheet.Hide();
-            if (((zuggtmoy != null) && (SelectedPartyLeader != null)))
+            if ((GetGlobalFlag(181)))
             {
-                if ((GetGlobalFlag(181)))
-                {
-                    SetGlobalFlag(181, false);
-                    Zuggtmoy.transform_into_demon_form(zuggtmoy, SelectedPartyLeader, 320);
-                }
-                else
-                {
-                    SelectedPartyLeader.BeginDialog(zuggtmoy, 320);
-                }
-
+                SetGlobalFlag(181, false);
+                Zuggtmoy.transform_into_demon_form(zuggtmoy, SelectedPartyLeader, 320);
+            }
+            else
+            {
+                SelectedPartyLeader.BeginDialog(zuggtmoy, 320);
             }
 
-            DetachScript();
-
-            return RunDefault;
         }
 
+        DetachScript();
 
+        return RunDefault;
     }
+
+
 }

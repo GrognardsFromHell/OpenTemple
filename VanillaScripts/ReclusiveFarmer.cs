@@ -17,27 +17,26 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(63)]
+public class ReclusiveFarmer : BaseObjectScript
 {
-    [ObjectScript(63)]
-    public class ReclusiveFarmer : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public static bool make_like(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetReaction(triggerer) <= 71))
-            {
-                attachee.SetReaction(triggerer, 71);
-            }
-
-            return SkipDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public static bool make_like(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetReaction(triggerer) <= 71))
+        {
+            attachee.SetReaction(triggerer, 71);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

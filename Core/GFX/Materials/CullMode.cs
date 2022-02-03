@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials;
+
+public enum CullMode
 {
-    public enum CullMode
-    {
-        None,
-        Back,
-        Front
-    }
+    None,
+    Back,
+    Front
 }

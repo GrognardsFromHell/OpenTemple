@@ -18,35 +18,34 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(120)]
+public class RomagCommander : BaseObjectScript
 {
-    [ObjectScript(120)]
-    public class RomagCommander : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
-            {
-                ScriptDaemon.record_time_stamp(503);
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 50);
-            }
-
-            return SkipDefault;
+            ScriptDaemon.record_time_stamp(503);
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            ScriptDaemon.record_time_stamp(507);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 50);
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        ScriptDaemon.record_time_stamp(507);
+        return RunDefault;
+    }
+
 }

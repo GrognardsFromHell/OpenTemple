@@ -3,169 +3,169 @@ using System.IO;
 using JetBrains.Annotations;
 using OpenTemple.Core.IO;
 
-namespace OpenTemple.Core.MaterialDefinitions
+namespace OpenTemple.Core.MaterialDefinitions;
+
+public class MdfParser
 {
-    public class MdfParser
-    {
-        private readonly string mFilename;
-        private readonly string mContent;
+	private readonly string mFilename;
+	private readonly string mContent;
 
-        // The line last read using GetLine. Is trimmed of whitespace at start and end
-        private string mLine;
-        private int mLineNo = 0;
+	// The line last read using GetLine. Is trimmed of whitespace at start and end
+	private string mLine;
+	private int mLineNo = 0;
 
-        private StringReader mIn;
+	private StringReader mIn;
 
-        private bool mStrict = false;
+	private bool mStrict = false;
 
-        public MdfParser(string filename, string content)
-        {
-            mFilename = filename;
-            mContent = content;
-            mIn = new StringReader(content);
-        }
+	public MdfParser(string filename, string content)
+	{
+		mFilename = filename;
+		mContent = content;
+		mIn = new StringReader(content);
+	}
 
-        public MdfMaterial Parse()
-        {
-            var type = ParseMaterialType();
+	public MdfMaterial Parse()
+	{
+		var type = ParseMaterialType();
 
-            switch (type) {
-                case MdfType.Textured:
-                    return ParseTextured();
-                case MdfType.General:
-                    return ParseGeneral();
-                case MdfType.Clipper:
-                    return ParseClipper();
-                default:
-	                throw CreateError($"Unrecognized MDF material type: {type}");
-            }
-        }
+		switch (type) {
+			case MdfType.Textured:
+				return ParseTextured();
+			case MdfType.General:
+				return ParseGeneral();
+			case MdfType.Clipper:
+				return ParseClipper();
+			default:
+				throw CreateError($"Unrecognized MDF material type: {type}");
+		}
+	}
 
-        public void SetStrict(bool strict)
-        {
-            mStrict = strict;
-        }
+	public void SetStrict(bool strict)
+	{
+		mStrict = strict;
+	}
 
-        private bool GetLine()
-        {
-	        mLine = mIn.ReadLine();
-            if (mLine != null) {
-                // Skip trailing windows newline characters in case the /
-                // MDF file has been read in binary mode
-                if (mLine.Length > 0 && mLine[mLine.Length - 1] == '\r')
-                {
-	                mLine = mLine.Substring(0, mLine.Length - 1);
-                }
-                mLineNo++;
-                return true;
-            }
-            return false;
-        }
+	private bool GetLine()
+	{
+		mLine = mIn.ReadLine();
+		if (mLine != null) {
+			// Skip trailing windows newline characters in case the /
+			// MDF file has been read in binary mode
+			if (mLine.Length > 0 && mLine[mLine.Length - 1] == '\r')
+			{
+				mLine = mLine.Substring(0, mLine.Length - 1);
+			}
+			mLineNo++;
+			return true;
+		}
+		return false;
+	}
 
-        private MdfType ParseMaterialType()
-        {
+	private MdfType ParseMaterialType()
+	{
 
-            if (!GetLine()) {
-                throw CreateError("File is empty");
-            }
+		if (!GetLine()) {
+			throw CreateError("File is empty");
+		}
 
-            var input = mLine.ToLowerInvariant();
+		var input = mLine.ToLowerInvariant();
 
-            switch (input)
-            {
-	            case "textured":
-		            return MdfType.Textured;
-	            case "general":
-		            return MdfType.General;
-	            case "clipper":
-		            return MdfType.Clipper;
-	            default:
-		            throw CreateError("Unrecognized material type '{0}'", input);
-            }
-        }
+		switch (input)
+		{
+			case "textured":
+				return MdfType.Textured;
+			case "general":
+				return MdfType.General;
+			case "clipper":
+				return MdfType.Clipper;
+			default:
+				throw CreateError("Unrecognized material type '{0}'", input);
+		}
+	}
 
-        private MdfMaterial ParseClipper()
-        {
+	private MdfMaterial ParseClipper()
+	{
 
-            var result = new MdfMaterial(MdfType.Clipper);
+		var result = new MdfMaterial(MdfType.Clipper);
 
-            result.enableZWrite = false;
-            result.enableColorWrite = false;
+		result.enableZWrite = false;
+		result.enableColorWrite = false;
 
-            var tokenizer = new Tokenizer(mContent);
-            tokenizer.NextToken(); // Skip material type
+		var tokenizer = new Tokenizer(mContent);
+		tokenizer.NextToken(); // Skip material type
 
-            while (tokenizer.NextToken()) {
-                if (tokenizer.IsNamedIdentifier("wire")) {
-                    result.wireframe = true;
-                    result.enableColorWrite = true;
-                } else if (tokenizer.IsNamedIdentifier("zfill")) {
-                    result.enableZWrite = true;
-                } else if (tokenizer.IsNamedIdentifier("outline")) {
-                    result.outline = true;
-                    result.enableColorWrite = true;
-                } else {
-                    if (mStrict) {
-                        throw CreateError("Unrecognized token '{0}'", tokenizer.TokenText.ToString());
-                    }
-                }
-            }
+		while (tokenizer.NextToken()) {
+			if (tokenizer.IsNamedIdentifier("wire")) {
+				result.wireframe = true;
+				result.enableColorWrite = true;
+			} else if (tokenizer.IsNamedIdentifier("zfill")) {
+				result.enableZWrite = true;
+			} else if (tokenizer.IsNamedIdentifier("outline")) {
+				result.outline = true;
+				result.enableColorWrite = true;
+			} else {
+				if (mStrict) {
+					throw CreateError("Unrecognized token '{0}'", tokenizer.TokenText.ToString());
+				}
+			}
+		}
 
-            return result;
-        }
+		return result;
+	}
 
-        private MdfMaterial ParseTextured()
-        {
+	private MdfMaterial ParseTextured()
+	{
 
-            var result = new MdfMaterial(MdfType.Textured);
+		var result = new MdfMaterial(MdfType.Textured);
 
-            var tokenizer = new Tokenizer(mContent);
-            /*
-                For some reason ToEE doesn't use the tokenizer for this
-                shader type normally. So we disable escape sequences to
-                get some form of compatibility.
-            */
-            tokenizer.IsEnableEscapes = false;
-            tokenizer.NextToken(); // Skip material type
+		var tokenizer = new Tokenizer(mContent);
+		/*
+		    For some reason ToEE doesn't use the tokenizer for this
+		    shader type normally. So we disable escape sequences to
+		    get some form of compatibility.
+		*/
+		tokenizer.IsEnableEscapes = false;
+		tokenizer.NextToken(); // Skip material type
 
-            while (tokenizer.NextToken()) {
-                if (tokenizer.IsNamedIdentifier("color")) {
-                    if (!ParseRgba(ref tokenizer, "Color", out result.diffuse)) {
-                        throw CreateError("Unable to parse diffuse color");
-                    }
-                } else if (tokenizer.IsNamedIdentifier("texture")) {
-                    if (!tokenizer.NextToken() || !tokenizer.IsQuotedString) {
-                        throw CreateError("Missing filename for texture");
-                    }
+		while (tokenizer.NextToken()) {
+			if (tokenizer.IsNamedIdentifier("color")) {
+				if (!ParseRgba(ref tokenizer, "Color", out result.diffuse)) {
+					throw CreateError("Unable to parse diffuse color");
+				}
+			} else if (tokenizer.IsNamedIdentifier("texture")) {
+				if (!tokenizer.NextToken() || !tokenizer.IsQuotedString) {
+					throw CreateError("Missing filename for texture");
+				}
 
-                    result.samplers[0].filename = tokenizer.TokenText.ToString();
-                } else if (tokenizer.IsNamedIdentifier("colorfillonly")) {
-                    result.enableZWrite = false;
-                    result.enableColorWrite = true;
-                } else if (tokenizer.IsNamedIdentifier("notlit")) {
-                    result.notLit = true;
-                } else if (tokenizer.IsNamedIdentifier("notlite")) {
-                    // The original ToEE parser only does prefix parsing, which is why
-                    // "notlite" was accepted as "notlit".
-                    result.notLit = true;
-                } else if (tokenizer.IsNamedIdentifier("disablez")) {
-                    result.disableZ = true;
-                } else if (tokenizer.IsNamedIdentifier("double")) {
-                    result.faceCulling = false;
-                } else if (tokenizer.IsNamedIdentifier("clamp")) {
-                    result.clamp = true;
-                } else {
-                    if (mStrict) {
-                        throw CreateError("Unrecognized token '{0}'", tokenizer.TokenText.ToString());
-                    }
-                }
-            }
+				result.samplers[0].filename = tokenizer.TokenText.ToString();
+			} else if (tokenizer.IsNamedIdentifier("colorfillonly")) {
+				result.enableZWrite = false;
+				result.enableColorWrite = true;
+			} else if (tokenizer.IsNamedIdentifier("notlit")) {
+				result.notLit = true;
+			} else if (tokenizer.IsNamedIdentifier("notlite")) {
+				// The original ToEE parser only does prefix parsing, which is why
+				// "notlite" was accepted as "notlit".
+				result.notLit = true;
+			} else if (tokenizer.IsNamedIdentifier("disablez")) {
+				result.disableZ = true;
+			} else if (tokenizer.IsNamedIdentifier("double")) {
+				result.faceCulling = false;
+			} else if (tokenizer.IsNamedIdentifier("clamp")) {
+				result.clamp = true;
+			} else {
+				if (mStrict) {
+					throw CreateError("Unrecognized token '{0}'", tokenizer.TokenText.ToString());
+				}
+			}
+		}
 
-            return result;
-        }
+		return result;
+	}
 
-        private MdfMaterial ParseGeneral()
-        {
+	private MdfMaterial ParseGeneral()
+	{
 
 		var result = new MdfMaterial(MdfType.General);
 
@@ -296,7 +296,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 				} else if (!tokenizer.IsNumber) {
 					if (mStrict) {
 						throw CreateError("Expected number after SpecularPower, but got: {0}",
-						                  tokenizer.TokenText.ToString());
+							tokenizer.TokenText.ToString());
 					}
 				} else {
 					result.specularPower = tokenizer.TokenFloat;
@@ -320,7 +320,7 @@ namespace OpenTemple.Core.MaterialDefinitions
 				} else {
 					if (mStrict) {
 						throw CreateError("Unrecognized MaterialBlendType: {0}",
-						                  tokenizer.TokenText.ToString());
+							tokenizer.TokenText.ToString());
 					}
 				}
 				continue;
@@ -417,136 +417,135 @@ namespace OpenTemple.Core.MaterialDefinitions
 		}
 
 		return result;
-        }
+	}
 
-        private bool ParseTextureStageId(ref Tokenizer tokenizer)
-        {
-	        if (!tokenizer.NextToken()) {
-		        if (mStrict) {
-			        throw CreateError("Missing argument for texture");
-		        }
-		        return false;
-	        }
-	        if (!tokenizer.IsNumber || tokenizer.TokenInt < 0 || tokenizer.TokenInt >= 4) {
-		        if (mStrict) {
-			        throw CreateError("Expected a texture stage between 0 and 3 as the second argument: {0}",
-				        tokenizer.TokenText.ToString());
-		        }
-		        return false;
-	        }
-	        return true;
-        }
+	private bool ParseTextureStageId(ref Tokenizer tokenizer)
+	{
+		if (!tokenizer.NextToken()) {
+			if (mStrict) {
+				throw CreateError("Missing argument for texture");
+			}
+			return false;
+		}
+		if (!tokenizer.IsNumber || tokenizer.TokenInt < 0 || tokenizer.TokenInt >= 4) {
+			if (mStrict) {
+				throw CreateError("Expected a texture stage between 0 and 3 as the second argument: {0}",
+					tokenizer.TokenText.ToString());
+			}
+			return false;
+		}
+		return true;
+	}
 
-        private bool ParseFilename(ref Tokenizer tokenizer, string logMsg)
-        {
+	private bool ParseFilename(ref Tokenizer tokenizer, string logMsg)
+	{
 
-	        if (!tokenizer.NextToken()) {
-		        if (mStrict) {
-			        throw CreateError("Filename for {0} is missing.", logMsg);
-		        }
-		        return false;
-	        } else if (!tokenizer.IsQuotedString) {
-		        if (mStrict) {
-			        throw CreateError("Unexpected token instead of filename found for {0}: {1}",
-				        logMsg, tokenizer.TokenText.ToString());
-		        }
-		        return false;
-	        } else {
-		        return true;
-	        }
-        }
+		if (!tokenizer.NextToken()) {
+			if (mStrict) {
+				throw CreateError("Filename for {0} is missing.", logMsg);
+			}
+			return false;
+		} else if (!tokenizer.IsQuotedString) {
+			if (mStrict) {
+				throw CreateError("Unexpected token instead of filename found for {0}: {1}",
+					logMsg, tokenizer.TokenText.ToString());
+			}
+			return false;
+		} else {
+			return true;
+		}
+	}
 
-        private bool ParseIdentifier(ref Tokenizer tokenizer, string logMsg)
-        {
+	private bool ParseIdentifier(ref Tokenizer tokenizer, string logMsg)
+	{
 
-	        if (!tokenizer.NextToken()) {
-		        if (mStrict) {
-			        throw CreateError("Identifier after {0} expected.", logMsg);
-		        }
-		        return false;
-	        }
+		if (!tokenizer.NextToken()) {
+			if (mStrict) {
+				throw CreateError("Identifier after {0} expected.", logMsg);
+			}
+			return false;
+		}
 
-	        if (!tokenizer.IsIdentifier) {
-		        if (mStrict) {
-			        throw CreateError("Identifier after {0} expected, but got: {1}",
-				        logMsg, tokenizer.TokenText.ToString());
-		        }
-		        return false;
-	        }
+		if (!tokenizer.IsIdentifier) {
+			if (mStrict) {
+				throw CreateError("Identifier after {0} expected, but got: {1}",
+					logMsg, tokenizer.TokenText.ToString());
+			}
+			return false;
+		}
 
-	        return true;
-        }
+		return true;
+	}
 
-        private bool ParseRgba(ref Tokenizer tokenizer, string logMsg, out uint argbOut)
-        {
+	private bool ParseRgba(ref Tokenizer tokenizer, string logMsg, out uint argbOut)
+	{
 
-	        // Color in the input is RGBA
-	        argbOut = 0; // The output is ARGB
+		// Color in the input is RGBA
+		argbOut = 0; // The output is ARGB
 
-	        if (!tokenizer.NextToken() || !tokenizer.IsNumber) {
-		        if (!mStrict) {
-			        return false;
-		        }
-		        throw CreateError("Missing red component for {0}", logMsg);
-	        }
-	        argbOut |= (uint) ((tokenizer.TokenInt & 0xFF) << 16);
+		if (!tokenizer.NextToken() || !tokenizer.IsNumber) {
+			if (!mStrict) {
+				return false;
+			}
+			throw CreateError("Missing red component for {0}", logMsg);
+		}
+		argbOut |= (uint) ((tokenizer.TokenInt & 0xFF) << 16);
 
-	        if (!tokenizer.NextToken() || !tokenizer.IsNumber) {
-		        if (!mStrict) {
-			        return false;
-		        }
-		        throw CreateError("Missing green component for {0}", logMsg);
-	        }
-	        argbOut |= (uint)(tokenizer.TokenInt & 0xFF) << 8;
+		if (!tokenizer.NextToken() || !tokenizer.IsNumber) {
+			if (!mStrict) {
+				return false;
+			}
+			throw CreateError("Missing green component for {0}", logMsg);
+		}
+		argbOut |= (uint)(tokenizer.TokenInt & 0xFF) << 8;
 
-	        if (!tokenizer.NextToken() || !tokenizer.IsNumber) {
-		        if (!mStrict) {
-			        return false;
-		        }
-		        throw CreateError("Missing blue component for {0}", logMsg);
-	        }
-	        argbOut |= (uint)(tokenizer.TokenInt & 0xFF);
+		if (!tokenizer.NextToken() || !tokenizer.IsNumber) {
+			if (!mStrict) {
+				return false;
+			}
+			throw CreateError("Missing blue component for {0}", logMsg);
+		}
+		argbOut |= (uint)(tokenizer.TokenInt & 0xFF);
 
-	        if (!tokenizer.NextToken() || !tokenizer.IsNumber) {
-		        if (!mStrict) {
-			        return false;
-		        }
-		        throw CreateError("Missing alpha component for {0}", logMsg);
-	        }
-	        argbOut |= (uint)(tokenizer.TokenInt & 0xFF) << 24;
+		if (!tokenizer.NextToken() || !tokenizer.IsNumber) {
+			if (!mStrict) {
+				return false;
+			}
+			throw CreateError("Missing alpha component for {0}", logMsg);
+		}
+		argbOut |= (uint)(tokenizer.TokenInt & 0xFF) << 24;
 
-	        return true;
-        }
+		return true;
+	}
 
-        private bool ParseNumber(ref Tokenizer tokenizer, string logMsg)
-        {
-	        if (!tokenizer.NextToken()) {
-		        if (mStrict) {
-			        throw CreateError("Unexpected end of file after {0}", logMsg);
-		        }
-		        return false;
-	        } else if (!tokenizer.IsNumber) {
-		        if (mStrict) {
-			        throw CreateError("Expected number after {0}, but got: {1}",
-				        logMsg, tokenizer.TokenText.ToString());
-		        }
-		        return false;
-	        }
-	        return true;
-        }
+	private bool ParseNumber(ref Tokenizer tokenizer, string logMsg)
+	{
+		if (!tokenizer.NextToken()) {
+			if (mStrict) {
+				throw CreateError("Unexpected end of file after {0}", logMsg);
+			}
+			return false;
+		} else if (!tokenizer.IsNumber) {
+			if (mStrict) {
+				throw CreateError("Expected number after {0}, but got: {1}",
+					logMsg, tokenizer.TokenText.ToString());
+			}
+			return false;
+		}
+		return true;
+	}
 
-        // Creates a better error message with context
-        [StringFormatMethod("format")]
-        private MdfException CreateError(string format, params object[] args)
-        {
-	        return new MdfException(string.Format(format, args));
-        }
-    }
+	// Creates a better error message with context
+	[StringFormatMethod("format")]
+	private MdfException CreateError(string format, params object[] args)
+	{
+		return new MdfException(string.Format(format, args));
+	}
+}
 
-    internal class MdfException : Exception
-    {
-	    public MdfException(string message) : base(message)
-	    {
-	    }
-    }
+internal class MdfException : Exception
+{
+	public MdfException(string message) : base(message)
+	{
+	}
 }

@@ -1,11 +1,10 @@
-namespace OpenTemple.Core.Systems.TimeEvents
+namespace OpenTemple.Core.Systems.TimeEvents;
+
+public enum TimeEventArgType
 {
-    public enum TimeEventArgType
-    {
-        Int,
-        Float,
-        Object,
-        PythonObject,
-        Location
-    }
+    Int,
+    Float,
+    Object,
+    PythonObject,
+    Location
 }

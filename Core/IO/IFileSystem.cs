@@ -6,27 +6,25 @@ using System.Text;
 
 #nullable enable
 
-namespace OpenTemple.Core.IO
+namespace OpenTemple.Core.IO;
+
+public interface IFileSystem
 {
-    public interface IFileSystem
-    {
-        bool FileExists(string path);
+    bool FileExists(string path);
 
-        bool DirectoryExists(string path);
+    bool DirectoryExists(string path);
 
-        string ReadTextFile(string path);
+    string ReadTextFile(string path);
 
-        ISet<string> ListDirectory(string path);
+    ISet<string> ListDirectory(string path);
 
-        BinaryReader OpenBinaryReader(string path);
+    BinaryReader OpenBinaryReader(string path);
 
-        TextReader OpenTextReader(string path, Encoding encoding);
+    TextReader OpenTextReader(string path, Encoding encoding);
 
-        byte[] ReadBinaryFile(string path);
+    byte[] ReadBinaryFile(string path);
 
-        IMemoryOwner<byte> ReadFile(string path);
+    IMemoryOwner<byte> ReadFile(string path);
 
-        bool TryGetRealPath(string path, [NotNullWhen(true)] out string? realPath);
-    }
-
+    bool TryGetRealPath(string path, [NotNullWhen(true)] out string? realPath);
 }

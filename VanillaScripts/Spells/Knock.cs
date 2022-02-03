@@ -17,95 +17,94 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(262)]
+public class Knock : BaseSpellScript
 {
-    [SpellScript(262)]
-    public class Knock : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
+        Logger.Info("Knock OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-abjuration-conjure", spell.caster);
+    }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Knock OnSpellEffect");
+        var target = spell.Targets[0];
 
-        public override void OnBeginSpellCast(SpellPacketBody spell)
+        if (target.Object.type == ObjectType.portal)
         {
-            Logger.Info("Knock OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-abjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Knock OnSpellEffect");
-            var target = spell.Targets[0];
+            target.ParticleSystem = AttachParticles("sp-Knock", target.Object);
 
-            if (target.Object.type == ObjectType.portal)
+            if (((target.Object.GetPortalFlags() & PortalFlag.LOCKED)) != 0)
             {
-                target.ParticleSystem = AttachParticles("sp-Knock", target.Object);
-
-                if (((target.Object.GetPortalFlags() & PortalFlag.LOCKED)) != 0)
-                {
-                    target.Object.FloatMesFileLine("mes/spell.mes", 30004);
-                    target.Object.ClearPortalFlag(PortalFlag.LOCKED);
-                }
-                else
-                {
-                    target.Object.FloatMesFileLine("mes/spell.mes", 30006);
-                }
-
-                if (((target.Object.GetPortalFlags() & PortalFlag.MAGICALLY_HELD)) != 0)
-                {
-                    target.Object.FloatMesFileLine("mes/spell.mes", 30005);
-                    target.Object.ClearPortalFlag(PortalFlag.MAGICALLY_HELD);
-                }
-
-                if ((target.Object.GetPortalFlags() & PortalFlag.OPEN) == 0)
-                {
-                    target.Object.TogglePortalOpen();
-                }
-
-            }
-            else if (target.Object.type == ObjectType.container)
-            {
-                target.ParticleSystem = AttachParticles("sp-Knock", target.Object);
-
-                if (((target.Object.GetContainerFlags() & ContainerFlag.LOCKED)) != 0)
-                {
-                    target.Object.FloatMesFileLine("mes/spell.mes", 30004);
-                    target.Object.ClearContainerFlag(ContainerFlag.LOCKED);
-                }
-                else
-                {
-                    target.Object.FloatMesFileLine("mes/spell.mes", 30006);
-                }
-
-                if (((target.Object.GetContainerFlags() & ContainerFlag.MAGICALLY_HELD)) != 0)
-                {
-                    target.Object.FloatMesFileLine("mes/spell.mes", 30005);
-                    target.Object.ClearContainerFlag(ContainerFlag.MAGICALLY_HELD);
-                }
-
-                if ((target.Object.GetContainerFlags() & ContainerFlag.OPEN) == 0)
-                {
-                    target.Object.ToggleContainerOpen();
-                }
-
+                target.Object.FloatMesFileLine("mes/spell.mes", 30004);
+                target.Object.ClearPortalFlag(PortalFlag.LOCKED);
             }
             else
             {
-                AttachParticles("Fizzle", target.Object);
-                target.Object.FloatMesFileLine("mes/spell.mes", 30000);
-                target.Object.FloatMesFileLine("mes/spell.mes", 31000);
+                target.Object.FloatMesFileLine("mes/spell.mes", 30006);
             }
 
-            spell.RemoveTarget(target.Object);
-            spell.EndSpell();
+            if (((target.Object.GetPortalFlags() & PortalFlag.MAGICALLY_HELD)) != 0)
+            {
+                target.Object.FloatMesFileLine("mes/spell.mes", 30005);
+                target.Object.ClearPortalFlag(PortalFlag.MAGICALLY_HELD);
+            }
+
+            if ((target.Object.GetPortalFlags() & PortalFlag.OPEN) == 0)
+            {
+                target.Object.TogglePortalOpen();
+            }
+
         }
-        public override void OnBeginRound(SpellPacketBody spell)
+        else if (target.Object.type == ObjectType.container)
         {
-            Logger.Info("Knock OnBeginRound");
+            target.ParticleSystem = AttachParticles("sp-Knock", target.Object);
+
+            if (((target.Object.GetContainerFlags() & ContainerFlag.LOCKED)) != 0)
+            {
+                target.Object.FloatMesFileLine("mes/spell.mes", 30004);
+                target.Object.ClearContainerFlag(ContainerFlag.LOCKED);
+            }
+            else
+            {
+                target.Object.FloatMesFileLine("mes/spell.mes", 30006);
+            }
+
+            if (((target.Object.GetContainerFlags() & ContainerFlag.MAGICALLY_HELD)) != 0)
+            {
+                target.Object.FloatMesFileLine("mes/spell.mes", 30005);
+                target.Object.ClearContainerFlag(ContainerFlag.MAGICALLY_HELD);
+            }
+
+            if ((target.Object.GetContainerFlags() & ContainerFlag.OPEN) == 0)
+            {
+                target.Object.ToggleContainerOpen();
+            }
+
         }
-        public override void OnEndSpellCast(SpellPacketBody spell)
+        else
         {
-            Logger.Info("Knock OnEndSpellCast");
+            AttachParticles("Fizzle", target.Object);
+            target.Object.FloatMesFileLine("mes/spell.mes", 30000);
+            target.Object.FloatMesFileLine("mes/spell.mes", 31000);
         }
 
-
+        spell.RemoveTarget(target.Object);
+        spell.EndSpell();
     }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Knock OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Knock OnEndSpellCast");
+    }
+
+
 }

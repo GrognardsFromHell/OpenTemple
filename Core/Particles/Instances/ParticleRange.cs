@@ -1,6 +1,6 @@
-namespace OpenTemple.Core.Particles.Instances
-{
-  public struct ParticleRange
+namespace OpenTemple.Core.Particles.Instances;
+
+public struct ParticleRange
 {
   private readonly int _start;
   private readonly int _end; // Exclusive
@@ -20,5 +20,4 @@ namespace OpenTemple.Core.Particles.Instances
   {
     return _end;
   }
-}
 }

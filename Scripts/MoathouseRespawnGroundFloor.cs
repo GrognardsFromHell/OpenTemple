@@ -18,44 +18,43 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(544)]
+public class MoathouseRespawnGroundFloor : BaseObjectScript
 {
-    [ObjectScript(544)]
-    public class MoathouseRespawnGroundFloor : BaseObjectScript
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetMap() == 5004))
         {
-            if ((attachee.GetMap() == 5004))
+            if ((GetQuestState(95) == QuestState.Mentioned && GetGlobalVar(757) >= 9))
             {
-                if ((GetQuestState(95) == QuestState.Mentioned && GetGlobalVar(757) >= 9))
-                {
-                    attachee.ClearObjectFlag(ObjectFlag.OFF);
-                }
-
+                attachee.ClearObjectFlag(ObjectFlag.OFF);
             }
 
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetGlobalVar(757, GetGlobalVar(757) + 1);
-            if ((new[] { 14070, 14074, 14069 }).Contains(attachee.GetNameId()))
-            {
-                // Upper floor Brigands (Raul the Grim)
-                if (GetGlobalVar(407) == 0)
-                {
-                    SetGlobalVar(407, CurrentTimeSeconds);
-                }
-
-            }
-
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        SetGlobalVar(757, GetGlobalVar(757) + 1);
+        if ((new[] { 14070, 14074, 14069 }).Contains(attachee.GetNameId()))
+        {
+            // Upper floor Brigands (Raul the Grim)
+            if (GetGlobalVar(407) == 0)
+            {
+                SetGlobalVar(407, CurrentTimeSeconds);
+            }
+
+        }
+
+        return RunDefault;
+    }
+
 }

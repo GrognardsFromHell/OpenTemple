@@ -18,16 +18,15 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(264)]
-    public class JarvisWell : BaseObjectScript
-    {
-        public override bool OnRemoveItem(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(63, true);
-            return SkipDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(264)]
+public class JarvisWell : BaseObjectScript
+{
+    public override bool OnRemoveItem(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(63, true);
+        return SkipDefault;
     }
+
 }

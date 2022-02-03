@@ -17,27 +17,26 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(32001)]
+public class AoETrap : BaseObjectScript
 {
-    [ObjectScript(32001)]
-    public class AoETrap : BaseObjectScript
+
+    public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
     {
-
-        public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
+        AttachParticles(trap.Type.ParticleSystemId, trap.Object);
+        foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_CRITTERS))
         {
-            AttachParticles(trap.Type.ParticleSystemId, trap.Object);
-            foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_CRITTERS))
+            foreach (var dmg in trap.Type.Damage)
             {
-                foreach (var dmg in trap.Type.Damage)
-                {
-                    obj.Damage(trap.Object, dmg.Type, dmg.Dice);
-                }
-
+                obj.Damage(trap.Object, dmg.Type, dmg.Dice);
             }
 
-            return SkipDefault;
         }
 
-
+        return SkipDefault;
     }
+
+
 }

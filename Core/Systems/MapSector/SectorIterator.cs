@@ -3,66 +3,65 @@ using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.GameObjects;
 
-namespace OpenTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector;
+
+public class SectorIterator : IDisposable
 {
-    public class SectorIterator : IDisposable
+    private readonly int _fromX, _fromY, _toX, _toY;
+    private int _x, _y;
+    private LockedMapSector _lockedMapSector;
+
+    public SectorIterator(int fromX, int toX, int fromY, int toY)
     {
-        private readonly int _fromX, _fromY, _toX, _toY;
-        private int _x, _y;
-        private LockedMapSector _lockedMapSector;
+        _lockedMapSector = default;
+        _fromX = fromX / Sector.SectorSideSize;
+        _fromY = fromY / Sector.SectorSideSize;
+        _toX = toX / Sector.SectorSideSize;
+        _toY = toY / Sector.SectorSideSize;
+        _x = _fromX;
+        _y = _fromY;
+    }
 
-        public SectorIterator(int fromX, int toX, int fromY, int toY)
+    public SectorIterator(TileRect tileRect) : this(tileRect.x1, tileRect.x2, tileRect.y1, tileRect.y2)
+    {
+    }
+
+    public bool HasNext => _y <= _toY || (_y == _toY && _x <= _toX);
+
+    public LockedMapSector Next()
+    {
+        _lockedMapSector?.Dispose();
+
+        _lockedMapSector = new LockedMapSector(_x, _y);
+        if (++_x > _toX)
         {
-            _lockedMapSector = default;
-            _fromX = fromX / Sector.SectorSideSize;
-            _fromY = fromY / Sector.SectorSideSize;
-            _toX = toX / Sector.SectorSideSize;
-            _toY = toY / Sector.SectorSideSize;
             _x = _fromX;
-            _y = _fromY;
+            ++_y;
         }
 
-        public SectorIterator(TileRect tileRect) : this(tileRect.x1, tileRect.x2, tileRect.y1, tileRect.y2)
+        return _lockedMapSector;
+    }
+
+    public void Dispose()
+    {
+        _lockedMapSector?.Dispose();
+    }
+
+    public IEnumerable<LockedMapSector> EnumerateSectors()
+    {
+        while (HasNext)
         {
+            yield return Next();
         }
-
-        public bool HasNext => _y <= _toY || (_y == _toY && _x <= _toX);
-
-        public LockedMapSector Next()
+    }
+    public IEnumerable<GameObject> EnumerateObjects()
+    {
+        while (HasNext)
         {
-            _lockedMapSector?.Dispose();
-
-            _lockedMapSector = new LockedMapSector(_x, _y);
-            if (++_x > _toX)
+            var sector = Next();
+            foreach (var obj in sector.EnumerateObjects())
             {
-                _x = _fromX;
-                ++_y;
-            }
-
-            return _lockedMapSector;
-        }
-
-        public void Dispose()
-        {
-            _lockedMapSector?.Dispose();
-        }
-
-        public IEnumerable<LockedMapSector> EnumerateSectors()
-        {
-            while (HasNext)
-            {
-                yield return Next();
-            }
-        }
-        public IEnumerable<GameObject> EnumerateObjects()
-        {
-            while (HasNext)
-            {
-                var sector = Next();
-                foreach (var obj in sector.EnumerateObjects())
-                {
-                    yield return obj;
-                }
+                yield return obj;
             }
         }
     }

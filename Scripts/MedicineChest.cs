@@ -18,23 +18,22 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(402)]
-    public class MedicineChest : BaseObjectScript
-    {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
-        {
-            var leader = PartyLeader;
-            Co8.StopCombat(attachee, 0);
-            leader.BeginDialog(attachee, 4000);
-            return RunDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(402)]
+public class MedicineChest : BaseObjectScript
+{
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        var leader = PartyLeader;
+        Co8.StopCombat(attachee, 0);
+        leader.BeginDialog(attachee, 4000);
+        return RunDefault;
+    }
+
 }

@@ -1,8 +1,7 @@
-namespace OpenTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials;
+
+public enum TextureAddress
 {
-    public enum TextureAddress
-    {
-        Wrap,
-        Clamp
-    }
+    Wrap,
+    Clamp
 }

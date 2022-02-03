@@ -19,69 +19,68 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Dialog
+namespace VanillaScripts.Dialog;
+
+[DialogScript(85)]
+public class WeaverSonInLawDialog : WeaverSonInLaw, IDialogScript
 {
-    [DialogScript(85)]
-    public class WeaverSonInLawDialog : WeaverSonInLaw, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 81:
-                case 82:
-                    originalScript = "not npc.has_met(pc)";
-                    return !npc.HasMet(pc);
-                case 83:
-                case 84:
-                    originalScript = "npc.has_met(pc)";
-                    return npc.HasMet(pc);
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 81:
+            case 82:
+                originalScript = "not npc.has_met(pc)";
+                return !npc.HasMet(pc);
+            case 83:
+            case 84:
+                originalScript = "npc.has_met(pc)";
+                return npc.HasMet(pc);
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 2:
-                case 3:
-                case 4:
-                    originalScript = "argue(npc,pc,20)";
-                    argue(npc, pc, 20);
-                    break;
-                case 21:
-                    originalScript = "argue(npc,pc,40)";
-                    argue(npc, pc, 40);
-                    break;
-                case 31:
-                    originalScript = "argue(npc,pc,50)";
-                    argue(npc, pc, 50);
-                    break;
-                case 41:
-                case 42:
-                    originalScript = "argue(npc,pc,60)";
-                    argue(npc, pc, 60);
-                    break;
-                case 71:
-                case 72:
-                    originalScript = "argue(npc,pc,70)";
-                    argue(npc, pc, 70);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 2:
+            case 3:
+            case 4:
+                originalScript = "argue(npc,pc,20)";
+                argue(npc, pc, 20);
+                break;
+            case 21:
+                originalScript = "argue(npc,pc,40)";
+                argue(npc, pc, 40);
+                break;
+            case 31:
+                originalScript = "argue(npc,pc,50)";
+                argue(npc, pc, 50);
+                break;
+            case 41:
+            case 42:
+                originalScript = "argue(npc,pc,60)";
+                argue(npc, pc, 60);
+                break;
+            case 71:
+            case 72:
+                originalScript = "argue(npc,pc,70)";
+                argue(npc, pc, 70);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

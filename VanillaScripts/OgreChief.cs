@@ -17,42 +17,41 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(160)]
+public class OgreChief : BaseObjectScript
 {
-    [ObjectScript(160)]
-    public class OgreChief : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(14, GetGlobalVar(14) + 1);
-            if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
-            {
-                SetGlobalVar(13, GetGlobalVar(13) - 1);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(14, GetGlobalVar(14) - 1);
-            return RunDefault;
-        }
-        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
-            {
-                SetGlobalVar(13, GetGlobalVar(13) + 1);
-            }
-
-            return RunDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(14, GetGlobalVar(14) + 1);
+        if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
+        {
+            SetGlobalVar(13, GetGlobalVar(13) - 1);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(14, GetGlobalVar(14) - 1);
+        return RunDefault;
+    }
+    public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
+        {
+            SetGlobalVar(13, GetGlobalVar(13) + 1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

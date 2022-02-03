@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.Systems.Script
+namespace OpenTemple.Core.Systems.Script;
+
+public enum RadialMenuParam
 {
-    public enum RadialMenuParam
-    {
-        MinSetting,
-        MaxSetting,
-        ActualSetting
-    }
+    MinSetting,
+    MaxSetting,
+    ActualSetting
 }

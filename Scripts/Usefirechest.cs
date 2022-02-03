@@ -18,37 +18,36 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(256)]
+public class Usefirechest : BaseObjectScript
 {
-    [ObjectScript(256)]
-    public class Usefirechest : BaseObjectScript
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetNameId() == 1034))
         {
-            if ((attachee.GetNameId() == 1034))
-            {
-                Utilities.create_item_in_inventory(6311, attachee);
-                DetachScript();
-                return RunDefault;
-            }
-
-            var npc = Utilities.find_npc_near(attachee, 8063);
+            Utilities.create_item_in_inventory(6311, attachee);
             DetachScript();
-            if ((npc != null))
-            {
-                npc.TurnTowards(triggerer);
-                triggerer.BeginDialog(npc, 60);
-                return SkipDefault;
-            }
-
-            // for obj in game.obj_list_vicinity(npc.location,OLC_PC):
-            // if (is_safe_to_talk(obj,npc)):
-            // npc.turn_towards(obj)
-            // obj.turn_towards(npc)
-            // obj.begin_dialog( npc, 60 )
-            // return SKIP_DEFAULT
             return RunDefault;
         }
 
+        var npc = Utilities.find_npc_near(attachee, 8063);
+        DetachScript();
+        if ((npc != null))
+        {
+            npc.TurnTowards(triggerer);
+            triggerer.BeginDialog(npc, 60);
+            return SkipDefault;
+        }
+
+        // for obj in game.obj_list_vicinity(npc.location,OLC_PC):
+        // if (is_safe_to_talk(obj,npc)):
+        // npc.turn_towards(obj)
+        // obj.turn_towards(npc)
+        // obj.begin_dialog( npc, 60 )
+        // return SKIP_DEFAULT
+        return RunDefault;
     }
+
 }

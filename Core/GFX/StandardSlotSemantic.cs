@@ -1,7 +1,6 @@
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public enum StandardSlotSemantic
 {
-    public enum StandardSlotSemantic
-    {
-        UiProjMatrix
-    }
+    UiProjMatrix
 }

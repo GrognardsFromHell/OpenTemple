@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.Ui.CharSheet.Portrait
+namespace OpenTemple.Core.Ui.CharSheet.Portrait;
+
+public enum CharSheetPortraitMode
 {
-    public enum CharSheetPortraitMode
-    {
-        Miniature = 0,
-        Portrait = 1,
-        Paperdoll = 2,
-    }
+    Miniature = 0,
+    Portrait = 1,
+    Paperdoll = 2,
 }

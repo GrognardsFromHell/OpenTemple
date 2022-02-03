@@ -17,59 +17,58 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(95)]
+public class BrauApprentice2 : BaseObjectScript
 {
-    [ObjectScript(95)]
-    public class BrauApprentice2 : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetMap() == 5007))
         {
-            if ((attachee.GetMap() == 5007))
+            if ((GetQuestState(19) == QuestState.Unknown))
             {
-                if ((GetQuestState(19) == QuestState.Unknown))
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-                else if ((GetQuestState(19) == QuestState.Mentioned))
-                {
-                    triggerer.BeginDialog(attachee, 40);
-                }
-                else if ((GetQuestState(19) == QuestState.Accepted || GetQuestState(19) == QuestState.Botched))
-                {
-                    triggerer.BeginDialog(attachee, 50);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 60);
-                }
-
+                triggerer.BeginDialog(attachee, 1);
+            }
+            else if ((GetQuestState(19) == QuestState.Mentioned))
+            {
+                triggerer.BeginDialog(attachee, 40);
+            }
+            else if ((GetQuestState(19) == QuestState.Accepted || GetQuestState(19) == QuestState.Botched))
+            {
+                triggerer.BeginDialog(attachee, 50);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 90);
+                triggerer.BeginDialog(attachee, 60);
             }
 
-            return SkipDefault;
         }
-        public static bool find_ostler(GameObject attachee, GameObject triggerer)
+        else
         {
-            var npc = Utilities.find_npc_near(attachee, 8008);
-
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, 230);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 80);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 90);
         }
 
-
+        return SkipDefault;
     }
+    public static bool find_ostler(GameObject attachee, GameObject triggerer)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8008);
+
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, 230);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 80);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

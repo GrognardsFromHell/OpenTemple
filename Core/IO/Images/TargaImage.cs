@@ -2,84 +2,84 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace OpenTemple.Core.IO.Images
+namespace OpenTemple.Core.IO.Images;
+
+internal enum TgaColorMapType : byte
 {
-    internal enum TgaColorMapType : byte
-    {
-        TrueColor = 0,
-        Indexed = 1
-    };
+	TrueColor = 0,
+	Indexed = 1
+};
 
-    internal enum TgaDataType : byte
-    {
-        NoData = 0,
-        UncompressedColorMapped = 1,
-        UncompressedRgb = 2,
-        UncompressedMono = 3,
-        RleColorMapped = 9,
-        RleRgb = 10,
-        CompressedMono = 11,
-        CompressedColorMapped = 32,
-        CompressedColorMapped2 = 33
-    };
+internal enum TgaDataType : byte
+{
+	NoData = 0,
+	UncompressedColorMapped = 1,
+	UncompressedRgb = 2,
+	UncompressedMono = 3,
+	RleColorMapped = 9,
+	RleRgb = 10,
+	CompressedMono = 11,
+	CompressedColorMapped = 32,
+	CompressedColorMapped2 = 33
+};
 
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    internal struct TgaHeader
-    {
-        public byte imageIdLength;
-        public TgaColorMapType colorMapType;
-        public TgaDataType dataType;
-        public ushort colorMapOffset;
-        public ushort colorMapOrigin;
-        public byte colorMapDepth;
-        public short xOrigin;
-        public short yOrigin;
-        public ushort width;
-        public ushort height;
-        public byte bpp;
-        public byte imageDescriptor;
-    };
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+internal struct TgaHeader
+{
+	public byte imageIdLength;
+	public TgaColorMapType colorMapType;
+	public TgaDataType dataType;
+	public ushort colorMapOffset;
+	public ushort colorMapOrigin;
+	public byte colorMapDepth;
+	public short xOrigin;
+	public short yOrigin;
+	public ushort width;
+	public ushort height;
+	public byte bpp;
+	public byte imageDescriptor;
+};
 
-    internal static class TargaImage
-    {
-        private static readonly int HeaderSize = Marshal.SizeOf<TgaHeader>();
+internal static class TargaImage
+{
+	private static readonly int HeaderSize = Marshal.SizeOf<TgaHeader>();
 
-        public static bool DetectTga(ReadOnlySpan<byte> data, out ImageFileInfo info)
-        {
-            info = new ImageFileInfo();
+	public static bool DetectTga(ReadOnlySpan<byte> data, out ImageFileInfo info)
+	{
+		info = new ImageFileInfo();
 
-            if (data.Length < HeaderSize)
-            {
-                return false;
-            }
+		if (data.Length < HeaderSize)
+		{
+			return false;
+		}
 
-            var header = MemoryMarshal.Read<TgaHeader>(data);
+		var header = MemoryMarshal.Read<TgaHeader>(data);
 
-            if (header.colorMapType != TgaColorMapType.TrueColor)
-            {
-                return false; // We don't supported index TGA
-            }
+		if (header.colorMapType != TgaColorMapType.TrueColor)
+		{
+			return false; // We don't supported index TGA
+		}
 
-            if (header.dataType != TgaDataType.UncompressedRgb)
-            {
-                return false; // We only support uncompressed RGB
-            }
+		if (header.dataType != TgaDataType.UncompressedRgb)
+		{
+			return false; // We only support uncompressed RGB
+		}
 
-            if (header.bpp != 24 && header.bpp != 32)
-            {
-                return false; // We only support 24 or 32 bit TGAs
-            }
+		if (header.bpp != 24 && header.bpp != 32)
+		{
+			return false; // We only support 24 or 32 bit TGAs
+		}
 
-            info.width = header.width;
-            info.height = header.height;
-            info.hasAlpha = (header.bpp == 32);
-            info.format = ImageFileFormat.TGA;
-            return true;
-        }
+		info.width = header.width;
+		info.height = header.height;
+		info.hasAlpha = (header.bpp == 32);
+		info.format = ImageFileFormat.TGA;
+		return true;
+	}
 
-        public static unsafe byte[] Decode(ReadOnlySpan<byte> data)
-        {
+	public static unsafe byte[] Decode(ReadOnlySpan<byte> data)
+	{
             
 		if (data.Length < HeaderSize) {
 			throw new Exception("Not enough data for TGA header");
@@ -152,6 +152,5 @@ namespace OpenTemple.Core.IO.Images
 		}
 
 		return result;
-        }
-    }
+	}
 }

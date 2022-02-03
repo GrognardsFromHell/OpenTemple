@@ -17,65 +17,64 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(16)]
+public class ProsperousFarmer : BaseObjectScript
 {
-    [ObjectScript(16)]
-    public class ProsperousFarmer : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(196)))
         {
-            if ((GetGlobalFlag(196)))
+            triggerer.BeginDialog(attachee, 320);
+        }
+        else if ((attachee.HasMet(triggerer)))
+        {
+            if ((GetQuestState(6) == QuestState.Completed))
             {
-                triggerer.BeginDialog(attachee, 320);
+                triggerer.BeginDialog(attachee, 20);
             }
-            else if ((attachee.HasMet(triggerer)))
+            else if ((GetQuestState(6) <= QuestState.Accepted))
             {
-                if ((GetQuestState(6) == QuestState.Completed))
+                if ((!GetGlobalFlag(10)))
                 {
-                    triggerer.BeginDialog(attachee, 20);
+                    triggerer.BeginDialog(attachee, 120);
                 }
-                else if ((GetQuestState(6) <= QuestState.Accepted))
+                else
                 {
-                    if ((!GetGlobalFlag(10)))
-                    {
-                        triggerer.BeginDialog(attachee, 120);
-                    }
-                    else
-                    {
-                        triggerer.BeginDialog(attachee, 150);
-                    }
-
+                    triggerer.BeginDialog(attachee, 150);
                 }
 
             }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            SetQuestState(6, QuestState.Botched);
-            SetGlobalFlag(333, true);
-            SetGlobalVar(23, GetGlobalVar(23) + 1);
-            if ((GetGlobalVar(23) >= 2))
-            {
-                PartyLeader.AddReputation(1);
-            }
-
-            return RunDefault;
-        }
-        public static bool give_sword(GameObject pc)
-        {
-            var item = GameSystems.MapObject.CreateObject(4222, pc.GetLocation());
-
-            pc.GetItem(item);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetQuestState(6, QuestState.Botched);
+        SetGlobalFlag(333, true);
+        SetGlobalVar(23, GetGlobalVar(23) + 1);
+        if ((GetGlobalVar(23) >= 2))
+        {
+            PartyLeader.AddReputation(1);
+        }
+
+        return RunDefault;
+    }
+    public static bool give_sword(GameObject pc)
+    {
+        var item = GameSystems.MapObject.CreateObject(4222, pc.GetLocation());
+
+        pc.GetItem(item);
+        return RunDefault;
+    }
+
+
 }

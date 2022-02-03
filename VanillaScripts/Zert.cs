@@ -17,51 +17,50 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(71)]
+public class Zert : BaseObjectScript
 {
-    [ObjectScript(71)]
-    public class Zert : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
-            {
-                triggerer.BeginDialog(attachee, 120);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 120);
         }
-        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (((attachee.GetMap() == 5066) || (attachee.GetMap() == 5067) || (attachee.GetMap() == 5078) || (attachee.GetMap() == 5080)))
+            triggerer.BeginDialog(attachee, 1);
+        }
+
+        return SkipDefault;
+    }
+    public override bool OnNewMap(GameObject attachee, GameObject triggerer)
+    {
+        if (((attachee.GetMap() == 5066) || (attachee.GetMap() == 5067) || (attachee.GetMap() == 5078) || (attachee.GetMap() == 5080)))
+        {
+            var leader = attachee.GetLeader();
+
+            if ((leader != null))
             {
-                var leader = attachee.GetLeader();
+                var percent = Utilities.group_percent_hp(leader);
 
-                if ((leader != null))
+                if ((percent < 30))
                 {
-                    var percent = Utilities.group_percent_hp(leader);
-
-                    if ((percent < 30))
+                    if ((Utilities.obj_percent_hp(attachee) > 70))
                     {
-                        if ((Utilities.obj_percent_hp(attachee) > 70))
-                        {
-                            leader.BeginDialog(attachee, 320);
-                        }
-
+                        leader.BeginDialog(attachee, 320);
                     }
 
                 }
 
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

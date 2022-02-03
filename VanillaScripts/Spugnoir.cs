@@ -17,35 +17,34 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(81)]
+public class Spugnoir : BaseObjectScript
 {
-    [ObjectScript(81)]
-    public class Spugnoir : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 100);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((attachee.GetLeader() != null))
-            {
-                SetGlobalVar(29, GetGlobalVar(29) + 1);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetLeader() != null))
+        {
+            SetGlobalVar(29, GetGlobalVar(29) + 1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

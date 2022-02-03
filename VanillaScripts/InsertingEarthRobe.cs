@@ -17,26 +17,25 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(257)]
+public class InsertingEarthRobe : BaseObjectScript
 {
-    [ObjectScript(257)]
-    public class InsertingEarthRobe : BaseObjectScript
+
+    public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
+        if ((triggerer.GetNameId() == 8065))
         {
-            if ((triggerer.GetNameId() == 8065))
+            if ((triggerer.GetStat(Stat.hp_current) <= -10))
             {
-                if ((triggerer.GetStat(Stat.hp_current) <= -10))
-                {
-                    SetGlobalFlag(114, true);
-                }
-
+                SetGlobalFlag(114, true);
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

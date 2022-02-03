@@ -18,96 +18,95 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(98)]
+public class Ophelia : BaseObjectScript
 {
-    [ObjectScript(98)]
-    public class Ophelia : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        attachee.TurnTowards(triggerer);
+        if ((!attachee.HasMet(triggerer)))
         {
-            attachee.TurnTowards(triggerer);
-            if ((!attachee.HasMet(triggerer)))
+            if ((GetQuestState(35) <= QuestState.Accepted))
             {
-                if ((GetQuestState(35) <= QuestState.Accepted))
-                {
-                    // if (game.quests[34].state <= qs_accepted):
-                    triggerer.BeginDialog(attachee, 1);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 430);
-                }
-
-            }
-            else if ((GetGlobalFlag(75)))
-            {
-                triggerer.BeginDialog(attachee, 580);
-            }
-            else if ((GetQuestState(35) == QuestState.Completed))
-            {
-                // elif (game.quests[34].state == qs_completed):
-                triggerer.BeginDialog(attachee, 790);
+                // if (game.quests[34].state <= qs_accepted):
+                triggerer.BeginDialog(attachee, 1);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 700);
+                triggerer.BeginDialog(attachee, 430);
             }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((GetGlobalFlag(75)))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 580);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else if ((GetQuestState(35) == QuestState.Completed))
         {
-            if ((GetGlobalVar(961) == 5))
-            {
-                if ((!GameSystems.Combat.IsCombatActive()))
-                {
-                    if ((is_better_to_talk(attachee, PartyLeader)))
-                    {
-                        SetGlobalVar(961, 6);
-                        attachee.TurnTowards(PartyLeader);
-                        PartyLeader.BeginDialog(attachee, 420);
-                    }
-
-                }
-
-            }
-
-            return RunDefault;
+            // elif (game.quests[34].state == qs_completed):
+            triggerer.BeginDialog(attachee, 790);
         }
-        public static bool buttin(GameObject attachee, GameObject triggerer, int line)
+        else
         {
-            var npc = Utilities.find_npc_near(attachee, 8015);
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 760);
-            }
-
-            return SkipDefault;
-        }
-        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
-        {
-            if ((speaker.DistanceTo(listener) <= 15))
-            {
-                return true;
-            }
-
-            return false;
+            triggerer.BeginDialog(attachee, 700);
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(961) == 5))
+        {
+            if ((!GameSystems.Combat.IsCombatActive()))
+            {
+                if ((is_better_to_talk(attachee, PartyLeader)))
+                {
+                    SetGlobalVar(961, 6);
+                    attachee.TurnTowards(PartyLeader);
+                    PartyLeader.BeginDialog(attachee, 420);
+                }
+
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public static bool buttin(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8015);
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 760);
+        }
+
+        return SkipDefault;
+    }
+    public static bool is_better_to_talk(GameObject speaker, GameObject listener)
+    {
+        if ((speaker.DistanceTo(listener) <= 15))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 }

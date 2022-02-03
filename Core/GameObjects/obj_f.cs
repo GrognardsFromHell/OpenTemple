@@ -1,7 +1,6 @@
-namespace OpenTemple.Core.GameObjects
-{
+namespace OpenTemple.Core.GameObjects;
 
-	public  enum obj_f {
+public  enum obj_f {
 
 	begin = 0,
 	location = 1, // note: in the DLL this is labeled obj_f_current_aid  but there appears to be an offset here. Maybe they removed "obj_f_current_aid" and forgot to update the strings?
@@ -455,4 +454,3 @@ namespace OpenTemple.Core.GameObjects
 	prototype_handle = 429
 
 };
-}

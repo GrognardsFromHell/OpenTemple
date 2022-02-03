@@ -18,24 +18,23 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(43)]
-    public class SenshockMinions : BaseObjectScript
-    {
-        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
-        {
-            if ((triggerer.type == ObjectType.pc))
-            {
-                if ((GetGlobalFlag(147) || GetGlobalFlag(990)))
-                {
-                    return RunDefault;
-                }
+namespace Scripts;
 
+[ObjectScript(43)]
+public class SenshockMinions : BaseObjectScript
+{
+    public override bool OnWillKos(GameObject attachee, GameObject triggerer)
+    {
+        if ((triggerer.type == ObjectType.pc))
+        {
+            if ((GetGlobalFlag(147) || GetGlobalFlag(990)))
+            {
+                return RunDefault;
             }
 
-            return SkipDefault;
         }
 
+        return SkipDefault;
     }
+
 }

@@ -1,11 +1,10 @@
 using System;
 
-namespace OpenTemple.Core.GameObjects
+namespace OpenTemple.Core.GameObjects;
+
+[Flags]
+public enum BagFlag
 {
-    [Flags]
-    public enum BagFlag
-    {
-        HOLDING_500 = 0x01,
-        HOLDING_1000 = 0x02
-    }
+    HOLDING_500 = 0x01,
+    HOLDING_1000 = 0x02
 }

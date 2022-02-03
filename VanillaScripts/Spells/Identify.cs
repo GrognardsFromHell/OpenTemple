@@ -17,40 +17,39 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(238)]
+public class Identify : BaseSpellScript
 {
-    [SpellScript(238)]
-    public class Identify : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Identify OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-divination-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Identify OnSpellEffect");
-            spell.duration = 0;
-
-            var target_item = spell.Targets[0];
-
-            AttachParticles("sp-Identify", spell.caster);
-            target_item.Object.SetItemFlag(ItemFlag.IDENTIFIED);
-            spell.RemoveTarget(target_item.Object);
-            spell.EndSpell();
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Identify OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Identify OnEndSpellCast");
-        }
-
-
+        Logger.Info("Identify OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-divination-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Identify OnSpellEffect");
+        spell.duration = 0;
+
+        var target_item = spell.Targets[0];
+
+        AttachParticles("sp-Identify", spell.caster);
+        target_item.Object.SetItemFlag(ItemFlag.IDENTIFIED);
+        spell.RemoveTarget(target_item.Object);
+        spell.EndSpell();
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Identify OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Identify OnEndSpellCast");
+    }
+
+
 }

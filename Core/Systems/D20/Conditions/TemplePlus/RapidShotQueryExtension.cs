@@ -18,25 +18,24 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+public class RapidShotQueryExtension
 {
-    public class RapidShotQueryExtension
+    public static void RapidShotEnabled(in DispatcherCallbackArgs evt)
     {
-        public static void RapidShotEnabled(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoD20Query();
-            dispIo.return_val = evt.GetConditionArg1();
-        }
-
-        [AutoRegister] public static readonly ConditionSpec RapidShotExtension = ConditionSpec
-            .Extend(FeatConditions.RapidShot)
-            .AddQueryHandler("Rapid Shot Enabled", RapidShotEnabled)
-            .Build();
-
-        [AutoRegister]
-        public static readonly ConditionSpec RapidShotRangerExtension = ConditionSpec
-            .Extend(FeatConditions.RapidShotRanger)
-            .AddQueryHandler("Rapid Shot Ranger Enabled", RapidShotEnabled)
-            .Build();
+        var dispIo = evt.GetDispIoD20Query();
+        dispIo.return_val = evt.GetConditionArg1();
     }
+
+    [AutoRegister] public static readonly ConditionSpec RapidShotExtension = ConditionSpec
+        .Extend(FeatConditions.RapidShot)
+        .AddQueryHandler("Rapid Shot Enabled", RapidShotEnabled)
+        .Build();
+
+    [AutoRegister]
+    public static readonly ConditionSpec RapidShotRangerExtension = ConditionSpec
+        .Extend(FeatConditions.RapidShotRanger)
+        .AddQueryHandler("Rapid Shot Ranger Enabled", RapidShotEnabled)
+        .Build();
 }

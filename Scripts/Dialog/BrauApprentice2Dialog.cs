@@ -19,45 +19,44 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(95)]
+public class BrauApprentice2Dialog : BrauApprentice2, IDialogScript
 {
-    [DialogScript(95)]
-    public class BrauApprentice2Dialog : BrauApprentice2, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 1:
-                    originalScript = "game.quests[19].state = qs_mentioned";
-                    SetQuestState(19, QuestState.Mentioned);
-                    break;
-                case 11:
-                    originalScript = "find_ostler(npc,pc)";
-                    find_ostler(npc, pc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 1:
+                originalScript = "game.quests[19].state = qs_mentioned";
+                SetQuestState(19, QuestState.Mentioned);
+                break;
+            case 11:
+                originalScript = "find_ostler(npc,pc)";
+                find_ostler(npc, pc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

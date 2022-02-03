@@ -6,92 +6,91 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Systems.Script.Hooks;
 using OpenTemple.Core.Systems.Spells;
 
-namespace Scripts
+namespace Scripts;
+
+public class IgnoreTargetHook : IShouldIgnoreTargetHook
 {
-    public class IgnoreTargetHook : IShouldIgnoreTargetHook
+    public bool ShouldIgnoreTarget(GameObject npc, GameObject target)
     {
-        public bool ShouldIgnoreTarget(GameObject npc, GameObject target)
+        if (IsSpiritualWeapon(target))
         {
-            if (IsSpiritualWeapon(target))
-            {
-                return true;
-            }
+            return true;
+        }
 
-            if (target.HasFlag(ObjectFlag.DONTDRAW))
-            {
-                return true;
-            }
+        if (target.HasFlag(ObjectFlag.DONTDRAW))
+        {
+            return true;
+        }
 
-            if (target.D20Query(D20DispatcherKey.QUE_Is_Ethereal))
-            {
-                return true;
-            }
+        if (target.D20Query(D20DispatcherKey.QUE_Is_Ethereal))
+        {
+            return true;
+        }
 
-            var isIntelligent = npc.GetStat(Stat.intelligence) >= 3;
-            if (!isIntelligent)
-            {
-                return false;
-            }
-
-            if (IsWarded(target))
-            {
-                return true;
-            }
-
-            if (target.HasCondition(SpellEffects.SpellSummoned))
-            {
-                var attacheePowerLvl = GetPowerLevel(npc);
-                var targetPowerLvl = GetPowerLevel(target);
-                if (targetPowerLvl <= attacheePowerLvl - 3)
-                {
-                    return true;
-                }
-            }
-
+        var isIntelligent = npc.GetStat(Stat.intelligence) >= 3;
+        if (!isIntelligent)
+        {
             return false;
         }
 
-        // checks if target is warded from melee damage
-        private static bool IsWarded(GameObject obj)
+        if (IsWarded(target))
         {
-            if (obj.HasCondition(SpellEffects.SpellOtilukesResilientSphere)
-                || obj.HasCondition(SpellEffects.SpellMeldIntoStone))
+            return true;
+        }
+
+        if (target.HasCondition(SpellEffects.SpellSummoned))
+        {
+            var attacheePowerLvl = GetPowerLevel(npc);
+            var targetPowerLvl = GetPowerLevel(target);
+            if (targetPowerLvl <= attacheePowerLvl - 3)
             {
                 return true;
             }
-
-            return false;
         }
 
-        private static bool IsSleeping(GameObject obj)
+        return false;
+    }
+
+    // checks if target is warded from melee damage
+    private static bool IsWarded(GameObject obj)
+    {
+        if (obj.HasCondition(SpellEffects.SpellOtilukesResilientSphere)
+            || obj.HasCondition(SpellEffects.SpellMeldIntoStone))
         {
-            return obj.HasCondition(SpellEffects.SpellSleep);
+            return true;
         }
 
-        private static bool IsSpiritualWeapon(GameObject obj)
+        return false;
+    }
+
+    private static bool IsSleeping(GameObject obj)
+    {
+        return obj.HasCondition(SpellEffects.SpellSleep);
+    }
+
+    private static bool IsSpiritualWeapon(GameObject obj)
+    {
+        return obj.D20Query(D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.SpiritualWeapon, 1);
+    }
+
+    private static int GetPowerLevel(GameObject critter)
+    {
+        var lvl = GameSystems.Critter.GetHitDiceNum(critter);
+        var crAdj = critter.GetInt32(obj_f.npc_challenge_rating);
+        var objHpMax = critter.GetStat(Stat.hp_max);
+        if (objHpMax <= 6)
         {
-            return obj.D20Query(D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.SpiritualWeapon, 1);
+            crAdj -= 3;
         }
-
-        private static int GetPowerLevel(GameObject critter)
+        else if (objHpMax <= 10)
         {
-            var lvl = GameSystems.Critter.GetHitDiceNum(critter);
-            var crAdj = critter.GetInt32(obj_f.npc_challenge_rating);
-            var objHpMax = critter.GetStat(Stat.hp_max);
-            if (objHpMax <= 6)
-            {
-                crAdj -= 3;
-            }
-            else if (objHpMax <= 10)
-            {
-                crAdj -= 2;
-            }
-            else if (objHpMax <= 15)
-            {
-                crAdj -= 1;
-            }
-
-            return (crAdj + lvl);
+            crAdj -= 2;
         }
+        else if (objHpMax <= 15)
+        {
+            crAdj -= 1;
+        }
+
+        return (crAdj + lvl);
     }
 }

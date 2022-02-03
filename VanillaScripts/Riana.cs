@@ -17,59 +17,58 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(100)]
+public class Riana : BaseObjectScript
 {
-    [ObjectScript(100)]
-    public class Riana : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
-            {
-                triggerer.BeginDialog(attachee, 170);
-            }
-            else if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 20);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 170);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else if ((!attachee.HasMet(triggerer)))
         {
-            if ((GetGlobalFlag(203)))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public static bool disappear(GameObject attachee)
+        else
         {
-            attachee.SetObjectFlag(ObjectFlag.OFF);
-            return RunDefault;
-        }
-        public static bool get_rep(GameObject attachee, GameObject triggerer)
-        {
-            if (!triggerer.HasReputation(7))
-            {
-                triggerer.AddReputation(7);
-            }
-
-            SetGlobalVar(25, GetGlobalVar(25) + 1);
-            if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
-            {
-                triggerer.AddReputation(8);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 20);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(203)))
+        {
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+    public static bool disappear(GameObject attachee)
+    {
+        attachee.SetObjectFlag(ObjectFlag.OFF);
+        return RunDefault;
+    }
+    public static bool get_rep(GameObject attachee, GameObject triggerer)
+    {
+        if (!triggerer.HasReputation(7))
+        {
+            triggerer.AddReputation(7);
+        }
+
+        SetGlobalVar(25, GetGlobalVar(25) + 1);
+        if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
+        {
+            triggerer.AddReputation(8);
+        }
+
+        return RunDefault;
+    }
+
+
 }

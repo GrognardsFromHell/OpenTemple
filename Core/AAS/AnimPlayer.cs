@@ -2,159 +2,76 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenTemple.Core.AAS
+namespace OpenTemple.Core.AAS;
+
+internal struct AnimEvent
 {
-    internal struct AnimEvent
-    {
-        public int frame; // On which frame does the event occur
-        public AnimEventType type;
-        public string args;
-    };
+	public int frame; // On which frame does the event occur
+	public AnimEventType type;
+	public string args;
+};
 
-    internal class AnimPlayer : IDisposable
-    {
-        public AnimatedModel ownerAnim;
-        public sbyte field_D;
-        public sbyte field_E;
-        public sbyte field_F;
-        public float weight; // 1.0 = Fully weighted, otherwise weighted with primary anims
-        public float fadingSpeed; // Velocity with which weight is being changed
-        public int eventHandlingDepth;
-        public AnimPlayer nextRunningAnim;
-        public AnimPlayer prevRunningAnim;
-        public SkeletonAnimation animation;
-        public int streamCount;
-        public AnimPlayerStream[] streams = new AnimPlayerStream[4];
-        public float[] streamFps = new float[4]; // "frames per drive unit"
-        public sbyte[] streamVariationIndices = new sbyte[4]; // indices into streamVariationIds
-        public sbyte[] streamVariationIds = new sbyte[4];
-        public sbyte[] variationId = new sbyte[4];
-        public float currentTimeEvents;
-        public float currentTime;
-        public float duration;
-        public float frameRate;
-        public float distancePerSecond;
-        public List<AnimEvent> events;
+internal class AnimPlayer : IDisposable
+{
+	public AnimatedModel ownerAnim;
+	public sbyte field_D;
+	public sbyte field_E;
+	public sbyte field_F;
+	public float weight; // 1.0 = Fully weighted, otherwise weighted with primary anims
+	public float fadingSpeed; // Velocity with which weight is being changed
+	public int eventHandlingDepth;
+	public AnimPlayer nextRunningAnim;
+	public AnimPlayer prevRunningAnim;
+	public SkeletonAnimation animation;
+	public int streamCount;
+	public AnimPlayerStream[] streams = new AnimPlayerStream[4];
+	public float[] streamFps = new float[4]; // "frames per drive unit"
+	public sbyte[] streamVariationIndices = new sbyte[4]; // indices into streamVariationIds
+	public sbyte[] streamVariationIds = new sbyte[4];
+	public sbyte[] variationId = new sbyte[4];
+	public float currentTimeEvents;
+	public float currentTime;
+	public float duration;
+	public float frameRate;
+	public float distancePerSecond;
+	public List<AnimEvent> events;
 
-        public AnimPlayer()
-        {
-            // Default is fading in over .5 seconds
-            fadingSpeed = 2.0f;
-        }
+	public AnimPlayer()
+	{
+		// Default is fading in over .5 seconds
+		fadingSpeed = 2.0f;
+	}
 
-        public void Dispose()
-        {
-            ownerAnim?.RemoveRunningAnim(this);
-        }
+	public void Dispose()
+	{
+		ownerAnim?.RemoveRunningAnim(this);
+	}
 
-        public void GetDistPerSec(ref float distPerSec)
-        {
-            if (animation.DriveType == SkelAnimDriver.Distance && fadingSpeed > 0.0) {
-                distPerSec = ownerAnim.scale * distancePerSecond;
-            }
-        }
+	public void GetDistPerSec(ref float distPerSec)
+	{
+		if (animation.DriveType == SkelAnimDriver.Distance && fadingSpeed > 0.0) {
+			distPerSec = ownerAnim.scale * distancePerSecond;
+		}
+	}
 
-        public void GetRotationPerSec(ref float rotationPerSec)
-        {
-            if (animation.DriveType == SkelAnimDriver.Rotation && fadingSpeed > 0.0) {
-                rotationPerSec = distancePerSecond;
-            }
-        }
+	public void GetRotationPerSec(ref float rotationPerSec)
+	{
+		if (animation.DriveType == SkelAnimDriver.Rotation && fadingSpeed > 0.0) {
+			rotationPerSec = distancePerSecond;
+		}
+	}
 
-        public void AdvanceEvents(float timeChanged, float distanceChanged, float rotationChanged)
-        {
+	public void AdvanceEvents(float timeChanged, float distanceChanged, float rotationChanged)
+	{
 
-            if (duration <= 0) {
-                return;
-            }
+		if (duration <= 0) {
+			return;
+		}
 
-            // Decide what the effective advancement in the animation stream will be
-            float effectiveAdvancement;
-            switch (animation.DriveType) {
-                default:
-                case SkelAnimDriver.Time:
-                    effectiveAdvancement = timeChanged;
-                    break;
-                case SkelAnimDriver.Distance:
-                    effectiveAdvancement = ownerAnim.scaleInv * distanceChanged;
-                    break;
-                case SkelAnimDriver.Rotation:
-                    // TODO: Weirdly enough, in the other function it's using the absolute value of it
-                    // Does this mean that rotation-based animations will not properly trigger events???
-                    effectiveAdvancement = rotationChanged;
-                    break;
-            }
-
-            foreach (var evt in events) {
-
-                // Convert from frame id to "time"
-                var eventTime = MathF.Min(duration, evt.frame / frameRate);
-
-                // Check if the increase in time will cause the event to trigger
-                // and consider looping animations, but only if the event would occur during the next loop
-                if (currentTimeEvents <= eventTime &&  currentTimeEvents + effectiveAdvancement > eventTime
-                    || animation.Loopable
-                    && currentTimeEvents - duration <= eventTime && eventTime < (currentTimeEvents + effectiveAdvancement - duration))
-                {
-                    var timeAfterEvent = currentTimeEvents + effectiveAdvancement - eventTime;
-                    ownerAnim.EventHandler.HandleEvent(
-	                    evt.frame,
-	                    timeAfterEvent,
-	                    evt.type,
-	                    evt.args
-                    );
-                }
-            }
-
-            currentTimeEvents += effectiveAdvancement;
-
-            if (currentTimeEvents > duration) {
-
-                if (animation.Loopable) {
-                    var extraTime = currentTimeEvents - duration;
-                    currentTimeEvents = extraTime;
-                    if (currentTimeEvents > duration) {
-                        if (extraTime - effectiveAdvancement == 0.0f) {
-                            currentTimeEvents = 0.0f;
-                        } else {
-                            currentTimeEvents = duration;
-                        }
-                    }
-                } else {
-                    currentTimeEvents = duration;
-                        ownerAnim.EventHandler.HandleEvent(
-                            (int)(frameRate * duration),
-                            0.0f,
-                            AnimEventType.End,
-                            ""
-                        );
-                }
-
-            }
-        }
-
-        public void FadeInOrOut(float timeChanged)
-        {
-            // Modify weight according to fadein/fadeout speed
-            weight += timeChanged * fadingSpeed;
-
-            // Clamp weight to [0,1]
-            if (weight <= 0.0f) {
-                weight = 0.0f;
-            } else if (weight > 1.0) {
-                weight = 1.0f;
-            }
-        }
-
-        public void method6(Span<SkelBoneState> boneStateOut, float timeChanged, float distanceChanged, float rotationChanged)
-        {
-
-		// In ToEE, boneIdx is never set to anything other than -1
-
-		if (duration > 0) {
-			// Decide what the effective advancement in the animation stream will be
-			float effectiveAdvancement;
-			switch (animation.DriveType) {
+		// Decide what the effective advancement in the animation stream will be
+		float effectiveAdvancement;
+		switch (animation.DriveType) {
+			default:
 			case SkelAnimDriver.Time:
 				effectiveAdvancement = timeChanged;
 				break;
@@ -164,10 +81,93 @@ namespace OpenTemple.Core.AAS
 			case SkelAnimDriver.Rotation:
 				// TODO: Weirdly enough, in the other function it's using the absolute value of it
 				// Does this mean that rotation-based animations will not properly trigger events???
-				effectiveAdvancement = MathF.Abs(rotationChanged);
+				effectiveAdvancement = rotationChanged;
 				break;
-			default:
-				throw new AasException($"Unknown animation drive type: {animation.DriveType}");
+		}
+
+		foreach (var evt in events) {
+
+			// Convert from frame id to "time"
+			var eventTime = MathF.Min(duration, evt.frame / frameRate);
+
+			// Check if the increase in time will cause the event to trigger
+			// and consider looping animations, but only if the event would occur during the next loop
+			if (currentTimeEvents <= eventTime &&  currentTimeEvents + effectiveAdvancement > eventTime
+			    || animation.Loopable
+			    && currentTimeEvents - duration <= eventTime && eventTime < (currentTimeEvents + effectiveAdvancement - duration))
+			{
+				var timeAfterEvent = currentTimeEvents + effectiveAdvancement - eventTime;
+				ownerAnim.EventHandler.HandleEvent(
+					evt.frame,
+					timeAfterEvent,
+					evt.type,
+					evt.args
+				);
+			}
+		}
+
+		currentTimeEvents += effectiveAdvancement;
+
+		if (currentTimeEvents > duration) {
+
+			if (animation.Loopable) {
+				var extraTime = currentTimeEvents - duration;
+				currentTimeEvents = extraTime;
+				if (currentTimeEvents > duration) {
+					if (extraTime - effectiveAdvancement == 0.0f) {
+						currentTimeEvents = 0.0f;
+					} else {
+						currentTimeEvents = duration;
+					}
+				}
+			} else {
+				currentTimeEvents = duration;
+				ownerAnim.EventHandler.HandleEvent(
+					(int)(frameRate * duration),
+					0.0f,
+					AnimEventType.End,
+					""
+				);
+			}
+
+		}
+	}
+
+	public void FadeInOrOut(float timeChanged)
+	{
+		// Modify weight according to fadein/fadeout speed
+		weight += timeChanged * fadingSpeed;
+
+		// Clamp weight to [0,1]
+		if (weight <= 0.0f) {
+			weight = 0.0f;
+		} else if (weight > 1.0) {
+			weight = 1.0f;
+		}
+	}
+
+	public void method6(Span<SkelBoneState> boneStateOut, float timeChanged, float distanceChanged, float rotationChanged)
+	{
+
+		// In ToEE, boneIdx is never set to anything other than -1
+
+		if (duration > 0) {
+			// Decide what the effective advancement in the animation stream will be
+			float effectiveAdvancement;
+			switch (animation.DriveType) {
+				case SkelAnimDriver.Time:
+					effectiveAdvancement = timeChanged;
+					break;
+				case SkelAnimDriver.Distance:
+					effectiveAdvancement = ownerAnim.scaleInv * distanceChanged;
+					break;
+				case SkelAnimDriver.Rotation:
+					// TODO: Weirdly enough, in the other function it's using the absolute value of it
+					// Does this mean that rotation-based animations will not properly trigger events???
+					effectiveAdvancement = MathF.Abs(rotationChanged);
+					break;
+				default:
+					throw new AasException($"Unknown animation drive type: {animation.DriveType}");
 			}
 
 			// Same logic as in AddTime for events, just different data fields and no event handling
@@ -228,60 +228,60 @@ namespace OpenTemple.Core.AAS
 		} else {
 			streams[0].GetBoneState(boneStateOut);
 		}
-        }
+	}
 
-        public void SetTime(float time)
-        {
-	        currentTime = time;
-	        while (currentTime > duration) {
-		        currentTime -= duration;
-	        }
+	public void SetTime(float time)
+	{
+		currentTime = time;
+		while (currentTime > duration) {
+			currentTime -= duration;
+		}
 
-	        var frameIndex = frameRate * currentTime;
-	        for (int i = 0; i < streamCount; i++) {
-		        var stream = streams[i];
-		        stream.SetFrame(frameIndex);
-	        }
-        }
+		var frameIndex = frameRate * currentTime;
+		for (int i = 0; i < streamCount; i++) {
+			var stream = streams[i];
+			stream.SetFrame(frameIndex);
+		}
+	}
 
-        public float GetCurrentFrame()
-        {
+	public float GetCurrentFrame()
+	{
 
-	        if (streamCount < 1) {
-		        return 0.0f;
-	        }
-	        return streams[0].GetCurrentFrame();
-        }
+		if (streamCount < 1) {
+			return 0.0f;
+		}
+		return streams[0].GetCurrentFrame();
+	}
 
-        public float method9()
-        {
-	        return 0.5f;
-        }
+	public float method9()
+	{
+		return 0.5f;
+	}
 
-        public float method10()
-        {
-	        return 0.5f;
-        }
+	public float method10()
+	{
+		return 0.5f;
+	}
 
-        public void EnterEventHandling()
-        {
-	        eventHandlingDepth++;
-        }
+	public void EnterEventHandling()
+	{
+		eventHandlingDepth++;
+	}
 
-        public void LeaveEventHandling()
-        {
-	        eventHandlingDepth--;
+	public void LeaveEventHandling()
+	{
+		eventHandlingDepth--;
 
-        }
+	}
 
-        public int GetEventHandlingDepth()
-        {
-	        return eventHandlingDepth;
+	public int GetEventHandlingDepth()
+	{
+		return eventHandlingDepth;
 
-        }
+	}
 
-        public void Attach(AnimatedModel owner, int animIdx)
-        {
+	public void Attach(AnimatedModel owner, int animIdx)
+	{
 
 		Trace.Assert(streamCount == 0 && owner != null && ownerAnim == null);
 		var skeleton = owner.skeleton;
@@ -350,7 +350,7 @@ namespace OpenTemple.Core.AAS
 				ref var skaStream = ref animation.Streams[skaStreamIdxMap[i]];
 				if (skaStream.Frames > 1 && skaStream.FrameRate > 0) {
 					duration = (skaStream.Frames - 1) / skaStream.FrameRate * factor
-						+ (1.0f - factor) * duration;
+					           + (1.0f - factor) * duration;
 				}
 			}
 		}
@@ -367,56 +367,55 @@ namespace OpenTemple.Core.AAS
 
 		owner.AddRunningAnim(this);
 		field_D = 1;
-        }
+	}
 
-        public void Setup2(float fadeInTimeSecs)
-        {
+	public void Setup2(float fadeInTimeSecs)
+	{
 
-	        // Always 0.5s
-	        if (fadeInTimeSecs <= 0.0f) {
-		        fadingSpeed = 1.0f;
-		        weight = 1.0f;
-	        } else {
-		        var fadeInSpeed = 1.0f / fadeInTimeSecs;
-		        if (fadeInSpeed <= fadingSpeed) {
-			        weight = 0.0001f;
-		        }
-		        else {
-			        fadingSpeed = fadeInSpeed;
-			        weight = 0.0001f;
-		        }
-	        }
-        }
+		// Always 0.5s
+		if (fadeInTimeSecs <= 0.0f) {
+			fadingSpeed = 1.0f;
+			weight = 1.0f;
+		} else {
+			var fadeInSpeed = 1.0f / fadeInTimeSecs;
+			if (fadeInSpeed <= fadingSpeed) {
+				weight = 0.0001f;
+			}
+			else {
+				fadingSpeed = fadeInSpeed;
+				weight = 0.0001f;
+			}
+		}
+	}
 
-        private static AnimEventType? GetEventType(ReadOnlySpan<char> type) {
-	        if (type.Equals("script", StringComparison.OrdinalIgnoreCase)) {
-		        return AnimEventType.Script;
-	        } else if (type.Equals("end", StringComparison.OrdinalIgnoreCase)) {
-		        return AnimEventType.End;
-	        } else if (type.Equals("action", StringComparison.OrdinalIgnoreCase)) {
-		        return AnimEventType.Action;
-	        } else {
-		        return null;
-	        }
-        }
+	private static AnimEventType? GetEventType(ReadOnlySpan<char> type) {
+		if (type.Equals("script", StringComparison.OrdinalIgnoreCase)) {
+			return AnimEventType.Script;
+		} else if (type.Equals("end", StringComparison.OrdinalIgnoreCase)) {
+			return AnimEventType.End;
+		} else if (type.Equals("action", StringComparison.OrdinalIgnoreCase)) {
+			return AnimEventType.Action;
+		} else {
+			return null;
+		}
+	}
 
-        private void SetEvents(AnimatedModel owner, SkeletonAnimation anim)
-        {
-	        events = new List<AnimEvent>(anim.Events.Length);
-	        foreach (var skelEvent in anim.Events) {
-		        var type = GetEventType(skelEvent.Type);
-		        if (!type.HasValue)
-		        {
-			        Debug.Print("Unknown animation type '{0}' in {1}", anim.Name, owner.skeleton.Path);
-			        continue;
-		        }
+	private void SetEvents(AnimatedModel owner, SkeletonAnimation anim)
+	{
+		events = new List<AnimEvent>(anim.Events.Length);
+		foreach (var skelEvent in anim.Events) {
+			var type = GetEventType(skelEvent.Type);
+			if (!type.HasValue)
+			{
+				Debug.Print("Unknown animation type '{0}' in {1}", anim.Name, owner.skeleton.Path);
+				continue;
+			}
 
-		        AnimEvent evt = new AnimEvent();
-		        evt.frame = skelEvent.Frame;
-		        evt.type = type.Value;
-		        evt.args = skelEvent.Action;
-		        events.Add(evt);
-	        }
-        }
-    }
+			AnimEvent evt = new AnimEvent();
+			evt.frame = skelEvent.Frame;
+			evt.type = type.Value;
+			evt.args = skelEvent.Action;
+			events.Add(evt);
+		}
+	}
 }

@@ -4,24 +4,23 @@ using Scriban;
 using Scriban.Parsing;
 using Scriban.Runtime;
 
-namespace Core.StyleSystemGenerator
+namespace Core.StyleSystemGenerator;
+
+public class TemplateLoader : ITemplateLoader
 {
-    public class TemplateLoader : ITemplateLoader
+    public string GetPath(TemplateContext context, SourceSpan callerSpan, string templateName)
     {
-        public string GetPath(TemplateContext context, SourceSpan callerSpan, string templateName)
-        {
-            var basePath = Path.GetDirectoryName(typeof(TemplateLoader).Assembly.Location);
-            return Path.Join(basePath, "Templates", templateName);
-        }
+        var basePath = Path.GetDirectoryName(typeof(TemplateLoader).Assembly.Location);
+        return Path.Join(basePath, "Templates", templateName);
+    }
 
-        public string Load(TemplateContext context, SourceSpan callerSpan, string templatePath)
-        {
-            return File.ReadAllText(templatePath);
-        }
+    public string Load(TemplateContext context, SourceSpan callerSpan, string templatePath)
+    {
+        return File.ReadAllText(templatePath);
+    }
 
-        public ValueTask<string> LoadAsync(TemplateContext context, SourceSpan callerSpan, string templatePath)
-        {
-            return new(Load(context, callerSpan, templatePath));
-        }
+    public ValueTask<string> LoadAsync(TemplateContext context, SourceSpan callerSpan, string templatePath)
+    {
+        return new(Load(context, callerSpan, templatePath));
     }
 }

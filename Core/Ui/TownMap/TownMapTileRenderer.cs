@@ -6,266 +6,265 @@ using OpenTemple.Core.Systems.FogOfWar;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.TownMap
+namespace OpenTemple.Core.Ui.TownMap;
+
+[TemplePlusLocation("ui_townmap.cpp")]
+public class TownMapTileRenderer : WidgetContent
 {
-    [TemplePlusLocation("ui_townmap.cpp")]
-    public class TownMapTileRenderer : WidgetContent
+
+    private TileRenderer _smallTileRenderer;
+
+    private TileRenderer _bigTileRenderer;
+
+    private readonly FogTileRenderer _fogTileRenderer = new FogTileRenderer();
+
+    public Rectangle SourceRect { get; set; }
+
+    public void LoadData(TownMapData mapData)
     {
+        _smallTileRenderer = new MapTileRenderer(2048, mapData.SmallTextures);
+        _bigTileRenderer = new MapTileRenderer(1024, mapData.BigTextures);
+    }
 
-        private TileRenderer _smallTileRenderer;
+    public void UpdateFogOfWar(TownmapFogTile[,] tiles)
+    {
+        _fogTileRenderer.FogTiles = tiles;
+    }
 
-        private TileRenderer _bigTileRenderer;
-
-        private readonly FogTileRenderer _fogTileRenderer = new FogTileRenderer();
-
-        public Rectangle SourceRect { get; set; }
-
-        public void LoadData(TownMapData mapData)
+    [TempleDllLocation(0x1002c750)]
+    public override void Render()
+    {
+        if (_smallTileRenderer == null || _bigTileRenderer == null)
         {
-            _smallTileRenderer = new MapTileRenderer(2048, mapData.SmallTextures);
-            _bigTileRenderer = new MapTileRenderer(1024, mapData.BigTextures);
+            return; // No data loaded
         }
 
-        public void UpdateFogOfWar(TownmapFogTile[,] tiles)
+        var destRect = ContentArea;
+
+        // This seems to be the origin of the townmap, basically
+        var srcRect = SourceRect;
+        srcRect.X += 8448;
+        srcRect.Y -= 6000;
+        var widthScale = destRect.Width / (float) srcRect.Width;
+        var heightScale = destRect.Height / (float) srcRect.Height;
+
+        // Render using the small / big grid size depending on zoom level
+        if (widthScale <= 1 / 6.0f)
         {
-            _fogTileRenderer.FogTiles = tiles;
+            _smallTileRenderer.RenderTownmapTiles(srcRect, destRect, widthScale, heightScale);
+        }
+        else
+        {
+            _bigTileRenderer.RenderTownmapTiles(srcRect, destRect, widthScale, heightScale);
         }
 
-        [TempleDllLocation(0x1002c750)]
-        public override void Render()
+        if (_fogTileRenderer.FogTiles != null)
         {
-            if (_smallTileRenderer == null || _bigTileRenderer == null)
-            {
-                return; // No data loaded
-            }
+            _fogTileRenderer.RenderTownmapTiles(srcRect, destRect, widthScale, heightScale);
+        }
+    }
 
-            var destRect = ContentArea;
+    private abstract class TileRenderer
+    {
+        private readonly int _cols;
 
-            // This seems to be the origin of the townmap, basically
-            var srcRect = SourceRect;
-            srcRect.X += 8448;
-            srcRect.Y -= 6000;
-            var widthScale = destRect.Width / (float) srcRect.Width;
-            var heightScale = destRect.Height / (float) srcRect.Height;
+        private readonly int _rows;
 
-            // Render using the small / big grid size depending on zoom level
-            if (widthScale <= 1 / 6.0f)
-            {
-                _smallTileRenderer.RenderTownmapTiles(srcRect, destRect, widthScale, heightScale);
-            }
-            else
-            {
-                _bigTileRenderer.RenderTownmapTiles(srcRect, destRect, widthScale, heightScale);
-            }
+        private readonly int _tileDimension;
 
-            if (_fogTileRenderer.FogTiles != null)
-            {
-                _fogTileRenderer.RenderTownmapTiles(srcRect, destRect, widthScale, heightScale);
-            }
+        // Real size of a townmap tile is 256x256, and it is stretched up to full size (1024x1024)
+        private readonly float _tileScale;
+
+        protected TileRenderer(int cols, int rows, int tileDimension)
+        {
+            _cols = cols;
+            _rows = rows;
+            _tileDimension = tileDimension;
+            _tileScale = 256.0f / tileDimension;
         }
 
-        private abstract class TileRenderer
+        public void RenderTownmapTiles(Rectangle srcRect, Rectangle destRect, float widthScale, float heightScale)
         {
-            private readonly int _cols;
-
-            private readonly int _rows;
-
-            private readonly int _tileDimension;
-
-            // Real size of a townmap tile is 256x256, and it is stretched up to full size (1024x1024)
-            private readonly float _tileScale;
-
-            protected TileRenderer(int cols, int rows, int tileDimension)
+            var rightmostTile = (srcRect.X + srcRect.Width) / _tileDimension;
+            if (rightmostTile >= _cols)
             {
-                _cols = cols;
-                _rows = rows;
-                _tileDimension = tileDimension;
-                _tileScale = 256.0f / tileDimension;
+                rightmostTile = _cols;
             }
 
-            public void RenderTownmapTiles(Rectangle srcRect, Rectangle destRect, float widthScale, float heightScale)
+            var bottommostTile = (srcRect.Y + srcRect.Height) / _tileDimension;
+            if (bottommostTile >= _rows)
             {
-                var rightmostTile = (srcRect.X + srcRect.Width) / _tileDimension;
-                if (rightmostTile >= _cols)
-                {
-                    rightmostTile = _cols;
-                }
+                bottommostTile = _rows;
+            }
 
-                var bottommostTile = (srcRect.Y + srcRect.Height) / _tileDimension;
-                if (bottommostTile >= _rows)
-                {
-                    bottommostTile = _rows;
-                }
+            var startTileX = srcRect.X / _tileDimension;
+            if (srcRect.X / _tileDimension < 0)
+            {
+                startTileX = 0;
+            }
 
-                var startTileX = srcRect.X / _tileDimension;
-                if (srcRect.X / _tileDimension < 0)
-                {
-                    startTileX = 0;
-                }
+            var startTileY = srcRect.Y / _tileDimension;
+            if (srcRect.Y / _tileDimension < 0)
+            {
+                startTileY = 0;
+            }
 
-                var startTileY = srcRect.Y / _tileDimension;
-                if (srcRect.Y / _tileDimension < 0)
-                {
-                    startTileY = 0;
-                }
+            for (var tileY = startTileY; tileY <= bottommostTile; ++tileY)
+            {
+                var curSrcY = tileY * _tileDimension;
 
-                for (var tileY = startTileY; tileY <= bottommostTile; ++tileY)
+                for (var tileX = startTileX; tileX <= rightmostTile; ++tileX)
                 {
-                    var curSrcY = tileY * _tileDimension;
-
-                    for (var tileX = startTileX; tileX <= rightmostTile; ++tileX)
+                    var curSrcX = tileX * _tileDimension;
+                    var clippedSrcX = tileX * (float) _tileDimension;
+                    var clippedSrcWidth = clippedSrcX + _tileDimension;
+                    if (clippedSrcX < srcRect.X)
                     {
-                        var curSrcX = tileX * _tileDimension;
-                        var clippedSrcX = tileX * (float) _tileDimension;
-                        var clippedSrcWidth = clippedSrcX + _tileDimension;
-                        if (clippedSrcX < srcRect.X)
+                        clippedSrcX = srcRect.X;
+                    }
+
+                    var srcRectRight = (float) (srcRect.X + srcRect.Width);
+                    if (clippedSrcWidth > srcRectRight)
+                    {
+                        clippedSrcWidth = srcRectRight;
+                    }
+
+                    clippedSrcWidth = clippedSrcWidth - clippedSrcX;
+
+                    var clippedSrcY = tileY * (float) _tileDimension;
+                    var clippedSrcHeight = clippedSrcY + _tileDimension;
+                    if (clippedSrcY < srcRect.Y)
+                    {
+                        clippedSrcY = srcRect.Y;
+                    }
+
+                    var srcRectBottom = (float) (srcRect.Y + srcRect.Height);
+                    if (clippedSrcHeight > srcRectBottom)
+                        clippedSrcHeight = srcRectBottom;
+                    clippedSrcHeight -= clippedSrcY;
+
+                    Rectangle tileDestRect = default;
+                    tileDestRect.X = destRect.X + (int) ((clippedSrcX - srcRect.X) * widthScale);
+                    tileDestRect.Y = destRect.Y + (int) ((clippedSrcY - srcRect.Y) * heightScale);
+                    tileDestRect.Width = destRect.X +
+                                         (int) ((clippedSrcX + clippedSrcWidth - srcRect.X) * widthScale) -
+                                         tileDestRect.X;
+                    tileDestRect.Height = destRect.Y +
+                                          (int) ((clippedSrcY + clippedSrcHeight - srcRect.Y) * heightScale) -
+                                          tileDestRect.Y;
+
+                    clippedSrcX = (clippedSrcX - curSrcX) * _tileScale;
+                    clippedSrcY = (clippedSrcY - curSrcY) * _tileScale;
+                    clippedSrcWidth *= _tileScale;
+                    clippedSrcHeight *= _tileScale;
+
+                    if (clippedSrcWidth > 0 && clippedSrcHeight > 0 && tileDestRect.Width != 0 &&
+                        tileDestRect.Height != 0)
+                    {
+                        var texture = GetTexture(tileX, tileY);
+                        if (texture == null)
                         {
-                            clippedSrcX = srcRect.X;
+                            continue;
                         }
 
-                        var srcRectRight = (float) (srcRect.X + srcRect.Width);
-                        if (clippedSrcWidth > srcRectRight)
-                        {
-                            clippedSrcWidth = srcRectRight;
-                        }
-
-                        clippedSrcWidth = clippedSrcWidth - clippedSrcX;
-
-                        var clippedSrcY = tileY * (float) _tileDimension;
-                        var clippedSrcHeight = clippedSrcY + _tileDimension;
-                        if (clippedSrcY < srcRect.Y)
-                        {
-                            clippedSrcY = srcRect.Y;
-                        }
-
-                        var srcRectBottom = (float) (srcRect.Y + srcRect.Height);
-                        if (clippedSrcHeight > srcRectBottom)
-                            clippedSrcHeight = srcRectBottom;
-                        clippedSrcHeight -= clippedSrcY;
-
-                        Rectangle tileDestRect = default;
-                        tileDestRect.X = destRect.X + (int) ((clippedSrcX - srcRect.X) * widthScale);
-                        tileDestRect.Y = destRect.Y + (int) ((clippedSrcY - srcRect.Y) * heightScale);
-                        tileDestRect.Width = destRect.X +
-                                             (int) ((clippedSrcX + clippedSrcWidth - srcRect.X) * widthScale) -
-                                             tileDestRect.X;
-                        tileDestRect.Height = destRect.Y +
-                                              (int) ((clippedSrcY + clippedSrcHeight - srcRect.Y) * heightScale) -
-                                              tileDestRect.Y;
-
-                        clippedSrcX = (clippedSrcX - curSrcX) * _tileScale;
-                        clippedSrcY = (clippedSrcY - curSrcY) * _tileScale;
-                        clippedSrcWidth *= _tileScale;
-                        clippedSrcHeight *= _tileScale;
-
-                        if (clippedSrcWidth > 0 && clippedSrcHeight > 0 && tileDestRect.Width != 0 &&
-                            tileDestRect.Height != 0)
-                        {
-                            var texture = GetTexture(tileX, tileY);
-                            if (texture == null)
-                            {
-                                continue;
-                            }
-
-                            Render2dArgs arg = default;
-                            arg.customTexture = texture;
-                            arg.flags = Render2dFlag.FLOATSRCRECT | Render2dFlag.BUFFERTEXTURE;
-                            arg.srcRectFloat = new RectangleF(
-                                clippedSrcX,
-                                clippedSrcY,
-                                clippedSrcWidth,
-                                clippedSrcHeight
-                            );
-                            arg.destRect = tileDestRect;
-                            Tig.ShapeRenderer2d.DrawRectangle(ref arg);
-                        }
+                        Render2dArgs arg = default;
+                        arg.customTexture = texture;
+                        arg.flags = Render2dFlag.FLOATSRCRECT | Render2dFlag.BUFFERTEXTURE;
+                        arg.srcRectFloat = new RectangleF(
+                            clippedSrcX,
+                            clippedSrcY,
+                            clippedSrcWidth,
+                            clippedSrcHeight
+                        );
+                        arg.destRect = tileDestRect;
+                        Tig.ShapeRenderer2d.DrawRectangle(ref arg);
                     }
                 }
             }
-
-            protected abstract ITexture GetTexture(int tileX, int tileY);
         }
 
-        private sealed class MapTileRenderer : TileRenderer
+        protected abstract ITexture GetTexture(int tileX, int tileY);
+    }
+
+    private sealed class MapTileRenderer : TileRenderer
+    {
+        private readonly ResourceRef<ITexture>[,] _textures;
+
+        public MapTileRenderer(int tileDimension, ResourceRef<ITexture>[,] textures)
+            : base(textures.GetLength(1), textures.GetLength(0), tileDimension)
         {
-            private readonly ResourceRef<ITexture>[,] _textures;
-
-            public MapTileRenderer(int tileDimension, ResourceRef<ITexture>[,] textures)
-                : base(textures.GetLength(1), textures.GetLength(0), tileDimension)
-            {
-                _textures = textures;
-            }
-
-            protected override ITexture GetTexture(int tileX, int tileY)
-            {
-                return _textures[tileX, tileY].Resource;
-            }
+            _textures = textures;
         }
 
-        private sealed class FogTileRenderer : TileRenderer, IDisposable
+        protected override ITexture GetTexture(int tileX, int tileY)
         {
-            public TownmapFogTile[,] FogTiles { get; set; }
+            return _textures[tileX, tileY].Resource;
+        }
+    }
 
-            private ResourceRef<DynamicTexture> _fogTexture;
+    private sealed class FogTileRenderer : TileRenderer, IDisposable
+    {
+        public TownmapFogTile[,] FogTiles { get; set; }
 
-            public FogTileRenderer() : base(2, 2, 10240)
+        private ResourceRef<DynamicTexture> _fogTexture;
+
+        public FogTileRenderer() : base(2, 2, 10240)
+        {
+            // Fill with dummy data
+            _fogTexture = Tig.RenderingDevice.CreateDynamicTexture(BufferFormat.A8R8G8B8, 256, 256);
+        }
+
+        protected override ITexture GetTexture(int tileX, int tileY)
+        {
+            if (FogTiles == null)
             {
-                // Fill with dummy data
-                _fogTexture = Tig.RenderingDevice.CreateDynamicTexture(BufferFormat.A8R8G8B8, 256, 256);
+                return null;
             }
 
-            protected override ITexture GetTexture(int tileX, int tileY)
+            Span<uint> sPixelData = stackalloc uint[256 * 256];
+
+            // TODO: Direct and dirty hack ported straight from TemplePlus C++. This can be made safe.
+            unsafe
             {
-                if (FogTiles == null)
+                fixed (uint* pixelPtrStart = sPixelData)
                 {
-                    return null;
-                }
-
-                Span<uint> sPixelData = stackalloc uint[256 * 256];
-
-                // TODO: Direct and dirty hack ported straight from TemplePlus C++. This can be made safe.
-                unsafe
-                {
-                    fixed (uint* pixelPtrStart = sPixelData)
+                    var pixelPtr = pixelPtrStart;
+                    fixed (byte* fogPtrStart = FogTiles[tileX, tileY].Data)
                     {
-                        var pixelPtr = pixelPtrStart;
-                        fixed (byte* fogPtrStart = FogTiles[tileX, tileY].Data)
+                        var fogPtr = fogPtrStart;
+                        for (var y = 0; y < 256; ++y)
                         {
-                            var fogPtr = fogPtrStart;
-                            for (var y = 0; y < 256; ++y)
+                            for (var chunk = 0; chunk < 32; chunk++)
                             {
-                                for (var chunk = 0; chunk < 32; chunk++)
+                                var fogByte = *fogPtr;
+                                for (var bitmask = 1; bitmask < 0x100; bitmask <<= 1)
                                 {
-                                    var fogByte = *fogPtr;
-                                    for (var bitmask = 1; bitmask < 0x100; bitmask <<= 1)
-                                    {
-                                        *pixelPtr = (fogByte & bitmask) == 0 ? 0xFF000000 : 0;
-                                        pixelPtr++;
-                                    }
-
-                                    ++fogPtr;
+                                    *pixelPtr = (fogByte & bitmask) == 0 ? 0xFF000000 : 0;
+                                    pixelPtr++;
                                 }
+
+                                ++fogPtr;
                             }
                         }
                     }
                 }
-
-                var pixelDataBytes = MemoryMarshal.Cast<uint, byte>(sPixelData);
-                _fogTexture.Resource.UpdateRaw(pixelDataBytes, 256 * sizeof(uint));
-
-                return _fogTexture.Resource;
             }
 
-            public void Dispose()
-            {
-                _fogTexture.Dispose();
-            }
+            var pixelDataBytes = MemoryMarshal.Cast<uint, byte>(sPixelData);
+            _fogTexture.Resource.UpdateRaw(pixelDataBytes, 256 * sizeof(uint));
+
+            return _fogTexture.Resource;
         }
 
         public void Dispose()
         {
-            _fogTileRenderer.Dispose();
+            _fogTexture.Dispose();
         }
-
     }
+
+    public void Dispose()
+    {
+        _fogTileRenderer.Dispose();
+    }
+
 }

@@ -1,12 +1,11 @@
-namespace OpenTemple.Core.Particles.Spec
+namespace OpenTemple.Core.Particles.Spec;
+
+public enum PartSysEmitterSpace
 {
-    public enum PartSysEmitterSpace
-    {
-        World,
-        ObjectPos,
-        ObjectYpr,
-        NodePos,
-        NodeYpr,
-        Bones
-    }
+    World,
+    ObjectPos,
+    ObjectYpr,
+    NodePos,
+    NodeYpr,
+    Bones
 }

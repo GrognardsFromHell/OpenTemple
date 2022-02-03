@@ -1,25 +1,24 @@
 using System;
 
-namespace OpenTemple.Core.Ui.CharSheet
+namespace OpenTemple.Core.Ui.CharSheet;
+
+public interface ICharGenSystem : IDisposable
 {
-    public interface ICharGenSystem : IDisposable
-    {
-        string Name { get; }
+    string Name { get; }
 
-        void ResetSystem();
+    void ResetSystem();
 
-        void Resize();
+    void Resize();
 
-        void Show();
+    void Show();
 
-        void Hide();
+    void Hide();
 
-        void CheckComplete();
+    void CheckComplete();
 
-        void Complete();
+    void Complete();
 
-        void Reset();
+    void Reset();
 
-        void Activate();
-    }
+    void Activate();
 }

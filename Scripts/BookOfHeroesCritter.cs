@@ -18,36 +18,35 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(522)]
-    public class BookOfHeroesCritter : BaseObjectScript
-    {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetMap() == 5119))
-            {
-                triggerer.BeginDialog(attachee, 60);
-            }
-            else if ((GetGlobalVar(994) != 0))
-            {
-                if ((GetQuestState(65) != QuestState.Completed))
-                {
-                    triggerer.BeginDialog(attachee, 40);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 50);
-                }
+namespace Scripts;
 
+[ObjectScript(522)]
+public class BookOfHeroesCritter : BaseObjectScript
+{
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetMap() == 5119))
+        {
+            triggerer.BeginDialog(attachee, 60);
+        }
+        else if ((GetGlobalVar(994) != 0))
+        {
+            if ((GetQuestState(65) != QuestState.Completed))
+            {
+                triggerer.BeginDialog(attachee, 40);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 1);
+                triggerer.BeginDialog(attachee, 50);
             }
 
-            return SkipDefault;
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+
 }

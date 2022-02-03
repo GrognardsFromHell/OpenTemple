@@ -18,74 +18,73 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(325)]
+public class Lhizeas : BaseObjectScript
 {
-    [ObjectScript(325)]
-    public class Lhizeas : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        attachee.TurnTowards(triggerer);
+        if ((!attachee.HasMet(triggerer)))
         {
-            attachee.TurnTowards(triggerer);
-            if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-            else
-            {
-                if ((GetGlobalVar(56) == 1))
-                {
-                    triggerer.BeginDialog(attachee, 70);
-                }
-                else if ((GetGlobalVar(56) == 2))
-                {
-                    triggerer.BeginDialog(attachee, 60);
-                }
-
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 10);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
+            if ((GetGlobalVar(56) == 1))
             {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+                triggerer.BeginDialog(attachee, 70);
+            }
+            else if ((GetGlobalVar(56) == 2))
+            {
+                triggerer.BeginDialog(attachee, 60);
             }
 
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-                {
-                    if ((is_better_to_talk(attachee, obj)))
-                    {
-                        attachee.TurnTowards(obj);
-                        obj.BeginDialog(attachee, 10);
-                        DetachScript();
-                    }
-
-                }
-
-            }
-
-            return RunDefault;
-        }
-        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
-        {
-            if ((speaker.HasLineOfSight(listener)))
-            {
-                if ((speaker.DistanceTo(listener) <= 45))
-                {
-                    return true;
-                }
-
-            }
-
-            return false;
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            {
+                if ((is_better_to_talk(attachee, obj)))
+                {
+                    attachee.TurnTowards(obj);
+                    obj.BeginDialog(attachee, 10);
+                    DetachScript();
+                }
+
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public static bool is_better_to_talk(GameObject speaker, GameObject listener)
+    {
+        if ((speaker.HasLineOfSight(listener)))
+        {
+            if ((speaker.DistanceTo(listener) <= 45))
+            {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
 }

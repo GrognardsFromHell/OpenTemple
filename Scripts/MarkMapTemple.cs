@@ -18,63 +18,62 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(258)]
+public class MarkMapTemple : BaseObjectScript
 {
-    [ObjectScript(258)]
-    public class MarkMapTemple : BaseObjectScript
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        MakeAreaKnown(4);
+        StoryState = 4;
+        if (attachee.GetNameId() == 11002)
         {
-            MakeAreaKnown(4);
-            StoryState = 4;
-            if (attachee.GetNameId() == 11002)
+            // note from smigmal Redhand, as opposed to Alira's Temple map
+            SetGlobalFlag(425, true);
+        }
+        else if (attachee.GetNameId() == 11299) // Temple navigational map
+        {
+            if (!GameSystems.Combat.IsCombatActive())
             {
-                // note from smigmal Redhand, as opposed to Alira's Temple map
-                SetGlobalFlag(425, true);
-            }
-            else if (attachee.GetNameId() == 11299) // Temple navigational map
-            {
-                if (!GameSystems.Combat.IsCombatActive())
+                GameObject talk_dude = null;
+                if (SelectedPartyLeader.type == ObjectType.pc && !SelectedPartyLeader.IsUnconscious())
                 {
-                    GameObject talk_dude = null;
-                    if (SelectedPartyLeader.type == ObjectType.pc && !SelectedPartyLeader.IsUnconscious())
+                    talk_dude = SelectedPartyLeader;
+                }
+                else
+                {
+                    foreach (var dude in GameSystems.Party.PartyMembers)
                     {
-                        talk_dude = SelectedPartyLeader;
-                    }
-                    else
-                    {
-                        foreach (var dude in GameSystems.Party.PartyMembers)
+                        if (dude.type == ObjectType.pc && !dude.IsUnconscious() && talk_dude == null)
                         {
-                            if (dude.type == ObjectType.pc && !dude.IsUnconscious() && talk_dude == null)
-                            {
-                                talk_dude = dude;
-                            }
-
-                        }
-
-                    }
-
-                    if (talk_dude != null)
-                    {
-                        talk_dude.SetScriptId(ObjScriptEvent.Dialog, 435);
-                        if ((talk_dude.GetArea() == 4 || (new[] { 5064, 5065, 5066, 5067, 5079, 5080, 5092, 5105, 5110, 5111, 5112 }).Contains(talk_dude.GetMap())) && !((new[] { 5081, 5082, 5083, 5084 }).Contains(talk_dude.GetMap())))
-                        {
-                            talk_dude.BeginDialog(talk_dude, 1000);
-                        }
-                        else
-                        {
-                            talk_dude.BeginDialog(talk_dude, 1210);
+                            talk_dude = dude;
                         }
 
                     }
 
                 }
 
-                return SkipDefault;
+                if (talk_dude != null)
+                {
+                    talk_dude.SetScriptId(ObjScriptEvent.Dialog, 435);
+                    if ((talk_dude.GetArea() == 4 || (new[] { 5064, 5065, 5066, 5067, 5079, 5080, 5092, 5105, 5110, 5111, 5112 }).Contains(talk_dude.GetMap())) && !((new[] { 5081, 5082, 5083, 5084 }).Contains(talk_dude.GetMap())))
+                    {
+                        talk_dude.BeginDialog(talk_dude, 1000);
+                    }
+                    else
+                    {
+                        talk_dude.BeginDialog(talk_dude, 1210);
+                    }
+
+                }
+
             }
 
-            return RunDefault;
+            return SkipDefault;
         }
 
+        return RunDefault;
     }
+
 }

@@ -18,36 +18,35 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(525)]
+public class Owlbear : BaseObjectScript
 {
-    [ObjectScript(525)]
-    public class Owlbear : BaseObjectScript
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetGlobalVar(987, GetGlobalVar(987) + 1);
-            if (GetGlobalVar(987) == 3)
-            {
-                SetGlobalFlag(945, true);
-                SetGlobalVar(994, 2);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetGlobalVar(955) == 1))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
 
+        SetGlobalVar(987, GetGlobalVar(987) + 1);
+        if (GetGlobalVar(987) == 3)
+        {
+            SetGlobalFlag(945, true);
+            SetGlobalVar(994, 2);
+        }
+
+        return RunDefault;
     }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(955) == 1))
+        {
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+
 }

@@ -17,45 +17,44 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
-{
-    [ObjectScript(57)]
-    public class Bing : BaseObjectScript
-    {
+namespace VanillaScripts;
 
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+[ObjectScript(57)]
+public class Bing : BaseObjectScript
+{
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GetGlobalFlag(34) && GetQuestState(11) != QuestState.Botched))
         {
-            if ((!GetGlobalFlag(34) && GetQuestState(11) != QuestState.Botched))
+            triggerer.BeginDialog(attachee, 1);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 30);
+        }
+
+        return SkipDefault;
+    }
+    public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
+    {
+        if ((spell.spellEnum == WellKnownSpells.Heal))
+        {
+            if ((GetQuestState(11) == QuestState.Mentioned || GetQuestState(11) == QuestState.Accepted))
             {
-                triggerer.BeginDialog(attachee, 1);
+                SetGlobalFlag(34, true);
+                triggerer.BeginDialog(attachee, 60);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 30);
+                SetQuestState(11, QuestState.Botched);
+                triggerer.BeginDialog(attachee, 70);
             }
 
-            return SkipDefault;
-        }
-        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
-        {
-            if ((spell.spellEnum == WellKnownSpells.Heal))
-            {
-                if ((GetQuestState(11) == QuestState.Mentioned || GetQuestState(11) == QuestState.Accepted))
-                {
-                    SetGlobalFlag(34, true);
-                    triggerer.BeginDialog(attachee, 60);
-                }
-                else
-                {
-                    SetQuestState(11, QuestState.Botched);
-                    triggerer.BeginDialog(attachee, 70);
-                }
-
-            }
-
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

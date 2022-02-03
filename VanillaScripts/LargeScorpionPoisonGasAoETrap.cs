@@ -17,23 +17,22 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(32002)]
+public class LargeScorpionPoisonGasAoETrap : BaseObjectScript
 {
-    [ObjectScript(32002)]
-    public class LargeScorpionPoisonGasAoETrap : BaseObjectScript
+
+    public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
     {
-
-        public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
+        AttachParticles(trap.Type.ParticleSystemId, trap.Object);
+        foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_CRITTERS))
         {
-            AttachParticles(trap.Type.ParticleSystemId, trap.Object);
-            foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_CRITTERS))
-            {
-                obj.AddCondition("Poisoned", 5, 0);
-            }
-
-            return SkipDefault;
+            obj.AddCondition("Poisoned", 5, 0);
         }
 
-
+        return SkipDefault;
     }
+
+
 }

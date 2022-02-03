@@ -18,45 +18,44 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(282)]
-    public class RangedAmmo : BaseObjectScript
-    {
-        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
-        {
-            var done = attachee.GetInt(obj_f.weapon_pad_i_1);
-            if ((triggerer.type == ObjectType.pc || triggerer.type == ObjectType.npc) && (triggerer.HasFeat(FeatId.FAR_SHOT)))
-            {
-                if (done == 1)
-                {
-                    return RunDefault;
-                }
-                else
-                {
-                    var curr = attachee.GetInt(obj_f.weapon_range);
-                    curr = (int) (curr * 1.5f);
-                    attachee.SetInt(obj_f.weapon_range, curr);
-                    attachee.SetInt(obj_f.weapon_pad_i_1, 1);
-                    Sound(3013, 1);
-                }
+namespace Scripts;
 
+[ObjectScript(282)]
+public class RangedAmmo : BaseObjectScript
+{
+    public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
+    {
+        var done = attachee.GetInt(obj_f.weapon_pad_i_1);
+        if ((triggerer.type == ObjectType.pc || triggerer.type == ObjectType.npc) && (triggerer.HasFeat(FeatId.FAR_SHOT)))
+        {
+            if (done == 1)
+            {
+                return RunDefault;
             }
             else
             {
-                if (done == 1)
-                {
-                    var curr = attachee.GetInt(obj_f.weapon_range);
-                    curr = curr * 2 / 3;
-                    attachee.SetInt(obj_f.weapon_range, curr);
-                    attachee.SetInt(obj_f.weapon_pad_i_1, 0);
-                    Sound(3013, 1);
-                }
-
+                var curr = attachee.GetInt(obj_f.weapon_range);
+                curr = (int) (curr * 1.5f);
+                attachee.SetInt(obj_f.weapon_range, curr);
+                attachee.SetInt(obj_f.weapon_pad_i_1, 1);
+                Sound(3013, 1);
             }
 
-            return RunDefault;
+        }
+        else
+        {
+            if (done == 1)
+            {
+                var curr = attachee.GetInt(obj_f.weapon_range);
+                curr = curr * 2 / 3;
+                attachee.SetInt(obj_f.weapon_range, curr);
+                attachee.SetInt(obj_f.weapon_pad_i_1, 0);
+                Sound(3013, 1);
+            }
+
         }
 
+        return RunDefault;
     }
+
 }

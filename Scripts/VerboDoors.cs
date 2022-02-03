@@ -18,20 +18,19 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(604)]
-    public class VerboDoors : BaseObjectScript
-    {
-        public override bool OnUse(GameObject door, GameObject triggerer)
-        {
-            if ((!GetGlobalFlag(260)))
-            {
-                SetGlobalFlag(260, true);
-            }
+namespace Scripts;
 
-            return RunDefault;
+[ObjectScript(604)]
+public class VerboDoors : BaseObjectScript
+{
+    public override bool OnUse(GameObject door, GameObject triggerer)
+    {
+        if ((!GetGlobalFlag(260)))
+        {
+            SetGlobalFlag(260, true);
         }
 
+        return RunDefault;
     }
+
 }

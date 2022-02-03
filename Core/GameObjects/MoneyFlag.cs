@@ -1,10 +1,9 @@
 using System;
 
-namespace OpenTemple.Core.GameObjects
+namespace OpenTemple.Core.GameObjects;
+
+[Flags]
+public enum MoneyFlag
 {
-    [Flags]
-    public enum MoneyFlag
-    {
-        None = 1
-    }
+    None = 1
 }

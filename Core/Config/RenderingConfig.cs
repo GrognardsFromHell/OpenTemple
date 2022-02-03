@@ -1,46 +1,44 @@
 using System.Drawing;
 
-namespace OpenTemple.Core.Config
+namespace OpenTemple.Core.Config;
+
+public class RenderingConfig
 {
-    public class RenderingConfig
-    {
-        /// <summary>
-        /// Scaling factor for the rendering resolution relative to the
-        /// actual pixel size of the output surface.
-        /// </summary>
-        public float RenderScale { get; set; } = 1.0f;
+    /// <summary>
+    /// Scaling factor for the rendering resolution relative to the
+    /// actual pixel size of the output surface.
+    /// </summary>
+    public float RenderScale { get; set; } = 1.0f;
 
-        /// <summary>
-        /// Enables Multisample Anti-Aliasing.
-        /// </summary>
-        public bool IsAntiAliasing { get; set; }
+    /// <summary>
+    /// Enables Multisample Anti-Aliasing.
+    /// </summary>
+    public bool IsAntiAliasing { get; set; }
 
-        /// <summary>
-        /// The number of MSAA samples.
-        /// </summary>
-        public int MSAASamples { get; set; } = 4;
+    /// <summary>
+    /// The number of MSAA samples.
+    /// </summary>
+    public int MSAASamples { get; set; } = 4;
 
-        /// <summary>
-        /// The MSAA quality setting, which is only used by
-        /// vendor specific MSAA extensions.
-        /// </summary>
-        public int MSAAQuality { get; set; } = 0;
+    /// <summary>
+    /// The MSAA quality setting, which is only used by
+    /// vendor specific MSAA extensions.
+    /// </summary>
+    public int MSAAQuality { get; set; } = 0;
 
-        public bool IsUpscaleLinearFiltering { get; set; } = true;
+    public bool IsUpscaleLinearFiltering { get; set; } = true;
 
-        /// <summary>
-        /// Enables the Direct3D 11.1 debug layer.
-        /// </summary>
-        public bool DebugDevice { get; set; }
+    /// <summary>
+    /// Enables the Direct3D 11.1 debug layer.
+    /// </summary>
+    public bool DebugDevice { get; set; }
 
-        /// <summary>
-        /// Index of the DXGI adapter to use for rendering.
-        /// Defaults to 0, which usually is the primary adapter.
-        /// </summary>
-        public int AdapterIndex { get; set; }
+    /// <summary>
+    /// Index of the DXGI adapter to use for rendering.
+    /// Defaults to 0, which usually is the primary adapter.
+    /// </summary>
+    public int AdapterIndex { get; set; }
 
-        public RenderingConfig Copy() => (RenderingConfig) MemberwiseClone();
-
-    }
+    public RenderingConfig Copy() => (RenderingConfig) MemberwiseClone();
 
 }

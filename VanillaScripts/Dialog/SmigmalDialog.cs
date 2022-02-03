@@ -19,61 +19,60 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Dialog
+namespace VanillaScripts.Dialog;
+
+[DialogScript(141)]
+public class SmigmalDialog : Smigmal, IDialogScript
 {
-    [DialogScript(141)]
-    public class SmigmalDialog : Smigmal, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 41:
-                case 42:
-                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 10";
-                    return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 10;
-                case 51:
-                case 52:
-                    originalScript = "game.global_flags[7] == 0";
-                    return !GetGlobalFlag(7);
-                case 53:
-                case 54:
-                    originalScript = "game.global_flags[7] == 1";
-                    return GetGlobalFlag(7);
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 41:
+            case 42:
+                originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 10";
+                return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 10;
+            case 51:
+            case 52:
+                originalScript = "game.global_flags[7] == 0";
+                return !GetGlobalFlag(7);
+            case 53:
+            case 54:
+                originalScript = "game.global_flags[7] == 1";
+                return GetGlobalFlag(7);
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 61:
-                    originalScript = "smigmal_escape(npc,pc)";
-                    smigmal_escape(npc, pc);
-                    break;
-                case 111:
-                    originalScript = "npc.attack(pc)";
-                    npc.Attack(pc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 61:
+                originalScript = "smigmal_escape(npc,pc)";
+                smigmal_escape(npc, pc);
+                break;
+            case 111:
+                originalScript = "npc.attack(pc)";
+                npc.Attack(pc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 41:
-                case 42:
-                    skillChecks = new DialogSkillChecks(SkillId.sense_motive, 10);
-                    return true;
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            case 41:
+            case 42:
+                skillChecks = new DialogSkillChecks(SkillId.sense_motive, 10);
+                return true;
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

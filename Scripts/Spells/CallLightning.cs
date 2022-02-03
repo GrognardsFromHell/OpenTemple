@@ -18,67 +18,66 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(46)]
+public class CallLightning : BaseSpellScript
 {
-    [SpellScript(46)]
-    public class CallLightning : BaseSpellScript
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
+        Logger.Info("Call Lightning OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-evocation-conjure", spell.caster);
+    }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Call Lightning OnSpellEffect");
+        var remove_list = new List<GameObject>();
+        spell.duration = 10 * spell.casterLevel;
+        // check if outdoors
+        Dice dam;
+        if ((GameSystems.Map.IsCurrentMapOutdoors()))
         {
-            Logger.Info("Call Lightning OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-evocation-conjure", spell.caster);
+            dam = Dice.Parse("3d10");
         }
-        public override void OnSpellEffect(SpellPacketBody spell)
+        else
         {
-            Logger.Info("Call Lightning OnSpellEffect");
-            var remove_list = new List<GameObject>();
-            spell.duration = 10 * spell.casterLevel;
-            // check if outdoors
-            Dice dam;
-            if ((GameSystems.Map.IsCurrentMapOutdoors()))
+            dam = Dice.Parse("3d6");
+        }
+
+        // play fx
+        GameSystems.Vfx.CallLightning(spell.aoeCenter);
+        // damage all initial targets
+        foreach (var target_item in spell.Targets)
+        {
+            AttachParticles("sp-Call Lightning", target_item.Object);
+            if (target_item.Object.ReflexSaveAndDamage(spell.caster, spell.dc, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, dam, DamageType.Electricity, D20AttackPower.UNSPECIFIED, D20ActionType.CAST_SPELL, spell.spellId))
             {
-                dam = Dice.Parse("3d10");
+                // saving throw successful
+                target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
             }
             else
             {
-                dam = Dice.Parse("3d6");
+                // saving throw unsuccessful
+                target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
             }
 
-            // play fx
-            GameSystems.Vfx.CallLightning(spell.aoeCenter);
-            // damage all initial targets
-            foreach (var target_item in spell.Targets)
-            {
-                AttachParticles("sp-Call Lightning", target_item.Object);
-                if (target_item.Object.ReflexSaveAndDamage(spell.caster, spell.dc, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, dam, DamageType.Electricity, D20AttackPower.UNSPECIFIED, D20ActionType.CAST_SPELL, spell.spellId))
-                {
-                    // saving throw successful
-                    target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
-                }
-                else
-                {
-                    // saving throw unsuccessful
-                    target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
-                }
-
-                remove_list.Add(target_item.Object);
-            }
-
-            spell.RemoveTargets(remove_list);
-            // spell.spell_end( spell.id )
-            // add call-lightning condition, which allows additional bolts to be called
-            spell.caster.AddCondition("sp-Call Lightning", spell.spellId, spell.duration, (spell.casterLevel - 1));
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Call Lightning OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Call Lightning OnEndSpellCast");
+            remove_list.Add(target_item.Object);
         }
 
+        spell.RemoveTargets(remove_list);
+        // spell.spell_end( spell.id )
+        // add call-lightning condition, which allows additional bolts to be called
+        spell.caster.AddCondition("sp-Call Lightning", spell.spellId, spell.duration, (spell.casterLevel - 1));
     }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Call Lightning OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Call Lightning OnEndSpellCast");
+    }
+
 }

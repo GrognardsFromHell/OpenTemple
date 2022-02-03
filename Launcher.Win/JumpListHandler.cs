@@ -7,95 +7,94 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup;
 using OpenTemple.Interop;
 
-namespace OpenTemple.Windows
+namespace OpenTemple.Windows;
+
+/// <summary>
+/// Jump lists are the extra items that are shown by Windows when right-clicking an App in the start
+/// menu or task bar. The items will launch the same application again and pass extra command line args.
+/// This class handles setting up such a jump list, and also handling the arguments.
+/// </summary>
+public static class JumpListHandler
 {
-    /// <summary>
-    /// Jump lists are the extra items that are shown by Windows when right-clicking an App in the start
-    /// menu or task bar. The items will launch the same application again and pass extra command line args.
-    /// This class handles setting up such a jump list, and also handling the arguments.
-    /// </summary>
-    public static class JumpListHandler
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+    private const string ChangeInstallationDirVerb = "--change-installation-dir";
+    private const string OpenSaveGameFolderVerb = "--open-save-game-folder";
+
+    public static bool Handle(string[] commandLineArgs)
     {
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
-        private const string ChangeInstallationDirVerb = "--change-installation-dir";
-        private const string OpenSaveGameFolderVerb = "--open-save-game-folder";
-
-        public static bool Handle(string[] commandLineArgs)
+        if (commandLineArgs.Length > 0)
         {
-            if (commandLineArgs.Length > 0)
+            var verb = commandLineArgs[0];
+            switch (verb)
             {
-                var verb = commandLineArgs[0];
-                switch (verb)
-                {
-                    case ChangeInstallationDirVerb:
-                        ChangeInstallationDir();
-                        return true;
-                    case OpenSaveGameFolderVerb:
-                        OpenSaveGameFolder();
-                        return true;
-                }
+                case ChangeInstallationDirVerb:
+                    ChangeInstallationDir();
+                    return true;
+                case OpenSaveGameFolderVerb:
+                    OpenSaveGameFolder();
+                    return true;
+            }
+        }
+
+        try
+        {
+            UpdateJumpList();
+        }
+        catch (Exception e)
+        {
+            Logger.Error("Failed to update jump lists: {0}", e);
+        }
+
+        return false;
+    }
+
+    private static void ChangeInstallationDir()
+    {
+        var gameFolders = new GameFolders();
+        var configManager = new GameConfigManager(gameFolders);
+
+        var currentFolder = configManager.Config.InstallationFolder;
+
+        ValidationReport validationReport = null;
+        string selectedFolder;
+        do
+        {
+            if (!InstallationDirSelector.Select(validationReport, currentFolder, out selectedFolder))
+            {
+                return;
             }
 
-            try
-            {
-                UpdateJumpList();
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Failed to update jump lists: {0}", e);
-            }
+            validationReport = ToEEInstallationValidator.Validate(selectedFolder);
+        } while (selectedFolder == null || !validationReport.IsValid);
 
-            return false;
-        }
+        configManager.Config.InstallationFolder = selectedFolder;
+        configManager.Save();
+    }
 
-        private static void ChangeInstallationDir()
-        {
-            var gameFolders = new GameFolders();
-            var configManager = new GameConfigManager(gameFolders);
+    private static void OpenSaveGameFolder()
+    {
+        var gameFolders = new GameFolders();
+        NativePlatform.OpenFolder(gameFolders.SaveFolder);
+    }
 
-            var currentFolder = configManager.Config.InstallationFolder;
-
-            ValidationReport validationReport = null;
-            string selectedFolder;
-            do
-            {
-                if (!InstallationDirSelector.Select(validationReport, currentFolder, out selectedFolder))
-                {
-                    return;
-                }
-
-                validationReport = ToEEInstallationValidator.Validate(selectedFolder);
-            } while (selectedFolder == null || !validationReport.IsValid);
-
-            configManager.Config.InstallationFolder = selectedFolder;
-            configManager.Save();
-        }
-
-        private static void OpenSaveGameFolder()
-        {
-            var gameFolders = new GameFolders();
-            NativePlatform.OpenFolder(gameFolders.SaveFolder);
-        }
-
-        private static void UpdateJumpList()
-        {
-            using var builder = new JumpListBuilder();
-            builder.AddTask(
-                ChangeInstallationDirVerb,
-                "Switch ToEE Installation",
-                "shell32.dll",
-                3,
-                "Changes the Temple of Elemental Evil installation directory used by OpenTemple"
-            );
-            builder.AddTask(
-                OpenSaveGameFolderVerb,
-                "Open Savegame Folder",
-                "shell32.dll",
-                3,
-                "Opens the folder where save games are located"
-            );
-            builder.Commit();
-        }
+    private static void UpdateJumpList()
+    {
+        using var builder = new JumpListBuilder();
+        builder.AddTask(
+            ChangeInstallationDirVerb,
+            "Switch ToEE Installation",
+            "shell32.dll",
+            3,
+            "Changes the Temple of Elemental Evil installation directory used by OpenTemple"
+        );
+        builder.AddTask(
+            OpenSaveGameFolderVerb,
+            "Open Savegame Folder",
+            "shell32.dll",
+            3,
+            "Opens the folder where save games are located"
+        );
+        builder.Commit();
     }
 }

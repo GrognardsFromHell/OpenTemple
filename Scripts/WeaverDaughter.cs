@@ -18,62 +18,61 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(84)]
+public class WeaverDaughter : BaseObjectScript
 {
-    [ObjectScript(84)]
-    public class WeaverDaughter : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
         {
-            if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
-            {
-                attachee.FloatLine(11001, triggerer);
-            }
-            else
-            {
-                attachee.TurnTowards(triggerer);
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            attachee.FloatLine(11001, triggerer);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((GetGlobalVar(698) == 5))
-            {
-                GameSystems.MapObject.CreateObject(14699, new locXY(476, 595));
-                SetGlobalVar(698, GetGlobalVar(698) + 1);
-            }
-
-            return RunDefault;
-        }
-        public static bool argue(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8007);
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 30);
-            }
-
-            return SkipDefault;
-        }
-        public static bool make_hate(GameObject attachee, GameObject triggerer)
-        {
-            var r = attachee.GetReaction(triggerer);
-            if ((r > 20))
-            {
-                var n = 20 - r;
-                attachee.AdjustReaction(triggerer, n);
-            }
-
-            return SkipDefault;
+            attachee.TurnTowards(triggerer);
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(698) == 5))
+        {
+            GameSystems.MapObject.CreateObject(14699, new locXY(476, 595));
+            SetGlobalVar(698, GetGlobalVar(698) + 1);
+        }
+
+        return RunDefault;
+    }
+    public static bool argue(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8007);
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 30);
+        }
+
+        return SkipDefault;
+    }
+    public static bool make_hate(GameObject attachee, GameObject triggerer)
+    {
+        var r = attachee.GetReaction(triggerer);
+        if ((r > 20))
+        {
+            var n = 20 - r;
+            attachee.AdjustReaction(triggerer, n);
+        }
+
+        return SkipDefault;
+    }
+
 }

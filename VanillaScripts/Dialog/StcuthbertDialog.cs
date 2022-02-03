@@ -19,57 +19,56 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Dialog
+namespace VanillaScripts.Dialog;
+
+[DialogScript(173)]
+public class StcuthbertDialog : Stcuthbert, IDialogScript
 {
-    [DialogScript(173)]
-    public class StcuthbertDialog : Stcuthbert, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 2:
-                    originalScript = "switch_to_iuz(npc,pc,200)";
-                    switch_to_iuz(npc, pc, 200);
-                    break;
-                case 11:
-                    originalScript = "switch_to_iuz(npc,pc,210)";
-                    switch_to_iuz(npc, pc, 210);
-                    break;
-                case 21:
-                    originalScript = "switch_to_iuz(npc,pc,220)";
-                    switch_to_iuz(npc, pc, 220);
-                    break;
-                case 30:
-                    originalScript = "cuthbert_raise_good(npc,pc)";
-                    cuthbert_raise_good(npc, pc);
-                    break;
-                case 31:
-                    originalScript = "turn_off_gods(npc,pc)";
-                    turn_off_gods(npc, pc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 2:
+                originalScript = "switch_to_iuz(npc,pc,200)";
+                switch_to_iuz(npc, pc, 200);
+                break;
+            case 11:
+                originalScript = "switch_to_iuz(npc,pc,210)";
+                switch_to_iuz(npc, pc, 210);
+                break;
+            case 21:
+                originalScript = "switch_to_iuz(npc,pc,220)";
+                switch_to_iuz(npc, pc, 220);
+                break;
+            case 30:
+                originalScript = "cuthbert_raise_good(npc,pc)";
+                cuthbert_raise_good(npc, pc);
+                break;
+            case 31:
+                originalScript = "turn_off_gods(npc,pc)";
+                turn_off_gods(npc, pc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

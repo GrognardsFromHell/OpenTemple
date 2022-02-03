@@ -1,22 +1,21 @@
-namespace OpenTemple.Core.GFX.TextRendering
+namespace OpenTemple.Core.GFX.TextRendering;
+
+public struct Brush
 {
-    public struct Brush
+    public bool gradient;
+    public PackedLinearColorA primaryColor;
+    public PackedLinearColorA secondaryColor;
+
+    public Brush(PackedLinearColorA fillColor)
     {
-        public bool gradient;
-        public PackedLinearColorA primaryColor;
-        public PackedLinearColorA secondaryColor;
+        gradient = false;
+        primaryColor = fillColor;
+        secondaryColor = fillColor;
+    }
 
-        public Brush(PackedLinearColorA fillColor)
-        {
-            gradient = false;
-            primaryColor = fillColor;
-            secondaryColor = fillColor;
-        }
-
-        public static Brush Default => new Brush
-        {
-            primaryColor = PackedLinearColorA.White,
-            secondaryColor = PackedLinearColorA.White
-        };
+    public static Brush Default => new Brush
+    {
+        primaryColor = PackedLinearColorA.White,
+        secondaryColor = PackedLinearColorA.White
     };
-}
+};

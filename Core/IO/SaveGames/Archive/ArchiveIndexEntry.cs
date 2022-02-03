@@ -1,43 +1,40 @@
-﻿namespace OpenTemple.Core.IO.SaveGames.Archive
+﻿namespace OpenTemple.Core.IO.SaveGames.Archive;
+
+public struct ArchiveIndexEntry
 {
 
-    public struct ArchiveIndexEntry
+    public bool Directory { get; set; }
+
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Full path to the parent of this archive entry. No leading or trailing backslashes are present.
+    /// </summary>
+    public string ParentPath { get; set; }
+
+    public string Path
     {
-
-        public bool Directory { get; set; }
-
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Full path to the parent of this archive entry. No leading or trailing backslashes are present.
-        /// </summary>
-        public string ParentPath { get; set; }
-
-        public string Path
+        get
         {
-            get
+            if (ParentPath.Length == 0)
             {
-                if (ParentPath.Length == 0)
-                {
-                    return Name;
-                }
-                else
-                {
-                    return ParentPath + @"\" + Name;
-                }
+                return Name;
+            }
+            else
+            {
+                return ParentPath + @"\" + Name;
             }
         }
+    }
 
-        /// <summary>
-        /// File size in bytes. Does not apply to directories.
-        /// </summary>
-        public int Size { get; set; }
+    /// <summary>
+    /// File size in bytes. Does not apply to directories.
+    /// </summary>
+    public int Size { get; set; }
 
-        public override string ToString()
-        {
-            return Path;
-        }
-
+    public override string ToString()
+    {
+        return Path;
     }
 
 }

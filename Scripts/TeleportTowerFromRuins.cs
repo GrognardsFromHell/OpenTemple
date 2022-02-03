@@ -18,20 +18,19 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(29)]
-    public class TeleportTowerFromRuins : BaseObjectScript
-    {
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
-        {
-            if ((triggerer.type == ObjectType.pc))
-            {
-                FadeAndTeleport(0, 0, 0, 5003, 484, 493);
-            }
+namespace Scripts;
 
-            return SkipDefault;
+[ObjectScript(29)]
+public class TeleportTowerFromRuins : BaseObjectScript
+{
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
+    {
+        if ((triggerer.type == ObjectType.pc))
+        {
+            FadeAndTeleport(0, 0, 0, 5003, 484, 493);
         }
 
+        return SkipDefault;
     }
+
 }

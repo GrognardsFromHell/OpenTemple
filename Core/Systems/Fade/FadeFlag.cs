@@ -1,10 +1,9 @@
 using System;
 
-namespace OpenTemple.Core.Systems.Fade
+namespace OpenTemple.Core.Systems.Fade;
+
+[Flags]
+public enum FadeFlag
 {
-    [Flags]
-    public enum FadeFlag
-    {
-        FadeIn = 1
-    }
+    FadeIn = 1
 }

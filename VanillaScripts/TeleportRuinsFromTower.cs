@@ -17,22 +17,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(27)]
+public class TeleportRuinsFromTower : BaseObjectScript
 {
-    [ObjectScript(27)]
-    public class TeleportRuinsFromTower : BaseObjectScript
+
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        if ((triggerer.type == ObjectType.pc))
         {
-            if ((triggerer.type == ObjectType.pc))
-            {
-                FadeAndTeleport(0, 0, 0, 5002, 483, 468);
-            }
-
-            return SkipDefault;
+            FadeAndTeleport(0, 0, 0, 5002, 483, 468);
         }
 
-
+        return SkipDefault;
     }
+
+
 }

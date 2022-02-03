@@ -18,22 +18,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(52)]
-    public class TemplePrisoners : BaseObjectScript
-    {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            attachee.TurnTowards(triggerer);
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
-        {
-            attachee.RunOff();
-            return RunDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(52)]
+public class TemplePrisoners : BaseObjectScript
+{
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        attachee.TurnTowards(triggerer);
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        attachee.RunOff();
+        return RunDefault;
+    }
+
 }

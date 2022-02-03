@@ -17,90 +17,89 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(173)]
+public class Stcuthbert : BaseObjectScript
 {
-    [ObjectScript(173)]
-    public class Stcuthbert : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(328, true);
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(328, true);
-            if ((!GameSystems.Combat.IsCombatActive()))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
-                    {
-                        DetachScript();
+                    DetachScript();
 
-                        obj.BeginDialog(attachee, 1);
-                        return RunDefault;
-                    }
-
+                    obj.BeginDialog(attachee, 1);
+                    return RunDefault;
                 }
 
             }
 
-            return RunDefault;
         }
-        public static bool switch_to_iuz(GameObject cuthbert, GameObject pc, int line)
-        {
-            var iuz = Utilities.find_npc_near(cuthbert, 8042);
 
-            if ((iuz != null))
+        return RunDefault;
+    }
+    public static bool switch_to_iuz(GameObject cuthbert, GameObject pc, int line)
+    {
+        var iuz = Utilities.find_npc_near(cuthbert, 8042);
+
+        if ((iuz != null))
+        {
+            pc.BeginDialog(iuz, line);
+            iuz.TurnTowards(cuthbert);
+            cuthbert.TurnTowards(iuz);
+        }
+        else
+        {
+            turn_off_gods(cuthbert, pc);
+        }
+
+        return SkipDefault;
+    }
+    public static bool cuthbert_raise_good(GameObject cuthbert, GameObject pc)
+    {
+        foreach (var obj in GameSystems.Party.PartyMembers)
+        {
+            if ((obj.GetStat(Stat.hp_current) <= -10))
             {
-                pc.BeginDialog(iuz, line);
-                iuz.TurnTowards(cuthbert);
-                cuthbert.TurnTowards(iuz);
+                obj.Resurrect(ResurrectionType.CuthbertResurrection, 0);
             }
             else
             {
-                turn_off_gods(cuthbert, pc);
+                var dice = Dice.Parse("1d10+1000");
+
+                obj.Heal(null, dice);
+                obj.HealSubdual(null, dice);
             }
 
-            return SkipDefault;
-        }
-        public static bool cuthbert_raise_good(GameObject cuthbert, GameObject pc)
-        {
-            foreach (var obj in GameSystems.Party.PartyMembers)
-            {
-                if ((obj.GetStat(Stat.hp_current) <= -10))
-                {
-                    obj.Resurrect(ResurrectionType.CuthbertResurrection, 0);
-                }
-                else
-                {
-                    var dice = Dice.Parse("1d10+1000");
-
-                    obj.Heal(null, dice);
-                    obj.HealSubdual(null, dice);
-                }
-
-            }
-
-            return SkipDefault;
-        }
-        public static bool turn_off_gods(GameObject cuthbert, GameObject pc)
-        {
-            cuthbert.RemoveFromInitiative();
-            cuthbert.SetObjectFlag(ObjectFlag.OFF);
-            var iuz = Utilities.find_npc_near(cuthbert, 8042);
-
-            if ((iuz != null))
-            {
-                iuz.RemoveFromInitiative();
-                iuz.SetObjectFlag(ObjectFlag.OFF);
-            }
-
-            return SkipDefault;
         }
 
-
+        return SkipDefault;
     }
+    public static bool turn_off_gods(GameObject cuthbert, GameObject pc)
+    {
+        cuthbert.RemoveFromInitiative();
+        cuthbert.SetObjectFlag(ObjectFlag.OFF);
+        var iuz = Utilities.find_npc_near(cuthbert, 8042);
+
+        if ((iuz != null))
+        {
+            iuz.RemoveFromInitiative();
+            iuz.SetObjectFlag(ObjectFlag.OFF);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

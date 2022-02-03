@@ -18,17 +18,16 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(259)]
-    public class MarkMapMoathouse : BaseObjectScript
-    {
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
-        {
-            StoryState = 1;
-            MakeAreaKnown(2);
-            return RunDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(259)]
+public class MarkMapMoathouse : BaseObjectScript
+{
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
+    {
+        StoryState = 1;
+        MakeAreaKnown(2);
+        return RunDefault;
     }
+
 }

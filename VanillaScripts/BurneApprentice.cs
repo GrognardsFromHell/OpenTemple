@@ -17,36 +17,35 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(262)]
+public class BurneApprentice : BaseObjectScript
 {
-    [ObjectScript(262)]
-    public class BurneApprentice : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public static bool destroy_orb(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(326, true);
-            StartTimer(345600000, () => return_Zuggtmoy(attachee, triggerer));
-            return RunDefault;
-        }
-        public static bool play_effect(GameObject attachee, GameObject triggerer)
-        {
-            AttachParticles("orb-destroy", attachee);
-            return RunDefault;
-        }
-        public static bool return_Zuggtmoy(GameObject attachee, GameObject triggerer)
-        {
-            Fade(0, 0, 301, 0);
-            Utilities.set_end_slides(attachee, triggerer);
-            GameSystems.Movies.MovieQueuePlayAndEndGame();
-            return SkipDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public static bool destroy_orb(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(326, true);
+        StartTimer(345600000, () => return_Zuggtmoy(attachee, triggerer));
+        return RunDefault;
+    }
+    public static bool play_effect(GameObject attachee, GameObject triggerer)
+    {
+        AttachParticles("orb-destroy", attachee);
+        return RunDefault;
+    }
+    public static bool return_Zuggtmoy(GameObject attachee, GameObject triggerer)
+    {
+        Fade(0, 0, 301, 0);
+        Utilities.set_end_slides(attachee, triggerer);
+        GameSystems.Movies.MovieQueuePlayAndEndGame();
+        return SkipDefault;
+    }
+
+
 }

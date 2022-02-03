@@ -17,50 +17,49 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(604)]
+public class GlabrezuSummonQuasits : BaseSpellScript
 {
-    [SpellScript(604)]
-    public class GlabrezuSummonQuasits : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Glabrezu Summon Quasits OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Glabrezu Summon Quasits OnSpellEffect");
-            spell.duration = 1 * spell.casterLevel;
-
-            var dice = Dice.D4;
-
-            var num_quasits = dice.Roll();
-
-            var quasit_proto_id = 14110;
-
-            var i = 0;
-
-            while (i < num_quasits)
-            {
-                spell.SummonMonsters(true, quasit_proto_id);
-                i = i + 1;
-
-            }
-
-            spell.EndSpell();
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Glabrezu Summon Quasits OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Glabrezu Summon Quasits OnEndSpellCast");
-        }
-
-
+        Logger.Info("Glabrezu Summon Quasits OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-conjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Glabrezu Summon Quasits OnSpellEffect");
+        spell.duration = 1 * spell.casterLevel;
+
+        var dice = Dice.D4;
+
+        var num_quasits = dice.Roll();
+
+        var quasit_proto_id = 14110;
+
+        var i = 0;
+
+        while (i < num_quasits)
+        {
+            spell.SummonMonsters(true, quasit_proto_id);
+            i = i + 1;
+
+        }
+
+        spell.EndSpell();
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Glabrezu Summon Quasits OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Glabrezu Summon Quasits OnEndSpellCast");
+    }
+
+
 }

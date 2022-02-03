@@ -18,28 +18,27 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(348)]
+public class PlanarAlly : BaseSpellScript
 {
-    [SpellScript(348)]
-    public class PlanarAlly : BaseSpellScript
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            spell.duration = 10 * spell.casterLevel;
-            var selection = PlanarAllies.choose_allies(spell.caster, 4, 12, 2);
-            SpawnParticles("sp-Summon Monster IV", spell.aoeCenter);
-            foreach (var n in selection)
-            {
-                spell.SummonMonsters(true, n);
-            }
-
-            spell.caster.AwardExperience(-250);
-            spell.EndSpell();
-        }
-
+        AttachParticles("sp-conjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        spell.duration = 10 * spell.casterLevel;
+        var selection = PlanarAllies.choose_allies(spell.caster, 4, 12, 2);
+        SpawnParticles("sp-Summon Monster IV", spell.aoeCenter);
+        foreach (var n in selection)
+        {
+            spell.SummonMonsters(true, n);
+        }
+
+        spell.caster.AwardExperience(-250);
+        spell.EndSpell();
+    }
+
 }

@@ -19,62 +19,61 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(137)]
+public class ManAtArmsPrisoner2Dialog : ManAtArmsPrisoner2, IDialogScript
 {
-    [DialogScript(137)]
-    public class ManAtArmsPrisoner2Dialog : ManAtArmsPrisoner2, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 71:
-                case 72:
-                case 73:
-                case 74:
-                case 131:
-                case 132:
-                    originalScript = "(npc.leader_get() == OBJ_HANDLE_NULL)";
-                    return (npc.GetLeader() == null);
-                case 75:
-                case 76:
-                    originalScript = "(npc.leader_get() != OBJ_HANDLE_NULL)";
-                    return (npc.GetLeader() != null);
-                case 133:
-                case 134:
-                    originalScript = "(npc.leader_get() != OBJ_HANDLE_NULL) and game.global_flags[138] == 1";
-                    return (npc.GetLeader() != null) && GetGlobalFlag(138);
-                case 135:
-                case 136:
-                    originalScript = "(npc.leader_get() != OBJ_HANDLE_NULL) and game.global_flags[138] == 0";
-                    return (npc.GetLeader() != null) && !GetGlobalFlag(138);
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 71:
+            case 72:
+            case 73:
+            case 74:
+            case 131:
+            case 132:
+                originalScript = "(npc.leader_get() == OBJ_HANDLE_NULL)";
+                return (npc.GetLeader() == null);
+            case 75:
+            case 76:
+                originalScript = "(npc.leader_get() != OBJ_HANDLE_NULL)";
+                return (npc.GetLeader() != null);
+            case 133:
+            case 134:
+                originalScript = "(npc.leader_get() != OBJ_HANDLE_NULL) and game.global_flags[138] == 1";
+                return (npc.GetLeader() != null) && GetGlobalFlag(138);
+            case 135:
+            case 136:
+                originalScript = "(npc.leader_get() != OBJ_HANDLE_NULL) and game.global_flags[138] == 0";
+                return (npc.GetLeader() != null) && !GetGlobalFlag(138);
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 151:
-                case 152:
-                    originalScript = "pc.follower_remove(npc)";
-                    pc.RemoveFollower(npc);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 151:
+            case 152:
+                originalScript = "pc.follower_remove(npc)";
+                pc.RemoveFollower(npc);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

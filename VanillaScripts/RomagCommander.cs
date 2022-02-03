@@ -17,26 +17,25 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(120)]
+public class RomagCommander : BaseObjectScript
 {
-    [ObjectScript(120)]
-    public class RomagCommander : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 50);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 50);
         }
 
-
+        return SkipDefault;
     }
+
+
 }

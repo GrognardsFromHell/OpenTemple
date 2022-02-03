@@ -18,117 +18,116 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(201)]
+public class Ikian : BaseObjectScript
 {
-    [ObjectScript(201)]
-    public class Ikian : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
 
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
-                    {
-                        obj.BeginDialog(attachee, 1);
-                        DetachScript();
-                        return RunDefault;
-                    }
-
+                    obj.BeginDialog(attachee, 1);
+                    DetachScript();
+                    return RunDefault;
                 }
 
             }
 
-            return RunDefault;
         }
-        public static bool all_run_off(GameObject attachee, GameObject triggerer)
+
+        return RunDefault;
+    }
+    public static bool all_run_off(GameObject attachee, GameObject triggerer)
+    {
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+        {
+            if ((obj.GetLeader() == null && !((SelectedPartyLeader.GetPartyMembers()).Contains(obj))))
+            {
+                obj.RunOff();
+            }
+
+        }
+
+        return RunDefault;
+    }
+    public static bool buff_npc(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(761, GetGlobalVar(761) + 1);
+        if ((GetGlobalVar(761) == 1))
+        {
+            attachee.CastSpell(WellKnownSpells.ShieldOfFaith, attachee);
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+            {
+                if ((obj.GetNameId() == 14333 && obj.GetLeader() == null))
+                {
+                    obj.CastSpell(WellKnownSpells.MageArmor, obj);
+                }
+
+                if ((obj.GetNameId() == 14336 && obj.GetLeader() == null))
+                {
+                    obj.CastSpell(WellKnownSpells.ResistElements, obj);
+                }
+
+            }
+
+        }
+
+        if ((GetGlobalVar(761) == 2))
+        {
+            attachee.CastSpell(WellKnownSpells.OwlsWisdom, attachee);
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+            {
+                if ((obj.GetNameId() == 14333 && obj.GetLeader() == null))
+                {
+                    obj.CastSpell(WellKnownSpells.MirrorImage, obj);
+                }
+
+            }
+
+        }
+
+        if ((GetGlobalVar(761) >= 3))
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
-                if ((obj.GetLeader() == null && !((SelectedPartyLeader.GetPartyMembers()).Contains(obj))))
+                if ((obj.GetNameId() == 14333 && obj.GetLeader() == null))
                 {
-                    obj.RunOff();
+                    obj.CastSpell(WellKnownSpells.Shield, obj);
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static bool buff_npc(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalVar(761, GetGlobalVar(761) + 1);
-            if ((GetGlobalVar(761) == 1))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
-                attachee.CastSpell(WellKnownSpells.ShieldOfFaith, attachee);
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+                if ((obj.GetNameId() == 14334 && obj.GetLeader() == null))
                 {
-                    if ((obj.GetNameId() == 14333 && obj.GetLeader() == null))
-                    {
-                        obj.CastSpell(WellKnownSpells.MageArmor, obj);
-                    }
-
-                    if ((obj.GetNameId() == 14336 && obj.GetLeader() == null))
-                    {
-                        obj.CastSpell(WellKnownSpells.ResistElements, obj);
-                    }
-
+                    attachee.CastSpell(WellKnownSpells.EndureElements, obj);
                 }
 
             }
 
-            if ((GetGlobalVar(761) == 2))
-            {
-                attachee.CastSpell(WellKnownSpells.OwlsWisdom, attachee);
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-                {
-                    if ((obj.GetNameId() == 14333 && obj.GetLeader() == null))
-                    {
-                        obj.CastSpell(WellKnownSpells.MirrorImage, obj);
-                    }
-
-                }
-
-            }
-
-            if ((GetGlobalVar(761) >= 3))
-            {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-                {
-                    if ((obj.GetNameId() == 14333 && obj.GetLeader() == null))
-                    {
-                        obj.CastSpell(WellKnownSpells.Shield, obj);
-                    }
-
-                }
-
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-                {
-                    if ((obj.GetNameId() == 14334 && obj.GetLeader() == null))
-                    {
-                        attachee.CastSpell(WellKnownSpells.EndureElements, obj);
-                    }
-
-                }
-
-            }
-
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

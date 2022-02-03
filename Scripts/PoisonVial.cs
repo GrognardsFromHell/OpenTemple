@@ -18,24 +18,23 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(266)]
-    public class PoisonVial : BaseObjectScript
-    {
-        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
-        {
-            if ((triggerer.GetNameId() == 8047))
-            {
-                SetGlobalFlag(113, true);
-            }
-            else
-            {
-                SetGlobalFlag(113, false);
-            }
+namespace Scripts;
 
-            return RunDefault;
+[ObjectScript(266)]
+public class PoisonVial : BaseObjectScript
+{
+    public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
+    {
+        if ((triggerer.GetNameId() == 8047))
+        {
+            SetGlobalFlag(113, true);
+        }
+        else
+        {
+            SetGlobalFlag(113, false);
         }
 
+        return RunDefault;
     }
+
 }

@@ -1,14 +1,13 @@
-namespace OpenTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials;
+
+public enum ComparisonFunc
 {
-    public enum ComparisonFunc
-    {
-        Never,
-        Less,
-        Equal,
-        LessEqual,
-        Greater,
-        NotEqual,
-        GreaterEqual,
-        Always
-    }
+    Never,
+    Less,
+    Equal,
+    LessEqual,
+    Greater,
+    NotEqual,
+    GreaterEqual,
+    Always
 }

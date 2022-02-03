@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.Particles.Spec
+namespace OpenTemple.Core.Particles.Spec;
+
+public enum PartSysParticleSpace
 {
-    public enum PartSysParticleSpace
-    {
-        World,
-        SameAsEmitter,
-        EmitterYpr
-    }
+    World,
+    SameAsEmitter,
+    EmitterYpr
 }

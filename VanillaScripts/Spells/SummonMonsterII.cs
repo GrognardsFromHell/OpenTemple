@@ -17,38 +17,37 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(468)]
+public class SummonMonsterII : BaseSpellScript
 {
-    [SpellScript(468)]
-    public class SummonMonsterII : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Summon Monster II OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Summon Monster II OnSpellEffect");
-            spell.duration = 1 * spell.casterLevel;
-
-            var monster_proto_id = spell.GetMenuArg(RadialMenuParam.MinSetting);
-
-            spell.SummonMonsters(true, monster_proto_id);
-            spell.EndSpell();
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Summon Monster II OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Summon Monster II OnEndSpellCast");
-        }
-
-
+        Logger.Info("Summon Monster II OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-conjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Summon Monster II OnSpellEffect");
+        spell.duration = 1 * spell.casterLevel;
+
+        var monster_proto_id = spell.GetMenuArg(RadialMenuParam.MinSetting);
+
+        spell.SummonMonsters(true, monster_proto_id);
+        spell.EndSpell();
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Summon Monster II OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Summon Monster II OnEndSpellCast");
+    }
+
+
 }

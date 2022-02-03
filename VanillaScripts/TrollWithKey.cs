@@ -17,87 +17,86 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(211)]
+public class TrollWithKey : BaseObjectScript
 {
-    [ObjectScript(211)]
-    public class TrollWithKey : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((triggerer.HasEquippedByName(3005)))
         {
-            if ((triggerer.HasEquippedByName(3005)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-                return SkipDefault;
-            }
-            else if ((triggerer.HasEquippedByName(3021)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-                return SkipDefault;
-            }
-            else if ((triggerer.HasEquippedByName(3020)))
-            {
-                triggerer.BeginDialog(attachee, 40);
-                return SkipDefault;
-            }
-
-            triggerer.BeginDialog(attachee, 30);
+            triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else if ((triggerer.HasEquippedByName(3021)))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            triggerer.BeginDialog(attachee, 1);
+            return SkipDefault;
+        }
+        else if ((triggerer.HasEquippedByName(3020)))
+        {
+            triggerer.BeginDialog(attachee, 40);
+            return SkipDefault;
+        }
+
+        triggerer.BeginDialog(attachee, 30);
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            GameObject first_pc_seen = null;
+
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                GameObject first_pc_seen = null;
-
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    if ((first_pc_seen == null))
                     {
-                        if ((first_pc_seen == null))
-                        {
-                            first_pc_seen = obj;
+                        first_pc_seen = obj;
 
-                        }
+                    }
 
-                        if ((obj.HasEquippedByName(3005)))
-                        {
-                            obj.BeginDialog(attachee, 1);
-                            DetachScript();
+                    if ((obj.HasEquippedByName(3005)))
+                    {
+                        obj.BeginDialog(attachee, 1);
+                        DetachScript();
 
-                            return RunDefault;
-                        }
-                        else if ((obj.HasEquippedByName(3021)))
-                        {
-                            obj.BeginDialog(attachee, 1);
-                            DetachScript();
+                        return RunDefault;
+                    }
+                    else if ((obj.HasEquippedByName(3021)))
+                    {
+                        obj.BeginDialog(attachee, 1);
+                        DetachScript();
 
-                            return RunDefault;
-                        }
-                        else if ((obj.HasEquippedByName(3020)))
-                        {
-                            obj.BeginDialog(attachee, 40);
-                            DetachScript();
+                        return RunDefault;
+                    }
+                    else if ((obj.HasEquippedByName(3020)))
+                    {
+                        obj.BeginDialog(attachee, 40);
+                        DetachScript();
 
-                            return RunDefault;
-                        }
-
+                        return RunDefault;
                     }
 
                 }
 
-                if ((first_pc_seen != null))
-                {
-                    first_pc_seen.BeginDialog(attachee, 30);
-                    DetachScript();
+            }
 
-                }
+            if ((first_pc_seen != null))
+            {
+                first_pc_seen.BeginDialog(attachee, 30);
+                DetachScript();
 
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

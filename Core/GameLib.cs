@@ -13,45 +13,45 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Script.Hooks;
 using OpenTemple.Core.Ui;
 
-namespace OpenTemple.Core
+namespace OpenTemple.Core;
+
+public class GameLib
 {
-    public class GameLib
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+    [TempleDllLocation(0x103072B8)]
+    private bool _ironmanGame = false;
+
+    [TempleDllLocation(0x10306F44)]
+    private static int _ironmanSaveSlot;
+
+    [TempleDllLocation(0x103072C0)]
+    private string _ironmanSaveName;
+
+    [TempleDllLocation(0x10002E20)]
+    [TempleDllLocation(0x103072D4)]
+    public bool IsLoading { get; private set; }
+
+    [TempleDllLocation(0x102abee0)]
+    [TempleDllLocation(0x10002810)]
+    public string ModuleName { get; set; }
+
+    [TempleDllLocation(0x10003860)]
+    public bool IsIronmanGame
     {
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+        get => _ironmanGame;
+        set => _ironmanGame = value;
+    }
 
-        [TempleDllLocation(0x103072B8)]
-        private bool _ironmanGame = false;
+    [TempleDllLocation(0x10003870)]
+    public string IronmanSaveName => _ironmanSaveName;
 
-        [TempleDllLocation(0x10306F44)]
-        private static int _ironmanSaveSlot;
+    [TempleDllLocation(0x10004b70)]
+    public void SetIronmanSaveName(string name)
+    {
+        _ironmanSaveName = name;
 
-        [TempleDllLocation(0x103072C0)]
-        private string _ironmanSaveName;
-
-        [TempleDllLocation(0x10002E20)]
-        [TempleDllLocation(0x103072D4)]
-        public bool IsLoading { get; private set; }
-
-        [TempleDllLocation(0x102abee0)]
-        [TempleDllLocation(0x10002810)]
-        public string ModuleName { get; set; }
-
-        [TempleDllLocation(0x10003860)]
-        public bool IsIronmanGame
-        {
-            get => _ironmanGame;
-            set => _ironmanGame = value;
-        }
-
-        [TempleDllLocation(0x10003870)]
-        public string IronmanSaveName => _ironmanSaveName;
-
-        [TempleDllLocation(0x10004b70)]
-        public void SetIronmanSaveName(string name)
-        {
-            _ironmanSaveName = name;
-
-            throw new NotImplementedException();
+        throw new NotImplementedException();
 //            GsiListCreate /*0x10003070*/(&gsiList);
 //            GsiListSort /*0x100049f0*/(&gsiList, 1, 0);
 //            v1 = gsiList.count;
@@ -69,173 +69,173 @@ namespace OpenTemple.Core
 //            }
 //
 //            GameSaveInfoClear /*0x10003140*/(&gsiList);
-        }
+    }
 
-        [TempleDllLocation(0x10004870)]
-        public void IronmanSave()
+    [TempleDllLocation(0x10004870)]
+    public void IronmanSave()
+    {
+        if (_ironmanGame && _ironmanSaveName != null)
         {
-            if (_ironmanGame && _ironmanSaveName != null)
-            {
-                var filename = Path.Join(Globals.GameFolders.SaveFolder, $"iron{_ironmanSaveSlot:0000}");
-                SaveGame(filename, _ironmanSaveName);
-            }
+            var filename = Path.Join(Globals.GameFolders.SaveFolder, $"iron{_ironmanSaveSlot:0000}");
+            SaveGame(filename, _ironmanSaveName);
         }
+    }
 
-        [TempleDllLocation(0x100048d0)]
-        public bool KillIronmanSave()
+    [TempleDllLocation(0x100048d0)]
+    public bool KillIronmanSave()
+    {
+        if (_ironmanGame && _ironmanSaveName != null)
         {
-            if (_ironmanGame && _ironmanSaveName != null)
+            var save = GetSaveGames().Find(s => s.Type == SaveGameType.IronMan
+                                                && s.Name == _ironmanSaveName);
+            if (save != null)
             {
-                var save = GetSaveGames().Find(s => s.Type == SaveGameType.IronMan
-                                                    && s.Name == _ironmanSaveName);
-                if (save != null)
+                Logger.Info("Deleting Ironman savegame {0} upon total party kill.");
+                if (DeleteSave(save))
                 {
-                    Logger.Info("Deleting Ironman savegame {0} upon total party kill.");
-                    if (DeleteSave(save))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
-                else
-                {
-                    Logger.Warn("Failed to find irongame save game '{0}'", _ironmanSaveName);
-                }
-            }
-
-            return false;
-        }
-
-        // Makes a savegame.
-        [TempleDllLocation(0x100042c0)]
-        public void SaveGame(string filename, string displayName)
-        {
-            Logger.Info("Saving game to {0} (Display: {1})", filename, displayName);
-
-            var sw = Stopwatch.StartNew();
-
-            var currentSaveFolder = Globals.GameFolders.CurrentSaveFolder;
-
-            if (!Directory.Exists(currentSaveFolder))
-            {
-                throw new InvalidOperationException("Cannot save the game because no current game folder exists: "
-                                                    + currentSaveFolder);
-            }
-
-            // Capture game system state
-            var saveGameFile = new SaveGameFile();
-            saveGameFile.GameState = new SavedGameState
-            {
-                IsIronmanSave = IsIronmanGame,
-                IronmanSaveName = _ironmanSaveName,
-                IronmanSlotNumber = _ironmanSaveSlot
-            };
-
-            GameSystems.SaveGameState(saveGameFile.GameState);
-
-            saveGameFile.UiState = new SavedUiState();
-            UiSystems.SaveGameState(saveGameFile.UiState);
-
-            // Allow mods to load their own data from the savegame
-            var saveGameHook = GameSystems.Script.GetHook<ISaveGameHook>();
-            saveGameHook?.OnAfterSave(Globals.GameFolders.CurrentSaveFolder, saveGameFile);
-
-            saveGameFile.Save(filename, currentSaveFolder);
-
-            var saveInfo = new SaveGameInfo();
-            saveInfo.Name = displayName;
-            saveInfo.ModuleName = "ToEE";
-            saveInfo.GameTime = GameSystems.TimeEvent.GameTime.ToGameTime();
-            saveInfo.MapId = GameSystems.Map.GetCurrentMapId();
-            var leader = GameSystems.Party.GetLeader();
-            if (leader != null)
-            {
-                saveInfo.LeaderName = GameSystems.MapObject.GetDisplayName(leader);
-                saveInfo.LeaderPortrait = leader.GetInt32(obj_f.critter_portrait);
-                saveInfo.LeaderLevel = leader.GetStat(Stat.level);
-                saveInfo.LeaderLoc = leader.GetLocation();
             }
             else
             {
-                saveInfo.LeaderName = "";
+                Logger.Warn("Failed to find irongame save game '{0}'", _ironmanSaveName);
             }
-            SaveGameInfoWriter.Write(filename + displayName + ".gsi", saveInfo);
-
-            GameViews.Primary?.TakeScreenshot(Path.Join(filename + "l.jpg"), new Size(256, 192));
-            GameViews.Primary?.TakeScreenshot(Path.Join(filename + "s.jpg"), new Size(64, 48));
-
-            Logger.Info("Saved in {0}ms", sw.ElapsedMilliseconds);
-
         }
 
-        [TempleDllLocation(0x100028d0)]
-        public bool LoadGame(SaveGameInfo saveGame)
-        {
-            Logger.Debug("Loading savegame {0}", saveGame.Path);
+        return false;
+    }
 
-            IsLoading = true;
+    // Makes a savegame.
+    [TempleDllLocation(0x100042c0)]
+    public void SaveGame(string filename, string displayName)
+    {
+        Logger.Info("Saving game to {0} (Display: {1})", filename, displayName);
+
+        var sw = Stopwatch.StartNew();
+
+        var currentSaveFolder = Globals.GameFolders.CurrentSaveFolder;
+
+        if (!Directory.Exists(currentSaveFolder))
+        {
+            throw new InvalidOperationException("Cannot save the game because no current game folder exists: "
+                                                + currentSaveFolder);
+        }
+
+        // Capture game system state
+        var saveGameFile = new SaveGameFile();
+        saveGameFile.GameState = new SavedGameState
+        {
+            IsIronmanSave = IsIronmanGame,
+            IronmanSaveName = _ironmanSaveName,
+            IronmanSlotNumber = _ironmanSaveSlot
+        };
+
+        GameSystems.SaveGameState(saveGameFile.GameState);
+
+        saveGameFile.UiState = new SavedUiState();
+        UiSystems.SaveGameState(saveGameFile.UiState);
+
+        // Allow mods to load their own data from the savegame
+        var saveGameHook = GameSystems.Script.GetHook<ISaveGameHook>();
+        saveGameHook?.OnAfterSave(Globals.GameFolders.CurrentSaveFolder, saveGameFile);
+
+        saveGameFile.Save(filename, currentSaveFolder);
+
+        var saveInfo = new SaveGameInfo();
+        saveInfo.Name = displayName;
+        saveInfo.ModuleName = "ToEE";
+        saveInfo.GameTime = GameSystems.TimeEvent.GameTime.ToGameTime();
+        saveInfo.MapId = GameSystems.Map.GetCurrentMapId();
+        var leader = GameSystems.Party.GetLeader();
+        if (leader != null)
+        {
+            saveInfo.LeaderName = GameSystems.MapObject.GetDisplayName(leader);
+            saveInfo.LeaderPortrait = leader.GetInt32(obj_f.critter_portrait);
+            saveInfo.LeaderLevel = leader.GetStat(Stat.level);
+            saveInfo.LeaderLoc = leader.GetLocation();
+        }
+        else
+        {
+            saveInfo.LeaderName = "";
+        }
+        SaveGameInfoWriter.Write(filename + displayName + ".gsi", saveInfo);
+
+        GameViews.Primary?.TakeScreenshot(Path.Join(filename + "l.jpg"), new Size(256, 192));
+        GameViews.Primary?.TakeScreenshot(Path.Join(filename + "s.jpg"), new Size(64, 48));
+
+        Logger.Info("Saved in {0}ms", sw.ElapsedMilliseconds);
+
+    }
+
+    [TempleDllLocation(0x100028d0)]
+    public bool LoadGame(SaveGameInfo saveGame)
+    {
+        Logger.Debug("Loading savegame {0}", saveGame.Path);
+
+        IsLoading = true;
+
+        try
+        {
+            Stub.TODO("Call to old main menu function here"); // TODO 0x1009a590
+
+            var currentSaveFolder = Globals.GameFolders.CurrentSaveFolder;
+            Logger.Debug("Removing current save directory {0}", currentSaveFolder);
+            try
+            {
+                Directory.Delete(currentSaveFolder, true);
+            }
+            catch (IOException e)
+            {
+                Logger.Error("Error clearing folder {0}: {1}", currentSaveFolder, e);
+                return false;
+            }
 
             try
             {
-                Stub.TODO("Call to old main menu function here"); // TODO 0x1009a590
+                Directory.CreateDirectory(currentSaveFolder);
+            }
+            catch (IOException e)
+            {
+                Logger.Error("Error re-creating folder {0}: {1}", currentSaveFolder, e);
+                return false;
+            }
 
-                var currentSaveFolder = Globals.GameFolders.CurrentSaveFolder;
-                Logger.Debug("Removing current save directory {0}", currentSaveFolder);
-                try
-                {
-                    Directory.Delete(currentSaveFolder, true);
-                }
-                catch (IOException e)
-                {
-                    Logger.Error("Error clearing folder {0}: {1}", currentSaveFolder, e);
-                    return false;
-                }
+            Logger.Info("Restoring save archive...");
 
-                try
-                {
-                    Directory.CreateDirectory(currentSaveFolder);
-                }
-                catch (IOException e)
-                {
-                    Logger.Error("Error re-creating folder {0}: {1}", currentSaveFolder, e);
-                    return false;
-                }
+            SaveGameFile saveGameFile;
+            try
+            {
+                saveGameFile = SaveGameFile.Load(saveGame.BasePath, currentSaveFolder);
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Error loading save game {0}: {1}", saveGame.Path, e);
+                return false;
+            }
 
-                Logger.Info("Restoring save archive...");
+            var gameState = saveGameFile.GameState;
 
-                SaveGameFile saveGameFile;
-                try
-                {
-                    saveGameFile = SaveGameFile.Load(saveGame.BasePath, currentSaveFolder);
-                }
-                catch (Exception e)
-                {
-                    Logger.Error("Error loading save game {0}: {1}", saveGame.Path, e);
-                    return false;
-                }
+            _ironmanGame = gameState.IsIronmanSave;
+            _ironmanSaveSlot = gameState.IronmanSlotNumber;
+            _ironmanSaveName = gameState.IronmanSaveName;
 
-                var gameState = saveGameFile.GameState;
+            Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
 
-                _ironmanGame = gameState.IsIronmanSave;
-                _ironmanSaveSlot = gameState.IronmanSlotNumber;
-                _ironmanSaveName = gameState.IronmanSaveName;
+            Logger.Info("Loading game state from save game.");
+            GameSystems.LoadGameState(saveGameFile.GameState);
 
-                Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
+            Logger.Info("Loading UI data from save game.");
+            UiSystems.LoadGameState(saveGameFile.UiState);
 
-                Logger.Info("Loading game state from save game.");
-                GameSystems.LoadGameState(saveGameFile.GameState);
+            Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
 
-                Logger.Info("Loading UI data from save game.");
-                UiSystems.LoadGameState(saveGameFile.UiState);
+            Logger.Info("Completed loading of save game");
 
-                Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
+            UiSystems.Party.Update();
 
-                Logger.Info("Completed loading of save game");
-
-                UiSystems.Party.Update();
-
-                // Allow mods to load their own data from the savegame
-                var saveGameHook = GameSystems.Script.GetHook<ISaveGameHook>();
-                saveGameHook?.OnAfterLoad(currentSaveFolder, saveGameFile);
+            // Allow mods to load their own data from the savegame
+            var saveGameHook = GameSystems.Script.GetHook<ISaveGameHook>();
+            saveGameHook?.OnAfterLoad(currentSaveFolder, saveGameFile);
 
 // todo              if (temple.Dll.GetInstance().HasCo8Hooks())
 //               {
@@ -253,151 +253,150 @@ namespace OpenTemple.Core
 //                       modSupport.SetNCGameFlag(false);
 //                   }
 //               }
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-
-            return true;
         }
-
-        [TempleDllLocation(0x10002d30)]
-        public bool DeleteSave(SaveGameInfo saveGame)
+        finally
         {
-            Logger.Info("Deleting save {0}", saveGame.Path);
-
-            static bool TryDelete(string path)
-            {
-                try
-                {
-                    Logger.Debug("Deleting {0}", path);
-                    File.Delete(path);
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Logger.Error("Failed to delete save file {0}: {1}", path, e);
-                    return false;
-                }
-            }
-
-            var success = TryDelete(saveGame.Path);
-            if (saveGame.LargeScreenshotPath != null && !TryDelete(saveGame.LargeScreenshotPath))
-            {
-                success = false;
-            }
-
-            if (saveGame.SmallScreenshotPath != null && !TryDelete(saveGame.SmallScreenshotPath))
-            {
-                success = false;
-            }
-
-            if (!TryDelete(saveGame.BasePath + ".tfaf"))
-            {
-                success = false;
-            }
-
-            if (!TryDelete(saveGame.BasePath + ".tfai"))
-            {
-                success = false;
-            }
-
-            return success;
+            IsLoading = false;
         }
 
-        [TempleDllLocation(0x10001db0)]
-        public void Reset()
-        {
-            GameSystems.ResetGame();
-
-            // TODO: Not fully implemented
-            _ironmanSaveName = null;
-            _ironmanGame = false;
-        }
-
-        [TempleDllLocation(0x10002e50)]
-        public bool IsAutosaveBetweenMaps => Globals.Config.AutoSaveBetweenMaps;
-
-        [TempleDllLocation(0x10004990)]
-        public void MakeAutoSave()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10004930)]
-        public void QuickSave()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10005680)]
-        public void QuickLoad()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10002f00)]
-        public List<SaveGameInfo> GetSaveGames()
-        {
-            var result = new List<SaveGameInfo>();
-
-            foreach (var path in Directory.EnumerateFileSystemEntries(Globals.GameFolders.SaveFolder, "*.gsi"))
-            {
-                var info = SaveGameInfoReader.Read(path);
-                if (info != null)
-                {
-                    result.Add(info);
-                }
-            }
-
-            return result;
-        }
+        return true;
     }
 
-    public enum SaveGameOrder
+    [TempleDllLocation(0x10002d30)]
+    public bool DeleteSave(SaveGameInfo saveGame)
     {
-        LastModifiedAutoFirst,
-        LastModified,
-        SlotNumberDescending
+        Logger.Info("Deleting save {0}", saveGame.Path);
+
+        static bool TryDelete(string path)
+        {
+            try
+            {
+                Logger.Debug("Deleting {0}", path);
+                File.Delete(path);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Failed to delete save file {0}: {1}", path, e);
+                return false;
+            }
+        }
+
+        var success = TryDelete(saveGame.Path);
+        if (saveGame.LargeScreenshotPath != null && !TryDelete(saveGame.LargeScreenshotPath))
+        {
+            success = false;
+        }
+
+        if (saveGame.SmallScreenshotPath != null && !TryDelete(saveGame.SmallScreenshotPath))
+        {
+            success = false;
+        }
+
+        if (!TryDelete(saveGame.BasePath + ".tfaf"))
+        {
+            success = false;
+        }
+
+        if (!TryDelete(saveGame.BasePath + ".tfai"))
+        {
+            success = false;
+        }
+
+        return success;
     }
 
-    public static class SaveGameInfoExtensions
+    [TempleDllLocation(0x10001db0)]
+    public void Reset()
     {
-        private static readonly Comparison<SaveGameInfo> SlotComparison =
-            (a, b) => b.Slot.CompareTo(a.Slot);
+        GameSystems.ResetGame();
 
-        private static readonly Comparison<SaveGameInfo> LastModifiedComparison =
-            (a, b) => b.LastModified.CompareTo(a.LastModified);
+        // TODO: Not fully implemented
+        _ironmanSaveName = null;
+        _ironmanGame = false;
+    }
 
-        private static readonly Comparison<SaveGameInfo> TypeThenLastModifiedComparison =
-            (a, b) =>
-            {
-                if (a.Type != b.Type)
-                {
-                    return b.Type.CompareTo(a.Type);
-                }
+    [TempleDllLocation(0x10002e50)]
+    public bool IsAutosaveBetweenMaps => Globals.Config.AutoSaveBetweenMaps;
 
-                return b.LastModified.CompareTo(a.LastModified);
-            };
+    [TempleDllLocation(0x10004990)]
+    public void MakeAutoSave()
+    {
+        Stub.TODO();
+    }
 
-        [TempleDllLocation(0x100049f0)]
-        public static void Sort(this List<SaveGameInfo> saveGames, SaveGameOrder sortType)
+    [TempleDllLocation(0x10004930)]
+    public void QuickSave()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TempleDllLocation(0x10005680)]
+    public void QuickLoad()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TempleDllLocation(0x10002f00)]
+    public List<SaveGameInfo> GetSaveGames()
+    {
+        var result = new List<SaveGameInfo>();
+
+        foreach (var path in Directory.EnumerateFileSystemEntries(Globals.GameFolders.SaveFolder, "*.gsi"))
         {
-            switch (sortType)
+            var info = SaveGameInfoReader.Read(path);
+            if (info != null)
             {
-                case SaveGameOrder.LastModifiedAutoFirst:
-                    saveGames.Sort(TypeThenLastModifiedComparison);
-                    break;
-                case SaveGameOrder.LastModified:
-                    saveGames.Sort(LastModifiedComparison);
-                    break;
-                case SaveGameOrder.SlotNumberDescending:
-                    saveGames.Sort(SlotComparison);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(sortType), sortType, null);
+                result.Add(info);
             }
+        }
+
+        return result;
+    }
+}
+
+public enum SaveGameOrder
+{
+    LastModifiedAutoFirst,
+    LastModified,
+    SlotNumberDescending
+}
+
+public static class SaveGameInfoExtensions
+{
+    private static readonly Comparison<SaveGameInfo> SlotComparison =
+        (a, b) => b.Slot.CompareTo(a.Slot);
+
+    private static readonly Comparison<SaveGameInfo> LastModifiedComparison =
+        (a, b) => b.LastModified.CompareTo(a.LastModified);
+
+    private static readonly Comparison<SaveGameInfo> TypeThenLastModifiedComparison =
+        (a, b) =>
+        {
+            if (a.Type != b.Type)
+            {
+                return b.Type.CompareTo(a.Type);
+            }
+
+            return b.LastModified.CompareTo(a.LastModified);
+        };
+
+    [TempleDllLocation(0x100049f0)]
+    public static void Sort(this List<SaveGameInfo> saveGames, SaveGameOrder sortType)
+    {
+        switch (sortType)
+        {
+            case SaveGameOrder.LastModifiedAutoFirst:
+                saveGames.Sort(TypeThenLastModifiedComparison);
+                break;
+            case SaveGameOrder.LastModified:
+                saveGames.Sort(LastModifiedComparison);
+                break;
+            case SaveGameOrder.SlotNumberDescending:
+                saveGames.Sort(SlotComparison);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(sortType), sortType, null);
         }
     }
 }

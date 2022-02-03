@@ -18,34 +18,33 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
-{
-    [SpellScript(155)]
-    public class EntropicShield : BaseSpellScript
-    {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Entropic Shield OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-abjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("Entropic Shield OnSpellEffect");
-            spell.duration = 60 * spell.casterLevel;
-            var target = spell.Targets[0];
-            target.Object.AddCondition("sp-Entropic Shield", spell.spellId, spell.duration, 0);
-            target.ParticleSystem = AttachParticles("sp-Entropic Shield", spell.caster);
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("Entropic Shield OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Entropic Shield OnEndSpellCast");
-        }
+namespace Scripts.Spells;
 
+[SpellScript(155)]
+public class EntropicShield : BaseSpellScript
+{
+    public override void OnBeginSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Entropic Shield OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-abjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Entropic Shield OnSpellEffect");
+        spell.duration = 60 * spell.casterLevel;
+        var target = spell.Targets[0];
+        target.Object.AddCondition("sp-Entropic Shield", spell.spellId, spell.duration, 0);
+        target.ParticleSystem = AttachParticles("sp-Entropic Shield", spell.caster);
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Entropic Shield OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Entropic Shield OnEndSpellCast");
+    }
+
 }

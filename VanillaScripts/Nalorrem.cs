@@ -17,73 +17,72 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(135)]
+public class Nalorrem : BaseObjectScript
 {
-    [ObjectScript(135)]
-    public class Nalorrem : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(105)))
         {
-            if ((GetGlobalFlag(105)))
-            {
-                attachee.Attack(triggerer);
-            }
-            else if ((Utilities.find_npc_near(attachee, 8027) == null))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else if ((GetQuestState(46) == QuestState.Unknown))
-            {
-                triggerer.BeginDialog(attachee, 20);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 40);
-            }
+            attachee.Attack(triggerer);
+        }
+        else if ((Utilities.find_npc_near(attachee, 8027) == null))
+        {
+            triggerer.BeginDialog(attachee, 1);
+        }
+        else if ((GetQuestState(46) == QuestState.Unknown))
+        {
+            triggerer.BeginDialog(attachee, 20);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 40);
+        }
 
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(132, true);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(132, false);
+        return RunDefault;
+    }
+    public override bool OnWillKos(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GetGlobalFlag(105)))
+        {
             return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            SetGlobalFlag(132, true);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(132, false);
-            return RunDefault;
-        }
-        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GetGlobalFlag(105)))
-            {
-                return SkipDefault;
-            }
-            else
-            {
-                return RunDefault;
-            }
-
-        }
-        public static bool switch_dialog(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8027);
-
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
-        }
-
 
     }
+    public static bool switch_dialog(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8027);
+
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 1);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

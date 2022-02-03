@@ -17,20 +17,19 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(258)]
+public class MarkMapTemple : BaseObjectScript
 {
-    [ObjectScript(258)]
-    public class MarkMapTemple : BaseObjectScript
+
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
+        MakeAreaKnown(4);
+        StoryState = 4;
 
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
-        {
-            MakeAreaKnown(4);
-            StoryState = 4;
-
-            return RunDefault;
-        }
-
-
+        return RunDefault;
     }
+
+
 }

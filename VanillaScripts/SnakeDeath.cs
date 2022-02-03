@@ -17,18 +17,17 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(239)]
+public class SnakeDeath : BaseObjectScript
 {
-    [ObjectScript(239)]
-    public class SnakeDeath : BaseObjectScript
+
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(117, true);
-            return RunDefault;
-        }
-
-
+        SetGlobalFlag(117, true);
+        return RunDefault;
     }
+
+
 }

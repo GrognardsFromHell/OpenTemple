@@ -17,31 +17,30 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(265)]
+public class RainbowRock : BaseObjectScript
 {
-    [ObjectScript(265)]
-    public class RainbowRock : BaseObjectScript
+
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        if ((GetQuestState(27) == QuestState.Mentioned) || (GetQuestState(27) == QuestState.Accepted))
         {
-            if ((GetQuestState(27) == QuestState.Mentioned) || (GetQuestState(27) == QuestState.Accepted))
-            {
-                SetQuestState(27, QuestState.Completed);
-            }
-
-            return RunDefault;
-        }
-        public override bool OnRemoveItem(GameObject attachee, GameObject triggerer)
-        {
-            if ((GetQuestState(27) == QuestState.Mentioned) || (GetQuestState(27) == QuestState.Accepted))
-            {
-                SetQuestState(27, QuestState.Completed);
-            }
-
-            return RunDefault;
+            SetQuestState(27, QuestState.Completed);
         }
 
-
+        return RunDefault;
     }
+    public override bool OnRemoveItem(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetQuestState(27) == QuestState.Mentioned) || (GetQuestState(27) == QuestState.Accepted))
+        {
+            SetQuestState(27, QuestState.Completed);
+        }
+
+        return RunDefault;
+    }
+
+
 }

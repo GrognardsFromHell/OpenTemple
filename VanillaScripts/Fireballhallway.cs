@@ -17,43 +17,42 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(254)]
+public class Fireballhallway : BaseObjectScript
 {
-    [ObjectScript(254)]
-    public class Fireballhallway : BaseObjectScript
+
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
         {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            if ((Utilities.critter_is_unconscious(obj) == 0))
             {
-                if ((Utilities.critter_is_unconscious(obj) == 0))
+                if (attachee.DistanceTo(obj) < 10)
                 {
-                    if (attachee.DistanceTo(obj) < 10)
+                    if (!GetGlobalFlag(11))
                     {
-                        if (!GetGlobalFlag(11))
+                        if (!UiSystems.HelpManager.IsTutorialActive)
                         {
-                            if (!UiSystems.HelpManager.IsTutorialActive)
-                            {
-                                UiSystems.HelpManager.ToggleTutorial();
-                            }
-
-                            UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.WandUse);
-                            SetGlobalFlag(9, true);
-                            DetachScript();
-
-                            return RunDefault;
+                            UiSystems.HelpManager.ToggleTutorial();
                         }
 
+                        UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.WandUse);
+                        SetGlobalFlag(9, true);
+                        DetachScript();
+
+                        return RunDefault;
                     }
 
                 }
 
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

@@ -1,18 +1,17 @@
 using System;
 
-namespace OpenTemple.Core.Systems.Script
-{
-    /// <summary>
-    /// Marks a class as a script that implements the Spell with the given id.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class SpellScriptAttribute : Attribute
-    {
-        public int Id { get; }
+namespace OpenTemple.Core.Systems.Script;
 
-        public SpellScriptAttribute(int id)
-        {
-            Id = id;
-        }
+/// <summary>
+/// Marks a class as a script that implements the Spell with the given id.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public class SpellScriptAttribute : Attribute
+{
+    public int Id { get; }
+
+    public SpellScriptAttribute(int id)
+    {
+        Id = id;
     }
 }

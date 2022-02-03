@@ -1,12 +1,8 @@
-namespace OpenTemple.Core.MaterialDefinitions
+namespace OpenTemple.Core.MaterialDefinitions;
+
+public enum MdfType
 {
-    public enum MdfType
-    {
-        Textured,
-        General,
-        Clipper
-    }
-
-
-
+    Textured,
+    General,
+    Clipper
 }

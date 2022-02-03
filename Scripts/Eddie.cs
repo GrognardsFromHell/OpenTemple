@@ -18,29 +18,28 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(96)]
+public class Eddie : BaseObjectScript
 {
-    [ObjectScript(96)]
-    public class Eddie : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
         {
-            if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
+            attachee.FloatLine(11004, triggerer);
+        }
+        else
+        {
+            if ((GetGlobalVar(9) >= 2 && triggerer.GetGender() == Gender.Female))
             {
-                attachee.FloatLine(11004, triggerer);
-            }
-            else
-            {
-                if ((GetGlobalVar(9) >= 2 && triggerer.GetGender() == Gender.Female))
-                {
-                    SetGlobalVar(9, 2 + StoryState);
-                }
-
-                triggerer.BeginDialog(attachee, 1);
+                SetGlobalVar(9, 2 + StoryState);
             }
 
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+
 }

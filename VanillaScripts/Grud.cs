@@ -17,44 +17,43 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(102)]
+public class Grud : BaseObjectScript
 {
-    [ObjectScript(102)]
-    public class Grud : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else if ((GetQuestState(35) == QuestState.Mentioned))
-            {
-                triggerer.BeginDialog(attachee, 70);
-            }
-            else if ((GetQuestState(35) == QuestState.Accepted))
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else if ((GetQuestState(35) == QuestState.Completed))
-            {
-                triggerer.BeginDialog(attachee, 150);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 170);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((GetQuestState(35) == QuestState.Mentioned))
         {
-            SetQuestState(35, QuestState.Botched);
-            SetGlobalFlag(329, true);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 70);
+        }
+        else if ((GetQuestState(35) == QuestState.Accepted))
+        {
+            triggerer.BeginDialog(attachee, 100);
+        }
+        else if ((GetQuestState(35) == QuestState.Completed))
+        {
+            triggerer.BeginDialog(attachee, 150);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 170);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetQuestState(35, QuestState.Botched);
+        SetGlobalFlag(329, true);
+        return RunDefault;
+    }
+
+
 }

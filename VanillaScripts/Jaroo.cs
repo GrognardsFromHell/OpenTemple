@@ -17,34 +17,33 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(12)]
+public class Jaroo : BaseObjectScript
 {
-    [ObjectScript(12)]
-    public class Jaroo : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalVar(2) >= 100 && !triggerer.HasReputation(3)))
         {
-            if ((GetGlobalVar(2) >= 100 && !triggerer.HasReputation(3)))
-            {
-                triggerer.AddReputation(3);
-            }
-
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(337, true);
-            SetGlobalVar(23, GetGlobalVar(23) + 1);
-            if ((GetGlobalVar(23) >= 2))
-            {
-                PartyLeader.AddReputation(1);
-            }
-
-            return RunDefault;
+            triggerer.AddReputation(3);
         }
 
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(337, true);
+        SetGlobalVar(23, GetGlobalVar(23) + 1);
+        if ((GetGlobalVar(23) >= 2))
+        {
+            PartyLeader.AddReputation(1);
+        }
+
+        return RunDefault;
+    }
+
+
 }

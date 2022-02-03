@@ -18,58 +18,57 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(606)]
+public class SummonFungi : BaseSpellScript
 {
-    [SpellScript(606)]
-    public class SummonFungi : BaseSpellScript
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("summon fungi OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-conjuration-conjure", spell.caster);
-        }
-        public override void OnSpellEffect(SpellPacketBody spell)
-        {
-            Logger.Info("summon fungi OnSpellEffect");
-            spell.duration = 5;
-            // what fungi will we get?
-            var dice = Dice.D4;
-            var proto = dice.Roll();
-            // set the proto_id for this monster
-            int proto_id;
-            if (proto == 1)
-            {
-                proto_id = 14281;
-            }
-            else if (proto == 2)
-            {
-                proto_id = 14284;
-            }
-            else if (proto == 3)
-            {
-                proto_id = 14283;
-            }
-            else
-            {
-                proto_id = 14277;
-            }
-
-            // monster should disappear when duration is over, apply "TIMED_DISAPPEAR" condition
-            // spell.target_list[0].condition_add_with_args( 'sp-Summoned', spell.id, spell.duration, 0 )
-            // Think i am gonna let the creature be there indefinately
-            spell.SummonMonsters(true, proto_id);
-            spell.EndSpell();
-        }
-        public override void OnBeginRound(SpellPacketBody spell)
-        {
-            Logger.Info("summon fungi OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("summon fungi OnEndSpellCast");
-        }
-
+        Logger.Info("summon fungi OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-conjuration-conjure", spell.caster);
     }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("summon fungi OnSpellEffect");
+        spell.duration = 5;
+        // what fungi will we get?
+        var dice = Dice.D4;
+        var proto = dice.Roll();
+        // set the proto_id for this monster
+        int proto_id;
+        if (proto == 1)
+        {
+            proto_id = 14281;
+        }
+        else if (proto == 2)
+        {
+            proto_id = 14284;
+        }
+        else if (proto == 3)
+        {
+            proto_id = 14283;
+        }
+        else
+        {
+            proto_id = 14277;
+        }
+
+        // monster should disappear when duration is over, apply "TIMED_DISAPPEAR" condition
+        // spell.target_list[0].condition_add_with_args( 'sp-Summoned', spell.id, spell.duration, 0 )
+        // Think i am gonna let the creature be there indefinately
+        spell.SummonMonsters(true, proto_id);
+        spell.EndSpell();
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("summon fungi OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("summon fungi OnEndSpellCast");
+    }
+
 }

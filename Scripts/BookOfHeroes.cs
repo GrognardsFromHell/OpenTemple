@@ -18,38 +18,37 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(523)]
-    public class BookOfHeroes : BaseObjectScript
-    {
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
-        {
-            var loc = triggerer.GetLocation();
-            var npc = GameSystems.MapObject.CreateObject(14577, loc);
-            if ((npc.GetMap() == 5119))
-            {
-                triggerer.BeginDialog(npc, 60);
-            }
-            else if ((GetGlobalVar(994) != 0))
-            {
-                if ((GetQuestState(65) != QuestState.Completed))
-                {
-                    triggerer.BeginDialog(npc, 40);
-                }
-                else
-                {
-                    triggerer.BeginDialog(npc, 50);
-                }
+namespace Scripts;
 
+[ObjectScript(523)]
+public class BookOfHeroes : BaseObjectScript
+{
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
+    {
+        var loc = triggerer.GetLocation();
+        var npc = GameSystems.MapObject.CreateObject(14577, loc);
+        if ((npc.GetMap() == 5119))
+        {
+            triggerer.BeginDialog(npc, 60);
+        }
+        else if ((GetGlobalVar(994) != 0))
+        {
+            if ((GetQuestState(65) != QuestState.Completed))
+            {
+                triggerer.BeginDialog(npc, 40);
             }
             else
             {
-                triggerer.BeginDialog(npc, 1);
+                triggerer.BeginDialog(npc, 50);
             }
 
-            return SkipDefault;
+        }
+        else
+        {
+            triggerer.BeginDialog(npc, 1);
         }
 
+        return SkipDefault;
     }
+
 }

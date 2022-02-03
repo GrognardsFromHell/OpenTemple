@@ -18,42 +18,41 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(193)]
+public class MurderousThief : BaseObjectScript
 {
-    [ObjectScript(193)]
-    public class MurderousThief : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            GameSystems.MapObject.CreateObject(14324, attachee.GetLocation());
-            return RunDefault;
-        }
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
-        {
-            attachee.TurnTowards(triggerer);
-            attachee.FloatLine(1, triggerer);
-            attachee.SetCritterFlag(CritterFlag.MUTE);
-            return RunDefault;
-        }
-        public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
-            {
-                GameSystems.MapObject.CreateObject(14324, attachee.GetLocation());
-            }
-
-            return RunDefault;
-        }
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        GameSystems.MapObject.CreateObject(14324, attachee.GetLocation());
+        return RunDefault;
+    }
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+    {
+        attachee.TurnTowards(triggerer);
+        attachee.FloatLine(1, triggerer);
+        attachee.SetCritterFlag(CritterFlag.MUTE);
+        return RunDefault;
+    }
+    public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
+        {
+            GameSystems.MapObject.CreateObject(14324, attachee.GetLocation());
+        }
+
+        return RunDefault;
+    }
+
 }

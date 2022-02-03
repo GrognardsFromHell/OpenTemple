@@ -17,64 +17,63 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(161)]
+public class FemalePrisoner1 : BaseObjectScript
 {
-    [ObjectScript(161)]
-    public class FemalePrisoner1 : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(131)))
         {
-            if ((GetGlobalFlag(131)))
+            if ((triggerer.GetGender() == Gender.Male))
             {
-                if ((triggerer.GetGender() == Gender.Male))
-                {
-                    triggerer.BeginDialog(attachee, 40);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 50);
-                }
-
+                triggerer.BeginDialog(attachee, 40);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 1);
+                triggerer.BeginDialog(attachee, 50);
             }
 
-            return SkipDefault;
         }
-        public static bool get_rep(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (!triggerer.HasReputation(7))
-            {
-                triggerer.AddReputation(7);
-            }
-
-            SetGlobalVar(25, GetGlobalVar(25) + 2);
-            if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
-            {
-                triggerer.AddReputation(8);
-            }
-
-            return RunDefault;
-        }
-        public static bool free_rep(GameObject attachee, GameObject triggerer)
-        {
-            if (!triggerer.HasReputation(16))
-            {
-                triggerer.AddReputation(16);
-            }
-
-            SetGlobalVar(26, GetGlobalVar(26) + 1);
-            if ((GetGlobalVar(26) >= 3 && !triggerer.HasReputation(17)))
-            {
-                triggerer.AddReputation(17);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public static bool get_rep(GameObject attachee, GameObject triggerer)
+    {
+        if (!triggerer.HasReputation(7))
+        {
+            triggerer.AddReputation(7);
+        }
+
+        SetGlobalVar(25, GetGlobalVar(25) + 2);
+        if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
+        {
+            triggerer.AddReputation(8);
+        }
+
+        return RunDefault;
+    }
+    public static bool free_rep(GameObject attachee, GameObject triggerer)
+    {
+        if (!triggerer.HasReputation(16))
+        {
+            triggerer.AddReputation(16);
+        }
+
+        SetGlobalVar(26, GetGlobalVar(26) + 1);
+        if ((GetGlobalVar(26) >= 3 && !triggerer.HasReputation(17)))
+        {
+            triggerer.AddReputation(17);
+        }
+
+        return RunDefault;
+    }
+
+
 }

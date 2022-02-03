@@ -17,32 +17,31 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(86)]
+public class AgentOfEvil : BaseObjectScript
 {
-    [ObjectScript(86)]
-    public class AgentOfEvil : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public static bool run_off(GameObject attachee, GameObject triggerer)
-        {
-            attachee.RunOff();
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (!PartyLeader.HasReputation(9))
-            {
-                PartyLeader.AddReputation(9);
-            }
-
-            return RunDefault;
-        }
-
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public static bool run_off(GameObject attachee, GameObject triggerer)
+    {
+        attachee.RunOff();
+        return RunDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (!PartyLeader.HasReputation(9))
+        {
+            PartyLeader.AddReputation(9);
+        }
+
+        return RunDefault;
+    }
+
+
 }

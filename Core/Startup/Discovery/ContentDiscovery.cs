@@ -7,80 +7,79 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Feats;
 
-namespace OpenTemple.Core.Startup.Discovery
+namespace OpenTemple.Core.Startup.Discovery;
+
+public class ContentDiscovery
 {
-    public class ContentDiscovery
+    private static bool _initialized;
+
+    private static List<IContentProvider> _contentProviders;
+
+    private static void ProcessAssembly(Assembly assembly)
     {
-        private static bool _initialized;
-
-        private static List<IContentProvider> _contentProviders;
-
-        private static void ProcessAssembly(Assembly assembly)
+        var markerAttribute = assembly.GetCustomAttribute<GameContentAttribute>();
+        if (markerAttribute == null)
         {
-            var markerAttribute = assembly.GetCustomAttribute<GameContentAttribute>();
-            if (markerAttribute == null)
+            return;
+        }
+
+        _contentProviders.Add(new DefaultContentProvider(assembly));
+    }
+
+    private static void EnsureInitialized()
+    {
+        lock (typeof(ContentDiscovery))
+        {
+            if (_initialized)
             {
                 return;
             }
 
-            _contentProviders.Add(new DefaultContentProvider(assembly));
-        }
-
-        private static void EnsureInitialized()
-        {
-            lock (typeof(ContentDiscovery))
+            _contentProviders = new List<IContentProvider>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (_initialized)
-                {
-                    return;
-                }
-
-                _contentProviders = new List<IContentProvider>();
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    ProcessAssembly(assembly);
-                }
-
-                AppDomain.CurrentDomain.AssemblyLoad += (sender, args) => { ProcessAssembly(args.LoadedAssembly); };
-
-                _initialized = true;
+                ProcessAssembly(assembly);
             }
+
+            AppDomain.CurrentDomain.AssemblyLoad += (sender, args) => { ProcessAssembly(args.LoadedAssembly); };
+
+            _initialized = true;
         }
+    }
 
-        public static IEnumerable<D20ClassSpec> Classes
+    public static IEnumerable<D20ClassSpec> Classes
+    {
+        get
         {
-            get
-            {
-                EnsureInitialized();
-                return _contentProviders.SelectMany(contentProvider => contentProvider.Classes);
-            }
+            EnsureInitialized();
+            return _contentProviders.SelectMany(contentProvider => contentProvider.Classes);
         }
+    }
 
-        public static IEnumerable<RaceSpec> Races
+    public static IEnumerable<RaceSpec> Races
+    {
+        get
         {
-            get
-            {
-                EnsureInitialized();
-                return _contentProviders.SelectMany(contentProvider => contentProvider.Races);
-            }
+            EnsureInitialized();
+            return _contentProviders.SelectMany(contentProvider => contentProvider.Races);
         }
+    }
 
-        public static IEnumerable<ConditionSpec> Conditions
+    public static IEnumerable<ConditionSpec> Conditions
+    {
+        get
         {
-            get
-            {
-                EnsureInitialized();
-                return _contentProviders.SelectMany(contentProvider => contentProvider.Conditions);
-            }
+            EnsureInitialized();
+            return _contentProviders.SelectMany(contentProvider => contentProvider.Conditions);
         }
+    }
 
-        public static IEnumerable<(FeatId, ConditionSpec)> FeatConditions
+    public static IEnumerable<(FeatId, ConditionSpec)> FeatConditions
+    {
+        get
         {
-            get
-            {
-                EnsureInitialized();
-                return _contentProviders.SelectMany(contentProvider => contentProvider.FeatConditions);
-            }
+            EnsureInitialized();
+            return _contentProviders.SelectMany(contentProvider => contentProvider.FeatConditions);
         }
     }
 }

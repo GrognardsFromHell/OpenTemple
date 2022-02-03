@@ -5,152 +5,151 @@ using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.Script.Hooks;
 
-namespace OpenTemple.Core.Systems
+namespace OpenTemple.Core.Systems;
+
+public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
 {
-    public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
+    [TempleDllLocation(0x10045bb0)]
+    [TempleDllLocation(0x109dd854)]
+    public SleepStatus SleepStatus { get; set; }
+
+    private List<int> _encounterQueue = new List<int>();
+
+    public bool TryTakeQueuedEncounter(out int encounterId)
     {
-        [TempleDllLocation(0x10045bb0)]
-        [TempleDllLocation(0x109dd854)]
-        public SleepStatus SleepStatus { get; set; }
-
-        private List<int> _encounterQueue = new List<int>();
-
-        public bool TryTakeQueuedEncounter(out int encounterId)
+        if (_encounterQueue.Count > 0)
         {
-            if (_encounterQueue.Count > 0)
-            {
-                encounterId = _encounterQueue[0];
-                _encounterQueue.RemoveAt(0);
-                return true;
-            }
-
-            encounterId = -1;
-            return false;
+            encounterId = _encounterQueue[0];
+            _encounterQueue.RemoveAt(0);
+            return true;
         }
 
-        public bool IsEncounterQueued(int encounterId) => _encounterQueue.Contains(encounterId);
+        encounterId = -1;
+        return false;
+    }
 
-        public void Dispose()
+    public bool IsEncounterQueued(int encounterId) => _encounterQueue.Contains(encounterId);
+
+    public void Dispose()
+    {
+    }
+
+    public void SaveGame(SavedGameState savedGameState)
+    {
+        if (savedGameState.ScriptState == null)
         {
+            savedGameState.ScriptState = new SavedScriptState();
         }
 
-        public void SaveGame(SavedGameState savedGameState)
-        {
-            if (savedGameState.ScriptState == null)
-            {
-                savedGameState.ScriptState = new SavedScriptState();
-            }
+        savedGameState.ScriptState.EncounterQueue = _encounterQueue.ToList();
+    }
 
-            savedGameState.ScriptState.EncounterQueue = _encounterQueue.ToList();
+    public void LoadGame(SavedGameState savedGameState)
+    {
+        _encounterQueue = savedGameState.ScriptState.EncounterQueue.ToList();
+        UpdateSleepStatus();
+    }
+
+    [TempleDllLocation(0x10045850)]
+    public void UpdateSleepStatus()
+    {
+        if ( GameUiBridge.IsRestDisabled() )
+        {
+            SleepStatus = SleepStatus.Impossible;
         }
-
-        public void LoadGame(SavedGameState savedGameState)
+        else
         {
-            _encounterQueue = savedGameState.ScriptState.EncounterQueue.ToList();
-            UpdateSleepStatus();
-        }
-
-        [TempleDllLocation(0x10045850)]
-        public void UpdateSleepStatus()
-        {
-            if ( GameUiBridge.IsRestDisabled() )
-            {
-                SleepStatus = SleepStatus.Impossible;
-            }
-            else
-            {
-                SleepStatus = GameSystems.Script.GetHook<IRandomEncountersHook>()?.CalculateSleepStatus()
-                              ?? SleepStatus.Impossible;
-            }
-        }
-
-        public void QueueRandomEncounter(int encounterId)
-        {
-            _encounterQueue.Add(encounterId);
-        }
-
-        public void RemoveQueuedEncounter(int encounterId)
-        {
-            _encounterQueue.Remove(encounterId);
-        }
-
-        [TempleDllLocation(0x100461E0)]
-        public bool Query(RandomEncounterQuery query, out RandomEncounter encounter)
-        {
-            encounter = null;
-            return false;
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100462F0)]
-        public void CreateEncounter(object o)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reset()
-        {
-            // NOTE: This was previously being reset in the script system
-            _encounterQueue.Clear();
-
+            SleepStatus = GameSystems.Script.GetHook<IRandomEncountersHook>()?.CalculateSleepStatus()
+                          ?? SleepStatus.Impossible;
         }
     }
 
-    public enum RandomEncounterType
+    public void QueueRandomEncounter(int encounterId)
     {
-        Traveling = 0,
-        Resting = 1
+        _encounterQueue.Add(encounterId);
     }
 
-    public class RandomEncounterQuery
+    public void RemoveQueuedEncounter(int encounterId)
     {
-        public MapTerrain Terrain { get; }
-
-        public RandomEncounterType Type { get; }
-
-        public RandomEncounterQuery(MapTerrain terrain, RandomEncounterType type)
-        {
-            Terrain = terrain;
-            Type = type;
-        }
+        _encounterQueue.Remove(encounterId);
     }
 
-    public readonly struct RandomEncounterEnemy
+    [TempleDllLocation(0x100461E0)]
+    public bool Query(RandomEncounterQuery query, out RandomEncounter encounter)
     {
-        public readonly int ProtoId;
-        public readonly int Count;
-
-        public RandomEncounterEnemy(int protoId, int count)
-        {
-            ProtoId = protoId;
-            Count = count;
-        }
+        encounter = null;
+        return false;
+        throw new NotImplementedException();
     }
 
-    public class RandomEncounter
+    [TempleDllLocation(0x100462F0)]
+    public void CreateEncounter(object o)
     {
-        public int Id { get; set; }
-        public int Flags { get; set; }
-        public int Title { get; set; }
-        public int DC { get; set; }
-        public int Map { get; set; }
-        public List<RandomEncounterEnemy> Enemies { get; set; } = new List<RandomEncounterEnemy>();
-        public locXY Location { get; set; }
+        throw new NotImplementedException();
+    }
 
-        public void AddEnemies(int protoId, int count)
+    public void Reset()
+    {
+        // NOTE: This was previously being reset in the script system
+        _encounterQueue.Clear();
+
+    }
+}
+
+public enum RandomEncounterType
+{
+    Traveling = 0,
+    Resting = 1
+}
+
+public class RandomEncounterQuery
+{
+    public MapTerrain Terrain { get; }
+
+    public RandomEncounterType Type { get; }
+
+    public RandomEncounterQuery(MapTerrain terrain, RandomEncounterType type)
+    {
+        Terrain = terrain;
+        Type = type;
+    }
+}
+
+public readonly struct RandomEncounterEnemy
+{
+    public readonly int ProtoId;
+    public readonly int Count;
+
+    public RandomEncounterEnemy(int protoId, int count)
+    {
+        ProtoId = protoId;
+        Count = count;
+    }
+}
+
+public class RandomEncounter
+{
+    public int Id { get; set; }
+    public int Flags { get; set; }
+    public int Title { get; set; }
+    public int DC { get; set; }
+    public int Map { get; set; }
+    public List<RandomEncounterEnemy> Enemies { get; set; } = new List<RandomEncounterEnemy>();
+    public locXY Location { get; set; }
+
+    public void AddEnemies(int protoId, int count)
+    {
+        // Merge with existing enemies of the same type
+        for (var i = 0; i < Enemies.Count; i++)
         {
-            // Merge with existing enemies of the same type
-            for (var i = 0; i < Enemies.Count; i++)
+            if (Enemies[i].ProtoId == protoId)
             {
-                if (Enemies[i].ProtoId == protoId)
-                {
-                    Enemies[i] = new RandomEncounterEnemy(protoId, Enemies[i].Count + count);
-                    return;
-                }
+                Enemies[i] = new RandomEncounterEnemy(protoId, Enemies[i].Count + count);
+                return;
             }
-
-            Enemies.Add(new RandomEncounterEnemy(protoId, count));
         }
 
+        Enemies.Add(new RandomEncounterEnemy(protoId, count));
     }
+
 }

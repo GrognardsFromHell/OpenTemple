@@ -17,13 +17,32 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
-{
-    [ObjectScript(188)]
-    public class CaravanBandit : BaseObjectScript
-    {
+namespace VanillaScripts;
 
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+[ObjectScript(188)]
+public class CaravanBandit : BaseObjectScript
+{
+
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalVar(27, GetGlobalVar(27) + 1);
+        if ((GetGlobalVar(27) >= 3))
+        {
+            GameSystems.MapObject.CreateObject(14316, attachee.GetLocation());
+            SetGlobalVar(27, -1000);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+    {
+        attachee.TurnTowards(triggerer);
+        attachee.FloatLine(RandomRange(1, 3), triggerer);
+        return RunDefault;
+    }
+    public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
         {
             SetGlobalVar(27, GetGlobalVar(27) + 1);
             if ((GetGlobalVar(27) >= 3))
@@ -32,30 +51,10 @@ namespace VanillaScripts
                 SetGlobalVar(27, -1000);
             }
 
-            return RunDefault;
-        }
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
-        {
-            attachee.TurnTowards(triggerer);
-            attachee.FloatLine(RandomRange(1, 3), triggerer);
-            return RunDefault;
-        }
-        public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetStat(Stat.subdual_damage) >= attachee.GetStat(Stat.hp_current)))
-            {
-                SetGlobalVar(27, GetGlobalVar(27) + 1);
-                if ((GetGlobalVar(27) >= 3))
-                {
-                    GameSystems.MapObject.CreateObject(14316, attachee.GetLocation());
-                    SetGlobalVar(27, -1000);
-                }
-
-            }
-
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

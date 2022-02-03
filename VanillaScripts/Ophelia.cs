@@ -17,59 +17,58 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(98)]
+public class Ophelia : BaseObjectScript
 {
-    [ObjectScript(98)]
-    public class Ophelia : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
+            if ((GetQuestState(35) <= QuestState.Accepted))
             {
-                if ((GetQuestState(35) <= QuestState.Accepted))
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 430);
-                }
-
-            }
-            else if ((GetGlobalFlag(75)))
-            {
-                triggerer.BeginDialog(attachee, 580);
-            }
-            else if ((GetQuestState(35) == QuestState.Completed))
-            {
-                triggerer.BeginDialog(attachee, 790);
+                triggerer.BeginDialog(attachee, 1);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 700);
+                triggerer.BeginDialog(attachee, 430);
             }
 
-            return SkipDefault;
         }
-        public static bool buttin(GameObject attachee, GameObject triggerer, int line)
+        else if ((GetGlobalFlag(75)))
         {
-            var npc = Utilities.find_npc_near(attachee, 8015);
-
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 760);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 580);
+        }
+        else if ((GetQuestState(35) == QuestState.Completed))
+        {
+            triggerer.BeginDialog(attachee, 790);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 700);
         }
 
-
+        return SkipDefault;
     }
+    public static bool buttin(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8015);
+
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 760);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

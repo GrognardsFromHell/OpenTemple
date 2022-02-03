@@ -1,11 +1,10 @@
 using System;
 
-namespace OpenTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding;
+
+[Flags]
+public enum PathNodeFlag
 {
-    [Flags]
-    public enum PathNodeFlag
-    {
-        NEIGHBOUR_STATUS_CHANGED = 1,
-        NEIGHBOUR_DISTANCES_SET = 0x1000
-    }
+    NEIGHBOUR_STATUS_CHANGED = 1,
+    NEIGHBOUR_DISTANCES_SET = 0x1000
 }

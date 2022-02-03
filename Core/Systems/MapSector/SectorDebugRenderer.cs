@@ -6,120 +6,119 @@ using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 
-namespace OpenTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector;
+
+/// <summary>
+/// Renders information about tiles, specifically their flags.
+/// </summary>
+public class SectorDebugRenderer : IDisposable
 {
-    /// <summary>
-    /// Renders information about tiles, specifically their flags.
-    /// </summary>
-    public class SectorDebugRenderer : IDisposable
+    private readonly Dictionary<SectorLoc, SimpleMesh> _sectorDebugState;
+
+    private readonly RenderingDevice _device = Tig.RenderingDevice;
+
+    private readonly ResourceRef<Material> _material;
+
+    public SectorDebugRenderer()
     {
-        private readonly Dictionary<SectorLoc, SimpleMesh> _sectorDebugState;
+        _sectorDebugState = new Dictionary<SectorLoc, SimpleMesh>();
+        _material = CreateMaterial(_device);
+    }
 
-        private readonly RenderingDevice _device = Tig.RenderingDevice;
-
-        private readonly ResourceRef<Material> _material;
-
-        public SectorDebugRenderer()
+    private ResourceRef<Material> CreateMaterial(RenderingDevice device)
+    {
+        var blendState = new BlendSpec
         {
-            _sectorDebugState = new Dictionary<SectorLoc, SimpleMesh>();
-            _material = CreateMaterial(_device);
-        }
+            blendEnable = true,
+            srcBlend = BlendOperand.SrcAlpha,
+            destBlend = BlendOperand.InvSrcAlpha
+        };
+        var depthState = new DepthStencilSpec();
+        depthState.depthEnable = false;
+        depthState.depthWrite = false;
 
-        private ResourceRef<Material> CreateMaterial(RenderingDevice device)
+        var rasterizerState = new RasterizerSpec();
+        var vs = _device.GetShaders().LoadVertexShader("diffuse_only_vs");
+        var ps = _device.GetShaders().LoadPixelShader("diffuse_only_ps");
+
+        return device.CreateMaterial(
+            blendState,
+            depthState,
+            rasterizerState,
+            Array.Empty<MaterialSamplerSpec>(),
+            vs,
+            ps).Ref();
+    }
+
+    public void Render(IGameViewport viewport, TileRect tileRect)
+    {
+        _device.SetMaterial(_material.Resource);
+        var viewProj = viewport.Camera.GetViewProj();
+        _device.SetVertexShaderConstants(0, ref viewProj);
+
+        using var sectorIt = new SectorIterator(tileRect);
+        foreach (var sector in sectorIt.EnumerateSectors())
         {
-            var blendState = new BlendSpec
+            if (!sector.IsValid)
             {
-                blendEnable = true,
-                srcBlend = BlendOperand.SrcAlpha,
-                destBlend = BlendOperand.InvSrcAlpha
-            };
-            var depthState = new DepthStencilSpec();
-            depthState.depthEnable = false;
-            depthState.depthWrite = false;
-
-            var rasterizerState = new RasterizerSpec();
-            var vs = _device.GetShaders().LoadVertexShader("diffuse_only_vs");
-            var ps = _device.GetShaders().LoadPixelShader("diffuse_only_ps");
-
-            return device.CreateMaterial(
-                blendState,
-                depthState,
-                rasterizerState,
-                Array.Empty<MaterialSamplerSpec>(),
-                vs,
-                ps).Ref();
-        }
-
-        public void Render(IGameViewport viewport, TileRect tileRect)
-        {
-            _device.SetMaterial(_material.Resource);
-            var viewProj = viewport.Camera.GetViewProj();
-            _device.SetVertexShaderConstants(0, ref viewProj);
-
-            using var sectorIt = new SectorIterator(tileRect);
-            foreach (var sector in sectorIt.EnumerateSectors())
-            {
-                if (!sector.IsValid)
-                {
-                    continue;
-                }
-
-                if (!_sectorDebugState.TryGetValue(sector.Loc, out var renderingState))
-                {
-                    renderingState = BuildSubTileMesh(_device, _material.Resource.VertexShader, sector.Sector);
-                    _sectorDebugState.Add(sector.Loc, renderingState);
-                }
-
-                renderingState.Render(_device);
+                continue;
             }
-        }
 
-        public void Dispose()
-        {
-            _material.Dispose();
-        }
-
-        private SimpleMesh BuildSubTileMesh(RenderingDevice device, VertexShader shader, Sector sector)
-        {
-            var builder = new SubTileMeshBuilder(sector.secLoc);
-
-            for (int y = 0; y < Sector.SectorSideSize; y++)
+            if (!_sectorDebugState.TryGetValue(sector.Loc, out var renderingState))
             {
-                for (int x = 0; x < Sector.SectorSideSize; x++)
+                renderingState = BuildSubTileMesh(_device, _material.Resource.VertexShader, sector.Sector);
+                _sectorDebugState.Add(sector.Loc, renderingState);
+            }
+
+            renderingState.Render(_device);
+        }
+    }
+
+    public void Dispose()
+    {
+        _material.Dispose();
+    }
+
+    private SimpleMesh BuildSubTileMesh(RenderingDevice device, VertexShader shader, Sector sector)
+    {
+        var builder = new SubTileMeshBuilder(sector.secLoc);
+
+        for (int y = 0; y < Sector.SectorSideSize; y++)
+        {
+            for (int x = 0; x < Sector.SectorSideSize; x++)
+            {
+                var tileIdx = Sector.GetSectorTileIndex(x, y);
+                var tile = sector.tilePkt.tiles[tileIdx];
+
+                for (int dx = 0; dx < 3; dx++)
                 {
-                    var tileIdx = Sector.GetSectorTileIndex(x, y);
-                    var tile = sector.tilePkt.tiles[tileIdx];
-
-                    for (int dx = 0; dx < 3; dx++)
+                    for (int dy = 0; dy < 3; dy++)
                     {
-                        for (int dy = 0; dy < 3; dy++)
+                        var blockFlag = SectorTile.GetBlockingFlag(dx, dy);
+                        var flyOverFlag = SectorTile.GetFlyOverFlag(dx, dy);
+                        var blocking = tile.flags.HasFlag(blockFlag);
+                        var flyover = tile.flags.HasFlag(flyOverFlag);
+
+                        PackedLinearColorA color;
+                        if (blocking)
                         {
-                            var blockFlag = SectorTile.GetBlockingFlag(dx, dy);
-                            var flyOverFlag = SectorTile.GetFlyOverFlag(dx, dy);
-                            var blocking = tile.flags.HasFlag(blockFlag);
-                            var flyover = tile.flags.HasFlag(flyOverFlag);
-
-                            PackedLinearColorA color;
-                            if (blocking)
-                            {
-                                color = new PackedLinearColorA(200, 0, 0, 127);
-                            }
-                            else if (flyover)
-                            {
-                                color = new PackedLinearColorA(127, 0, 127, 127);
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            builder.Add(x * 3 + dx, y * 3 + dy, color);
+                            color = new PackedLinearColorA(200, 0, 0, 127);
                         }
+                        else if (flyover)
+                        {
+                            color = new PackedLinearColorA(127, 0, 127, 127);
+                        }
+                        else
+                        {
+                            continue;
+                        }
+
+                        builder.Add(x * 3 + dx, y * 3 + dy, color);
                     }
                 }
             }
-
-            return builder.Build(shader);
         }
+
+        return builder.Build(shader);
     }
 }

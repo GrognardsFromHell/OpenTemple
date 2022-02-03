@@ -18,17 +18,16 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(473)]
+public class SummonMonsterVII : SummonMonsterBase
 {
-    [SpellScript(473)]
-    public class SummonMonsterVII : SummonMonsterBase
-    {
 
-        protected override string SpellName => "Summon Monster VII";
+    protected override string SpellName => "Summon Monster VII";
 
-        protected override string ParticleSystemId => "sp-Summon Monster V";
+    protected override string ParticleSystemId => "sp-Summon Monster V";
 
-        protected override int SpellOptionsKey => 1600;
+    protected override int SpellOptionsKey => 1600;
 
-    }
 }

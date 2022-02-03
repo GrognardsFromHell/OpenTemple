@@ -17,38 +17,36 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(226)]
+public class MinotaurStatueController : BaseObjectScript
 {
-    [ObjectScript(226)]
-    public class MinotaurStatueController : BaseObjectScript
+
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_CRITTERS))
         {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_CRITTERS))
+            if ((obj != attachee))
             {
-                if ((obj != attachee))
+                if ((attachee.DistanceTo(obj) <= 15))
                 {
-                    if ((attachee.DistanceTo(obj) <= 15))
+                    foreach (var statue in ObjList.ListVicinity(obj.GetLocation(), ObjectListFilter.OLC_SCENERY))
                     {
-                        foreach (var statue in ObjList.ListVicinity(obj.GetLocation(), ObjectListFilter.OLC_SCENERY))
+                        if ((statue.GetNameId() == 1615))
                         {
-                            if ((statue.GetNameId() == 1615))
-                            {
-                                var loc = statue.GetLocation();
+                            var loc = statue.GetLocation();
 
-                                var rot = statue.Rotation;
+                            var rot = statue.Rotation;
 
-                                statue.Destroy();
-                                var minotaur = GameSystems.MapObject.CreateObject(14241, loc);
+                            statue.Destroy();
+                            var minotaur = GameSystems.MapObject.CreateObject(14241, loc);
 
-                                minotaur.Rotation = rot;
+                            minotaur.Rotation = rot;
 
-                                AttachParticles("ef-MinoCloud", minotaur);
-                                attachee.Destroy();
-                                return SkipDefault;
-                            }
-
+                            AttachParticles("ef-MinoCloud", minotaur);
+                            attachee.Destroy();
+                            return SkipDefault;
                         }
 
                     }
@@ -57,9 +55,10 @@ namespace VanillaScripts
 
             }
 
-            return SkipDefault;
         }
 
-
+        return SkipDefault;
     }
+
+
 }

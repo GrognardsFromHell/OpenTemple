@@ -17,51 +17,50 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(85)]
+public class WeaverSonInLaw : BaseObjectScript
 {
-    [ObjectScript(85)]
-    public class WeaverSonInLaw : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((triggerer.GetStat(Stat.charisma) >= 8 && triggerer.GetGender() == Gender.Female))
         {
-            if ((triggerer.GetStat(Stat.charisma) >= 8 && triggerer.GetGender() == Gender.Female))
+            if ((attachee.HasMet(triggerer)))
             {
-                if ((attachee.HasMet(triggerer)))
-                {
-                    triggerer.BeginDialog(attachee, 70);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-
+                triggerer.BeginDialog(attachee, 70);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 80);
+                triggerer.BeginDialog(attachee, 1);
             }
 
-            return SkipDefault;
         }
-        public static bool argue(GameObject attachee, GameObject triggerer, int line)
+        else
         {
-            var npc = Utilities.find_npc_near(attachee, 8006);
-
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 80);
         }
 
-
+        return SkipDefault;
     }
+    public static bool argue(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8006);
+
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 10);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

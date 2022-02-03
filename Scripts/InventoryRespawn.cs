@@ -21,14 +21,12 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
+namespace Scripts;
 
-    public static class InventoryRespawn
+public static class InventoryRespawn
+{
+    public static void RespawnInventory(GameObject attachee)
     {
-        public static void RespawnInventory(GameObject attachee)
-        {
-            GameSystems.Item.SpawnInventorySource(attachee);
-        }
+        GameSystems.Item.SpawnInventorySource(attachee);
     }
 }

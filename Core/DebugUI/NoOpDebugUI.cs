@@ -1,17 +1,16 @@
-namespace OpenTemple.Core.DebugUI
+namespace OpenTemple.Core.DebugUI;
+
+public class NoOpDebugUI : IDebugUI
 {
-    public class NoOpDebugUI : IDebugUI
+    public void NewFrame()
     {
-        public void NewFrame()
-        {
-        }
+    }
 
-        public void Render()
-        {
-        }
+    public void Render()
+    {
+    }
 
-        public void PushSmallFont()
-        {
-        }
+    public void PushSmallFont()
+    {
     }
 }

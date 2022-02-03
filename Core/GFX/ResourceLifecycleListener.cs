@@ -1,49 +1,48 @@
 using System;
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public interface IResourceLifecycleListener
 {
-    public interface IResourceLifecycleListener
+    void CreateResources(RenderingDevice device);
+    void FreeResources(RenderingDevice device);
+}
+
+public sealed class ResourceLifecycleCallbacks : IResourceLifecycleListener, IDisposable
+{
+    private RenderingDevice _device;
+    private Action<RenderingDevice> _createCallback;
+    private Action<RenderingDevice> _freeCallback;
+
+    public ResourceLifecycleCallbacks(
+        RenderingDevice device,
+        Action<RenderingDevice> createCallback,
+        Action<RenderingDevice> freeCallback)
     {
-        void CreateResources(RenderingDevice device);
-        void FreeResources(RenderingDevice device);
+        _device = device;
+        _createCallback = createCallback;
+        _freeCallback = freeCallback;
+        _device.AddResourceListener(this);
     }
 
-    public sealed class ResourceLifecycleCallbacks : IResourceLifecycleListener, IDisposable
+    public void CreateResources(RenderingDevice device)
     {
-        private RenderingDevice _device;
-        private Action<RenderingDevice> _createCallback;
-        private Action<RenderingDevice> _freeCallback;
+        _createCallback(device);
+    }
 
-        public ResourceLifecycleCallbacks(
-            RenderingDevice device,
-            Action<RenderingDevice> createCallback,
-            Action<RenderingDevice> freeCallback)
-        {
-            _device = device;
-            _createCallback = createCallback;
-            _freeCallback = freeCallback;
-            _device.AddResourceListener(this);
-        }
+    public void FreeResources(RenderingDevice device)
+    {
+        _freeCallback(device);
+    }
 
-        public void CreateResources(RenderingDevice device)
+    public void Dispose()
+    {
+        if (_device != null)
         {
-            _createCallback(device);
-        }
-
-        public void FreeResources(RenderingDevice device)
-        {
-            _freeCallback(device);
-        }
-
-        public void Dispose()
-        {
-            if (_device != null)
-            {
-                _device.RemoveResourceListener(this);
-                _device = null;
-                _createCallback = null;
-                _freeCallback = null;
-            }
+            _device.RemoveResourceListener(this);
+            _device = null;
+            _createCallback = null;
+            _freeCallback = null;
         }
     }
 }

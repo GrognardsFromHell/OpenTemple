@@ -1,8 +1,7 @@
-namespace OpenTemple.Core.Systems.D20.Classes
+namespace OpenTemple.Core.Systems.D20.Classes;
+
+public enum SavingThrowProgressionType
 {
-    public enum SavingThrowProgressionType
-    {
-        LOW = 0,
-        HIGH = 1
-    }
+    LOW = 0,
+    HIGH = 1
 }

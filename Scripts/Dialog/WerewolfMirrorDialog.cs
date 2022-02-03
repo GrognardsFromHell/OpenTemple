@@ -19,61 +19,60 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(150)]
+public class WerewolfMirrorDialog : WerewolfMirror, IDialogScript
 {
-    [DialogScript(150)]
-    public class WerewolfMirrorDialog : WerewolfMirror, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 2:
-                case 4:
-                    originalScript = "game.party_alignment != LAWFUL_EVIL and game.party_alignment != NEUTRAL_EVIL and game.party_alignment != CHAOTIC_EVIL";
-                    return PartyAlignment != Alignment.LAWFUL_EVIL && PartyAlignment != Alignment.NEUTRAL_EVIL && PartyAlignment != Alignment.CHAOTIC_EVIL;
-                case 3:
-                case 5:
-                    originalScript = "game.party_alignment == LAWFUL_EVIL or game.party_alignment == NEUTRAL_EVIL or game.party_alignment == CHAOTIC_EVIL or game.leader.reputation_has(32) == 1 or game.leader.reputation_has(30) == 1 or game.leader.reputation_has(29) == 1";
-                    return PartyAlignment == Alignment.LAWFUL_EVIL || PartyAlignment == Alignment.NEUTRAL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL || SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29);
-                case 25:
-                case 26:
-                case 71:
-                case 72:
-                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 10";
-                    return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 10;
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            case 2:
+            case 4:
+                originalScript = "game.party_alignment != LAWFUL_EVIL and game.party_alignment != NEUTRAL_EVIL and game.party_alignment != CHAOTIC_EVIL";
+                return PartyAlignment != Alignment.LAWFUL_EVIL && PartyAlignment != Alignment.NEUTRAL_EVIL && PartyAlignment != Alignment.CHAOTIC_EVIL;
+            case 3:
+            case 5:
+                originalScript = "game.party_alignment == LAWFUL_EVIL or game.party_alignment == NEUTRAL_EVIL or game.party_alignment == CHAOTIC_EVIL or game.leader.reputation_has(32) == 1 or game.leader.reputation_has(30) == 1 or game.leader.reputation_has(29) == 1";
+                return PartyAlignment == Alignment.LAWFUL_EVIL || PartyAlignment == Alignment.NEUTRAL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL || SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29);
+            case 25:
+            case 26:
+            case 71:
+            case 72:
+                originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 10";
+                return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 10;
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 1:
-                    originalScript = "game.global_flags[154] = 1";
-                    SetGlobalFlag(154, true);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 1:
+                originalScript = "game.global_flags[154] = 1";
+                SetGlobalFlag(154, true);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 25:
-                case 26:
-                case 71:
-                case 72:
-                    skillChecks = new DialogSkillChecks(SkillId.sense_motive, 10);
-                    return true;
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            case 25:
+            case 26:
+            case 71:
+            case 72:
+                skillChecks = new DialogSkillChecks(SkillId.sense_motive, 10);
+                return true;
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

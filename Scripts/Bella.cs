@@ -18,34 +18,33 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(350)]
+public class Bella : BaseObjectScript
 {
-    [ObjectScript(350)]
-    public class Bella : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            attachee.TurnTowards(triggerer);
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GetGlobalFlag(920)))
-            {
-                StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
-                SetGlobalFlag(920, true);
-            }
-
-            return RunDefault;
-        }
-        public static void respawn(GameObject attachee)
-        {
-            var box = Utilities.find_container_near(attachee, 1064);
-            InventoryRespawn.RespawnInventory(box);
-            StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
-            return;
-        }
-
+        attachee.TurnTowards(triggerer);
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GetGlobalFlag(920)))
+        {
+            StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
+            SetGlobalFlag(920, true);
+        }
+
+        return RunDefault;
+    }
+    public static void respawn(GameObject attachee)
+    {
+        var box = Utilities.find_container_near(attachee, 1064);
+        InventoryRespawn.RespawnInventory(box);
+        StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
+        return;
+    }
+
 }

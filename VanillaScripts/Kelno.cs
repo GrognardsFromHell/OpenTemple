@@ -17,54 +17,52 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(124)]
+public class Kelno : BaseObjectScript
 {
-    [ObjectScript(124)]
-    public class Kelno : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
+        if ((!attachee.HasMet(triggerer)))
+        {
+            triggerer.BeginDialog(attachee, 1);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 280);
+        }
 
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(106, true);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(106, false);
+        return RunDefault;
+    }
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(346, false);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            if ((!attachee.HasMet(triggerer)))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 280);
-            }
-
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(106, true);
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(106, false);
-            return RunDefault;
-        }
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(346, false);
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    if ((!attachee.HasMet(obj)))
                     {
-                        if ((!attachee.HasMet(obj)))
-                        {
-                            obj.BeginDialog(attachee, 1);
-                            DetachScript();
-
-                        }
+                        obj.BeginDialog(attachee, 1);
+                        DetachScript();
 
                     }
 
@@ -72,15 +70,16 @@ namespace VanillaScripts
 
             }
 
-            return RunDefault;
-        }
-        public static bool escort_below(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(144, true);
-            FadeAndTeleport(0, 0, 0, 5080, 478, 451);
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+    public static bool escort_below(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(144, true);
+        FadeAndTeleport(0, 0, 0, 5080, 478, 451);
+        return RunDefault;
+    }
+
+
 }

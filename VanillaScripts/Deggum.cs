@@ -17,81 +17,80 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
-{
-    [ObjectScript(148)]
-    public class Deggum : BaseObjectScript
-    {
+namespace VanillaScripts;
 
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+[ObjectScript(148)]
+public class Deggum : BaseObjectScript
+{
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(144)))
+        {
+            attachee.Attack(triggerer);
+        }
+        else if ((!attachee.HasMet(triggerer)))
+        {
+            triggerer.BeginDialog(attachee, 1);
+        }
+        else if ((GetGlobalFlag(165)))
+        {
+            triggerer.BeginDialog(attachee, 150);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 260);
+        }
+
+        return SkipDefault;
+    }
+    public override bool OnWillKos(GameObject attachee, GameObject triggerer)
+    {
+        if ((triggerer.type == ObjectType.pc))
         {
             if ((GetGlobalFlag(144)))
             {
-                attachee.Attack(triggerer);
-            }
-            else if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else if ((GetGlobalFlag(165)))
-            {
-                triggerer.BeginDialog(attachee, 150);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 260);
+                return RunDefault;
             }
 
-            return SkipDefault;
-        }
-        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
-        {
-            if ((triggerer.type == ObjectType.pc))
-            {
-                if ((GetGlobalFlag(144)))
-                {
-                    return RunDefault;
-                }
-
-            }
-
-            return SkipDefault;
-        }
-        public static bool banter(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8035);
-
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 90);
-            }
-
-            return SkipDefault;
-        }
-        public static bool banter2(GameObject attachee, GameObject triggerer, int line)
-        {
-            var npc = Utilities.find_npc_near(attachee, 8035);
-
-            if ((npc != null))
-            {
-                triggerer.BeginDialog(npc, line);
-                npc.TurnTowards(attachee);
-                attachee.TurnTowards(npc);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 80);
-            }
-
-            return SkipDefault;
         }
 
-
+        return SkipDefault;
     }
+    public static bool banter(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8035);
+
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 90);
+        }
+
+        return SkipDefault;
+    }
+    public static bool banter2(GameObject attachee, GameObject triggerer, int line)
+    {
+        var npc = Utilities.find_npc_near(attachee, 8035);
+
+        if ((npc != null))
+        {
+            triggerer.BeginDialog(npc, line);
+            npc.TurnTowards(attachee);
+            attachee.TurnTowards(npc);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 80);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

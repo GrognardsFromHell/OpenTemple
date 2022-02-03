@@ -1,112 +1,111 @@
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 
-namespace OpenTemple.Core.Ui.InGameSelect.Pickers
+namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
+
+internal class SingleTargetBehavior : PickerBehavior
 {
-    internal class SingleTargetBehavior : PickerBehavior
+    [TempleDllLocation(0x101389c0)]
+    public SingleTargetBehavior(PickerState pickerState) : base(pickerState)
     {
-        [TempleDllLocation(0x101389c0)]
-        public SingleTargetBehavior(PickerState pickerState) : base(pickerState)
+        UiSystems.Party.SetTargetCallbacks(
+            SelectSingleTargetCallback,
+            PickerMultiSingleCheckFlags,
+            ActivePickerReset
+        );
+    }
+
+    public override UiPickerType Type => UiPickerType.Single;
+
+    public override string Name => "SP_M_SINGLE";
+
+    [TempleDllLocation(0x10137870)]
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    {
+        if (HandleClickInUnexploredArea(args.X, args.Y))
         {
-            UiSystems.Party.SetTargetCallbacks(
-                SelectSingleTargetCallback,
-                PickerMultiSingleCheckFlags,
-                ActivePickerReset
-            );
+            return false;
         }
 
-        public override UiPickerType Type => UiPickerType.Single;
+        ClearResults();
 
-        public override string Name => "SP_M_SINGLE";
-
-        [TempleDllLocation(0x10137870)]
-        internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+        var raycastFlags = PickerState.GetFlagsFromExclusions();
+        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var objFound, raycastFlags))
         {
-            if (HandleClickInUnexploredArea(args.X, args.Y))
-            {
-                return false;
-            }
-
-            ClearResults();
-
-            var raycastFlags = PickerState.GetFlagsFromExclusions();
-            if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var objFound, raycastFlags))
-            {
-                return false;
-            }
-
-            if (!PickerState.Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.LosNotRequired) &&
-                PickerState.Picker.LosBlocked(objFound))
-            {
-                return false;
-            }
-
-            if (PickerState.Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.Exclude1st) &&
-                !PickerState.Picker.TargetValid(objFound))
-            {
-                return false;
-            }
-
-            if (!PickerState.Picker.CheckTargetVsIncFlags(objFound))
-            {
-                return false;
-            }
-
-            Result.flags = PickerResultFlags.PRF_HAS_SINGLE_OBJ;
-            Result.handle = objFound;
-            SetResultLocation(objFound);
-
-            return FinalizePicker();
+            return false;
         }
 
-        [TempleDllLocation(0x10138170)]
-        internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+        if (!PickerState.Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.LosNotRequired) &&
+            PickerState.Picker.LosBlocked(objFound))
         {
-            if (HandleClickInUnexploredArea(args.X, args.Y))
-            {
-                return false;
-            }
+            return false;
+        }
 
-            var raycastFlags = PickerState.GetFlagsFromExclusions();
-            if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags))
-            {
-                PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);
-                PickerState.Target = null;
-                return true;
-            }
+        if (PickerState.Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.Exclude1st) &&
+            !PickerState.Picker.TargetValid(objFound))
+        {
+            return false;
+        }
 
-            PickerState.Target = target;
+        if (!PickerState.Picker.CheckTargetVsIncFlags(objFound))
+        {
+            return false;
+        }
 
-            if (Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.Exclude1st))
-            {
-                if (!Picker.TargetValid(target))
-                {
-                    PickerStatusFlags |= PickerStatusFlags.Invalid;
-                }
-            }
+        Result.flags = PickerResultFlags.PRF_HAS_SINGLE_OBJ;
+        Result.handle = objFound;
+        SetResultLocation(objFound);
 
-            if (!Picker.CheckTargetVsIncFlags(target))
-            {
-                PickerStatusFlags |= PickerStatusFlags.Invalid;
-            }
+        return FinalizePicker();
+    }
 
-            if (!Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.LosNotRequired) && Picker.LosBlocked(target))
-            {
-                PickerStatusFlags |= PickerStatusFlags.Invalid;
-            }
+    [TempleDllLocation(0x10138170)]
+    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    {
+        if (HandleClickInUnexploredArea(args.X, args.Y))
+        {
+            return false;
+        }
 
-            if (Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.Range))
-            {
-                // TODO: This distance check seems bugged too (feet vs. inch, no radius considered)
-                var dist = Picker.caster.GetLocationFull().DistanceTo(target.GetLocationFull());
-
-                if (dist > Picker.range)
-                {
-                    PickerStatusFlags |= PickerStatusFlags.OutOfRange;
-                }
-            }
-
+        var raycastFlags = PickerState.GetFlagsFromExclusions();
+        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags))
+        {
+            PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);
+            PickerState.Target = null;
             return true;
         }
+
+        PickerState.Target = target;
+
+        if (Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.Exclude1st))
+        {
+            if (!Picker.TargetValid(target))
+            {
+                PickerStatusFlags |= PickerStatusFlags.Invalid;
+            }
+        }
+
+        if (!Picker.CheckTargetVsIncFlags(target))
+        {
+            PickerStatusFlags |= PickerStatusFlags.Invalid;
+        }
+
+        if (!Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.LosNotRequired) && Picker.LosBlocked(target))
+        {
+            PickerStatusFlags |= PickerStatusFlags.Invalid;
+        }
+
+        if (Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.Range))
+        {
+            // TODO: This distance check seems bugged too (feet vs. inch, no radius considered)
+            var dist = Picker.caster.GetLocationFull().DistanceTo(target.GetLocationFull());
+
+            if (dist > Picker.range)
+            {
+                PickerStatusFlags |= PickerStatusFlags.OutOfRange;
+            }
+        }
+
+        return true;
     }
 }

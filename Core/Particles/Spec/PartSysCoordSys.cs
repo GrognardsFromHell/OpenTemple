@@ -1,8 +1,7 @@
-namespace OpenTemple.Core.Particles.Spec
+namespace OpenTemple.Core.Particles.Spec;
+
+public enum PartSysCoordSys
 {
-    public enum PartSysCoordSys
-    {
-        Cartesian,
-        Polar
-    }
+    Cartesian,
+    Polar
 }

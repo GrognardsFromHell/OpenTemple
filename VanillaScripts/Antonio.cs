@@ -17,64 +17,63 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(139)]
+public class Antonio : BaseObjectScript
 {
-    [ObjectScript(139)]
-    public class Antonio : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(139)))
         {
-            if ((GetGlobalFlag(139)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-            else if ((GetQuestState(52) == QuestState.Unknown))
-            {
-                triggerer.BeginDialog(attachee, 20);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 40);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((!attachee.HasMet(triggerer)))
         {
-            SetGlobalFlag(115, true);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 10);
         }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+        else if ((GetQuestState(52) == QuestState.Unknown))
         {
-            SetGlobalFlag(115, false);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 20);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((GetGlobalFlag(311)))
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-                SetGlobalFlag(115, true);
-            }
-
-            return RunDefault;
-        }
-        public static bool kill_tubal(GameObject attachee)
-        {
-            StartTimer(172800000, () => tubal_dead(attachee));
-            return RunDefault;
-        }
-        public static bool tubal_dead(GameObject attachee)
-        {
-            SetGlobalFlag(310, true);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 40);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(115, true);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(115, false);
+        return RunDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(311)))
+        {
+            attachee.SetObjectFlag(ObjectFlag.OFF);
+            SetGlobalFlag(115, true);
+        }
+
+        return RunDefault;
+    }
+    public static bool kill_tubal(GameObject attachee)
+    {
+        StartTimer(172800000, () => tubal_dead(attachee));
+        return RunDefault;
+    }
+    public static bool tubal_dead(GameObject attachee)
+    {
+        SetGlobalFlag(310, true);
+        return RunDefault;
+    }
+
+
 }

@@ -18,40 +18,39 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(269)]
+public class HillGiant1 : BaseObjectScript
 {
-    [ObjectScript(269)]
-    public class HillGiant1 : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            if ((GetQuestState(100) == QuestState.Accepted))
-            {
-                Utilities.create_item_in_inventory(12602, attachee);
-            }
-
-            if ((GetQuestState(100) == QuestState.Mentioned))
-            {
-                Utilities.create_item_in_inventory(12602, attachee);
-            }
-
-            if ((GetQuestState(100) == QuestState.Unknown))
-            {
-                Utilities.create_item_in_inventory(12602, attachee);
-            }
-
-            return RunDefault;
-        }
-
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        if ((GetQuestState(100) == QuestState.Accepted))
+        {
+            Utilities.create_item_in_inventory(12602, attachee);
+        }
+
+        if ((GetQuestState(100) == QuestState.Mentioned))
+        {
+            Utilities.create_item_in_inventory(12602, attachee);
+        }
+
+        if ((GetQuestState(100) == QuestState.Unknown))
+        {
+            Utilities.create_item_in_inventory(12602, attachee);
+        }
+
+        return RunDefault;
+    }
+
 }

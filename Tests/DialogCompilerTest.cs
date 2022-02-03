@@ -1,12 +1,11 @@
 using NUnit.Framework;
 
-namespace OpenTemple.Tests
+namespace OpenTemple.Tests;
+
+public class DialogCompilerTest
 {
-    public class DialogCompilerTest
+    [Test]
+    public void TestDialogCompilation()
     {
-        [Test]
-        public void TestDialogCompilation()
-        {
-        }
     }
 }

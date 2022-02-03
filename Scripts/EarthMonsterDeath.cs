@@ -18,22 +18,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(441)]
-    public class EarthMonsterDeath : BaseObjectScript
-    {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            ScriptDaemon.record_time_stamp(504);
-            ScriptDaemon.set_v(498, ScriptDaemon.get_v(498) + 1);
-            if (Math.Pow((ScriptDaemon.get_v(498) / 75f), 3) + Math.Pow((ScriptDaemon.get_v(499) / 38f), 3) + Math.Pow((ScriptDaemon.get_v(500) / 13f), 3) >= 1)
-            {
-                ScriptDaemon.record_time_stamp(509);
-            }
+namespace Scripts;
 
-            return RunDefault;
+[ObjectScript(441)]
+public class EarthMonsterDeath : BaseObjectScript
+{
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        ScriptDaemon.record_time_stamp(504);
+        ScriptDaemon.set_v(498, ScriptDaemon.get_v(498) + 1);
+        if (Math.Pow((ScriptDaemon.get_v(498) / 75f), 3) + Math.Pow((ScriptDaemon.get_v(499) / 38f), 3) + Math.Pow((ScriptDaemon.get_v(500) / 13f), 3) >= 1)
+        {
+            ScriptDaemon.record_time_stamp(509);
         }
 
+        return RunDefault;
     }
+
 }

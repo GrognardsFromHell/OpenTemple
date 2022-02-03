@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20;
+
+public enum SavingThrowType
 {
-    public enum SavingThrowType
-    {
-        Fortitude = 0,
-        Reflex = 1,
-        Will = 2
-    }
+    Fortitude = 0,
+    Reflex = 1,
+    Will = 2
 }

@@ -1,44 +1,43 @@
-namespace OpenTemple.Core.GameObjects
+namespace OpenTemple.Core.GameObjects;
+
+/// <summary>
+/// Used as an opaque identifier to a pooled ArrayIndexBitmaps entry.
+/// </summary>
+public readonly struct ArrayIdxMapId
 {
-    /// <summary>
-    /// Used as an opaque identifier to a pooled ArrayIndexBitmaps entry.
-    /// </summary>
-    public readonly struct ArrayIdxMapId
+    public readonly int Id;
+
+    public bool IsValid => Id != -1;
+
+    public static readonly ArrayIdxMapId Null = new ArrayIdxMapId(-1);
+
+    public ArrayIdxMapId(int id)
     {
-        public readonly int Id;
+        Id = id;
+    }
 
-        public bool IsValid => Id != -1;
+    public bool Equals(ArrayIdxMapId other)
+    {
+        return Id == other.Id;
+    }
 
-        public static readonly ArrayIdxMapId Null = new ArrayIdxMapId(-1);
+    public override bool Equals(object obj)
+    {
+        return obj is ArrayIdxMapId other && Equals(other);
+    }
 
-        public ArrayIdxMapId(int id)
-        {
-            Id = id;
-        }
+    public override int GetHashCode()
+    {
+        return Id;
+    }
 
-        public bool Equals(ArrayIdxMapId other)
-        {
-            return Id == other.Id;
-        }
+    public static bool operator ==(ArrayIdxMapId left, ArrayIdxMapId right)
+    {
+        return left.Equals(right);
+    }
 
-        public override bool Equals(object obj)
-        {
-            return obj is ArrayIdxMapId other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id;
-        }
-
-        public static bool operator ==(ArrayIdxMapId left, ArrayIdxMapId right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(ArrayIdxMapId left, ArrayIdxMapId right)
-        {
-            return !left.Equals(right);
-        }
+    public static bool operator !=(ArrayIdxMapId left, ArrayIdxMapId right)
+    {
+        return !left.Equals(right);
     }
 }

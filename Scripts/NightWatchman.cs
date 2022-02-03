@@ -18,87 +18,86 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(393)]
+public class NightWatchman : BaseObjectScript
 {
-    [ObjectScript(393)]
-    public class NightWatchman : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
+            triggerer.BeginDialog(attachee, 1);
+        }
+        else if ((attachee.HasMet(triggerer) && GetGlobalVar(700) == 0))
+        {
+            triggerer.BeginDialog(attachee, 120);
+        }
+        else if ((GetGlobalVar(700) == 1))
+        {
+            triggerer.BeginDialog(attachee, 100);
+        }
+        else if ((GetGlobalVar(700) == 2))
+        {
+            triggerer.BeginDialog(attachee, 110);
+        }
+
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            if ((!attachee.HasMet(PartyLeader)))
             {
-                triggerer.BeginDialog(attachee, 1);
+                if ((is_cool_to_talk(attachee, PartyLeader)))
+                {
+                    attachee.TurnTowards(PartyLeader);
+                    PartyLeader.BeginDialog(attachee, 1);
+                }
+
             }
-            else if ((attachee.HasMet(triggerer) && GetGlobalVar(700) == 0))
+            else if ((attachee.HasMet(PartyLeader) && GetGlobalVar(700) == 0))
             {
-                triggerer.BeginDialog(attachee, 120);
+                if ((is_cool_to_talk(attachee, PartyLeader)))
+                {
+                    attachee.TurnTowards(PartyLeader);
+                    PartyLeader.BeginDialog(attachee, 120);
+                    DetachScript();
+                }
+
             }
             else if ((GetGlobalVar(700) == 1))
             {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else if ((GetGlobalVar(700) == 2))
-            {
-                triggerer.BeginDialog(attachee, 110);
-            }
-
-            return SkipDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                if ((!attachee.HasMet(PartyLeader)))
+                if ((is_cool_to_talk(attachee, PartyLeader)))
                 {
-                    if ((is_cool_to_talk(attachee, PartyLeader)))
-                    {
-                        attachee.TurnTowards(PartyLeader);
-                        PartyLeader.BeginDialog(attachee, 1);
-                    }
-
-                }
-                else if ((attachee.HasMet(PartyLeader) && GetGlobalVar(700) == 0))
-                {
-                    if ((is_cool_to_talk(attachee, PartyLeader)))
-                    {
-                        attachee.TurnTowards(PartyLeader);
-                        PartyLeader.BeginDialog(attachee, 120);
-                        DetachScript();
-                    }
-
-                }
-                else if ((GetGlobalVar(700) == 1))
-                {
-                    if ((is_cool_to_talk(attachee, PartyLeader)))
-                    {
-                        attachee.TurnTowards(PartyLeader);
-                        PartyLeader.BeginDialog(attachee, 100);
-                    }
-
+                    attachee.TurnTowards(PartyLeader);
+                    PartyLeader.BeginDialog(attachee, 100);
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static bool is_cool_to_talk(GameObject speaker, GameObject listener)
-        {
-            if ((speaker.DistanceTo(listener) <= 20))
-            {
-                return true;
-            }
-
-            return false;
         }
 
+        return RunDefault;
     }
+    public static bool is_cool_to_talk(GameObject speaker, GameObject listener)
+    {
+        if ((speaker.DistanceTo(listener) <= 20))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 }

@@ -18,24 +18,23 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(83)]
-    public class Weaver : BaseObjectScript
-    {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
-            {
-                attachee.FloatLine(11004, triggerer);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
+namespace Scripts;
 
-            return SkipDefault;
+[ObjectScript(83)]
+public class Weaver : BaseObjectScript
+{
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
+        {
+            attachee.FloatLine(11004, triggerer);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+
 }

@@ -18,91 +18,90 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(182)]
+public class Assassin : BaseObjectScript
 {
-    [ObjectScript(182)]
-    public class Assassin : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
 
-            SetGlobalFlag(836, true);
-            return RunDefault;
+        SetGlobalFlag(836, true);
+        return RunDefault;
+    }
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+    {
+        // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
+        if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4112)))
+        {
+            attachee.WieldBestInAllSlots();
         }
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
-        {
-            // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
-            if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4112)))
-            {
-                attachee.WieldBestInAllSlots();
-            }
 
-            // game.new_sid = 0
-            return RunDefault;
+        // game.new_sid = 0
+        return RunDefault;
+    }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        while ((attachee.FindItemByName(8903) != null))
+        {
+            attachee.FindItemByName(8903).Destroy();
         }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+
+        // if (attachee.d20_query(Q_Is_BreakFree_Possible)): # workaround no longer necessary!
+        // create_item_in_inventory( 8903, attachee )
+        // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
+        if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4112)))
         {
-            while ((attachee.FindItemByName(8903) != null))
-            {
-                attachee.FindItemByName(8903).Destroy();
-            }
-
-            // if (attachee.d20_query(Q_Is_BreakFree_Possible)): # workaround no longer necessary!
-            // create_item_in_inventory( 8903, attachee )
-            // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
-            if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4112)))
-            {
-                attachee.WieldBestInAllSlots();
-            }
-
-            // game.new_sid = 0
-            return RunDefault;
+            attachee.WieldBestInAllSlots();
         }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(836, false);
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4112)))
-            {
-                attachee.WieldBestInAllSlots();
-                attachee.WieldBestInAllSlots();
-            }
 
-            if ((attachee.GetMap() != 5085 && !GameSystems.Combat.IsCombatActive()))
+        // game.new_sid = 0
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(836, false);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4112)))
+        {
+            attachee.WieldBestInAllSlots();
+            attachee.WieldBestInAllSlots();
+        }
+
+        if ((attachee.GetMap() != 5085 && !GameSystems.Combat.IsCombatActive()))
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                attachee.TurnTowards(obj);
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    attachee.TurnTowards(obj);
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
-                    {
-                        obj.BeginDialog(attachee, 1);
-                        DetachScript();
-                    }
-
+                    obj.BeginDialog(attachee, 1);
+                    DetachScript();
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static bool run_off(GameObject npc, GameObject pc)
-        {
-            npc.TransferItemByProtoTo(pc, 11002);
-            npc.RunOff();
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+    public static bool run_off(GameObject npc, GameObject pc)
+    {
+        npc.TransferItemByProtoTo(pc, 11002);
+        npc.RunOff();
+        return RunDefault;
+    }
+
 }

@@ -18,168 +18,167 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(322)]
-    public class CaptainAsaph : BaseObjectScript
-    {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            attachee.TurnTowards(triggerer);
-            if ((attachee.GetLeader() != null))
-            {
-                triggerer.BeginDialog(attachee, 90);
-            }
-            else
-            {
-                triggerer.TurnTowards(attachee);
-                triggerer.BeginDialog(attachee, 1);
-            }
+namespace Scripts;
 
-            return SkipDefault;
+[ObjectScript(322)]
+public class CaptainAsaph : BaseObjectScript
+{
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        attachee.TurnTowards(triggerer);
+        if ((attachee.GetLeader() != null))
+        {
+            triggerer.BeginDialog(attachee, 90);
         }
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+        else
+        {
+            triggerer.TurnTowards(attachee);
+            triggerer.BeginDialog(attachee, 1);
+        }
+
+        return SkipDefault;
+    }
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+    {
+        var leader = attachee.GetLeader();
+        leader.RemoveFollower(attachee);
+        AttachParticles("CounterSpell", attachee);
+        Sound(4016, 1);
+        SetGlobalVar(989, 2);
+        attachee.SetObjectFlag(ObjectFlag.OFF);
+        return RunDefault;
+    }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        var asaph = Utilities.find_npc_near(attachee, 14781);
+        AttachParticles("CounterSpell", asaph);
+        Sound(4016, 1);
+        SetGlobalVar(989, 3);
+        asaph.SetObjectFlag(ObjectFlag.OFF);
+        var guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        return false;
+    }
+    public override bool OnJoin(GameObject attachee, GameObject triggerer)
+    {
+        var cloak = attachee.FindItemByName(6269);
+        cloak.SetItemFlag(ItemFlag.NO_TRANSFER);
+        var armor = attachee.FindItemByName(6047);
+        armor.SetItemFlag(ItemFlag.NO_TRANSFER);
+        var boots = attachee.FindItemByName(6020);
+        boots.SetItemFlag(ItemFlag.NO_TRANSFER);
+        var gloves = attachee.FindItemByName(6021);
+        gloves.SetItemFlag(ItemFlag.NO_TRANSFER);
+        var helm = attachee.FindItemByName(6035);
+        helm.SetItemFlag(ItemFlag.NO_TRANSFER);
+        var shield = attachee.FindItemByName(6499);
+        shield.SetItemFlag(ItemFlag.NO_TRANSFER);
+        var sword = attachee.FindItemByName(4037);
+        sword.SetItemFlag(ItemFlag.NO_TRANSFER);
+        return RunDefault;
+    }
+    public override bool OnDisband(GameObject attachee, GameObject triggerer)
+    {
+        AttachParticles("CounterSpell", attachee);
+        Sound(4016, 1);
+        SetGlobalVar(989, 5);
+        attachee.SetObjectFlag(ObjectFlag.OFF);
+        return SkipDefault;
+    }
+    public override bool OnNewMap(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetMap() == 5192 || attachee.GetMap() == 5193))
+        {
+            SelectedPartyLeader.BeginDialog(attachee, 80);
+        }
+        else if ((attachee.GetMap() != 5093 && attachee.GetMap() != 5192 && attachee.GetMap() != 5193))
         {
             var leader = attachee.GetLeader();
             leader.RemoveFollower(attachee);
             AttachParticles("CounterSpell", attachee);
             Sound(4016, 1);
-            SetGlobalVar(989, 2);
+            SetGlobalVar(989, 4);
             attachee.SetObjectFlag(ObjectFlag.OFF);
-            return RunDefault;
         }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
-        {
-            var asaph = Utilities.find_npc_near(attachee, 14781);
-            AttachParticles("CounterSpell", asaph);
-            Sound(4016, 1);
-            SetGlobalVar(989, 3);
-            asaph.SetObjectFlag(ObjectFlag.OFF);
-            var guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            return false;
-        }
-        public override bool OnJoin(GameObject attachee, GameObject triggerer)
-        {
-            var cloak = attachee.FindItemByName(6269);
-            cloak.SetItemFlag(ItemFlag.NO_TRANSFER);
-            var armor = attachee.FindItemByName(6047);
-            armor.SetItemFlag(ItemFlag.NO_TRANSFER);
-            var boots = attachee.FindItemByName(6020);
-            boots.SetItemFlag(ItemFlag.NO_TRANSFER);
-            var gloves = attachee.FindItemByName(6021);
-            gloves.SetItemFlag(ItemFlag.NO_TRANSFER);
-            var helm = attachee.FindItemByName(6035);
-            helm.SetItemFlag(ItemFlag.NO_TRANSFER);
-            var shield = attachee.FindItemByName(6499);
-            shield.SetItemFlag(ItemFlag.NO_TRANSFER);
-            var sword = attachee.FindItemByName(4037);
-            sword.SetItemFlag(ItemFlag.NO_TRANSFER);
-            return RunDefault;
-        }
-        public override bool OnDisband(GameObject attachee, GameObject triggerer)
-        {
-            AttachParticles("CounterSpell", attachee);
-            Sound(4016, 1);
-            SetGlobalVar(989, 5);
-            attachee.SetObjectFlag(ObjectFlag.OFF);
-            return SkipDefault;
-        }
-        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetMap() == 5192 || attachee.GetMap() == 5193))
-            {
-                SelectedPartyLeader.BeginDialog(attachee, 80);
-            }
-            else if ((attachee.GetMap() != 5093 && attachee.GetMap() != 5192 && attachee.GetMap() != 5193))
-            {
-                var leader = attachee.GetLeader();
-                leader.RemoveFollower(attachee);
-                AttachParticles("CounterSpell", attachee);
-                Sound(4016, 1);
-                SetGlobalVar(989, 4);
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-            }
 
-            return SkipDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    if ((!attachee.HasMet(obj)))
                     {
-                        if ((!attachee.HasMet(obj)))
-                        {
-                            attachee.TurnTowards(obj);
-                            obj.BeginDialog(attachee, 1);
-                            DetachScript();
-                        }
-
+                        attachee.TurnTowards(obj);
+                        obj.BeginDialog(attachee, 1);
+                        DetachScript();
                     }
 
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static void kill_asaph(GameObject attachee, GameObject triggerer)
-        {
-            AttachParticles("CounterSpell", attachee);
-            SetGlobalVar(989, 1);
-            attachee.SetObjectFlag(ObjectFlag.OFF);
-            var guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            return;
-        }
-        public static void kill_asaph_guards(GameObject attachee, GameObject triggerer)
-        {
-            var guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            guard = Utilities.find_npc_near(attachee, 14716);
-            AttachParticles("CounterSpell", guard);
-            guard.SetObjectFlag(ObjectFlag.OFF);
-            return;
         }
 
+        return RunDefault;
     }
+    public static void kill_asaph(GameObject attachee, GameObject triggerer)
+    {
+        AttachParticles("CounterSpell", attachee);
+        SetGlobalVar(989, 1);
+        attachee.SetObjectFlag(ObjectFlag.OFF);
+        var guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        return;
+    }
+    public static void kill_asaph_guards(GameObject attachee, GameObject triggerer)
+    {
+        var guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        guard = Utilities.find_npc_near(attachee, 14716);
+        AttachParticles("CounterSpell", guard);
+        guard.SetObjectFlag(ObjectFlag.OFF);
+        return;
+    }
+
 }

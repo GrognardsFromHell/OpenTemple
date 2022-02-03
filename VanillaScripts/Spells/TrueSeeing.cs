@@ -18,72 +18,71 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Spells
+namespace VanillaScripts.Spells;
+
+[SpellScript(508)]
+public class TrueSeeing : BaseSpellScript
 {
-    [SpellScript(508)]
-    public class TrueSeeing : BaseSpellScript
+
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
+        Logger.Info("True Seeing OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-divination-conjure", spell.caster);
+    }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("True Seeing OnSpellEffect");
+        spell.duration = 60 * spell.casterLevel;
 
-        public override void OnBeginSpellCast(SpellPacketBody spell)
+        var target_item = spell.Targets[0];
+
+        if (target_item.Object.IsFriendly(spell.caster))
         {
-            Logger.Info("True Seeing OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-divination-conjure", spell.caster);
+            target_item.Object.AddCondition("sp-True Seeing", spell.spellId, spell.duration, 0);
+            target_item.ParticleSystem = AttachParticles("sp-True Seeing", target_item.Object);
+
         }
-        public override void OnSpellEffect(SpellPacketBody spell)
+        else if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
         {
-            Logger.Info("True Seeing OnSpellEffect");
-            spell.duration = 60 * spell.casterLevel;
+            target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
+            target_item.Object.AddCondition("sp-True Seeing", spell.spellId, spell.duration, 0);
+            target_item.ParticleSystem = AttachParticles("sp-True Seeing", target_item.Object);
 
-            var target_item = spell.Targets[0];
-
-            if (target_item.Object.IsFriendly(spell.caster))
-            {
-                target_item.Object.AddCondition("sp-True Seeing", spell.spellId, spell.duration, 0);
-                target_item.ParticleSystem = AttachParticles("sp-True Seeing", target_item.Object);
-
-            }
-            else if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
-            {
-                target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
-                target_item.Object.AddCondition("sp-True Seeing", spell.spellId, spell.duration, 0);
-                target_item.ParticleSystem = AttachParticles("sp-True Seeing", target_item.Object);
-
-            }
-            else
-            {
-                target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
-                AttachParticles("Fizzle", target_item.Object);
-                spell.RemoveTarget(target_item.Object);
-            }
-
-            spell.EndSpell();
         }
-        public override void OnBeginRound(SpellPacketBody spell)
+        else
         {
-            Logger.Info("True Seeing OnBeginRound");
-            var range = 120;
+            target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
+            AttachParticles("Fizzle", target_item.Object);
+            spell.RemoveTarget(target_item.Object);
+        }
 
-            var target_item = spell.Targets[0];
+        spell.EndSpell();
+    }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("True Seeing OnBeginRound");
+        var range = 120;
 
-            Logger.Info("target_list0 is={0}", target_item.Object);
-            foreach (var obj in ObjList.ListCone(target_item.Object, ObjectListFilter.OLC_CRITTERS, range, 0, 360))
+        var target_item = spell.Targets[0];
+
+        Logger.Info("target_list0 is={0}", target_item.Object);
+        foreach (var obj in ObjList.ListCone(target_item.Object, ObjectListFilter.OLC_CRITTERS, range, 0, 360))
+        {
+            Logger.Info("found obj={0}", obj);
+            if ((obj.ExecuteObjectScript(target_item.Object, ObjScriptEvent.TrueSeeing) == 0))
             {
-                Logger.Info("found obj={0}", obj);
-                if ((obj.ExecuteObjectScript(target_item.Object, ObjScriptEvent.TrueSeeing) == 0))
-                {
-                    AttachParticles("Fizzle", obj);
-                }
-
+                AttachParticles("Fizzle", obj);
             }
 
         }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("True Seeing OnEndSpellCast");
-        }
-
 
     }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("True Seeing OnEndSpellCast");
+    }
+
+
 }

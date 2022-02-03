@@ -17,83 +17,82 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(175)]
+public class Ashrem : BaseObjectScript
 {
-    [ObjectScript(175)]
-    public class Ashrem : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetLeader() != null))
         {
-            if ((attachee.GetLeader() != null))
-            {
-                triggerer.BeginDialog(attachee, 170);
-            }
-            else if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 30);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 150);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 170);
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else if ((!attachee.HasMet(triggerer)))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                var alrrem = Utilities.find_npc_near(attachee, 8047);
-
-                if ((alrrem != null))
-                {
-                    if ((!GetGlobalFlag(192)))
-                    {
-                        triggerer.BeginDialog(attachee, 230);
-                    }
-
-                }
-
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 30);
         }
-        public static bool talk_Taki(GameObject attachee, GameObject triggerer, int line, int alternate_line)
+        else
         {
-            var taki = Utilities.find_npc_near(attachee, 8039);
-
-            if ((taki != null))
-            {
-                triggerer.BeginDialog(taki, line);
-                taki.TurnTowards(attachee);
-                attachee.TurnTowards(taki);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, alternate_line);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 150);
         }
-        public static bool talk_Alrrem(GameObject attachee, GameObject triggerer, int line, int alternate_line)
+
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
             var alrrem = Utilities.find_npc_near(attachee, 8047);
 
             if ((alrrem != null))
             {
-                triggerer.BeginDialog(alrrem, line);
-                alrrem.TurnTowards(attachee);
-                attachee.TurnTowards(alrrem);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, alternate_line);
+                if ((!GetGlobalFlag(192)))
+                {
+                    triggerer.BeginDialog(attachee, 230);
+                }
+
             }
 
-            return SkipDefault;
         }
 
-
+        return RunDefault;
     }
+    public static bool talk_Taki(GameObject attachee, GameObject triggerer, int line, int alternate_line)
+    {
+        var taki = Utilities.find_npc_near(attachee, 8039);
+
+        if ((taki != null))
+        {
+            triggerer.BeginDialog(taki, line);
+            taki.TurnTowards(attachee);
+            attachee.TurnTowards(taki);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, alternate_line);
+        }
+
+        return SkipDefault;
+    }
+    public static bool talk_Alrrem(GameObject attachee, GameObject triggerer, int line, int alternate_line)
+    {
+        var alrrem = Utilities.find_npc_near(attachee, 8047);
+
+        if ((alrrem != null))
+        {
+            triggerer.BeginDialog(alrrem, line);
+            alrrem.TurnTowards(attachee);
+            attachee.TurnTowards(alrrem);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, alternate_line);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

@@ -18,54 +18,53 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(99)]
+public class Jenelda : BaseObjectScript
 {
-    [ObjectScript(99)]
-    public class Jenelda : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((!attachee.HasMet(triggerer)))
         {
-            if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 20);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetGlobalFlag(330, true);
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(330, false);
-            return RunDefault;
-        }
-        public static bool get_rep(GameObject attachee, GameObject triggerer)
-        {
-            if (!triggerer.HasReputation(7))
-            {
-                triggerer.AddReputation(7);
-            }
-
-            SetGlobalVar(25, GetGlobalVar(25) + 1);
-            if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
-            {
-                triggerer.AddReputation(8);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 20);
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        SetGlobalFlag(330, true);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(330, false);
+        return RunDefault;
+    }
+    public static bool get_rep(GameObject attachee, GameObject triggerer)
+    {
+        if (!triggerer.HasReputation(7))
+        {
+            triggerer.AddReputation(7);
+        }
+
+        SetGlobalVar(25, GetGlobalVar(25) + 1);
+        if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
+        {
+            triggerer.AddReputation(8);
+        }
+
+        return RunDefault;
+    }
+
 }

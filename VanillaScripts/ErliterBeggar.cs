@@ -17,42 +17,41 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(178)]
+public class ErliterBeggar : BaseObjectScript
 {
-    [ObjectScript(178)]
-    public class ErliterBeggar : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.HasMet(triggerer)))
         {
-            if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 60);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 60);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((GetGlobalFlag(199)))
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
-        }
-        public static bool leave_for_city(GameObject attachee, GameObject triggerer)
-        {
-            var loc = new locXY(625, 420);
-
-            attachee.RunOff(loc);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(199)))
+        {
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+    public static bool leave_for_city(GameObject attachee, GameObject triggerer)
+    {
+        var loc = new locXY(625, 420);
+
+        attachee.RunOff(loc);
+        return RunDefault;
+    }
+
+
 }

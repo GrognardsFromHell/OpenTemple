@@ -18,17 +18,16 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(230)]
-    public class DyingVignetteNpc : BaseObjectScript
-    {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            GameSystems.Movies.MovieQueueAdd(268);
-            GameSystems.Movies.MovieQueuePlayAndEndGame();
-            return RunDefault;
-        }
+namespace Scripts;
 
+[ObjectScript(230)]
+public class DyingVignetteNpc : BaseObjectScript
+{
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        GameSystems.Movies.MovieQueueAdd(268);
+        GameSystems.Movies.MovieQueuePlayAndEndGame();
+        return RunDefault;
     }
+
 }

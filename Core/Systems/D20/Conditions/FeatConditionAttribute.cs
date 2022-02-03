@@ -2,21 +2,20 @@ using System;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Utils;
 
-namespace OpenTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions;
+
+[AttributeUsage(AttributeTargets.Field)]
+public class FeatConditionAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Field)]
-    public class FeatConditionAttribute : Attribute
+    public FeatId FeatId { get; }
+
+    public FeatConditionAttribute(string featName)
     {
-        public FeatId FeatId { get; }
+        FeatId = (FeatId) ElfHash.Hash(featName);
+    }
 
-        public FeatConditionAttribute(string featName)
-        {
-            FeatId = (FeatId) ElfHash.Hash(featName);
-        }
-
-        public FeatConditionAttribute(FeatId featId)
-        {
-            FeatId = featId;
-        }
+    public FeatConditionAttribute(FeatId featId)
+    {
+        FeatId = featId;
     }
 }

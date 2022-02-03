@@ -4,115 +4,114 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.PartyCreation.Systems
+namespace OpenTemple.Core.Ui.PartyCreation.Systems;
+
+/// <summary>
+/// Allows additional class-features to be selected for the class in which the character
+/// is leveling up (or during character creation, the first class).
+/// </summary>
+[TempleDllLocation(0x102f7a98)]
+internal class AbilitiesSystem : IChargenSystem
 {
-    /// <summary>
-    /// Allows additional class-features to be selected for the class in which the character
-    /// is leveling up (or during character creation, the first class).
-    /// </summary>
-    [TempleDllLocation(0x102f7a98)]
-    internal class AbilitiesSystem : IChargenSystem
+    private readonly Dictionary<Stat, IChargenSystem> _featuresByClass = new Dictionary<Stat, IChargenSystem>
     {
-        private readonly Dictionary<Stat, IChargenSystem> _featuresByClass = new Dictionary<Stat, IChargenSystem>
+        {Stat.level_cleric, new ClericFeaturesUi()},
+        {Stat.level_wizard, new WizardFeaturesUi()},
+        {Stat.level_ranger, new RangerFeaturesUi()}
+    };
+
+    private IChargenSystem _activeFeaturesUi;
+
+    private CharEditorSelectionPacket _pkt;
+
+    [TempleDllLocation(0x10c3d0f0)]
+    private bool uiChargenAbilitiesActivated;
+
+    [TempleDllLocation(0x10186f90)]
+    public AbilitiesSystem()
+    {
+        var doc = WidgetDoc.Load("ui/pc_creation/abilities_ui.json");
+        Container = doc.GetRootContainer();
+        Container.Visible = false;
+
+        foreach (var featuresUi in _featuresByClass.Values)
         {
-            {Stat.level_cleric, new ClericFeaturesUi()},
-            {Stat.level_wizard, new WizardFeaturesUi()},
-            {Stat.level_ranger, new RangerFeaturesUi()}
-        };
+            Container.Add(featuresUi.Container);
+        }
+    }
 
-        private IChargenSystem _activeFeaturesUi;
+    public string HelpTopic => "TAG_CHARGEN_ABILITIES";
 
-        private CharEditorSelectionPacket _pkt;
+    public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
 
-        [TempleDllLocation(0x10c3d0f0)]
-        private bool uiChargenAbilitiesActivated;
+    public WidgetContainer Container { get; }
 
-        [TempleDllLocation(0x10186f90)]
-        public AbilitiesSystem()
+    [TempleDllLocation(0x10184b90)]
+    public void Reset(CharEditorSelectionPacket pkt)
+    {
+        _pkt = pkt;
+        foreach (var featureUi in _featuresByClass.Values)
         {
-            var doc = WidgetDoc.Load("ui/pc_creation/abilities_ui.json");
-            Container = doc.GetRootContainer();
-            Container.Visible = false;
-
-            foreach (var featuresUi in _featuresByClass.Values)
-            {
-                Container.Add(featuresUi.Container);
-            }
+            featureUi.Reset(pkt);
         }
 
-        public string HelpTopic => "TAG_CHARGEN_ABILITIES";
+        uiChargenAbilitiesActivated = false;
+    }
 
-        public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
+    [TempleDllLocation(0x10185e10)]
+    public void Activate()
+    {
+        uiChargenAbilitiesActivated = true;
+    }
 
-        public WidgetContainer Container { get; }
+    [TempleDllLocation(0x10185670)]
+    public void Show()
+    {
+        Container.Show();
 
-        [TempleDllLocation(0x10184b90)]
-        public void Reset(CharEditorSelectionPacket pkt)
+        _featuresByClass.TryGetValue(_pkt.classCode, out _activeFeaturesUi);
+        _activeFeaturesUi?.Show();
+    }
+
+    public void Hide()
+    {
+        if (_activeFeaturesUi != null)
         {
-            _pkt = pkt;
-            foreach (var featureUi in _featuresByClass.Values)
-            {
-                featureUi.Reset(pkt);
-            }
-
-            uiChargenAbilitiesActivated = false;
+            _activeFeaturesUi.Container.Visible = false;
+            _activeFeaturesUi = null;
         }
 
-        [TempleDllLocation(0x10185e10)]
-        public void Activate()
+        Container.Hide();
+    }
+
+    [TempleDllLocation(0x10184bd0)]
+    public bool CheckComplete()
+    {
+        if (!_featuresByClass.ContainsKey(_pkt.classCode))
         {
-            uiChargenAbilitiesActivated = true;
+            // Always complete if the class has no special features to select
+            return true;
         }
 
-        [TempleDllLocation(0x10185670)]
-        public void Show()
-        {
-            Container.Show();
+        return _activeFeaturesUi?.CheckComplete() ?? false;
+    }
 
-            _featuresByClass.TryGetValue(_pkt.classCode, out _activeFeaturesUi);
-            _activeFeaturesUi?.Show();
+    [TempleDllLocation(0x10184c80)]
+    public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
+    {
+        _activeFeaturesUi?.Finalize(charSpec, ref playerObj);
+    }
+
+    [TempleDllLocation(0x10184c40)]
+    public void UpdateDescriptionBox()
+    {
+        if (_pkt.classCode == Stat.level_wizard)
+        {
+            UiSystems.PCCreation.ShowHelpTopic("TAG_HMU_CHAR_EDITOR_WIZARD_SPEC");
         }
-
-        public void Hide()
+        else if (_pkt.classCode == Stat.level_cleric)
         {
-            if (_activeFeaturesUi != null)
-            {
-                _activeFeaturesUi.Container.Visible = false;
-                _activeFeaturesUi = null;
-            }
-
-            Container.Hide();
-        }
-
-        [TempleDllLocation(0x10184bd0)]
-        public bool CheckComplete()
-        {
-            if (!_featuresByClass.ContainsKey(_pkt.classCode))
-            {
-                // Always complete if the class has no special features to select
-                return true;
-            }
-
-            return _activeFeaturesUi?.CheckComplete() ?? false;
-        }
-
-        [TempleDllLocation(0x10184c80)]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
-        {
-            _activeFeaturesUi?.Finalize(charSpec, ref playerObj);
-        }
-
-        [TempleDllLocation(0x10184c40)]
-        public void UpdateDescriptionBox()
-        {
-            if (_pkt.classCode == Stat.level_wizard)
-            {
-                UiSystems.PCCreation.ShowHelpTopic("TAG_HMU_CHAR_EDITOR_WIZARD_SPEC");
-            }
-            else if (_pkt.classCode == Stat.level_cleric)
-            {
-                UiSystems.PCCreation.ShowHelpTopic("");
-            }
+            UiSystems.PCCreation.ShowHelpTopic("");
         }
     }
 }

@@ -9,106 +9,105 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.CharSheet
+namespace OpenTemple.Core.Ui.CharSheet;
+
+public class CharUiClassLevel : WidgetButtonBase
 {
-    public class CharUiClassLevel : WidgetButtonBase
+    private readonly WidgetText _text;
+    private readonly string _textSeparator;
+    private readonly string _textLevel;
+    private readonly string _textNpc;
+
+    public CharUiClassLevel()
     {
-        private readonly WidgetText _text;
-        private readonly string _textSeparator;
-        private readonly string _textLevel;
-        private readonly string _textNpc;
+        AddContent(_text = new WidgetText());
 
-        public CharUiClassLevel()
+        var translations = Tig.FS.ReadMesFile("mes/0_char_ui_text.mes");
+        _textSeparator = ' ' + translations[1600] + ' ';
+        _textLevel = translations[1590];
+        _textNpc = '(' + translations[1610] + ')';
+
+        AddStyle("char-ui-dialog-title");
+    }
+
+    [TempleDllLocation(0x10144b40)]
+    public override void Render()
+    {
+        var currentCritter = UiSystems.CharSheet.CurrentCritter;
+        if (currentCritter == null)
         {
-            AddContent(_text = new WidgetText());
-
-            var translations = Tig.FS.ReadMesFile("mes/0_char_ui_text.mes");
-            _textSeparator = ' ' + translations[1600] + ' ';
-            _textLevel = translations[1590];
-            _textNpc = '(' + translations[1610] + ')';
-
-            AddStyle("char-ui-dialog-title");
+            return;
         }
 
-        [TempleDllLocation(0x10144b40)]
-        public override void Render()
+        _text.Text = BuildClassText(currentCritter, false, false);
+
+        // Switch to class-name shorthands if the text doesn't fit (i.e. "Brd Level 1" instead of "Bard Level 1")
+        if (_text.IsTrimmed)
         {
-            var currentCritter = UiSystems.CharSheet.CurrentCritter;
-            if (currentCritter == null)
-            {
-                return;
-            }
+            // Use the current text as the tooltip if we're going to shorten it
+            TooltipText = _text.Text;
+            _text.Text = BuildClassText(currentCritter, true, false);
 
-            _text.Text = BuildClassText(currentCritter, false, false);
-
-            // Switch to class-name shorthands if the text doesn't fit (i.e. "Brd Level 1" instead of "Bard Level 1")
+            // If the text still doesn't fit, omit "Level" (i.e. "Brd 1" instead of "Bard Level 1")
             if (_text.IsTrimmed)
             {
-                // Use the current text as the tooltip if we're going to shorten it
-                TooltipText = _text.Text;
-                _text.Text = BuildClassText(currentCritter, true, false);
-
-                // If the text still doesn't fit, omit "Level" (i.e. "Brd 1" instead of "Bard Level 1")
-                if (_text.IsTrimmed)
-                {
-                    _text.Text = BuildClassText(currentCritter, true, true);
-                }
+                _text.Text = BuildClassText(currentCritter, true, true);
             }
-            else
-            {
-                TooltipText = null;
-            }
-
-            base.Render();
         }
-
-        private string BuildClassText(GameObject currentCritter, bool shortClassNames, bool omitLevelText)
+        else
         {
-            var textBuilder = new StringBuilder();
-
-            if (currentCritter.IsPC() || Globals.Config.ShowNpcStats)
-            {
-                // cycle through classes
-                bool isFirst = true;
-                foreach (var classCode in D20ClassSystem.AllClasses)
-                {
-                    var classLvl = GameSystems.Stat.StatLevelGet(currentCritter, classCode);
-                    if (classLvl <= 0)
-                    {
-                        continue;
-                    }
-
-                    if (!isFirst)
-                    {
-                        // add a "/" separator
-                        textBuilder.Append(_textSeparator);
-                    }
-                    else
-                    {
-                        isFirst = false;
-                    }
-
-                    string className;
-                    if (!shortClassNames)
-                    {
-                        className = GameSystems.Stat.GetStatName(classCode);
-                    }
-                    else
-                    {
-                        className = GameSystems.Stat.GetStatShortName(classCode);
-                    }
-
-                    textBuilder.Append(omitLevelText
-                        ? $"{className} {classLvl}"
-                        : $"{className} {_textLevel} {classLvl}");
-                }
-            }
-            else
-            {
-                textBuilder.Append(_textNpc);
-            }
-
-            return textBuilder.ToString();
+            TooltipText = null;
         }
+
+        base.Render();
+    }
+
+    private string BuildClassText(GameObject currentCritter, bool shortClassNames, bool omitLevelText)
+    {
+        var textBuilder = new StringBuilder();
+
+        if (currentCritter.IsPC() || Globals.Config.ShowNpcStats)
+        {
+            // cycle through classes
+            bool isFirst = true;
+            foreach (var classCode in D20ClassSystem.AllClasses)
+            {
+                var classLvl = GameSystems.Stat.StatLevelGet(currentCritter, classCode);
+                if (classLvl <= 0)
+                {
+                    continue;
+                }
+
+                if (!isFirst)
+                {
+                    // add a "/" separator
+                    textBuilder.Append(_textSeparator);
+                }
+                else
+                {
+                    isFirst = false;
+                }
+
+                string className;
+                if (!shortClassNames)
+                {
+                    className = GameSystems.Stat.GetStatName(classCode);
+                }
+                else
+                {
+                    className = GameSystems.Stat.GetStatShortName(classCode);
+                }
+
+                textBuilder.Append(omitLevelText
+                    ? $"{className} {classLvl}"
+                    : $"{className} {_textLevel} {classLvl}");
+            }
+        }
+        else
+        {
+            textBuilder.Append(_textNpc);
+        }
+
+        return textBuilder.ToString();
     }
 }

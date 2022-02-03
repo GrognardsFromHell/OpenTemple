@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public enum BufferFormat
 {
-    public enum BufferFormat
-    {
-        A8,
-        A8R8G8B8,
-        X8R8G8B8
-    }
+    A8,
+    A8R8G8B8,
+    X8R8G8B8
 }

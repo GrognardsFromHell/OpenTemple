@@ -18,40 +18,39 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(313)]
+public class ThugDualwield : BaseObjectScript
 {
-    [ObjectScript(313)]
-    public class ThugDualwield : BaseObjectScript
+    public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
+        // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
+        while ((!attachee.HasEquippedByName(4156) || !attachee.HasEquippedByName(4159)))
         {
-            // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
-            while ((!attachee.HasEquippedByName(4156) || !attachee.HasEquippedByName(4159)))
-            {
-                attachee.WieldBestInAllSlots();
-            }
-
-            // game.new_sid = 0
-            return RunDefault;
-        }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
-        {
-            while ((attachee.FindItemByName(8903) != null))
-            {
-                attachee.FindItemByName(8903).Destroy();
-            }
-
-            // if (attachee.d20_query(Q_Is_BreakFree_Possible)): # workaround no longer necessary!
-            // create_item_in_inventory( 8903, attachee )
-            // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
-            if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4112)))
-            {
-                attachee.WieldBestInAllSlots();
-            }
-
-            // game.new_sid = 0
-            return RunDefault;
+            attachee.WieldBestInAllSlots();
         }
 
+        // game.new_sid = 0
+        return RunDefault;
     }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        while ((attachee.FindItemByName(8903) != null))
+        {
+            attachee.FindItemByName(8903).Destroy();
+        }
+
+        // if (attachee.d20_query(Q_Is_BreakFree_Possible)): # workaround no longer necessary!
+        // create_item_in_inventory( 8903, attachee )
+        // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
+        if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4112)))
+        {
+            attachee.WieldBestInAllSlots();
+        }
+
+        // game.new_sid = 0
+        return RunDefault;
+    }
+
 }

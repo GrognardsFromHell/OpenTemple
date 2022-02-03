@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20;
+
+public static class BonusMessages
 {
-    public static class BonusMessages
-    {
 
-        public const int InitialValue = 102;
+    public const int InitialValue = 102;
 
-        public const int BluffSynergyBonus = 140;
-    }
+    public const int BluffSynergyBonus = 140;
 }

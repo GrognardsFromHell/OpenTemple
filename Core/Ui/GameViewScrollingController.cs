@@ -6,198 +6,197 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui
+namespace OpenTemple.Core.Ui;
+
+public class GameViewScrollingController
 {
-    public class GameViewScrollingController
+    private readonly WidgetContainer _widget;
+    private readonly IGameViewport _viewport;
+    private TimePoint _lastScrolling;
+    private static readonly TimeSpan ScrollButterDelay = TimeSpan.FromMilliseconds(16);
+    private bool _grabMoving;
+    private Point _grabMoveRef;
+    private bool _mouseHasMoved;
+
+    public GameViewScrollingController(WidgetContainer widget, IGameViewport viewport)
     {
-        private readonly WidgetContainer _widget;
-        private readonly IGameViewport _viewport;
-        private TimePoint _lastScrolling;
-        private static readonly TimeSpan ScrollButterDelay = TimeSpan.FromMilliseconds(16);
-        private bool _grabMoving;
-        private Point _grabMoveRef;
-        private bool _mouseHasMoved;
+        _widget = widget;
+        _viewport = viewport;
+    }
 
-        public GameViewScrollingController(WidgetContainer widget, IGameViewport viewport)
-        {
-            _widget = widget;
-            _viewport = viewport;
-        }
+    public bool MiddleMouseDown(Point pos)
+    {
+        _grabMoving = Globals.UiManager.SetMouseCaptureWidget(_widget);
+        _grabMoveRef = pos;
+        return true;
+    }
 
-        public bool MiddleMouseDown(Point pos)
+    public bool MiddleMouseUp()
+    {
+        if (_grabMoving)
         {
-            _grabMoving = Globals.UiManager.SetMouseCaptureWidget(_widget);
-            _grabMoveRef = pos;
+            Globals.UiManager.UnsetMouseCaptureWidget(_widget);
+            _grabMoving = false;
+            _grabMoveRef = Point.Empty;
             return true;
         }
 
-        public bool MiddleMouseUp()
-        {
-            if (_grabMoving)
-            {
-                Globals.UiManager.UnsetMouseCaptureWidget(_widget);
-                _grabMoving = false;
-                _grabMoveRef = Point.Empty;
-                return true;
-            }
+        return false;
+    }
 
+    public bool MouseMoved(Point pos)
+    {
+        if (!_grabMoving)
+        {
             return false;
         }
 
-        public bool MouseMoved(Point pos)
+        _mouseHasMoved = true;
+
+        var dx = pos.X - _grabMoveRef.X;
+        var dy = pos.Y - _grabMoveRef.Y;
+        dx = (int) (dx / _viewport.Zoom);
+        dy = (int) (dy / _viewport.Zoom);
+
+        GameSystems.Scroll.ScrollBy(_viewport, dx, dy);
+
+        _grabMoveRef = pos;
+        return true;
+    }
+
+    [TempleDllLocation(0x10113fb0)]
+    private void DoKeyboardScrolling()
+    {
+        // TODO: This is very stupid...
+        if (Tig.Console.IsVisible || UiSystems.ItemCreation.IsVisible || UiSystems.TextEntry.IsVisible)
         {
-            if (!_grabMoving)
-            {
-                return false;
-            }
-
-            _mouseHasMoved = true;
-
-            var dx = pos.X - _grabMoveRef.X;
-            var dy = pos.Y - _grabMoveRef.Y;
-            dx = (int) (dx / _viewport.Zoom);
-            dy = (int) (dy / _viewport.Zoom);
-
-            GameSystems.Scroll.ScrollBy(_viewport, dx, dy);
-
-            _grabMoveRef = pos;
-            return true;
+            return;
         }
 
-        [TempleDllLocation(0x10113fb0)]
-        private void DoKeyboardScrolling()
+        if (Tig.Keyboard.IsPressed(DIK.DIK_UP))
         {
-            // TODO: This is very stupid...
-            if (Tig.Console.IsVisible || UiSystems.ItemCreation.IsVisible || UiSystems.TextEntry.IsVisible)
+            if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
             {
-                return;
-            }
-
-            if (Tig.Keyboard.IsPressed(DIK.DIK_UP))
-            {
-                if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_LEFT);
-                }
-                else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_RIGHT);
-                }
-                else
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP);
-                }
-            }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_DOWN))
-            {
-                if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_LEFT);
-                }
-                else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_RIGHT);
-                }
-                else
-                {
-                    GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN);
-                }
-            }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
-            {
-                GameSystems.Scroll.SetScrollDirection(ScrollDirection.LEFT);
+                GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_LEFT);
             }
             else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
             {
-                GameSystems.Scroll.SetScrollDirection(ScrollDirection.RIGHT);
+                GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_RIGHT);
+            }
+            else
+            {
+                GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP);
             }
         }
-
-        [TempleDllLocation(0x10001010)]
-        public void UpdateTime(TimePoint time, Point mousePos)
+        else if (Tig.Keyboard.IsPressed(DIK.DIK_DOWN))
         {
-            DoKeyboardScrolling();
+            if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
+            {
+                GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_LEFT);
+            }
+            else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
+            {
+                GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_RIGHT);
+            }
+            else
+            {
+                GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN);
+            }
+        }
+        else if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
+        {
+            GameSystems.Scroll.SetScrollDirection(ScrollDirection.LEFT);
+        }
+        else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
+        {
+            GameSystems.Scroll.SetScrollDirection(ScrollDirection.RIGHT);
+        }
+    }
 
-            // When we're grab-moving, do not do border-scrolling
-            if (_grabMoving)
+    [TempleDllLocation(0x10001010)]
+    public void UpdateTime(TimePoint time, Point mousePos)
+    {
+        DoKeyboardScrolling();
+
+        // When we're grab-moving, do not do border-scrolling
+        if (_grabMoving)
+        {
+            return;
+        }
+
+        // Wait until the mouse has moved at least once to avoid the issue of the mouse at 0,0
+        // causing the screen to move directly on startup.
+        if (!_mouseHasMoved)
+        {
+            return;
+        }
+
+        if (!IsMouseScrolling)
+        {
+            return;
+        }
+
+        var config = Globals.Config.Window;
+        if (config.Windowed && Tig.Mouse.IsMouseOutsideWindow)
+        {
+            return;
+        }
+
+        if (_lastScrolling.Time != 0 && time - _lastScrolling < ScrollButterDelay)
+        {
+            if (!Globals.Config.ScrollAcceleration)
             {
                 return;
-            }
-
-            // Wait until the mouse has moved at least once to avoid the issue of the mouse at 0,0
-            // causing the screen to move directly on startup.
-            if (!_mouseHasMoved)
-            {
-                return;
-            }
-
-            if (!IsMouseScrolling)
-            {
-                return;
-            }
-
-            var config = Globals.Config.Window;
-            if (config.Windowed && Tig.Mouse.IsMouseOutsideWindow)
-            {
-                return;
-            }
-
-            if (_lastScrolling.Time != 0 && time - _lastScrolling < ScrollButterDelay)
-            {
-                if (!Globals.Config.ScrollAcceleration)
-                {
-                    return;
-                }
-            }
-
-            _lastScrolling = time;
-
-            int scrollMarginV = 2;
-            int scrollMarginH = 3;
-            if (config.Windowed)
-            {
-                scrollMarginV = 7;
-                scrollMarginH = 7;
-            }
-
-            // TODO This should be the size of the game view
-            var size = _widget.GetSize();
-            var renderWidth = size.Width;
-            var renderHeight = size.Height;
-
-            ScrollDirection? scrollDir = null;
-            if (mousePos.X <= scrollMarginH) // scroll left
-            {
-                if (mousePos.Y <= scrollMarginV) // scroll upper left
-                    scrollDir = ScrollDirection.UP_LEFT;
-                else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll bottom left
-                    scrollDir = ScrollDirection.DOWN_LEFT;
-                else
-                    scrollDir = ScrollDirection.LEFT;
-            }
-            else if (mousePos.X >= renderWidth - scrollMarginH) // scroll right
-            {
-                if (mousePos.Y <= scrollMarginV) // scroll top right
-                    scrollDir = ScrollDirection.UP_RIGHT;
-                else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll bottom right
-                    scrollDir = ScrollDirection.DOWN_RIGHT;
-                else
-                    scrollDir = ScrollDirection.RIGHT;
-            }
-            else // scroll vertical only
-            {
-                if (mousePos.Y <= scrollMarginV) // scroll up
-                    scrollDir = ScrollDirection.UP;
-                else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll down
-                    scrollDir = ScrollDirection.DOWN;
-            }
-
-            if (scrollDir.HasValue)
-            {
-                GameSystems.Scroll.SetScrollDirection(scrollDir.Value);
             }
         }
 
-        public bool IsMouseScrolling { get; set; } = true;
+        _lastScrolling = time;
+
+        int scrollMarginV = 2;
+        int scrollMarginH = 3;
+        if (config.Windowed)
+        {
+            scrollMarginV = 7;
+            scrollMarginH = 7;
+        }
+
+        // TODO This should be the size of the game view
+        var size = _widget.GetSize();
+        var renderWidth = size.Width;
+        var renderHeight = size.Height;
+
+        ScrollDirection? scrollDir = null;
+        if (mousePos.X <= scrollMarginH) // scroll left
+        {
+            if (mousePos.Y <= scrollMarginV) // scroll upper left
+                scrollDir = ScrollDirection.UP_LEFT;
+            else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll bottom left
+                scrollDir = ScrollDirection.DOWN_LEFT;
+            else
+                scrollDir = ScrollDirection.LEFT;
+        }
+        else if (mousePos.X >= renderWidth - scrollMarginH) // scroll right
+        {
+            if (mousePos.Y <= scrollMarginV) // scroll top right
+                scrollDir = ScrollDirection.UP_RIGHT;
+            else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll bottom right
+                scrollDir = ScrollDirection.DOWN_RIGHT;
+            else
+                scrollDir = ScrollDirection.RIGHT;
+        }
+        else // scroll vertical only
+        {
+            if (mousePos.Y <= scrollMarginV) // scroll up
+                scrollDir = ScrollDirection.UP;
+            else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll down
+                scrollDir = ScrollDirection.DOWN;
+        }
+
+        if (scrollDir.HasValue)
+        {
+            GameSystems.Scroll.SetScrollDirection(scrollDir.Value);
+        }
     }
+
+    public bool IsMouseScrolling { get; set; } = true;
 }

@@ -4,51 +4,50 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using OpenTemple.Core.TigSubsystems;
 
-namespace OpenTemple.Core.Ui.WorldMap
+namespace OpenTemple.Core.Ui.WorldMap;
+
+public class WorldMapLocations
 {
-    public class WorldMapLocations
+    public IImmutableList<WorldMapLocation> Locations { get; }
+
+    public WorldMapLocations(IImmutableList<WorldMapLocation> locations)
     {
-        public IImmutableList<WorldMapLocation> Locations { get; }
+        Locations = locations;
+    }
 
-        public WorldMapLocations(IImmutableList<WorldMapLocation> locations)
+    public static WorldMapLocations LoadFromJson(string path)
+    {
+        using var data = Tig.FS.ReadFile(path);
+
+        var jsonDoc = JsonDocument.Parse(data.Memory);
+
+        return LoadFromJson(jsonDoc.RootElement);
+    }
+
+    private static WorldMapLocations LoadFromJson(in JsonElement element)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
         {
-            Locations = locations;
+            throw new InvalidOperationException("Expected World Map Locations root element to be an object.");
         }
 
-        public static WorldMapLocations LoadFromJson(string path)
+        var locations = ImmutableList<WorldMapLocation>.Empty;
+        if (element.TryGetProperty("locations", out var locationsElement))
         {
-            using var data = Tig.FS.ReadFile(path);
-
-            var jsonDoc = JsonDocument.Parse(data.Memory);
-
-            return LoadFromJson(jsonDoc.RootElement);
-        }
-
-        private static WorldMapLocations LoadFromJson(in JsonElement element)
-        {
-            if (element.ValueKind != JsonValueKind.Object)
+            if (locationsElement.ValueKind != JsonValueKind.Array)
             {
-                throw new InvalidOperationException("Expected World Map Locations root element to be an object.");
+                throw new InvalidOperationException("Expected locations property to be an array.");
             }
 
-            var locations = ImmutableList<WorldMapLocation>.Empty;
-            if (element.TryGetProperty("locations", out var locationsElement))
+            var locationsList = new List<WorldMapLocation>(locationsElement.GetArrayLength());
+            for (var i = 0; i < locationsElement.GetArrayLength(); i++)
             {
-                if (locationsElement.ValueKind != JsonValueKind.Array)
-                {
-                    throw new InvalidOperationException("Expected locations property to be an array.");
-                }
-
-                var locationsList = new List<WorldMapLocation>(locationsElement.GetArrayLength());
-                for (var i = 0; i < locationsElement.GetArrayLength(); i++)
-                {
-                    locationsList.Add(WorldMapLocation.LoadFromJson(locationsElement[i]));
-                }
-
-                locations = locationsList.ToImmutableList();
+                locationsList.Add(WorldMapLocation.LoadFromJson(locationsElement[i]));
             }
 
-            return new WorldMapLocations(locations);
+            locations = locationsList.ToImmutableList();
         }
+
+        return new WorldMapLocations(locations);
     }
 }

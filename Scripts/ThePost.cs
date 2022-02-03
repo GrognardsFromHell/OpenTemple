@@ -18,39 +18,38 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(436)]
+public class ThePost : BaseObjectScript
 {
-    [ObjectScript(436)]
-    public class ThePost : BaseObjectScript
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        var loct = attachee.GetLocation();
+        var npcboris = GameSystems.MapObject.CreateObject(14800, loct);
+        if ((attachee.GetMap() == 5001))
         {
-            var loct = attachee.GetLocation();
-            var npcboris = GameSystems.MapObject.CreateObject(14800, loct);
-            if ((attachee.GetMap() == 5001))
-            {
-                triggerer.BeginDialog(npcboris, 1);
-            }
-
-            if ((attachee.GetMap() == 5051))
-            {
-                triggerer.BeginDialog(npcboris, 200);
-            }
-
-            if ((attachee.GetMap() == 5121))
-            {
-                triggerer.BeginDialog(npcboris, 400);
-            }
-
-            return SkipDefault;
-        }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
-        {
-            // if (attachee.map == 5019):
-            // game.fade_and_teleport(0,0,0,game.global_vars[830],game.global_vars[831],game.global_vars[832])
-            var dummy = 1;
-            return SkipDefault;
+            triggerer.BeginDialog(npcboris, 1);
         }
 
+        if ((attachee.GetMap() == 5051))
+        {
+            triggerer.BeginDialog(npcboris, 200);
+        }
+
+        if ((attachee.GetMap() == 5121))
+        {
+            triggerer.BeginDialog(npcboris, 400);
+        }
+
+        return SkipDefault;
     }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        // if (attachee.map == 5019):
+        // game.fade_and_teleport(0,0,0,game.global_vars[830],game.global_vars[831],game.global_vars[832])
+        var dummy = 1;
+        return SkipDefault;
+    }
+
 }

@@ -3,68 +3,66 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Spells;
 
-namespace OpenTemple.Core.Systems.AI
+namespace OpenTemple.Core.Systems.AI;
+
+public interface AiTacticDef
 {
+    string name { get; }
+    bool aiFunc(AiTactic tactic);
+}
 
-    public interface AiTacticDef
+public class AiTactic
+{
+    public AiTacticDef aiTac;
+    public int field4;
+    public GameObject performer;
+    public GameObject target;
+    public int tacticIdx;
+    public D20SpellData d20SpellData;
+    public int field24;
+    public SpellPacketBody spellPktBody;
+
+    public AiTactic(GameObject performer, GameObject target)
     {
-        string name { get; }
-        bool aiFunc(AiTactic tactic);
+        this.performer = performer;
+        this.target = target;
+        spellPktBody = new SpellPacketBody();
+    }
+}
+
+public class AiStrategy
+{
+    public string name { get; }
+    public List<AiTacticDef> aiTacDefs = new List<AiTacticDef>();
+    public List<int> field54 = new List<int>();
+    public List<SpellStoreData> spellsKnown = new List<SpellStoreData>();
+    public int numTactics => aiTacDefs.Count;
+
+    public AiStrategy(string name)
+    {
+        this.name = name;
     }
 
-    public class AiTactic
+    public void GetConfig(int tacIdx, AiTactic aiTacOut)
     {
-        public AiTacticDef aiTac;
-        public int field4;
-        public GameObject performer;
-        public GameObject target;
-        public int tacticIdx;
-        public D20SpellData d20SpellData;
-        public int field24;
-        public SpellPacketBody spellPktBody;
+        var spellPktBody = new SpellPacketBody();
+        aiTacOut.spellPktBody = spellPktBody;
 
-        public AiTactic(GameObject performer, GameObject target)
+        aiTacOut.aiTac = aiTacDefs[tacIdx];
+        aiTacOut.field4 = field54[tacIdx];
+        aiTacOut.tacticIdx = tacIdx;
+
+        var spellEnum = spellsKnown[tacIdx].spellEnum;
+        spellPktBody.spellEnum = spellEnum;
+        spellPktBody.spellEnumOriginal = spellEnum;
+        if (spellEnum != -1)
         {
-            this.performer = performer;
-            this.target = target;
-            spellPktBody = new SpellPacketBody();
-        }
-    }
-
-    public class AiStrategy
-    {
-        public string name { get; }
-        public List<AiTacticDef> aiTacDefs = new List<AiTacticDef>();
-        public List<int> field54 = new List<int>();
-        public List<SpellStoreData> spellsKnown = new List<SpellStoreData>();
-        public int numTactics => aiTacDefs.Count;
-
-        public AiStrategy(string name)
-        {
-            this.name = name;
-        }
-
-        public void GetConfig(int tacIdx, AiTactic aiTacOut)
-        {
-            var spellPktBody = new SpellPacketBody();
-            aiTacOut.spellPktBody = spellPktBody;
-
-            aiTacOut.aiTac = aiTacDefs[tacIdx];
-            aiTacOut.field4 = field54[tacIdx];
-            aiTacOut.tacticIdx = tacIdx;
-
-            var spellEnum = spellsKnown[tacIdx].spellEnum;
-            spellPktBody.spellEnum = spellEnum;
-            spellPktBody.spellEnumOriginal = spellEnum;
-            if (spellEnum != -1)
-            {
-                aiTacOut.spellPktBody.caster = aiTacOut.performer;
-                aiTacOut.spellPktBody.spellClass = spellsKnown[tacIdx].classCode;
-                aiTacOut.spellPktBody.spellKnownSlotLevel = spellsKnown[tacIdx].spellLevel;
-                GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
-                aiTacOut.d20SpellData.SetSpellData(spellEnum, spellPktBody.spellClass,
-                    spellPktBody.spellKnownSlotLevel, -1, spellPktBody.metaMagicData);
-            }
+            aiTacOut.spellPktBody.caster = aiTacOut.performer;
+            aiTacOut.spellPktBody.spellClass = spellsKnown[tacIdx].classCode;
+            aiTacOut.spellPktBody.spellKnownSlotLevel = spellsKnown[tacIdx].spellLevel;
+            GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
+            aiTacOut.d20SpellData.SetSpellData(spellEnum, spellPktBody.spellClass,
+                spellPktBody.spellKnownSlotLevel, -1, spellPktBody.metaMagicData);
         }
     }
 }

@@ -17,79 +17,78 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(163)]
+public class Bassanio : BaseObjectScript
 {
-    [ObjectScript(163)]
-    public class Bassanio : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if (((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3017))) || (GetQuestState(52) == QuestState.Mentioned)))
         {
-            if (((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3017))) || (GetQuestState(52) == QuestState.Mentioned)))
+            if ((!attachee.HasMet(triggerer)))
             {
-                if ((!attachee.HasMet(triggerer)))
-                {
-                    triggerer.BeginDialog(attachee, 30);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 50);
-                }
-
+                triggerer.BeginDialog(attachee, 30);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 1);
+                triggerer.BeginDialog(attachee, 50);
             }
 
-            return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
-            {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-                {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
-                    {
-                        if (((obj.GetPartyMembers().Any(o => o.HasEquippedByName(3017))) || (GetQuestState(52) == QuestState.Mentioned)))
-                        {
-                            if ((!attachee.HasMet(obj)))
-                            {
-                                obj.BeginDialog(attachee, 30);
-                            }
-                            else
-                            {
-                                obj.BeginDialog(attachee, 50);
-                            }
+            triggerer.BeginDialog(attachee, 1);
+        }
 
+        return SkipDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            {
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
+                {
+                    if (((obj.GetPartyMembers().Any(o => o.HasEquippedByName(3017))) || (GetQuestState(52) == QuestState.Mentioned)))
+                    {
+                        if ((!attachee.HasMet(obj)))
+                        {
+                            obj.BeginDialog(attachee, 30);
                         }
                         else
                         {
-                            obj.BeginDialog(attachee, 1);
+                            obj.BeginDialog(attachee, 50);
                         }
 
-                        DetachScript();
-
                     }
+                    else
+                    {
+                        obj.BeginDialog(attachee, 1);
+                    }
+
+                    DetachScript();
 
                 }
 
             }
 
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(139, true);
-            return RunDefault;
-        }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(139, false);
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(139, true);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(139, false);
+        return RunDefault;
+    }
+
+
 }

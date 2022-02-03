@@ -17,34 +17,33 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(256)]
+public class Usefirechest : BaseObjectScript
 {
-    [ObjectScript(256)]
-    public class Usefirechest : BaseObjectScript
+
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
+        var npc = Utilities.find_npc_near(attachee, 8063);
 
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        if ((npc != null))
         {
-            var npc = Utilities.find_npc_near(attachee, 8063);
-
-            if ((npc != null))
+            foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(npc, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(npc, obj)))
-                    {
-                        npc.TurnTowards(obj);
-                        obj.TurnTowards(npc);
-                        obj.BeginDialog(npc, 1);
-                    }
-
+                    npc.TurnTowards(obj);
+                    obj.TurnTowards(npc);
+                    obj.BeginDialog(npc, 1);
                 }
 
             }
 
-            return SkipDefault;
         }
 
-
+        return SkipDefault;
     }
+
+
 }

@@ -1,8 +1,7 @@
-namespace OpenTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials;
+
+public enum TextureFilterType
 {
-    public enum TextureFilterType
-    {
-        NearestNeighbor,
-        Linear
-    }
+    NearestNeighbor,
+    Linear
 }

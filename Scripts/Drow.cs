@@ -18,64 +18,63 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(381)]
+public class Drow : BaseObjectScript
 {
-    [ObjectScript(381)]
-    public class Drow : BaseObjectScript
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            if ((attachee.GetNameId() == 14708))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-                Utilities.create_item_in_inventory(6120, attachee);
-            }
-            else if ((attachee.GetNameId() == 14724))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-                Utilities.create_item_in_inventory(6120, attachee);
-            }
-            else if ((attachee.GetNameId() == 14725))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-                Utilities.create_item_in_inventory(6093, attachee);
-            }
-            else if ((attachee.GetNameId() == 14726))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-                Utilities.create_item_in_inventory(6334, attachee);
-            }
-            else if ((attachee.GetNameId() == 14733))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-            }
-            else if ((attachee.GetNameId() == 14734))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-                Utilities.create_item_in_inventory(6120, attachee);
-            }
-            else if ((attachee.GetNameId() == 14735))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-                Utilities.create_item_in_inventory(6223, attachee);
-            }
-            else if ((attachee.GetNameId() == 14736))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-                Utilities.create_item_in_inventory(6334, attachee);
-            }
-            else if ((attachee.GetNameId() == 14737))
-            {
-                SetGlobalVar(999, GetGlobalVar(999) + 1);
-            }
-
-            return RunDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
 
+        if ((attachee.GetNameId() == 14708))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+            Utilities.create_item_in_inventory(6120, attachee);
+        }
+        else if ((attachee.GetNameId() == 14724))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+            Utilities.create_item_in_inventory(6120, attachee);
+        }
+        else if ((attachee.GetNameId() == 14725))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+            Utilities.create_item_in_inventory(6093, attachee);
+        }
+        else if ((attachee.GetNameId() == 14726))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+            Utilities.create_item_in_inventory(6334, attachee);
+        }
+        else if ((attachee.GetNameId() == 14733))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+        }
+        else if ((attachee.GetNameId() == 14734))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+            Utilities.create_item_in_inventory(6120, attachee);
+        }
+        else if ((attachee.GetNameId() == 14735))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+            Utilities.create_item_in_inventory(6223, attachee);
+        }
+        else if ((attachee.GetNameId() == 14736))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+            Utilities.create_item_in_inventory(6334, attachee);
+        }
+        else if ((attachee.GetNameId() == 14737))
+        {
+            SetGlobalVar(999, GetGlobalVar(999) + 1);
+        }
+
+        return RunDefault;
     }
+
 }

@@ -17,82 +17,81 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(140)]
+public class Tubal : BaseObjectScript
 {
-    [ObjectScript(140)]
-    public class Tubal : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(140)))
         {
-            if ((GetGlobalFlag(140)))
+            if ((GetGlobalVar(15) <= 4))
             {
-                if ((GetGlobalVar(15) <= 4))
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 10);
-                }
-
-            }
-            else if ((!attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 20);
-            }
-            else if ((GetQuestState(52) >= QuestState.Accepted))
-            {
-                triggerer.BeginDialog(attachee, 40);
+                triggerer.BeginDialog(attachee, 1);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 30);
+                triggerer.BeginDialog(attachee, 10);
             }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((!attachee.HasMet(triggerer)))
         {
-            SetGlobalFlag(116, true);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 20);
         }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+        else if ((GetQuestState(52) >= QuestState.Accepted))
         {
-            SetGlobalFlag(116, false);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 40);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((GetGlobalFlag(310)))
-            {
-                attachee.SetObjectFlag(ObjectFlag.OFF);
-                SetGlobalFlag(116, true);
-            }
-
-            return RunDefault;
-        }
-        public static bool kill_antonio(GameObject attachee)
-        {
-            StartTimer(86400000, () => antonio_dead(attachee));
-            return RunDefault;
-        }
-        public static bool antonio_dead(GameObject attachee)
-        {
-            SetGlobalFlag(311, true);
-            return RunDefault;
-        }
-        public static bool kill_alrrem(GameObject attachee)
-        {
-            StartTimer(86400000, () => alrrem_dead(attachee));
-            return RunDefault;
-        }
-        public static bool alrrem_dead(GameObject attachee)
-        {
-            SetGlobalFlag(312, true);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 30);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(116, true);
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(116, false);
+        return RunDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalFlag(310)))
+        {
+            attachee.SetObjectFlag(ObjectFlag.OFF);
+            SetGlobalFlag(116, true);
+        }
+
+        return RunDefault;
+    }
+    public static bool kill_antonio(GameObject attachee)
+    {
+        StartTimer(86400000, () => antonio_dead(attachee));
+        return RunDefault;
+    }
+    public static bool antonio_dead(GameObject attachee)
+    {
+        SetGlobalFlag(311, true);
+        return RunDefault;
+    }
+    public static bool kill_alrrem(GameObject attachee)
+    {
+        StartTimer(86400000, () => alrrem_dead(attachee));
+        return RunDefault;
+    }
+    public static bool alrrem_dead(GameObject attachee)
+    {
+        SetGlobalFlag(312, true);
+        return RunDefault;
+    }
+
+
 }

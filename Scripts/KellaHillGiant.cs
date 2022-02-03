@@ -18,64 +18,63 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(151)]
-    public class KellaHillGiant : BaseObjectScript
-    {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            if (((triggerer.GetStat(Stat.level_druid) >= 1) || (PartyAlignment == Alignment.NEUTRAL)))
-            {
-                if ((!attachee.HasMet(triggerer)))
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 70);
-                }
+namespace Scripts;
 
+[ObjectScript(151)]
+public class KellaHillGiant : BaseObjectScript
+{
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        if (((triggerer.GetStat(Stat.level_druid) >= 1) || (PartyAlignment == Alignment.NEUTRAL)))
+        {
+            if ((!attachee.HasMet(triggerer)))
+            {
+                triggerer.BeginDialog(attachee, 1);
             }
             else
             {
-                var line = (RandomRange(0, 2) * 10) + 80;
-                triggerer.BeginDialog(attachee, line);
+                triggerer.BeginDialog(attachee, 70);
             }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
-        }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
-        {
-            SetCounter(0, GetCounter(0) + 1);
-            if ((GetCounter(0) >= 3))
-            {
-                shapechange(attachee, triggerer, 10);
-            }
-
-            return SkipDefault;
-        }
-        public static bool shapechange(GameObject attachee, GameObject triggerer, int dialog_line)
-        {
-            var loc = attachee.GetLocation();
-            attachee.Destroy();
-            var kella = GameSystems.MapObject.CreateObject(14236, loc);
-            if ((kella != null))
-            {
-                triggerer.BeginDialog(kella, dialog_line);
-            }
-
-            return SkipDefault;
+            var line = (RandomRange(0, 2) * 10) + 80;
+            triggerer.BeginDialog(attachee, line);
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        SetCounter(0, GetCounter(0) + 1);
+        if ((GetCounter(0) >= 3))
+        {
+            shapechange(attachee, triggerer, 10);
+        }
+
+        return SkipDefault;
+    }
+    public static bool shapechange(GameObject attachee, GameObject triggerer, int dialog_line)
+    {
+        var loc = attachee.GetLocation();
+        attachee.Destroy();
+        var kella = GameSystems.MapObject.CreateObject(14236, loc);
+        if ((kella != null))
+        {
+            triggerer.BeginDialog(kella, dialog_line);
+        }
+
+        return SkipDefault;
+    }
+
 }

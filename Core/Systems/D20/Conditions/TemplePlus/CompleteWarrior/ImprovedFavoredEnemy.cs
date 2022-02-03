@@ -19,27 +19,25 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+public class ImprovedFavoredEnemy
 {
-
-    public class ImprovedFavoredEnemy
+    private static readonly int bon_val = 3;
+    public static void impFavoredEnemyDamageBonus(in DispatcherCallbackArgs evt)
     {
-        private static readonly int bon_val = 3;
-        public static void impFavoredEnemyDamageBonus(in DispatcherCallbackArgs evt)
+        var dispIo = evt.GetDispIoDamage();
+        var target = dispIo.attackPacket.victim;
+        if (FavoredEnemies.GetFavoredEnemyBonusAgainst(evt.objHndCaller, target, out _, out _))
         {
-            var dispIo = evt.GetDispIoDamage();
-            var target = dispIo.attackPacket.victim;
-            if (FavoredEnemies.GetFavoredEnemyBonusAgainst(evt.objHndCaller, target, out _, out _))
-            {
-                dispIo.damage.bonuses.AddBonusFromFeat(bon_val, 0, 114, (FeatId) ElfHash.Hash("Improved Favored Enemy"));
-            }
+            dispIo.damage.bonuses.AddBonusFromFeat(bon_val, 0, 114, (FeatId) ElfHash.Hash("Improved Favored Enemy"));
         }
-
-        // args are just-in-case placeholders
-        [FeatCondition("Improved Favored Enemy")]
-        [AutoRegister] public static readonly ConditionSpec impFavoredEnemy = ConditionSpec.Create("Improved Favored Enemy", 2)
-            .SetUnique()
-            .AddHandler(DispatcherType.DealingDamage, impFavoredEnemyDamageBonus)
-            .Build();
     }
+
+    // args are just-in-case placeholders
+    [FeatCondition("Improved Favored Enemy")]
+    [AutoRegister] public static readonly ConditionSpec impFavoredEnemy = ConditionSpec.Create("Improved Favored Enemy", 2)
+        .SetUnique()
+        .AddHandler(DispatcherType.DealingDamage, impFavoredEnemyDamageBonus)
+        .Build();
 }

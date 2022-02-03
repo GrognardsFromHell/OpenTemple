@@ -17,43 +17,42 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(255)]
+public class Tutorialend : BaseObjectScript
 {
-    [ObjectScript(255)]
-    public class Tutorialend : BaseObjectScript
+
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
         {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            if ((Utilities.critter_is_unconscious(obj) == 0))
             {
-                if ((Utilities.critter_is_unconscious(obj) == 0))
+                if (attachee.DistanceTo(obj) < 10)
                 {
-                    if (attachee.DistanceTo(obj) < 10)
+                    foreach (var pc in GameSystems.Party.PartyMembers)
                     {
-                        foreach (var pc in GameSystems.Party.PartyMembers)
+                        if (((pc.GetNameId() == 8066) && (pc.GetStat(Stat.hp_current) >= 0)))
                         {
-                            if (((pc.GetNameId() == 8066) && (pc.GetStat(Stat.hp_current) >= 0)))
-                            {
-                                GameSystems.Movies.MovieQueueAdd(1028);
-                                GameSystems.Movies.MovieQueuePlayAndEndGame();
-                                return RunDefault;
-                            }
-
+                            GameSystems.Movies.MovieQueueAdd(1028);
+                            GameSystems.Movies.MovieQueuePlayAndEndGame();
+                            return RunDefault;
                         }
 
-                        GameSystems.Movies.MovieQueueAdd(1029);
-                        GameSystems.Movies.MovieQueuePlayAndEndGame();
-                        return RunDefault;
                     }
 
+                    GameSystems.Movies.MovieQueueAdd(1029);
+                    GameSystems.Movies.MovieQueuePlayAndEndGame();
+                    return RunDefault;
                 }
 
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

@@ -17,25 +17,24 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(227)]
+public class EarthAltar : BaseObjectScript
 {
-    [ObjectScript(227)]
-    public class EarthAltar : BaseObjectScript
+
+    public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
+        if (((triggerer.GetNameId() == 1203) && (!GetGlobalFlag(109))))
         {
-            if (((triggerer.GetNameId() == 1203) && (!GetGlobalFlag(109))))
-            {
-                UiSystems.CharSheet.Hide();
-                attachee.Destroy();
-                SetGlobalFlag(109, true);
-                AttachParticles("DesecrateEarth", triggerer);
-            }
-
-            return RunDefault;
+            UiSystems.CharSheet.Hide();
+            attachee.Destroy();
+            SetGlobalFlag(109, true);
+            AttachParticles("DesecrateEarth", triggerer);
         }
 
-
+        return RunDefault;
     }
+
+
 }

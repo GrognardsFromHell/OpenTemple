@@ -1,11 +1,10 @@
 using System;
 
-namespace OpenTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems;
+
+public class TigException : Exception
 {
-    public class TigException : Exception
+    public TigException(string message) : base(message)
     {
-        public TigException(string message) : base(message)
-        {
-        }
     }
 }

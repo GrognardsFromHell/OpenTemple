@@ -17,22 +17,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(186)]
+public class LarethItemInsert : BaseObjectScript
 {
-    [ObjectScript(186)]
-    public class LarethItemInsert : BaseObjectScript
+
+    public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
+        if (((triggerer.GetNameId() == 8048) || (triggerer.GetNameId() == 8049) || (triggerer.GetNameId() == 1204)))
         {
-            if (((triggerer.GetNameId() == 8048) || (triggerer.GetNameId() == 8049) || (triggerer.GetNameId() == 1204)))
-            {
-                QueueRandomEncounter(3000);
-            }
-
-            return SkipDefault;
+            QueueRandomEncounter(3000);
         }
 
-
+        return SkipDefault;
     }
+
+
 }

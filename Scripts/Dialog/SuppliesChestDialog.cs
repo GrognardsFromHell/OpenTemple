@@ -19,48 +19,47 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Dialog
+namespace Scripts.Dialog;
+
+[DialogScript(401)]
+public class SuppliesChestDialog : SuppliesChest, IDialogScript
 {
-    [DialogScript(401)]
-    public class SuppliesChestDialog : SuppliesChest, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 1:
-                    originalScript = "game.sound( 4011 )";
-                    Sound(4011);
-                    break;
-                case 2:
-                    originalScript = "pc.barter(npc); game.global_vars[455] |= 2**5";
-                    throw new NotSupportedException("Conversion failed.");
-                case 3:
-                    originalScript = "game.sound( 4010 )";
-                    Sound(4010);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 1:
+                originalScript = "game.sound( 4011 )";
+                Sound(4011);
+                break;
+            case 2:
+                originalScript = "pc.barter(npc); game.global_vars[455] |= 2**5";
+                throw new NotSupportedException("Conversion failed.");
+            case 3:
+                originalScript = "game.sound( 4010 )";
+                Sound(4010);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

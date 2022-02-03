@@ -1,42 +1,41 @@
 using System;
 
-namespace OpenTemple.Core.Config
+namespace OpenTemple.Core.Config;
+
+public struct SeenMovie
 {
-    public struct SeenMovie
+    public int MovieId { get; set; }
+
+    public int SoundtrackId { get; set; }
+
+    public SeenMovie(int movieId, int soundtrackId = -1)
     {
-        public int MovieId { get; set; }
+        MovieId = movieId;
+        SoundtrackId = soundtrackId;
+    }
 
-        public int SoundtrackId { get; set; }
+    public bool Equals(SeenMovie other)
+    {
+        return MovieId == other.MovieId && SoundtrackId == other.SoundtrackId;
+    }
 
-        public SeenMovie(int movieId, int soundtrackId = -1)
-        {
-            MovieId = movieId;
-            SoundtrackId = soundtrackId;
-        }
+    public override bool Equals(object obj)
+    {
+        return obj is SeenMovie other && Equals(other);
+    }
 
-        public bool Equals(SeenMovie other)
-        {
-            return MovieId == other.MovieId && SoundtrackId == other.SoundtrackId;
-        }
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(MovieId, SoundtrackId);
+    }
 
-        public override bool Equals(object obj)
-        {
-            return obj is SeenMovie other && Equals(other);
-        }
+    public static bool operator ==(SeenMovie left, SeenMovie right)
+    {
+        return left.Equals(right);
+    }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(MovieId, SoundtrackId);
-        }
-
-        public static bool operator ==(SeenMovie left, SeenMovie right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(SeenMovie left, SeenMovie right)
-        {
-            return !left.Equals(right);
-        }
+    public static bool operator !=(SeenMovie left, SeenMovie right)
+    {
+        return !left.Equals(right);
     }
 }

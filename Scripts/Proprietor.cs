@@ -18,50 +18,49 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(333)]
+public class Proprietor : BaseObjectScript
 {
-    [ObjectScript(333)]
-    public class Proprietor : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.HasMet(triggerer)))
         {
-            if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 10);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 10);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            foreach (var pc in GameSystems.Party.PartyMembers)
-            {
-                pc.AddCondition("fallen_paladin");
-            }
-
-            SetGlobalVar(333, GetGlobalVar(333) + 1);
-            if ((GetGlobalVar(333) >= 2))
-            {
-                PartyLeader.AddReputation(34);
-            }
-
-            StartTimer(60000, () => go_away(attachee));
-            return RunDefault;
-        }
-        public static bool go_away(GameObject attachee)
-        {
-            attachee.SetObjectFlag(ObjectFlag.OFF);
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        foreach (var pc in GameSystems.Party.PartyMembers)
+        {
+            pc.AddCondition("fallen_paladin");
+        }
+
+        SetGlobalVar(333, GetGlobalVar(333) + 1);
+        if ((GetGlobalVar(333) >= 2))
+        {
+            PartyLeader.AddReputation(34);
+        }
+
+        StartTimer(60000, () => go_away(attachee));
+        return RunDefault;
+    }
+    public static bool go_away(GameObject attachee)
+    {
+        attachee.SetObjectFlag(ObjectFlag.OFF);
+        return RunDefault;
+    }
+
 }

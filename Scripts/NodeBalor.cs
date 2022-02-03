@@ -18,46 +18,45 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(202)]
+public class NodeBalor : BaseObjectScript
 {
-    [ObjectScript(202)]
-    public class NodeBalor : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
 
-            SetGlobalVar(30, GetGlobalVar(30) + 1);
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        SetGlobalVar(30, GetGlobalVar(30) + 1);
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
-                    {
-                        attachee.TurnTowards(obj);
-                        obj.BeginDialog(attachee, 1);
-                        DetachScript();
-                        return RunDefault;
-                    }
-
+                    attachee.TurnTowards(obj);
+                    obj.BeginDialog(attachee, 1);
+                    DetachScript();
+                    return RunDefault;
                 }
 
             }
 
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

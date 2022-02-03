@@ -1,9 +1,6 @@
-namespace OpenTemple.Core.Ui
+namespace OpenTemple.Core.Ui;
+
+public class UiRenderer
 {
 
-
-    public class UiRenderer
-    {
-
-    }
 }

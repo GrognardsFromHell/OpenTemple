@@ -17,60 +17,59 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(5)]
+public class Calmert : BaseObjectScript
 {
-    [ObjectScript(5)]
-    public class Calmert : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(28) && !triggerer.HasReputation(2)))
         {
-            if ((GetGlobalFlag(28) && !triggerer.HasReputation(2)))
-            {
-                triggerer.AddReputation(2);
-            }
+            triggerer.AddReputation(2);
+        }
 
-            if ((attachee.HasMet(triggerer)))
+        if ((attachee.HasMet(triggerer)))
+        {
+            if ((GetGlobalVar(5) <= 7))
             {
-                if ((GetGlobalVar(5) <= 7))
-                {
-                    triggerer.BeginDialog(attachee, 10);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 20);
-                }
-
+                triggerer.BeginDialog(attachee, 10);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 1);
+                triggerer.BeginDialog(attachee, 20);
             }
 
-            return SkipDefault;
         }
-        public static bool beggar_cavanaugh(GameObject attachee, GameObject triggerer)
+        else
         {
-            StartTimer(86400000, () => beggar_now(attachee, triggerer));
-            return RunDefault;
-        }
-        public static bool beggar_now(GameObject attachee, GameObject triggerer)
-        {
-            SetGlobalFlag(205, true);
-            SetGlobalVar(24, GetGlobalVar(24) + 1);
-            if ((!triggerer.HasReputation(5)))
-            {
-                triggerer.AddReputation(5);
-            }
-
-            if ((GetGlobalVar(24) >= 3 && !triggerer.HasReputation(6)))
-            {
-                triggerer.AddReputation(6);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public static bool beggar_cavanaugh(GameObject attachee, GameObject triggerer)
+    {
+        StartTimer(86400000, () => beggar_now(attachee, triggerer));
+        return RunDefault;
+    }
+    public static bool beggar_now(GameObject attachee, GameObject triggerer)
+    {
+        SetGlobalFlag(205, true);
+        SetGlobalVar(24, GetGlobalVar(24) + 1);
+        if ((!triggerer.HasReputation(5)))
+        {
+            triggerer.AddReputation(5);
+        }
+
+        if ((GetGlobalVar(24) >= 3 && !triggerer.HasReputation(6)))
+        {
+            triggerer.AddReputation(6);
+        }
+
+        return RunDefault;
+    }
+
+
 }

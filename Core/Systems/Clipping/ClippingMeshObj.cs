@@ -1,14 +1,11 @@
-namespace OpenTemple.Core.Systems.Clipping
-{
+namespace OpenTemple.Core.Systems.Clipping;
 
-    internal struct ClippingMeshObj {
-        public float posX;
-        public float posY;
-        public float posZ;
-        public float scaleX;
-        public float scaleY;
-        public float scaleZ;
-        public float rotation;
-    }
-
+internal struct ClippingMeshObj {
+    public float posX;
+    public float posY;
+    public float posZ;
+    public float scaleX;
+    public float scaleY;
+    public float scaleZ;
+    public float rotation;
 }

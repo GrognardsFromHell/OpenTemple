@@ -6,78 +6,77 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
-namespace OpenTemple.Core.Ui.CharSheet.Portrait
+namespace OpenTemple.Core.Ui.CharSheet.Portrait;
+
+public class MiniatureWidget : WidgetButtonBase
 {
-    public class MiniatureWidget : WidgetButtonBase
+    public GameObject Object { get; set; }
+
+    private int _rotationPivot;
+
+    private int _rotationMode = 0;
+
+    private float _rotation;
+
+    public MiniatureWidget()
     {
-        public GameObject Object { get; set; }
+        SetMouseMsgHandler(OnMouseMove);
+    }
 
-        private int _rotationPivot;
+    // TODO: This should be injected in some other way
+    private MapObjectRenderer Renderer => UiSystems.GameView.GetMapObjectRenderer();
 
-        private int _rotationMode = 0;
+    public override void Render()
+    {
+        base.Render();
 
-        private float _rotation;
-
-        public MiniatureWidget()
+        if (Object == null)
         {
-            SetMouseMsgHandler(OnMouseMove);
+            return;
         }
 
-        // TODO: This should be injected in some other way
-        private MapObjectRenderer Renderer => UiSystems.GameView.GetMapObjectRenderer();
+        var contentArea = GetContentArea();
+        var centerX = contentArea.X + contentArea.Width / 2;
+        var centerY = contentArea.Y + contentArea.Height / 2;
 
-        public override void Render()
+        Renderer.RenderObjectInUi(Object, centerX, centerY + 35, _rotation, 1.5f);
+    }
+
+    public override bool HandleMessage(Message msg)
+    {
+        if (msg.type == MessageType.WIDGET)
         {
-            base.Render();
-
-            if (Object == null)
+            switch (msg.WidgetArgs.widgetEventType)
             {
-                return;
+                case TigMsgWidgetEvent.Clicked:
+                    _rotationMode = 1;
+                    break;
+                case TigMsgWidgetEvent.MouseReleased:
+                case TigMsgWidgetEvent.MouseReleasedAtDifferentButton:
+                    _rotationMode = 0;
+                    break;
             }
-
-            var contentArea = GetContentArea();
-            var centerX = contentArea.X + contentArea.Width / 2;
-            var centerY = contentArea.Y + contentArea.Height / 2;
-
-            Renderer.RenderObjectInUi(Object, centerX, centerY + 35, _rotation, 1.5f);
         }
 
-        public override bool HandleMessage(Message msg)
-        {
-            if (msg.type == MessageType.WIDGET)
-            {
-                switch (msg.WidgetArgs.widgetEventType)
-                {
-                    case TigMsgWidgetEvent.Clicked:
-                        _rotationMode = 1;
-                        break;
-                    case TigMsgWidgetEvent.MouseReleased:
-                    case TigMsgWidgetEvent.MouseReleasedAtDifferentButton:
-                        _rotationMode = 0;
-                        break;
-                }
-            }
+        return base.HandleMessage(msg);
+    }
 
-            return base.HandleMessage(msg);
+    private bool OnMouseMove(MessageMouseArgs arg)
+    {
+        if (_rotationMode == 1)
+        {
+            _rotationMode = 2;
+            _rotationPivot = arg.X;
+            return true;
+        }
+        else if (_rotationMode == 2)
+        {
+            int deltaX = arg.X - _rotationPivot;
+            _rotation -= deltaX * Angles.ToRadians(1.8f);
+            _rotationPivot = arg.X;
+            return true;
         }
 
-        private bool OnMouseMove(MessageMouseArgs arg)
-        {
-            if (_rotationMode == 1)
-            {
-                _rotationMode = 2;
-                _rotationPivot = arg.X;
-                return true;
-            }
-            else if (_rotationMode == 2)
-            {
-                int deltaX = arg.X - _rotationPivot;
-                _rotation -= deltaX * Angles.ToRadians(1.8f);
-                _rotationPivot = arg.X;
-                return true;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

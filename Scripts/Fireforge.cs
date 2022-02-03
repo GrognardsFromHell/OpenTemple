@@ -18,72 +18,48 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(487)]
+public class Fireforge : BaseObjectScript
 {
-    [ObjectScript(487)]
-    public class Fireforge : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        attachee.TurnTowards(triggerer);
+        if ((attachee.GetMap() == 5008))
         {
-            attachee.TurnTowards(triggerer);
-            if ((attachee.GetMap() == 5008))
-            {
-                triggerer.BeginDialog(attachee, 100);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 100);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((attachee.GetMap() == 5008))
-            {
-                if ((GetQuestState(98) != QuestState.Completed))
-                {
-                    if ((GetGlobalFlag(505)))
-                    {
-                        attachee.ClearObjectFlag(ObjectFlag.OFF);
-                    }
+            triggerer.BeginDialog(attachee, 1);
+        }
 
-                }
-                else if ((GetQuestState(98) == QuestState.Completed))
+        return SkipDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetMap() == 5008))
+        {
+            if ((GetQuestState(98) != QuestState.Completed))
+            {
+                if ((GetGlobalFlag(505)))
                 {
-                    attachee.SetObjectFlag(ObjectFlag.OFF);
+                    attachee.ClearObjectFlag(ObjectFlag.OFF);
                 }
 
             }
-            else if ((attachee.GetMap() == 5121))
+            else if ((GetQuestState(98) == QuestState.Completed))
             {
-                if ((GetGlobalVar(507) == 1))
-                {
-                    if ((Utilities.is_daytime()))
-                    {
-                        attachee.ClearObjectFlag(ObjectFlag.OFF);
-                        if ((!GetGlobalFlag(924)))
-                        {
-                            StartTimer(86400000, () => respawn_fireforge(attachee)); // 86400000ms is 24 hours
-                            SetGlobalFlag(924, true);
-                        }
-
-                    }
-                    else if ((!Utilities.is_daytime()))
-                    {
-                        attachee.SetObjectFlag(ObjectFlag.OFF);
-                    }
-
-                }
-                else
-                {
-                    attachee.SetObjectFlag(ObjectFlag.OFF);
-                }
-
+                attachee.SetObjectFlag(ObjectFlag.OFF);
             }
-            else if ((attachee.GetMap() == 5163))
+
+        }
+        else if ((attachee.GetMap() == 5121))
+        {
+            if ((GetGlobalVar(507) == 1))
             {
-                if ((GetGlobalVar(507) == 2))
+                if ((Utilities.is_daytime()))
                 {
                     attachee.ClearObjectFlag(ObjectFlag.OFF);
                     if ((!GetGlobalFlag(924)))
@@ -93,31 +69,54 @@ namespace Scripts
                     }
 
                 }
-                else
+                else if ((!Utilities.is_daytime()))
                 {
                     attachee.SetObjectFlag(ObjectFlag.OFF);
                 }
 
             }
-
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
+            else
             {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+                attachee.SetObjectFlag(ObjectFlag.OFF);
             }
 
-            return RunDefault;
         }
-        public static void respawn_fireforge(GameObject attachee)
+        else if ((attachee.GetMap() == 5163))
         {
-            var box = Utilities.find_container_near(attachee, 1005);
-            InventoryRespawn.RespawnInventory(box);
-            StartTimer(86400000, () => respawn_fireforge(attachee)); // 86400000ms is 24 hours
-            return;
+            if ((GetGlobalVar(507) == 2))
+            {
+                attachee.ClearObjectFlag(ObjectFlag.OFF);
+                if ((!GetGlobalFlag(924)))
+                {
+                    StartTimer(86400000, () => respawn_fireforge(attachee)); // 86400000ms is 24 hours
+                    SetGlobalFlag(924, true);
+                }
+
+            }
+            else
+            {
+                attachee.SetObjectFlag(ObjectFlag.OFF);
+            }
+
         }
 
+        return RunDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public static void respawn_fireforge(GameObject attachee)
+    {
+        var box = Utilities.find_container_near(attachee, 1005);
+        InventoryRespawn.RespawnInventory(box);
+        StartTimer(86400000, () => respawn_fireforge(attachee)); // 86400000ms is 24 hours
+        return;
+    }
+
 }

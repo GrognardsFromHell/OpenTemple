@@ -2,41 +2,40 @@ using System.Numerics;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 
-namespace OpenTemple.Core.Systems.Vfx
+namespace OpenTemple.Core.Systems.Vfx;
+
+public class CallLightningEffect
 {
-    public class CallLightningEffect
+    private readonly CallLightningRenderer _renderer;
+
+    [TempleDllLocation(0x10b397b0)]
+    private readonly TimePoint _start;
+
+    [TempleDllLocation(0x10B397B8)]
+    private readonly Vector3 _target;
+
+    public bool AtEnd { get; private set; }
+
+    public CallLightningEffect(CallLightningRenderer renderer, TimePoint start, Vector3 target)
     {
-        private readonly CallLightningRenderer _renderer;
+        _renderer = renderer;
+        _start = start;
+        _target = target;
+    }
 
-        [TempleDllLocation(0x10b397b0)]
-        private readonly TimePoint _start;
-
-        [TempleDllLocation(0x10B397B8)]
-        private readonly Vector3 _target;
-
-        public bool AtEnd { get; private set; }
-
-        public CallLightningEffect(CallLightningRenderer renderer, TimePoint start, Vector3 target)
+    public void Render(IGameViewport viewport)
+    {
+        if (AtEnd)
         {
-            _renderer = renderer;
-            _start = start;
-            _target = target;
+            return;
         }
 
-        public void Render(IGameViewport viewport)
+        var elapsedMs = (int)(TimePoint.Now - _start).TotalMilliseconds;
+        _renderer.Render(viewport.Camera, elapsedMs, _target);
+
+        if (elapsedMs > 768)
         {
-            if (AtEnd)
-            {
-                return;
-            }
-
-            var elapsedMs = (int)(TimePoint.Now - _start).TotalMilliseconds;
-            _renderer.Render(viewport.Camera, elapsedMs, _target);
-
-            if (elapsedMs > 768)
-            {
-                AtEnd = true;
-            }
+            AtEnd = true;
         }
     }
 }

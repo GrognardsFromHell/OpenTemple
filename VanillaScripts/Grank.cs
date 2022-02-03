@@ -17,36 +17,35 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(169)]
+public class Grank : BaseObjectScript
 {
-    [ObjectScript(169)]
-    public class Grank : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.HasMet(triggerer)))
         {
-            if ((attachee.HasMet(triggerer)))
-            {
-                triggerer.BeginDialog(attachee, 120);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 120);
         }
-        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((GetGlobalVar(18) >= 7))
-            {
-                triggerer.BeginDialog(attachee, 1);
-                SetGlobalVar(18, 0);
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
+    {
+        if ((GetGlobalVar(18) >= 7))
+        {
+            triggerer.BeginDialog(attachee, 1);
+            SetGlobalVar(18, 0);
+        }
+
+        return RunDefault;
+    }
+
+
 }

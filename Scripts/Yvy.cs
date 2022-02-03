@@ -18,68 +18,67 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(281)]
+public class Yvy : BaseObjectScript
 {
-    [ObjectScript(281)]
-    public class Yvy : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
         {
-            if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
-            {
-                attachee.FloatLine(11004, triggerer);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            attachee.TurnTowards(triggerer);
-            return SkipDefault;
+            attachee.FloatLine(11004, triggerer);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
-        }
-        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
-        {
-            var done = attachee.GetInt(obj_f.weapon_pad_i_1);
-            if (triggerer.HasFeat(FeatId.FAR_SHOT))
-            {
-                if (done == 1)
-                {
-                    return RunDefault;
-                }
-                else
-                {
-                    var curr = attachee.GetInt(obj_f.weapon_range);
-                    curr = curr * 2;
-                    attachee.SetInt(obj_f.weapon_range, curr);
-                    attachee.SetInt(obj_f.weapon_pad_i_1, 1);
-                    Sound(3013, 1);
-                }
-
-            }
-            else
-            {
-                if (done == 1)
-                {
-                    var curr = attachee.GetInt(obj_f.weapon_range);
-                    curr = (int) (curr * 0.5f);
-                    attachee.SetInt(obj_f.weapon_range, curr);
-                    attachee.SetInt(obj_f.weapon_pad_i_1, 0);
-                    Sound(3013, 1);
-                }
-
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
+        attachee.TurnTowards(triggerer);
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
+    {
+        var done = attachee.GetInt(obj_f.weapon_pad_i_1);
+        if (triggerer.HasFeat(FeatId.FAR_SHOT))
+        {
+            if (done == 1)
+            {
+                return RunDefault;
+            }
+            else
+            {
+                var curr = attachee.GetInt(obj_f.weapon_range);
+                curr = curr * 2;
+                attachee.SetInt(obj_f.weapon_range, curr);
+                attachee.SetInt(obj_f.weapon_pad_i_1, 1);
+                Sound(3013, 1);
+            }
+
+        }
+        else
+        {
+            if (done == 1)
+            {
+                var curr = attachee.GetInt(obj_f.weapon_range);
+                curr = (int) (curr * 0.5f);
+                attachee.SetInt(obj_f.weapon_range, curr);
+                attachee.SetInt(obj_f.weapon_pad_i_1, 0);
+                Sound(3013, 1);
+            }
+
+        }
+
+        return RunDefault;
+    }
+
 }

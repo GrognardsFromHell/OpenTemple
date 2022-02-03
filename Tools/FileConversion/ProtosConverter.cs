@@ -9,54 +9,53 @@ using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Systems.Protos;
 using OpenTemple.Core.TigSubsystems;
 
-namespace ConvertMapToText
+namespace ConvertMapToText;
+
+internal class ProtosConverter
 {
-    internal class ProtosConverter
+    internal static void Convert(string toeeDir)
     {
-        internal static void Convert(string toeeDir)
+        using var game = HeadlessGame.Start(new HeadlessGameOptions(toeeDir));
+
+        Directory.CreateDirectory("protos");
+
+        var properties = new Dictionary<obj_f, object>();
+
+        foreach (var protosFile in ProtoFileParser.EnumerateProtoFiles(Tig.FS))
         {
-            using var game = HeadlessGame.Start(new HeadlessGameOptions(toeeDir));
+            var protos = ProtoFileParser.Parse(protosFile);
 
-            Directory.CreateDirectory("protos");
-
-            var properties = new Dictionary<obj_f, object>();
-
-            foreach (var protosFile in ProtoFileParser.EnumerateProtoFiles(Tig.FS))
+            foreach (var proto in protos)
             {
-                var protos = ProtoFileParser.Parse(protosFile);
+                var dir = Path.Join("protos", proto.type.ToString());
+                Directory.CreateDirectory(dir);
 
-                foreach (var proto in protos)
+                var file = Path.Join(dir, proto.id.protoId + ".json");
+                var displayName = GameSystems.MapObject.GetDisplayName(proto);
+
+                properties.Clear();
+                proto.ForEachField((field, value) =>
                 {
-                    var dir = Path.Join("protos", proto.type.ToString());
-                    Directory.CreateDirectory(dir);
-
-                    var file = Path.Join(dir, proto.id.protoId + ".json");
-                    var displayName = GameSystems.MapObject.GetDisplayName(proto);
-
-                    properties.Clear();
-                    proto.ForEachField((field, value) =>
+                    // ForEachField will return ALL fields for a proto, unset fields will be null
+                    if (value != null)
                     {
-                        // ForEachField will return ALL fields for a proto, unset fields will be null
-                        if (value != null)
-                        {
-                            properties[field] = value;
-                        }
-                        return true;
-                    });
+                        properties[field] = value;
+                    }
+                    return true;
+                });
 
-                    using var stream = new FileStream(file, FileMode.Create);
-                    using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions
-                    {
-                        Indented = true
-                    });
+                using var stream = new FileStream(file, FileMode.Create);
+                using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions
+                {
+                    Indented = true
+                });
 
-                    writer.WriteStartObject();
-                    writer.WriteString("$comment", displayName);
-                    writer.WriteString("type", proto.type.ToString());
-                    writer.WriteNumber("id", proto.id.protoId);
-                    ObjectSerializer.WriteProperties(writer, proto.type, properties);
-                    writer.WriteEndObject();
-                }
+                writer.WriteStartObject();
+                writer.WriteString("$comment", displayName);
+                writer.WriteString("type", proto.type.ToString());
+                writer.WriteNumber("id", proto.id.protoId);
+                ObjectSerializer.WriteProperties(writer, proto.type, properties);
+                writer.WriteEndObject();
             }
         }
     }

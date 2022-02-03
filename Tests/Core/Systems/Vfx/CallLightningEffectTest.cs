@@ -11,52 +11,51 @@ using OpenTemple.Tests.TestUtils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace OpenTemple.Tests.Core.Systems.Vfx
+namespace OpenTemple.Tests.Core.Systems.Vfx;
+
+public class CallLightningEffectTest : RenderingTest
 {
-    public class CallLightningEffectTest : RenderingTest
+    private CallLightningRenderer _renderer;
+
+    [SetUp]
+    public void SetUp()
     {
-        private CallLightningRenderer _renderer;
+        // Fixed seed ensures this test is repeatable
+        ThreadSafeRandom.Seed = 12345;
+        _renderer = new CallLightningRenderer(Device, MdfFactory, new PerlinNoise());
+    }
 
-        [SetUp]
-        public void SetUp()
+    [Test]
+    public void TestRender()
+    {
+        var startTime = TimePoint.Now;
+        var target = CameraCenter + new Vector3(300, 0, 300);
+
+        var effect = new CallLightningEffect(
+            _renderer,
+            startTime,
+            target
+        );
+
+        void Render(int timeSinceStart)
         {
-            // Fixed seed ensures this test is repeatable
-            ThreadSafeRandom.Seed = 12345;
-            _renderer = new CallLightningRenderer(Device, MdfFactory, new PerlinNoise());
+            TimePoint.SetFakeTime(startTime + TimeSpan.FromMilliseconds(timeSinceStart));
+            effect.Render(Viewport);
         }
 
-        [Test]
-        public void TestRender()
-        {
-            var startTime = TimePoint.Now;
-            var target = CameraCenter + new Vector3(300, 0, 300);
+        var frames = RenderFrameSequence(36, Render, new []{target}, interval: 25);
 
-            var effect = new CallLightningEffect(
-                _renderer,
-                startTime,
-                target
-            );
+        AttachVideo("call_lightning.mp4", frames);
 
-            void Render(int timeSinceStart)
-            {
-                TimePoint.SetFakeTime(startTime + TimeSpan.FromMilliseconds(timeSinceStart));
-                effect.Render(Viewport);
-            }
+        // Assert against reference images at certain intervals
+        // Points are chosen where arcs become visible/invisible.
+        CompareReferenceFrames(frames, "Core/Systems/Vfx/CallLightning", 0, 150, 200, 500, 800);
+    }
 
-            var frames = RenderFrameSequence(36, Render, new []{target}, interval: 25);
-
-            AttachVideo("call_lightning.mp4", frames);
-
-            // Assert against reference images at certain intervals
-            // Points are chosen where arcs become visible/invisible.
-            CompareReferenceFrames(frames, "Core/Systems/Vfx/CallLightning", 0, 150, 200, 500, 800);
-        }
-
-        public override void Dispose()
-        {
-            TimePoint.ClearFakeTime();
-            _renderer?.Dispose();
-            base.Dispose();
-        }
+    public override void Dispose()
+    {
+        TimePoint.ClearFakeTime();
+        _renderer?.Dispose();
+        base.Dispose();
     }
 }

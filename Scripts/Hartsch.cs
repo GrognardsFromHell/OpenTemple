@@ -18,45 +18,44 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
-{
-    [ObjectScript(123)]
-    public class Hartsch : BaseObjectScript
-    {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
-        {
-            if ((!attachee.HasMet(triggerer)))
-            {
-                if ((GetQuestState(43) >= QuestState.Mentioned))
-                {
-                    triggerer.BeginDialog(attachee, 1);
-                }
-                else
-                {
-                    triggerer.BeginDialog(attachee, 10);
-                }
+namespace Scripts;
 
-            }
-            else if ((GetQuestState(44) >= QuestState.Accepted))
+[ObjectScript(123)]
+public class Hartsch : BaseObjectScript
+{
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
+    {
+        if ((!attachee.HasMet(triggerer)))
+        {
+            if ((GetQuestState(43) >= QuestState.Mentioned))
             {
-                triggerer.BeginDialog(attachee, 20);
+                triggerer.BeginDialog(attachee, 1);
             }
             else
             {
-                triggerer.BeginDialog(attachee, 30);
+                triggerer.BeginDialog(attachee, 10);
             }
 
-            return SkipDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+        else if ((GetQuestState(44) >= QuestState.Accepted))
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
+            triggerer.BeginDialog(attachee, 20);
+        }
+        else
+        {
+            triggerer.BeginDialog(attachee, 30);
         }
 
+        return SkipDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+
 }

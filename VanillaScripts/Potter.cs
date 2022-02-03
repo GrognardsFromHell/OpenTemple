@@ -17,35 +17,34 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(88)]
+public class Potter : BaseObjectScript
 {
-    [ObjectScript(88)]
-    public class Potter : BaseObjectScript
+
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalFlag(64)))
         {
-            if ((GetGlobalFlag(64)))
-            {
-                triggerer.BeginDialog(attachee, 130);
-            }
-            else
-            {
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 130);
         }
-        public static bool make_hate(GameObject attachee, GameObject triggerer)
+        else
         {
-            if ((attachee.GetReaction(triggerer) >= 20))
-            {
-                attachee.SetReaction(triggerer, 20);
-            }
-
-            return SkipDefault;
+            triggerer.BeginDialog(attachee, 1);
         }
 
-
+        return SkipDefault;
     }
+    public static bool make_hate(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetReaction(triggerer) >= 20))
+        {
+            attachee.SetReaction(triggerer, 20);
+        }
+
+        return SkipDefault;
+    }
+
+
 }

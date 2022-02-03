@@ -18,24 +18,23 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+// Sudden Maximize:  Complete Arcane, p. 83
+public static class SuddenMaximize
 {
-    // Sudden Maximize:  Complete Arcane, p. 83
-    public static class SuddenMaximize
+    public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Maximize");
+
+    private static void ApplyMaximize(ref MetaMagicData metaMagicData)
     {
-        public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Maximize");
-
-        private static void ApplyMaximize(ref MetaMagicData metaMagicData)
-        {
-            // Don't Maximize more than once
-            metaMagicData.IsMaximize = true;
-        }
-
-        // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Maximize");
-
-        [AutoRegister, FeatCondition("Sudden Maximize")]
-        public static readonly ConditionSpec Condition = SuddenMetamagic
-            .Create("Sudden Maximize Feat", "Sudden Maximize", ApplyMaximize)
-            .Build();
+        // Don't Maximize more than once
+        metaMagicData.IsMaximize = true;
     }
+
+    // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Maximize");
+
+    [AutoRegister, FeatCondition("Sudden Maximize")]
+    public static readonly ConditionSpec Condition = SuddenMetamagic
+        .Create("Sudden Maximize Feat", "Sudden Maximize", ApplyMaximize)
+        .Build();
 }

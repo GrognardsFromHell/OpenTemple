@@ -17,31 +17,30 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(224)]
+public class ZportalController : BaseObjectScript
 {
-    [ObjectScript(224)]
-    public class ZportalController : BaseObjectScript
+
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        if ((GetGlobalVar(30) >= 4))
         {
-            if ((GetGlobalVar(30) >= 4))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_SCENERY))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_SCENERY))
+                if ((obj.GetNameId() == 1609))
                 {
-                    if ((obj.GetNameId() == 1609))
-                    {
-                        obj.ClearObjectFlag(ObjectFlag.DONTDRAW);
-                        attachee.Destroy();
-                    }
-
+                    obj.ClearObjectFlag(ObjectFlag.DONTDRAW);
+                    attachee.Destroy();
                 }
 
             }
 
-            return SkipDefault;
         }
 
-
+        return SkipDefault;
     }
+
+
 }

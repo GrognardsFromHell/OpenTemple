@@ -1,9 +1,8 @@
 using System;
 
-namespace OpenTemple.Core.Startup
-{
-    public class AlreadyRunningException : Exception
-    {
+namespace OpenTemple.Core.Startup;
 
-    }
+public class AlreadyRunningException : Exception
+{
+
 }

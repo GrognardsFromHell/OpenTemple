@@ -2,98 +2,97 @@
 using System.Drawing;
 using OpenTemple.Core.Ui.Styles;
 
-namespace OpenTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets;
+
+public abstract class WidgetContent : Styleable
 {
-    public abstract class WidgetContent : Styleable
+    public WidgetBase? Parent
     {
-        public WidgetBase? Parent
+        get => _parent;
+        set
         {
-            get => _parent;
-            set
+            if (value != _parent)
             {
-                if (value != _parent)
-                {
-                    _parent = value;
-                    OnParentChanged();
-                }
+                _parent = value;
+                OnParentChanged();
             }
         }
+    }
 
-        public bool Visible { get; set; } = true;
+    public bool Visible { get; set; } = true;
 
-        public abstract void Render();
+    public abstract void Render();
 
-        public void SetBounds(Rectangle contentArea)
+    public void SetBounds(Rectangle contentArea)
+    {
+        ContentArea = contentArea;
+        Dirty = true;
+    }
+
+    public Rectangle GetBounds()
+    {
+        return ContentArea;
+    }
+
+    public virtual Size GetPreferredSize()
+    {
+        return PreferredSize;
+    }
+
+    public int X { get; set; }
+
+    public int Y { get; set; }
+
+    public Size FixedSize
+    {
+        get => new(FixedWidth, FixedHeight);
+        set
         {
-            ContentArea = contentArea;
-            Dirty = true;
+            _fixedWidth = value.Width;
+            _fixedHeight = value.Height;
+            OnUpdateFixedSize();
         }
+    }
 
-        public Rectangle GetBounds()
+    public int FixedWidth
+    {
+        get => _fixedWidth;
+        set
         {
-            return ContentArea;
+            _fixedWidth = value;
+            OnUpdateFixedSize();
         }
+    }
 
-        public virtual Size GetPreferredSize()
+    public int FixedHeight
+    {
+        get => _fixedHeight;
+        set
         {
-            return PreferredSize;
+            _fixedHeight = value;
+            OnUpdateFixedSize();
         }
+    }
 
-        public int X { get; set; }
+    protected Rectangle ContentArea;
+    protected Size PreferredSize;
+    protected bool Dirty = true;
+    private int _fixedWidth;
+    private int _fixedHeight;
+    private WidgetBase? _parent;
 
-        public int Y { get; set; }
+    public override Styleable? StyleParent => Parent;
 
-        public Size FixedSize
-        {
-            get => new(FixedWidth, FixedHeight);
-            set
-            {
-                _fixedWidth = value.Width;
-                _fixedHeight = value.Height;
-                OnUpdateFixedSize();
-            }
-        }
+    public bool HasPseudoClass(StylingState stylingState) => Parent?.HasPseudoClass(stylingState) == true;
 
-        public int FixedWidth
-        {
-            get => _fixedWidth;
-            set
-            {
-                _fixedWidth = value;
-                OnUpdateFixedSize();
-            }
-        }
+    protected virtual void OnUpdateFixedSize()
+    {
+    }
 
-        public int FixedHeight
-        {
-            get => _fixedHeight;
-            set
-            {
-                _fixedHeight = value;
-                OnUpdateFixedSize();
-            }
-        }
+    protected virtual void OnParentChanged()
+    {
+        // When the parent changes, the styling parent has also changed
+        InvalidateStyles();
+    }
 
-        protected Rectangle ContentArea;
-        protected Size PreferredSize;
-        protected bool Dirty = true;
-        private int _fixedWidth;
-        private int _fixedHeight;
-        private WidgetBase? _parent;
-
-        public override Styleable? StyleParent => Parent;
-
-        public bool HasPseudoClass(StylingState stylingState) => Parent?.HasPseudoClass(stylingState) == true;
-
-        protected virtual void OnUpdateFixedSize()
-        {
-        }
-
-        protected virtual void OnParentChanged()
-        {
-            // When the parent changes, the styling parent has also changed
-            InvalidateStyles();
-        }
-
-    };
-}
+};

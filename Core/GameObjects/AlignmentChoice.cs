@@ -1,12 +1,11 @@
-namespace OpenTemple.Core.GameObjects
+namespace OpenTemple.Core.GameObjects;
+
+/// <summary>
+/// Probably means whether neutral critters channel positive or negative energy.
+/// </summary>
+public enum AlignmentChoice
 {
-    /// <summary>
-    /// Probably means whether neutral critters channel positive or negative energy.
-    /// </summary>
-    public enum AlignmentChoice
-    {
-        Undecided = 0,
-        Positive,
-        Negative
-    }
+    Undecided = 0,
+    Positive,
+    Negative
 }

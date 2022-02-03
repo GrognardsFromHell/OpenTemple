@@ -18,20 +18,19 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
-{
-    public class PowerAttack
-    {
-        public static void PowerAttackValue(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoD20Query();
-            dispIo.resultData = (ulong) evt.GetConditionArg1();
-        }
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
-        [AutoRegister]
-        public static readonly ConditionSpec PowerAttackExtension = ConditionSpec
-            .Extend(FeatConditions.PowerAttack)
-            .AddQueryHandler("Power Attack Value", PowerAttackValue)
-            .Build();
+public class PowerAttack
+{
+    public static void PowerAttackValue(in DispatcherCallbackArgs evt)
+    {
+        var dispIo = evt.GetDispIoD20Query();
+        dispIo.resultData = (ulong) evt.GetConditionArg1();
     }
+
+    [AutoRegister]
+    public static readonly ConditionSpec PowerAttackExtension = ConditionSpec
+        .Extend(FeatConditions.PowerAttack)
+        .AddQueryHandler("Power Attack Value", PowerAttackValue)
+        .Build();
 }

@@ -1,55 +1,54 @@
 using System;
 
-namespace OpenTemple.Core.GFX
+namespace OpenTemple.Core.GFX;
+
+public readonly struct MultiSampleSettings : IEquatable<MultiSampleSettings>
 {
-    public readonly struct MultiSampleSettings : IEquatable<MultiSampleSettings>
+    public bool IsEnabled { get; }
+    public int Samples { get; }
+    public int Quality { get; }
+
+    public MultiSampleSettings(bool isEnabled, int samples, int quality)
     {
-        public bool IsEnabled { get; }
-        public int Samples { get; }
-        public int Quality { get; }
+        IsEnabled = isEnabled;
+        Samples = samples;
+        Quality = quality;
+    }
 
-        public MultiSampleSettings(bool isEnabled, int samples, int quality)
+    public bool Equals(MultiSampleSettings other)
+    {
+        return IsEnabled == other.IsEnabled && Samples == other.Samples && Quality == other.Quality;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is MultiSampleSettings other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(IsEnabled, Samples, Quality);
+    }
+
+    public static bool operator ==(MultiSampleSettings left, MultiSampleSettings right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(MultiSampleSettings left, MultiSampleSettings right)
+    {
+        return !left.Equals(right);
+    }
+
+    public override string ToString()
+    {
+        if (IsEnabled)
         {
-            IsEnabled = isEnabled;
-            Samples = samples;
-            Quality = quality;
+            return $"On, {Samples} samples, quality={Quality}";
         }
-
-        public bool Equals(MultiSampleSettings other)
+        else
         {
-            return IsEnabled == other.IsEnabled && Samples == other.Samples && Quality == other.Quality;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is MultiSampleSettings other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(IsEnabled, Samples, Quality);
-        }
-
-        public static bool operator ==(MultiSampleSettings left, MultiSampleSettings right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(MultiSampleSettings left, MultiSampleSettings right)
-        {
-            return !left.Equals(right);
-        }
-
-        public override string ToString()
-        {
-            if (IsEnabled)
-            {
-                return $"On, {Samples} samples, quality={Quality}";
-            }
-            else
-            {
-                return "Off";
-            }
+            return "Off";
         }
     }
 }

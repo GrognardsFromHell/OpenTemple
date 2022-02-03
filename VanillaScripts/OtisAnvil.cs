@@ -17,22 +17,21 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(263)]
+public class OtisAnvil : BaseObjectScript
 {
-    [ObjectScript(263)]
-    public class OtisAnvil : BaseObjectScript
+
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        if (((GetQuestState(32) == QuestState.Accepted) && (!(triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8014))))))
         {
-            if (((GetQuestState(32) == QuestState.Accepted) && (!(triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8014))))))
-            {
-                SetQuestState(32, QuestState.Completed);
-            }
-
-            return RunDefault;
+            SetQuestState(32, QuestState.Completed);
         }
 
-
+        return RunDefault;
     }
+
+
 }

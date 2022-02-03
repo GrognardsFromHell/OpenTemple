@@ -4,32 +4,30 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.Fade;
 
-namespace OpenTemple.Core.Systems.Teleport
+namespace OpenTemple.Core.Systems.Teleport;
+
+public struct FadeAndTeleportArgs
 {
+    public FadeAndTeleportFlags flags; // FadeAndTeleportFlags
+    public int field4;
+    public GameObject somehandle;
+    public locXY destLoc;
+    public int destMap;
+    public int movieId;
+    public int movieId2;
+    public FadeArgs FadeOutArgs;
+    public FadeArgs FadeInArgs;
+    public int soundId;
+    public int timeToAdvance; // In seconds
+    public Action<int> callback; // Activate via flag 0x400
+    public int callbackArg; // Activate via flag 0x800
+    public int field74;
 
-    public struct FadeAndTeleportArgs
+    public static FadeAndTeleportArgs Default => new FadeAndTeleportArgs
     {
-        public FadeAndTeleportFlags flags; // FadeAndTeleportFlags
-        public int field4;
-        public GameObject somehandle;
-        public locXY destLoc;
-        public int destMap;
-        public int movieId;
-        public int movieId2;
-        public FadeArgs FadeOutArgs;
-        public FadeArgs FadeInArgs;
-        public int soundId;
-        public int timeToAdvance; // In seconds
-        public Action<int> callback; // Activate via flag 0x400
-        public int callbackArg; // Activate via flag 0x800
-        public int field74;
-
-        public static FadeAndTeleportArgs Default => new FadeAndTeleportArgs
+        FadeOutArgs = new FadeArgs
         {
-            FadeOutArgs = new FadeArgs
-            {
-                color = PackedLinearColorA.Black
-            }
-        };
-    }
+            color = PackedLinearColorA.Black
+        }
+    };
 }

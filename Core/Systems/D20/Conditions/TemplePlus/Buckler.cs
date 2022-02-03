@@ -18,19 +18,18 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
-{
-    public class Buckler
-    {
-        public static void BucklerACBonus(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoD20Query();
-            dispIo.return_val = evt.GetConditionArg2();
-        }
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
-        [AutoRegister]
-        public static readonly ConditionSpec BucklerExtension = ConditionSpec.Extend(ItemEffects.Buckler)
-            .AddQueryHandler("Buckler Bonus Disabled", BucklerACBonus)
-            .Build();
+public class Buckler
+{
+    public static void BucklerACBonus(in DispatcherCallbackArgs evt)
+    {
+        var dispIo = evt.GetDispIoD20Query();
+        dispIo.return_val = evt.GetConditionArg2();
     }
+
+    [AutoRegister]
+    public static readonly ConditionSpec BucklerExtension = ConditionSpec.Extend(ItemEffects.Buckler)
+        .AddQueryHandler("Buckler Bonus Disabled", BucklerACBonus)
+        .Build();
 }

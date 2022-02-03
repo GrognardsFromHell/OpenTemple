@@ -19,46 +19,45 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts.Dialog
+namespace VanillaScripts.Dialog;
+
+[DialogScript(197)]
+public class MapDialog : Map, IDialogScript
 {
-    [DialogScript(197)]
-    public class MapDialog : Map, IDialogScript
+    public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
     {
-        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    originalScript = null;
-                    return true;
-            }
+            default:
+                originalScript = null;
+                return true;
         }
-        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    }
+    public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                case 10:
-                    originalScript = "game.areas[5] = 1";
-                    MakeAreaKnown(5);
-                    break;
-                case 21:
-                case 22:
-                    originalScript = "start_game_with_quest(27)";
-                    Utilities.start_game_with_quest(27);
-                    break;
-                default:
-                    originalScript = null;
-                    return;
-            }
+            case 10:
+                originalScript = "game.areas[5] = 1";
+                MakeAreaKnown(5);
+                break;
+            case 21:
+            case 22:
+                originalScript = "start_game_with_quest(27)";
+                Utilities.start_game_with_quest(27);
+                break;
+            default:
+                originalScript = null;
+                return;
         }
-        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    }
+    public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
+    {
+        switch (lineNumber)
         {
-            switch (lineNumber)
-            {
-                default:
-                    skillChecks = default;
-                    return false;
-            }
+            default:
+                skillChecks = default;
+                return false;
         }
     }
 }

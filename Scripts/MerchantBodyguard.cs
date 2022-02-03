@@ -18,71 +18,70 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(358)]
+public class MerchantBodyguard : BaseObjectScript
 {
-    [ObjectScript(358)]
-    public class MerchantBodyguard : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        if ((attachee.HasMet(triggerer)))
         {
-            if ((attachee.HasMet(triggerer)))
-            {
-                attachee.TurnTowards(triggerer);
-                triggerer.BeginDialog(attachee, 20);
-            }
-            else
-            {
-                attachee.TurnTowards(triggerer);
-                triggerer.BeginDialog(attachee, 1);
-            }
-
-            return SkipDefault;
+            attachee.TurnTowards(triggerer);
+            triggerer.BeginDialog(attachee, 20);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        else
         {
-            if (((GetQuestState(66) == QuestState.Accepted) && (attachee.GetMap() == 5061))) // turns on merchant bodyguards in Nulb Hostel
-            {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
-            }
-
-            return RunDefault;
+            attachee.TurnTowards(triggerer);
+            triggerer.BeginDialog(attachee, 1);
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
 
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+        return SkipDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if (((GetQuestState(66) == QuestState.Accepted) && (attachee.GetMap() == 5061))) // turns on merchant bodyguards in Nulb Hostel
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
+        }
+
+        return RunDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        return RunDefault;
+    }
+    public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        if ((!GameSystems.Combat.IsCombatActive()))
+        {
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((Utilities.is_safe_to_talk(attachee, obj)))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    if ((!attachee.HasMet(obj)))
                     {
-                        if ((!attachee.HasMet(obj)))
-                        {
-                            attachee.TurnTowards(obj);
-                            obj.BeginDialog(attachee, 1);
-                        }
-                        else if ((attachee.HasMet(obj)))
-                        {
-                            attachee.TurnTowards(obj);
-                            obj.BeginDialog(attachee, 20);
-                        }
-
+                        attachee.TurnTowards(obj);
+                        obj.BeginDialog(attachee, 1);
+                    }
+                    else if ((attachee.HasMet(obj)))
+                    {
+                        attachee.TurnTowards(obj);
+                        obj.BeginDialog(attachee, 20);
                     }
 
                 }
 
             }
 
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+
 }

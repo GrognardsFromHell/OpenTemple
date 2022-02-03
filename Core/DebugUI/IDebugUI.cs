@@ -1,9 +1,8 @@
-namespace OpenTemple.Core.DebugUI
+namespace OpenTemple.Core.DebugUI;
+
+public interface IDebugUI
 {
-    public interface IDebugUI
-    {
-        void NewFrame();
-        void Render();
-        void PushSmallFont();
-    }
+    void NewFrame();
+    void Render();
+    void PushSmallFont();
 }

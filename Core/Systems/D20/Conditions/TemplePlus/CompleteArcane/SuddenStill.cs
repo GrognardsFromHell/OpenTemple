@@ -18,21 +18,20 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+
+public class SuddenStill
 {
-    public class SuddenStill
+    // Sudden Still:  Complete Arcane, p. 83
+    private static void ApplyStill(ref MetaMagicData metaMagicData)
     {
-        // Sudden Still:  Complete Arcane, p. 83
-        private static void ApplyStill(ref MetaMagicData metaMagicData)
-        {
-            metaMagicData.IsStill = true;
-        }
-
-        // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Still");
-
-        [AutoRegister, FeatCondition("Sudden Still")]
-        public static readonly ConditionSpec Condition = SuddenMetamagic
-            .Create("Sudden Still Feat", "Sudden Still", ApplyStill)
-            .Build();
+        metaMagicData.IsStill = true;
     }
+
+    // TODO GameSystems.Feats.AddMetamagicFeat("Sudden Still");
+
+    [AutoRegister, FeatCondition("Sudden Still")]
+    public static readonly ConditionSpec Condition = SuddenMetamagic
+        .Create("Sudden Still Feat", "Sudden Still", ApplyStill)
+        .Build();
 }

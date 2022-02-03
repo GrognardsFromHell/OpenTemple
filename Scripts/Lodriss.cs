@@ -18,171 +18,170 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(117)]
+public class Lodriss : BaseObjectScript
 {
-    [ObjectScript(117)]
-    public class Lodriss : BaseObjectScript
+    public override bool OnDialog(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnDialog(GameObject attachee, GameObject triggerer)
+        triggerer.BeginDialog(attachee, 1);
+        return SkipDefault;
+    }
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+    {
+        // Respawn
+        if ((!GetGlobalFlag(912)))
         {
-            triggerer.BeginDialog(attachee, 1);
-            return SkipDefault;
+            StartTimer(604800000, () => respawn(attachee)); // 604800000ms is 1 week
+            SetGlobalFlag(912, true);
         }
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+
+        // The 'evac' routine
+        if (ScriptDaemon.get_f("boatmens_tavern_evac_on") && SelectedPartyLeader.GetMap() == 5052)
         {
-            // Respawn
-            if ((!GetGlobalFlag(912)))
-            {
-                StartTimer(604800000, () => respawn(attachee)); // 604800000ms is 1 week
-                SetGlobalFlag(912, true);
-            }
-
-            // The 'evac' routine
-            if (ScriptDaemon.get_f("boatmens_tavern_evac_on") && SelectedPartyLeader.GetMap() == 5052)
-            {
-                StartTimer(300, () => ScriptDaemon.set_f("boatmens_tavern_evac_on", false));
-                if (attachee.GetNameId() == 14133 && !ScriptDaemon.get_f("lodriss_killed_outside")) // For Lodriss
-                {
-                    attachee.ClearObjectFlag(ObjectFlag.OFF);
-                }
-                else
-                {
-                    // else : # For the others
-                    attachee.ClearObjectFlag(ObjectFlag.OFF);
-                }
-
-            }
-
-            // game.new_sid = 0
-            if (attachee.GetNameId() == 14152 && SelectedPartyLeader.GetMap() == 5051) // Tolub, outside
+            StartTimer(300, () => ScriptDaemon.set_f("boatmens_tavern_evac_on", false));
+            if (attachee.GetNameId() == 14133 && !ScriptDaemon.get_f("lodriss_killed_outside")) // For Lodriss
             {
                 attachee.ClearObjectFlag(ObjectFlag.OFF);
             }
+            else
+            {
+                // else : # For the others
+                attachee.ClearObjectFlag(ObjectFlag.OFF);
+            }
 
-            return RunDefault;
         }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
+
+        // game.new_sid = 0
+        if (attachee.GetNameId() == 14152 && SelectedPartyLeader.GetMap() == 5051) // Tolub, outside
         {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetGlobalFlag(369, true);
-            if (GetQuestState(42) >= QuestState.Mentioned)
-            {
-                SetQuestState(42, QuestState.Completed);
-                triggerer.AddReputation(21);
-            }
-
-            return RunDefault;
+            attachee.ClearObjectFlag(ObjectFlag.OFF);
         }
-        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
-        {
-            if (GetQuestState(42) == QuestState.Completed)
-            {
-                SetQuestState(42, QuestState.Botched);
-                triggerer.RemoveReputation(21);
-            }
 
-            SetGlobalFlag(369, false);
-            return RunDefault;
+        return RunDefault;
+    }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
         }
-        public static bool kill_lodriss(GameObject attachee)
+
+        SetGlobalFlag(369, true);
+        if (GetQuestState(42) >= QuestState.Mentioned)
         {
-            attachee.SetObjectFlag(ObjectFlag.OFF);
-            ScriptDaemon.set_f("lodriss_killed_outside");
-            return RunDefault;
+            SetQuestState(42, QuestState.Completed);
+            triggerer.AddReputation(21);
         }
-        public static bool kill_skole(GameObject attachee)
+
+        return RunDefault;
+    }
+    public override bool OnResurrect(GameObject attachee, GameObject triggerer)
+    {
+        if (GetQuestState(42) == QuestState.Completed)
         {
-            StartTimer(86400000, () => skole_dead(attachee));
-            return RunDefault;
+            SetQuestState(42, QuestState.Botched);
+            triggerer.RemoveReputation(21);
         }
-        public static bool skole_dead(GameObject attachee)
+
+        SetGlobalFlag(369, false);
+        return RunDefault;
+    }
+    public static bool kill_lodriss(GameObject attachee)
+    {
+        attachee.SetObjectFlag(ObjectFlag.OFF);
+        ScriptDaemon.set_f("lodriss_killed_outside");
+        return RunDefault;
+    }
+    public static bool kill_skole(GameObject attachee)
+    {
+        StartTimer(86400000, () => skole_dead(attachee));
+        return RunDefault;
+    }
+    public static bool skole_dead(GameObject attachee)
+    {
+        SetGlobalFlag(201, true);
+        return RunDefault;
+    }
+    public static bool get_rep(GameObject attachee, GameObject triggerer)
+    {
+        if (!triggerer.HasReputation(7))
         {
-            SetGlobalFlag(201, true);
-            return RunDefault;
+            triggerer.AddReputation(7);
         }
-        public static bool get_rep(GameObject attachee, GameObject triggerer)
+
+        SetGlobalVar(25, GetGlobalVar(25) + 1);
+        if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
         {
-            if (!triggerer.HasReputation(7))
-            {
-                triggerer.AddReputation(7);
-            }
-
-            SetGlobalVar(25, GetGlobalVar(25) + 1);
-            if ((GetGlobalVar(25) >= 3 && !triggerer.HasReputation(8)))
-            {
-                triggerer.AddReputation(8);
-            }
-
-            return RunDefault;
+            triggerer.AddReputation(8);
         }
-        public static bool make_like(GameObject attachee, GameObject triggerer)
-        {
-            if ((attachee.GetReaction(triggerer) <= 71))
-            {
-                attachee.SetReaction(triggerer, 71);
-            }
 
-            return SkipDefault;
+        return RunDefault;
+    }
+    public static bool make_like(GameObject attachee, GameObject triggerer)
+    {
+        if ((attachee.GetReaction(triggerer) <= 71))
+        {
+            attachee.SetReaction(triggerer, 71);
         }
-        public static int check_skole(GameObject attachee)
+
+        return SkipDefault;
+    }
+    public static int check_skole(GameObject attachee)
+    {
+        var skole = Utilities.find_npc_near(attachee, 14134);
+        if ((skole == null))
         {
-            var skole = Utilities.find_npc_near(attachee, 14134);
-            if ((skole == null))
-            {
-                return 0;
-            }
-
-            var skole_whacked = 0;
-            if ((skole.GetStat(Stat.subdual_damage) > 0 || Utilities.obj_percent_hp(skole) < 100 || skole.GetLeader() != null))
-            {
-                skole_whacked = 1;
-            }
-
-            if ((skole_whacked == 0 && (GetGlobalFlag(202) || GetGlobalFlag(102))))
-            {
-                return 1;
-            }
-
             return 0;
         }
-        public static bool evac_partial(GameObject attachee)
-        {
-            ScriptDaemon.set_f("boatmens_tavern_evac_on");
-            attachee.SetScriptId(ObjScriptEvent.FirstHeartbeat, 117);
-            attachee.SetObjectFlag(ObjectFlag.OFF);
-            return RunDefault;
-        }
-        public static bool evac(GameObject attachee)
-        {
-            ScriptDaemon.set_f("boatmens_tavern_evac_on");
-            attachee.SetScriptId(ObjScriptEvent.FirstHeartbeat, 117); // san_first_heartbeat
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
-            {
-                if ((obj.GetLeader() == null))
-                {
-                    if ((obj.GetNameId() == 14133 || obj.GetNameId() == 8020 || obj.GetNameId() == 8057 || obj.GetNameId() == 14374 || obj.GetNameId() == 14290 || obj.GetNameId() == 14372 || obj.GetNameId() == 14152))
-                    {
-                        obj.SetScriptId(ObjScriptEvent.FirstHeartbeat, 117);
-                        obj.SetObjectFlag(ObjectFlag.OFF);
-                    }
 
+        var skole_whacked = 0;
+        if ((skole.GetStat(Stat.subdual_damage) > 0 || Utilities.obj_percent_hp(skole) < 100 || skole.GetLeader() != null))
+        {
+            skole_whacked = 1;
+        }
+
+        if ((skole_whacked == 0 && (GetGlobalFlag(202) || GetGlobalFlag(102))))
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+    public static bool evac_partial(GameObject attachee)
+    {
+        ScriptDaemon.set_f("boatmens_tavern_evac_on");
+        attachee.SetScriptId(ObjScriptEvent.FirstHeartbeat, 117);
+        attachee.SetObjectFlag(ObjectFlag.OFF);
+        return RunDefault;
+    }
+    public static bool evac(GameObject attachee)
+    {
+        ScriptDaemon.set_f("boatmens_tavern_evac_on");
+        attachee.SetScriptId(ObjScriptEvent.FirstHeartbeat, 117); // san_first_heartbeat
+        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+        {
+            if ((obj.GetLeader() == null))
+            {
+                if ((obj.GetNameId() == 14133 || obj.GetNameId() == 8020 || obj.GetNameId() == 8057 || obj.GetNameId() == 14374 || obj.GetNameId() == 14290 || obj.GetNameId() == 14372 || obj.GetNameId() == 14152))
+                {
+                    obj.SetScriptId(ObjScriptEvent.FirstHeartbeat, 117);
+                    obj.SetObjectFlag(ObjectFlag.OFF);
                 }
 
             }
 
-            return RunDefault;
-        }
-        public static void respawn(GameObject attachee)
-        {
-            var box = Utilities.find_container_near(attachee, 1004);
-            InventoryRespawn.RespawnInventory(box);
-            StartTimer(604800000, () => respawn(attachee)); // 604800000ms is 1 week
-            return;
         }
 
+        return RunDefault;
     }
+    public static void respawn(GameObject attachee)
+    {
+        var box = Utilities.find_container_near(attachee, 1004);
+        InventoryRespawn.RespawnInventory(box);
+        StartTimer(604800000, () => respawn(attachee)); // 604800000ms is 1 week
+        return;
+    }
+
 }

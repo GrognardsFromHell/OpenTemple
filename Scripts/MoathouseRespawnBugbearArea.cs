@@ -18,40 +18,39 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts
+namespace Scripts;
+
+[ObjectScript(541)]
+public class MoathouseRespawnBugbearArea : BaseObjectScript
 {
-    [ObjectScript(541)]
-    public class MoathouseRespawnBugbearArea : BaseObjectScript
+    public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
     {
-        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
+        if ((attachee.GetMap() == 5005))
         {
-            if ((attachee.GetMap() == 5005))
+            if ((GetQuestState(95) == QuestState.Mentioned && GetGlobalVar(755) >= 9))
             {
-                if ((GetQuestState(95) == QuestState.Mentioned && GetGlobalVar(755) >= 9))
-                {
-                    attachee.ClearObjectFlag(ObjectFlag.OFF);
-                }
-
+                attachee.ClearObjectFlag(ObjectFlag.OFF);
             }
 
-            return RunDefault;
-        }
-        public override bool OnDying(GameObject attachee, GameObject triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            SetGlobalVar(755, GetGlobalVar(755) + 1);
-            // Record time when you killed a moathouse bugbear
-            if (GetGlobalVar(404) == 0)
-            {
-                SetGlobalVar(404, CurrentTimeSeconds);
-            }
-
-            return RunDefault;
         }
 
+        return RunDefault;
     }
+    public override bool OnDying(GameObject attachee, GameObject triggerer)
+    {
+        if (CombatStandardRoutines.should_modify_CR(attachee))
+        {
+            CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+        }
+
+        SetGlobalVar(755, GetGlobalVar(755) + 1);
+        // Record time when you killed a moathouse bugbear
+        if (GetGlobalVar(404) == 0)
+        {
+            SetGlobalVar(404, CurrentTimeSeconds);
+        }
+
+        return RunDefault;
+    }
+
 }

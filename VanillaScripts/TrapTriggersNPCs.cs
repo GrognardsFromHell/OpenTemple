@@ -17,26 +17,25 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts;
+
+[ObjectScript(268)]
+public class TrapTriggersNPCs : BaseObjectScript
 {
-    [ObjectScript(268)]
-    public class TrapTriggersNPCs : BaseObjectScript
+
+    public override bool OnUse(GameObject attachee, GameObject triggerer)
     {
-
-        public override bool OnUse(GameObject attachee, GameObject triggerer)
+        foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
         {
-            foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
+            if ((npc.GetLeader() == null))
             {
-                if ((npc.GetLeader() == null))
-                {
-                    npc.Attack(triggerer);
-                }
-
+                npc.Attack(triggerer);
             }
 
-            return RunDefault;
         }
 
-
+        return RunDefault;
     }
+
+
 }

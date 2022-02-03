@@ -18,62 +18,52 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace Scripts.Spells
+namespace Scripts.Spells;
+
+[SpellScript(466)]
+public class Suggestion : BaseSpellScript
 {
-    [SpellScript(466)]
-    public class Suggestion : BaseSpellScript
+    public override void OnBeginSpellCast(SpellPacketBody spell)
     {
-        public override void OnBeginSpellCast(SpellPacketBody spell)
+        Logger.Info("Suggestion OnBeginSpellCast");
+        Logger.Info("spell.target_list={0}", spell.Targets);
+        Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+        AttachParticles("sp-enchantment-conjure", spell.caster);
+    }
+    public override void OnSpellEffect(SpellPacketBody spell)
+    {
+        Logger.Info("Suggestion OnSpellEffect");
+        var npc = spell.caster;
+        if (npc.GetNameId() == 14358) // Balor Guardian
         {
-            Logger.Info("Suggestion OnBeginSpellCast");
-            Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
-            AttachParticles("sp-enchantment-conjure", spell.caster);
+            spell.dc = 27;
         }
-        public override void OnSpellEffect(SpellPacketBody spell)
+
+        spell.duration = 600 * spell.casterLevel;
+        var target_item = spell.Targets[0];
+        if (!target_item.Object.IsFriendly(spell.caster))
         {
-            Logger.Info("Suggestion OnSpellEffect");
-            var npc = spell.caster;
-            if (npc.GetNameId() == 14358) // Balor Guardian
+            if ((target_item.Object.type == ObjectType.pc) || (target_item.Object.type == ObjectType.npc))
             {
-                spell.dc = 27;
-            }
-
-            spell.duration = 600 * spell.casterLevel;
-            var target_item = spell.Targets[0];
-            if (!target_item.Object.IsFriendly(spell.caster))
-            {
-                if ((target_item.Object.type == ObjectType.pc) || (target_item.Object.type == ObjectType.npc))
+                if (!target_item.Object.IsMonsterCategory(MonsterCategory.animal))
                 {
-                    if (!target_item.Object.IsMonsterCategory(MonsterCategory.animal))
+                    if (GameSystems.Stat.DispatchGetSizeCategory(target_item.Object) < SizeCategory.Huge)
                     {
-                        if (GameSystems.Stat.DispatchGetSizeCategory(target_item.Object) < SizeCategory.Huge)
+                        if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
                         {
-                            if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
-                            {
-                                // saving throw unsuccessful
-                                target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
-                                spell.caster.AddAIFollower(target_item.Object);
-                                target_item.Object.AddCondition("sp-Suggestion", spell.spellId, spell.duration, 0);
-                                target_item.ParticleSystem = AttachParticles("sp-Suggestion", target_item.Object);
-                                // add target to initiative, just in case
-                                target_item.Object.AddToInitiative();
-                                UiSystems.Combat.Initiative.UpdateIfNeeded();
-                            }
-                            else
-                            {
-                                // saving throw successful
-                                target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
-                                AttachParticles("Fizzle", target_item.Object);
-                                spell.RemoveTarget(target_item.Object);
-                            }
-
+                            // saving throw unsuccessful
+                            target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
+                            spell.caster.AddAIFollower(target_item.Object);
+                            target_item.Object.AddCondition("sp-Suggestion", spell.spellId, spell.duration, 0);
+                            target_item.ParticleSystem = AttachParticles("sp-Suggestion", target_item.Object);
+                            // add target to initiative, just in case
+                            target_item.Object.AddToInitiative();
+                            UiSystems.Combat.Initiative.UpdateIfNeeded();
                         }
                         else
                         {
-                            // not medium sized or smaller
-                            target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
-                            target_item.Object.FloatMesFileLine("mes/spell.mes", 31005);
+                            // saving throw successful
+                            target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
                             AttachParticles("Fizzle", target_item.Object);
                             spell.RemoveTarget(target_item.Object);
                         }
@@ -81,9 +71,9 @@ namespace Scripts.Spells
                     }
                     else
                     {
-                        // a monster
+                        // not medium sized or smaller
                         target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
-                        target_item.Object.FloatMesFileLine("mes/spell.mes", 31004);
+                        target_item.Object.FloatMesFileLine("mes/spell.mes", 31005);
                         AttachParticles("Fizzle", target_item.Object);
                         spell.RemoveTarget(target_item.Object);
                     }
@@ -91,9 +81,9 @@ namespace Scripts.Spells
                 }
                 else
                 {
-                    // not a person
+                    // a monster
                     target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
-                    target_item.Object.FloatMesFileLine("mes/spell.mes", 31001);
+                    target_item.Object.FloatMesFileLine("mes/spell.mes", 31004);
                     AttachParticles("Fizzle", target_item.Object);
                     spell.RemoveTarget(target_item.Object);
                 }
@@ -101,21 +91,30 @@ namespace Scripts.Spells
             }
             else
             {
-                // can't target friendlies
+                // not a person
+                target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
+                target_item.Object.FloatMesFileLine("mes/spell.mes", 31001);
                 AttachParticles("Fizzle", target_item.Object);
                 spell.RemoveTarget(target_item.Object);
             }
 
-            spell.EndSpell();
         }
-        public override void OnBeginRound(SpellPacketBody spell)
+        else
         {
-            Logger.Info("Suggestion OnBeginRound");
-        }
-        public override void OnEndSpellCast(SpellPacketBody spell)
-        {
-            Logger.Info("Suggestion OnEndSpellCast");
+            // can't target friendlies
+            AttachParticles("Fizzle", target_item.Object);
+            spell.RemoveTarget(target_item.Object);
         }
 
+        spell.EndSpell();
     }
+    public override void OnBeginRound(SpellPacketBody spell)
+    {
+        Logger.Info("Suggestion OnBeginRound");
+    }
+    public override void OnEndSpellCast(SpellPacketBody spell)
+    {
+        Logger.Info("Suggestion OnEndSpellCast");
+    }
+
 }
