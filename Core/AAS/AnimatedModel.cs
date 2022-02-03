@@ -624,10 +624,10 @@ namespace OpenTemple.Core.AAS
 
         public void Advance(in Matrix3x4 worldMatrix, float deltaTime, float deltaDistance, float deltaRotation)
         {
-            this.drivenTime += deltaTime;
-            this.timeForClothSim += deltaTime;
-            this.drivenDistance += deltaDistance;
-            this.drivenRotation += deltaRotation;
+            drivenTime += deltaTime;
+            timeForClothSim += deltaTime;
+            drivenDistance += deltaDistance;
+            drivenRotation += deltaRotation;
             this.worldMatrix = worldMatrix;
 
             var anim_player = runningAnimsHead;

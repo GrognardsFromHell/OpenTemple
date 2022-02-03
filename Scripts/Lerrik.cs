@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(382)]
     public class Lerrik : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(77) == QuestState.Completed && GetGlobalFlag(992) && !GetGlobalFlag(935)))
             {
@@ -38,7 +38,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(974)))
             {
@@ -55,7 +55,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -70,7 +70,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(974, false);
             return RunDefault;

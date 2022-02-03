@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
@@ -580,7 +580,7 @@ namespace OpenTemple.Core.Systems.AI
         [TempleDllLocation(0x100e3a00)]
         public bool aiFunc(AiTactic aiTac)
         {
-            GameObjectBody performer = aiTac.performer;
+            GameObject performer = aiTac.performer;
             var dist = 1000000000.0f;
             var reach = performer.GetReach();
             bool hasGoodTarget = false;
@@ -1195,7 +1195,7 @@ namespace OpenTemple.Core.Systems.AI
         /// Higher is better.
         /// </summary>
         [TempleDllLocation(0x100e2fa0)]
-        private float CalculateFireballScore(GameObjectBody caster, Vector2 castAt, SpellPacketBody spellPkt,
+        private float CalculateFireballScore(GameObject caster, Vector2 castAt, SpellPacketBody spellPkt,
             int spellEnum)
         {
             var fireballScore = 0.0f;
@@ -1239,11 +1239,11 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100e2d70)]
-        private bool AdjustCastLocationToClosestEnemy(Vector2 castAt, GameObjectBody performer,
+        private bool AdjustCastLocationToClosestEnemy(Vector2 castAt, GameObject performer,
             out Vector2 actualCastTarget)
         {
             var locXy = LocAndOffsets.FromInches(castAt);
-            GameObjectBody target;
+            GameObject target;
             float targetDist;
             if (GetClosestEnemy(performer, locXy, out target, out targetDist, true) && targetDist <= 240.0f
                 || GetClosestEnemy(performer, locXy, out target, out targetDist, false) && targetDist <= 240.0f)
@@ -1261,7 +1261,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100e2b80)]
-        private bool GetClosestEnemy(GameObjectBody obj, LocAndOffsets loc, out GameObjectBody target,
+        private bool GetClosestEnemy(GameObject obj, LocAndOffsets loc, out GameObject target,
             out float targetDistance, bool onlyValidFireballTargets)
         {
             targetDistance = 10000.0f;
@@ -1313,7 +1313,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100e2ec0)]
-        private bool GetAverageEnemyLocation(GameObjectBody caster, out Vector2 averagedCenter)
+        private bool GetAverageEnemyLocation(GameObject caster, out Vector2 averagedCenter)
         {
             var enemyCenter = Vector2.Zero;
             var enemyCount = 0;
@@ -1548,7 +1548,7 @@ namespace OpenTemple.Core.Systems.AI
         [TempleDllLocation(0x100e46d0)]
         public bool aiFunc(AiTactic aiTac)
         {
-            GameObjectBody performer = aiTac.performer;
+            GameObject performer = aiTac.performer;
             bool foundTarget = false;
             float closestDist = 1000000000.0f;
             var performerLoc = aiTac.performer.GetLocationFull();
@@ -1557,7 +1557,7 @@ namespace OpenTemple.Core.Systems.AI
 
             using var objlist = ObjList.ListVicinity(performerLoc.location, ObjectListFilter.OLC_CRITTERS);
 
-            GameObjectBody ignoredTarget = null;
+            GameObject ignoredTarget = null;
             float ignoredDist = 1000000000.0f;
             foreach (var dude in objlist)
             {
@@ -1682,7 +1682,7 @@ namespace OpenTemple.Core.Systems.AI
         [TempleDllLocation(0x100e5db0)]
         public bool aiFunc(AiTactic aiTac)
         {
-            GameObjectBody origTarget = aiTac.target;
+            GameObject origTarget = aiTac.target;
             var actNum = GameSystems.D20.Actions.CurrentSequence.d20ActArrayNum;
             aiTac.target = null;
             GameSystems.AI.TargetClosestEnemy(aiTac, true);
@@ -1938,7 +1938,7 @@ namespace OpenTemple.Core.Systems.AI
             return false;
         }
 
-        protected abstract int GetBadSaveEstimate(GameObjectBody critter);
+        protected abstract int GetBadSaveEstimate(GameObject critter);
     }
 
     internal class TacticTargetBadWill : TacticTargetBadSave
@@ -1948,7 +1948,7 @@ namespace OpenTemple.Core.Systems.AI
         public override string name => "target bad will";
 
         [TempleDllLocation(0x100e3100)]
-        protected override int GetBadSaveEstimate(GameObjectBody critter)
+        protected override int GetBadSaveEstimate(GameObject critter)
         {
             // TODO: This is a bad estimate... It ignores new classes
             var estimate = 0;
@@ -1981,7 +1981,7 @@ namespace OpenTemple.Core.Systems.AI
         public override string name => "target bad fort";
 
         [TempleDllLocation(0x100e3170)]
-        protected override int GetBadSaveEstimate(GameObjectBody critter)
+        protected override int GetBadSaveEstimate(GameObject critter)
         {
             // TODO: This is a bad estimate... It ignores new classes
             var estimate = 0;
@@ -2013,7 +2013,7 @@ namespace OpenTemple.Core.Systems.AI
         public override string name => "target bad reflex";
 
         [TempleDllLocation(0x100e31e0)]
-        protected override int GetBadSaveEstimate(GameObjectBody critter)
+        protected override int GetBadSaveEstimate(GameObject critter)
         {
             // TODO: This is a bad estimate... It ignores new classes
             var estimate = 0;

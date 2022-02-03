@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;

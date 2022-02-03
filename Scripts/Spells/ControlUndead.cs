@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -33,7 +33,7 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Control Undead OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             spell.duration = 10 * spell.casterLevel;
             var hitDiceAmount = 2 * spell.casterLevel;
             var controlled_undead = 0;
@@ -127,7 +127,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Control Undead OnEndSpellCast");
         }
-        public void removeControlUndead(GameObjectBody caster, GameObjectBody target)
+        public void removeControlUndead(GameObject caster, GameObject target)
         {
             Logger.Info("Control Undead - removing control. {0}{1}", caster, target);
             var old_undead = target.GetNameId();
@@ -249,7 +249,7 @@ namespace Scripts.Spells
 
         }
 
-        public void resetControlUndead(GameObjectBody target, int strategy)
+        public void resetControlUndead(GameObject target, int strategy)
         {
             Logger.Info("Control Undead - resetting strategy. {0}{1}", target, strategy);
             target.SetInt32(obj_f.critter_strategy, strategy);

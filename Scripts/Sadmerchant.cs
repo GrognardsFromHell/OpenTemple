@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(237)]
     public class Sadmerchant : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasMet(triggerer)))
             {
@@ -36,7 +36,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(354)))
             {
@@ -45,7 +45,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {

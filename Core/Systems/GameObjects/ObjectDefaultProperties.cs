@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Utils;
 
@@ -7,7 +7,7 @@ namespace OpenTemple.Core.Systems.GameObjects
     public static class ObjectDefaultProperties
     {
         [TempleDllLocation(0x100a1620)]
-        public static void SetDefaultProperties(GameObjectBody obj)
+        public static void SetDefaultProperties(GameObject obj)
         {
             obj.SetInt32(obj_f.shadow_art_2d, -1);
             obj.SetInt32(obj_f.blit_color, 0xFFFFFF);

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         private static readonly D20DispatcherKey divineShieldEnum = (D20DispatcherKey) 2602;
 
         // Check that the the PC has a shield
-        public static bool HasShield(GameObjectBody pc)
+        public static bool HasShield(GameObject pc)
         {
             return pc.ItemWornAt(EquipSlot.Shield) == null;
         }

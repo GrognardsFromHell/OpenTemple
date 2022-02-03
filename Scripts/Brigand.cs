@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace Scripts
     [ObjectScript(302)]
     public class Brigand : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             DetachScript();
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -37,7 +37,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(833) && attachee.GetMap() == 5065))
             {
@@ -135,7 +135,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetMap() == 5002) // moathouse courtyard
             {
@@ -170,7 +170,7 @@ namespace Scripts
             CombatStandardRoutines.Spiritual_Weapon_Begone(attachee);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetMap() == 5002) // moathouse courtyard brigands
             {
@@ -191,7 +191,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(840) && attachee.GetMap() == 5065))
             {
@@ -205,7 +205,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buff_npc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -225,7 +225,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buff_npc_two(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc_two(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -243,7 +243,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buff_npc_three(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc_three(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {

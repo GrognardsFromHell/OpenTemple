@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Iuz : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.FindItemByName(2203) != null))
             {
@@ -40,7 +40,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(361)))
             {
@@ -48,7 +48,7 @@ namespace VanillaScripts
                 AttachParticles("mon-iuz", attachee);
             }
 
-            GameObjectBody nearby_pc = null;
+            GameObject nearby_pc = null;
 
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -95,12 +95,12 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(327, true);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(32, GetGlobalVar(32) + 1);
             if ((GetGlobalVar(32) >= 4))
@@ -131,7 +131,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool iuz_pc_persuade(GameObjectBody iuz, GameObjectBody pc, int success, int failure)
+        public static bool iuz_pc_persuade(GameObject iuz, GameObject pc, int success, int failure)
         {
             if ((!pc.SavingThrow(10, SavingThrowType.Will, D20SavingThrowFlag.NONE)))
             {
@@ -144,7 +144,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool iuz_pc_charm(GameObjectBody iuz, GameObjectBody pc)
+        public static bool iuz_pc_charm(GameObject iuz, GameObject pc)
         {
             pc.Dominate(iuz);
             if ((GameSystems.Party.PlayerCharactersSize == 1))
@@ -159,7 +159,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool switch_to_hedrack(GameObjectBody iuz, GameObjectBody pc)
+        public static bool switch_to_hedrack(GameObject iuz, GameObject pc)
         {
             var hedrack = Utilities.find_npc_near(iuz, 8032);
 
@@ -176,7 +176,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool switch_to_cuthbert(GameObjectBody iuz, GameObjectBody pc, int line)
+        public static bool switch_to_cuthbert(GameObject iuz, GameObject pc, int line)
         {
             var cuthbert = Utilities.find_npc_near(iuz, 8043);
 
@@ -193,7 +193,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool iuz_animate_troops(GameObjectBody iuz, GameObjectBody pc)
+        public static bool iuz_animate_troops(GameObject iuz, GameObject pc)
         {
             foreach (var npc in ObjList.ListVicinity(iuz.GetLocation(), ObjectListFilter.OLC_NPC))
             {

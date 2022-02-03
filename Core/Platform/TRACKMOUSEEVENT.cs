@@ -17,7 +17,7 @@ namespace OpenTemple.Core.Platform
 
         public TRACKMOUSEEVENT(TMEFlags dwFlags, IntPtr hWnd, uint dwHoverTime)
         {
-            this.cbSize = Marshal.SizeOf(typeof(TRACKMOUSEEVENT));
+            cbSize = Marshal.SizeOf(typeof(TRACKMOUSEEVENT));
             this.dwFlags = dwFlags;
             this.hWnd = hWnd;
             this.dwHoverTime = dwHoverTime;

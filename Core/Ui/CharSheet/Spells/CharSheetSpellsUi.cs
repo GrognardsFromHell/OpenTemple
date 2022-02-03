@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -64,7 +64,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         }
 
         [TempleDllLocation(0x101b5d80)]
-        public void Show(GameObjectBody critter)
+        public void Show(GameObject critter)
         {
             _spellLists.Clear();
             BuildCharSpellLists(critter, _spellLists);
@@ -87,7 +87,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             Stub.TODO();
         }
 
-        private void BuildCharSpellLists(GameObjectBody critter, List<ClassSpellListData> spellLists)
+        private void BuildCharSpellLists(GameObject critter, List<ClassSpellListData> spellLists)
         {
             spellLists.Clear();
 
@@ -263,7 +263,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         }
 
         [TempleDllLocation(0x101b5bc0)]
-        private void MemorizeInSlot(GameObjectBody caster, SpellStoreData knownSpell, int slotLevel, int slotIndex)
+        private void MemorizeInSlot(GameObject caster, SpellStoreData knownSpell, int slotLevel, int slotIndex)
         {
             var spellStoreState = new SpellStoreState();
             spellStoreState.usedUp = true;
@@ -281,7 +281,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             );
         }
 
-        private bool CanMemorizeInSlot(GameObjectBody caster, SpellStoreData knownSpell, int slotLevel, SpellSlot slot)
+        private bool CanMemorizeInSlot(GameObject caster, SpellStoreData knownSpell, int slotLevel, SpellSlot slot)
         {
             // Slot must be of appropriate level
             if (slotLevel != knownSpell.spellLevel)

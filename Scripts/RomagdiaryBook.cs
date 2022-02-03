@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(234)]
     public class RomagdiaryBook : BaseObjectScript
     {
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             var loc = triggerer.GetLocation();
             var npc = GameSystems.MapObject.CreateObject(14427, loc);

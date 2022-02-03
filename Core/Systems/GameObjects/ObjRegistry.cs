@@ -3,30 +3,30 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 
 namespace OpenTemple.Core.Systems.GameObjects
 {
-    internal class ObjRegistry : IEnumerable<GameObjectBody>
+    internal class ObjRegistry : IEnumerable<GameObject>
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private Dictionary<ObjectId, GameObjectBody> _objectIndex = new Dictionary<ObjectId, GameObjectBody>();
+        private Dictionary<ObjectId, GameObject> _objectIndex = new Dictionary<ObjectId, GameObject>();
 
-        private readonly List<GameObjectBody> _objects = new List<GameObjectBody>();
+        private readonly List<GameObject> _objects = new List<GameObject>();
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _objects.GetEnumerator();
         }
 
-        public GameObjectBody GetById(ObjectId id)
+        public GameObject GetById(ObjectId id)
         {
             return _objectIndex.GetValueOrDefault(id, null);
         }
 
-        public void AddToIndex(GameObjectBody obj, ObjectId objectId)
+        public void AddToIndex(GameObject obj, ObjectId objectId)
         {
             Trace.Assert(objectId.IsPermanent || objectId.IsPrototype || objectId.IsPositional);
             _objectIndex[objectId] = obj;
@@ -35,7 +35,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         // Remove any object from the index that is not a prototype
         public void RemoveDynamicObjectsFromIndex()
         {
-            _objectIndex = new Dictionary<ObjectId, GameObjectBody>(_objectIndex.Where(pair => pair.Key.IsPrototype));
+            _objectIndex = new Dictionary<ObjectId, GameObject>(_objectIndex.Where(pair => pair.Key.IsPrototype));
             _objects.RemoveAll(o => !_objectIndex.ContainsValue(o));
         }
 
@@ -50,7 +50,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         }
 
         [TempleDllLocation(0x100c3030)]
-        public bool Remove(GameObjectBody obj)
+        public bool Remove(GameObject obj)
         {
             // TODO: In debug mode we should validate more
 
@@ -63,12 +63,12 @@ namespace OpenTemple.Core.Systems.GameObjects
             return false;
         }
 
-        public bool Contains(GameObjectBody obj)
+        public bool Contains(GameObject obj)
         {
             return _objects.Contains(obj);
         }
 
-        public void Add(GameObjectBody obj)
+        public void Add(GameObject obj)
         {
             if (_objects.Contains(obj))
             {
@@ -87,7 +87,7 @@ namespace OpenTemple.Core.Systems.GameObjects
             _objects.Add(obj);
         }
 
-        public IEnumerator<GameObjectBody> GetEnumerator()
+        public IEnumerator<GameObject> GetEnumerator()
         {
             return _objects.GetEnumerator();
         }

@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 
@@ -19,13 +19,13 @@ namespace OpenTemple.Core.Systems.Waypoints
         }
 
         [TempleDllLocation(0x10053460)]
-        public int GetWaypointCount(GameObjectBody critter)
+        public int GetWaypointCount(GameObject critter)
         {
             return (int) critter.GetInt64(obj_f.npc_waypoints_idx, 0);
         }
 
         [TempleDllLocation(0x10058370)]
-        public bool CritterIsAtWaypoint(GameObjectBody critter, in Waypoint waypoint)
+        public bool CritterIsAtWaypoint(GameObject critter, in Waypoint waypoint)
         {
             var distance = critter.DistanceToLocInFeet(waypoint.Location);
             if (waypoint.HasAnimations)
@@ -41,7 +41,7 @@ namespace OpenTemple.Core.Systems.Waypoints
         }
 
         [TempleDllLocation(0x100534a0)]
-        public Waypoint GetWaypoint(GameObjectBody critter, int index)
+        public Waypoint GetWaypoint(GameObject critter, int index)
         {
             // It's logically made up of 16 integers per waypoint, packed into 8 int64's
             Span<long> values = stackalloc long[8];

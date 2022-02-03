@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Help;
@@ -48,7 +48,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x1009a3b0)]
         [TempleDllLocation(0x1014de90)]
-        public static void OnObjectDestroyed(GameObjectBody obj)
+        public static void OnObjectDestroyed(GameObject obj)
         {
             UiSystems.Dialog.CancelDialog(obj);
         }
@@ -97,7 +97,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009ABE0)]
-        public static GameObjectBody GetUiFocus()
+        public static GameObject GetUiFocus()
         {
             return UiSystems.InGameSelect.Focus;
         }
@@ -162,25 +162,25 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009a430)]
-        public static void OpenContainer(GameObjectBody actor, GameObjectBody container)
+        public static void OpenContainer(GameObject actor, GameObject container)
         {
             UiSystems.TB.OpenContainer(actor, container);
         }
 
         [TempleDllLocation(0x1009a460)]
-        public static void InitiateDialog(GameObjectBody source, GameObjectBody target)
+        public static void InitiateDialog(GameObject source, GameObject target)
         {
             UiSystems.TB.InitiateDialog(source, target);
         }
 
         [TempleDllLocation(0x10007a90)]
-        public static void InitiateDialog(GameObjectBody pc, GameObjectBody npc, int scriptId, int i, int line)
+        public static void InitiateDialog(GameObject pc, GameObject npc, int scriptId, int i, int line)
         {
             UiSystems.Dialog.InitiateDialog(pc, npc, scriptId, i, line);
         }
 
         [TempleDllLocation(0x1009A5D0)]
-        public static void CancelDialog(GameObjectBody critter)
+        public static void CancelDialog(GameObject critter)
         {
             UiSystems.Dialog.CancelDialog(critter);
         }
@@ -206,18 +206,18 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009A910)]
-        public static void RecordKill(GameObjectBody killer, GameObjectBody killed)
+        public static void RecordKill(GameObject killer, GameObject killed)
         {
             UiSystems.Logbook.RecordKill(killer, killed);
         }
 
-        public static void ShowTextBubble(GameObjectBody performer, string text)
+        public static void ShowTextBubble(GameObject performer, string text)
         {
             UiSystems.Dialog.ShowTextBubble(performer, performer, text, -1);
         }
 
         [TempleDllLocation(0x1009a9f0)]
-        public static void IncreaseCritHits(GameObjectBody attacker)
+        public static void IncreaseCritHits(GameObject attacker)
         {
             UiSystems.Logbook.RecordCriticalHit(attacker);
         }
@@ -278,14 +278,14 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x1009a890)]
         [TempleDllLocation(0x10b3d700)]
-        public static void CreateItem(GameObjectBody creator, int actionData1)
+        public static void CreateItem(GameObject creator, int actionData1)
         {
             UiSystems.ItemCreation.CreateItem(creator, actionData1);
         }
 
         [TempleDllLocation(0x1009a830)]
         [TempleDllLocation(0x10b3d6e4)]
-        public static void OpenInventory(GameObjectBody critter)
+        public static void OpenInventory(GameObject critter)
         {
             UiSystems.CharSheet.Show(critter);
         }
@@ -299,7 +299,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x1009aa90)]
         [TempleDllLocation(0x10b3d758)]
-        public static void ApplySkillMastery(GameObjectBody critter)
+        public static void ApplySkillMastery(GameObject critter)
         {
             UiSystems.SkillMastery.SkillMasteryCallback(critter);
         }
@@ -318,7 +318,7 @@ namespace OpenTemple.Core.Systems
             return UiSystems.TurnBased.uiIntgameWidgetEnteredForRender;
         }
 
-        public static GameObjectBody GetIntgameTargetFromRaycast()
+        public static GameObject GetIntgameTargetFromRaycast()
         {
             return UiSystems.TurnBased.intgameTargetFromRaycast;
         }
@@ -332,14 +332,14 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x1009a9d0)]
         [TempleDllLocation(0x10b3d738)]
-        public static void LogbookCombatMiss(GameObjectBody performer)
+        public static void LogbookCombatMiss(GameObject performer)
         {
             UiSystems.Logbook.RecordCombatMiss(performer);
         }
 
         [TempleDllLocation(0x1009a9b0)]
         [TempleDllLocation(0x10b3d734)]
-        public static void LogbookCombatHit(GameObjectBody performer)
+        public static void LogbookCombatHit(GameObject performer)
         {
             UiSystems.Logbook.RecordCombatHit(performer);
         }
@@ -347,14 +347,14 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1009aa10)]
         [TempleDllLocation(0x10b3d740)]
         public static void LogbookCombatDamage(bool weaponDamage, int damageAmount,
-            GameObjectBody attacker, GameObjectBody victim)
+            GameObject attacker, GameObject victim)
         {
             UiSystems.Logbook.RecordCombatDamage(weaponDamage, damageAmount, attacker, victim);
         }
 
         [TempleDllLocation(0x1009a8e0)]
         [TempleDllLocation(0x10B3D70C)]
-        public static void ActivateTrack(GameObjectBody tracker)
+        public static void ActivateTrack(GameObject tracker)
         {
             UiSystems.Track.Show(tracker);
         }
@@ -396,21 +396,21 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x1009ab10)]
         [TempleDllLocation(0x10B3D770)]
-        public static void RecordSkillUse(GameObjectBody critter, SkillId skill)
+        public static void RecordSkillUse(GameObject critter, SkillId skill)
         {
             UiSystems.Logbook.RecordSkillUse(critter, skill);
         }
 
         [TempleDllLocation(0x1009a990)]
         [TempleDllLocation(0x10b3d730)]
-        public static void RecordTrapSetOff(GameObjectBody critter)
+        public static void RecordTrapSetOff(GameObject critter)
         {
             UiSystems.Logbook.RecordTrapSetOff(critter);
         }
 
         [TempleDllLocation(0x1009a970)]
         [TempleDllLocation(0x10b3d72c)]
-        public static void RecordTrapDisarmed(GameObjectBody critter)
+        public static void RecordTrapDisarmed(GameObject critter)
         {
             UiSystems.Logbook.RecordTrapDisarmed(critter);
         }

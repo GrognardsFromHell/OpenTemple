@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using JetBrains.Annotations;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Location;
@@ -202,7 +202,7 @@ namespace OpenTemple.Core.Ui.InGame
         [TempleDllLocation(0x10113370)]
         public void CenterOnParty()
         {
-            GameObjectBody centerOn;
+            GameObject centerOn;
             if (GameSystems.Combat.IsCombatActive())
             {
                 centerOn = GameSystems.D20.Initiative.CurrentActor;
@@ -338,7 +338,7 @@ namespace OpenTemple.Core.Ui.InGame
         private bool uiDragSelectOn;
 
         [TempleDllLocation(0x10113f30)]
-        private GameObjectBody GetMouseTarget(IGameViewport viewport, int x, int y)
+        private GameObject GetMouseTarget(IGameViewport viewport, int x, int y)
         {
             // Pick the object using the screen coordinates first
             var mousedOver = PickObject(viewport, x, y, GameRaycastFlags.HITTEST_3D);
@@ -360,7 +360,7 @@ namespace OpenTemple.Core.Ui.InGame
             return mousedOver;
         }
 
-        private GameObjectBody PickObject(IGameViewport viewport, int x, int y, GameRaycastFlags flags)
+        private GameObject PickObject(IGameViewport viewport, int x, int y, GameRaycastFlags flags)
         {
             if (GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var result, flags))
             {
@@ -398,10 +398,10 @@ namespace OpenTemple.Core.Ui.InGame
         private bool uiDragViewport;
 
         [TempleDllLocation(0x10BD3AD8)]
-        private GameObjectBody mouseDragTgt;
+        private GameObject mouseDragTgt;
 
         [TempleDllLocation(0x10BD3AE0)]
-        private GameObjectBody qword_10BD3AE0;
+        private GameObject qword_10BD3AE0;
 
         [TempleDllLocation(0x10BD3ACC)]
         private int uiDragSelectXMax = 0;
@@ -534,7 +534,7 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x101140F0)]
-        private void TriggerClickActionOnObject(GameObjectBody clickedObj)
+        private void TriggerClickActionOnObject(GameObject clickedObj)
         {
             bool playVoiceConfirmation = false;
             AnimGoalType goalType;
@@ -665,7 +665,7 @@ namespace OpenTemple.Core.Ui.InGame
                     break;
             }
 
-            GameObjectBody closestPartyMember = null;
+            GameObject closestPartyMember = null;
             var closestDistance = float.MaxValue;
 
             // Find the closest selected party member to the clicked object
@@ -698,7 +698,7 @@ namespace OpenTemple.Core.Ui.InGame
             }
         }
 
-        private static void PerformDefaultAction(GameObjectBody critter, GameObjectBody target)
+        private static void PerformDefaultAction(GameObject critter, GameObject target)
         {
             if (GameSystems.D20.Actions.IsCurrentlyPerforming(critter))
             {
@@ -718,7 +718,7 @@ namespace OpenTemple.Core.Ui.InGame
         // This function seems borked and previously checked for object type
         // but essentially it is ONLY used for corpses.
         [TempleDllLocation(0x100264A0)]
-        private void MoveCorpseToPlayer(GameObjectBody partyLeader, GameObjectBody clickedObj)
+        private void MoveCorpseToPlayer(GameObject partyLeader, GameObject clickedObj)
         {
             var objLoc = partyLeader.GetLocation();
             var tgtLoc = clickedObj.GetLocation();
@@ -729,7 +729,7 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10113470)]
-        private void PushClickActionGoal(GameObjectBody animObj, AnimGoalType animGoalType, GameObjectBody targetObj,
+        private void PushClickActionGoal(GameObject animObj, AnimGoalType animGoalType, GameObject targetObj,
             locXY targetTile, bool a11)
         {
             var goal = new AnimSlotGoalStackEntry(animObj, animGoalType);
@@ -805,7 +805,7 @@ namespace OpenTemple.Core.Ui.InGame
             }
         }
 
-        private bool PushGoalWithExistingSlot(GameObjectBody animObj, ref AnimSlotId slotId,
+        private bool PushGoalWithExistingSlot(GameObject animObj, ref AnimSlotId slotId,
             AnimSlotGoalStackEntry goal)
         {
             if (GameSystems.Anim.GetGoalSubslotsInUse(slotId) < 4)
@@ -832,7 +832,7 @@ namespace OpenTemple.Core.Ui.InGame
             return true;
         }
 
-        private void SetGoalFlags(GameObjectBody animObj, AnimSlotId a3, bool a11)
+        private void SetGoalFlags(GameObject animObj, AnimSlotId a3, bool a11)
         {
             if (Tig.Keyboard.IsPressed(DIK.DIK_LSHIFT) || Tig.Keyboard.IsPressed(DIK.DIK_RSHIFT))
             {
@@ -863,7 +863,7 @@ namespace OpenTemple.Core.Ui.InGame
             }
         }
 
-        private static void PlayVoiceConfirmationSound(GameObjectBody critter)
+        private static void PlayVoiceConfirmationSound(GameObject critter)
         {
             if (!critter.IsDeadOrUnconscious())
             {
@@ -879,7 +879,7 @@ namespace OpenTemple.Core.Ui.InGame
         [TempleDllLocation(0x101148b0)]
         private void HandleNormalLeftMouseDragHandler(IGameViewport viewport, MessageMouseArgs args)
         {
-            GameObjectBody target = null;
+            GameObject target = null;
             var leftClick = args.flags.HasFlag(MouseEventFlag.LeftClick);
             var leftDown = args.flags.HasFlag(MouseEventFlag.LeftHeld);
             if (leftClick || leftDown)

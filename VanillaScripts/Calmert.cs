@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Calmert : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(28) && !triggerer.HasReputation(2)))
             {
@@ -49,12 +49,12 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool beggar_cavanaugh(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool beggar_cavanaugh(GameObject attachee, GameObject triggerer)
         {
             StartTimer(86400000, () => beggar_now(attachee, triggerer));
             return RunDefault;
         }
-        public static bool beggar_now(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool beggar_now(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(205, true);
             SetGlobalVar(24, GetGlobalVar(24) + 1);

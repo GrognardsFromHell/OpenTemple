@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Startup;
 using OpenTemple.Core.Startup.Discovery;
@@ -179,7 +179,7 @@ namespace OpenTemple.Core.Systems.D20.Classes
             return Classes[classEnum].skillPts;
         }
 
-        public static int GetSkillPoints(GameObjectBody critter, Stat classId)
+        public static int GetSkillPoints(GameObject critter, Stat classId)
         {
             var result = GetSkillPoints(classId);
             result += critter.GetStat(Stat.int_mod);
@@ -272,7 +272,7 @@ namespace OpenTemple.Core.Systems.D20.Classes
         }
 
         [TempleDllLocation(0x100f5660)]
-        public static int GetNumSpellsFromClass(GameObjectBody caster, Stat classCode, int spellLvl, int classLvl,
+        public static int GetNumSpellsFromClass(GameObject caster, Stat classCode, int spellLvl, int classLvl,
             bool getFromStatMod = true)
         {
             var result = -1;
@@ -314,7 +314,7 @@ namespace OpenTemple.Core.Systems.D20.Classes
             return result;
         }
 
-        public static int GetSpecialisationSlots(GameObjectBody caster, Stat castingClass, int spellLevel)
+        public static int GetSpecialisationSlots(GameObject caster, Stat castingClass, int spellLevel)
         {
             if (castingClass == Stat.level_wizard
                 && GameSystems.Spell.GetSchoolSpecialization(caster, out _, out _, out _)
@@ -326,7 +326,7 @@ namespace OpenTemple.Core.Systems.D20.Classes
             return 0;
         }
 
-        public static int GetBonusSpells(GameObjectBody caster, Stat castingClass, int spellLevel)
+        public static int GetBonusSpells(GameObject caster, Stat castingClass, int spellLevel)
         {
             if (spellLevel == 0)
             {
@@ -345,7 +345,7 @@ namespace OpenTemple.Core.Systems.D20.Classes
             }
         }
 
-        public static Stat GetHighestArcaneCastingClass(GameObjectBody critter)
+        public static Stat GetHighestArcaneCastingClass(GameObject critter)
         {
             var highestClass = (Stat) 0;
             var highestLvl = 0;
@@ -366,7 +366,7 @@ namespace OpenTemple.Core.Systems.D20.Classes
             return highestClass;
         }
 
-        public static Stat GetHighestDivineCastingClass(GameObjectBody critter)
+        public static Stat GetHighestDivineCastingClass(GameObject critter)
         {
             var highestClass = (Stat) 0;
             var highestLvl = 0;
@@ -420,12 +420,12 @@ namespace OpenTemple.Core.Systems.D20.Classes
             return deityClass;
         }
 
-        public static bool IsSelectingFeatsOnLevelup(GameObjectBody critter, Stat levelingUpClass)
+        public static bool IsSelectingFeatsOnLevelup(GameObject critter, Stat levelingUpClass)
         {
             return Classes[levelingUpClass].IsSelectingFeatsOnLevelUp(critter);
         }
 
-        public static IEnumerable<SelectableFeat> LevelupGetBonusFeats(GameObjectBody critter, Stat levelingUpClass)
+        public static IEnumerable<SelectableFeat> LevelupGetBonusFeats(GameObject critter, Stat levelingUpClass)
         {
             return Classes[levelingUpClass].LevelupGetBonusFeats(critter);
         }

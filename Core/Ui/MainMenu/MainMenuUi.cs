@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Text.Json;
 using System.Threading.Tasks;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;

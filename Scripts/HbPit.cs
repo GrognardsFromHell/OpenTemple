@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace Scripts
     [ObjectScript(622)]
     public class HbPit : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -37,7 +37,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(568) == 1))
             {
@@ -84,7 +84,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void spawn_hydra(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void spawn_hydra(GameObject attachee, GameObject triggerer)
         {
             var hydra = GameSystems.MapObject.CreateObject(14982, new locXY(511, 423));
             hydra.Move(new locXY(511, 424));
@@ -96,7 +96,7 @@ namespace Scripts
             Sound(4179, 1);
             return;
         }
-        public static void spawn_others(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void spawn_others(GameObject attachee, GameObject triggerer)
         {
             var picker1 = RandomRange(14978, 14981);
             var animal1 = GameSystems.MapObject.CreateObject(picker1, new locXY(511, 423));
@@ -144,7 +144,7 @@ namespace Scripts
             SetGlobalVar(568, 9);
             return;
         }
-        public static void relocate_west(GameObjectBody attachee, GameObjectBody obj)
+        public static void relocate_west(GameObject attachee, GameObject obj)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             var coord_x = RandomRange(522, 526);
@@ -161,7 +161,7 @@ namespace Scripts
 
             return;
         }
-        public static void relocate_east(GameObjectBody attachee, GameObjectBody obj)
+        public static void relocate_east(GameObject attachee, GameObject obj)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             var coord_x = RandomRange(499, 503);

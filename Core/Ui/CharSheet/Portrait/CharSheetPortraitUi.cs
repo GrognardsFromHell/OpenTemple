@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text.Json;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
@@ -117,7 +117,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             container.AddContent(backgroundImage);
         }
 
-        private void UpdatePortraitImage(GameObjectBody critter)
+        private void UpdatePortraitImage(GameObject critter)
         {
             var portraitId = critter.GetInt32(obj_f.critter_portrait);
             string portraitPath;
@@ -226,7 +226,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             Container.Add(_paperdollContainer);
         }
 
-        private void UpdateMiniature(GameObjectBody critter)
+        private void UpdateMiniature(GameObject critter)
         {
             _miniatureWidget.Object = critter;
         }
@@ -238,7 +238,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
         }
 
         [TempleDllLocation(0x101a3180)]
-        public void Show(GameObjectBody critter)
+        public void Show(GameObject critter)
         {
             UpdatePortraitImage(critter);
             UpdateMiniature(critter);

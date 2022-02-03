@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.Systems.D20
@@ -51,17 +51,17 @@ namespace OpenTemple.Core.Systems.D20
         public const int ATTACK_CODE_OFFHAND = 99; // originally 4
         public const int ATTACK_CODE_NATURAL_ATTACK = 999; //originally 9
 
-        public GameObjectBody attacker;
-        public GameObjectBody victim;
+        public GameObject attacker;
+        public GameObject victim;
         public D20ActionType d20ActnType;
         public int dispKey; // This isn'T the "dispKey"... It's the attack code
         public D20CAF flags;
         public int field_1C;
-        public GameObjectBody weaponUsed;
-        public GameObjectBody ammoItem;
+        public GameObject weaponUsed;
+        public GameObject ammoItem;
 
         [TempleDllLocation(0x1004dfa0)]
-        public GameObjectBody GetWeaponUsed()
+        public GameObject GetWeaponUsed()
         {
             if ( !flags.HasFlag(D20CAF.TOUCH_ATTACK) || flags.HasFlag(D20CAF.THROWN_GRENADE) ) {
                 return weaponUsed;
@@ -88,13 +88,13 @@ namespace OpenTemple.Core.Systems.D20
             dispKey = 0
         };
 
-        public void SetAttacker(GameObjectBody attacker, bool includeWeapon = true)
+        public void SetAttacker(GameObject attacker, bool includeWeapon = true)
         {
             this.attacker = attacker;
 
             if (includeWeapon)
             {
-                GameObjectBody weapon = weaponUsed;
+                GameObject weapon = weaponUsed;
                 if (attacker != null)
                 {
                     weapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);

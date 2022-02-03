@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(489)]
     public class HextorInvaderAssassin : BaseObjectScript
     {
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -296,7 +296,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(505) == 0))
             {
@@ -327,7 +327,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(97) == QuestState.Botched))
             {
@@ -349,7 +349,7 @@ namespace Scripts
             // game.new_sid = 0
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(525)))
             {
@@ -361,7 +361,7 @@ namespace Scripts
             }
 
         }
-        public static void destroy_gear(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void destroy_gear(GameObject attachee, GameObject triggerer)
         {
             var assassin_mithrilshirt = attachee.FindItemByName(6315);
             assassin_mithrilshirt.Destroy();
@@ -373,7 +373,7 @@ namespace Scripts
             assassin_glovesdex.Destroy();
             return;
         }
-        public static void out_of_time(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void out_of_time(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(505, 3);
             return;

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
 
     public class RumorControl
     {
-        public static int find_rumor(GameObjectBody pc, GameObjectBody npc)
+        public static int find_rumor(GameObject pc, GameObject npc)
         {
             var sk_mod = pc.GetSkillLevel(npc, SkillId.gather_information) + pc.GetStat(Stat.level_bard);
             if (((StoryState != GetGlobalVar(22)) && (StoryState <= 6)))
@@ -224,7 +224,7 @@ namespace Scripts
 
             return -1;
         }
-        public static int rumor_valid(int rumor, GameObjectBody pc, GameObjectBody npc)
+        public static int rumor_valid(int rumor, GameObject pc, GameObject npc)
         {
             var offset = (StoryState) * 200;
             var sk_lookup = ((rumor - offset) / 10);

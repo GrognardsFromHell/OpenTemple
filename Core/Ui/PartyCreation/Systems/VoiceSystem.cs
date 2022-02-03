@@ -1,5 +1,5 @@
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -156,7 +156,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x1017d620)]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             // TODO SetPcPlayerNameField /*0x100a0490*/(*playerObj, obj_f.pc_player_name, charSpec.voiceFile);
             // TODO PcVoiceSet /*0x100347b0*/(*playerObj, charSpec.voiceId);

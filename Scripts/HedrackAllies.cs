@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(40)]
     public class HedrackAllies : BaseObjectScript
     {
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8075))
             {
@@ -46,7 +46,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(544)))
             {
@@ -60,7 +60,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if (((attachee.GetNameId() == 8083 || attachee.GetNameId() == 8084) && (!attachee.HasEquippedByName(4099) || !attachee.HasEquippedByName(4100))))
             {
@@ -114,7 +114,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(544))) // Hedrack battle has paused for talking, no one will KOS
             {
@@ -200,7 +200,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool will_kos(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool will_kos(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(544)))
             {

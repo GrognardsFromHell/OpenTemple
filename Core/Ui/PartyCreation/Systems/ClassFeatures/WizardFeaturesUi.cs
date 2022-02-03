@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Ui.Widgets;
@@ -47,7 +47,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
             return false;
         }
 
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             GameSystems.Spell.SetSchoolSpecialization(
                 playerObj,

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(112)]
     public class Murfles : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -52,7 +52,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -70,17 +70,17 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.FloatLine(12057, triggerer);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(368, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -103,7 +103,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -114,7 +114,7 @@ namespace Scripts
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool buttin(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool buttin(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8021);
             if ((npc != null))
@@ -130,7 +130,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool make_hate(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool make_hate(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetReaction(triggerer) >= 20))
             {

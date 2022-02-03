@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Bassanio : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (((triggerer.GetPartyMembers().Any(o => o.HasEquippedByName(3017))) || (GetQuestState(52) == QuestState.Mentioned)))
             {
@@ -44,7 +44,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -79,12 +79,12 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(139, true);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(139, false);
             return RunDefault;

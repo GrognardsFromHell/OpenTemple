@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 
@@ -27,7 +27,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
     public struct SectorLight
     {
-        public GameObjectBody obj;
+        public GameObject obj;
         public int flags; // 0x40 -> light2 is present
         public int type;
         public LinearColor color;
@@ -179,14 +179,14 @@ namespace OpenTemple.Core.Systems.MapSector
         public SectorTile[] tiles = new SectorTile[Sector.TilesPerSector];
     }
 
-    public class SectorObjects : IDisposable, IEnumerable<GameObjectBody>
+    public class SectorObjects : IDisposable, IEnumerable<GameObject>
     {
-        public List<GameObjectBody>[,] tiles = new List<GameObjectBody>[Sector.SectorSideSize, Sector.SectorSideSize];
+        public List<GameObject>[,] tiles = new List<GameObject>[Sector.SectorSideSize, Sector.SectorSideSize];
         public bool staticObjsDirty;
         public int objectsRead;
 
         [TempleDllLocation(0x100c1740)]
-        public void Insert(GameObjectBody obj)
+        public void Insert(GameObject obj)
         {
             var locFull = obj.GetLocationFull();
 
@@ -195,7 +195,7 @@ namespace OpenTemple.Core.Systems.MapSector
             ref var objectList = ref tiles[tileX, tileY];
             if (objectList == null)
             {
-                objectList = new List<GameObjectBody> {obj};
+                objectList = new List<GameObject> {obj};
                 return;
             }
             else if (objectList.Count == 0)
@@ -255,7 +255,7 @@ namespace OpenTemple.Core.Systems.MapSector
             objectList.Insert(insertionIndex, obj);
         }
 
-        public bool Remove(GameObjectBody obj)
+        public bool Remove(GameObject obj)
         {
             for (int x = 0; x < tiles.GetLength(0); x++)
             {
@@ -322,7 +322,7 @@ namespace OpenTemple.Core.Systems.MapSector
             tiles = null;
         }
 
-        public IEnumerator<GameObjectBody> GetEnumerator()
+        public IEnumerator<GameObject> GetEnumerator()
         {
             for (int x = 0; x < tiles.GetLength(0); x++)
             {
@@ -371,13 +371,13 @@ namespace OpenTemple.Core.Systems.MapSector
         /// Stores the game objects read from the sector file in exactly the order in which they were read.
         /// This is used to make storing object diffs easier (since they are matched by order).
         /// </summary>
-        public ImmutableArray<GameObjectBody> StaticObjects { get; set; }
+        public ImmutableArray<GameObject> StaticObjects { get; set; }
 
         public Sector(SectorLoc loc)
         {
             secLoc = loc;
             lights.list = Array.Empty<SectorLight>();
-            StaticObjects = ImmutableArray<GameObjectBody>.Empty;
+            StaticObjects = ImmutableArray<GameObject>.Empty;
         }
 
         /// <summary>

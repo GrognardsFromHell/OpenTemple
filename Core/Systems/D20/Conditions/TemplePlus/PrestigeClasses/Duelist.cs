@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -63,7 +63,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         private static readonly D20DispatcherKey preciseStrikeEnum = (D20DispatcherKey) 2400;
 
-        public static bool IsArmorless(GameObjectBody obj)
+        public static bool IsArmorless(GameObject obj)
         {
             var armor = obj.ItemWornAt(EquipSlot.Armor);
             if (armor != null)
@@ -256,7 +256,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             return;
         }
 
-        public static bool IsUsingLightOrOneHandedPiercing(GameObjectBody obj)
+        public static bool IsUsingLightOrOneHandedPiercing(GameObject obj)
         {
             var weap = obj.ItemWornAt(EquipSlot.WeaponPrimary);
             var offhand = obj.ItemWornAt(EquipSlot.WeaponSecondary);
@@ -289,7 +289,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             return false;
         }
 
-        public static bool IsWeaponLightOrOneHandedPiercing(GameObjectBody obj, GameObjectBody weap)
+        public static bool IsWeaponLightOrOneHandedPiercing(GameObject obj, GameObject weap)
         {
             // truth table
             // nor. | enlarged |  return

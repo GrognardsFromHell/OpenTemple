@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class GnollLeader : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
             {
@@ -36,7 +36,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -65,7 +65,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static void run_off(GameObjectBody npc, GameObjectBody pc)
+        public static void run_off(GameObject npc, GameObject pc)
         {
             SetGlobalFlag(288, true);
             var location = new locXY(484, 490);

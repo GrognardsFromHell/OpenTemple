@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(62)]
     public class Rannosdavl : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5074))
             {
@@ -67,7 +67,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5010))
             {
@@ -90,7 +90,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -124,7 +124,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.type == ObjectType.pc && GetGlobalVar(750) == 0))
             {
@@ -145,7 +145,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(750) == 1 && attachee.GetMap() == 5010 && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
@@ -168,7 +168,7 @@ namespace Scripts
 
             if ((GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && GetGlobalFlag(815) && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (1 << 10)) == 0))
             {
-                GameObjectBody found_pc = null;
+                GameObject found_pc = null;
                 var gremag = Utilities.find_npc_near(attachee, 8049);
                 var raimol = Utilities.find_npc_near(attachee, 8050);
                 foreach (var pc in PartyLeader.GetPartyMembers())
@@ -202,7 +202,7 @@ namespace Scripts
 
             if ((Utilities.obj_percent_hp(attachee) < 95 && GetGlobalVar(750) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (1 << 10)) == 0))
             {
-                GameObjectBody found_pc = null;
+                GameObject found_pc = null;
                 var gremag = Utilities.find_npc_near(attachee, 8049);
                 var raimol = Utilities.find_npc_near(attachee, 8050);
                 foreach (var pc in PartyLeader.GetPartyMembers())
@@ -264,7 +264,7 @@ namespace Scripts
             // attachee.d20_send_signal(S_BreakFree)
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(814, false);
             if ((PartyLeader.HasReputation(9)))
@@ -283,7 +283,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             var itemA = attachee.FindItemByName(8010);
             if ((itemA != null && GetGlobalVar(750) == 0 && attachee.GetMap() == 5010))
@@ -295,7 +295,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool switch_to_gremag(GameObjectBody rannos, GameObjectBody pc)
+        public static bool switch_to_gremag(GameObject rannos, GameObject pc)
         {
             var gremag = Utilities.find_npc_near(rannos, 8049);
             SetGlobalVar(750, 1);
@@ -305,14 +305,14 @@ namespace Scripts
             gremag.TurnTowards(rannos);
             return SkipDefault;
         }
-        public static void respawn(GameObjectBody attachee)
+        public static void respawn(GameObject attachee)
         {
             var box = Utilities.find_container_near(attachee, 1004);
             InventoryRespawn.RespawnInventory(box);
             StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
             return;
         }
-        public static bool buff_npc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -330,7 +330,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buff_npc_two(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc_two(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -348,7 +348,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buff_npc_three(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc_three(GameObject attachee, GameObject triggerer)
         {
             var target = Utilities.find_npc_near(attachee, 8049);
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
@@ -367,7 +367,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buff_npc_four(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc_four(GameObject attachee, GameObject triggerer)
         {
             var target = Utilities.find_npc_near(attachee, 14606);
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))

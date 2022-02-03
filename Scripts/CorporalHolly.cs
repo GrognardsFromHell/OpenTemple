@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(356)]
     public class CorporalHolly : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -54,7 +54,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (((attachee.GetMap() == 5149) && (GetGlobalVar(976) == 4)))
             {
@@ -64,7 +64,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -74,16 +74,16 @@ namespace Scripts
             SetGlobalFlag(962, true);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(962, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(34) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(42) || PartyLeader.HasReputation(44) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(43) || PartyLeader.HasReputation(46) || (GetGlobalVar(993) == 5 && !GetGlobalFlag(870))))
             {
@@ -128,7 +128,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -145,7 +145,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             var cloak = attachee.FindItemByName(6269);
             cloak.SetItemFlag(ItemFlag.NO_TRANSFER);
@@ -163,7 +163,7 @@ namespace Scripts
             sword.SetItemFlag(ItemFlag.NO_TRANSFER);
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(976, 4);
             var cloak = attachee.FindItemByName(6269);
@@ -182,7 +182,7 @@ namespace Scripts
             sword.ClearItemFlag(ItemFlag.NO_TRANSFER);
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -227,19 +227,19 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool get_holly_drunk(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_holly_drunk(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(968, GetGlobalVar(968) + 1);
             var ale = triggerer.FindItemByProto(8004);
             ale.Destroy();
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {

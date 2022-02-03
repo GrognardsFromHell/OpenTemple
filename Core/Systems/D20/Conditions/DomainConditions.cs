@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.Startup.Discovery;
@@ -336,7 +336,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100f02c0)]
-        private static bool DestructionDomainRadialCallback(GameObjectBody obj, ref RadialMenuEntry radEntry)
+        private static bool DestructionDomainRadialCallback(GameObject obj, ref RadialMenuEntry radEntry)
         {
             obj.DispatchDestructionDomainSignal(radEntry.dispKey);
             GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
@@ -545,8 +545,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x102b17a4)]
-        private static readonly Dictionary<TurnUndeadType, Predicate<GameObjectBody>> TurnUndeadTargetChecks =
-            new Dictionary<TurnUndeadType, Predicate<GameObjectBody>>
+        private static readonly Dictionary<TurnUndeadType, Predicate<GameObject>> TurnUndeadTargetChecks =
+            new Dictionary<TurnUndeadType, Predicate<GameObject>>
             {
                 {TurnUndeadType.TurnUndead, obj => GameSystems.Critter.IsUndead(obj)},
                 {TurnUndeadType.RebukeFireTurnWater, obj => GameSystems.Critter.IsWaterSubtype(obj)},
@@ -557,8 +557,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             };
 
         [TempleDllLocation(0x102B17C4)]
-        private static readonly Dictionary<TurnUndeadType, Predicate<GameObjectBody>> RebukeUndeadTargetChecks =
-            new Dictionary<TurnUndeadType, Predicate<GameObjectBody>>
+        private static readonly Dictionary<TurnUndeadType, Predicate<GameObject>> RebukeUndeadTargetChecks =
+            new Dictionary<TurnUndeadType, Predicate<GameObject>>
             {
                 {TurnUndeadType.RebukeUndead, obj => GameSystems.Critter.IsUndead(obj)},
                 {TurnUndeadType.RebukeFireTurnWater, obj => GameSystems.Critter.IsFireSubtype(obj)},
@@ -622,7 +622,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     xyRect.x2 = loc.locx + turnUndeadRange;
                     xyRect.y2 = loc.locy + turnUndeadRange;
 
-                    var affected = new List<GameObjectBody>();
+                    var affected = new List<GameObject>();
 
                     using var objlist = ObjList.ListRect(in xyRect, ObjectListFilter.OLC_CRITTERS);
                     foreach (var critter in objlist)
@@ -730,12 +730,12 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             }
         }
 
-        private static bool IsTurnUndeadTarget(TurnUndeadType turnUndeadType, GameObjectBody critter)
+        private static bool IsTurnUndeadTarget(TurnUndeadType turnUndeadType, GameObject critter)
         {
             return TurnUndeadTargetChecks.TryGetValue(turnUndeadType, out var check) && check(critter);
         }
 
-        private static bool IsRebukeUndeadTarget(TurnUndeadType turnUndeadType, GameObjectBody critter)
+        private static bool IsRebukeUndeadTarget(TurnUndeadType turnUndeadType, GameObject critter)
         {
             return RebukeUndeadTargetChecks.TryGetValue(turnUndeadType, out var check) && check(critter);
         }

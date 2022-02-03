@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Feats;
@@ -13,7 +13,7 @@ namespace OpenTemple.Core.Systems.D20
 
         [TempleDllLocation(0x100d3410)]
         [TempleDllLocation(0x100c3810)]
-        public static bool CheckSpellResistance(GameObjectBody target, SpellPacketBody spellPkt)
+        public static bool CheckSpellResistance(GameObject target, SpellPacketBody spellPkt)
         {
             // check spell immunity
             DispIoImmunity dispIo = DispIoImmunity.Default;

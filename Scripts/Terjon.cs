@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(23)]
     public class Terjon : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(28) && !triggerer.HasReputation(2)))
             {
@@ -96,7 +96,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5011))
             {
@@ -149,7 +149,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -172,7 +172,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if (SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8730)))
             {
@@ -390,7 +390,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(875) && !GetGlobalFlag(876) && GetQuestState(99) != QuestState.Completed && !triggerer.GetPartyMembers().Any(o => o.HasItemByName(12900))))
             {
@@ -413,7 +413,7 @@ namespace Scripts
             SetGlobalVar(723, GetGlobalVar(723) + 1);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(816, false);
             SetGlobalFlag(299, false);
@@ -425,14 +425,14 @@ namespace Scripts
             SetGlobalFlag(862, true);
             return RunDefault;
         }
-        public static bool create_calmert(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool create_calmert(GameObject attachee, GameObject triggerer)
         {
             var calmert = GameSystems.MapObject.CreateObject(14011, attachee.GetLocation().OffsetTiles(-4, 0));
             calmert.TurnTowards(attachee);
             AttachParticles("sp-Dimension Door", calmert);
             return RunDefault;
         }
-        public static bool switch_to_calmert(GameObjectBody npc, GameObjectBody pc)
+        public static bool switch_to_calmert(GameObject npc, GameObject pc)
         {
             var calmert = Utilities.find_npc_near(npc, 20006);
             foreach (var target in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_PC))
@@ -450,7 +450,7 @@ namespace Scripts
             calmert.Attack(pc);
             return RunDefault;
         }
-        public static bool look_spugnoir(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool look_spugnoir(GameObject attachee, GameObject triggerer)
         {
             foreach (var npc in PartyLeader.GetPartyMembers())
             {
@@ -479,7 +479,7 @@ namespace Scripts
             attachee.Attack(triggerer);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             foreach (var npc in PartyLeader.GetPartyMembers())
             {
@@ -507,7 +507,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool Change_Brooch(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool Change_Brooch(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in ObjList.ListVicinity(attachee, ObjectListFilter.OLC_NPC))
             {

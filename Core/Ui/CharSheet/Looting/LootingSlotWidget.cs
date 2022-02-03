@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 using System.Globalization;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.CharSheet.Inventory;
 using OpenTemple.Core.Ui.Widgets;
@@ -23,7 +23,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
 
         public int InventorySlot { get; set; }
 
-        private GameObjectBody _item;
+        private GameObject _item;
 
         private WidgetImage _icon;
 
@@ -70,7 +70,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
             base.Render();
         }
 
-        public void SetItem(GameObjectBody item)
+        public void SetItem(GameObject item)
         {
             _item = item;
 

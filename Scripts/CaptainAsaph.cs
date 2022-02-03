@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(322)]
     public class CaptainAsaph : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((attachee.GetLeader() != null))
@@ -38,7 +38,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             var leader = attachee.GetLeader();
             leader.RemoveFollower(attachee);
@@ -48,7 +48,7 @@ namespace Scripts
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var asaph = Utilities.find_npc_near(attachee, 14781);
             AttachParticles("CounterSpell", asaph);
@@ -72,7 +72,7 @@ namespace Scripts
             guard.SetObjectFlag(ObjectFlag.OFF);
             return false;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             var cloak = attachee.FindItemByName(6269);
             cloak.SetItemFlag(ItemFlag.NO_TRANSFER);
@@ -90,7 +90,7 @@ namespace Scripts
             sword.SetItemFlag(ItemFlag.NO_TRANSFER);
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             AttachParticles("CounterSpell", attachee);
             Sound(4016, 1);
@@ -98,7 +98,7 @@ namespace Scripts
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return SkipDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5192 || attachee.GetMap() == 5193))
             {
@@ -116,7 +116,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -139,7 +139,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void kill_asaph(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void kill_asaph(GameObject attachee, GameObject triggerer)
         {
             AttachParticles("CounterSpell", attachee);
             SetGlobalVar(989, 1);
@@ -161,7 +161,7 @@ namespace Scripts
             guard.SetObjectFlag(ObjectFlag.OFF);
             return;
         }
-        public static void kill_asaph_guards(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void kill_asaph_guards(GameObject attachee, GameObject triggerer)
         {
             var guard = Utilities.find_npc_near(attachee, 14716);
             AttachParticles("CounterSpell", guard);

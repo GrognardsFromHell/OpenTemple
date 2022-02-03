@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
@@ -119,8 +119,8 @@ namespace OpenTemple.Core.Systems.Raycast
         public LocAndOffsets targetLoc;
         public float radius;
         public int field2C;
-        public GameObjectBody sourceObj;
-        public GameObjectBody target;
+        public GameObject sourceObj;
+        public GameObject target;
         public float rayRangeInches; // limits the distance from the origin
         public List<RaycastResultItem> results;
 
@@ -419,7 +419,7 @@ namespace OpenTemple.Core.Systems.Raycast
             results.Add(new RaycastResultItem {loc = subTilePos});
         }
 
-        private bool IsBlockingObject(GameObjectBody obj)
+        private bool IsBlockingObject(GameObject obj)
         {
             if (obj == null)
             {
@@ -606,7 +606,7 @@ namespace OpenTemple.Core.Systems.Raycast
             }
         }
 
-        public IEnumerable<GameObjectBody> EnumerateObjects()
+        public IEnumerable<GameObject> EnumerateObjects()
         {
             foreach (var resultItem in results)
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -25,7 +25,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     public class DeadlyDefense
     {
         // Check if the weapons is usable with finesse
-        public static bool IsFinesseWeapon(GameObjectBody creature, GameObjectBody weapon)
+        public static bool IsFinesseWeapon(GameObject creature, GameObject weapon)
         {
             // Unarmed works
             if (weapon == null)
@@ -56,7 +56,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             return false;
         }
 
-        private static bool HasLightArmorNoShield(GameObjectBody obj)
+        private static bool HasLightArmorNoShield(GameObject obj)
         {
             // Light armor or no armor
             if (!obj.IsWearingLightArmorOrLess())

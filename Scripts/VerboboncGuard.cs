@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(385)]
     public class VerboboncGuard : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5170))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5156 && GetGlobalVar(704) == 3 && Utilities.is_daytime() && GetQuestState(76) != QuestState.Accepted))
             {
@@ -70,7 +70,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -119,7 +119,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var leader = SelectedPartyLeader;
             if (((attachee.GetMap() == 5093) && (GetGlobalVar(956) == 1)))
@@ -154,7 +154,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             // get arrested for various reps
             if (((attachee.GetMap() != 5156) && (PartyLeader.HasReputation(34) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(42) || PartyLeader.HasReputation(44) || PartyLeader.HasReputation(45) || PartyLeader.HasReputation(43) || PartyLeader.HasReputation(46) || (GetGlobalVar(993) == 5 && !GetGlobalFlag(870)))))
@@ -202,7 +202,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(34)) || (PartyLeader.HasReputation(35)))
             {
@@ -215,7 +215,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool guard_backup(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool guard_backup(GameObject attachee, GameObject triggerer)
         {
             var guard_1 = GameSystems.MapObject.CreateObject(14716, attachee.GetLocation().OffsetTiles(-4, 0));
             guard_1.TurnTowards(PartyLeader);
@@ -225,7 +225,7 @@ namespace Scripts
             guard_3.TurnTowards(PartyLeader);
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -238,7 +238,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool is_peachy_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_peachy_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -251,7 +251,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool is_distant_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_distant_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -264,7 +264,7 @@ namespace Scripts
 
             return false;
         }
-        public static int execution(GameObjectBody attachee, GameObjectBody triggerer)
+        public static int execution(GameObject attachee, GameObject triggerer)
         {
             var cleric = Utilities.find_npc_near(attachee, 14471);
             AttachParticles("cast-Evocation-cast", cleric);
@@ -295,12 +295,12 @@ namespace Scripts
             AttachParticles("sp-Flame Strike", pc8);
             return 1;
         }
-        public static bool go_away(GameObjectBody attachee)
+        public static bool go_away(GameObject attachee)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static void ditch_rings(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void ditch_rings(GameObject attachee, GameObject triggerer)
         {
             var acid_minor = attachee.FindItemByName(12630);
             var cold_minor = attachee.FindItemByName(12629);
@@ -314,19 +314,19 @@ namespace Scripts
             sonic_minor.Destroy();
             return;
         }
-        public static bool get_arrested(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_arrested(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 30);
             return RunDefault;
         }
-        public static bool talk_arrow_knee(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool talk_arrow_knee(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 140);
             return RunDefault;
         }
-        public static bool new_entry_guard(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool new_entry_guard(GameObject attachee, GameObject triggerer)
         {
             var entry_guard = GameSystems.MapObject.CreateObject(14817, new locXY(236, 490));
             entry_guard.Rotation = 3f;

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(283)]
     public class Ioun : BaseObjectScript
     {
-        public override bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.type == ObjectType.pc || triggerer.type == ObjectType.npc))
             {
@@ -34,7 +34,7 @@ namespace Scripts
         }
         // Ron after moathouse
 
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             // def san_new_map( attachee, triggerer ):		# Ron after moathouse
             var st = attachee.GetInt(obj_f.npc_pad_i_5);

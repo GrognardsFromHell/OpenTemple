@@ -1,10 +1,10 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.Script.Hooks
 {
     [HookInterface]
     public interface IStartingEquipmentHook
     {
-        void GiveStartingEquipment(GameObjectBody pc);
+        void GiveStartingEquipment(GameObject pc);
     }
 }

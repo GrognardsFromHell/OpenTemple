@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Text;
 using JetBrains.Annotations;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems;
@@ -59,7 +59,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10123a80)]
-        public InjuryLevel GetInjuryLevel(GameObjectBody obj)
+        public InjuryLevel GetInjuryLevel(GameObject obj)
         {
             var currentHp = obj.GetStat(Stat.hp_current);
             var maxHp = obj.GetStat(Stat.hp_max);
@@ -96,7 +96,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10124270)]
-        private string GetInjuryLevelDescription(GameObjectBody critter)
+        private string GetInjuryLevelDescription(GameObject critter)
         {
             var injuryLevel = GetInjuryLevel(critter);
             switch (injuryLevel)
@@ -138,14 +138,14 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10123220)]
-        public string GetItemDescriptionBarter(GameObjectBody observer, GameObjectBody item)
+        public string GetItemDescriptionBarter(GameObject observer, GameObject item)
         {
             Stub.TODO();
             return "TODO 0x10123220";
         }
 
         [TempleDllLocation(0x101237e0)]
-        public string GetContainerDescription(GameObjectBody container, GameObjectBody observer)
+        public string GetContainerDescription(GameObject container, GameObject observer)
         {
             var description = new StringBuilder();
 
@@ -169,7 +169,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x101243b0)]
-        public InlineElement GetCritterDescriptionContent(GameObjectBody critter, GameObjectBody observer)
+        public InlineElement GetCritterDescriptionContent(GameObject critter, GameObject observer)
         {
             var content = new ComplexInlineElement();
 
@@ -212,7 +212,7 @@ namespace OpenTemple.Core.Ui
             return content;
         }
 
-        private void AppendHitPointDescription(GameObjectBody critter, IInlineContainer content)
+        private void AppendHitPointDescription(GameObject critter, IInlineContainer content)
         {
             var subdualDamage = critter.GetStat(Stat.subdual_damage);
             var currentHp = critter.GetStat(Stat.hp_current);
@@ -293,7 +293,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10122dd0)]
-        public string GetItemDescription(GameObjectBody item, GameObjectBody observer)
+        public string GetItemDescription(GameObject item, GameObject observer)
         {
             var result = GameSystems.MapObject.GetDisplayName(item, observer);
 
@@ -464,7 +464,7 @@ namespace OpenTemple.Core.Ui
 
         [TempleDllLocation(0x101247a0)]
         [CanBeNull]
-        public InlineElement GetObjectDescriptionContent(GameObjectBody obj, GameObjectBody observer)
+        public InlineElement GetObjectDescriptionContent(GameObject obj, GameObject observer)
         {
             if (obj.type.IsEquipment())
             {
@@ -484,7 +484,7 @@ namespace OpenTemple.Core.Ui
             }
         }
 
-        public void RenderObjectTooltip(IGameViewport viewport, GameObjectBody obj, GameObjectBody observer = null)
+        public void RenderObjectTooltip(IGameViewport viewport, GameObject obj, GameObject observer = null)
         {
             var content = UiSystems.Tooltip.GetObjectDescriptionContent(obj, observer);
             if (content != null)

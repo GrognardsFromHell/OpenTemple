@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class ProsperousYoungerD : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -48,7 +48,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(196, true);
             SetGlobalVar(29, GetGlobalVar(29) + 1);
@@ -68,12 +68,12 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(196, false);
             return RunDefault;
         }
-        public static bool buttin(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool buttin(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8016);
 
@@ -90,7 +90,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool buttin2(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool buttin2(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8055);
 

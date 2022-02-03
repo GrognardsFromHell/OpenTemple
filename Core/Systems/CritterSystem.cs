@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
@@ -45,7 +45,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x100b8aa0)]
         [TempleDllLocation(0x100b8aa0)]
-        public void CritterHpChanged(GameObjectBody obj, GameObjectBody assailant, int damAmt)
+        public void CritterHpChanged(GameObject obj, GameObject assailant, int damAmt)
         {
             GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_HP_Changed, damAmt);
             if (GameSystems.Critter.IsDeadNullDestroyed(obj))
@@ -66,7 +66,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1004e9f0)]
-        public bool HasZeroAttributeExceptConstitution(GameObjectBody critter)
+        public bool HasZeroAttributeExceptConstitution(GameObject critter)
         {
             if (critter.GetStat(Stat.strength) == 0)
             {
@@ -97,7 +97,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007F720)]
-        public void GenerateHp(GameObjectBody obj)
+        public void GenerateHp(GameObject obj)
         {
             var hpPts = 0;
             var critterLvlIdx = 0;
@@ -177,7 +177,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007e650)]
-        public bool IsDeadNullDestroyed(GameObjectBody critter)
+        public bool IsDeadNullDestroyed(GameObject critter)
         {
             if (critter == null)
             {
@@ -194,7 +194,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100803e0)]
-        public bool IsDeadOrUnconscious(GameObjectBody critter)
+        public bool IsDeadOrUnconscious(GameObject critter)
         {
             if (IsDeadNullDestroyed(critter))
             {
@@ -205,33 +205,33 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007e590)]
-        public bool IsProne(GameObjectBody critter)
+        public bool IsProne(GameObject critter)
         {
             return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Prone);
         }
 
         [TempleDllLocation(0x1007f3d0)]
-        public bool IsMovingSilently(GameObjectBody critter)
+        public bool IsMovingSilently(GameObject critter)
         {
             var flags = critter.GetCritterFlags();
             return flags.HasFlag(CritterFlag.MOVING_SILENTLY);
         }
 
-        public bool IsCombatModeActive(GameObjectBody critter)
+        public bool IsCombatModeActive(GameObject critter)
         {
             var flags = critter.GetCritterFlags();
             return flags.HasFlag(CritterFlag.COMBAT_MODE_ACTIVE);
         }
 
         [TempleDllLocation(0x1007f420)]
-        public bool IsConcealed(GameObjectBody critter)
+        public bool IsConcealed(GameObject critter)
         {
             var flags = critter.GetCritterFlags();
             return flags.HasFlag(CritterFlag.IS_CONCEALED);
         }
 
         [TempleDllLocation(0x10020c60)]
-        public EncodedAnimId GetAnimId(GameObjectBody critter, WeaponAnim animType)
+        public EncodedAnimId GetAnimId(GameObject critter, WeaponAnim animType)
         {
             var weaponPrim = GetWornItem(critter, EquipSlot.WeaponPrimary);
             var weaponSec = GetWornItem(critter, EquipSlot.WeaponSecondary);
@@ -244,7 +244,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080DA0)]
-        public void RemoveFromGroups(GameObjectBody obj)
+        public void RemoveFromGroups(GameObject obj)
         {
             Trace.Assert(obj.IsCritter());
 
@@ -258,8 +258,8 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10020B60)]
-        public EncodedAnimId GetWeaponAnim(GameObjectBody wielder, GameObjectBody primaryWeapon,
-            GameObjectBody secondaryWeapon, WeaponAnim animType)
+        public EncodedAnimId GetWeaponAnim(GameObject wielder, GameObject primaryWeapon,
+            GameObject secondaryWeapon, WeaponAnim animType)
         {
             var mainHandAnim = WeaponAnimType.Unarmed;
             var offHandAnim = WeaponAnimType.Unarmed;
@@ -307,12 +307,12 @@ namespace OpenTemple.Core.Systems
             return new EncodedAnimId(animType, mainHandAnim, offHandAnim);
         }
 
-        public GameObjectBody GetWornItem(GameObjectBody critter, EquipSlot slot)
+        public GameObject GetWornItem(GameObject critter, EquipSlot slot)
         {
             return GameSystems.Item.ItemWornAt(critter, slot);
         }
 
-        public int GetCasterLevel(GameObjectBody obj)
+        public int GetCasterLevel(GameObject obj)
         {
             int result = 0;
             foreach (var classEnum in D20ClassSystem.AllClasses)
@@ -328,12 +328,12 @@ namespace OpenTemple.Core.Systems
             return result;
         }
 
-        public int GetCasterLevelForClass(GameObjectBody obj, Stat classCode)
+        public int GetCasterLevelForClass(GameObject obj, Stat classCode)
         {
             return DispatchGetBaseCasterLevel(obj, classCode);
         }
 
-        public int DispatchGetBaseCasterLevel(GameObjectBody obj, Stat casterClass)
+        public int DispatchGetBaseCasterLevel(GameObject obj, Stat casterClass)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -347,12 +347,12 @@ namespace OpenTemple.Core.Systems
             return evtObj.bonlist.OverallBonus;
         }
 
-        public int GetSpellListLevelExtension(GameObjectBody handle, Stat classCode)
+        public int GetSpellListLevelExtension(GameObject handle, Stat classCode)
         {
             return DispatchSpellListLevelExtension(handle, classCode);
         }
 
-        private int DispatchSpellListLevelExtension(GameObjectBody handle, Stat casterClass)
+        private int DispatchSpellListLevelExtension(GameObject handle, Stat casterClass)
         {
             var dispatcher = handle.GetDispatcher();
             if (dispatcher == null)
@@ -367,7 +367,7 @@ namespace OpenTemple.Core.Systems
             return evtObj.bonlist.OverallBonus;
         }
 
-        public int GetBaseAttackBonus(GameObjectBody obj, Stat classBeingLeveled = default)
+        public int GetBaseAttackBonus(GameObject obj, Stat classBeingLeveled = default)
         {
             var bab = 0;
             foreach (var it in D20ClassSystem.AllClasses)
@@ -417,7 +417,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100746d0)]
-        public MonsterCategory GetCategory(GameObjectBody obj)
+        public MonsterCategory GetCategory(GameObject obj)
         {
             if (obj.IsCritter())
             {
@@ -428,7 +428,7 @@ namespace OpenTemple.Core.Systems
             return MonsterCategory.monstrous_humanoid; // default - so they have at least a weapons proficiency
         }
 
-        public RaceId GetRace(GameObjectBody obj, bool baseRace)
+        public RaceId GetRace(GameObject obj, bool baseRace)
         {
             var race = GameSystems.Stat.StatLevelGet(obj, Stat.race);
             if (!baseRace)
@@ -440,11 +440,11 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001f3b0)]
-        public IEnumerable<GameObjectBody> EnumerateDirectFollowers(GameObjectBody obj)
+        public IEnumerable<GameObject> EnumerateDirectFollowers(GameObject obj)
         {
             var followers = obj.GetObjectArray(obj_f.critter_follower_idx);
 
-            var result = new List<GameObjectBody>(followers.Count);
+            var result = new List<GameObject>(followers.Count);
             foreach (var follower in followers)
             {
                 if (follower != null)
@@ -457,7 +457,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001f450)]
-        public IEnumerable<GameObjectBody> EnumerateAllFollowers(GameObjectBody critter)
+        public IEnumerable<GameObject> EnumerateAllFollowers(GameObject critter)
         {
             foreach (var follower in EnumerateDirectFollowers(critter))
             {
@@ -471,7 +471,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100812f0)]
-        public bool AddFollower(GameObjectBody obj, GameObjectBody newLeader, bool forceFollower, bool addAsAiFollower)
+        public bool AddFollower(GameObject obj, GameObject newLeader, bool forceFollower, bool addAsAiFollower)
         {
             if (!obj.IsNPC())
             {
@@ -539,7 +539,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080c20)]
-        public void RemoveFollowerFromLeaderCritterFollowers(GameObjectBody obj)
+        public void RemoveFollowerFromLeaderCritterFollowers(GameObject obj)
         {
             var leader = GameSystems.Critter.GetLeader(obj);
             if (leader == null)
@@ -590,7 +590,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080fd0)]
-        public bool RemoveFollower(GameObjectBody follower, bool force)
+        public bool RemoveFollower(GameObject follower, bool force)
         {
             if ((follower.HasFlag(ObjectFlag.DESTROYED) || follower.GetStat(Stat.hp_current) <= -10)
                 && GameSystems.Party.IsAiFollower(follower) || follower.IsPC() && GameSystems.Party.IsInParty(follower))
@@ -620,7 +620,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080430)]
-        public GameObjectBody GetLeaderRecursive(GameObjectBody obj)
+        public GameObject GetLeaderRecursive(GameObject obj)
         {
             if (!obj.IsNPC())
             {
@@ -641,7 +641,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007ea70)]
-        public GameObjectBody GetLeader(GameObjectBody obj)
+        public GameObject GetLeader(GameObject obj)
         {
             if (obj.IsNPC())
             {
@@ -667,7 +667,7 @@ namespace OpenTemple.Core.Systems
         /// <summary>
         /// This is called initially when the model is loaded for an object and adds NPC specific add meshes.
         /// </summary>
-        public void AddNpcAddMeshes(GameObjectBody obj)
+        public void AddNpcAddMeshes(GameObject obj)
         {
             var id = obj.GetInt32(obj_f.npc_add_mesh);
             var model = obj.GetOrCreateAnimHandle();
@@ -701,7 +701,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x101391c0)]
-        public bool IsLootableCorpse(GameObjectBody obj)
+        public bool IsLootableCorpse(GameObject obj)
         {
             if (!obj.IsCritter())
             {
@@ -747,7 +747,7 @@ namespace OpenTemple.Core.Systems
         private bool _applyingSubdualHealing;
 
         [TempleDllLocation(0x1007edc0)]
-        public void RescheduleSubdualHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
+        public void RescheduleSubdualHealingTimer(GameObject obj, bool applyQueuedHealing)
         {
             if (_applyingSubdualHealing)
             {
@@ -777,7 +777,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007ee70)]
-        public void StopSubdualHealingTimer(GameObjectBody critter)
+        public void StopSubdualHealingTimer(GameObject critter)
         {
             GameSystems.TimeEvent.Remove(TimeEventType.SubdualHealing, evt =>
             {
@@ -824,7 +824,7 @@ namespace OpenTemple.Core.Systems
         private static readonly TimeSpan SubdualHealingInterval = TimeSpan.FromHours(1);
 
         [TempleDllLocation(0x1007EBD0)]
-        private void ApplySubdualHealing(GameObjectBody critter, TimePoint lastHealing, bool healAtLeastMinimum)
+        private void ApplySubdualHealing(GameObject critter, TimePoint lastHealing, bool healAtLeastMinimum)
         {
             if (CanHealNormally(critter) && critter.GetInt32(obj_f.critter_subdual_damage) > 0)
             {
@@ -855,7 +855,7 @@ namespace OpenTemple.Core.Systems
 
         // TODO: Probably belongs to D20 combat system
         [TempleDllLocation(0x100B9030)]
-        public void HealSubdualSub_100B9030(GameObjectBody obj, int amount)
+        public void HealSubdualSub_100B9030(GameObject obj, int amount)
         {
             var subdualDamage = obj.GetInt32(obj_f.critter_subdual_damage);
             if (amount < subdualDamage)
@@ -873,7 +873,7 @@ namespace OpenTemple.Core.Systems
         private bool _applyingNormalHealing;
 
         [TempleDllLocation(0x1007f140)]
-        public void RescheduleNormalHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
+        public void RescheduleNormalHealingTimer(GameObject obj, bool applyQueuedHealing)
         {
             if (_applyingNormalHealing)
             {
@@ -931,7 +931,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        private void ApplyNormalHealing(GameObjectBody critter, TimePoint lastNormalHealing,
+        private void ApplyNormalHealing(GameObject critter, TimePoint lastNormalHealing,
             bool healAtLeastMinimum)
         {
             // Calculate how many intervals of normal healing have elapsed
@@ -961,7 +961,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f0e0)]
-        public void StopNormalHealingTimer(GameObjectBody critter)
+        public void StopNormalHealingTimer(GameObject critter)
         {
             GameSystems.TimeEvent.Remove(TimeEventType.NormalHealing, evt =>
             {
@@ -979,7 +979,7 @@ namespace OpenTemple.Core.Systems
             });
         }
 
-        private bool CanHealNormally(GameObjectBody critter)
+        private bool CanHealNormally(GameObject critter)
         {
             return !IsDeadNullDestroyed(critter)
                    && !critter.IsOffOrDestroyed
@@ -988,7 +988,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f630)]
-        public void SaveTeleportMap(GameObjectBody obj)
+        public void SaveTeleportMap(GameObject obj)
         {
             var teleportMap = obj.GetInt32(obj_f.critter_teleport_map);
             if (teleportMap == 0)
@@ -999,7 +999,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080790)]
-        public int GetTeleportMap(GameObjectBody obj)
+        public int GetTeleportMap(GameObject obj)
         {
             if (GameSystems.Teleport.HasDayNightTransfer(obj))
             {
@@ -1020,7 +1020,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f670)]
-        public int GetDescriptionId(GameObjectBody critter, GameObjectBody observer)
+        public int GetDescriptionId(GameObject critter, GameObject observer)
         {
             if (IsEditor || critter == observer || observer != null && GameSystems.Reaction.HasMet(critter, observer))
             {
@@ -1033,7 +1033,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007E9D0)]
-        public void UpdateModelEquipment(GameObjectBody obj)
+        public void UpdateModelEquipment(GameObject obj)
         {
             UpdateAddMeshes(obj);
             var raceOffset = GetModelRaceOffset(obj, false);
@@ -1081,7 +1081,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007e760)]
-        private void UpdateAddMeshes(GameObjectBody obj)
+        private void UpdateAddMeshes(GameObject obj)
         {
             var raceOffset = GetModelRaceOffset(obj);
 
@@ -1187,7 +1187,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007e690)]
-        private int GetModelRaceOffset(GameObjectBody obj, bool useBaseRace = true)
+        private int GetModelRaceOffset(GameObject obj, bool useBaseRace = true)
         {
             // Meshes above 1000 are monsters, they dont get a creature type
             var meshId = obj.GetInt32(obj_f.base_mesh);
@@ -1205,13 +1205,13 @@ namespace OpenTemple.Core.Systems
             return D20RaceSystem.GetRaceMaterialOffset(race) + (isMale ? 0 : 1);
         }
 
-        private Gender GetGender(GameObjectBody critter)
+        private Gender GetGender(GameObject critter)
         {
             return (Gender) GameSystems.Stat.StatLevelGet(critter, Stat.gender);
         }
 
         [TempleDllLocation(0x1007FCC0)]
-        public void ClearMoney(GameObjectBody obj)
+        public void ClearMoney(GameObject obj)
         {
             if (obj.IsPC())
             {
@@ -1227,7 +1227,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f880)]
-        public int GetMoney(GameObjectBody obj)
+        public int GetMoney(GameObject obj)
         {
             if (obj.IsPC())
             {
@@ -1257,7 +1257,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007FA40)]
-        public void TakeMoney(GameObjectBody critter, int platinum, int gold, int silver, int copper)
+        public void TakeMoney(GameObject critter, int platinum, int gold, int silver, int copper)
         {
             if (critter.IsPC())
             {
@@ -1300,7 +1300,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007F960)]
-        public void GiveMoney(GameObjectBody critter, int platinum, int gold, int silver, int copper)
+        public void GiveMoney(GameObject critter, int platinum, int gold, int silver, int copper)
         {
             NormalizeMoney(ref platinum, ref gold, ref silver, ref copper);
             if (critter.IsPC())
@@ -1324,13 +1324,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10074710)]
-        public bool IsCategory(GameObjectBody obj, MonsterCategory category)
+        public bool IsCategory(GameObject obj, MonsterCategory category)
         {
             return obj.IsCritter() && GetCategory(obj) == category;
         }
 
         [TempleDllLocation(0x10074780)]
-        public bool IsCategorySubtype(GameObjectBody critter, MonsterSubtype subtype)
+        public bool IsCategorySubtype(GameObject critter, MonsterSubtype subtype)
         {
             if (critter.IsCritter())
             {
@@ -1343,55 +1343,55 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007fef0)]
-        public bool IsAnimal(GameObjectBody critter)
+        public bool IsAnimal(GameObject critter)
         {
             return GetCategory(critter) == MonsterCategory.animal;
         }
 
         [TempleDllLocation(0x1007ff10)]
-        public bool IsUndead(GameObjectBody critter)
+        public bool IsUndead(GameObject critter)
         {
             return GetCategory(critter) == MonsterCategory.undead;
         }
 
         [TempleDllLocation(0x1007ff30)]
-        public bool IsOoze(GameObjectBody critter)
+        public bool IsOoze(GameObject critter)
         {
             return GetCategory(critter) == MonsterCategory.ooze;
         }
 
         [TempleDllLocation(0x1007ff50)]
-        public bool IsWaterSubtype(GameObjectBody critter)
+        public bool IsWaterSubtype(GameObject critter)
         {
             return IsCategorySubtype(critter, MonsterSubtype.water);
         }
 
         [TempleDllLocation(0x1007ff70)]
-        public bool IsFireSubtype(GameObjectBody critter)
+        public bool IsFireSubtype(GameObject critter)
         {
             return IsCategorySubtype(critter, MonsterSubtype.fire);
         }
 
         [TempleDllLocation(0x1007ff90)]
-        public bool IsAirSubtype(GameObjectBody critter)
+        public bool IsAirSubtype(GameObject critter)
         {
             return IsCategorySubtype(critter, MonsterSubtype.air);
         }
 
         [TempleDllLocation(0x1007ffb0)]
-        public bool IsEarthSubtype(GameObjectBody critter)
+        public bool IsEarthSubtype(GameObject critter)
         {
             return IsCategorySubtype(critter, MonsterSubtype.earth);
         }
 
         [TempleDllLocation(0x1007ffd0)]
-        public bool IsPlant(GameObjectBody critter)
+        public bool IsPlant(GameObject critter)
         {
             return GetCategory(critter) == MonsterCategory.plant;
         }
 
         [TempleDllLocation(0x1004d1f0)]
-        public void BuildRadialMenu(GameObjectBody critter)
+        public void BuildRadialMenu(GameObject critter)
         {
             var dispatcher = critter.GetDispatcher();
 
@@ -1406,7 +1406,7 @@ namespace OpenTemple.Core.Systems
         }
 
         // TemplePlus enhancement
-        public int GetEffectiveLevel(GameObjectBody obj)
+        public int GetEffectiveLevel(GameObject obj)
         {
             var currentLevel = GameSystems.Stat.StatLevelGet(obj, Stat.level);
             var race = GetRace(obj, false);
@@ -1426,7 +1426,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080220)]
-        public bool CanLevelUp(GameObjectBody obj)
+        public bool CanLevelUp(GameObject obj)
         {
             // Effective character level
             var ecl = GetEffectiveLevel(obj);
@@ -1446,7 +1446,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100107E0)]
-        public void Pickpocket(GameObjectBody obj, GameObjectBody tgtObj, out bool gotCaught)
+        public void Pickpocket(GameObject obj, GameObject tgtObj, out bool gotCaught)
         {
             gotCaught = false;
 
@@ -1485,7 +1485,7 @@ namespace OpenTemple.Core.Systems
                 }
                 else
                 {
-                    var stealableItems = new List<GameObjectBody>();
+                    var stealableItems = new List<GameObject>();
                     foreach (var item in tgtObj.EnumerateChildren())
                     {
                         if (GameSystems.Item.ItemCanBePickpocketed(item))
@@ -1548,7 +1548,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007FE90)]
-        private static bool IsNotCharmedPartyMember(GameObjectBody obj)
+        private static bool IsNotCharmedPartyMember(GameObject obj)
         {
             if (!GameSystems.Party.IsInParty(obj))
             {
@@ -1569,7 +1569,7 @@ namespace OpenTemple.Core.Systems
             return false;
         }
 
-        private static bool IsCharmedBy(GameObjectBody critter, GameObjectBody byCritter)
+        private static bool IsCharmedBy(GameObject critter, GameObject byCritter)
         {
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
@@ -1581,7 +1581,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080e00)]
-        public bool IsFriendly(GameObjectBody critter1, GameObjectBody critter2)
+        public bool IsFriendly(GameObject critter1, GameObject critter2)
         {
             if (critter1 == critter2)
             {
@@ -1661,9 +1661,9 @@ namespace OpenTemple.Core.Systems
         private const int FACTION_ARRAY_MAX = 50;
 
         [TempleDllLocation(0x10080a70)]
-        public bool NpcAllegianceShared(GameObjectBody critter1, GameObjectBody critter2)
+        public bool NpcAllegianceShared(GameObject critter1, GameObject critter2)
         {
-            GameObjectBody pc, npc;
+            GameObject pc, npc;
             if (critter1.IsPC())
             {
                 if (critter2.IsPC())
@@ -1732,7 +1732,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007E430)]
-        public bool HasFaction(GameObjectBody critter, int faction)
+        public bool HasFaction(GameObject critter, int faction)
         {
             for (int i = 0; i < FACTION_ARRAY_MAX; i++)
             {
@@ -1752,7 +1752,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007e480)]
-        public void AddFaction(GameObjectBody critter, int factionId)
+        public void AddFaction(GameObject critter, int factionId)
         {
             if (!critter.IsNPC())
             {
@@ -1775,7 +1775,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007e510)]
-        public bool HasNoAllegiance(GameObjectBody critter)
+        public bool HasNoAllegiance(GameObject critter)
         {
             if (critter.IsNPC())
             {
@@ -1793,7 +1793,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080670)]
-        public void SetConcealedWithFollowers(GameObjectBody obj, bool concealed)
+        public void SetConcealedWithFollowers(GameObject obj, bool concealed)
         {
             SetConcealed(obj, concealed);
             foreach (var follower in EnumerateAllFollowers(obj))
@@ -1803,7 +1803,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f470)]
-        private void SetConcealed(GameObjectBody critter, bool concealed)
+        private void SetConcealed(GameObject critter, bool concealed)
         {
             var flags = critter.GetCritterFlags();
             if (concealed)
@@ -1821,9 +1821,9 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100805c0)]
-        public void SetMovingSilently(GameObjectBody critter, bool enable)
+        public void SetMovingSilently(GameObject critter, bool enable)
         {
-            void SetMovingSilentlyFlag(GameObjectBody obj)
+            void SetMovingSilentlyFlag(GameObject obj)
             {
                 var critterFlags = obj.GetCritterFlags();
                 if (enable)
@@ -1848,10 +1848,10 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10AB73E0)]
-        private GameObjectBody _critterCurrentlyDying;
+        private GameObject _critterCurrentlyDying;
 
         [TempleDllLocation(0x100810a0)]
-        public void HandleDeath(GameObjectBody critter, GameObjectBody killer, EncodedAnimId deathAnim)
+        public void HandleDeath(GameObject critter, GameObject killer, EncodedAnimId deathAnim)
         {
             GameSystems.TextFloater.CritterDied(critter);
             if (_critterCurrentlyDying != critter)
@@ -1920,7 +1920,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f2c0)]
-        private void AddDecayBodyTimer(GameObjectBody obj)
+        private void AddDecayBodyTimer(GameObject obj)
         {
             var evt = new TimeEvent(TimeEventType.DecayDeadBodies);
             evt.arg1.handle = obj;
@@ -1939,7 +1939,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007eaf0)]
-        public void SetNpcLeader(GameObjectBody npc, GameObjectBody leader)
+        public void SetNpcLeader(GameObject npc, GameObject leader)
         {
             if (npc.IsNPC())
             {
@@ -1948,7 +1948,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f360)]
-        internal void QueueWipeCombatFocus(GameObjectBody critter)
+        internal void QueueWipeCombatFocus(GameObject critter)
         {
             var evt = new TimeEvent(TimeEventType.CombatFocusWipe);
             evt.arg1.handle = critter;
@@ -1958,7 +1958,7 @@ namespace OpenTemple.Core.Systems
 
 
         [TempleDllLocation(0x10080100)]
-        public int GetDamageIdx(GameObjectBody critter, int attackIndex)
+        public int GetDamageIdx(GameObject critter, int attackIndex)
         {
             var attackCountSum = 0;
             for (var i = 0; i < 4; i++)
@@ -1975,14 +1975,14 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080170)]
-        public int GetNaturalAttackBonus(GameObjectBody critter, int attackIndex)
+        public int GetNaturalAttackBonus(GameObject critter, int attackIndex)
         {
             var damageIndex = GameSystems.Critter.GetDamageIdx(critter, attackIndex);
             return critter.GetInt32(obj_f.attack_bonus_idx, damageIndex);
         }
 
         [TempleDllLocation(0x10080140)]
-        public Dice GetCritterDamageDice(GameObjectBody critter, int attackIndex)
+        public Dice GetCritterDamageDice(GameObject critter, int attackIndex)
         {
             int damageIndex = GetDamageIdx(critter, attackIndex);
             return Dice.Unpack(critter.GetUInt32(obj_f.critter_damage_idx, damageIndex));
@@ -2001,26 +2001,26 @@ namespace OpenTemple.Core.Systems
             };
 
         [TempleDllLocation(0x100801a0)]
-        public NaturalAttackType GetCritterAttackType(GameObjectBody critter, int attackIndex)
+        public NaturalAttackType GetCritterAttackType(GameObject critter, int attackIndex)
         {
             var damageIndex = GetDamageIdx(critter, attackIndex);
             return (NaturalAttackType) critter.GetInt32(obj_f.attack_types_idx, damageIndex);
         }
 
         [TempleDllLocation(0x10080a10)]
-        public DamageType GetCritterAttackDamageType(GameObjectBody critter, int attackIndex)
+        public DamageType GetCritterAttackDamageType(GameObject critter, int attackIndex)
         {
             var attackType = GetCritterAttackType(critter, attackIndex);
             return _naturalAttackDamageTypes[attackType];
         }
 
-        public bool HasDomain(GameObjectBody caster, DomainId domain)
+        public bool HasDomain(GameObject caster, DomainId domain)
         {
             return caster.GetStat(Stat.domain_1) == (int) domain || caster.GetStat(Stat.domain_2) == (int) domain;
         }
 
         [TempleDllLocation(0x100801d0)]
-        public int GetHitDiceNum(GameObjectBody critter)
+        public int GetHitDiceNum(GameObject critter)
         {
             var hitDice = 0;
             if (critter.IsNPC())
@@ -2031,7 +2031,7 @@ namespace OpenTemple.Core.Systems
             return hitDice + critter.GetInt32Array(obj_f.critter_level_idx).Count;
         }
 
-        public int NumOffhandExtraAttacks(GameObjectBody critter)
+        public int NumOffhandExtraAttacks(GameObject critter)
         {
             if (GameSystems.Feat.HasFeat(critter, FeatId.GREATER_TWO_WEAPON_FIGHTING)
                 || GameSystems.Feat.HasFeat(critter, FeatId.GREATER_TWO_WEAPON_FIGHTING_RANGER))
@@ -2048,7 +2048,7 @@ namespace OpenTemple.Core.Systems
 
 
         [TempleDllLocation(0x1007e5f0)]
-        public bool IsSleeping(GameObjectBody critter)
+        public bool IsSleeping(GameObject critter)
         {
             if (!critter.IsCritter())
             {
@@ -2059,7 +2059,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10057c00)]
-        public int GetHpPercent(GameObjectBody critter)
+        public int GetHpPercent(GameObject critter)
         {
             var maxHp = critter.GetStat(Stat.hp_max);
             var curHp = critter.GetStat(Stat.hp_current);
@@ -2074,7 +2074,7 @@ namespace OpenTemple.Core.Systems
 
         // TODO: Usually i'd rather check for an intelligence score here...
         [TempleDllLocation(0x100807f0)]
-        public bool IsSavage(GameObjectBody critter)
+        public bool IsSavage(GameObject critter)
         {
             if (!critter.IsCritter())
             {
@@ -2087,7 +2087,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007eb60)]
-        public int GetNumFollowers(GameObjectBody obj, bool excludeForcedFollowers)
+        public int GetNumFollowers(GameObject obj, bool excludeForcedFollowers)
         {
             var followerArray = obj.GetObjectArray(obj_f.critter_follower_idx);
             var followersNum = followerArray.Count;
@@ -2108,7 +2108,7 @@ namespace OpenTemple.Core.Systems
             return followersNum;
         }
 
-        public bool CanSeeWithBlindsight(GameObjectBody critter, GameObjectBody target)
+        public bool CanSeeWithBlindsight(GameObject critter, GameObject target)
         {
             if (critter == null || target == null)
             {
@@ -2134,7 +2134,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007fff0)]
-        public bool CanSense(GameObjectBody critter, GameObjectBody target)
+        public bool CanSense(GameObject critter, GameObject target)
         {
             //First check if the critter can see the target with blindsense
             if (CanSeeWithBlindsight(critter, target))
@@ -2178,7 +2178,7 @@ namespace OpenTemple.Core.Systems
             return true;
         }
 
-        public bool CanBarbarianRage(GameObjectBody obj)
+        public bool CanBarbarianRage(GameObject obj)
         {
             if (obj.GetStat(Stat.level_barbarian) <= 0)
             {
@@ -2202,7 +2202,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x100800c0)]
         [TemplePlusLocation("critter.cpp:168")]
-        public int GetCritterNaturalAttackCount(GameObjectBody critter)
+        public int GetCritterNaturalAttackCount(GameObject critter)
         {
             var count = 0;
             for (var i = 0; i < 4; i++)
@@ -2213,9 +2213,9 @@ namespace OpenTemple.Core.Systems
             return count;
         }
 
-        public bool IsCaster(GameObjectBody critter) => GetCasterLevel(critter) > 0;
+        public bool IsCaster(GameObject critter) => GetCasterLevel(critter) > 0;
 
-        public bool IsWieldingRangedWeapon(GameObjectBody critter)
+        public bool IsWieldingRangedWeapon(GameObject critter)
         {
             var weapon = GameSystems.Critter.GetWornItem(critter, EquipSlot.WeaponPrimary);
             if (weapon == null)
@@ -2263,7 +2263,7 @@ namespace OpenTemple.Core.Systems
 
         // TODO For now this lives here, but should probably be moved elsewhere
         [TempleDllLocation(0x100b2a60)]
-        public void MakeFootstepSound(GameObjectBody obj)
+        public void MakeFootstepSound(GameObject obj)
         {
             var soundId = GameSystems.SoundMap.GetCritterSoundEffect(obj, CritterSoundEffect.Footsteps);
             GameSystems.SoundGame.PositionalSound(soundId, obj);
@@ -2271,7 +2271,7 @@ namespace OpenTemple.Core.Systems
 
         // TODO For now this lives here, but should probably be moved somewhere else
         [TempleDllLocation(0x100f66f0)]
-        public void BalorDeath(GameObjectBody balor)
+        public void BalorDeath(GameObject balor)
         {
             var pos = balor.GetLocationFull().ToInches3D();
             GameSystems.ParticleSys.CreateAt("Mon-Balor Explosion", pos);
@@ -2296,7 +2296,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void AwardXp(GameObjectBody critter, int xpAwarded)
+        public void AwardXp(GameObject critter, int xpAwarded)
         {
             var xp = critter.GetInt32(obj_f.critter_experience);
             xp += xpAwarded;
@@ -2305,14 +2305,14 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f6d0)]
-        public bool CritterIsLowInt(GameObjectBody critter)
+        public bool CritterIsLowInt(GameObject critter)
         {
             return critter.GetStat(Stat.intelligence) <= 7;
         }
 
         [TempleDllLocation(0x10080720)]
         [TemplePlusLocation("party.cpp:57")]
-        public bool HasFearsomeAssociates(GameObjectBody critter)
+        public bool HasFearsomeAssociates(GameObject critter)
         {
             if (Globals.Config.TolerateMonsterPartyMembers)
             {
@@ -2340,11 +2340,11 @@ namespace OpenTemple.Core.Systems
 
     public static class CritterExtensions
     {
-        public static bool IsDeadOrUnconscious(this GameObjectBody critter) =>
+        public static bool IsDeadOrUnconscious(this GameObject critter) =>
             GameSystems.Critter.IsDeadOrUnconscious(critter);
 
         [TempleDllLocation(0x1001f3b0)]
-        public static IEnumerable<GameObjectBody> EnumerateFollowers(this GameObjectBody critter,
+        public static IEnumerable<GameObject> EnumerateFollowers(this GameObject critter,
             bool recursive = false)
         {
             var followers = critter.GetObjectArray(obj_f.critter_follower_idx);
@@ -2368,7 +2368,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public static bool HasRangedWeaponEquipped(this GameObjectBody obj)
+        public static bool HasRangedWeaponEquipped(this GameObject obj)
         {
             var weapon = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
             if (weapon == null)
@@ -2388,7 +2388,7 @@ namespace OpenTemple.Core.Systems
         /// Returns the critter's reach in feet.
         /// </summary>
         [TempleDllLocation(0x100b52d0)]
-        public static float GetReach(this GameObjectBody obj,
+        public static float GetReach(this GameObject obj,
             D20ActionType actionType = D20ActionType.UNSPECIFIED_ATTACK)
         {
             float naturalReach = obj.GetInt32(obj_f.critter_reach);
@@ -2427,7 +2427,7 @@ namespace OpenTemple.Core.Systems
             return naturalReach - 2.0f;
         }
 
-        public static bool HasNaturalAttacks(this GameObjectBody critter)
+        public static bool HasNaturalAttacks(this GameObject critter)
         {
             if (critter.GetInt32(obj_f.critter_attacks_idx, 0) != 0)
             {
@@ -2450,7 +2450,7 @@ namespace OpenTemple.Core.Systems
             return protoObj.GetInt32(obj_f.critter_attacks_idx, 0) != 0;
         }
 
-        public static bool IsWearingLightArmorOrLess(this GameObjectBody critter)
+        public static bool IsWearingLightArmorOrLess(this GameObject critter)
         {
             var armor = GameSystems.Item.ItemWornAt(critter, EquipSlot.Armor);
             if (armor == null || armor.type != ObjectType.armor)
@@ -2461,7 +2461,7 @@ namespace OpenTemple.Core.Systems
             return armor.GetArmorFlags().IsLightArmorOrLess();
         }
 
-        public static bool IsWearingMediumArmorOrLess(this GameObjectBody critter)
+        public static bool IsWearingMediumArmorOrLess(this GameObject critter)
         {
             var armor = GameSystems.Item.ItemWornAt(critter, EquipSlot.Armor);
             if (armor == null || armor.type != ObjectType.armor)
@@ -2478,22 +2478,22 @@ namespace OpenTemple.Core.Systems
             return armorFlags.GetArmorType() == ArmorFlag.TYPE_LIGHT;
         }
 
-        public static GameObjectBody GetLeader(this GameObjectBody critter)
+        public static GameObject GetLeader(this GameObject critter)
         {
             return GameSystems.Critter.GetLeader(critter);
         }
 
         [TempleDllLocation(0x10080bf0)]
-        public static bool IsConscious(this GameObjectBody critter)
+        public static bool IsConscious(this GameObject critter)
         {
             return critter != null && !GameSystems.Critter.IsDeadOrUnconscious(critter);
         }
 
         [TempleDllLocation(0x1007f5b0)]
-        public static GameObjectBody GetSubstituteInventory(this GameObjectBody npc)
+        public static GameObject GetSubstituteInventory(this GameObject npc)
         {
-            GameObjectBody v1;
-            GameObjectBody v2;
+            GameObject v1;
+            GameObject v2;
             ulong v3;
             int result;
 
@@ -2517,7 +2517,7 @@ namespace OpenTemple.Core.Systems
             return container;
         }
 
-        public static bool AllegianceShared(this GameObjectBody critter, GameObjectBody otherCritter)
+        public static bool AllegianceShared(this GameObject critter, GameObject otherCritter)
         {
             return GameSystems.Critter.NpcAllegianceShared(critter, otherCritter);
         }

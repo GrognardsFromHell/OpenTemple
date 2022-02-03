@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(176)]
     public class Zuggtmoy : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(181)))
             {
@@ -41,7 +41,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(359)))
             {
@@ -55,7 +55,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -73,13 +73,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(181, false);
             transform_into_demon_form(attachee, triggerer, -1);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             while ((attachee.FindItemByName(8903) != null))
             {
@@ -90,7 +90,7 @@ namespace Scripts
             // create_item_in_inventory( 8903, attachee )
             if ((Utilities.obj_percent_hp(attachee) < 20))
             {
-                GameObjectBody nearby_pc = null;
+                GameObject nearby_pc = null;
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     if (pc.type == ObjectType.pc)
@@ -131,12 +131,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
-                GameObjectBody nearby_unmet_pc = null;
-                GameObjectBody distant_pc = null;
+                GameObject nearby_unmet_pc = null;
+                GameObject distant_pc = null;
                 var found_close_pc = false;
                 foreach (var pc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
@@ -197,7 +197,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnTrueSeeing(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnTrueSeeing(GameObject attachee, GameObject triggerer)
         {
             // HTN - 12/03/02, reversed flag logic, moved "transform" call and SKIP_DEFAULT inside if/else block
             // only transform once, if flag is unset
@@ -214,7 +214,7 @@ namespace Scripts
             // tells true_seeing script not to put particle f/x on target (zuggtmoy)
             return RunDefault;
         }
-        public static bool transform_into_demon_form(GameObjectBody zuggtmoy, GameObjectBody pc, int line)
+        public static bool transform_into_demon_form(GameObject zuggtmoy, GameObject pc, int line)
         {
             if ((!GetGlobalFlag(193)))
             {
@@ -255,7 +255,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool crone_wait(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool crone_wait(GameObject zuggtmoy, GameObject pc)
         {
             // turn zuggtmoy invisible
             zuggtmoy.AddCondition("Invisible", 0, 0);
@@ -263,7 +263,7 @@ namespace Scripts
             SetGlobalFlag(181, true);
             return RunDefault;
         }
-        public static bool zuggtmoy_pc_persuade(GameObjectBody zuggtmoy, GameObjectBody pc, int success, int failure)
+        public static bool zuggtmoy_pc_persuade(GameObject zuggtmoy, GameObject pc, int success, int failure)
         {
             if ((!pc.SavingThrow(10, SavingThrowType.Will, D20SavingThrowFlag.NONE)))
             {
@@ -276,7 +276,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool zuggtmoy_pc_charm(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_pc_charm(GameObject zuggtmoy, GameObject pc)
         {
             // auto dire charm the PC
             pc.Dominate(zuggtmoy); // nope, it doesn't work for adding PCs back into the party :(
@@ -291,7 +291,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool zuggtmoy_regenerate_and_attack(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_regenerate_and_attack(GameObject zuggtmoy, GameObject pc)
         {
             // zuggtmoy.obj_set_int( obj_f_hp_damage, 0 )
             var dice = Dice.Parse("1d10+1000");
@@ -300,7 +300,7 @@ namespace Scripts
             zuggtmoy.Attack(pc);
             return RunDefault;
         }
-        public static bool zuggtmoy_banish(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_banish(GameObject zuggtmoy, GameObject pc)
         {
             SetGlobalFlag(188, true);
             SetGlobalFlag(372, true);
@@ -318,7 +318,7 @@ namespace Scripts
             zuggtmoy.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool zuggtmoy_die(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_die(GameObject zuggtmoy, GameObject pc)
         {
             SetGlobalFlag(189, true);
             SetGlobalFlag(372, true);
@@ -335,14 +335,14 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool zuggtmoy_end_game(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_end_game(GameObject zuggtmoy, GameObject pc)
         {
             // play slides and end game
             Utilities.set_end_slides(zuggtmoy, pc);
             GameSystems.Movies.MovieQueuePlayAndEndGame();
             return RunDefault;
         }
-        public static bool zuggtmoy_end_game_nc(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_end_game_nc(GameObject zuggtmoy, GameObject pc)
         {
             // play slides and don't end game
             Utilities.set_end_slides_nc(zuggtmoy, pc);
@@ -353,7 +353,7 @@ namespace Scripts
             FadeAndTeleport(0, 0, 0, 5121, 228, 507);
             return RunDefault;
         }
-        public static bool zuggtmoy_pillar_gone(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_pillar_gone(GameObject zuggtmoy, GameObject pc)
         {
             // get rid of pillar
             foreach (var obj in ObjList.ListVicinity(zuggtmoy.GetLocation(), ObjectListFilter.OLC_SCENERY))

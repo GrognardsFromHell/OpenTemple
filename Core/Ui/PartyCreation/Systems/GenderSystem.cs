@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
@@ -66,7 +66,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
         [TempleDllLocation(0x10189cd0)]
         [TemplePlusLocation("ui_pc_creation_hooks.cpp:68")]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             Trace.Assert(_pkt.raceId.HasValue);
             Trace.Assert(_pkt.genderId.HasValue);

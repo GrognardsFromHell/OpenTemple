@@ -79,7 +79,7 @@ namespace OpenTemple.Core.GFX
 
         public int GetId()
         {
-            throw new System.NotImplementedException("Unsupported operation for render target textures.");
+            throw new NotImplementedException("Unsupported operation for render target textures.");
         }
 
         public string GetName() => "<rt>";

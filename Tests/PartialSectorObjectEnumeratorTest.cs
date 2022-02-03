@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using FluentAssertions;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.Raycast;
 using NUnit.Framework;
 
@@ -10,7 +10,7 @@ namespace OpenTemple.Tests
 {
     public class PartialSectorObjectEnumeratorTest
     {
-        private static List<GameObjectBody>[,] EmptyTiles => new List<GameObjectBody>[64, 64];
+        private static List<GameObject>[,] EmptyTiles => new List<GameObject>[64, 64];
 
         [Test]
         public void TestEmptyEnumeration()
@@ -30,8 +30,8 @@ namespace OpenTemple.Tests
         public void TestEnumerationOfSectorWithObjectInLastTile()
         {
             var tiles = EmptyTiles;
-            var testObject = new GameObjectBody();
-            tiles[63, 63] = new List<GameObjectBody> {testObject};
+            var testObject = new GameObject();
+            tiles[63, 63] = new List<GameObject> {testObject};
             var e = new PartialSectorObjectEnumerator(tiles, new Rectangle(0, 0, 64, 64));
             e.MoveNext().Should().BeTrue();
             e.Current.Should().Be(testObject);
@@ -42,13 +42,13 @@ namespace OpenTemple.Tests
         public void TestEnumerationOfSectorWithDiagonalObjects()
         {
             var tiles = EmptyTiles;
-            var testObject1 = new GameObjectBody();
-            var testObject2 = new GameObjectBody();
-            var testObject3 = new GameObjectBody();
-            var testObject4 = new GameObjectBody();
-            tiles[0, 0] = new List<GameObjectBody> {testObject1};
-            tiles[63, 31] = new List<GameObjectBody> {testObject2, testObject3};
-            tiles[63, 63] = new List<GameObjectBody> {testObject4};
+            var testObject1 = new GameObject();
+            var testObject2 = new GameObject();
+            var testObject3 = new GameObject();
+            var testObject4 = new GameObject();
+            tiles[0, 0] = new List<GameObject> {testObject1};
+            tiles[63, 31] = new List<GameObject> {testObject2, testObject3};
+            tiles[63, 63] = new List<GameObject> {testObject4};
             var e = new PartialSectorObjectEnumerator(tiles, new Rectangle(0, 0, 64, 64));
             e.MoveNext().Should().BeTrue();
             e.Current.Should().Be(testObject1);
@@ -65,8 +65,8 @@ namespace OpenTemple.Tests
         public void TestEnumeratePartialSectorOneTileSet()
         {
             var tiles = EmptyTiles;
-            var testObject = new GameObjectBody();
-            tiles[2, 2] = new List<GameObjectBody> {testObject};
+            var testObject = new GameObject();
+            tiles[2, 2] = new List<GameObject> {testObject};
             var e = new PartialSectorObjectEnumerator(tiles, new Rectangle(0, 0, 2, 64));
             e.MoveNext().Should().BeFalse();
 
@@ -93,12 +93,12 @@ namespace OpenTemple.Tests
         public void TestEnumeratePartialSectorOneTileNotSet()
         {
             var tiles = EmptyTiles;
-            var testObject = new GameObjectBody();
+            var testObject = new GameObject();
             for (int x = 0; x < 64; x++)
             {
                 for (int y = 0; y < 64; y++)
                 {
-                    tiles[x, y] = new List<GameObjectBody>() {testObject};
+                    tiles[x, y] = new List<GameObject>() {testObject};
                 }
             }
 

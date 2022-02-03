@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(12)]
     public class Jaroo : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(2) >= 100 && !triggerer.HasReputation(3)))
             {
@@ -46,7 +46,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             return RunDefault;
             if ((attachee.GetLeader() == null && !GameSystems.Combat.IsCombatActive()))
@@ -61,7 +61,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -77,7 +77,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             // if (not attachee.has_wielded(4047) or not attachee.has_wielded(4111)):
             if ((!attachee.HasEquippedByName(4111))) // 4111 (Rod of the Python) is a two-handed quarterstaff since v6.1
@@ -267,7 +267,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             Logger.Info("Jaroo start combat");
             if ((!attachee.HasEquippedByName(4047) || !attachee.HasEquippedByName(4111)))
@@ -277,12 +277,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(337, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(875) && !GetGlobalFlag(876) && GetQuestState(99) != QuestState.Completed && !triggerer.GetPartyMembers().Any(o => o.HasItemByName(12900))))
             {
@@ -313,7 +313,7 @@ namespace Scripts
             // game.global_vars[722] = 0
             return RunDefault;
         }
-        public static bool amii_dies_due_to_dont_give_a_damn_dialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool amii_dies_due_to_dont_give_a_damn_dialog(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(876, true);
             StartTimer(140000000, () => amii_dies());
@@ -330,7 +330,7 @@ namespace Scripts
         // Returns : 0 if obj is dead, else 1
         // Purpose : to fix only characters that need it
 
-        public static int should_clear_spell_on(GameObjectBody obj)
+        public static int should_clear_spell_on(GameObject obj)
         {
             if ((obj.GetStat(Stat.hp_current) <= -10))
             {
@@ -339,7 +339,7 @@ namespace Scripts
 
             return 1;
         }
-        public static bool kill_picked(GameObjectBody obj, GameObjectBody jaroo)
+        public static bool kill_picked(GameObject obj, GameObject jaroo)
         {
             var tempp = GetGlobalVar(23);
             var damage_dice = Dice.Parse("100d20");
@@ -359,7 +359,7 @@ namespace Scripts
             SelectedPartyLeader.RemoveReputation(1);
             SetGlobalVar(23, tempp);
         }
-        public static bool run_off(GameObjectBody npc, GameObjectBody pc)
+        public static bool run_off(GameObject npc, GameObject pc)
         {
             SetQuestState(99, QuestState.Completed);
             foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_NPC))

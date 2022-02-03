@@ -7,7 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using NUnit.Framework;
 using OpenTemple.Core;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -37,9 +37,9 @@ namespace OpenTemple.Tests.TestUtils
 
         private record InitiativeOverride(int Initiative);
 
-        private readonly ConditionalWeakTable<GameObjectBody, InitiativeOverride> _initiativeOverrides = new();
+        private readonly ConditionalWeakTable<GameObject, InitiativeOverride> _initiativeOverrides = new();
 
-        protected void SetInitiative(GameObjectBody obj, int initiative)
+        protected void SetInitiative(GameObject obj, int initiative)
         {
             _initiativeOverrides.Add(obj, new InitiativeOverride(initiative));
         }
@@ -119,7 +119,7 @@ namespace OpenTemple.Tests.TestUtils
             screenshot.SaveAsPng(TestContext.CurrentContext.Test.FullName + "_" + name + ".png");
         }
 
-        protected void ClickOn(GameObjectBody obj)
+        protected void ClickOn(GameObject obj)
         {
             var pos = GameSystems.MapObject.GetScreenPosOfObject(GameViews.Primary, obj);
             Game.ClickUi(pos.X, pos.Y);

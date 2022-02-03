@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -70,7 +70,7 @@ namespace Scripts.Spells
             Logger.Info("Lesser Vigor OnEndSpellCast");
         }
 
-        public void heal_tick_lesser_vigor(GameObjectBody target, Dice dice)
+        public void heal_tick_lesser_vigor(GameObject target, Dice dice)
         {
             Logger.Info("Lesser Vigour Heal Tick");
             target.Heal(null, dice);

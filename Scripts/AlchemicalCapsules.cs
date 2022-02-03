@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(290)]
     public class AlchemicalCapsules : BaseObjectScript
     {
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             // game.particles( "sp-summon monster I", game.party[0] )
             var cap2 = attachee.ItemWornAt(EquipSlot.Bracers);
@@ -37,7 +37,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             var cap1 = attachee.GetNameId();
             var cap2 = triggerer.ItemWornAt(EquipSlot.Bracers);
@@ -62,13 +62,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void get_rid_of_it(GameObjectBody attachee)
+        public static void get_rid_of_it(GameObject attachee)
         {
             attachee.Destroy();
             // game.particles( "sp-summon monster I", game.party[0] )
             return;
         }
-        public static void spare_stuff(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void spare_stuff(GameObject attachee, GameObject triggerer)
         {
             var cap1 = attachee.GetNameId();
             var cap3 = triggerer.ItemWornAt(EquipSlot.Shield);

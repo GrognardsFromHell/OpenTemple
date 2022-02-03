@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -51,7 +51,7 @@ namespace Scripts.Spells
 
             // create monster
             spell.SummonMonsters(true, monster_proto_id);
-            GameObjectBody monster_obj = null;
+            GameObject monster_obj = null;
             var m_list = ObjList.ListCone(spell.caster, ObjectListFilter.OLC_CRITTERS, 200, -180, 360);
             foreach (var m in m_list)
             {

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
@@ -167,7 +167,7 @@ namespace OpenTemple.Core.Systems.MapSector
             sector.townmapInfo = 0;
             sector.aptitudeAdj = 0;
             sector.lightScheme = 0;
-            sector.StaticObjects = ImmutableArray<GameObjectBody>.Empty;
+            sector.StaticObjects = ImmutableArray<GameObject>.Empty;
 
             sector.objects.Dispose();
         }
@@ -616,7 +616,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
         [SuppressMessage("ReSharper", "RedundantCast")]
         [TempleDllLocation(0x100c1520)]
-        private void SaveObjectDiffs(ImmutableArray<GameObjectBody> sectorObjects, BinaryWriter writer)
+        private void SaveObjectDiffs(ImmutableArray<GameObject> sectorObjects, BinaryWriter writer)
         {
             var runLength = 0u;
             var runWithObjects = false;
@@ -682,7 +682,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
         // TODO: This entire mechanism might be unused
         [TempleDllLocation(0x100a8130)]
-        private void ClearLightHandleFlag(GameObjectBody obj, int flag)
+        private void ClearLightHandleFlag(GameObject obj, int flag)
         {
             var lightHandle = obj.GetInt32(obj_f.light_handle);
             SectorLight light = default; // TODO
@@ -691,7 +691,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
         // TODO: This entire mechanism might be unused
         [TempleDllLocation(0x100a8650)]
-        public void SetLightHandleFlag(GameObjectBody obj, int flag)
+        public void SetLightHandleFlag(GameObject obj, int flag)
         {
             var lightHandle = obj.GetInt32(obj_f.light_handle);
             if (lightHandle != 0)
@@ -758,7 +758,7 @@ namespace OpenTemple.Core.Systems.MapSector
         }
 
         [TempleDllLocation(0x100a8590)]
-        public void MapSectorResetLightHandle(GameObjectBody obj)
+        public void MapSectorResetLightHandle(GameObject obj)
         {
             var renderFlags = obj.GetUInt32(obj_f.render_flags);
 
@@ -791,7 +791,7 @@ namespace OpenTemple.Core.Systems.MapSector
             reader.BaseStream.Position = startOfObjects;
 
             sectorObjects.objectsRead = 0;
-            var builder = ImmutableArray.CreateBuilder<GameObjectBody>(objectCount);
+            var builder = ImmutableArray.CreateBuilder<GameObject>(objectCount);
 
             for (var i = 0; i < objectCount; i++)
             {
@@ -825,7 +825,7 @@ namespace OpenTemple.Core.Systems.MapSector
         }
 
         [TempleDllLocation(0x100C1A20)]
-        private bool SectorInsertStaticObject(ref SectorObjects sectorObjects, GameObjectBody obj)
+        private bool SectorInsertStaticObject(ref SectorObjects sectorObjects, GameObject obj)
         {
             var flags = obj.GetFlags();
             if (flags.HasFlag(ObjectFlag.INVENTORY))
@@ -877,7 +877,7 @@ namespace OpenTemple.Core.Systems.MapSector
             var diffCount = 0;
             var hasDiffs = false;
 
-            var builder = ImmutableArray.CreateBuilder<GameObjectBody>(objectCount);
+            var builder = ImmutableArray.CreateBuilder<GameObject>(objectCount);
 
             for (var i = 0; i < objectCount; i++)
             {

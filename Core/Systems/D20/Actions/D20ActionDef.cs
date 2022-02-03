@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Ui;
 
@@ -21,7 +21,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
     public delegate bool ActionFrameCallback(D20Action d20a);
 
-    public delegate bool ProjectileHitCallback(D20Action d20a, GameObjectBody projectile, GameObjectBody ammoItem);
+    public delegate bool ProjectileHitCallback(D20Action d20a, GameObject projectile, GameObject ammoItem);
 
     public delegate ActionErrorCode ActionCostCallback(D20Action d20a, TurnBasedStatus tbStat,
         ActionCostPacket actionCostPacket);

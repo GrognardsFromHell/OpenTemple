@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(282)]
     public class RangedAmmo : BaseObjectScript
     {
-        public override bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             var done = attachee.GetInt(obj_f.weapon_pad_i_1);
             if ((triggerer.type == ObjectType.pc || triggerer.type == ObjectType.npc) && (triggerer.HasFeat(FeatId.FAR_SHOT)))

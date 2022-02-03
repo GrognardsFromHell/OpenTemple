@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(58)]
     public class Wainwright : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8001))))
             {
@@ -52,7 +52,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(501) == 4 || GetGlobalVar(501) == 5 || GetGlobalVar(501) == 6 || GetGlobalVar(510) == 2))
             {
@@ -83,7 +83,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() != 5044))
             {
@@ -97,7 +97,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() != 5044))
             {
@@ -106,7 +106,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() != 5044))
             {
@@ -118,7 +118,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool make_hate(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool make_hate(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetReaction(triggerer) >= 20))
             {

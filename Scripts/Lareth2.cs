@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(308)]
     public class Lareth2 : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(840) && attachee.GetNameId() == 14614))
             {
@@ -54,13 +54,13 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(758, 0);
             SetGlobalVar(726, 0);
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -97,7 +97,7 @@ namespace Scripts
             PartyLeader.AddReputation(15);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 14618))
             {
@@ -106,7 +106,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             while ((attachee.FindItemByName(8903) != null))
             {
@@ -127,7 +127,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(37, false);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -150,7 +150,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 14618))
             {
@@ -198,7 +198,7 @@ namespace Scripts
             SetGlobalVar(726, GetGlobalVar(726) + 1);
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(840) && attachee.GetMap() == 5065))
             {
@@ -207,7 +207,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnSpellCast(GameObjectBody attachee, GameObjectBody triggerer, SpellPacketBody spell)
+        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
         {
             if ((spell.spellEnum == WellKnownSpells.DispelMagic && attachee.GetMap() == 5014 && !GetGlobalFlag(837)))
             {
@@ -241,7 +241,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(806)))
             {
@@ -265,7 +265,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5065))
             {
@@ -289,7 +289,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -300,7 +300,7 @@ namespace Scripts
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool create_store(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool create_store(GameObject attachee, GameObject triggerer)
         {
             var loc = attachee.GetLocation();
             var target = GameSystems.MapObject.CreateObject(14618, loc);
@@ -308,7 +308,7 @@ namespace Scripts
             triggerer.BeginDialog(target, 700);
             return SkipDefault;
         }
-        public static bool remove_combat(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool remove_combat(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {

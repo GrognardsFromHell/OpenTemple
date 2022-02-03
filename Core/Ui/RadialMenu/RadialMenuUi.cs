@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO;
@@ -136,7 +136,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
         private LocAndOffsets _openedAtLocation;
 
         [TempleDllLocation(0x10be6d78)]
-        private GameObjectBody _openedAtTarget;
+        private GameObject _openedAtTarget;
 
         /// <summary>
         /// On which viewport has the radial menu been opened. See <see cref="RadialMenuSystem.ActiveMenuWorldPosition"/> for
@@ -939,7 +939,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
         }
 
         [TempleDllLocation(0x1013a230)]
-        private void DrawPortrait(Point menuCenter, GameObjectBody critter)
+        private void DrawPortrait(Point menuCenter, GameObject critter)
         {
             var portraitId = critter.GetInt32(obj_f.critter_portrait);
             var portraitPath = GameSystems.UiArtManager.GetPortraitPath(portraitId, PortraitVariant.Small);
@@ -1474,7 +1474,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
         }
 
         [TempleDllLocation(0x1013a2f0)]
-        private void DrawLineFromMenuToCritter(Point screenPos, GameObjectBody leader)
+        private void DrawLineFromMenuToCritter(Point screenPos, GameObject leader)
         {
             if (leader == null)
             {

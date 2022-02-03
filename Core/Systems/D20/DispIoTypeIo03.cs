@@ -1,6 +1,6 @@
 using System;
 using System.Resources;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Spells;
@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Systems.D20
     // DispIoType = 3
     public class DispIoSavingThrow
     {
-        public GameObjectBody obj;
+        public GameObject obj;
 
         // see D20SavingThrowFlag looks like: 2 - trap, 0x10 - Spell, 0x20 thru 0x1000 - spell schools (abjuration thru transmutation, e.g. 0x100 - enchantment), 0x100000 - fear/morale effect?
         public D20SavingThrowFlag flags;
@@ -242,7 +242,7 @@ namespace OpenTemple.Core.Systems.D20
         public SkillCheckFlags flags;
 
         public uint pad;
-        public GameObjectBody obj; //optional
+        public GameObject obj; //optional
         public BonusList bonlist;
 
         public ref BonusList bonOut => ref bonlist;
@@ -308,7 +308,7 @@ namespace OpenTemple.Core.Systems.D20
         public void DispatchPythonActionCheck(D20DispatcherKey key)
         {
             if (action == null || action.d20APerformer == null) {
-                this.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                returnVal = ActionErrorCode.AEC_INVALID_ACTION;
                 return;
             }
 
@@ -318,7 +318,7 @@ namespace OpenTemple.Core.Systems.D20
         public void DispatchPythonActionAddToSeq(D20DispatcherKey key)
         {
             if (action == null || action.d20APerformer == null) {
-                this.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                returnVal = ActionErrorCode.AEC_INVALID_ACTION;
                 return;
             }
 
@@ -328,7 +328,7 @@ namespace OpenTemple.Core.Systems.D20
         public void DispatchPythonActionPerform(D20DispatcherKey key)
         {
             if (action == null || action.d20APerformer == null) {
-                this.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                returnVal = ActionErrorCode.AEC_INVALID_ACTION;
                 return;
             }
 
@@ -338,7 +338,7 @@ namespace OpenTemple.Core.Systems.D20
         public void DispatchPythonActionFrame(D20DispatcherKey key)
         {
             if (action == null || action.d20APerformer == null) {
-                this.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                returnVal = ActionErrorCode.AEC_INVALID_ACTION;
                 return;
             }
 
@@ -386,8 +386,8 @@ namespace OpenTemple.Core.Systems.D20
     public class DispIoObjEvent // type 17
     {
         public int pad;
-        public GameObjectBody aoeObj;
-        public GameObjectBody tgt;
+        public GameObject aoeObj;
+        public GameObject tgt;
         public int evtId;
 
         public static DispIoObjEvent Default => new DispIoObjEvent();
@@ -415,8 +415,8 @@ namespace OpenTemple.Core.Systems.D20
         public BonusList bonlist;
         public D20CAF flags;
         public int fieldC;
-        public GameObjectBody weapon;
-        public GameObjectBody wielder;
+        public GameObject weapon;
+        public GameObject wielder;
         public Dice dicePacked;
         public DamageType attackDamageType;
 
@@ -492,14 +492,14 @@ namespace OpenTemple.Core.Systems.D20
         };
 
         public int attack; //Uses the attack enum but unfortunately the enum can't be passed through to python
-        public GameObjectBody target;
+        public GameObject target;
 
         public static EvtObjSpecialAttack Default => new EvtObjSpecialAttack();
     };
 
     public class EvtObjRangeIncrementBonus // type 37 (NEW!)
     {
-        public GameObjectBody weaponUsed;
+        public GameObject weaponUsed;
         public double rangeBonus;
     };
 
@@ -507,14 +507,14 @@ namespace OpenTemple.Core.Systems.D20
     {
         public DamagePacket damage;
         public SpellPacketBody spellPkt;
-        public GameObjectBody target;
+        public GameObject target;
     };
 
     public class EvtObjSpellTargetBonus // type 38 (NEW!)
     {
         public BonusList bonusList;
         public SpellPacketBody spellPkt;
-        public GameObjectBody target;
+        public GameObject target;
 
         public static EvtObjSpellTargetBonus Default = new EvtObjSpellTargetBonus();
     }

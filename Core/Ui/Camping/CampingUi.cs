@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
@@ -630,7 +630,7 @@ namespace OpenTemple.Core.Ui.Camping
         /// <summary>
         /// Returns how much the critter heals naturally through resting.
         /// </summary>
-        private int GetHealingAmount(GameObjectBody critter, int restPeriods)
+        private int GetHealingAmount(GameObject critter, int restPeriods)
         {
             var lvl = critter.GetStat(Stat.level);
             var hdCount = GameSystems.Critter.GetHitDiceNum(critter);

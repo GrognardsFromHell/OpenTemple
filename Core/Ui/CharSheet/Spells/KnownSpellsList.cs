@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Spells;
@@ -14,7 +14,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
 
         public event Action<SpellStoreData, MemorizedSpellButton> OnMemorizeSpell;
 
-        public KnownSpellsList(Rectangle rectangle, GameObjectBody critter, int classCode) : base(rectangle)
+        public KnownSpellsList(Rectangle rectangle, GameObject critter, int classCode) : base(rectangle)
         {
             var spellsKnown = critter.GetSpellArray(obj_f.critter_spells_known_idx);
             var domainSpells = GameSystems.Spell.IsDomainSpell(classCode);

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -51,7 +51,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Delayed Blast Fireball OnSpellEffect");
             AttachParticles("sp-Fireball-conjure", spell.caster);
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             var dam = Dice.D6;
             dam = dam.WithCount(Math.Min(20, spell.casterLevel)); // edited by Allyx
             if (Co8Settings.ElementalSpellsAtElementalNodes)

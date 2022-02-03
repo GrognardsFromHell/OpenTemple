@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -25,7 +25,7 @@ namespace Scripts
     {
         // pad_i_3 bit flags:
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5001))
             {
@@ -70,7 +70,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5049))
             {
@@ -91,7 +91,7 @@ namespace Scripts
                 else if ((ScriptDaemon.get_v(435) == 4 && a == 0))
                 {
                     attachee.SetInt(obj_f.npc_pad_i_5, 1);
-                    GameObjectBody gister = null;
+                    GameObject gister = null;
                     foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
                     {
                         if (npc.GetNameId() == 14039)
@@ -140,7 +140,7 @@ namespace Scripts
                     a = a | 2;
                     ScriptDaemon.npc_set(attachee, 2);
                     var badger = GameSystems.MapObject.CreateObject(14371, new locXY(493, 487));
-                    GameObjectBody pc = null;
+                    GameObject pc = null;
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
                         if ((obj.DistanceTo(badger) <= 25 && !Utilities.critter_is_unconscious(obj)))
@@ -288,7 +288,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             var c = attachee.GetInt(obj_f.npc_pad_i_3);
             if (attachee.GetMap() == 5001)
@@ -469,7 +469,7 @@ namespace Scripts
                     a = a | 2;
                     ScriptDaemon.npc_set(attachee, 2);
                     var badger = GameSystems.MapObject.CreateObject(14371, new locXY(493, 487));
-                    GameObjectBody pc = null;
+                    GameObject pc = null;
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
                         if ((obj.DistanceTo(badger) <= 25 && !Utilities.critter_is_unconscious(obj)))
@@ -575,7 +575,7 @@ namespace Scripts
 
             return 0;
         }
-        public static int is_canine_companion(GameObjectBody testee)
+        public static int is_canine_companion(GameObject testee)
         {
             // 14049 - attack dog
             // 14050 - wolf
@@ -597,10 +597,10 @@ namespace Scripts
 
             return 0;
         }
-        public static void traders_reveal(GameObjectBody triggerer, int rev_id)
+        public static void traders_reveal(GameObject triggerer, int rev_id)
         {
-            GameObjectBody gremag = null;
-            GameObjectBody rannos = null;
+            GameObject gremag = null;
+            GameObject rannos = null;
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_NPC))
             {
                 if ((obj.GetNameId() == 8049))
@@ -635,12 +635,12 @@ namespace Scripts
 
             return;
         }
-        public static void traders_reveal_pt2(GameObjectBody triggerer, int rev_id, GameObjectBody gremag, GameObjectBody rannos, int line)
+        public static void traders_reveal_pt2(GameObject triggerer, int rev_id, GameObject gremag, GameObject rannos, int line)
         {
             triggerer.BeginDialog(rannos, line);
             return;
         }
-        public static void traders_runoff(GameObjectBody attachee)
+        public static void traders_runoff(GameObject attachee)
         {
             AttachParticles("orb-summon-fire-elemental", PartyLeader);
             var gremag = Utilities.find_npc_near(attachee, 8049);
@@ -668,7 +668,7 @@ namespace Scripts
             attachee.Destroy();
             return;
         }
-        public static void proactivity(GameObjectBody npc, int line_no)
+        public static void proactivity(GameObject npc, int line_no)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -681,7 +681,7 @@ namespace Scripts
 
             return;
         }
-        public static void heavily_damage(GameObjectBody npc)
+        public static void heavily_damage(GameObject npc)
         {
             // note: this script kills an NPC
             // since the san_dying is triggered, it makes the game think you killed him

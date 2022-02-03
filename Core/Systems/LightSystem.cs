@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using SharpDX.Multimedia;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
@@ -150,7 +150,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100A85F0)]
-        public void RemoveAttachedTo(GameObjectBody obj)
+        public void RemoveAttachedTo(GameObject obj)
         {
             var renderFlags = obj.GetUInt32(obj_f.render_flags);
             if ((renderFlags & 0x80000000) != 0)
@@ -282,7 +282,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a8430)]
-        public void MoveObjectLight(GameObjectBody obj, LocAndOffsets loc)
+        public void MoveObjectLight(GameObject obj, LocAndOffsets loc)
         {
             var lightHandle = obj.GetInt32(obj_f.light_handle);
             if (lightHandle != 0)
@@ -293,7 +293,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a8470)]
-        public void MoveObjectLightOffsets(GameObjectBody obj, float offsetX, float offsetY)
+        public void MoveObjectLightOffsets(GameObject obj, float offsetX, float offsetY)
         {
             var lightHandle = obj.GetInt32(obj_f.light_handle);
             if (lightHandle != 0)

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Script.Hooks;
@@ -9,11 +9,11 @@ namespace OpenTemple.Core.Systems.Pathfinding
 {
     internal readonly struct ProxListObj
     {
-        public readonly GameObjectBody obj;
+        public readonly GameObject obj;
         public readonly float radius;
         public readonly LocAndOffsets loc;
 
-        public ProxListObj(GameObjectBody obj, float radius, LocAndOffsets loc)
+        public ProxListObj(GameObject obj, float radius, LocAndOffsets loc)
         {
             this.obj = obj;
             this.radius = radius;
@@ -25,7 +25,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
     {
         private List<ProxListObj> proxListObjs;
 
-        public void Append(GameObjectBody obj)
+        public void Append(GameObject obj)
         {
             if (proxListObjs == null)
             {
@@ -34,7 +34,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
             proxListObjs.Add(new ProxListObj(obj, obj.GetRadius(), obj.GetLocationFull()));
         }
 
-        public void Append(GameObjectBody obj, float radius)
+        public void Append(GameObject obj, float radius)
         {
             if (proxListObjs == null)
             {

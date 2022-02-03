@@ -1,5 +1,5 @@
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.Anim;
@@ -15,21 +15,21 @@ namespace OpenTemple.Core.Systems.AI
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        public GameObjectBody obj;
-        public GameObjectBody target;
+        public GameObject obj;
+        public GameObject target;
         public AiFightStatus aiFightStatus;
         public int aiState2; // 1 - cast spell, 3 - use skill,  4 - scout point
         public int spellEnum;
         public SkillId skillEnum;
-        public GameObjectBody scratchObj;
-        public GameObjectBody leader;
+        public GameObject scratchObj;
+        public GameObject leader;
         public int soundMap;
         public D20SpellData spellData;
         public int field3C;
         public SpellPacketBody spellPktBod;
 
         [TempleDllLocation(0x1005af90)]
-        public AiPacket(GameObjectBody objIn)
+        public AiPacket(GameObject objIn)
         {
             obj = objIn;
             spellEnum = 10000;
@@ -189,7 +189,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005aff0)]
-        public bool ShouldUseHealSpellOn(GameObjectBody handle, bool healSpellRecommended)
+        public bool ShouldUseHealSpellOn(GameObject handle, bool healSpellRecommended)
         {
             target = handle;
             if (GameSystems.Critter.IsDeadNullDestroyed(handle))
@@ -283,7 +283,7 @@ namespace OpenTemple.Core.Systems.AI
         {
             if (GameSystems.Critter.IsSleeping(obj))
                 return;
-            GameObjectBody focus = null;
+            GameObject focus = null;
             switch (aiFightStatus)
             {
                 case AiFightStatus.FINDING_HELP: // for AI with scout points
@@ -334,31 +334,31 @@ namespace OpenTemple.Core.Systems.AI
                     }
 
                     focus = obj.GetObject(obj_f.npc_who_hit_me_last);
-                    this.target = focus;
+                    target = focus;
                     if (GameSystems.AI.ConsiderTarget(obj, focus))
                     {
                         ChooseRandomSpell_RegardInvulnerableStatus();
-                        this.aiFightStatus =
+                        aiFightStatus =
                             GameSystems.AI.UpdateAiFlags(obj, AiFightStatus.FIGHTING, target, ref soundMap);
                         return;
                     }
 
                     focus = PickRandomFromAiList();
-                    this.target = focus;
+                    target = focus;
                     if (focus == null)
                     {
-                        this.aiFightStatus =
+                        aiFightStatus =
                             GameSystems.AI.UpdateAiFlags(obj, AiFightStatus.NONE, null, ref soundMap);
                         return;
                     }
 
                     ChooseRandomSpell_RegardInvulnerableStatus();
-                    this.aiFightStatus =
+                    aiFightStatus =
                         GameSystems.AI.UpdateAiFlags(obj, AiFightStatus.FIGHTING, target, ref soundMap);
                     return;
                 case AiFightStatus.FLEEING:
                     if (target == null)
-                        this.aiFightStatus =
+                        aiFightStatus =
                             GameSystems.AI.UpdateAiFlags(obj, AiFightStatus.NONE, null, ref soundMap);
                     break;
                 case AiFightStatus.SURRENDERED:
@@ -424,7 +424,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005d620)]
-        public GameObjectBody PickRandomFromAiList()
+        public GameObject PickRandomFromAiList()
         {
             GameSystems.AI.AiListRemove(obj, null, 0);
 
@@ -449,7 +449,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005d580)]
-        public GameObjectBody ConsiderCombatFocus()
+        public GameObject ConsiderCombatFocus()
         {
             var objBody = obj;
             var curCombatFocus = objBody.GetObject(obj_f.npc_combat_focus);
@@ -593,7 +593,7 @@ namespace OpenTemple.Core.Systems.AI
                 return;
             }
 
-            if (!GameSystems.Spell.IsSpellHarmful(this.spellData.spellEnumOrg, obj, target))
+            if (!GameSystems.Spell.IsSpellHarmful(spellData.spellEnumOrg, obj, target))
                 return;
 
 
@@ -614,7 +614,7 @@ namespace OpenTemple.Core.Systems.AI
         [TempleDllLocation(0x10057ec0)]
         public void UseItem()
         {
-            if (this.spellEnum == 0)
+            if (spellEnum == 0)
             {
                 return;
             }
@@ -694,7 +694,7 @@ namespace OpenTemple.Core.Systems.AI
             if (!GameSystems.Anim.GetFirstRunSlotId(obj).IsNull)
                 return;
 
-            if (GameSystems.AI.RefuseFollowCheck(this.obj, this.leader)
+            if (GameSystems.AI.RefuseFollowCheck(obj, leader)
                 && GameSystems.Critter.RemoveFollower(obj, false))
             {
                 GameUiBridge.UpdatePartyUi();

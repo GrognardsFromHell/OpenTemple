@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(323)]
     public class NulbVillageWoman : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(958) == 1))
             {
@@ -48,7 +48,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(958) == 2))
             {
@@ -58,7 +58,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -67,7 +67,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(958) == 1))
             {
@@ -97,7 +97,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -110,7 +110,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool get_sick(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_sick(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_PC))
             {
@@ -122,7 +122,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int all_die(GameObjectBody attachee, GameObjectBody triggerer)
+        public static int all_die(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(958, 7);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -133,7 +133,7 @@ namespace Scripts
 
             return 1;
         }
-        public static bool stop_watch(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool stop_watch(GameObject attachee, GameObject triggerer)
         {
             StartTimer(36000000, () => all_dead()); // 10 hours
             SetGlobalVar(958, 6);

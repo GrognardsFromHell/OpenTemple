@@ -24,7 +24,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         {
             this.origin = origin;
             this.radius = radius;
-            this.radiusSquared = radius * radius;
+            radiusSquared = radius * radius;
 
             NEGSIN_AngleMin = -MathF.Sin(coneStartAngleRad);
             COS_AngleMin = MathF.Cos(coneStartAngleRad);

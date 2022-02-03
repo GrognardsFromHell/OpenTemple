@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,37 +23,37 @@ namespace Scripts
 
     public class Scripts
     {
-        public static void npc_1(GameObjectBody attachee)
+        public static void npc_1(GameObject attachee)
         {
             attachee.SetInt(obj_f.npc_pad_i_3, 1);
             return;
         }
-        public static void npc_2(GameObjectBody attachee)
+        public static void npc_2(GameObject attachee)
         {
             attachee.SetInt(obj_f.npc_pad_i_4, 1);
             return;
         }
-        public static void npc_3(GameObjectBody attachee)
+        public static void npc_3(GameObject attachee)
         {
             attachee.SetInt(obj_f.npc_pad_i_5, 1);
             return;
         }
-        public static void npc_1_undo(GameObjectBody attachee)
+        public static void npc_1_undo(GameObject attachee)
         {
             attachee.SetInt(obj_f.npc_pad_i_3, 0);
             return;
         }
-        public static void npc_2_undo(GameObjectBody attachee)
+        public static void npc_2_undo(GameObject attachee)
         {
             attachee.SetInt(obj_f.npc_pad_i_4, 0);
             return;
         }
-        public static void npc_3_undo(GameObjectBody attachee)
+        public static void npc_3_undo(GameObject attachee)
         {
             attachee.SetInt(obj_f.npc_pad_i_5, 0);
             return;
         }
-        public static bool get_1(GameObjectBody attachee)
+        public static bool get_1(GameObject attachee)
         {
             var x1 = attachee.GetInt(obj_f.npc_pad_i_3);
             if (x1 != 0)
@@ -63,7 +63,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool get_2(GameObjectBody attachee)
+        public static bool get_2(GameObject attachee)
         {
             var x2 = attachee.GetInt(obj_f.npc_pad_i_4);
             if (x2 != 0)
@@ -73,7 +73,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool get_3(GameObjectBody attachee)
+        public static bool get_3(GameObject attachee)
         {
             var x3 = attachee.GetInt(obj_f.npc_pad_i_5);
             if (x3 != 0)
@@ -83,12 +83,12 @@ namespace Scripts
 
             return false;
         }
-        public static void oflag_1(GameObjectBody attachee)
+        public static void oflag_1(GameObject attachee)
         {
             attachee.SetInt(obj_f.item_pad_i_1, 1);
             return;
         }
-        public static bool get_of1(GameObjectBody attachee)
+        public static bool get_of1(GameObject attachee)
         {
             var x4 = attachee.GetInt(obj_f.item_pad_i_1);
             if (x4 != 0)
@@ -98,22 +98,22 @@ namespace Scripts
 
             return false;
         }
-        public static void npcvar_1(GameObjectBody attachee, int var)
+        public static void npcvar_1(GameObject attachee, int var)
         {
             attachee.SetInt(obj_f.npc_pad_i_3, var);
             return;
         }
-        public static void npcvar_2(GameObjectBody attachee, int var)
+        public static void npcvar_2(GameObject attachee, int var)
         {
             attachee.SetInt(obj_f.npc_pad_i_4, var);
             return;
         }
-        public static void npcvar_3(GameObjectBody attachee, int var)
+        public static void npcvar_3(GameObject attachee, int var)
         {
             attachee.SetInt(obj_f.npc_pad_i_5, var);
             return;
         }
-        public static int getvar_1(GameObjectBody attachee)
+        public static int getvar_1(GameObject attachee)
         {
             var x1 = attachee.GetInt(obj_f.npc_pad_i_3);
             if (x1 != 0)
@@ -123,7 +123,7 @@ namespace Scripts
 
             return 0;
         }
-        public static int getvar_2(GameObjectBody attachee)
+        public static int getvar_2(GameObject attachee)
         {
             var x2 = attachee.GetInt(obj_f.npc_pad_i_4);
             if (x2 != 0)
@@ -133,7 +133,7 @@ namespace Scripts
 
             return 0;
         }
-        public static int getvar_3(GameObjectBody attachee)
+        public static int getvar_3(GameObject attachee)
         {
             var x3 = attachee.GetInt(obj_f.npc_pad_i_5);
             if (x3 != 0)
@@ -143,7 +143,7 @@ namespace Scripts
 
             return 0;
         }
-        public static bool bluff(GameObjectBody attachee, GameObjectBody triggerer, int dc)
+        public static bool bluff(GameObject attachee, GameObject triggerer, int dc)
         {
             var x = RandomRange(1, 20);
             var y = x + triggerer.GetSkillLevel(attachee, SkillId.bluff);
@@ -154,7 +154,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool dipl(GameObjectBody attachee, GameObjectBody triggerer, int dc)
+        public static bool dipl(GameObject attachee, GameObject triggerer, int dc)
         {
             var a = RandomRange(1, 20);
             var b = a + triggerer.GetSkillLevel(attachee, SkillId.diplomacy);
@@ -165,7 +165,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool intim(GameObjectBody attachee, GameObjectBody triggerer, int dc)
+        public static bool intim(GameObject attachee, GameObject triggerer, int dc)
         {
             var c = RandomRange(1, 20);
             var d = c + triggerer.GetSkillLevel(attachee, SkillId.intimidate);
@@ -176,7 +176,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool info(GameObjectBody attachee, GameObjectBody triggerer, int dc)
+        public static bool info(GameObject attachee, GameObject triggerer, int dc)
         {
             var e = RandomRange(1, 20);
             var f = e + triggerer.GetSkillLevel(attachee, SkillId.gather_information);
@@ -187,7 +187,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool sense(GameObjectBody attachee, GameObjectBody triggerer, int dc)
+        public static bool sense(GameObject attachee, GameObject triggerer, int dc)
         {
             var g = RandomRange(1, 20);
             var h = g + triggerer.GetSkillLevel(attachee, SkillId.sense_motive);
@@ -198,7 +198,7 @@ namespace Scripts
 
             return false;
         }
-        public static void away(GameObjectBody attachee)
+        public static void away(GameObject attachee)
         {
             var x = attachee.Rotation;
             x = x + 3.1416f;
@@ -210,7 +210,7 @@ namespace Scripts
             attachee.Rotation = x;
             return;
         }
-        public static bool pc_only(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool pc_only(GameObject attachee, GameObject triggerer)
         {
             var d = 0;
             foreach (var mem in GameSystems.Party.PartyMembers)
@@ -241,7 +241,7 @@ namespace Scripts
 
             return;
         }
-        public static void sense_roll(GameObjectBody attachee, GameObjectBody triggerer, int dc, int ayup, int nope)
+        public static void sense_roll(GameObject attachee, GameObject triggerer, int dc, int ayup, int nope)
         {
             var i = RandomRange(1, 20);
             var j = i + triggerer.GetSkillLevel(attachee, SkillId.sense_motive);
@@ -256,7 +256,7 @@ namespace Scripts
 
             return;
         }
-        public static void intim_roll(GameObjectBody attachee, GameObjectBody triggerer, int dc, int ayup, int nope)
+        public static void intim_roll(GameObject attachee, GameObject triggerer, int dc, int ayup, int nope)
         {
             var k = RandomRange(1, 20);
             var l = k + triggerer.GetSkillLevel(attachee, SkillId.intimidate);
@@ -271,7 +271,7 @@ namespace Scripts
 
             return;
         }
-        public static void bluff_roll(GameObjectBody attachee, GameObjectBody triggerer, int dc, int ayup, int nope)
+        public static void bluff_roll(GameObject attachee, GameObject triggerer, int dc, int ayup, int nope)
         {
             var m = RandomRange(1, 20);
             var n = m + triggerer.GetSkillLevel(attachee, SkillId.bluff);
@@ -286,7 +286,7 @@ namespace Scripts
 
             return;
         }
-        public static void dipl_roll(GameObjectBody attachee, GameObjectBody triggerer, int dc, int ayup, int nope)
+        public static void dipl_roll(GameObject attachee, GameObject triggerer, int dc, int ayup, int nope)
         {
             var o = RandomRange(1, 20);
             var p = o + triggerer.GetSkillLevel(attachee, SkillId.diplomacy);
@@ -301,7 +301,7 @@ namespace Scripts
 
             return;
         }
-        public static void gath_roll(GameObjectBody attachee, GameObjectBody triggerer, int dc, int ayup, int nope)
+        public static void gath_roll(GameObject attachee, GameObject triggerer, int dc, int ayup, int nope)
         {
             var q = RandomRange(1, 20);
             var r = q + triggerer.GetSkillLevel(attachee, SkillId.gather_information);
@@ -320,7 +320,7 @@ namespace Scripts
         {
             return GameSystems.Party.AiFollowerCount;
         }
-        public static void drop_all(GameObjectBody target)
+        public static void drop_all(GameObject target)
         {
             var item = target.ItemWornAt(EquipSlot.WeaponPrimary);
             if (item != null)
@@ -349,7 +349,7 @@ namespace Scripts
 
             return;
         }
-        public static bool nothing(GameObjectBody attachee)
+        public static bool nothing(GameObject attachee)
         {
             if (attachee.IsMonsterCategory(MonsterCategory.humanoid))
             {
@@ -368,7 +368,7 @@ namespace Scripts
 
             return false;
         }
-        public static void get_something(GameObjectBody attachee)
+        public static void get_something(GameObject attachee)
         {
             if (Utilities.critter_is_unconscious(attachee) || attachee.HasCondition(SpellEffects.SpellSoundBurst) || attachee.D20Query(D20DispatcherKey.QUE_Critter_Is_Stunned))
             {
@@ -425,7 +425,7 @@ namespace Scripts
 
             return;
         }
-        public static int get_lvl(GameObjectBody attachee)
+        public static int get_lvl(GameObject attachee)
         {
             var lvl = 0;
             var la = attachee.GetStat(Stat.level_cleric);
@@ -442,7 +442,7 @@ namespace Scripts
             lvl = (la + lb + lc + ld + le + lf + lg + lh + li + lj + lk);
             return lvl;
         }
-        public static bool i_should_run(GameObjectBody attachee)
+        public static bool i_should_run(GameObject attachee)
         {
             var p = 0;
             var q = 0;
@@ -468,7 +468,7 @@ namespace Scripts
 
             return false;
         }
-        public static void run_away(GameObjectBody attachee)
+        public static void run_away(GameObject attachee)
         {
             attachee.AddCondition("sp-Fear", 0, 100, 0);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -483,7 +483,7 @@ namespace Scripts
             UiSystems.Combat.Initiative.UpdateIfNeeded();
             return;
         }
-        public static bool speaks_drac(GameObjectBody speaker)
+        public static bool speaks_drac(GameObject speaker)
         {
             if (speaker.GetStat(Stat.level_wizard) >= 1)
             {
@@ -503,7 +503,7 @@ namespace Scripts
             }
 
         }
-        public static bool speaks_goblin(GameObjectBody speaker)
+        public static bool speaks_goblin(GameObject speaker)
         {
             if ((speaker.GetRace() == RaceId.halfelf && speaker.GetSkillLevel(SkillId.decipher_script) < 1) || (speaker.GetRace() == RaceId.human && speaker.GetSkillLevel(SkillId.decipher_script) < 2))
             {
@@ -515,7 +515,7 @@ namespace Scripts
             }
 
         }
-        public static bool speaks_orc(GameObjectBody speaker)
+        public static bool speaks_orc(GameObject speaker)
         {
             if ((speaker.GetRace() == RaceId.halfelf && speaker.GetSkillLevel(SkillId.decipher_script) < 2) || (speaker.GetRace() == RaceId.human && speaker.GetSkillLevel(SkillId.decipher_script) < 3))
             {
@@ -527,7 +527,7 @@ namespace Scripts
             }
 
         }
-        public static bool bard_know(GameObjectBody triggerer, int dc)
+        public static bool bard_know(GameObject triggerer, int dc)
         {
             var take20 = RandomRange(1, 20);
             var lev = triggerer.GetStat(Stat.level_bard);
@@ -543,7 +543,7 @@ namespace Scripts
             }
 
         }
-        public static int is_married(GameObjectBody obj, int who_is_spouse__option)
+        public static int is_married(GameObject obj, int who_is_spouse__option)
         {
             // DESCRIPTION:
             // This function determines whether obj is married.

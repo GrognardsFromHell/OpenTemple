@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(582)]
     public class HbSouth : BaseObjectScript
     {
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8911))
             {
@@ -44,7 +44,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -54,7 +54,7 @@ namespace Scripts
             destroy_gear(attachee, triggerer);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var webbed = Livonya.break_free(attachee, 3);
             // MELEE TROOPS  #
@@ -485,7 +485,7 @@ namespace Scripts
             // attachee.obj_set_int(obj_f_critter_strategy, 553)
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8894))
             {
@@ -929,11 +929,11 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_close(GameObjectBody attachee, GameObjectBody obj)
+        public static bool is_close(GameObject attachee, GameObject obj)
         {
             return attachee.DistanceTo(obj) <= 15;
         }
-        public static void destroy_gear(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void destroy_gear(GameObject attachee, GameObject triggerer)
         {
             var dexterity_gloves_2 = attachee.FindItemByName(6199);
             dexterity_gloves_2.Destroy();

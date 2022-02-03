@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
@@ -83,7 +83,7 @@ namespace OpenTemple.Core.Systems.Spells
         private int spellIdSerial = 1;
 
         // supplemental info for the OnBeginRound invocation to identify whose round is beginning...
-        private GameObjectBody mSpellBeginRoundObj;
+        private GameObject mSpellBeginRoundObj;
 
         private readonly Dictionary<int, string> _skillUiMes;
         private readonly Dictionary<int, string> _spellDurationMes;
@@ -193,7 +193,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100764d0)]
-        public bool IsSpellKnown(GameObjectBody obj, int spellId, int classCode = -1, int spellLevel = -1)
+        public bool IsSpellKnown(GameObject obj, int spellId, int classCode = -1, int spellLevel = -1)
         {
             Trace.Assert(obj.IsCritter());
 
@@ -266,7 +266,7 @@ namespace OpenTemple.Core.Systems.Spells
 
         // TODO: Clean up arguments (use enums if possible)
         [TempleDllLocation(0x10079ee0)]
-        public void SpellKnownAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel, int spellStoreData,
+        public void SpellKnownAdd(GameObject obj, int spellId, int classCode, int spellLevel, int spellStoreData,
             uint mmData)
         {
             obj_f spellListField;
@@ -301,7 +301,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10075bc0)]
-        public void SpellKnownRemove(GameObjectBody critter, int spellEnum, int spellLevel, int spellClassCode)
+        public void SpellKnownRemove(GameObject critter, int spellEnum, int spellLevel, int spellClassCode)
         {
             var knownSpellsArray = critter.GetSpellArray(obj_f.critter_spells_known_idx);
             for (int i = 0; i < knownSpellsArray.Count; i++)
@@ -319,7 +319,7 @@ namespace OpenTemple.Core.Systems.Spells
 
         // TODO: Clean up arguments (use enums if possible)
         [TempleDllLocation(0x10075a10)]
-        public void SpellMemorizedAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel,
+        public void SpellMemorizedAdd(GameObject obj, int spellId, int classCode, int spellLevel,
             SpellStoreState spellStoreData,
             MetaMagicData metaMagicData = default)
         {
@@ -337,7 +337,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100766e0)]
-        public void ObjOnSpellBeginRound(GameObjectBody obj)
+        public void ObjOnSpellBeginRound(GameObject obj)
         {
             var spellIds = _activeSpells.Keys.ToImmutableSortedSet();
 
@@ -580,7 +580,7 @@ namespace OpenTemple.Core.Systems.Spells
 
         [TempleDllLocation(0x100fdec0)]
         [TempleDllLocation(0x100fdf30)]
-        public void SetSchoolSpecialization(GameObjectBody critter,
+        public void SetSchoolSpecialization(GameObject critter,
             SchoolOfMagic specializedSchool,
             SchoolOfMagic forbiddenSchool1,
             SchoolOfMagic forbiddenSchool2)
@@ -592,7 +592,7 @@ namespace OpenTemple.Core.Systems.Spells
             critter.SetInt32(obj_f.critter_school_specialization, packedValue);
         }
 
-        public bool GetSchoolSpecialization(GameObjectBody critter, out SchoolOfMagic specializedSchool,
+        public bool GetSchoolSpecialization(GameObject critter, out SchoolOfMagic specializedSchool,
             out SchoolOfMagic forbiddenSchool1, out SchoolOfMagic forbiddenSchool2)
         {
             var packedValue = critter.GetInt32(obj_f.critter_school_specialization);
@@ -603,7 +603,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100fdf00)]
-        public bool IsForbiddenSchool(GameObjectBody critter, SchoolOfMagic spSchool)
+        public bool IsForbiddenSchool(GameObject critter, SchoolOfMagic spSchool)
         {
             GetSchoolSpecialization(critter, out _, out var forbSch1, out var forbSch2);
             if (forbSch1 == spSchool || forbSch2 == spSchool)
@@ -653,7 +653,7 @@ namespace OpenTemple.Core.Systems.Spells
 
         // TODO: Fix the name
         [TempleDllLocation(0x10075da0)]
-        public bool HashMatchingClassForSpell(GameObjectBody caster, int spellEnum)
+        public bool HashMatchingClassForSpell(GameObject caster, int spellEnum)
         {
             var spEntry = GetSpellEntry(spellEnum);
             foreach (var lvlSpec in spEntry.spellLvls)
@@ -721,7 +721,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10075c60)]
-        public bool CheckAbilityScoreReqForSpell(GameObjectBody handle, int spellEnum,
+        public bool CheckAbilityScoreReqForSpell(GameObject handle, int spellEnum,
             Stat statBeingRaised = (Stat) (-1))
         {
             var spEntry = GetSpellEntry(spellEnum);
@@ -814,7 +814,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10076820)]
-        public void FloatSpellLine(GameObjectBody obj, int lineId, TextFloaterColor color,
+        public void FloatSpellLine(GameObject obj, int lineId, TextFloaterColor color,
             string prefix = null, string suffix = null)
         {
             var line = _spellMes[lineId];
@@ -838,7 +838,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100b51e0)]
-        public int DispelRoll(GameObjectBody caster, BonusList bonusList, int rollModifier, int dc, string historyText)
+        public int DispelRoll(GameObject caster, BonusList bonusList, int rollModifier, int dc, string historyText)
         {
             var result = DispelRoll(caster, bonusList, rollModifier, dc, historyText, out var historyId);
             GameSystems.RollHistory.CreateRollHistoryString(historyId);
@@ -846,7 +846,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100b51e0)]
-        public int DispelRoll(GameObjectBody caster, BonusList bonusList, int rollModifier, int dc, string historyText,
+        public int DispelRoll(GameObject caster, BonusList bonusList, int rollModifier, int dc, string historyText,
             out int rollHistId)
         {
             var dice = new Dice(1, 20, rollModifier);
@@ -929,7 +929,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100769f0)]
-        public bool IsSpellHarmful(int spellEnum, GameObjectBody caster, GameObjectBody target)
+        public bool IsSpellHarmful(int spellEnum, GameObject caster, GameObject target)
         {
             // Vanilla used a hardcoded table.
             if (spellEnum > SPELL_ENUM_MAX_VANILLA)
@@ -1529,7 +1529,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x1007a140)]
-        public bool spellCanCast(GameObjectBody caster, int spellEnum, int spellClass, int spellLevel)
+        public bool spellCanCast(GameObject caster, int spellEnum, int spellClass, int spellLevel)
         {
             List<int> classCodes = new List<int>();
             List<int> spellLevels = new List<int>();
@@ -1607,7 +1607,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x1007a370)]
-        private bool spellCanCast(GameObjectBody caster, int spellEnum)
+        private bool spellCanCast(GameObject caster, int spellEnum)
         {
             var spellClasses = new List<int>();
             var spellLevels = new List<int>();
@@ -1628,7 +1628,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100762d0)]
-        public bool SpellKnownQueryGetData(GameObjectBody obj, int spellId, List<int> classCodesOut,
+        public bool SpellKnownQueryGetData(GameObject obj, int spellId, List<int> classCodesOut,
             List<int> spellLevels)
         {
             var n = 0;
@@ -1649,7 +1649,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10076190)]
-        private void spellMemorizedQueryGetData(GameObjectBody critter, int spellEnum, List<int> classCodesOut,
+        private void spellMemorizedQueryGetData(GameObject critter, int spellEnum, List<int> classCodesOut,
             List<int> slotLevelsOut)
         {
             var numSpellsMemod = critter.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
@@ -1664,7 +1664,7 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        private bool numSpellsKnownTooHigh(GameObjectBody objHnd)
+        private bool numSpellsKnownTooHigh(GameObject objHnd)
         {
             if (objHnd.GetSpellArray(obj_f.critter_spells_known_idx).Count > MAX_SPELLS_KNOWN)
             {
@@ -1675,7 +1675,7 @@ namespace OpenTemple.Core.Systems.Spells
             return false;
         }
 
-        private bool numSpellsMemorizedTooHigh(GameObjectBody critter)
+        private bool numSpellsMemorizedTooHigh(GameObject critter)
         {
             if (critter.GetSpellArray(obj_f.critter_spells_memorized_idx).Count > MAX_SPELLS_KNOWN)
             {
@@ -1690,7 +1690,7 @@ namespace OpenTemple.Core.Systems.Spells
         /// Does the critter know any arcane spells from their class levels.
         /// </summary>
         [TempleDllLocation(0x100760e0)]
-        public bool CanCastArcaneSpells(GameObjectBody critter)
+        public bool CanCastArcaneSpells(GameObject critter)
         {
             if ((critter.GetCritterFlags() & CritterFlag.HAS_ARCANE_ABILITY) != 0)
             {
@@ -1709,13 +1709,13 @@ namespace OpenTemple.Core.Systems.Spells
             return false;
         }
 
-        public int GetNumSpellsPerDay(GameObjectBody caster, Stat classCode, in int spellLvl)
+        public int GetNumSpellsPerDay(GameObject caster, Stat classCode, in int spellLvl)
         {
             var effLvl = GameSystems.Critter.GetSpellListLevelExtension(caster, classCode) + caster.GetStat(classCode);
             return D20ClassSystem.GetNumSpellsFromClass(caster, classCode, spellLvl, effLvl);
         }
 
-        public int NumSpellsInLevel(GameObjectBody caster, obj_f spellField, int spellClass, int spellLvl)
+        public int NumSpellsInLevel(GameObject caster, obj_f spellField, int spellClass, int spellLvl)
         {
             var spArray = caster.GetSpellArray(spellField);
             var N = spArray.Count;
@@ -1824,7 +1824,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10077270)]
-        public int GetSpellRange(SpellEntry spellEntry, in int casterLevel, GameObjectBody caster)
+        public int GetSpellRange(SpellEntry spellEntry, in int casterLevel, GameObject caster)
         {
             var spellRangeType = spellEntry.spellRangeType;
             if (spellRangeType == SpellRangeType.SRT_Specified)
@@ -1836,7 +1836,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100771e0)]
-        public int GetSpellRangeExact(SpellRangeType spellRangeType, int casterLevel, GameObjectBody caster)
+        public int GetSpellRangeExact(SpellRangeType spellRangeType, int casterLevel, GameObject caster)
         {
             switch (spellRangeType)
             {
@@ -1861,7 +1861,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100772a0)]
-        public void PickerArgsFromSpellEntry(SpellEntry spEntry, PickerArgs args, GameObjectBody caster,
+        public void PickerArgsFromSpellEntry(SpellEntry spEntry, PickerArgs args, GameObject caster,
             int casterLvl, int? radiusTargetOverride = null)
         {
             var radiusTarget = radiusTargetOverride.GetValueOrDefault(spEntry.radiusTarget);
@@ -2034,7 +2034,7 @@ namespace OpenTemple.Core.Systems.Spells
         /// <summary>
         /// Try to find the right id for the spell to counter with.
         /// </summary>
-        public int FindCounterSpellId(GameObjectBody caster, int spellEnum, int spellLevel)
+        public int FindCounterSpellId(GameObject caster, int spellEnum, int spellLevel)
         {
             if (TryGetCounterSpell(spellEnum, out var specificCounterSpell))
             {
@@ -2074,7 +2074,7 @@ namespace OpenTemple.Core.Systems.Spells
             return 0;
         }
 
-        private IEnumerable<SpellStoreData> EnumerateMemorizedSpells(GameObjectBody caster)
+        private IEnumerable<SpellStoreData> EnumerateMemorizedSpells(GameObject caster)
         {
             var spellArray = caster.GetSpellArray(obj_f.critter_spells_memorized_idx);
 
@@ -2085,7 +2085,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10078d90)]
-        public bool TryGetMemorizedSpell(GameObjectBody caster, int spellEnum, out SpellStoreData spellData)
+        public bool TryGetMemorizedSpell(GameObject caster, int spellEnum, out SpellStoreData spellData)
         {
             foreach (var memorizedSpell in EnumerateMemorizedSpells(caster))
             {
@@ -2101,7 +2101,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10075a90)]
-        public void DeleteMemorizedSpell(GameObjectBody critter, int spellEnum)
+        public void DeleteMemorizedSpell(GameObject critter, int spellEnum)
         {
             var memorizedSpells = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
 
@@ -2120,7 +2120,7 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        public bool IsNaturalSpellsPerDayDepleted(GameObjectBody critter, int spellLvl, int spellClass)
+        public bool IsNaturalSpellsPerDayDepleted(GameObject critter, int spellLvl, int spellClass)
         {
             var classCode = GetCastingClass(spellClass);
 
@@ -2131,7 +2131,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10079030)]
-        public bool GetSpellTargets(GameObjectBody obj, GameObjectBody tgt, SpellPacketBody spellPkt, int spellEnum)
+        public bool GetSpellTargets(GameObject obj, GameObject tgt, SpellPacketBody spellPkt, int spellEnum)
         {
             // returns targets using the picker function
             if (!TryGetSpellEntry(spellEnum, out var spEntry))
@@ -2209,7 +2209,7 @@ namespace OpenTemple.Core.Systems.Spells
                         targetCount = args.maxTargets;
                     }
 
-                    var targets = new GameObjectBody[targetCount];
+                    var targets = new GameObject[targetCount];
                     Array.Fill(targets, target);
                     spPkt.SetTargets(targets);
                     spPkt.InitialTargets = targets.ToImmutableSortedSet();
@@ -2222,8 +2222,8 @@ namespace OpenTemple.Core.Systems.Spells
             }
             else
             {
-                spPkt.SetTargets(Array.Empty<GameObjectBody>());
-                spPkt.InitialTargets = ImmutableSortedSet<GameObjectBody>.Empty;
+                spPkt.SetTargets(Array.Empty<GameObject>());
+                spPkt.InitialTargets = ImmutableSortedSet<GameObject>.Empty;
             }
 
             if ((flags & PickerResultFlags.PRF_HAS_MULTI_OBJ) != default)
@@ -2270,7 +2270,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100c3220)]
-        public void PlayFizzle(GameObjectBody caster)
+        public void PlayFizzle(GameObject caster)
         {
             GameSystems.ParticleSys.CreateAtObj("Fizzle", caster);
             GameSystems.SoundGame.PositionalSound(17122, caster);
@@ -2301,7 +2301,7 @@ namespace OpenTemple.Core.Systems.Spells
 
         // TODO: This needs to be replaced with code from D20ClassSystem
         [TempleDllLocation(0x100765b0)]
-        public int GetMaxSpellLevel(GameObjectBody caster, Stat classCode, int casterLvl = 0)
+        public int GetMaxSpellLevel(GameObject caster, Stat classCode, int casterLvl = 0)
         {
             Stat abilityType;
 
@@ -2395,7 +2395,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x1007b210)]
-        public IEnumerable<SpellEntry> EnumerateLearnableSpells(GameObjectBody caster)
+        public IEnumerable<SpellEntry> EnumerateLearnableSpells(GameObject caster)
         {
             foreach (var spellEntry in _spells)
             {
@@ -2407,7 +2407,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10075eb0)]
-        private bool SpellLearnableByObj(GameObjectBody caster, Stat classCode, in SpellEntry spEntry)
+        private bool SpellLearnableByObj(GameObject caster, Stat classCode, in SpellEntry spEntry)
         {
             var isCleric = false;
             foreach (var spellLevel in spEntry.spellLvls)
@@ -2512,7 +2512,7 @@ namespace OpenTemple.Core.Systems.Spells
 
         // TODO: This actually hardcodes the staff's caster level at 7
         [TempleDllLocation(0x10079db0)]
-        public bool CreateSpellPacketForStaff(int spellEnum, GameObjectBody caster, out SpellPacketBody spellPacket)
+        public bool CreateSpellPacketForStaff(int spellEnum, GameObject caster, out SpellPacketBody spellPacket)
         {
             if (!TryGetSpellEntry(spellEnum, out var spellEntry))
             {
@@ -2591,7 +2591,7 @@ namespace OpenTemple.Core.Systems.Spells
         /// </summary>
         /// <param name="obj"></param>
         [TempleDllLocation(0x10076370)]
-        public bool IsAffectedBySpell(GameObjectBody obj)
+        public bool IsAffectedBySpell(GameObject obj)
         {
             foreach (var activeSpell in ActiveSpells)
             {
@@ -2606,7 +2606,7 @@ namespace OpenTemple.Core.Systems.Spells
 
         // This was a hook applied in a DLLfix before, hence the high address
         [TempleDllLocation(0x11eb630c)]
-        public void SanitizeSpellSlots(GameObjectBody caster)
+        public void SanitizeSpellSlots(GameObject caster)
         {
             foreach (var statClass in D20ClassSystem.ClassesWithSpellLists)
             {
@@ -2617,7 +2617,7 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        private int GetMemorizedSpellCount(GameObjectBody caster, Stat classCode, int slotLvl)
+        private int GetMemorizedSpellCount(GameObject caster, Stat classCode, int slotLvl)
         {
             var numMemorizedThisLvl = 0;
             var memorizedTotal = caster.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
@@ -2635,7 +2635,7 @@ namespace OpenTemple.Core.Systems.Spells
             return numMemorizedThisLvl;
         }
 
-        private void RemoveSurplusSpells(int surplus, GameObjectBody caster, Stat classCode, int slotLvl)
+        private void RemoveSurplusSpells(int surplus, GameObject caster, Stat classCode, int slotLvl)
         {
             var numMemorized = caster.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
             var spellClassCode = GetSpellClass(classCode);
@@ -2652,7 +2652,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100758a0)]
-        public bool SpellRemoveFromStorage(GameObjectBody caster, obj_f field, SpellStoreData spellToRemove,
+        public bool SpellRemoveFromStorage(GameObject caster, obj_f field, SpellStoreData spellToRemove,
             int spellsStoredFlags)
         {
             var spellArray = caster.GetSpellArray(field);
@@ -2677,7 +2677,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x11eb64c8)]
-        private void SanitizeSpellSlots(GameObjectBody caster, Stat statClass)
+        private void SanitizeSpellSlots(GameObject caster, Stat statClass)
         {
             for (var slotLvl = 1; slotLvl < 10; slotLvl++)
             {
@@ -2699,7 +2699,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100757d0)]
-        public void PendingSpellsToMemorized(GameObjectBody caster)
+        public void PendingSpellsToMemorized(GameObject caster)
         {
             var spellsMemo = caster.GetSpellArray(obj_f.critter_spells_memorized_idx);
             for (var i = 0; i < spellsMemo.Count; i++)
@@ -2713,7 +2713,7 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        public void SpellsPendingToMemorizedByClass(GameObjectBody caster, Stat classEnum)
+        public void SpellsPendingToMemorizedByClass(GameObject caster, Stat classEnum)
         {
             var spellsMemo = caster.GetSpellArray(obj_f.critter_spells_memorized_idx);
             if (classEnum == (Stat) (-1))
@@ -2779,7 +2779,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TemplePlusLocation("spell.cpp")]
-        public void SpellsCastReset(GameObjectBody caster, Stat? forClass = null)
+        public void SpellsCastReset(GameObject caster, Stat? forClass = null)
         {
             if (!forClass.HasValue)
             {
@@ -2802,7 +2802,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10075210)]
-        public int GetTotalSpellsPerDay(GameObjectBody critter, in int classCode)
+        public int GetTotalSpellsPerDay(GameObject critter, in int classCode)
         {
             if (IsDomainSpell(classCode))
             {
@@ -2823,7 +2823,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100751a0)]
-        public int SpellNumByFieldAndClass(GameObjectBody critter, obj_f field, int spellClassCode)
+        public int SpellNumByFieldAndClass(GameObject critter, obj_f field, int spellClassCode)
         {
             var count = 0;
             var array = critter.GetSpellArray(field);
@@ -2839,7 +2839,7 @@ namespace OpenTemple.Core.Systems.Spells
             return count;
         }
 
-        private SpellSlot[] GetSpellSlots(GameObjectBody caster, Stat classCode, int spellLvl, int classLvl)
+        private SpellSlot[] GetSpellSlots(GameObject caster, Stat classCode, int spellLvl, int classLvl)
         {
             // Get spells per day without the bonus spells from attribute
             var slotsFromClass = D20ClassSystem.GetNumSpellsFromClass(caster, classCode, spellLvl, classLvl, false);
@@ -2874,7 +2874,7 @@ namespace OpenTemple.Core.Systems.Spells
             return result;
         }
 
-        public List<SpellsPerDay> GetSpellsPerDay(GameObjectBody critter)
+        public List<SpellsPerDay> GetSpellsPerDay(GameObject critter)
         {
             var result = new List<SpellsPerDay>();
 
@@ -2928,7 +2928,7 @@ namespace OpenTemple.Core.Systems.Spells
             return result;
         }
 
-        public void UpdateMemorizedSpells(GameObjectBody critter, SpellsPerDay spellsPerDay)
+        public void UpdateMemorizedSpells(GameObject critter, SpellsPerDay spellsPerDay)
         {
             var memorizedSpells = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
             var domainSpells = IsDomainSpell(spellsPerDay.ClassCode);
@@ -2980,7 +2980,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x101b5ad0)]
-        public bool SpellOpposesAlignment(GameObjectBody caster, int castingClass, int spellEnum)
+        public bool SpellOpposesAlignment(GameObject caster, int castingClass, int spellEnum)
         {
             if (IsDomainSpell(castingClass) || GetCastingClass(castingClass) == Stat.level_cleric)
             {

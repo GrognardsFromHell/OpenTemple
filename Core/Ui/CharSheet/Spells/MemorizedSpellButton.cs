@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;

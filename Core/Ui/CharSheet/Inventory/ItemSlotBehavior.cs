@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -37,21 +37,21 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
         private readonly WidgetBase _slotWidget;
 
-        private readonly Func<GameObjectBody> _currentItemSupplier;
+        private readonly Func<GameObject> _currentItemSupplier;
 
-        private readonly Func<GameObjectBody> _actingCritterSupplier;
+        private readonly Func<GameObject> _actingCritterSupplier;
 
-        private GameObjectBody CurrentItem => _currentItemSupplier();
+        private GameObject CurrentItem => _currentItemSupplier();
 
-        private GameObjectBody ActingCritter => _actingCritterSupplier();
+        private GameObject ActingCritter => _actingCritterSupplier();
 
         public bool AllowShowInfo { get; set; }
 
         public ItemSlotMode Mode { get; set; } = ItemSlotMode.Inventory;
 
         public ItemSlotBehavior(WidgetBase slotWidget,
-            Func<GameObjectBody> currentItemSupplier,
-            Func<GameObjectBody> actingCritterSupplier)
+            Func<GameObject> currentItemSupplier,
+            Func<GameObject> actingCritterSupplier)
         {
             _slotWidget = slotWidget;
             _currentItemSupplier = currentItemSupplier;
@@ -225,12 +225,12 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
         }
 
 
-        private static bool IsSplittable(GameObjectBody item, out int quantity)
+        private static bool IsSplittable(GameObject item, out int quantity)
         {
             return item.TryGetQuantity(out quantity) && quantity > 1 && item.type != ObjectType.money;
         }
 
-        private void Insert(GameObjectBody critter, GameObjectBody item, PaperdollSlotWidget targetSlotWidget)
+        private void Insert(GameObject critter, GameObject item, PaperdollSlotWidget targetSlotWidget)
         {
             if (!AttemptEquipmentChangeInCombat(critter, item))
             {
@@ -249,7 +249,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private void UnequipItem(GameObjectBody item, GameObjectBody critter)
+        private void UnequipItem(GameObject item, GameObject critter)
         {
             if (!AttemptEquipmentChangeInCombat(critter, item))
             {
@@ -264,7 +264,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private void EquipItem(GameObjectBody item, GameObjectBody critter)
+        private void EquipItem(GameObject item, GameObject critter)
         {
             if (!AttemptEquipmentChangeInCombat(critter, item))
             {
@@ -286,10 +286,10 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private static void UseItem(GameObjectBody critter, GameObjectBody item)
+        private static void UseItem(GameObject critter, GameObject item)
         {
             Logger.Info("Use item via dragging.");
-            var soundId = GameSystems.SoundMap.CombatFindWeaponSound(item, critter, null, 2);
+            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(item, critter, null, 2);
             GameSystems.SoundGame.PositionalSound(soundId, 1, critter);
 
             if (GameSystems.Script.ExecuteObjectScript(critter, item, 0, ObjScriptEvent.Use) == 0)
@@ -322,11 +322,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private static void DropItem(GameObjectBody critter, GameObjectBody item)
+        private static void DropItem(GameObject critter, GameObject item)
         {
             Logger.Info("Dropping item via drag&drop");
 
-            var soundId = GameSystems.SoundMap.CombatFindWeaponSound(item, critter, null, 1);
+            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(item, critter, null, 1);
             GameSystems.SoundGame.PositionalSound(soundId, 1, critter);
 
             if (IsSplittable(item, out var quantity))
@@ -346,7 +346,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private void InsertIntoLootContainer(GameObjectBody critter, GameObjectBody item, int msg)
+        private void InsertIntoLootContainer(GameObject critter, GameObject item, int msg)
         {
             var target = UiSystems.CharSheet.Looting.LootingContainer;
             ItemInsertFlag insertFlags;
@@ -393,7 +393,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private void InsertIntoBarterContainer(GameObjectBody critter, GameObjectBody item, int msg)
+        private void InsertIntoBarterContainer(GameObject critter, GameObject item, int msg)
         {
             var buyer = UiSystems.CharSheet.Looting.LootingContainer;
             if (!buyer.IsCritter())
@@ -444,7 +444,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private void InsertIntoPartyPortrait(GameObjectBody critter, GameObjectBody item, GameObjectBody partyMember)
+        private void InsertIntoPartyPortrait(GameObject critter, GameObject item, GameObject partyMember)
         {
             if (partyMember == critter
                 || !UiSystems.CharSheet.Inventory.IsCloseEnoughToTransferItem(critter, partyMember)
@@ -474,7 +474,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private void InsertIntoInventorySlot(GameObjectBody critter, GameObjectBody item, int invIdx)
+        private void InsertIntoInventorySlot(GameObject critter, GameObject item, int invIdx)
         {
             if (!AttemptEquipmentChangeInCombat(critter, item))
             {
@@ -494,7 +494,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private bool AttemptEquipmentChangeInCombat(GameObjectBody critter, GameObjectBody item)
+        private bool AttemptEquipmentChangeInCombat(GameObject critter, GameObject item)
         {
             if (!GameSystems.Combat.IsCombatActive())
             {

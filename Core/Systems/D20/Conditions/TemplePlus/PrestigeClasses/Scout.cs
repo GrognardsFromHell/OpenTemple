@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -141,7 +141,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         // Checks for a load greater than light or armor greater than light
         // (to enable skrimish, battle fortitude and fast movement)
-        public static bool ScoutEncumberedCheck(GameObjectBody obj)
+        public static bool ScoutEncumberedCheck(GameObject obj)
         {
             // Light armor or no armor
             if (!obj.IsWearingLightArmorOrLess())
@@ -166,7 +166,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         }
 
         // Calculate the skrimish bonus for the scout
-        public static int GetSkirmishACBonus(GameObjectBody obj)
+        public static int GetSkirmishACBonus(GameObject obj)
         {
             var scoutLevel = (float) obj.GetStat(ClassId);
             var bonusValue = (int) ((scoutLevel + 1f) / 4f);
@@ -174,7 +174,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         }
 
         // Damage Bonus:  1- 1d5, 5- 2d6, 9-3d6, 13- 4d6, 17 - 5d6
-        public static Dice GetSkirmishDamageDice(GameObjectBody obj)
+        public static Dice GetSkirmishDamageDice(GameObject obj)
         {
             var scoutLevel = (float) obj.GetStat(ClassId);
             var bonusValue = (int) ((scoutLevel - 1) / 4f + 1);
@@ -348,7 +348,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         #region Battle Fortitude
 
-        public static int GetBattleFortitudeBonus(GameObjectBody obj)
+        public static int GetBattleFortitudeBonus(GameObject obj)
         {
             var scoutLevel = obj.GetStat(ClassId);
             if (scoutLevel < 2)

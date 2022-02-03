@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -26,7 +26,7 @@ namespace Scripts
 
     public static class InventoryRespawn
     {
-        public static void RespawnInventory(GameObjectBody attachee)
+        public static void RespawnInventory(GameObject attachee)
         {
             GameSystems.Item.SpawnInventorySource(attachee);
         }

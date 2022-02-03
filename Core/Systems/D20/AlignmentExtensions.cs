@@ -1,31 +1,31 @@
-﻿using OpenTemple.Core.GameObject;
+﻿using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.D20
 {
     public static class AlignmentExtensions
     {
 
-        public static Alignment GetAlignment(this GameObjectBody critter)
+        public static Alignment GetAlignment(this GameObject critter)
         {
             return (Alignment)critter.GetInt32(obj_f.critter_alignment);
         }
 
-        public static bool HasLawfulAlignment(this GameObjectBody critter)
+        public static bool HasLawfulAlignment(this GameObject critter)
         {
             return (critter.GetAlignment() & Alignment.LAWFUL) != 0;
         }
 
-        public static bool HasChaoticAlignment(this GameObjectBody critter)
+        public static bool HasChaoticAlignment(this GameObject critter)
         {
             return (critter.GetAlignment() & Alignment.CHAOTIC) != 0;
         }
 
-        public static bool HasGoodAlignment(this GameObjectBody critter)
+        public static bool HasGoodAlignment(this GameObject critter)
         {
             return (critter.GetAlignment() & Alignment.GOOD) != 0;
         }
 
-        public static bool HasEvilAlignment(this GameObjectBody critter)
+        public static bool HasEvilAlignment(this GameObject critter)
         {
             return (critter.GetAlignment() & Alignment.EVIL) != 0;
         }

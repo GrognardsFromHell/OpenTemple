@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -36,7 +36,7 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Wail of the Banshee OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             var banshee_targets = spell.casterLevel;
             AttachParticles("sp-Shout", spell.caster);
             SpawnParticles("sp-Dispel Magic - Area", spell.aoeCenter);

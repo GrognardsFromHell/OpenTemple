@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(359)]
     public class Attorney : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((GetGlobalVar(969) == 1))
@@ -37,7 +37,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(969) == 2))
             {
@@ -50,7 +50,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -81,7 +81,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 20))
             {
@@ -90,7 +90,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool clear_reps(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool clear_reps(GameObject attachee, GameObject triggerer)
         {
             PartyLeader.RemoveReputation(35); // Constable Killer
             PartyLeader.RemoveReputation(34); // Slaughterer of Verbobonc

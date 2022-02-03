@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -500,7 +500,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x1018acd0)]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             if (playerObj != null)
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(285)]
     public class Box : BaseObjectScript
     {
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             var loc = triggerer.GetLocation();
             var npc = GameSystems.MapObject.CreateObject(14687, loc);
@@ -32,7 +32,7 @@ namespace Scripts
         }
         // zombies
 
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             // def san_start_combat( attachee, triggerer ): ## zombies
             var randy1 = RandomRange(1, 22);
@@ -54,7 +54,7 @@ namespace Scripts
             // Spiritual_Weapon_Begone( attachee )
             return RunDefault;
         }
-        public override bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             // print "py000285Box Insert Item. Attachee: " + str(attachee) + " Triggerer: " + str(triggerer)
             // Bonus now doesn't stack in Temple+ - so this workaround is no longer necessary -SA

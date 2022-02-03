@@ -97,7 +97,7 @@ namespace OpenTemple.Core.AAS
             this.spheres = spheres;
             this.cylinders = cylinders;
 
-            this.clothVertexCount = clothVertexPos.Length;
+            clothVertexCount = clothVertexPos.Length;
             _vertexPosBuffer = new Vector4[2 * clothVertexPos.Length];
 
             // separate the buffer into two parts (first half, second half)
@@ -111,33 +111,33 @@ namespace OpenTemple.Core.AAS
            Trace.Assert(bytePerClothVertex.Length == clothVertexPos.Length);
            bytePerVertex = bytePerClothVertex.ToArray();
 
-            this.boneDistancesCount = 0;
-            this.boneDistancesCountDelta = 0;
-            this.boneDistances = null;
+            boneDistancesCount = 0;
+            boneDistancesCountDelta = 0;
+            boneDistances = null;
 
             if (!edges.IsEmpty)
             {
-                this.boneDistances = edges.ToArray();
+                boneDistances = edges.ToArray();
 
                 SplitEdges(
-                    this.boneDistances,
+                    boneDistances,
                     bytePerClothVertex,
-                    out this.boneDistancesCount,
-                    out this.boneDistancesCountDelta);
+                    out boneDistancesCount,
+                    out boneDistancesCountDelta);
             }
 
-            this.boneDistances2Count = 0;
-            this.boneDistances2CountDelta = 0;
-            this.boneDistances2 = null;
+            boneDistances2Count = 0;
+            boneDistances2CountDelta = 0;
+            boneDistances2 = null;
             if (!indirectEdges.IsEmpty)
             {
-                this.boneDistances2 = indirectEdges.ToArray();
+                boneDistances2 = indirectEdges.ToArray();
 
                 SplitEdges(
-                    this.boneDistances2,
+                    boneDistances2,
                     bytePerClothVertex,
-                    out this.boneDistances2Count,
-                    out this.boneDistances2CountDelta);
+                    out boneDistances2Count,
+                    out boneDistances2CountDelta);
             }
             field_34_time = 0.0f;
         }

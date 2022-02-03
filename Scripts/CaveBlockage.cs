@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(597)]
     public class CaveBlockage : BaseObjectScript
     {
-        public override bool OnUse(GameObjectBody door, GameObjectBody triggerer)
+        public override bool OnUse(GameObject door, GameObject triggerer)
         {
             if ((door.GetNameId() == 1620))
             {
@@ -40,7 +40,7 @@ namespace Scripts
             }
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (((GetGlobalVar(980) == 2) || (GetGlobalVar(981) == 2) || (GetGlobalVar(982) == 2) || (GetGlobalVar(983) == 2) || (GetGlobalVar(984) == 2) && !GetGlobalFlag(531)))
             {
@@ -52,7 +52,7 @@ namespace Scripts
             }
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -67,11 +67,11 @@ namespace Scripts
             SetGlobalFlag(531, false);
             return SkipDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             return SkipDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             foreach (var target in PartyLeader.GetPartyMembers())
             {

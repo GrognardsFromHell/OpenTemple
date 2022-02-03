@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(361)]
     public class PelorCleric : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((attachee.HasMet(triggerer)))
@@ -37,7 +37,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5093 && GetGlobalVar(960) == 3))
             {
@@ -57,7 +57,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -76,7 +76,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(956) == 1))
             {
@@ -85,14 +85,14 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void respawn(GameObjectBody attachee)
+        public static void respawn(GameObject attachee)
         {
             var box = Utilities.find_container_near(attachee, 1001);
             InventoryRespawn.RespawnInventory(box);
             StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
             return;
         }
-        public static void ditch_rings(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void ditch_rings(GameObject attachee, GameObject triggerer)
         {
             var acid_major = attachee.FindItemByName(12635);
             var cold_major = attachee.FindItemByName(12634);

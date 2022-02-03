@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Systems.GameObjects

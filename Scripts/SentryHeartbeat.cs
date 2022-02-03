@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(445)]
     public class SentryHeartbeat : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetNameId() == 14181) // Water Temple Sentry
             {
@@ -70,12 +70,12 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             var dummy = 1;
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetNameId() == 14181) // Water Temple Bugbear
             {
@@ -121,7 +121,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -170,7 +170,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_safe_to_talk2(GameObjectBody speaker, GameObjectBody listener, int radius)
+        public static bool is_safe_to_talk2(GameObject speaker, GameObject listener, int radius)
         {
             if ((speaker.HasLineOfSight(listener) && listener.type == ObjectType.pc))
             {

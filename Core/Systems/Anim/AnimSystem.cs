@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.SaveGames.MapState;
@@ -110,7 +110,7 @@ namespace OpenTemple.Core.Systems.Anim
             return PushGoalInternal(stackEntry, out slotId, 0);
         }
 
-        public IEnumerable<AnimSlot> EnumerateSlots(GameObjectBody obj)
+        public IEnumerable<AnimSlot> EnumerateSlots(GameObject obj)
         {
             for (var slotIdx = GameSystems.Anim.GetFirstRunSlotIdxForObj(obj);
                 slotIdx != -1;
@@ -122,7 +122,7 @@ namespace OpenTemple.Core.Systems.Anim
 
         // TODO: Enumerable Generator
         [TempleDllLocation(0x10054E20)]
-        private int GetFirstRunSlotIdxForObj(GameObjectBody handle)
+        private int GetFirstRunSlotIdxForObj(GameObject handle)
         {
             for (int i = 0; i < mSlots.Count; i++)
             {
@@ -143,7 +143,7 @@ namespace OpenTemple.Core.Systems.Anim
 
         // TODO: Enumerable Generator
         [TempleDllLocation(0x10054E70)]
-        private int GetNextRunSlotIdxForObj(GameObjectBody handle, int startSlot)
+        private int GetNextRunSlotIdxForObj(GameObject handle, int startSlot)
         {
             for (int i = startSlot + 1; i < mSlots.Count; i++)
             {
@@ -163,7 +163,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000C430)]
-        public AnimSlotId GetFirstRunSlotId(GameObjectBody handle)
+        public AnimSlotId GetFirstRunSlotId(GameObject handle)
         {
             for (var slotIdx = GetFirstRunSlotIdxForObj(handle);
                 slotIdx != -1;
@@ -181,7 +181,7 @@ namespace OpenTemple.Core.Systems.Anim
             return AnimSlotId.Null;
         }
 
-        public bool HasRunSlot(GameObjectBody obj) => !GetFirstRunSlotId(obj).IsNull;
+        public bool HasRunSlot(GameObject obj) => !GetFirstRunSlotId(obj).IsNull;
 
         private AnimSlot GetRunSlot(int index)
         {
@@ -304,7 +304,7 @@ namespace OpenTemple.Core.Systems.Anim
         public bool fidgetDisabled;
 
         [TempleDllLocation(0x10015d70)]
-        public bool PushFidget(GameObjectBody obj)
+        public bool PushFidget(GameObject obj)
         {
             if (!obj.IsCritter())
             {
@@ -325,7 +325,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10015BB0)]
-        private bool PushFidgetInternal(GameObjectBody critter)
+        private bool PushFidgetInternal(GameObject critter)
         {
             if (!critter.IsCritter())
             {
@@ -766,7 +766,7 @@ namespace OpenTemple.Core.Systems.Anim
 
 
         [TempleDllLocation(0x1000c760)]
-        public void ClearForObject(GameObjectBody obj)
+        public void ClearForObject(GameObject obj)
         {
             if (GameSystems.LightScheme.IsUpdating)
             {
@@ -1073,7 +1073,7 @@ namespace OpenTemple.Core.Systems.Anim
 
             if (popFlags.HasFlag(AnimStateTransitionFlags.GOAL_INVALIDATE_PATH))
             {
-                GameObjectBody mover = slot.path.mover;
+                GameObject mover = slot.path.mover;
                 slot.animPath.flags = AnimPathFlag.UNK_1;
                 slot.path.flags = default;
                 GameSystems.Raycast.GoalDestinationsRemove(mover);
@@ -1253,7 +1253,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000c7e0)]
-        public bool Interrupt(GameObjectBody obj, AnimGoalPriority priority, bool all = false)
+        public bool Interrupt(GameObject obj, AnimGoalPriority priority, bool all = false)
         {
             var lastSlot = -1;
             if (priority < AnimGoalPriority.AGP_NONE || priority >= AnimGoalPriority.AGP_MAX)
@@ -1287,7 +1287,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001a1d0)]
-        public bool PushIdleOrLoop(GameObjectBody obj)
+        public bool PushIdleOrLoop(GameObject obj)
         {
             Trace.Assert(obj != null);
 
@@ -1338,7 +1338,7 @@ namespace OpenTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x1001aaa0)]
         [TempleDllLocation(0x1001aa40)]
-        public void NotifySpeedRecalc(GameObjectBody obj)
+        public void NotifySpeedRecalc(GameObject obj)
         {
             var slotId = GetFirstRunSlotId(obj);
             if (!slotId.IsNull)
@@ -1596,7 +1596,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000C5A0)]
-        public bool IsIdleOrFidgeting(GameObjectBody actor)
+        public bool IsIdleOrFidgeting(GameObject actor)
         {
             // TODO: This function was broken in vanilla and likely never worked
             var slot = mSlots[GetFirstRunSlotIdxForObj(actor)];
@@ -1630,12 +1630,12 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10054f30)]
-        public bool IsRunningGoal(GameObjectBody obj, AnimGoalType animGoalType, out AnimSlotId runId)
+        public bool IsRunningGoal(GameObject obj, AnimGoalType animGoalType, out AnimSlotId runId)
         {
             return IsRunningGoal(obj, animGoalType, out runId, out _);
         }
 
-        public bool IsRunningGoal(GameObjectBody obj, AnimGoalType animGoalType, out AnimSlotId runId,
+        public bool IsRunningGoal(GameObject obj, AnimGoalType animGoalType, out AnimSlotId runId,
             out int goalIndex)
         {
             if (obj == null)
@@ -1679,20 +1679,20 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001d220)]
-        public bool PushAttackOther(GameObjectBody attacker, GameObjectBody target)
+        public bool PushAttackOther(GameObject attacker, GameObject target)
         {
             var random = GameSystems.Random.GetInt(0, 2);
             return PushAttack(attacker, target, -1, random, false, false);
         }
 
         [TempleDllLocation(0x100154a0)]
-        private static bool CritterCanAnimate(GameObjectBody obj)
+        private static bool CritterCanAnimate(GameObject obj)
         {
             return obj != null && !GameSystems.Critter.IsDeadOrUnconscious(obj);
         }
 
         [TempleDllLocation(0x10015ee0)]
-        public bool PushPleaseMove(GameObjectBody critter, GameObjectBody critter2)
+        public bool PushPleaseMove(GameObject critter, GameObject critter2)
         {
             var movingCritter = critter2;
             if (critter2 == null)
@@ -1748,7 +1748,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10054fd0)]
-        private bool anim_get_slot_with_fieldc_goal(GameObjectBody handle, out AnimSlotId a2)
+        private bool anim_get_slot_with_fieldc_goal(GameObject handle, out AnimSlotId a2)
         {
             if (handle == null)
             {
@@ -1772,7 +1772,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10015ad0)]
-        public bool ReturnProjectile(GameObjectBody projectile, LocAndOffsets returnTo, GameObjectBody target)
+        public bool ReturnProjectile(GameObject projectile, LocAndOffsets returnTo, GameObject target)
         {
             var objId = projectile;
             if (objId != null && IsRunningGoal(objId, AnimGoalType.projectile, out var runId))
@@ -1791,7 +1791,7 @@ namespace OpenTemple.Core.Systems.Anim
             }
         }
 
-        public AnimSlot GetSlot(GameObjectBody obj)
+        public AnimSlot GetSlot(GameObject obj)
         {
             var idx = GetFirstRunSlotIdxForObj(obj);
             if (idx != -1)
@@ -1804,7 +1804,7 @@ namespace OpenTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x1001c170)]
         [TempleDllLocation(0x1001a2e0)]
-        public bool PushRunToTile(GameObjectBody obj, LocAndOffsets pos, PathQueryResult path = null)
+        public bool PushRunToTile(GameObject obj, LocAndOffsets pos, PathQueryResult path = null)
         {
             if (obj == null || GameSystems.Critter.IsDeadOrUnconscious(obj) ||
                 !obj.IsPC() && GameSystems.Reaction.GetLastReactionPlayer(obj) != null)
@@ -1860,7 +1860,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001c1b0)]
-        public bool PushRunNearTile(GameObjectBody actor, LocAndOffsets target, int radiusFeet)
+        public bool PushRunNearTile(GameObject actor, LocAndOffsets target, int radiusFeet)
         {
             if (actor == null
                 || GameSystems.Critter.IsDeadOrUnconscious(actor)
@@ -1902,7 +1902,7 @@ namespace OpenTemple.Core.Systems.Anim
 
         // should the game use the Running animation?
         [TempleDllLocation(0x10014750)]
-        public bool ShouldRun(GameObjectBody obj)
+        public bool ShouldRun(GameObject obj)
         {
             // TODO: Checks for inputs should be moved out of the anim system
 
@@ -1926,7 +1926,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001d060)]
-        public void PushMoveToTile(GameObjectBody obj, LocAndOffsets pos)
+        public void PushMoveToTile(GameObject obj, LocAndOffsets pos)
         {
             if (obj == null || GameSystems.Critter.IsDeadOrUnconscious(obj) ||
                 !obj.IsPC() && GameSystems.Reaction.GetLastReactionPlayer(obj) != null)
@@ -2003,7 +2003,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10055060)]
-        public bool HasAttackAnim(GameObjectBody handle, GameObjectBody target)
+        public bool HasAttackAnim(GameObject handle, GameObject target)
         {
             if (!IsRunningGoal(handle, AnimGoalType.attack, out var slotId))
             {
@@ -2101,7 +2101,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10056460)]
-        public AnimSlotId GetSlotForGoalAndObjs(GameObjectBody handle, AnimSlotGoalStackEntry goalData)
+        public AnimSlotId GetSlotForGoalAndObjs(GameObject handle, AnimSlotGoalStackEntry goalData)
         {
             // Iterate over all slots belonging to the object
             foreach (var slot in EnumerateSlots(handle))
@@ -2137,7 +2137,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001ABB0)]
-        public int GetActionAnimId(GameObjectBody animObj)
+        public int GetActionAnimId(GameObject animObj)
         {
             if (lastSlotPushedTo_.IsNull)
             {
@@ -2156,7 +2156,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         // Push death animation with randomly chosen anim
-        public void PushDying(GameObjectBody critter)
+        public void PushDying(GameObject critter)
         {
             EncodedAnimId deathAnim;
             switch (GameSystems.Random.GetInt(0, 2))
@@ -2177,7 +2177,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x100157b0)]
-        public void PushDying(GameObjectBody critter, EncodedAnimId deathAnim)
+        public void PushDying(GameObject critter, EncodedAnimId deathAnim)
         {
             var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.dying, true);
             goal.scratchVal2.number = deathAnim;
@@ -2185,7 +2185,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x100158e0)]
-        public void PushDodge(GameObjectBody attacker, GameObjectBody target)
+        public void PushDodge(GameObject attacker, GameObject target)
         {
             if (!GameSystems.Critter.IsDeadOrUnconscious(target) && !GameSystems.Critter.IsProne(target))
             {
@@ -2218,7 +2218,7 @@ namespace OpenTemple.Core.Systems.Anim
             };
 
         [TempleDllLocation(0x10016A90)]
-        public void PlayDamageEffect(GameObjectBody target, DamageType damageType, int damageAmount)
+        public void PlayDamageEffect(GameObject target, DamageType damageType, int damageAmount)
         {
             if (damageType == DamageType.BloodLoss)
             {
@@ -2247,7 +2247,7 @@ namespace OpenTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x10015680)]
         [TempleDllLocation(0x1001a540)]
-        public bool PushAttemptAttack(GameObjectBody attacker, GameObjectBody target)
+        public bool PushAttemptAttack(GameObject attacker, GameObject target)
         {
             Trace.Assert(attacker != target);
 
@@ -2268,13 +2268,13 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1007d340)]
-        public bool PushUseSkillOn(GameObjectBody critter, GameObjectBody target, SkillId skillId)
+        public bool PushUseSkillOn(GameObject critter, GameObject target, SkillId skillId)
         {
             return PushUseSkillOn(critter, target, null, skillId);
         }
 
         [TempleDllLocation(0x1001c690)]
-        public bool PushUseSkillOn(GameObjectBody critter, GameObjectBody target, GameObjectBody scratch,
+        public bool PushUseSkillOn(GameObject critter, GameObject target, GameObject scratch,
             SkillId skillId)
         {
             if (GameSystems.Critter.IsDeadOrUnconscious(critter))
@@ -2310,14 +2310,14 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10015290)]
-        public bool PushAnimate(GameObjectBody critter, NormalAnimType animType)
+        public bool PushAnimate(GameObject critter, NormalAnimType animType)
         {
             var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.animate, true);
             goal.animIdPrevious.number = new EncodedAnimId(animType);
             return PushGoal(goal, out _);
         }
 
-        public bool PushAnimate(GameObjectBody critter, EncodedAnimId animId)
+        public bool PushAnimate(GameObject critter, EncodedAnimId animId)
         {
             var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.animate, true);
             // If the desired animation is weapon-dependent, refresh the actual weapon types now
@@ -2331,7 +2331,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1008d590)]
-        public bool PushSpellInterrupt(GameObjectBody caster, GameObjectBody item, AnimGoalType animGoalType,
+        public bool PushSpellInterrupt(GameObject caster, GameObject item, AnimGoalType animGoalType,
             SchoolOfMagic spellSchool)
         {
             AnimSlotGoalStackEntry goalData = new AnimSlotGoalStackEntry(caster, animGoalType, true);
@@ -2353,7 +2353,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x100153e0)]
-        public bool PushRotate(GameObjectBody obj, float rotation)
+        public bool PushRotate(GameObject obj, float rotation)
         {
             var shortestRotation = Angles.ShortestAngleBetween(obj.Rotation, rotation);
             if (MathF.Abs(shortestRotation) < Angles.ToRadians(0.1f))
@@ -2372,7 +2372,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10079790)]
-        public bool PushSpellCast(SpellPacketBody spellPkt, GameObjectBody item)
+        public bool PushSpellCast(SpellPacketBody spellPkt, GameObject item)
         {
             // note: the original included the spell ID generation & registration, this is separated here.
             var caster = spellPkt.caster;
@@ -2426,7 +2426,7 @@ namespace OpenTemple.Core.Systems.Anim
         /// <param name="soundId">Not quite clear when this is played...</param>
         /// <returns></returns>
         [TempleDllLocation(0x1001c370)]
-        public bool PushAttack(GameObjectBody attacker, GameObjectBody target, int soundId, int attackAnimIdx,
+        public bool PushAttack(GameObject attacker, GameObject target, int soundId, int attackAnimIdx,
             bool playCrit, bool useSecondaryAnim)
         {
             if (attacker == target)
@@ -2497,7 +2497,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001c530)]
-        public bool PushThrowWeapon(GameObjectBody attacker, GameObjectBody target, int scratchVal6, in bool secondary)
+        public bool PushThrowWeapon(GameObject attacker, GameObject target, int scratchVal6, in bool secondary)
         {
             if (attacker == target)
             {
@@ -2541,8 +2541,8 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x100159b0)]
-        public bool PushThrowProjectile(GameObjectBody attacker, GameObjectBody projectile, in int missX, in int missY,
-            GameObjectBody target, LocAndOffsets targetLoc, int scratchVal6)
+        public bool PushThrowProjectile(GameObject attacker, GameObject projectile, in int missX, in int missY,
+            GameObject target, LocAndOffsets targetLoc, int scratchVal6)
         {
             if (projectile == null)
             {
@@ -2565,14 +2565,14 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10015760)]
-        public bool PushGetUp(GameObjectBody critter)
+        public bool PushGetUp(GameObject critter)
         {
             var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.anim_get_up, true);
             return PushGoal(goal, out animIdGlobal);
         }
 
         [TempleDllLocation(0x10010e80)]
-        public bool PickUpItemWithSound(GameObjectBody sourceObj, GameObjectBody targetObj)
+        public bool PickUpItemWithSound(GameObject sourceObj, GameObject targetObj)
         {
             if (sourceObj == null || targetObj == null)
             {
@@ -2588,7 +2588,7 @@ namespace OpenTemple.Core.Systems.Anim
 
             if (GameSystems.Party.IsInParty(sourceObj))
             {
-                var soundId = GameSystems.SoundMap.CombatFindWeaponSound(targetObj, sourceObj, null, 0);
+                var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(targetObj, sourceObj, null, 0);
                 GameSystems.SoundGame.PositionalSound(soundId, 1, sourceObj);
             }
 
@@ -2596,7 +2596,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001c9a0)]
-        public bool PushTalk(GameObjectBody critter, GameObjectBody target)
+        public bool PushTalk(GameObject critter, GameObject target)
         {
             if (critter == null || GameSystems.Critter.IsDeadOrUnconscious(critter))
             {
@@ -2615,7 +2615,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x100154f0)]
-        public bool PushMoveNearTile(GameObjectBody critter, LocAndOffsets target, int tileRadius)
+        public bool PushMoveNearTile(GameObject critter, LocAndOffsets target, int tileRadius)
         {
             if (critter == null
                 || GameSystems.Critter.IsDeadOrUnconscious(critter)
@@ -2648,7 +2648,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001a560)]
-        public bool PushWander(GameObjectBody critter, locXY tetherLoc, int radius)
+        public bool PushWander(GameObject critter, locXY tetherLoc, int radius)
         {
             Trace.Assert(tetherLoc != locXY.Zero);
             Trace.Assert(radius > 0);
@@ -2674,7 +2674,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001a720)]
-        public bool PushWanderSeekDarkness(GameObjectBody critter, locXY tetherLoc, int radius)
+        public bool PushWanderSeekDarkness(GameObject critter, locXY tetherLoc, int radius)
         {
             Trace.Assert(critter != null);
             Trace.Assert(tetherLoc != locXY.Zero);
@@ -2702,7 +2702,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10015fd0)]
-        public void GetOffMyLawn(GameObjectBody critterThatMoved)
+        public void GetOffMyLawn(GameObject critterThatMoved)
         {
             Trace.Assert(critterThatMoved != null);
 
@@ -2726,10 +2726,10 @@ namespace OpenTemple.Core.Systems.Anim
 
             // We're selecting a PC using a tie-breaker (Object ID ordering) to make sure
             // we're not pushing each other out of the way in an infinite loop.
-            GameObjectBody smallestNpc = null;
-            GameObjectBody smallestPc = null;
+            GameObject smallestNpc = null;
+            GameObject smallestPc = null;
 
-            var othersNeedToMove = new List<GameObjectBody>(countSharingTile);
+            var othersNeedToMove = new List<GameObject>(countSharingTile);
 
             foreach (var critter in crittersOnSameTile)
             {
@@ -2788,7 +2788,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10016210)]
-        public bool FindCritterStandingInTheWay(ref GameObjectBody pSourceObj, out GameObjectBody pBlockObj)
+        public bool FindCritterStandingInTheWay(ref GameObject pSourceObj, out GameObject pBlockObj)
         {
             Trace.Assert(pSourceObj != null);
 
@@ -2859,7 +2859,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000c500)]
-        public AnimGoalPriority GetCurrentPriority(GameObjectBody handle)
+        public AnimGoalPriority GetCurrentPriority(GameObject handle)
         {
             for (var slotIdx = GetFirstRunSlotIdxForObj(handle);
                 slotIdx != -1;
@@ -2878,7 +2878,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10056350)]
-        public void InterruptGoalsByType(GameObjectBody handle, AnimGoalType type,
+        public void InterruptGoalsByType(GameObject handle, AnimGoalType type,
             AnimGoalType keep = (AnimGoalType)(-1))
         {
             // type is always ag_flee, keep is always -1 where we call it
@@ -2913,7 +2913,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10015820)]
-        public bool PushHitByWeapon(GameObjectBody victim, GameObjectBody attacker)
+        public bool PushHitByWeapon(GameObject victim, GameObject attacker)
         {
             if (attacker == null || victim == null || GameSystems.Critter.IsDeadOrUnconscious(victim))
             {
@@ -2933,7 +2933,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10015e00)]
-        public bool PushUnconceal(GameObjectBody critter)
+        public bool PushUnconceal(GameObject critter)
         {
             if (critter == null || !critter.IsCritter() || !critter.IsConscious())
             {
@@ -2946,7 +2946,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10056c10)]
-        public void StopOngoingAttackAnimOnGroup(GameObjectBody attacker, GameObjectBody target)
+        public void StopOngoingAttackAnimOnGroup(GameObject attacker, GameObject target)
         {
             foreach (var slot in EnumerateSlots(attacker))
             {
@@ -2965,7 +2965,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10056c90)]
-        public void StopOngoingAttackAnim(GameObjectBody attacker, GameObjectBody target)
+        public void StopOngoingAttackAnim(GameObject attacker, GameObject target)
         {
             foreach (var slot in EnumerateSlots(attacker))
             {

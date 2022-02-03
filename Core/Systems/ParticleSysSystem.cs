@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Particles;
@@ -60,7 +60,7 @@ namespace OpenTemple.Core.Systems
         public IEnumerable<PartSys> ActiveSystems => _activeSys.Values;
 
         [TempleDllLocation(0x101e7e00)]
-        public void InvalidateObject(GameObjectBody obj)
+        public void InvalidateObject(GameObject obj)
         {
             foreach (var sys in _activeSys.Values)
             {
@@ -131,7 +131,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10049b70)]
-        public object CreateAtObj(string name, GameObjectBody obj)
+        public object CreateAtObj(string name, GameObject obj)
         {
             if (!_specsByName.TryGetValue(name.ToLowerInvariant(), out var spec))
             {
@@ -153,7 +153,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10049b70)]
-        public object CreateAtObj(int nameHash, GameObjectBody obj)
+        public object CreateAtObj(int nameHash, GameObject obj)
         {
             if (!_specsByNameHash.TryGetValue(nameHash, out var spec))
             {
@@ -240,7 +240,7 @@ namespace OpenTemple.Core.Systems
         /// <summary>
         /// This method exists primarily for debugging purposes.
         /// </summary>
-        public IEnumerable<PartSys> GetAttachedTo(GameObjectBody obj)
+        public IEnumerable<PartSys> GetAttachedTo(GameObject obj)
         {
             return _activeSys.Values.Where(sys => sys.GetAttachedTo() == obj);
         }
@@ -252,7 +252,7 @@ namespace OpenTemple.Core.Systems
 
         public PartSysExternal(ParticleSysSystem system)
         {
-            this._system = system;
+            _system = system;
         }
 
         public float GetParticleFidelity()
@@ -262,7 +262,7 @@ namespace OpenTemple.Core.Systems
 
         public bool GetObjLocation(object obj, out Vector3 worldPos)
         {
-            var gameObj = (GameObjectBody) obj;
+            var gameObj = (GameObject) obj;
 
             var locWithOffsets = gameObj.GetLocationFull();
             var center3d = locWithOffsets.ToInches3D(gameObj.OffsetZ);
@@ -274,20 +274,20 @@ namespace OpenTemple.Core.Systems
 
         public bool GetObjRotation(object obj, out float rotation)
         {
-            var gameObj = (GameObjectBody) obj;
+            var gameObj = (GameObject) obj;
             rotation = gameObj.Rotation + MathF.PI / 4;
             return true;
         }
 
         public float GetObjRadius(object obj)
         {
-            var gameObj = (GameObjectBody) obj;
+            var gameObj = (GameObject) obj;
             return gameObj.GetRadius();
         }
 
         public bool GetBoneWorldMatrix(object obj, string boneName, out Matrix4x4 boneMatrix)
         {
-            var gameObj = (GameObjectBody) obj;
+            var gameObj = (GameObject) obj;
             var model = gameObj.GetOrCreateAnimHandle();
             if (model == null)
             {
@@ -314,7 +314,7 @@ namespace OpenTemple.Core.Systems
 
         public int GetBoneCount(object obj)
         {
-            var gameObj = (GameObjectBody) obj;
+            var gameObj = (GameObject) obj;
             var model = gameObj.GetOrCreateAnimHandle();
             if (model != null)
             {
@@ -359,7 +359,7 @@ namespace OpenTemple.Core.Systems
 
         public int GetParentChildBonePos(object obj, int boneIdx, out Vector3 parentPos, out Vector3 childPos)
         {
-            var gameObj = (GameObjectBody) obj;
+            var gameObj = (GameObject) obj;
             var model = gameObj.GetOrCreateAnimHandle();
             var aasParams = gameObj.GetAnimParams();
 
@@ -407,7 +407,7 @@ namespace OpenTemple.Core.Systems
 
         public bool GetBonePos(object obj, int boneIdx, out Vector3 pos)
         {
-            var gameObj = (GameObjectBody) obj;
+            var gameObj = (GameObject) obj;
             var model = gameObj.GetOrCreateAnimHandle();
             var aasParams = gameObj.GetAnimParams();
 

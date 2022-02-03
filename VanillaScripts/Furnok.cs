@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Furnok : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(61)))
             {
@@ -52,7 +52,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(58, true);
             SetGlobalVar(29, GetGlobalVar(29) + 1);
@@ -72,12 +72,12 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(58, false);
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             if (((attachee.GetArea() == 2) || (attachee.GetArea() == 4)))
             {

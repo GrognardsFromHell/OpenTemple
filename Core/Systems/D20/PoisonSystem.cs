@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Utils;
@@ -95,7 +95,7 @@ namespace OpenTemple.Core.Systems.D20
             return GameSystems.D20.Combat.GetCombatMesLine(spec.NameId);
         }
 
-        public void ApplyPoisonEffect(GameObjectBody critter, PoisonEffect effect)
+        public void ApplyPoisonEffect(GameObject critter, PoisonEffect effect)
         {
             void DealAbilityDamage(Stat stat, bool temporary)
             {

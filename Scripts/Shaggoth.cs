@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(466)]
     public class Shaggoth : BaseObjectScript
     {
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8857))
             {
@@ -44,7 +44,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8857))
             {
@@ -91,7 +91,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8857))
             {
@@ -112,11 +112,11 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool sight_distance(GameObjectBody speaker, GameObjectBody listener)
+        public static bool sight_distance(GameObject speaker, GameObject listener)
         {
             return speaker.DistanceTo(listener) <= 50;
         }
-        public static bool run_out(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_out(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             Sound(4164, 1);
@@ -126,7 +126,7 @@ namespace Scripts
             AttachParticles("ef-MinoCloud", attachee);
             return RunDefault;
         }
-        public static bool drop_out(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool drop_out(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             Sound(4164, 1);

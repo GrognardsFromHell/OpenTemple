@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.TigSubsystems;
@@ -47,7 +47,7 @@ namespace OpenTemple.Core.Systems.D20
 
         [TempleDllLocation(0x100f4300)]
         [TempleDllLocation(0x1004f720)]
-        public BuffDebuffPacket GetBuffDebuff(GameObjectBody obj)
+        public BuffDebuffPacket GetBuffDebuff(GameObject obj)
         {
             var result = new BuffDebuffPacket();
 

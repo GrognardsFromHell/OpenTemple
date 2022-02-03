@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(406)]
     public class GamePortal : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             Co8.get_Co8_options_from_ini();
             if ((GetGlobalFlag(601)))
@@ -37,14 +37,14 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var leader = PartyLeader;
             Co8.StopCombat(attachee, 0);
             leader.BeginDialog(attachee, 4000);
             return RunDefault;
         }
-        public static void intro_movie_setup(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void intro_movie_setup(GameObject attachee, GameObject triggerer)
         {
             set_intro_slides();
             return;

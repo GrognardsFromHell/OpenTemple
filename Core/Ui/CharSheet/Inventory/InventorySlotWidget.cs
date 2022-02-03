@@ -1,6 +1,6 @@
 using System.Drawing;
 using System.Globalization;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems;
@@ -29,11 +29,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
         private readonly WidgetRectangle _background;
 
-        public GameObjectBody Inventory { get; set; }
+        public GameObject Inventory { get; set; }
 
         public int InventoryIndex { get; }
 
-        public GameObjectBody CurrentItem
+        public GameObject CurrentItem
         {
             get
             {
@@ -79,7 +79,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        private void RenderItemInSlot(GameObjectBody item, PackedLinearColorA itemTint)
+        private void RenderItemInSlot(GameObject item, PackedLinearColorA itemTint)
         {
             // Don't render the item if it is currently being dragged elsewhere
             if (item == UiSystems.CharSheet.Inventory.DraggedObject)
@@ -159,7 +159,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             return color;
         }
 
-        private void RenderItemQuantity(GameObjectBody item)
+        private void RenderItemQuantity(GameObject item)
         {
             // Renders the stack size on top of the slot
             if (item.TryGetQuantity(out var quantity))

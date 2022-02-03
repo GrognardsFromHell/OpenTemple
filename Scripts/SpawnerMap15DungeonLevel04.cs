@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(802)]
     public class SpawnerMap15DungeonLevel04 : BaseObjectScript
     {
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5085 && PartyLeader.HasReputation(23) && GetGlobalFlag(94) && (!GetGlobalFlag(815) || !GetGlobalFlag(814))))
             {
@@ -52,8 +52,8 @@ namespace Scripts
                         assassin.WieldBestInAllSlots();
                     }
 
-                    GameObjectBody rannos = null;
-                    GameObjectBody gremag = null;
+                    GameObject rannos = null;
+                    GameObject gremag = null;
                     if ((!GetGlobalFlag(815) && !GetGlobalFlag(814)))
                     {
                         rannos = GameSystems.MapObject.CreateObject(14611, new locXY(475, 486)); // location 7
@@ -91,8 +91,8 @@ namespace Scripts
                     barb.Rotation = 2.5f;
                     barb.WieldBestInAllSlots();
                     var rr = RandomRange(1, 2);
-                    GameObjectBody mage = null;
-                    GameObjectBody cleric = null;
+                    GameObject mage = null;
+                    GameObject cleric = null;
                     if ((rr == 1))
                     {
                         cleric = GameSystems.MapObject.CreateObject(14609, new locXY(470, 484)); // location 4
@@ -138,19 +138,19 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.RemoveFromInitiative();
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return SkipDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.RemoveFromInitiative();
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5078))
             {

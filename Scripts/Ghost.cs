@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,11 +23,11 @@ namespace Scripts
     [ObjectScript(395)]
     public class Ghost : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 14662 || attachee.GetNameId() == 14663))
             {
@@ -151,7 +151,7 @@ namespace Scripts
             // turn ghosts off because they only roll at night
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -160,7 +160,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
@@ -239,7 +239,7 @@ namespace Scripts
             }
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(696) >= 1))
             {
@@ -324,7 +324,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 10))
             {
@@ -333,7 +333,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool is_cool_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_cool_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 25))
             {
@@ -342,7 +342,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool go_ghost(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool go_ghost(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8699))
             {
@@ -417,14 +417,14 @@ namespace Scripts
             // castle sleep impossible flag unset
             return RunDefault;
         }
-        public static bool dump_parts(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool dump_parts(GameObject attachee, GameObject triggerer)
         {
             Utilities.party_transfer_to(attachee, 12612);
             Utilities.party_transfer_to(attachee, 12614);
             Utilities.party_transfer_to(attachee, 12616);
             return RunDefault;
         }
-        public static bool undead_legion(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool undead_legion(GameObject attachee, GameObject triggerer)
         {
             var q01 = GameSystems.MapObject.CreateObject(14662, new locXY(732, 393));
             q01.Rotation = 1.5f;
@@ -1332,7 +1332,7 @@ namespace Scripts
             SetQuestState(83, QuestState.Completed);
             return RunDefault;
         }
-        public static bool bye_bye(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool bye_bye(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;

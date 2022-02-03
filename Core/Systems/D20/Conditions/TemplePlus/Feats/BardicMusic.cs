@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Actions;
@@ -464,7 +464,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             };
 
         [TempleDllLocation(0x100fe4f0)]
-        private static void BardicMusicPlaySound(BardicMusicSongType bardicSongIdx, GameObjectBody performer,
+        private static void BardicMusicPlaySound(BardicMusicSongType bardicSongIdx, GameObject performer,
             int evtType)
         {
             if (!BardicSongBaseSoundId.TryGetValue(bardicSongIdx, out var baseSoundId))

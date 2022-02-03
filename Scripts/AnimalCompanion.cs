@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(41)]
     public class AnimalCompanion : BaseObjectScript
     {
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null && !ScriptDaemon.npc_get(attachee, 2)))
             {
@@ -1049,7 +1049,7 @@ namespace Scripts
             SetGlobalFlag(259, false);
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             if ((ScriptDaemon.npc_get(attachee, 1)))
             {
@@ -1058,7 +1058,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnSpellCast(GameObjectBody attachee, GameObjectBody triggerer, SpellPacketBody spell)
+        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
         {
             if ((spell.spellEnum == WellKnownSpells.CharmPersonOrAnimal || spell.spellEnum == WellKnownSpells.CharmMonster))
             {
@@ -1067,7 +1067,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool not_adjacent(GameObjectBody companion, GameObjectBody target)
+        public static bool not_adjacent(GameObject companion, GameObject target)
         {
             if ((companion.DistanceTo(target) >= 5))
             {
@@ -1076,7 +1076,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool adjacent(GameObjectBody companion, GameObjectBody target)
+        public static bool adjacent(GameObject companion, GameObject target)
         {
             if ((companion.DistanceTo(target) <= 5))
             {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.Systems.RadialMenus;
 using OpenTemple.Core.Utils;
@@ -45,8 +45,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             bool extension)
         {
             this.condName = condName;
-            this.DataTypes = dataTypes;
-            this.Uniqueness = uniqueness;
+            DataTypes = dataTypes;
+            Uniqueness = uniqueness;
             this.subDispDefs = subDispDefs;
             IsExtension = extension;
         }
@@ -376,20 +376,20 @@ namespace OpenTemple.Core.Systems.D20.Conditions
     public readonly ref struct DispatcherCallbackArgs
     {
         public readonly SubDispatcherAttachment subDispNode; // Rename to 'attachment'
-        public readonly GameObjectBody objHndCaller; // Rename to obj
+        public readonly GameObject objHndCaller; // Rename to obj
         public readonly DispatcherType dispType;
         public readonly D20DispatcherKey dispKey;
         public readonly object dispIO; // Rename to dispIo
 
-        public DispatcherCallbackArgs(SubDispatcherAttachment attachment, GameObjectBody obj, DispatcherType dispType,
+        public DispatcherCallbackArgs(SubDispatcherAttachment attachment, GameObject obj, DispatcherType dispType,
             D20DispatcherKey dispKey, object dispIo)
         {
-            this.subDispNode = attachment;
+            subDispNode = attachment;
             // This can actually be null for items
-            this.objHndCaller = obj;
+            objHndCaller = obj;
             this.dispType = dispType;
             this.dispKey = dispKey;
-            this.dispIO = dispIo;
+            dispIO = dispIo;
         }
 
         public DispatcherCallbackArgs WithoutIO => new DispatcherCallbackArgs(
@@ -628,7 +628,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100e1ab0)]
-        public static GameObjectBody GetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex)
+        public static GameObject GetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
             // Special case translation for 0
@@ -637,7 +637,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             {
                 return null;
             }
-            return (GameObjectBody) value;
+            return (GameObject) value;
         }
 
         public static Dice GetConditionDiceArg(in this DispatcherCallbackArgs args, int argIndex)
@@ -670,7 +670,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             throw new NotImplementedException();
         }
 
-        public static void SetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex, GameObjectBody obj)
+        public static void SetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex, GameObject obj)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
             args.subDispNode.condNode.args[argIndex] = obj;

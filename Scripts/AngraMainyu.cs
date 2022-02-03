@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(590)]
     public class AngraMainyu : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((attachee.GetLeader() != null))
@@ -39,7 +39,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(980) == 3 && GetGlobalVar(981) == 3 && GetGlobalVar(982) == 3 && GetGlobalVar(983) == 3 && GetGlobalVar(984) == 3 && GetGlobalVar(985) == 3 && GetGlobalVar(986) == 3)) // turns on angra and co
             {
@@ -54,7 +54,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -97,7 +97,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var webbed = Livonya.break_free(attachee, 3);
             if ((Utilities.obj_percent_hp(attachee) >= 51))
@@ -218,7 +218,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             if ((Utilities.obj_percent_hp(attachee) >= 51))
             {
@@ -319,7 +319,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8893))
             {
@@ -426,7 +426,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_35_and_under(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_35_and_under(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -439,7 +439,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool angra_exit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool angra_exit(GameObject attachee, GameObject triggerer)
         {
             attachee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
             attachee.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
@@ -474,53 +474,53 @@ namespace Scripts
             StartTimer(8000, () => hil1_off(hil1, triggerer));
             return RunDefault;
         }
-        public static bool angra_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool angra_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             ScriptDaemon.npc_set(attachee, 3);
             return RunDefault;
         }
-        public static bool bug1_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool bug1_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool bug2_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool bug2_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool ass1_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ass1_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool tra1_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool tra1_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool ogr1_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ogr1_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool ett1_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ett1_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool sto1_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool sto1_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool hil1_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool hil1_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool increment_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool increment_rep(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(81)))
             {

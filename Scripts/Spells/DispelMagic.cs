@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -42,8 +42,8 @@ namespace Scripts.Spells
             // Lareth Special scripting in the Moathouse
             if (spell.caster.GetNameId() == 8002 && spell.caster.GetMap() == 5005)
             {
-                GameObjectBody player_cast_web_obj = null;
-                GameObjectBody player_cast_entangle_obj = null;
+                GameObject player_cast_web_obj = null;
+                GameObject player_cast_entangle_obj = null;
                 foreach (var spell_obj in ObjList.ListVicinity(spell.caster.GetLocation(), ObjectListFilter.OLC_GENERIC))
                 {
                     if (spell_obj.GetInt(obj_f.secretdoor_dc) == 531 + (1 << 15))

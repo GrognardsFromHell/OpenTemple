@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics.Contracts;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.ObjScript;
@@ -43,147 +43,147 @@ namespace OpenTemple.Core.Systems.Script
             throw new NotImplementedException();
         }
 
-        public virtual bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnUse(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnDestroy(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnDestroy(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnUnlock(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnUnlock(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnGet(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnGet(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnDying(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnExitCombat(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnLeaderKilling(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnLeaderKilling(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnWieldOn(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnWieldOn(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnWieldOff(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnWieldOff(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnNewSector(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnNewSector(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnRemoveItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnRemoveItem(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnTransfer(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnTransfer(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnCaughtThief(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnCaughtThief(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnTrap(TrapSprungEvent evt, GameObjectBody triggerer)
+        public virtual bool OnTrap(TrapSprungEvent evt, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnUnlockAttempt(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnUnlockAttempt(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnSpellCast(GameObjectBody attachee, GameObjectBody triggerer, SpellPacketBody spell)
+        public virtual bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
         {
             return true;
         }
 
-        public virtual bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             return true;
         }
 
-        public virtual bool OnTrueSeeing(GameObjectBody attachee, GameObjectBody triggerer)
+        public virtual bool OnTrueSeeing(GameObject attachee, GameObject triggerer)
         {
             return true;
         }

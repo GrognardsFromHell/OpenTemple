@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
@@ -71,7 +71,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1004c390)]
-        public void FadeTo(GameObjectBody obj, int targetOpacity, int tickTimeMs, int tickOpacityQuantum,
+        public void FadeTo(GameObject obj, int targetOpacity, int tickTimeMs, int tickOpacityQuantum,
             FadeOutResult fadeResult)
         {
             var cur = obj.GetInt32(obj_f.transparency);
@@ -154,7 +154,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1004c290)]
-        private static void ApplyFadeResult(FadeOutResult result, GameObjectBody obj)
+        private static void ApplyFadeResult(FadeOutResult result, GameObject obj)
         {
             switch (result)
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(465)]
     public class PhysicalEvidence : BaseObjectScript
     {
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 11009))
             {
@@ -94,7 +94,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void check_evidence_rep_bor(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_bor(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(72)))
             {
@@ -121,7 +121,7 @@ namespace Scripts
 
             return;
         }
-        public static void check_evidence_rep_pan(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_pan(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(73)))
             {
@@ -148,7 +148,7 @@ namespace Scripts
 
             return;
         }
-        public static void check_evidence_rep_rak(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_rak(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(74)))
             {

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -24,7 +24,7 @@ namespace Scripts.Dialog
     [DialogScript(287)]
     public class RonaldDialog : Ronald, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
+        public bool CheckPrecondition(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -263,7 +263,7 @@ namespace Scripts.Dialog
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
+        public void ApplySideEffect(GameObject npc, GameObject pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {

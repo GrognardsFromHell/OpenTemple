@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -38,12 +38,12 @@ namespace VanillaScripts.Spells
         {
             Logger.Info("Flame tongue OnBeginRound");
         }
-        public override void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Flame tongue OnBeginProjectile");
             SetProjectileParticles(projectile, AttachParticles("sp-Flame Tongue-proj", projectile));
         }
-        public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Flame tongue OnEndProjectile");
             var damage_dice = Dice.Parse("4d6");

@@ -3,7 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
@@ -193,7 +193,7 @@ namespace OpenTemple.Core.Systems.D20
             }
         }
 
-        public int D20QueryPython(GameObjectBody obj, string queryKey, int data1 = 0, int data2 = 0)
+        public int D20QueryPython(GameObject obj, string queryKey, int data1 = 0, int data2 = 0)
         {
             var dispatcher = obj.GetDispatcher();
 
@@ -210,7 +210,7 @@ namespace OpenTemple.Core.Systems.D20
             return dispIo.return_val;
         }
 
-        public int D20QueryPython(GameObjectBody obj, string queryKey, object arg)
+        public int D20QueryPython(GameObject obj, string queryKey, object arg)
         {
             var dispatcher = obj.GetDispatcher();
 
@@ -227,7 +227,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004ceb0)]
-        public int D20QueryItem(GameObjectBody item, D20DispatcherKey queryKey)
+        public int D20QueryItem(GameObject item, D20DispatcherKey queryKey)
         {
             var dispIo = new DispIoD20Query();
             dispIo.obj = item;
@@ -237,7 +237,7 @@ namespace OpenTemple.Core.Systems.D20
 
         [TempleDllLocation(0x1004cc00)]
         [TempleDllLocation(0x1004cc60)]
-        public bool D20Query(GameObjectBody obj, D20DispatcherKey queryKey, int data1 = 0, int data2 = 0)
+        public bool D20Query(GameObject obj, D20DispatcherKey queryKey, int data1 = 0, int data2 = 0)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -252,7 +252,7 @@ namespace OpenTemple.Core.Systems.D20
             return dispIO.return_val != 0;
         }
 
-        public int D20QueryInt(GameObjectBody obj, D20DispatcherKey queryKey, int data1 = 0, int data2 = 0)
+        public int D20QueryInt(GameObject obj, D20DispatcherKey queryKey, int data1 = 0, int data2 = 0)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -267,10 +267,10 @@ namespace OpenTemple.Core.Systems.D20
             return dispIO.return_val;
         }
 
-        public int D20QueryInt(GameObjectBody obj, string queryKey, int data1 = 0, int data2 = 0)
+        public int D20QueryInt(GameObject obj, string queryKey, int data1 = 0, int data2 = 0)
             => D20QueryInt(obj, (D20DispatcherKey) ElfHash.Hash(queryKey), data1, data2);
 
-        public int D20QueryWithObject(GameObjectBody obj, D20DispatcherKey queryKey, object arg, int defaultResult = 0)
+        public int D20QueryWithObject(GameObject obj, D20DispatcherKey queryKey, object arg, int defaultResult = 0)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -286,7 +286,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004e6b0)]
-        public void D20SendSignal(GameObjectBody obj, D20DispatcherKey key, object arg)
+        public void D20SendSignal(GameObject obj, D20DispatcherKey key, object arg)
         {
             if (obj == null)
             {
@@ -307,7 +307,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004e6b0)]
-        public void D20SendSignal(GameObjectBody obj, D20DispatcherKey key, int arg1 = 0, int arg2 = 0)
+        public void D20SendSignal(GameObject obj, D20DispatcherKey key, int arg1 = 0, int arg2 = 0)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -323,7 +323,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004fee0)]
-        public void RemoveDispatcher(GameObjectBody obj)
+        public void RemoveDispatcher(GameObject obj)
         {
             if (obj.GetDispatcher() is Dispatcher dispatcher)
             {
@@ -334,12 +334,12 @@ namespace OpenTemple.Core.Systems.D20
             }
         }
 
-        public bool CritterHasCondition(GameObjectBody obj, string conditionSpec, out int spellIdx)
+        public bool CritterHasCondition(GameObject obj, string conditionSpec, out int spellIdx)
         {
             return CritterHasCondition(obj, Conditions[conditionSpec], out spellIdx);
         }
 
-        public bool CritterHasCondition(GameObjectBody obj, ConditionSpec conditionSpec, out int spellIdx)
+        public bool CritterHasCondition(GameObject obj, ConditionSpec conditionSpec, out int spellIdx)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -357,7 +357,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004e620)]
-        public int GetWeaponGlowType(GameObjectBody wielder, GameObjectBody item)
+        public int GetWeaponGlowType(GameObject wielder, GameObject item)
         {
             var dispIo = DispIoD20Query.Default;
             dispIo.obj = item;
@@ -379,7 +379,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004cdb0)]
-        private void DispatchForItem(GameObjectBody item, DispatcherType dispType, D20DispatcherKey dispKey,
+        private void DispatchForItem(GameObject item, DispatcherType dispType, D20DispatcherKey dispKey,
             object dispIo)
         {
             var condArray = item.GetInt32Array(obj_f.item_pad_wielder_condition_array);
@@ -417,13 +417,13 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100e5080)]
-        public void SetCritterStrategy(GameObjectBody obj, string strategy)
+        public void SetCritterStrategy(GameObject obj, string strategy)
         {
             // TODO
         }
 
         [TempleDllLocation(0x1004f0d0)]
-        public int GetArmorSkillCheckPenalty(GameObjectBody armor)
+        public int GetArmorSkillCheckPenalty(GameObject armor)
         {
             var penalty = armor.GetInt32(obj_f.armor_armor_check_penalty);
             var parent = GameSystems.Item.GetParent(armor);
@@ -443,7 +443,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004cd40)]
-        public GameObjectBody D20QueryReturnObject(GameObjectBody obj, D20DispatcherKey queryKey,
+        public GameObject D20QueryReturnObject(GameObject obj, D20DispatcherKey queryKey,
             int arg1 = 0, int arg2 = 0)
         {
             Trace.Assert(queryKey == D20DispatcherKey.QUE_Critter_Is_Charmed
@@ -462,15 +462,15 @@ namespace OpenTemple.Core.Systems.D20
             dispIO.data2 = arg2;
             dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
 
-            return (GameObjectBody) dispIO.obj;
+            return (GameObject) dispIO.obj;
         }
 
-        public ulong D20QueryReturnData(GameObjectBody obj, string queryKey, int arg1 = 0, int arg2 = 0)
+        public ulong D20QueryReturnData(GameObject obj, string queryKey, int arg1 = 0, int arg2 = 0)
         {
             return D20QueryReturnData(obj, (D20DispatcherKey) ElfHash.Hash(queryKey), arg1, arg2);
         }
 
-        public ulong D20QueryReturnData(GameObjectBody obj, D20DispatcherKey queryKey, int arg1 = 0, int arg2 = 0)
+        public ulong D20QueryReturnData(GameObject obj, D20DispatcherKey queryKey, int arg1 = 0, int arg2 = 0)
         {
             Trace.Assert(queryKey != D20DispatcherKey.QUE_Critter_Is_Charmed
                          && queryKey != D20DispatcherKey.QUE_Critter_Is_Afraid
@@ -514,12 +514,12 @@ namespace OpenTemple.Core.Systems.D20
             }
         }
 
-        public void D20SignalPython(GameObjectBody handle, string queryKey, int arg1 = 0, int arg2 = 0)
+        public void D20SignalPython(GameObject handle, string queryKey, int arg1 = 0, int arg2 = 0)
         {
             D20SignalPython(handle, (D20DispatcherKey) ElfHash.Hash(queryKey), arg1, arg2);
         }
 
-        public void D20SignalPython(GameObjectBody handle, D20DispatcherKey queryKey, int arg1, int arg2)
+        public void D20SignalPython(GameObject handle, D20DispatcherKey queryKey, int arg1, int arg2)
         {
             if (handle == null)
             {
@@ -542,7 +542,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004dfc0)]
-        public GameObjectBody GetAttackWeapon(GameObjectBody obj, int attackCode, D20CAF flags)
+        public GameObject GetAttackWeapon(GameObject obj, int attackCode, D20CAF flags)
         {
             if (flags.HasFlag(D20CAF.TOUCH_ATTACK) && !flags.HasFlag(D20CAF.THROWN_GRENADE))
             {
@@ -567,7 +567,7 @@ namespace OpenTemple.Core.Systems.D20
             return UsingSecondaryWeapon(action.d20APerformer, action.data1);
         }
 
-        public bool UsingSecondaryWeapon(GameObjectBody obj, int attackCode)
+        public bool UsingSecondaryWeapon(GameObject obj, int attackCode)
         {
             if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 2 ||
                 attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 4 ||
@@ -595,7 +595,7 @@ namespace OpenTemple.Core.Systems.D20
             return false;
         }
 
-        public void ExtractAttackNumber(GameObjectBody obj, int attackCode, out int attackNumber, out bool dualWielding)
+        public void ExtractAttackNumber(GameObject obj, int attackCode, out int attackNumber, out bool dualWielding)
         {
             if (attackCode >= AttackPacket.ATTACK_CODE_NATURAL_ATTACK)
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(468)]
     public class Notices : BaseObjectScript
     {
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 11063))
             {

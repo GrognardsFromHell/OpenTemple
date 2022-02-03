@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(467)]
     public class RiverEffects : BaseObjectScript
     {
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8861))
             {
@@ -913,7 +913,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool in_proximity(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity(GameObject sfx, GameObject listener)
         {
             if ((sfx.DistanceTo(listener) <= 40))
             {
@@ -922,26 +922,26 @@ namespace Scripts
 
             return false;
         }
-        public static bool in_proximity_60(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity_60(GameObject sfx, GameObject listener)
         {
             return sfx.DistanceTo(listener) <= 60;
         }
-        public static bool in_proximity_180(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity_180(GameObject sfx, GameObject listener)
         {
             return sfx.DistanceTo(listener) <= 120;
         }
-        public static void reset_ggv_563(GameObjectBody attachee)
+        public static void reset_ggv_563(GameObject attachee)
         {
             SetGlobalVar(563, 0);
             SetGlobalFlag(546, false);
             return;
         }
-        public static void reset_ggf_547(GameObjectBody attachee)
+        public static void reset_ggf_547(GameObject attachee)
         {
             SetGlobalFlag(547, false);
             return;
         }
-        public static void reset_ggf_548(GameObjectBody attachee)
+        public static void reset_ggf_548(GameObject attachee)
         {
             SetGlobalFlag(548, false);
             return;

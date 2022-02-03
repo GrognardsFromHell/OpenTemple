@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace Scripts
     [ObjectScript(384)]
     public class DrowNote : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             var loc = triggerer.GetLocation();
             var n = 0;

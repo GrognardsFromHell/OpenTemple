@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.AI;
@@ -15,7 +15,7 @@ namespace OpenTemple.Core.Systems.Spells
 {
     public struct SpellObj
     {
-        public GameObjectBody obj;
+        public GameObject obj;
         public object partSys;
     }
 
@@ -29,7 +29,7 @@ namespace OpenTemple.Core.Systems.Spells
 
     public class SpellTarget
     {
-        public GameObjectBody Object { get; set; }
+        public GameObject Object { get; set; }
         private object _particleSystem;
 
         public object ParticleSystem
@@ -46,7 +46,7 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        public SpellTarget(GameObjectBody obj, object particleSystem)
+        public SpellTarget(GameObject obj, object particleSystem)
         {
             Object = obj;
             _particleSystem = particleSystem;
@@ -63,7 +63,7 @@ namespace OpenTemple.Core.Systems.Spells
         public int spellEnumOriginal; // used for spontaneous casting in order to debit the "original" spell
         public SpellAnimationFlag animFlags; // See SpellAnimationFlag
         public object pSthg;
-        public GameObjectBody caster;
+        public GameObject caster;
         public object casterPartSys;
         public int spellClass; // aka spellClass
         public int spellKnownSlotLevel; // aka spellLevel
@@ -73,17 +73,17 @@ namespace OpenTemple.Core.Systems.Spells
 
         public bool IsCastFromItem => invIdx != INV_IDX_INVALID;
 
-        public GameObjectBody aoeObj;
+        public GameObject aoeObj;
         public SpellObj[] spellObjs = Array.Empty<SpellObj>();
 
         /// <summary>
         /// The originally selected targets when the spell was cast.
         /// </summary>
-        public ISet<GameObjectBody> InitialTargets = ImmutableHashSet<GameObjectBody>.Empty;
+        public ISet<GameObject> InitialTargets = ImmutableHashSet<GameObject>.Empty;
 
         public SpellTarget[] Targets = Array.Empty<SpellTarget>();
         public uint field_9C4;
-        public GameObjectBody[] projectiles = Array.Empty<GameObjectBody>();
+        public GameObject[] projectiles = Array.Empty<GameObject>();
         public LocAndOffsets aoeCenter;
         public float aoeCenterZ; // TODO consolidate with aoeCenter
 
@@ -141,7 +141,7 @@ namespace OpenTemple.Core.Systems.Spells
             spellClass = 0;
             spellKnownSlotLevel = 0;
 
-            projectiles = Array.Empty<GameObjectBody>();
+            projectiles = Array.Empty<GameObject>();
 
             // TODO this.orgTargetListNumItems = 0;
 
@@ -192,7 +192,7 @@ namespace OpenTemple.Core.Systems.Spells
             if (IsItemSpell()) // this is handled separately
                 return;
 
-            var spellEnumDebited = this.spellEnumOriginal;
+            var spellEnumDebited = spellEnumOriginal;
 
             // Spontaneous vs. Normal logging
             bool isSpont = (spellEnum != spellEnumOriginal) && spellEnumOriginal != 0;
@@ -262,7 +262,7 @@ namespace OpenTemple.Core.Systems.Spells
             return GameSystems.Spell.GetSpellName(spellEnum);
         }
 
-        private int IndexOfTarget(GameObjectBody target)
+        private int IndexOfTarget(GameObject target)
         {
             for (var i = 0; i < Targets.Length; i++)
             {
@@ -275,7 +275,7 @@ namespace OpenTemple.Core.Systems.Spells
             return -1;
         }
 
-        private int IndexOfSpellObject(GameObjectBody obj)
+        private int IndexOfSpellObject(GameObject obj)
         {
             for (var i = 0; i < spellObjs.Length; i++)
             {
@@ -306,7 +306,7 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        public bool AddSpellObject(GameObjectBody spellObj, object partSys = null, bool replaceExisting = false)
+        public bool AddSpellObject(GameObject spellObj, object partSys = null, bool replaceExisting = false)
         {
             // Check if it's already there
             var idx = IndexOfTarget(spellObj);
@@ -342,14 +342,14 @@ namespace OpenTemple.Core.Systems.Spells
             return true;
         }
 
-        public void AddProjectile(GameObjectBody projectile)
+        public void AddProjectile(GameObject projectile)
         {
             Array.Resize(ref projectiles, projectiles.Length + 1);
             projectiles[^1] = projectile;
         }
 
         [TempleDllLocation(0x100c3cc0)]
-        public bool AddTarget(GameObjectBody target, object partSys = null, bool replaceExisting = false)
+        public bool AddTarget(GameObject target, object partSys = null, bool replaceExisting = false)
         {
             // Check if it's already there
             var idx = IndexOfTarget(target);
@@ -380,7 +380,7 @@ namespace OpenTemple.Core.Systems.Spells
             return true;
         }
 
-        public bool RemoveProjectile(GameObjectBody projectileToRemove,
+        public bool RemoveProjectile(GameObject projectileToRemove,
             bool endParticles = true,
             bool destroyObject = true)
         {
@@ -400,12 +400,12 @@ namespace OpenTemple.Core.Systems.Spells
 
             if (newCount == 0)
             {
-                projectiles = Array.Empty<GameObjectBody>();
+                projectiles = Array.Empty<GameObject>();
             }
             else
             {
                 var idx = 0;
-                var newProjectiles = new GameObjectBody[newCount];
+                var newProjectiles = new GameObject[newCount];
                 foreach (var projectile in projectiles)
                 {
                     if (projectile != projectileToRemove)
@@ -442,7 +442,7 @@ namespace OpenTemple.Core.Systems.Spells
             Targets = Array.Empty<SpellTarget>();
         }
 
-        public void RemoveTargets(IEnumerable<GameObjectBody> targets)
+        public void RemoveTargets(IEnumerable<GameObject> targets)
         {
             foreach (var target in targets)
             {
@@ -451,7 +451,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100c3be0)]
-        public bool RemoveTarget(GameObjectBody target, bool keepParticles = false)
+        public bool RemoveTarget(GameObject target, bool keepParticles = false)
         {
             var idx = IndexOfTarget(target);
             if (idx == -1)
@@ -487,12 +487,12 @@ namespace OpenTemple.Core.Systems.Spells
             return true;
         }
 
-        public bool HasTarget(GameObjectBody target)
+        public bool HasTarget(GameObject target)
         {
             return IndexOfTarget(target) != -1;
         }
 
-        public void EndPartSysForTarget(GameObjectBody target)
+        public void EndPartSysForTarget(GameObject target)
         {
             var idx = IndexOfTarget(target);
             if (idx != -1)
@@ -502,7 +502,7 @@ namespace OpenTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100768f0)]
-        public object GetPartSysForTarget(GameObjectBody target)
+        public object GetPartSysForTarget(GameObject target)
         {
             var idx = IndexOfTarget(target);
 
@@ -524,7 +524,7 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        public void SetTargets(IList<GameObjectBody> toArray)
+        public void SetTargets(IList<GameObject> toArray)
         {
             EndParticleSystems();
 
@@ -557,7 +557,7 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        public bool SavingThrow(GameObjectBody target)
+        public bool SavingThrow(GameObject target)
         {
             if (!GameSystems.Spell.TryGetSpellEntry(spellEnum, out var entry))
             {

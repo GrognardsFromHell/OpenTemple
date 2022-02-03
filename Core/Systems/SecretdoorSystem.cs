@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -63,7 +63,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10046ea0)]
-        public void QueueSearchTimer(GameObjectBody obj)
+        public void QueueSearchTimer(GameObject obj)
         {
             GameSystems.TimeEvent.Remove(TimeEventType.Search, evt => evt.arg1.handle == obj);
 
@@ -80,7 +80,7 @@ namespace OpenTemple.Core.Systems
         private readonly List<int> _nameListSeen = new List<int>();
 
         [TempleDllLocation(0x10046550)]
-        public void MarkUsed(GameObjectBody target)
+        public void MarkUsed(GameObject target)
         {
             var nameId = target.GetInt32(obj_f.name);
             var typeOeName = ProtoSystem.GetOeNameIdForType(target.type);
@@ -93,13 +93,13 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        private bool IsSecretDoor(GameObjectBody obj)
+        private bool IsSecretDoor(GameObject obj)
         {
             return obj != null && obj.GetSecretDoorFlags().HasFlag(SecretDoorFlag.SECRET_DOOR);
         }
 
         [TempleDllLocation(0x100464a0)]
-        private bool IsSecretDoorDetected(GameObjectBody obj)
+        private bool IsSecretDoorDetected(GameObject obj)
         {
             if (!IsSecretDoor(obj))
             {
@@ -116,7 +116,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10046510)]
-        public int GetSecretDoorDc(GameObjectBody obj)
+        public int GetSecretDoorDc(GameObject obj)
         {
             if (IsSecretDoor(obj))
             {
@@ -129,7 +129,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10046db0)]
-        public bool TryFindSecretDoor(GameObjectBody door, GameObjectBody seeker, BonusList searchBonus)
+        public bool TryFindSecretDoor(GameObject door, GameObject seeker, BonusList searchBonus)
         {
             if (!IsSecretDoor(door) || GameSystems.D20.D20Query(seeker, D20DispatcherKey.QUE_CannotUseIntSkill))
             {
@@ -155,7 +155,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10046920)]
-        public bool SecretDoorSpotted(GameObjectBody door, GameObjectBody viewer)
+        public bool SecretDoorSpotted(GameObject door, GameObject viewer)
         {
             if (IsSecretDoor(door) || IsSecretDoorDetected(door) || !viewer.IsPC())
             {

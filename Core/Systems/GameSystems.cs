@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using OpenTemple.Core.AAS;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.TabFiles;
@@ -1310,7 +1310,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     public class PlayerSystem : IGameSystem, IResetAwareSystem
     {
         [TempleDllLocation(0x10aa9508)]
-        private GameObjectBody _player;
+        private GameObject _player;
 
         [TempleDllLocation(0x10aa94e8)]
         private ObjectId _playerId;
@@ -1373,7 +1373,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1006df90)]
-        public int GetPortalSoundEffect(GameObjectBody portal, PortalSoundEffect type)
+        public int GetPortalSoundEffect(GameObject portal, PortalSoundEffect type)
         {
             if (portal == null || portal.type != ObjectType.portal)
             {
@@ -1384,7 +1384,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1006e0b0)]
-        public int CombatFindWeaponSound(GameObjectBody weapon, GameObjectBody attacker, GameObjectBody target,
+        public int CombatFindWeaponSound(GameObject weapon, GameObject attacker, GameObject target,
             int soundType)
         {
             Stub.TODO();
@@ -1392,7 +1392,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1006dfd0)]
-        public int GetAnimateForeverSoundEffect(GameObjectBody obj, int subtype)
+        public int GetAnimateForeverSoundEffect(GameObject obj, int subtype)
         {
             if ((obj.type.IsCritter() || obj.type == ObjectType.container || obj.type == ObjectType.portal ||
                  obj.type.IsEquipment()) && obj.type != ObjectType.weapon)
@@ -1432,7 +1432,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         };
 
         [TempleDllLocation(0x1006def0)]
-        public int GetCritterSoundEffect(GameObjectBody obj, CritterSoundEffect type)
+        public int GetCritterSoundEffect(GameObject obj, CritterSoundEffect type)
         {
             if (!obj.IsCritter())
             {
@@ -1496,7 +1496,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1005fc20)]
-        public void Add(GameObjectBody critter, int rumorId)
+        public void Add(GameObject critter, int rumorId)
         {
             if (critter.IsPC())
             {
@@ -1507,7 +1507,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         [TempleDllLocation(0x1005fb70)]
         [TemplePlusLocation("python_integration_obj.cpp:290")]
-        public bool TryFindRumor(GameObjectBody pc, GameObjectBody npc, out int rumorId)
+        public bool TryFindRumor(GameObject pc, GameObject npc, out int rumorId)
         {
             rumorId = GameSystems.Script.ExecuteScript<int>("rumor_control", "find_rumor", pc, npc);
             if (rumorId == -1)
@@ -1520,7 +1520,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1005fa60)]
-        public bool TryGetRumorNpcLine(GameObjectBody pc, GameObjectBody npc, int rumorId, out string lineText)
+        public bool TryGetRumorNpcLine(GameObject pc, GameObject npc, int rumorId, out string lineText)
         {
             Dictionary<int, string> rumorLines;
             if (npc.GetGender() == Gender.Male)
@@ -1771,7 +1771,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
         }
 
-        void LevelupCritter(GameObjectBody critter)
+        void LevelupCritter(GameObject critter)
         {
             if (critter == null) return;
 
@@ -1801,12 +1801,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     public static class SecretdoorExtensions
     {
         [TempleDllLocation(0x10046470)]
-        public static bool IsSecretDoor(this GameObjectBody portal)
+        public static bool IsSecretDoor(this GameObject portal)
         {
             return portal.GetSecretDoorFlags().HasFlag(SecretDoorFlag.SECRET_DOOR);
         }
 
-        public static bool IsUndetectedSecretDoor(this GameObjectBody portal)
+        public static bool IsUndetectedSecretDoor(this GameObject portal)
         {
             var flags = portal.GetSecretDoorFlags();
             return flags.HasFlag(SecretDoorFlag.SECRET_DOOR) && !flags.HasFlag(SecretDoorFlag.SECRET_DOOR_FOUND);

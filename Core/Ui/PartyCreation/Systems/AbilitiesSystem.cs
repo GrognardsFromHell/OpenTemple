@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures;
 using OpenTemple.Core.Ui.Widgets;
@@ -97,7 +97,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x10184c80)]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             _activeFeaturesUi?.Finalize(charSpec, ref playerObj);
         }

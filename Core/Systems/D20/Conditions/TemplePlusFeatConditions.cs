@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -251,7 +251,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             })
             .AddSignalHandler(D20DispatcherKey.SIG_Disarmed_Weapon_Retrieve, (in DispatcherCallbackArgs evt) =>
             {
-                GameObjectBody weapon;
+                GameObject weapon;
                 var dispIo = evt.GetDispIoD20Signal();
                 var d20a = (D20Action) dispIo.obj;
                 if (d20a.d20ATarget != null && d20a.d20ATarget.type == ObjectType.weapon)

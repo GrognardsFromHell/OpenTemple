@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.AI;
@@ -62,7 +62,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x100372d0)]
-        private void GetNpcVoiceLine(GameObjectBody speaker, GameObjectBody listener,
+        private void GetNpcVoiceLine(GameObject speaker, GameObject listener,
             out string text, out int soundId, int generatedLineFrom, int generatedLineTo, int dialogScriptLineId)
         {
             if (!GameSystems.AI.CanTalkTo(speaker, listener))
@@ -95,7 +95,7 @@ namespace OpenTemple.Core.Systems.Dialog
             }
         }
 
-        private bool UseFemaleResponseFor(GameObjectBody listener)
+        private bool UseFemaleResponseFor(GameObject listener)
         {
             if (listener.IsCritter())
             {
@@ -184,7 +184,7 @@ namespace OpenTemple.Core.Systems.Dialog
         /// fetches a PC who is not identical to the object. For NPCs this will try to fetch their leader first.
         /// </summary>
         [TempleDllLocation(0x10034A40)]
-        public GameObjectBody GetListeningPartyMember(GameObjectBody critter)
+        public GameObject GetListeningPartyMember(GameObject critter)
         {
             if (critter.IsNPC())
             {
@@ -207,7 +207,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x100348c0)]
-        private void GetPcVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text, out int soundId,
+        private void GetPcVoiceLine(GameObject speaker, GameObject listener, out string text, out int soundId,
             PlayerVoiceLine line)
         {
             var v9 = speaker.GetInt32(obj_f.pc_voice_idx);
@@ -223,7 +223,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x100373c0)]
-        public bool TryGetOkayVoiceLine(GameObjectBody speaker, GameObjectBody listener,
+        public bool TryGetOkayVoiceLine(GameObject speaker, GameObject listener,
             out string text, out int soundId)
         {
             if (speaker.IsNPC())
@@ -240,7 +240,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037c60)]
-        public void GetDyingVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text, out int soundId)
+        public void GetDyingVoiceLine(GameObject speaker, GameObject listener, out string text, out int soundId)
         {
             if (speaker.IsNPC())
             {
@@ -253,7 +253,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037e40)]
-        public void GetLeaderDyingVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
+        public void GetLeaderDyingVoiceLine(GameObject speaker, GameObject listener, out string text,
             out int soundId)
         {
             text = null;
@@ -266,7 +266,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037450)]
-        public void GetFriendlyFireVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
+        public void GetFriendlyFireVoiceLine(GameObject speaker, GameObject listener, out string text,
             out int soundId)
         {
             if (speaker.IsNPC())
@@ -281,7 +281,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037be0)]
-        public bool TryGetWontSellVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
+        public bool TryGetWontSellVoiceLine(GameObject speaker, GameObject listener, out string text,
             out int soundId)
         {
             GetNpcVoiceLine(speaker, listener, out text, out soundId, 1200, 1299, 12008);
@@ -289,7 +289,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10036120)]
-        public bool PlayCritterVoiceLine(GameObjectBody obj, GameObjectBody objAddressed, string text, int soundId)
+        public bool PlayCritterVoiceLine(GameObject obj, GameObject objAddressed, string text, int soundId)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -314,7 +314,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x100374e0)]
-        public void GetFleeVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text, out int soundId)
+        public void GetFleeVoiceLine(GameObject speaker, GameObject listener, out string text, out int soundId)
         {
             text = null;
             soundId = -1;
@@ -328,7 +328,7 @@ namespace OpenTemple.Core.Systems.Dialog
         public void PlayTreasureLootingVoiceLine()
         {
             // Count how many followers would have a response to the treasure
-            var followersWithLine = new List<GameObjectBody>();
+            var followersWithLine = new List<GameObject>();
             foreach (var npcFollower in GameSystems.Party.NPCFollowers)
             {
                 var listener = GetListeningPartyMember(npcFollower);
@@ -342,10 +342,10 @@ namespace OpenTemple.Core.Systems.Dialog
 
             // If no followers have a response, we use a party member as the speaker
             // but we do prioritize the NPC followers
-            GameObjectBody speaker;
+            GameObject speaker;
             if (followersWithLine.Count == 0)
             {
-                speaker = GameSystems.Random.PickRandom(new List<GameObjectBody>(GameSystems.Party.PlayerCharacters));
+                speaker = GameSystems.Random.PickRandom(new List<GameObject>(GameSystems.Party.PlayerCharacters));
             }
             else
             {
@@ -372,7 +372,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037cf0)]
-        public void GetOverburdenedVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
+        public void GetOverburdenedVoiceLine(GameObject speaker, GameObject listener, out string text,
             out int soundId)
         {
             if (speaker.IsNPC())
@@ -386,7 +386,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037d80)]
-        public void PlayOverburdenedVoiceLine(GameObjectBody critter)
+        public void PlayOverburdenedVoiceLine(GameObject critter)
         {
             if (GameSystems.Party.IsInParty(critter))
             {
@@ -398,7 +398,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x100355d0)]
-        private void QueueComplainAgainTimer(GameObjectBody critter)
+        private void QueueComplainAgainTimer(GameObject critter)
         {
             GameSystems.TimeEvent.Remove(TimeEventType.EncumberedComplain, evt => evt.arg1.handle == critter);
             if (critter.IsNPC())
@@ -1069,7 +1069,7 @@ namespace OpenTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037af0)]
-        public string Dialog_10037AF0(GameObjectBody npc, GameObjectBody pc)
+        public string Dialog_10037AF0(GameObject npc, GameObject pc)
         {
             if (GameSystems.AI.GetCannotTalkReason(npc, pc) != AiSystem.CannotTalkCause.None)
             {
@@ -1104,7 +1104,7 @@ namespace OpenTemple.Core.Systems.Dialog
         private int _currentVoiceLineStream = -1;
 
         [TempleDllLocation(0x100354a0)]
-        public void PlayVoiceLine(GameObjectBody speaker, GameObjectBody listener, int soundId)
+        public void PlayVoiceLine(GameObject speaker, GameObject listener, int soundId)
         {
             if (soundId != -1)
             {

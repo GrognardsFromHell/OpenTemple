@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using OpenTemple.Core.AAS;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
@@ -57,7 +57,7 @@ namespace OpenTemple.Core.Systems
         // TODO: Separate logic+rendering
         public void AdvanceAndRender(
             IGameViewport viewport,
-            GameObjectBody giantFrog,
+            GameObject giantFrog,
             AnimatedModelParams animParams,
             IAnimatedModel model,
             IList<Light3d> lights,
@@ -217,7 +217,7 @@ namespace OpenTemple.Core.Systems
             RenderTongue(viewport, grappleState, tongueDir, tongueUp, tongueRight, tonguePos, lights, alpha);
         }
 
-        public bool IsGiantFrog(GameObjectBody obj)
+        public bool IsGiantFrog(GameObject obj)
         {
             // Special rendering for giant frogs of various types
             var protoNum = obj.ProtoId;
@@ -342,7 +342,7 @@ namespace OpenTemple.Core.Systems
                 TriCount * 3);
         }
 
-        public GameObjectBody GetGrappledOpponent(GameObjectBody giantFrog)
+        public GameObject GetGrappledOpponent(GameObject giantFrog)
         {
             int spellIdx;
             if (!GameSystems.D20.CritterHasCondition(giantFrog, "sp-Frog Tongue", out spellIdx))
@@ -362,7 +362,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100209a0)]
-        public static void PlayFailedLatch(GameObjectBody giantFrog)
+        public static void PlayFailedLatch(GameObject giantFrog)
         {
             SetGrappleState(giantFrog, new GrappleState {
                 state = 1
@@ -370,7 +370,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100209c0)]
-        public static void PlayLatch(GameObjectBody giantFrog)
+        public static void PlayLatch(GameObject giantFrog)
         {
             SetGrappleState(giantFrog, new GrappleState {
                 state = 3
@@ -378,7 +378,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100209e0)]
-        public static void PlayPull(GameObjectBody giantFrog)
+        public static void PlayPull(GameObject giantFrog)
         {
             // Keep current tongue position as starting point
             var grappleState = GetGrappleState(giantFrog);
@@ -387,7 +387,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10020a60)]
-        public static void PlayRetractTongue(GameObjectBody giantFrog)
+        public static void PlayRetractTongue(GameObject giantFrog)
         {
             // Keep current tongue position as starting point
             var grappleState = GetGrappleState(giantFrog);
@@ -396,13 +396,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10020980)]
-        public static void Reset(GameObjectBody giantFrog)
+        public static void Reset(GameObject giantFrog)
         {
             SetGrappleState(giantFrog, new GrappleState());
         }
 
         [TempleDllLocation(0x10020a20)]
-        public static void PlaySwallow(GameObjectBody giantFrog)
+        public static void PlaySwallow(GameObject giantFrog)
         {
             // Keep current tongue position as starting point
             var grappleState = GetGrappleState(giantFrog);
@@ -410,7 +410,7 @@ namespace OpenTemple.Core.Systems
             SetGrappleState(giantFrog, grappleState);
         }
 
-        private static void SetGrappleState(GameObjectBody giantFrog, GrappleState state)
+        private static void SetGrappleState(GameObject giantFrog, GrappleState state)
         {
             uint newGrappleState = (uint) (((byte) state.targetLength) << 24
                                            | ((byte) state.currentLength) << 16
@@ -418,7 +418,7 @@ namespace OpenTemple.Core.Systems
             giantFrog.SetUInt32(obj_f.grapple_state, newGrappleState);
         }
 
-        private static GrappleState GetGrappleState(GameObjectBody giantFrog)
+        private static GrappleState GetGrappleState(GameObject giantFrog)
         {
             var grappleState = giantFrog.GetUInt32(obj_f.grapple_state);
 

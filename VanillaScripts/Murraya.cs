@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Murraya : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(325)))
             {
@@ -36,17 +36,17 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(156, true);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(156, false);
             return RunDefault;
         }
-        public static bool LookHedrack(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool LookHedrack(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8032);
 
@@ -63,7 +63,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool get_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_rep(GameObject attachee, GameObject triggerer)
         {
             if (!triggerer.HasReputation(7))
             {

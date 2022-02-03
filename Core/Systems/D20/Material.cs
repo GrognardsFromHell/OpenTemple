@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.D20
 {
@@ -22,7 +22,7 @@ namespace OpenTemple.Core.Systems.D20
 
     public static class ObjectMaterialExtensions
     {
-        public static Material GetMaterial(this GameObjectBody obj)
+        public static Material GetMaterial(this GameObject obj)
         {
             return (Material) obj.GetInt32(obj_f.material);
         }

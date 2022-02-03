@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(173)]
     public class Stcuthbert : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(328)))
             {
@@ -33,7 +33,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -42,7 +42,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5080))
             {
@@ -92,7 +92,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool switch_to_iuz(GameObjectBody cuthbert, GameObjectBody pc, int line)
+        public static bool switch_to_iuz(GameObject cuthbert, GameObject pc, int line)
         {
             var iuz = Utilities.find_npc_near(cuthbert, 8042);
             if ((iuz != null))
@@ -108,7 +108,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool cuthbert_raise_good(GameObjectBody cuthbert, GameObjectBody pc)
+        public static bool cuthbert_raise_good(GameObject cuthbert, GameObject pc)
         {
             // raise all PC's and PC followers
             foreach (var obj in GameSystems.Party.PartyMembers)
@@ -131,7 +131,7 @@ namespace Scripts
             Sound(4043, 1);
             return SkipDefault;
         }
-        public static bool turn_off_gods(GameObjectBody cuthbert, GameObjectBody pc)
+        public static bool turn_off_gods(GameObject cuthbert, GameObject pc)
         {
             cuthbert.RemoveFromInitiative();
             cuthbert.SetObjectFlag(ObjectFlag.OFF);
@@ -147,7 +147,7 @@ namespace Scripts
             Sound(4165, 1);
             return SkipDefault;
         }
-        public static bool unshit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool unshit(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,11 +23,11 @@ namespace Scripts
     [ObjectScript(345)]
     public class Abaddon : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             return RunDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(993) == 2))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -55,13 +55,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(952, false);
             PartyLeader.RemoveReputation(40);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(703) == 0))
             {
@@ -96,12 +96,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void all_done(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void all_done(GameObject attachee, GameObject triggerer)
         {
             PartyLeader.BeginDialog(attachee, 70);
             return;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 55))
             {
@@ -110,7 +110,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool switch_to_tarah(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_tarah(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8805);
             if ((npc != null))
@@ -120,34 +120,34 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool ward_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ward_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             attachee.CastSpell(WellKnownSpells.DeathWard, tarah);
             StartTimer(5000, () => ward_kenan(attachee, triggerer));
             return RunDefault;
         }
-        public static bool ward_kenan(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ward_kenan(GameObject attachee, GameObject triggerer)
         {
             var kenan = Utilities.find_npc_near(attachee, 8804);
             attachee.CastSpell(WellKnownSpells.DeathWard, kenan);
             StartTimer(5000, () => ward_sharar(attachee, triggerer));
             return RunDefault;
         }
-        public static bool ward_sharar(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ward_sharar(GameObject attachee, GameObject triggerer)
         {
             var sharar = Utilities.find_npc_near(attachee, 8806);
             attachee.CastSpell(WellKnownSpells.DeathWard, sharar);
             StartTimer(5000, () => ward_abaddon(attachee, triggerer));
             return RunDefault;
         }
-        public static bool ward_gadham(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ward_gadham(GameObject attachee, GameObject triggerer)
         {
             var gadham = Utilities.find_npc_near(attachee, 8807);
             attachee.CastSpell(WellKnownSpells.DeathWard, gadham);
             return RunDefault;
         }
-        public static bool ward_abaddon(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ward_abaddon(GameObject attachee, GameObject triggerer)
         {
             attachee.CastSpell(WellKnownSpells.DeathWard, attachee);
             SetGlobalVar(703, 2);

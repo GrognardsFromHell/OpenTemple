@@ -1,5 +1,5 @@
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.D20.Classes.Prereq
 {
@@ -17,7 +17,7 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
             _restrictedBitmask = restrictedBitmask;
         }
 
-        public bool FullfillsRequirements(GameObjectBody critter)
+        public bool FullfillsRequirements(GameObject critter)
         {
             return IsCompatible(critter.GetAlignment());
         }

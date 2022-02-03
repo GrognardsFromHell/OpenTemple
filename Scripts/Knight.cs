@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,11 +23,11 @@ namespace Scripts
     [ObjectScript(185)]
     public class Knight : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (!triggerer.GetAlignment().IsGood())
             {
-                GameObjectBody good_pc = null;
+                GameObject good_pc = null;
                 foreach (var obj in GameSystems.Party.PartyMembers)
                 {
                     if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 45, false, false) && obj.GetAlignment().IsGood()))
@@ -57,7 +57,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -66,12 +66,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.RemoveScript(ObjScriptEvent.Heartbeat); // to prevent the "popup after death" bug
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetScriptId(ObjScriptEvent.EnterCombat) == 0)
             {
@@ -87,11 +87,11 @@ namespace Scripts
             // If one is not found, look for any PC at distance 15
             if ((!GameSystems.Combat.IsCombatActive()))
             {
-                GameObjectBody good_pc = null;
-                GameObjectBody paladin_pc = null;
-                GameObjectBody good_tank_pc = null;
-                GameObjectBody good_cleric_pc = null;
-                GameObjectBody faraway_good_pc = null;
+                GameObject good_pc = null;
+                GameObject paladin_pc = null;
+                GameObject good_tank_pc = null;
+                GameObject good_cleric_pc = null;
+                GameObject faraway_good_pc = null;
                 // near_pc = OBJ_HANDLE_NULL
                 foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
@@ -152,7 +152,7 @@ namespace Scripts
                 }
                 else
                 {
-                    GameObjectBody near_pc = null;
+                    GameObject near_pc = null;
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
                         if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 15)))
@@ -201,7 +201,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool distribute_magic_items(GameObjectBody npc, GameObjectBody pc)
+        public static bool distribute_magic_items(GameObject npc, GameObject pc)
         {
             foreach (var obj in pc.GetPartyMembers())
             {
@@ -212,7 +212,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool transfer_scrolls(GameObjectBody npc, GameObjectBody pc)
+        public static bool transfer_scrolls(GameObject npc, GameObject pc)
         {
             // give out 12 first level wizard scrolls to pc
             Utilities.create_item_in_inventory(9288, pc);
@@ -229,7 +229,7 @@ namespace Scripts
             Utilities.create_item_in_inventory(9056, pc);
             return RunDefault;
         }
-        public static bool knight_party(GameObjectBody npc, GameObjectBody pc)
+        public static bool knight_party(GameObject npc, GameObject pc)
         {
             pc.AddReputation(22);
             foreach (var obj in pc.GetPartyMembers())
@@ -240,7 +240,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void run_off(GameObjectBody npc, GameObjectBody pc)
+        public static void run_off(GameObject npc, GameObject pc)
         {
             foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -253,14 +253,14 @@ namespace Scripts
 
             return;
         }
-        public static void call_good_pc(GameObjectBody npc, GameObjectBody pc)
+        public static void call_good_pc(GameObject npc, GameObject pc)
         {
             npc.RemoveScript(ObjScriptEvent.Heartbeat); // remove heartbeat so it doesn't interfere
-            GameObjectBody good_pc = null;
-            GameObjectBody paladin_pc = null;
-            GameObjectBody good_tank_pc = null;
-            GameObjectBody good_cleric_pc = null;
-            GameObjectBody new_talker = null;
+            GameObject good_pc = null;
+            GameObject paladin_pc = null;
+            GameObject good_tank_pc = null;
+            GameObject good_cleric_pc = null;
+            GameObject new_talker = null;
             // game.particles( "sp-summon monster I", pc ) # fired ok
             foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_PC))
             {

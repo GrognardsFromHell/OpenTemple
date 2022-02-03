@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.IO.SaveGames.Co8State
 {

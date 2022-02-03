@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(32015)]
     public class Trap5Various : BaseObjectScript
     {
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(509) == 0))
             {
@@ -33,7 +33,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnTrap(TrapSprungEvent trap, GameObjectBody triggerer)
+        public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
         {
             // numP = 210 / (game.party_npc_size() + game.party_pc_size())
             // for obj in game.obj_list_vicinity( triggerer.location, OLC_CRITTERS ):

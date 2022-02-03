@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -28,8 +28,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         // Rend information would be lost if the game is saved in the middle of a full attack
         // but this shouldn't be a significant problem.
 
-        private static readonly List<GameObjectBody> primaryList = new List<GameObjectBody>();
-        private static readonly List<GameObjectBody> secondaryList = new List<GameObjectBody>();
+        private static readonly List<GameObject> primaryList = new List<GameObject>();
+        private static readonly List<GameObject> secondaryList = new List<GameObject>();
         public static void TwoWeaponRendBeginRound(in DispatcherCallbackArgs evt)
         {
             // Clear out the list of enemies hit with the primary and secondary weapon

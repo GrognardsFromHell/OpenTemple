@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.Widgets;
@@ -10,7 +10,7 @@ namespace OpenTemple.Core.Ui.Combat
     {
         private readonly InitiativeMetrics _metrics;
 
-        private readonly GameObjectBody _combatant;
+        private readonly GameObject _combatant;
 
         private readonly bool _smallMode;
 
@@ -25,7 +25,7 @@ namespace OpenTemple.Core.Ui.Combat
 
         private InitiativeUi InitiativeUi => UiSystems.Combat.Initiative;
 
-        public InitiativePortraitButton(GameObjectBody combatant, bool smallMode)
+        public InitiativePortraitButton(GameObject combatant, bool smallMode)
         {
             _combatant = combatant;
             _smallMode = smallMode;

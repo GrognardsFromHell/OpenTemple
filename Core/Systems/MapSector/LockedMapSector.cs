@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 
 namespace OpenTemple.Core.Systems.MapSector
@@ -51,7 +51,7 @@ namespace OpenTemple.Core.Systems.MapSector
             }
         }
 
-        public IEnumerable<GameObjectBody> EnumerateObjects()
+        public IEnumerable<GameObject> EnumerateObjects()
         {
             if (Sector == null)
             {
@@ -76,27 +76,27 @@ namespace OpenTemple.Core.Systems.MapSector
             }
         }
 
-        public IList<GameObjectBody> GetObjectsAt(int x, int y)
+        public IList<GameObject> GetObjectsAt(int x, int y)
         {
             Debug.Assert(x >= 0 && x < Sector.SectorSideSize);
             Debug.Assert(y >= 0 && y < Sector.SectorSideSize);
 
             if (Sector == null)
             {
-                return Array.Empty<GameObjectBody>();
+                return Array.Empty<GameObject>();
             }
 
             var tiles = Sector.objects.tiles[x, y];
             if (tiles == null)
             {
-                return Array.Empty<GameObjectBody>();
+                return Array.Empty<GameObject>();
             }
 
             return tiles;
         }
 
         [TempleDllLocation(0x100c1ad0)]
-        public void AddObject(GameObjectBody obj)
+        public void AddObject(GameObject obj)
         {
             if (Sector != null)
             {
@@ -113,13 +113,13 @@ namespace OpenTemple.Core.Systems.MapSector
         }
 
         [TempleDllLocation(0x100c1930)]
-        public void RemoveObject(GameObjectBody obj)
+        public void RemoveObject(GameObject obj)
         {
             Sector?.objects.Remove(obj);
         }
 
         [TempleDllLocation(0x100c1990)]
-        public void UpdateObjectPos(GameObjectBody obj, LocAndOffsets pos)
+        public void UpdateObjectPos(GameObject obj, LocAndOffsets pos)
         {
             if (Sector == null)
             {

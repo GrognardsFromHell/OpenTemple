@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
@@ -31,11 +31,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
 
         [TempleDllLocation(0x1013de30)]
         [TempleDllLocation(0x10BE6EC0)]
-        public GameObjectBody LootingContainer { get; private set; }
+        public GameObject LootingContainer { get; private set; }
 
         [TempleDllLocation(0x10BE6EC8)]
         [TempleDllLocation(0x1013de20)]
-        public GameObjectBody Vendor { get; private set; }
+        public GameObject Vendor { get; private set; }
 
         [TempleDllLocation(0x10be6e9c)] [TempleDllLocation(0x10be6eb4)]
         private readonly LootingSlotWidget[] _lootingSlots = new LootingSlotWidget[12];
@@ -165,7 +165,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
             }
 
             // Make a copy of the items in the container since we're going to modify the content
-            var items = new List<GameObjectBody>(EnumerateLootableItems());
+            var items = new List<GameObject>(EnumerateLootableItems());
 
             foreach (var item in items)
             {
@@ -187,7 +187,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
             UpdateSlots();
         }
 
-        private IEnumerable<GameObjectBody> EnumerateLootableItems()
+        private IEnumerable<GameObject> EnumerateLootableItems()
         {
             return LootingContainer.EnumerateChildren()
                 .Where(item => (item.GetItemFlags() & ItemFlag.NO_LOOT) == 0);
@@ -352,7 +352,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
 
         [TempleDllLocation(0x1013f6c0)]
         [TemplePlusLocation("ui_char.cpp:1413")]
-        public void Show(GameObjectBody target)
+        public void Show(GameObject target)
         {
             Reset();
             if (target != null)

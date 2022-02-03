@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -222,7 +222,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x101806b0)]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             foreach (var (skillId, amount) in charSpec.skillPointsAdded)
             {

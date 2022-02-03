@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(365)]
     public class IuzVerbobonc : BaseObjectScript
     {
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(697) == 1))
             {
@@ -42,7 +42,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(694, GetGlobalVar(694) + 1);
             if ((GetGlobalVar(694) == 4))
@@ -54,7 +54,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             while ((attachee.FindItemByName(8903) != null))
             {
@@ -86,7 +86,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5121))
             {

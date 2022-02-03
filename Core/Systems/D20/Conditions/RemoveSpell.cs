@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Particles.Render;
@@ -82,7 +82,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.AnimalGrowth:
                     ResetModelScaleAndSpeed(evt.objHndCaller, 1.8f);
@@ -122,7 +122,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.BlindnessDeafness:
                     spellId = spellPkt.spellId;
@@ -147,7 +147,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.CalmEmotions:
                     if (!RemoveSpellCalmEmotions(in evt))
@@ -174,7 +174,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.CatsGrace:
                     GameSystems.ParticleSys.CreateAtObj("sp-Entropic Shield-END", evt.objHndCaller);
@@ -208,7 +208,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.CharmPerson:
                     if (!RemoveSpellCharmPerson(in evt))
@@ -225,7 +225,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.CharmPersonOrAnimal:
                     if (!RemoveSpellCharmPersonOrAnimal(in evt))
@@ -242,7 +242,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.ChillMetal:
                     GameSystems.ParticleSys.CreateAtObj("sp-Entropic Shield-END", evt.objHndCaller);
@@ -285,7 +285,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.ColorSpray:
                     if (!RemoveColorSpray(in evt, data1))
@@ -301,7 +301,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.Command:
                     if (evt.GetConditionArg3() == 3)
@@ -348,7 +348,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.ControlPlants:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -365,7 +365,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.DeathKnell:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
@@ -384,7 +384,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.DispelAir:
                 case WellKnownSpells.DispelEarth:
@@ -428,7 +428,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.EndureElements:
                     switch (evt.GetConditionArg3())
@@ -493,7 +493,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.FogCloud:
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
@@ -506,7 +506,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.GaseousForm:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -537,7 +537,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.Grease:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -553,7 +553,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.FalseLife:
                 case WellKnownSpells.GreaterHeroism:
@@ -585,7 +585,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.HeatMetal:
                     GameSystems.ParticleSys.CreateAtObj("sp-Reduce Person-END", evt.objHndCaller);
@@ -623,7 +623,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.IceStorm:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -637,7 +637,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.InvisibilityPurge:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -653,7 +653,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.InvisibilitySphere:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -669,7 +669,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.InvisibilityToAnimals:
                     if (!RemoveInvisibility(in evt))
@@ -688,7 +688,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.InvisibilityToUndead:
                     if (!RemoveInvisibility(in evt))
@@ -709,7 +709,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.Blink:
                 case WellKnownSpells.Invisibility:
@@ -727,7 +727,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.PotionOfProtectionFromOutsiders:
                 case WellKnownSpells.PotionOfProtectionFromElementals:
@@ -779,7 +779,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.LesserGlobeOfInvulnerability:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -794,7 +794,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.MindFog:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -808,7 +808,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.MirrorImage:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -833,7 +833,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.OtilukesResilientSphere:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -930,7 +930,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.RayOfEnfeeblement:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
@@ -962,7 +962,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.ResistElements:
                     switch (evt.GetConditionArg3())
@@ -1056,7 +1056,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.Shield:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1078,7 +1078,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.Item.Remove(item);
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.Silence:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1094,7 +1094,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.SleetStorm:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1108,7 +1108,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.Sleep:
                 case WellKnownSpells.DeepSlumber:
@@ -1123,7 +1123,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                         return;
                     }
 
-                    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                    Spell_remove_mod(evt.WithoutIO, 0);
                     return;
                 case WellKnownSpells.SoftenEarthAndStone:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1140,7 +1140,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.SolidFog:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1155,7 +1155,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.SpikeGrowth:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1172,7 +1172,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.SpikeStones:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1188,7 +1188,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.SpiritualWeapon:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1213,7 +1213,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.DispelMagic:
                 case WellKnownSpells.RemoveParalysis:
@@ -1265,7 +1265,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.GiantVermin:
                 case WellKnownSpells.SummonMonsterI:
@@ -1320,7 +1320,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.Blur:
                 case WellKnownSpells.ProduceFlame:
@@ -1355,7 +1355,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.WindWall:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1371,7 +1371,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                         spellPkt.spellId, 0);
                     GameSystems.Spell.EndSpell(spellId);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     return;
                 default:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
@@ -1439,7 +1439,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
                 if (action.d20ActType == D20ActionType.CAST_SPELL)
                 {
-                    if (objHnd.HasCondition(SpellEffects.SpellAnimalFriendship) && action.spellId != spellId)
+                    if (objHnd.HasCondition(SpellAnimalFriendship) && action.spellId != spellId)
                     {
                         EndNormally();
                         return true;
@@ -1447,7 +1447,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 }
                 else if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget)
                          && GameSystems.Critter.IsFriendly(action.d20APerformer, action.d20ATarget)
-                         && objHnd.HasCondition(SpellEffects.SpellAnimalFriendship))
+                         && objHnd.HasCondition(SpellAnimalFriendship))
                 {
                     EndNormally();
                     return true;
@@ -1566,7 +1566,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
                 if (action.d20ActType == D20ActionType.CAST_SPELL)
                 {
-                    if (evt.objHndCaller.HasCondition(SpellEffects.SpellCalmAnimals) && action.spellId != spellId)
+                    if (evt.objHndCaller.HasCondition(SpellCalmAnimals) && action.spellId != spellId)
                     {
                         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId);
                         return true;
@@ -1574,7 +1574,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 }
                 else if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget)
                          && GameSystems.Critter.IsFriendly(action.d20APerformer, action.d20ATarget)
-                         && evt.objHndCaller.HasCondition(SpellEffects.SpellCalmAnimals))
+                         && evt.objHndCaller.HasCondition(SpellCalmAnimals))
                 {
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     return true;
@@ -1939,19 +1939,19 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100d1a50)]
-        private static void EndGreaterMagicFang(GameObjectBody critter)
+        private static void EndGreaterMagicFang(GameObject critter)
         {
             GameSystems.ParticleSys.CreateAtObj("sp-Greater Magic Fang-END", critter);
         }
 
         [TempleDllLocation(0x100d1d60)]
-        private static void EndMagicFang(GameObjectBody critter)
+        private static void EndMagicFang(GameObject critter)
         {
             GameSystems.ParticleSys.CreateAtObj("sp-Magic Fang-END", critter);
         }
 
         [TempleDllLocation(0x100d1dd0)]
-        private static void EndMagicCircle(GameObjectBody critter, int spellEnum)
+        private static void EndMagicCircle(GameObject critter, int spellEnum)
         {
             switch (spellEnum)
             {
@@ -2065,7 +2065,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100d2a10)]
-        private static void EndSummon(GameObjectBody critter)
+        private static void EndSummon(GameObject critter)
         {
             GameSystems.ParticleSys.CreateAtObj("Fizzle", critter);
             GameSystems.Critter.RemoveFollower(critter, true);
@@ -2073,14 +2073,14 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100d2990)]
-        private static void EndSpiritualWeapon(GameObjectBody swCritter)
+        private static void EndSpiritualWeapon(GameObject swCritter)
         {
             GameSystems.ParticleSys.CreateAtObj("Fizzle", swCritter);
             GameSystems.ObjFade.FadeTo(swCritter, 0, 2, 5, FadeOutResult.Destroy);
         }
 
         [TempleDllLocation(0x100d26f0)]
-        private static void FrogGrappleEnding(SpellPacketBody spellPkt, GameObjectBody critter)
+        private static void FrogGrappleEnding(SpellPacketBody spellPkt, GameObject critter)
         {
             if (critter == spellPkt.caster)
             {
@@ -2296,7 +2296,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             return false;
         }
 
-        private static void ResetModelScaleAndSpeed(GameObjectBody critter, float factorToRemove)
+        private static void ResetModelScaleAndSpeed(GameObject critter, float factorToRemove)
         {
             var scale = critter.GetInt32(obj_f.model_scale);
             critter.SetInt32(obj_f.model_scale, (int) (scale / factorToRemove));

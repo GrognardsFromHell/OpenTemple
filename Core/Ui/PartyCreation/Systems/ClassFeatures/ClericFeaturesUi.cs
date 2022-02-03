@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -116,7 +116,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
             return false;
         }
 
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             playerObj.SetInt32(obj_f.critter_domain_1, (int) charSpec.domain1);
             playerObj.SetInt32(obj_f.critter_domain_2, (int) charSpec.domain2);

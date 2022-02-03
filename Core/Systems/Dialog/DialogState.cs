@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.Systems.Dialog
@@ -18,9 +18,9 @@ namespace OpenTemple.Core.Systems.Dialog
     {
         public DialogScript dialogScript;
         public int unk;
-        public GameObjectBody pc;
+        public GameObject pc;
         public ObjectId pcId; // TimeEventObjInfo for PC
-        public GameObjectBody npc;
+        public GameObject npc;
         public ObjectId npcId; // TimeEventObjInfo for NPC
         public int reqNpcLineId;
         public int dialogScriptId; // current known use is for speech
@@ -53,7 +53,7 @@ namespace OpenTemple.Core.Systems.Dialog
         // Used by the rumor for money opcode
         public ReplyOp askForMoneyOp;
 
-        public DialogState(GameObjectBody speaker, GameObjectBody listener)
+        public DialogState(GameObject speaker, GameObject listener)
         {
             npc = speaker;
             npcId = speaker.id;

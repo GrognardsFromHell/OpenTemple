@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Feats;
 
@@ -237,7 +237,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public bool IsSlashingOrBludgeoning(GameObjectBody weapon)
+        public bool IsSlashingOrBludgeoning(GameObject weapon)
         {
             return IsSlashingOrBludgeoning(weapon.GetWeaponType());
         }
@@ -333,7 +333,7 @@ namespace OpenTemple.Core.Systems
                    || weaponProps.damType == DamageType.SlashingAndBludgeoningAndPiercing;
         }
 
-        public int GetBaseHardness(GameObjectBody item)
+        public int GetBaseHardness(GameObject item)
         {
             if (item.type == ObjectType.weapon)
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -33,10 +33,10 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Holy Word OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             // The Will save versus banishment is at a -4 penalty
             spell.dc = spell.dc + 4;
-            var obj_list = new List<GameObjectBody>();
+            var obj_list = new List<GameObject>();
             // extracting the obj's so we don't get changed iterator bullshit (see http://www.co8.org/community/index.php?threads/holy-word-killed-my-cg-pc.12164/#post-145537)
             foreach (var target_item in spell.Targets)
             {

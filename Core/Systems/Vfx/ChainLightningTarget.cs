@@ -1,5 +1,5 @@
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 #nullable enable
 
@@ -7,7 +7,7 @@ namespace OpenTemple.Core.Systems.Vfx
 {
     public class ChainLightningTarget
     {
-        public GameObjectBody? Object { get; }
+        public GameObject? Object { get; }
         public Vector3 Location { get; }
         public bool IsEffectTriggered { get; private set; }
 
@@ -17,7 +17,7 @@ namespace OpenTemple.Core.Systems.Vfx
             Location = location;
         }
 
-        public ChainLightningTarget(GameObjectBody obj, Vector3 location)
+        public ChainLightningTarget(GameObject obj, Vector3 location)
         {
             Object = obj;
             Location = location;

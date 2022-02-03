@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using SharpDX.Multimedia;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
@@ -148,7 +148,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         internal int actSeqTargetsIdx => actSeqTargets.Count;
 
         [TempleDllLocation(0x118CD2A8)]
-        internal List<GameObjectBody> actSeqTargets = new List<GameObjectBody>();
+        internal List<GameObject> actSeqTargets = new List<GameObject>();
 
         [TempleDllLocation(0x118CD3A8)]
         internal LocAndOffsets actSeqSpellLoc;
@@ -172,7 +172,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x118A06C0)]
         [TempleDllLocation(0x10B3D5B8)]
-        private readonly List<GameObjectBody> _simultPerformerQueue = new ();
+        private readonly List<GameObject> _simultPerformerQueue = new ();
 
         // Vanilla stored the object who this was for in _simultPerformerQueue[numSimultPerformers],
         // which essentially reused the area past the actual simultaneous performers for storing
@@ -180,7 +180,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         // I think this saves the turn based status for a critter who had to abort their sequence during
         // a simultaneous turn, so that it can be restored later.
         [TempleDllLocation(0x118CD3C0)]
-        private (GameObjectBody actor, TurnBasedStatus status)? _abortedSimultaneousSequence;
+        private (GameObject actor, TurnBasedStatus status)? _abortedSimultaneousSequence;
 
         [TempleDllLocation(0x10B3D5BC)]
         private int simulsIdx;
@@ -220,7 +220,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10095fd0)]
-        public bool TurnBasedStatusInit(GameObjectBody actor)
+        public bool TurnBasedStatusInit(GameObject actor)
         {
             if (GameSystems.Combat.IsCombatActive())
             {
@@ -258,7 +258,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10094eb0)]
-        public void AssignSeq(GameObjectBody performer)
+        public void AssignSeq(GameObject performer)
         {
             var prevSeq = CurrentSequence;
             AllocSeq(performer);
@@ -279,7 +279,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10094e20)]
-        private void AllocSeq(GameObjectBody performer)
+        private void AllocSeq(GameObject performer)
         {
             var newSequence = new ActionSequence();
             actSeqArray.Add(newSequence);
@@ -291,7 +291,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008a530)]
-        public void globD20ActnSetPerformer(GameObjectBody performer)
+        public void globD20ActnSetPerformer(GameObject performer)
         {
             if (performer != globD20Action.d20APerformer)
             {
@@ -333,7 +333,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         // initializes the sequence pointed to by actSeqCur and assigns it to objHnd
         [TempleDllLocation(0x10094A00)]
-        public void CurSeqReset(GameObjectBody performer)
+        public void CurSeqReset(GameObject performer)
         {
             var curSeq = CurrentSequence;
 
@@ -719,8 +719,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
             else
             {
-                spellPacket.SetTargets(Array.Empty<GameObjectBody>());
-                spellPacket.InitialTargets = ImmutableSortedSet<GameObjectBody>.Empty;
+                spellPacket.SetTargets(Array.Empty<GameObject>());
+                spellPacket.InitialTargets = ImmutableSortedSet<GameObject>.Empty;
             }
 
             if (result.flags.HasFlag(PickerResultFlags.PRF_HAS_MULTI_OBJ))
@@ -763,7 +763,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008b140)]
-        public bool SequenceSwitch(GameObjectBody performer)
+        public bool SequenceSwitch(GameObject performer)
         {
             ActionSequence? newSequence = null;
             foreach (var seq in actSeqArray)
@@ -908,7 +908,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 }
 
                 // if the performer has become unconscious, abort
-                GameObjectBody performer = curSeq.performer;
+                GameObject performer = curSeq.performer;
                 if (GameSystems.Critter.IsDeadOrUnconscious(performer))
                 {
                     RemoveRemainingActions();
@@ -1006,7 +1006,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         private bool curSeqNext()
         {
             var curSeq = CurrentSequence;
-            GameObjectBody performer = curSeq.performer;
+            GameObject performer = curSeq.performer;
             curSeq.IsPerforming = false;
             Logger.Debug("CurSeqNext: \t Sequence Completed for {0} (sequence {1})", curSeq.performer, curSeq);
 
@@ -1149,7 +1149,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10091540)]
-        private bool HasReadiedAction(GameObjectBody critter)
+        private bool HasReadiedAction(GameObject critter)
         {
             foreach (var readiedAction in _readiedActions)
             {
@@ -1375,7 +1375,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100981c0)]
-        public bool TriggerAoOsByAdjacentEnemies(GameObjectBody obj)
+        public bool TriggerAoOsByAdjacentEnemies(GameObject obj)
         {
             var status = false;
 
@@ -1416,7 +1416,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10097d50)]
-        public void DoAoo(GameObjectBody obj, GameObjectBody target)
+        public void DoAoo(GameObject obj, GameObject target)
         {
             AssignSeq(obj);
             var curSeq = CurrentSequence;
@@ -1741,7 +1741,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100925e0)]
-        public bool isSimultPerformer(GameObjectBody objHnd)
+        public bool isSimultPerformer(GameObject objHnd)
         {
             return _simultPerformerQueue.Contains(objHnd);
         }
@@ -1776,7 +1776,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100924e0)]
-        public bool simulsAbort(GameObjectBody obj)
+        public bool simulsAbort(GameObject obj)
         {
             // aborts sequence; returns 1 if objHnd is not the first in queue
             if (!GameSystems.Combat.IsCombatActive())
@@ -1813,7 +1813,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return false;
         }
 
-        private bool isSomeoneAlreadyActingSimult(GameObjectBody objHnd)
+        private bool isSomeoneAlreadyActingSimult(GameObject objHnd)
         {
             foreach (var simultPerformer in _simultPerformerQueue)
             {
@@ -1853,7 +1853,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10098c90)]
-        public bool DoUseItemAction(GameObjectBody holder, GameObjectBody aiObj, GameObjectBody item)
+        public bool DoUseItemAction(GameObject holder, GameObject aiObj, GameObject item)
         {
             // Save to be able to revert
             var d20ActNum = CurrentSequence.d20ActArrayNum;
@@ -1925,7 +1925,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10096390)]
-        public ActionErrorCode RunUseItemActionCheck(GameObjectBody obj, D20ActionType actionType, int invIdx,
+        public ActionErrorCode RunUseItemActionCheck(GameObject obj, D20ActionType actionType, int invIdx,
             D20SpellData spellData)
         {
             var tbStatus = CurrentSequence.tbStatus.Copy();
@@ -1946,7 +1946,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10099cf0)]
-        public void PerformOnAnimComplete(GameObjectBody obj, int animId)
+        public void PerformOnAnimComplete(GameObject obj, int animId)
         {
             // do checks:
 
@@ -2052,7 +2052,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100933F0)]
-        public bool ActionFrameProcess(GameObjectBody obj)
+        public bool ActionFrameProcess(GameObject obj)
         {
             Logger.Debug("ActionFrameProcess: \t for {0}", obj);
             if (!IsCurrentlyPerforming(obj))
@@ -2106,7 +2106,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10089f00)]
-        public bool WasInterrupted(GameObjectBody obj)
+        public bool WasInterrupted(GameObject obj)
         {
             for (var sequence = actSeqInterrupt; sequence != null; sequence = sequence.interruptSeq)
             {
@@ -2120,9 +2120,9 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008b7e0)]
-        public GameObjectBody GetInterruptee()
+        public GameObject GetInterruptee()
         {
-            GameObjectBody result = null;
+            GameObject result = null;
             var interruptedSeq = actSeqInterrupt;
             for (; interruptedSeq != null; interruptedSeq = interruptedSeq.interruptSeq)
             {
@@ -2133,7 +2133,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004e790)]
-        public void dispatchTurnBasedStatusInit(GameObjectBody obj, DispIOTurnBasedStatus dispIo)
+        public void dispatchTurnBasedStatusInit(GameObject obj, DispIOTurnBasedStatus dispIo)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher != null)
@@ -2150,7 +2150,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10099b10)]
-        public void ProjectileHit(GameObjectBody projectile, GameObjectBody critter)
+        public void ProjectileHit(GameObject projectile, GameObject critter)
         {
             throw new NotImplementedException();
         }
@@ -2180,10 +2180,10 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008a050)]
-        public bool IsCurrentlyPerforming(GameObjectBody performer) => IsCurrentlyPerforming(performer, out _);
+        public bool IsCurrentlyPerforming(GameObject performer) => IsCurrentlyPerforming(performer, out _);
 
         [TempleDllLocation(0x1008a050)]
-        public bool IsCurrentlyPerforming(GameObjectBody performer, [NotNullWhen(true)] out ActionSequence? sequenceOut)
+        public bool IsCurrentlyPerforming(GameObject performer, [NotNullWhen(true)] out ActionSequence? sequenceOut)
         {
             foreach (var actionSequence in actSeqArray)
             {
@@ -2244,7 +2244,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10092e50)]
-        public ActionErrorCode GlobD20ActnSetTarget(GameObjectBody target, LocAndOffsets? location)
+        public ActionErrorCode GlobD20ActnSetTarget(GameObject target, LocAndOffsets? location)
         {
             switch (TargetClassification(globD20Action))
             {
@@ -2397,7 +2397,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
         }
 
-        public void ActionTypeAutomatedSelection(GameObjectBody obj)
+        public void ActionTypeAutomatedSelection(GameObject obj)
         {
             void SetGlobD20Action(D20ActionType actType, int data1)
             {
@@ -2517,8 +2517,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
         {
             public D20Action d20a;
             public int pad4;
-            public GameObjectBody projectile;
-            public GameObjectBody ammoItem;
+            public GameObject projectile;
+            public GameObject ammoItem;
         }
 
         [TempleDllLocation(0x118A0720)]
@@ -2531,7 +2531,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         private bool performedDefaultAction;
 
         [TempleDllLocation(0x1008B1E0)]
-        public bool ProjectileAppend(D20Action action, GameObjectBody projHndl, GameObjectBody thrownItem)
+        public bool ProjectileAppend(D20Action action, GameObject projHndl, GameObject thrownItem)
         {
             if (projHndl == null)
             {
@@ -3041,7 +3041,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10091580)]
-        private void FindHostileReadyVsMoveActions(GameObjectBody mover, ref Span<int> actionIndices)
+        private void FindHostileReadyVsMoveActions(GameObject mover, ref Span<int> actionIndices)
         {
             int count = 0;
             for (var index = 0; index < _readiedActions.Count; index++)
@@ -3078,7 +3078,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10091580)]
-        int ReadyVsApproachOrWithdrawalCount(GameObjectBody mover)
+        int ReadyVsApproachOrWithdrawalCount(GameObject mover)
         {
             int result = 0;
             for (int i = 0; i < _readiedActions.Count; i++)
@@ -3094,7 +3094,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10091500)]
-        void ReadyVsRemoveForObj(GameObjectBody obj)
+        void ReadyVsRemoveForObj(GameObject obj)
         {
             for (int i = 0; i < _readiedActions.Count; i++)
             {
@@ -3433,7 +3433,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         public void FullAttackCostCalculate(D20Action d20a, TurnBasedStatus tbStatus, out int baseAttackNumCode,
             out int bonusAttacks, out int numAttacks, out int attackModeCode)
         {
-            GameObjectBody performer = d20a.d20APerformer;
+            GameObject performer = d20a.d20APerformer;
             int usingOffhand = 0;
             int _attackTypeCodeHigh = 1;
             int _attackTypeCodeLow = 0;
@@ -3492,7 +3492,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10092da0)]
-        public void ResetAll(GameObjectBody critter)
+        public void ResetAll(GameObject critter)
         {
             // resets the readied action cache
             // Clear TBUiIntgameFocus
@@ -3519,7 +3519,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10099430)]
-        public void TurnStart(GameObjectBody obj)
+        public void TurnStart(GameObject obj)
         {
             Logger.Debug("*** NEXT TURN *** starting for {0}. CurSeq: {1}", obj, CurrentSequence);
 
@@ -3642,7 +3642,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
         }
 
-        private static bool HasCustomCombatScript(GameObjectBody obj)
+        private static bool HasCustomCombatScript(GameObject obj)
         {
             if (obj == null)
             {
@@ -3951,7 +3951,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100920e0)]
-        public GameObjectBody? getNextSimulsPerformer()
+        public GameObject? getNextSimulsPerformer()
         {
             if (simulsIdx + 1 < _simultPerformerQueue.Count)
             {
@@ -3992,13 +3992,13 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100925b0)]
-        public bool IsLastSimultPopped(GameObjectBody obj)
+        public bool IsLastSimultPopped(GameObject obj)
         {
             return _abortedSimultaneousSequence.HasValue && _abortedSimultaneousSequence.Value.actor == obj;
         }
 
         [TempleDllLocation(0x10096fa0)]
-        public bool IsLastSimulsPerformer(GameObjectBody critter)
+        public bool IsLastSimulsPerformer(GameObject critter)
         {
             if (_simultPerformerQueue.Count > 0)
             {
@@ -4018,7 +4018,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10095ca0)]
-        private bool restoreSeqTo(GameObjectBody critter)
+        private bool restoreSeqTo(GameObject critter)
         {
             if (_abortedSimultaneousSequence.HasValue && _abortedSimultaneousSequence.Value.actor == critter)
             {
@@ -4124,7 +4124,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10097ef0)]
-        public void RangedCounterAttack(GameObjectBody attacker, GameObjectBody defender, D20CAF flags)
+        public void RangedCounterAttack(GameObject attacker, GameObject defender, D20CAF flags)
         {
             AssignSeq(attacker);
             CurrentSequence.performer = attacker;
@@ -4186,7 +4186,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100914b0)]
-        public void AddReadyAction(GameObjectBody critter, ReadyVsTypeEnum readyVsType)
+        public void AddReadyAction(GameObject critter, ReadyVsTypeEnum readyVsType)
         {
             var readiedAction = new ReadiedActionPacket
             {
@@ -4272,9 +4272,9 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100b8530)]
-        public List<GameObjectBody> GetEnemiesWithinReach(GameObjectBody critter)
+        public List<GameObject> GetEnemiesWithinReach(GameObject critter)
         {
-            var result = new List<GameObjectBody>();
+            var result = new List<GameObject>();
 
             var reach = critter.GetReach();
 
@@ -4784,7 +4784,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x10094910)]
         [TemplePlusLocation("action_sequence.cpp:3770")]
-        public HourglassState GetNewHourglassState(GameObjectBody performer, D20ActionType d20ActionType, int d20Data1,
+        public HourglassState GetNewHourglassState(GameObject performer, D20ActionType d20ActionType, int d20Data1,
             int radMenuActualArg, D20SpellData d20SpellData)
         {
             if (CurrentSequence == null)
@@ -4826,13 +4826,13 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100921f0)]
-        public bool IsCurrentlyActing(GameObjectBody obj)
+        public bool IsCurrentlyActing(GameObject obj)
         {
             return GameSystems.D20.Initiative.CurrentActor == obj || _simultPerformerQueue.Contains(obj);
         }
 
         [TempleDllLocation(0x1008a210)]
-        public bool ActorCanChangeInitiative(GameObjectBody obj)
+        public bool ActorCanChangeInitiative(GameObject obj)
         {
             if (obj == GameSystems.D20.Initiative.CurrentActor)
             {
@@ -4845,7 +4845,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100996b0)]
-        public void SwapInitiativeWith(GameObjectBody obj, int targetIndex)
+        public void SwapInitiativeWith(GameObject obj, int targetIndex)
         {
             GameSystems.D20.Initiative.Move(obj, targetIndex);
             var actor = GameSystems.D20.Initiative.CurrentActor;
@@ -4855,7 +4855,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008b870)]
-        public bool IsOkayToCleave(GameObjectBody critter)
+        public bool IsOkayToCleave(GameObject critter)
         {
             // Per the rules you cannot cleave (or use any other extra attacks for that matter) when using whirlwind attack
             return CurrentSequence == null
@@ -4864,7 +4864,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008acc0)]
-        public bool IsOffensive(D20ActionType actionType, GameObjectBody target)
+        public bool IsOffensive(D20ActionType actionType, GameObject target)
         {
             if (actionType == D20ActionType.LAY_ON_HANDS_USE && GameSystems.Critter.IsUndead(target))
             {

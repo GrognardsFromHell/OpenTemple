@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.VisualBasic;
 using OpenTemple.Core;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;

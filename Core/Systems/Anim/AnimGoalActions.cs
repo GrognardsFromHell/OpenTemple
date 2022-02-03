@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
@@ -25,11 +25,11 @@ namespace OpenTemple.Core.Systems.Anim
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10016530)]
-        private static void ContinueWithAnimation(GameObjectBody obj, AnimSlot slot, IAnimatedModel animHandle,
+        private static void ContinueWithAnimation(GameObject obj, AnimSlot slot, IAnimatedModel animHandle,
             out AnimatedModelEvents eventOut)
         {
-            GameObjectBody mainHand = null;
-            GameObjectBody offHand = null;
+            GameObject mainHand = null;
+            GameObject offHand = null;
             if (obj.IsCritter())
             {
                 mainHand = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
@@ -781,7 +781,7 @@ namespace OpenTemple.Core.Systems.Anim
         private static int anim_create_path_max_length(ref AnimPath pAnimPath,
             locXY srcLoc,
             locXY destLoc,
-            GameObjectBody obj)
+            GameObject obj)
         {
             Trace.Assert(pAnimPath.maxPathLength >= 0);
 
@@ -1214,7 +1214,7 @@ namespace OpenTemple.Core.Systems.Anim
             return false;
         }
 
-        private static void AiEndCombatTurn(GameObjectBody obj)
+        private static void AiEndCombatTurn(GameObject obj)
         {
             if (!GameSystems.Party.IsPlayerControlled(obj))
             {
@@ -1934,7 +1934,7 @@ namespace OpenTemple.Core.Systems.Anim
             return true;
         }
 
-        private static bool IsStonedStunnedOrParalyzed(GameObjectBody obj)
+        private static bool IsStonedStunnedOrParalyzed(GameObject obj)
         {
             if (obj.GetSpellFlags().HasFlag(SpellFlag.STONED))
             {
@@ -2989,8 +2989,8 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x100B4E20)]
-        private static void DoProjectileCheck(GameObjectBody critter, GameObjectBody target, LocAndOffsets targetLoc,
-            GameObjectBody projectile, float traveledDistance)
+        private static void DoProjectileCheck(GameObject critter, GameObject target, LocAndOffsets targetLoc,
+            GameObject projectile, float traveledDistance)
         {
             if (projectile.GetLocation() == targetLoc.location && target == null)
             {
@@ -3022,7 +3022,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x100b4df0)]
-        private static void DestroyProjectile(GameObjectBody projectile)
+        private static void DestroyProjectile(GameObject projectile)
         {
             var partSysId = projectile.GetInt32(obj_f.projectile_part_sys_id);
             if (partSysId != 0)
@@ -3331,7 +3331,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000D3A0)]
-        private static bool IsObstacleInDirection(GameObjectBody sourceObj, locXY src, locXY tgt,
+        private static bool IsObstacleInDirection(GameObject sourceObj, locXY src, locXY tgt,
             CompassDirection direction)
         {
             MapObjectSystem.ObstacleFlag flags = 0;
@@ -3354,7 +3354,7 @@ namespace OpenTemple.Core.Systems.Anim
         public static bool GoalPleaseMove(AnimSlot slot)
         {
             Span<locXY> adjacentTiles = stackalloc locXY[8];
-            GameObjectBody[] handles = new GameObjectBody[8];
+            GameObject[] handles = new GameObject[8];
 
             var sourceObj = slot.param1.obj;
             AssertAnimParam(sourceObj != null); // sourceObj
@@ -3544,7 +3544,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x100166f0)]
-        private static void PlayWaterRipples(GameObjectBody obj)
+        private static void PlayWaterRipples(GameObject obj)
         {
             if (obj.IsCritter())
             {
@@ -4291,7 +4291,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10013140)]
-        private static EncodedAnimId AnimGetMoveAnimationId(AnimSlot slot, GameObjectBody critter,
+        private static EncodedAnimId AnimGetMoveAnimationId(AnimSlot slot, GameObject critter,
             bool requestRunning)
         {
             if (GameSystems.Critter.IsMovingSilently(critter))
@@ -4462,7 +4462,7 @@ namespace OpenTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x10013f60)]
         private static bool GoalKnockbackFindTarget(ref AnimPath animPath, AnimSlot slot,
-            GameObjectBody obj, locXY curLoc)
+            GameObject obj, locXY curLoc)
         {
             if (!animPath.flags.HasFlag(AnimPathFlag.UNK_1))
             {
@@ -4556,7 +4556,7 @@ namespace OpenTemple.Core.Systems.Anim
             sourceObj.SetAnimId(animId);
 
             // TODO This seems the wrong way around!
-            GameObjectBody weapon;
+            GameObject weapon;
             if (weaponAnim < WeaponAnim.LeftAttack || weaponAnim > WeaponAnim.LeftAttack3)
             {
                 weapon = GameSystems.Item.ItemWornAt(sourceObj, EquipSlot.WeaponPrimary);
@@ -4566,7 +4566,7 @@ namespace OpenTemple.Core.Systems.Anim
                 weapon = GameSystems.Item.ItemWornAt(sourceObj, EquipSlot.WeaponSecondary);
             }
 
-            var soundId = GameSystems.SoundMap.CombatFindWeaponSound(weapon, sourceObj, targetObj, 4);
+            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weapon, sourceObj, targetObj, 4);
             GameSystems.SoundGame.PositionalSound(soundId, 1, sourceObj);
 
             PlayWaterRipples(sourceObj);
@@ -4703,7 +4703,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10017bf0)]
-        private static bool GoalMoveCanReachTarget(GameObjectBody source, GameObjectBody target)
+        private static bool GoalMoveCanReachTarget(GameObject source, GameObject target)
         {
             AssertAnimParam(source != null);
             AssertAnimParam(target != null);
@@ -4741,14 +4741,14 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10017ad0)]
-        private static bool AnimCheckTgtPathMaker(GameObjectBody handle, locXY tgtLoc, ref AnimPath path)
+        private static bool AnimCheckTgtPathMaker(GameObject handle, locXY tgtLoc, ref AnimPath path)
         {
             var fromLoc = handle.GetLocation();
             return AnimCheckTgtPathMaker_Impl(handle, fromLoc, tgtLoc, ref path);
         }
 
         [TempleDllLocation(0x1000d980)]
-        private static bool AnimCheckTgtPathMaker_Impl(GameObjectBody handle, locXY srcLoc, locXY tgtLoc,
+        private static bool AnimCheckTgtPathMaker_Impl(GameObject handle, locXY srcLoc, locXY tgtLoc,
             ref AnimPath animPath)
         {
             AssertAnimParam(handle != null);

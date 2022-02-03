@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -38,7 +38,7 @@ namespace VanillaScripts.Spells
             Logger.Info("target_list sorted by dist from [{0}] (closest to farthest): {1}", spell.caster, spell.Targets);
             if (spell.Targets.Length > num_targets_affected)
             {
-                var remove_list = new List<GameObjectBody>();
+                var remove_list = new List<GameObject>();
 
                 var index = 0;
 
@@ -61,7 +61,7 @@ namespace VanillaScripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Color Spray OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
 
             spell.duration = 0;
 

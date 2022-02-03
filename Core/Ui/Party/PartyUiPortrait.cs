@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Ui.Party
 {
     public class PartyUiPortrait : IDisposable
     {
-        public GameObjectBody PartyMember { get; }
+        public GameObject PartyMember { get; }
 
         public WidgetContainer Widget { get; }
 
@@ -22,7 +22,7 @@ namespace OpenTemple.Core.Ui.Party
 
         public event Action<PartyUiPortrait, MessageMouseArgs> OnPortraitMouseMsg;
 
-        public PartyUiPortrait(GameObjectBody partyMember, PartyUiParams uiParams)
+        public PartyUiPortrait(GameObject partyMember, PartyUiParams uiParams)
         {
             PartyMember = partyMember;
 

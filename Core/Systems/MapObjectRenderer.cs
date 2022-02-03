@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using OpenTemple.Core.AAS;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
@@ -88,7 +88,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void RenderObject(IGameViewport viewport, GameObjectBody obj, bool showInvisible)
+        public void RenderObject(IGameViewport viewport, GameObject obj, bool showInvisible)
         {
             mTotalLastFrame++;
 
@@ -123,7 +123,7 @@ namespace OpenTemple.Core.Systems
 
             locXY worldLoc;
 
-            GameObjectBody parent = null;
+            GameObject parent = null;
             if (type.IsEquipment())
             {
                 parent = GameSystems.Item.GetParent(obj);
@@ -322,7 +322,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void RenderObjectInUi(GameObjectBody obj, int x, int y, float rotation, float scale)
+        public void RenderObjectInUi(GameObject obj, int x, int y, float rotation, float scale)
         {
             // TODO: This is a terrible way of doing this
             var viewport = GameViews.Primary;
@@ -399,7 +399,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void RenderOccludedObject(IGameViewport viewport, GameObjectBody obj)
+        public void RenderOccludedObject(IGameViewport viewport, GameObject obj)
         {
             mTotalLastFrame++;
 
@@ -450,7 +450,7 @@ namespace OpenTemple.Core.Systems
 
             locXY worldLoc;
 
-            GameObjectBody parent = null;
+            GameObject parent = null;
             if (type.IsEquipment())
             {
                 parent = GameSystems.Item.GetParent(obj);
@@ -573,7 +573,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void RenderObjectHighlight(IGameViewport viewport, GameObjectBody obj,
+        public void RenderObjectHighlight(IGameViewport viewport, GameObject obj,
             ResourceRef<IMdfRenderMaterial> material)
         {
             mTotalLastFrame++;
@@ -608,7 +608,7 @@ namespace OpenTemple.Core.Systems
 
             locXY worldLoc;
 
-            GameObjectBody parent = null;
+            GameObject parent = null;
             if (type.IsEquipment())
             {
                 parent = GameSystems.Item.GetParent(obj);
@@ -917,7 +917,7 @@ namespace OpenTemple.Core.Systems
         private float _mirrorImagesRotation = 0;
 
         private void RenderMirrorImages(IGameViewport viewport,
-            GameObjectBody obj,
+            GameObject obj,
             AnimatedModelParams animParams,
             IAnimatedModel model,
             IList<Light3d> lights)
@@ -971,7 +971,7 @@ namespace OpenTemple.Core.Systems
         }
 
         private void RenderShadowMapShadow(IGameViewport viewport,
-            GameObjectBody obj,
+            GameObject obj,
             AnimatedModelParams animParams,
             IAnimatedModel model,
             Light3d globalLight,
@@ -1025,7 +1025,7 @@ namespace OpenTemple.Core.Systems
 
         private void RenderBlobShadow(
             IGameViewport viewport,
-            GameObjectBody handle,
+            GameObject handle,
             IAnimatedModel model,
             ref AnimatedModelParams animParams,
             int alpha)
@@ -1064,6 +1064,6 @@ namespace OpenTemple.Core.Systems
             shapeRenderer3d.DrawQuad(viewport, corners, mBlobShadowMaterial.Resource, color);
         }
 
-        private int GetAlpha(GameObjectBody obj) => obj.GetInt32(obj_f.transparency);
+        private int GetAlpha(GameObject obj) => obj.GetInt32(obj_f.transparency);
     }
 }

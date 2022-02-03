@@ -5,8 +5,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="IronPython" Version="2.7.9"/>
-        <PackageReference Include="IronPython.StdLib" Version="2.7.9"/>
+        <PackageReference Include="IronPython" Version="$(IronPythonVersion)"/>
+        <PackageReference Include="IronPython.StdLib" Version="$(IronPythonVersion)"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(RuntimeRoslynVersion)"/>
     </ItemGroup>
 

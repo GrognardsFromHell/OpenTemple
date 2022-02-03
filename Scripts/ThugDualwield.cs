@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(313)]
     public class ThugDualwield : BaseObjectScript
     {
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             // if (not attachee.has_wielded(4082) or not attachee.has_wielded(4112)):
             while ((!attachee.HasEquippedByName(4156) || !attachee.HasEquippedByName(4159)))
@@ -34,7 +34,7 @@ namespace Scripts
             // game.new_sid = 0
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             while ((attachee.FindItemByName(8903) != null))
             {

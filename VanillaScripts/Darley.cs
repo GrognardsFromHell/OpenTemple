@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Darley : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -64,7 +64,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool change_to_demon(GameObjectBody darley, GameObjectBody pc, int line)
+        public static bool change_to_demon(GameObject darley, GameObject pc, int line)
         {
             if ((!GetGlobalFlag(179)))
             {
@@ -92,7 +92,7 @@ namespace VanillaScripts
             return RunDefault;
         }
 
-        public override bool OnTrueSeeing(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnTrueSeeing(GameObject attachee, GameObject triggerer)
         {
             change_to_demon(attachee, triggerer, -1);
             return RunDefault;

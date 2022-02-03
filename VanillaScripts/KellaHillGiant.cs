@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class KellaHillGiant : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (((triggerer.GetStat(Stat.level_druid) >= 1) || (PartyAlignment == Alignment.NEUTRAL)))
             {
@@ -46,7 +46,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             SetCounter(0, GetCounter(0) + 1);
             if ((GetCounter(0) >= 3))
@@ -56,7 +56,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool shapechange(GameObjectBody attachee, GameObjectBody triggerer, int dialog_line)
+        public static bool shapechange(GameObject attachee, GameObject triggerer, int dialog_line)
         {
             var loc = attachee.GetLocation();
 

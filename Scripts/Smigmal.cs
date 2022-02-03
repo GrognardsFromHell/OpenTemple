@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(141)]
     public class Smigmal : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasMet(triggerer)))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(372)))
             {
@@ -49,7 +49,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -59,7 +59,7 @@ namespace Scripts
             SetGlobalFlag(338, true);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var leader = SelectedPartyLeader;
             if ((!attachee.HasMet(leader)) && (!GetGlobalFlag(164))) // Smigmal attacks first time party visits
@@ -146,12 +146,12 @@ namespace Scripts
             // attachee.d20_send_signal(S_BreakFree)
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(338, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -177,7 +177,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.type == ObjectType.pc))
             {
@@ -190,19 +190,19 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool smigmal_escape(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool smigmal_escape(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             StartTimer(7200000, () => smigmal_return(attachee));
             return RunDefault;
         }
-        public static bool smigmal_return(GameObjectBody attachee)
+        public static bool smigmal_return(GameObject attachee)
         {
             attachee.ClearObjectFlag(ObjectFlag.OFF);
             SetGlobalFlag(144, true);
             return RunDefault;
         }
-        public static bool smig_backup(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool smig_backup(GameObject attachee, GameObject triggerer)
         {
             var assassin_1 = GameSystems.MapObject.CreateObject(14782, new locXY(623, 455));
             AttachParticles("sp-invisibility", assassin_1);
@@ -213,14 +213,14 @@ namespace Scripts
             assassin_2.TurnTowards(PartyLeader);
             return RunDefault;
         }
-        public static bool smigmal_well(GameObjectBody attachee, GameObjectBody pc)
+        public static bool smigmal_well(GameObject attachee, GameObject pc)
         {
             var dice = Dice.Parse("1d10+1000");
             attachee.Heal(null, dice);
             attachee.HealSubdual(null, dice);
             return RunDefault;
         }
-        public static bool smig_backup_2(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool smig_backup_2(GameObject attachee, GameObject triggerer)
         {
             var assassin_1 = GameSystems.MapObject.CreateObject(14782, new locXY(621, 471));
             AttachParticles("sp-invisibility", assassin_1);

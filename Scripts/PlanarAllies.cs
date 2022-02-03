@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -382,7 +382,7 @@ namespace Scripts
             throw new NotImplementedException();
         }
 
-        public static IList<int> choose_allies(GameObjectBody caster, int min_hd, int max_hd, int max_summon)
+        public static IList<int> choose_allies(GameObject caster, int min_hd, int max_hd, int max_summon)
         {
             var deity = caster.GetDeity();
             var portfolio = deity_alignments[deity];

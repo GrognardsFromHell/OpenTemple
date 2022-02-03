@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,11 +23,11 @@ namespace Scripts
     [ObjectScript(396)]
     public class Overseer : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -42,7 +42,7 @@ namespace Scripts
             ditch_belts(attachee, triggerer);
             return RunDefault;
         }
-        public static void ditch_belts(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void ditch_belts(GameObject attachee, GameObject triggerer)
         {
             var belt = attachee.FindItemByName(6243);
             var beld = attachee.FindItemByName(6244);

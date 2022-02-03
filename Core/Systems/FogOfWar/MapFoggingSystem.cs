@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;

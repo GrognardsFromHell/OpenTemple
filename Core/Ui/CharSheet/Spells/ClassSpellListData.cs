@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -6,7 +6,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
 {
     public class ClassSpellListData
     {
-        public GameObjectBody Caster { get; }
+        public GameObject Caster { get; }
 
         public bool Active { get; set; }
 
@@ -14,7 +14,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
 
         public WidgetTabButton Button { get; set; }
 
-        public ClassSpellListData(GameObjectBody caster)
+        public ClassSpellListData(GameObject caster)
         {
             Caster = caster;
         }

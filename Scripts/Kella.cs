@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(152)]
     public class Kella : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -32,7 +32,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -47,12 +47,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.FloatLine(12057, triggerer);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -61,7 +61,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool ask_to_rejoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ask_to_rejoin(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -80,12 +80,12 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             return SkipDefault;
         }
-        public static bool switch_to_tarah(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_tarah(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8805);
             var kella = Utilities.find_npc_near(attachee, 8070);

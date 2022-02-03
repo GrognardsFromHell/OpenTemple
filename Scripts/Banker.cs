@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(335)]
     public class Banker : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.HasMet(triggerer)))
             {
@@ -36,7 +36,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(917)))
             {
@@ -46,7 +46,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(963) == 6))
             {
@@ -69,14 +69,14 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void respawn(GameObjectBody attachee)
+        public static void respawn(GameObject attachee)
         {
             var box = Utilities.find_container_near(attachee, 1077);
             InventoryRespawn.RespawnInventory(box);
             StartTimer(86400000, () => respawn(attachee)); // 86400000ms is 24 hours
             return;
         }
-        public static bool make_withdrawal(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool make_withdrawal(GameObject attachee, GameObject triggerer)
         {
             triggerer.AdjustMoney(2000000);
             SetGlobalVar(899, GetGlobalVar(899) + 1);
@@ -84,12 +84,12 @@ namespace Scripts
             time_limit(attachee, triggerer);
             return RunDefault;
         }
-        public static bool time_limit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool time_limit(GameObject attachee, GameObject triggerer)
         {
             StartTimer(86400000, () => reset_flag_806(attachee)); // 86400000ms is 24 hours
             return RunDefault;
         }
-        public static bool reset_flag_806(GameObjectBody attachee)
+        public static bool reset_flag_806(GameObject attachee)
         {
             SetGlobalFlag(810, false);
             return RunDefault;

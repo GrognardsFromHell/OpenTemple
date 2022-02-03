@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Feats;
@@ -494,7 +494,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
     public static class WildshapeExtensions
     {
-        public static int GetWildshapeCharges(this GameObjectBody critter)
+        public static int GetWildshapeCharges(this GameObject critter)
         {
             return (int) GameSystems.D20.D20QueryReturnData(critter, "Wild Shape Charges");
         }

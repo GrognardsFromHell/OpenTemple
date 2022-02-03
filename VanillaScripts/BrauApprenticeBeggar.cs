@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class BrauApprenticeBeggar : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -52,7 +52,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(205)))
             {
@@ -61,13 +61,13 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool get_drunk(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_drunk(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             StartTimer(3600000, () => comeback_drunk(attachee));
             return RunDefault;
         }
-        public static bool comeback_drunk(GameObjectBody attachee)
+        public static bool comeback_drunk(GameObject attachee)
         {
             attachee.ClearObjectFlag(ObjectFlag.OFF);
             SetGlobalFlag(207, true);
@@ -76,12 +76,12 @@ namespace VanillaScripts
             StartTimer(time, () => get_sober(attachee));
             return RunDefault;
         }
-        public static bool get_sober(GameObjectBody attachee)
+        public static bool get_sober(GameObject attachee)
         {
             SetGlobalFlag(207, false);
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             var loc = new locXY(427, 406);
 

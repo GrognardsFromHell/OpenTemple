@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(363)]
     public class LadyAsherah : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((attachee.GetMap() == 5122))
@@ -117,7 +117,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8801))
             {
@@ -206,7 +206,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -227,7 +227,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5145))
             {
@@ -465,12 +465,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(884, false);
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -483,67 +483,67 @@ namespace Scripts
 
             return false;
         }
-        public static bool start_talking_1(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_1(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 1);
             return RunDefault;
         }
-        public static bool start_talking_2(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_2(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 130);
             return RunDefault;
         }
-        public static bool start_talking_3(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_3(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 270);
             return RunDefault;
         }
-        public static bool start_talking_4(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_4(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 600);
             return RunDefault;
         }
-        public static bool start_talking_5(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_5(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 710);
             return RunDefault;
         }
-        public static bool start_talking_6(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_6(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 820);
             return RunDefault;
         }
-        public static bool start_talking_7(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_7(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 920);
             return RunDefault;
         }
-        public static bool start_talking_8(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_8(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 1080);
             return RunDefault;
         }
-        public static bool start_talking_9(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_9(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 1120);
             return RunDefault;
         }
-        public static bool start_talking_10(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking_10(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 1270);
             return RunDefault;
         }
-        public static bool schedule_transfer(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool schedule_transfer(GameObject attachee, GameObject triggerer)
         {
             StartTimer(2000, () => play_dinner(attachee, triggerer));
             if ((GetGlobalVar(699) == 0))
@@ -558,7 +558,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool schedule_transfer_2(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool schedule_transfer_2(GameObject attachee, GameObject triggerer)
         {
             StartTimer(2000, () => play_dinner(attachee, triggerer));
             if ((GetGlobalVar(699) == 0))
@@ -573,7 +573,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool play_dinner(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool play_dinner(GameObject attachee, GameObject triggerer)
         {
             Sound(4046, 1);
             if ((GetGlobalVar(699) == 3 || GetGlobalVar(699) == 4))
@@ -583,50 +583,50 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool play_bedsprings(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool play_bedsprings(GameObject attachee, GameObject triggerer)
         {
             Sound(4047, 1);
             PartyLeader.AddReputation(56);
             return RunDefault;
         }
-        public static bool go_to_asherahs(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool go_to_asherahs(GameObject attachee, GameObject triggerer)
         {
             FadeAndTeleport(0, 0, 0, 5122, 474, 482);
             return RunDefault;
         }
-        public static bool go_to_asherahs_2(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool go_to_asherahs_2(GameObject attachee, GameObject triggerer)
         {
             FadeAndTeleport(0, 0, 0, 5122, 479, 479);
             return RunDefault;
         }
-        public static bool go_to_goose(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool go_to_goose(GameObject attachee, GameObject triggerer)
         {
             FadeAndTeleport(0, 0, 0, 5151, 497, 478);
             return RunDefault;
         }
-        public static bool go_to_goose_2(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool go_to_goose_2(GameObject attachee, GameObject triggerer)
         {
             FadeAndTeleport(0, 0, 0, 5151, 490, 478);
             return RunDefault;
         }
-        public static bool run_off_castle(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off_castle(GameObject attachee, GameObject triggerer)
         {
             var runOffTo = attachee.RunOff();
             var guard = Utilities.find_npc_near(attachee, 8763);
             guard.RunOff(runOffTo);
             return RunDefault;
         }
-        public static bool run_off_home(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off_home(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool ruin_asherah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool ruin_asherah(GameObject attachee, GameObject triggerer)
         {
             run_off_home(attachee, triggerer);
             return RunDefault;
         }
-        public static bool kill_asherah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool kill_asherah(GameObject attachee, GameObject triggerer)
         {
             attachee.KillWithDeathEffect();
             return RunDefault;

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class FemalePrisoner2 : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(131)))
             {
@@ -36,7 +36,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool get_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_rep(GameObject attachee, GameObject triggerer)
         {
             if (!triggerer.HasReputation(7))
             {
@@ -51,7 +51,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool free_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool free_rep(GameObject attachee, GameObject triggerer)
         {
             if (!triggerer.HasReputation(16))
             {

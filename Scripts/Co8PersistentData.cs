@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.Fonts;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.Co8State;
@@ -79,7 +79,7 @@ namespace Scripts
             ActiveSpellTargets.Clear();
         }
 
-        public static void AddToSpellActiveList(string key, int spellId, GameObjectBody target)
+        public static void AddToSpellActiveList(string key, int spellId, GameObject target)
         {
             if (!ActiveSpellTargets.TryGetValue(spellId, out var targetIds))
             {
@@ -90,7 +90,7 @@ namespace Scripts
             targetIds.Add(target.id);
         }
 
-        public static void CleanupActiveSpellTargets(string key, int spellId, Action<GameObjectBody> cleanupCallback)
+        public static void CleanupActiveSpellTargets(string key, int spellId, Action<GameObject> cleanupCallback)
         {
             if (ActiveSpellTargets.TryGetValue(spellId, out var targetIds))
             {

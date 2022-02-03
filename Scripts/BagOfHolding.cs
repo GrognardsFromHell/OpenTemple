@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace Scripts
     [ObjectScript(380)]
     public class BagOfHolding : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             var loc = triggerer.GetLocation();
             // if attachee.name == 11300:
@@ -42,7 +42,7 @@ namespace Scripts
             // triggerer.begin_dialog(npc,300)
             return SkipDefault;
         }
-        public static bool create_store(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool create_store(GameObject attachee, GameObject triggerer)
         {
             var loc = attachee.GetLocation();
             var target = GameSystems.MapObject.CreateObject(14456, loc);

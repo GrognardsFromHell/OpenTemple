@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(21)]
     public class TeamsterSon : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5001))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5032))
             {
@@ -57,7 +57,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -81,13 +81,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(5, false);
             SetGlobalFlag(300, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5001))
             {
@@ -104,7 +104,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool discovered_and_leaves_field(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool discovered_and_leaves_field(GameObject attachee, GameObject triggerer)
         {
             // attachee.standpoint_set( STANDPOINT_NIGHT, 164 )
             attachee.RunOff();
@@ -112,18 +112,18 @@ namespace Scripts
             // game.timevent_add( turn_back_on, ( attachee, ), 43200000 )
             return RunDefault;
         }
-        public static bool turn_back_on(GameObjectBody attachee)
+        public static bool turn_back_on(GameObject attachee)
         {
             attachee.ClearObjectFlag(ObjectFlag.OFF);
             // game.timevent_add( assassinated, ( attachee, ), 86400000 )
             return RunDefault;
         }
-        public static bool turn_back_on2(GameObjectBody attachee)
+        public static bool turn_back_on2(GameObject attachee)
         {
             StartTimer(86400000, () => assassinated(attachee));
             return RunDefault;
         }
-        public static bool assassinated(GameObjectBody attachee)
+        public static bool assassinated(GameObject attachee)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             SetGlobalFlag(7, true);

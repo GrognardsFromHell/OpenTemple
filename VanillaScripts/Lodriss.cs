@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace VanillaScripts
     public class Lodriss : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(369, true);
             if (GetQuestState(42) >= QuestState.Mentioned)
@@ -39,7 +39,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             if (GetQuestState(42) == QuestState.Completed)
             {
@@ -49,22 +49,22 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool kill_lodriss(GameObjectBody attachee)
+        public static bool kill_lodriss(GameObject attachee)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool kill_skole(GameObjectBody attachee)
+        public static bool kill_skole(GameObject attachee)
         {
             StartTimer(86400000, () => skole_dead(attachee));
             return RunDefault;
         }
-        public static bool skole_dead(GameObjectBody attachee)
+        public static bool skole_dead(GameObject attachee)
         {
             SetGlobalFlag(201, true);
             return RunDefault;
         }
-        public static bool get_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_rep(GameObject attachee, GameObject triggerer)
         {
             if (!triggerer.HasReputation(7))
             {
@@ -79,7 +79,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool make_like(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool make_like(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetReaction(triggerer) <= 71))
             {

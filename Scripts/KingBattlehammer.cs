@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace Scripts
     [ObjectScript(486)]
     public class KingBattlehammer : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 100);
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -52,12 +52,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(506, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
@@ -86,7 +86,7 @@ namespace Scripts
         // create_item_in_inventory( 12640, triggerer )
         // return RUN_DEFAULT
 
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -99,13 +99,13 @@ namespace Scripts
 
             return false;
         }
-        public static bool start_talking(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 100);
             return RunDefault;
         }
-        public static bool switch_to_lieutenant(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_lieutenant(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8893);
             if ((npc != null))
@@ -116,7 +116,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool trap(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool trap(GameObject attachee, GameObject triggerer)
         {
             AttachParticles("Mon-EarthElem-Unconceal", triggerer);
             AttachParticles("Mon-EarthElem-body120", triggerer);
@@ -142,7 +142,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool runoff(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool runoff(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             return RunDefault;

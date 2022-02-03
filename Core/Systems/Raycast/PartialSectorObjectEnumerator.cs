@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.Raycast
 {
@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Systems.Raycast
     {
         private readonly Rectangle _rectangle;
 
-        private readonly List<GameObjectBody>[,] _tiles;
+        private readonly List<GameObject>[,] _tiles;
 
         private int _currentX;
 
@@ -16,7 +16,7 @@ namespace OpenTemple.Core.Systems.Raycast
 
         private int _nextListIndex;
 
-        public PartialSectorObjectEnumerator(List<GameObjectBody>[,] tiles, Rectangle rectangle)
+        public PartialSectorObjectEnumerator(List<GameObject>[,] tiles, Rectangle rectangle)
         {
             _tiles = tiles;
             _rectangle = rectangle;
@@ -49,6 +49,6 @@ namespace OpenTemple.Core.Systems.Raycast
             return false;
         }
 
-        public GameObjectBody Current { get; private set; }
+        public GameObject Current { get; private set; }
     }
 }

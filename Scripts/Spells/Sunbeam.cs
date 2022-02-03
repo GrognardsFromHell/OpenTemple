@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -67,13 +67,13 @@ namespace Scripts.Spells
         {
             Logger.Info("Sunbeam OnBeginRound");
         }
-        public override void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Sunbeam OnBeginProjectile");
             // spell.proj_partsys_id = game.particles( 'sp-Produce Flame-proj', projectile )
             SetProjectileParticles(projectile, AttachParticles("sp-Searing Light", projectile));
         }
-        public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Sunbeam OnEndProjectile");
             var targg486 = spell.Targets[index_of_target].Object;

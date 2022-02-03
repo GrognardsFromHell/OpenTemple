@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using SharpDX.DXGI;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.D20;
@@ -18,7 +18,7 @@ namespace OpenTemple.Core.Systems.Script
         public const int DAMAGE_REDUCTION_QUARTER = 25;
 
         // TODO: Need to wire this up with the actual python pickers somehow
-        public static GameObjectBody PickedObject => throw new NotImplementedException();
+        public static GameObject PickedObject => throw new NotImplementedException();
 
         public static int RandomRange(int from, int toInclusive) => GameSystems.Random.GetInt(from, toInclusive);
 
@@ -33,9 +33,9 @@ namespace OpenTemple.Core.Systems.Script
 
         public static Alignment PartyAlignment => GameSystems.Party.PartyAlignment;
 
-        public static GameObjectBody PartyLeader => GameSystems.Party.GetLeader();
+        public static GameObject PartyLeader => GameSystems.Party.GetLeader();
 
-        public static GameObjectBody SelectedPartyLeader => GameSystems.Party.GetConsciousLeader();
+        public static GameObject SelectedPartyLeader => GameSystems.Party.GetConsciousLeader();
 
         public static QuestState GetQuestState(int questId) => GameSystems.Quest.GetState(questId);
 
@@ -149,12 +149,12 @@ namespace OpenTemple.Core.Systems.Script
 
         }
 
-        public static void SetProjectileParticles(GameObjectBody projectile, object particles)
+        public static void SetProjectileParticles(GameObject projectile, object particles)
         {
             throw new NotImplementedException();
         }
 
-        public static void EndProjectileParticles(GameObjectBody projectile)
+        public static void EndProjectileParticles(GameObject projectile)
         {
             throw new NotImplementedException();
         }
@@ -163,7 +163,7 @@ namespace OpenTemple.Core.Systems.Script
 
         public static bool IsAreaKnown(int area) => GameSystems.Area.IsAreaKnown(area);
 
-        public static object AttachParticles(string id, GameObjectBody obj)
+        public static object AttachParticles(string id, GameObject obj)
         {
             return GameSystems.ParticleSys.CreateAtObj(id, obj);
         }

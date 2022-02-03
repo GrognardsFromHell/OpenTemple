@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.TigSubsystems;
@@ -139,7 +139,7 @@ namespace OpenTemple.Core.Ui.Combat
             _currentPortraits = portraits;
         }
 
-        private PortraitRecord CreatePortraitRecord(GameObjectBody combatant, bool useSmallPortraits)
+        private PortraitRecord CreatePortraitRecord(GameObject combatant, bool useSmallPortraits)
         {
             var size = useSmallPortraits ? SmallPortraitSize : PortraitSize;
             var container = new WidgetContainer(size);
@@ -169,7 +169,7 @@ namespace OpenTemple.Core.Ui.Combat
 
         private readonly struct PortraitRecord
         {
-            public readonly GameObjectBody Combatant;
+            public readonly GameObject Combatant;
 
             public readonly WidgetContainer Container;
 
@@ -177,7 +177,7 @@ namespace OpenTemple.Core.Ui.Combat
 
             public readonly bool SmallPortrait;
 
-            public PortraitRecord(GameObjectBody combatant,
+            public PortraitRecord(GameObject combatant,
                 WidgetContainer container,
                 InitiativePortraitButton button,
                 bool smallPortrait)

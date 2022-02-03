@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.RadialMenus;
 
 namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus

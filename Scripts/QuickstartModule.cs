@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -28,7 +28,7 @@ namespace Scripts
 
         // from itt import *
 
-        public static string which_class(GameObjectBody pc)
+        public static string which_class(GameObject pc)
         {
             var lev_barb = pc.GetStat(Stat.level_barbarian);
             var lev_bard = pc.GetStat(Stat.level_bard);
@@ -284,18 +284,18 @@ namespace Scripts
         }
         public static void gearup(int o_ride, bool cheat_items = true)
         {
-            var s_rogue_items = new List<GameObjectBody>();
-            var s_tank_weapons_2 = new List<GameObjectBody>();
-            var s_tank_armor_2 = new List<GameObjectBody>();
-            GameObjectBody figh_pc = null;
-            GameObjectBody barb_pc = null;
-            GameObjectBody bard_pc = null;
-            GameObjectBody rogu_pc = null;
-            GameObjectBody cler_pc = null;
-            GameObjectBody drui_pc = null;
-            GameObjectBody monk_pc = null;
-            GameObjectBody sorc_pc = null;
-            GameObjectBody wiza_pc = null;
+            var s_rogue_items = new List<GameObject>();
+            var s_tank_weapons_2 = new List<GameObject>();
+            var s_tank_armor_2 = new List<GameObject>();
+            GameObject figh_pc = null;
+            GameObject barb_pc = null;
+            GameObject bard_pc = null;
+            GameObject rogu_pc = null;
+            GameObject cler_pc = null;
+            GameObject drui_pc = null;
+            GameObject monk_pc = null;
+            GameObject sorc_pc = null;
+            GameObject wiza_pc = null;
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
                 if (which_class(pc) == "fighter")
@@ -356,7 +356,7 @@ namespace Scripts
                 var dummy = 1;
             }
 
-            GameObjectBody lastPc = null;
+            GameObject lastPc = null;
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
                 if (StoryState <= 1 || pc.GetMap() == 5107 || o_ride == 0)

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
@@ -19,7 +19,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
         [TempleDllLocation(0x101552a0)]
         [TempleDllLocation(0x10155290)]
         [TempleDllLocation(0x10BEECB8)]
-        public GameObjectBody Container { get; set; }
+        public GameObject Container { get; set; }
 
         public WidgetBase Widget { get; set; }
 
@@ -28,11 +28,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
         private string _totalWeightLabelDefaultStyle;
 
         [TempleDllLocation(0x10BEECC0)]
-        private GameObjectBody _draggedObject;
+        private GameObject _draggedObject;
 
         [TempleDllLocation(0x10155160)]
         [TempleDllLocation(0x10155170)]
-        public GameObjectBody DraggedObject
+        public GameObject DraggedObject
         {
             get => _draggedObject;
             set
@@ -173,7 +173,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
         }
 
         [TempleDllLocation(0x10155040)]
-        public void Show(GameObjectBody critter)
+        public void Show(GameObject critter)
         {
             IsVisible = true;
             Widget.Visible = true;
@@ -206,7 +206,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
         }
 
         [TempleDllLocation(0x10155170)]
-        public void SetContainer(GameObjectBody container)
+        public void SetContainer(GameObject container)
         {
             Stub.TODO();
         }
@@ -236,7 +236,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
         }
 
         [TempleDllLocation(0x10156df0)]
-        public bool EquippingIsAction(GameObjectBody obj)
+        public bool EquippingIsAction(GameObject obj)
         {
             if (obj.type == ObjectType.armor)
             {
@@ -253,7 +253,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
         }
 
         [TempleDllLocation(0x10155260)]
-        public bool IsCloseEnoughToTransferItem(GameObjectBody from, GameObjectBody to)
+        public bool IsCloseEnoughToTransferItem(GameObject from, GameObject to)
         {
             return from.DistanceToObjInFeet(to) < 40;
         }

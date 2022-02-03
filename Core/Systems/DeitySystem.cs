@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -58,7 +58,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1004c0d0)]
-        public static bool IsDomainSkill(GameObjectBody obj, SkillId skillId)
+        public static bool IsDomainSkill(GameObject obj, SkillId skillId)
         {
             var domain1 = (DomainId) obj.GetStat(Stat.domain_1);
             if (IsDomainSkill(domain1, skillId))
@@ -109,7 +109,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1004ab00)]
-        public void DeityPraiseFloatMessage(GameObjectBody obj)
+        public void DeityPraiseFloatMessage(GameObject obj)
         {
             var deity = (DeityId) obj.GetStat(Stat.deity);
             if (_deityPraise.TryGetValue(deity, out var line))
@@ -152,7 +152,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1004a940)]
-        public bool CanSelect(GameObjectBody playerObj, DeityId deityId)
+        public bool CanSelect(GameObject playerObj, DeityId deityId)
         {
             var deity = DeitiesById[deityId];
             if (!deity.IsSelectable)

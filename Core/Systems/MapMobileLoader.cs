@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Logging;
@@ -25,16 +25,16 @@ namespace OpenTemple.Core.Systems
 
         private readonly IFileSystem _fs;
 
-        private readonly Dictionary<ObjectId, GameObjectBody> _mobiles = new Dictionary<ObjectId, GameObjectBody>();
+        private readonly Dictionary<ObjectId, GameObject> _mobiles = new Dictionary<ObjectId, GameObject>();
 
-        public IEnumerable<GameObjectBody> Mobiles => _mobiles.Values;
+        public IEnumerable<GameObject> Mobiles => _mobiles.Values;
 
         public MapMobileLoader(IFileSystem fs)
         {
             _fs = fs;
         }
 
-        private void AddMobile(GameObjectBody mobile)
+        private void AddMobile(GameObject mobile)
         {
             if (!mobile.id.IsPermanent)
             {
@@ -70,7 +70,7 @@ namespace OpenTemple.Core.Systems
                 using var reader = Tig.FS.OpenBinaryReader(filename);
                 try
                 {
-                    AddMobile(GameObjectBody.Load(reader));
+                    AddMobile(GameObject.Load(reader));
                     count++;
                 }
                 catch (Exception e)
@@ -185,7 +185,7 @@ namespace OpenTemple.Core.Systems
             {
                 try
                 {
-                    var obj = GameObjectBody.Load(reader);
+                    var obj = GameObject.Load(reader);
                     Logger.Debug("Loaded object {0}", obj);
                     AddMobile(obj);
                     count++;

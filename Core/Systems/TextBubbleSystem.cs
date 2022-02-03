@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
@@ -37,7 +37,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a3030)]
-        public void Remove(GameObjectBody obj)
+        public void Remove(GameObject obj)
         {
             for (var i = _bubbles.Count - 1; i >= 0; i--)
             {
@@ -53,12 +53,12 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a3420)]
-        public void FloatText_100A3420(GameObjectBody obj, int a2, string text)
+        public void FloatText_100A3420(GameObject obj, int a2, string text)
         {
             FloatText_100A2E60(obj, text, true);
         }
 
-        private TextBubble FindOldestForObject(GameObjectBody obj)
+        private TextBubble FindOldestForObject(GameObject obj)
         {
             TextBubble result = null;
             foreach (var textBubble in _bubbles)
@@ -77,7 +77,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a2e60)]
-        public void FloatText_100A2E60(GameObjectBody obj, string text, bool withPortrait = false)
+        public void FloatText_100A2E60(GameObject obj, string text, bool withPortrait = false)
         {
             if (text.Length == 0)
             {
@@ -123,7 +123,7 @@ namespace OpenTemple.Core.Systems
         /// <param name="obj"></param>
         /// <param name="durationSeconds"></param>
         [TempleDllLocation(0x100a2a60)]
-        public void SetDuration(GameObjectBody obj, int durationSeconds)
+        public void SetDuration(GameObject obj, int durationSeconds)
         {
             for (var i = _bubbles.Count - 1; i >= 0; i--)
             {
@@ -277,7 +277,7 @@ namespace OpenTemple.Core.Systems
 
     internal class TextBubble : IDisposable
     {
-        public TextBubble(string text, TextLayout textLayout, GameObjectBody owner, TimeSpan duration)
+        public TextBubble(string text, TextLayout textLayout, GameObject owner, TimeSpan duration)
         {
             Text = text;
             TextLayout = textLayout;
@@ -286,7 +286,7 @@ namespace OpenTemple.Core.Systems
             Duration = duration;
         }
 
-        public GameObjectBody Object { get; }
+        public GameObject Object { get; }
 
         public string Text { get; }
 

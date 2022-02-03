@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.D20.Classes.Prereq;
 using OpenTemple.Core.Systems.Feats;
@@ -95,9 +95,9 @@ namespace OpenTemple.Core.Systems.D20
             }
         }
 
-        public Func<GameObjectBody, bool> IsSelectingFeatsOnLevelUp { get; set; } = critter => false;
+        public Func<GameObject, bool> IsSelectingFeatsOnLevelUp { get; set; } = critter => false;
 
-        public Func<GameObjectBody, IEnumerable<SelectableFeat>> LevelupGetBonusFeats { get; set; } = critter => Enumerable.Empty<SelectableFeat>();
+        public Func<GameObject, IEnumerable<SelectableFeat>> LevelupGetBonusFeats { get; set; } = critter => Enumerable.Empty<SelectableFeat>();
 
     }
 }

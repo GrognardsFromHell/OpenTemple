@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(149)]
     public class Thrommel : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             var itemF = attachee.FindItemByName(2201);
             if ((itemF != null))
@@ -50,7 +50,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -65,16 +65,16 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(150, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -97,7 +97,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             var itemD = attachee.FindItemByName(2201);
             if ((itemD != null))
@@ -107,7 +107,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             if (((attachee.GetMap() == 5062) || (attachee.GetMap() == 5111) || (attachee.GetMap() == 5112) || (attachee.GetMap() == 5001) || (attachee.GetMap() == 5121)))
             {
@@ -126,7 +126,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnTrueSeeing(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnTrueSeeing(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.HasLineOfSight(triggerer)))
             {
@@ -135,7 +135,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnSpellCast(GameObjectBody attachee, GameObjectBody triggerer, SpellPacketBody spell)
+        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
         {
             if ((spell.spellEnum == WellKnownSpells.DispelMagic))
             {
@@ -144,13 +144,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(151, true);
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool check_follower_thrommel_comments(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool check_follower_thrommel_comments(GameObject attachee, GameObject triggerer)
         {
             var npc = Utilities.find_npc_near(attachee, 8014);
             if ((npc != null))
@@ -173,7 +173,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool schedule_reward(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool schedule_reward(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(152, true);
             attachee.SetObjectFlag(ObjectFlag.OFF);
@@ -187,7 +187,7 @@ namespace Scripts
             ScriptDaemon.set_f("s_thrommel_reward_scheduled");
             return RunDefault;
         }
-        public static bool equip_transfer(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool equip_transfer(GameObject attachee, GameObject triggerer)
         {
             var itemA = attachee.FindItemByName(3014);
             if ((itemA != null))
@@ -198,7 +198,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool equip_transfer2(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool equip_transfer2(GameObject attachee, GameObject triggerer)
         {
             if (SelectedPartyLeader.GetPartyMembers().Any(o => o.HasItemByName(2201)))
             {

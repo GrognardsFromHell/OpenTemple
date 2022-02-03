@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(95)]
     public class BrauApprentice2 : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
             {
@@ -60,7 +60,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool find_ostler(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool find_ostler(GameObject attachee, GameObject triggerer)
         {
             var npc = Utilities.find_npc_near(attachee, 8008);
             if ((npc != null))

@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
@@ -238,7 +238,7 @@ namespace OpenTemple.Core.Systems
 
         // TODO: This was originally part of a different file (target.c??)
         [TempleDllLocation(0x100b99a0)]
-        public bool TargetRandomTile(GameObjectBody obj, int distance, out locXY locOut)
+        public bool TargetRandomTile(GameObject obj, int distance, out locXY locOut)
         {
             locOut = default;
 
@@ -295,7 +295,7 @@ namespace OpenTemple.Core.Systems
     public static class LocationExtensions
     {
         [TempleDllLocation(0x100236e0)]
-        public static float DistanceToObjInFeet(this GameObjectBody fromObj, GameObjectBody toObj,
+        public static float DistanceToObjInFeet(this GameObject fromObj, GameObject toObj,
             bool clampToZero = true)
         {
             if (fromObj == null || toObj == null)
@@ -331,7 +331,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10023800)] /* This version actually does not clamp to zero */
-        public static float DistanceToLocInFeet(this GameObjectBody fromObj, LocAndOffsets toLoc,
+        public static float DistanceToLocInFeet(this GameObject fromObj, LocAndOffsets toLoc,
             bool clampToZero = true)
         {
             var fromLoc = fromObj.GetLocationFull();
@@ -346,7 +346,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001f870)]
-        public static CompassDirection GetCompassDirection(this GameObjectBody self, GameObjectBody other)
+        public static CompassDirection GetCompassDirection(this GameObject self, GameObject other)
         {
             return self.GetLocation().GetCompassDirection(other.GetLocation());
         }

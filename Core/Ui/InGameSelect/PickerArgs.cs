@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.GameObjects;
@@ -30,8 +30,8 @@ namespace OpenTemple.Core.Ui.InGameSelect
     public struct PickerResult
     {
         public PickerResultFlags flags; // see PickerResultFlags
-        public GameObjectBody handle;
-        public List<GameObjectBody> objList;
+        public GameObject handle;
+        public List<GameObject> objList;
         public LocAndOffsets location;
         public float offsetz;
 
@@ -44,7 +44,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10136fd0)]
         public int TargetCount => HasSingleResult ? 1 : HasMultipleResults ? objList.Count : 0;
 
-        public GameObjectBody FirstTarget
+        public GameObject FirstTarget
         {
             get
             {
@@ -168,7 +168,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         public int range; // in feet
         public float degreesTarget;
         public int spellEnum;
-        public GameObjectBody caster;
+        public GameObject caster;
         public PickerCallback callback;
         public int field44;
         public PickerResult result;
@@ -220,7 +220,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
             if (incrementInches > 0)
             {
-                trimmedRangeInches = MathF.Ceiling(this.trimmedRangeInches / incrementInches) * incrementInches;
+                trimmedRangeInches = MathF.Ceiling(trimmedRangeInches / incrementInches) * incrementInches;
             }
         }
 
@@ -230,7 +230,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             using var rayPkt = new RaycastPacket();
             rayPkt.sourceObj = null;
             rayPkt.origin = originLoc;
-            rayPkt.rayRangeInches = this.trimmedRangeInches;
+            rayPkt.rayRangeInches = trimmedRangeInches;
             rayPkt.targetLoc = tgtLoc;
             rayPkt.radius = radiusInch;
             rayPkt.flags = RaycastFlag.ExcludeItemObjects | RaycastFlag.HasRadius | RaycastFlag.HasRangeLimit;
@@ -238,7 +238,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
             if (rayPkt.Count > 0)
             {
-                result.objList = new List<GameObjectBody>();
+                result.objList = new List<GameObject>();
 
                 foreach (var resultItem in rayPkt)
                 {
@@ -282,7 +282,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             var arcStart = (coneTarget - coneOrigin).GetWorldRotation() - arcRad;
 
             using var objList = ObjList.ListCone(originPos, radiusInches, arcStart, arcRad, ObjectListFilter.OLC_ALL);
-            result.objList = new List<GameObjectBody>(objList);
+            result.objList = new List<GameObject>(objList);
 
             if (!flagsTarget.HasFlag(UiPickerFlagsTarget.Unknown80h))
             {
@@ -303,7 +303,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
             var radiusInches = radiusTarget * locXY.INCH_PER_FEET;
             using var objList = ObjList.ListRadius(targetLocation, radiusInches, ObjectListFilter.OLC_ALL);
-            result.objList = new List<GameObjectBody>(objList);
+            result.objList = new List<GameObject>(objList);
 
             if (!flagsTarget.HasFlag(UiPickerFlagsTarget.Unknown80h))
             {
@@ -337,7 +337,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x100B9C00)]
-        private static bool HasLineOfSight(LocAndOffsets originLoc, GameObjectBody target)
+        private static bool HasLineOfSight(LocAndOffsets originLoc, GameObject target)
         {
             if (originLoc == LocAndOffsets.Zero)
             {
@@ -405,7 +405,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x100b97c0)]
-        public bool CheckTargetVsIncFlags(GameObjectBody tgt)
+        public bool CheckTargetVsIncFlags(GameObject tgt)
         {
             if (tgt == null)
             {
@@ -444,7 +444,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
         // check exclusions from flags, and range
         [TempleDllLocation(0x100ba0f0)]
-        public bool TargetValid(GameObjectBody tgt)
+        public bool TargetValid(GameObject tgt)
         {
             if (tgt == null)
             {
@@ -505,7 +505,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x101370E0)]
-        public bool LosBlocked(GameObjectBody target)
+        public bool LosBlocked(GameObject target)
         {
             using var raycast = new RaycastPacket();
             raycast.flags |= RaycastFlag.StopAfterFirstBlockerFound | RaycastFlag.ExcludeItemObjects
@@ -516,7 +516,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             return !raycast.TestLineOfSight();
         }
 
-        public bool SetSingleTgt(GameObjectBody tgt)
+        public bool SetSingleTgt(GameObject tgt)
         {
             if (tgt == null)
             {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -19,7 +19,7 @@ namespace OpenTemple.Core.Systems.Teleport
         [TempleDllLocation(0x10ab7548)]
         private readonly List<DayNightTransferRecord> _records = new List<DayNightTransferRecord>();
 
-        public int GetCurrentDayNightTransferMap(GameObjectBody objHnd)
+        public int GetCurrentDayNightTransferMap(GameObject objHnd)
         {
             var currentMapId = GameSystems.Map.GetCurrentMapId();
 
@@ -120,7 +120,7 @@ namespace OpenTemple.Core.Systems.Teleport
             }
         }
 
-        public void RemoveDayNightTransfer(GameObjectBody critter)
+        public void RemoveDayNightTransfer(GameObject critter)
         {
             // TODO: This function does not make a lot of sense since it doesn't save it's results and the changes will be overwritten next time the processing is performed
             for (var i = _records.Count - 1; i >= 0; i--)
@@ -160,7 +160,7 @@ namespace OpenTemple.Core.Systems.Teleport
             return new BinaryWriter(new FileStream(SaveGamePath, FileMode.Create));
         }
 
-        public bool HasDayNightTransfer(GameObjectBody critter)
+        public bool HasDayNightTransfer(GameObject critter)
         {
             foreach (var record in _records)
             {

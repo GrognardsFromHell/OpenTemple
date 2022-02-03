@@ -50,9 +50,9 @@ namespace OpenTemple.Core.AAS
         public AnimPlayerStream(Skeleton skeleton, ReadOnlyMemory<byte> streamData)
         {
             this.skeleton = skeleton;
-            this.boneState = new AnimPlayerStreamBone[skeleton.Bones.Count];
+            boneState = new AnimPlayerStreamBone[skeleton.Bones.Count];
             this.streamData = streamData;
-            this.frameDataIdx = 0;
+            frameDataIdx = 0;
 
             // Read the two floating point factors from the stream header
             var header = MemoryMarshal.Read<AnimStreamHeader>(streamData.Span);
@@ -86,7 +86,7 @@ namespace OpenTemple.Core.AAS
             }
 
             var frameData = FrameData;
-            this.frameDataIdx = 0;
+            frameDataIdx = 0;
 
             while (frameData[frameDataIdx] >= 0)
             {
@@ -117,20 +117,20 @@ namespace OpenTemple.Core.AAS
         public void SetFrame(float frame)
         {
             var frameRounded = MathF.Floor(frame);
-            if (MathF.Floor(this.currentFrame) == frameRounded)
+            if (MathF.Floor(currentFrame) == frameRounded)
             {
-                this.currentFrame = frame;
+                currentFrame = frame;
                 return;
             }
 
-            if (frame < this.currentFrame)
+            if (frame < currentFrame)
             {
                 SetFrame(32766.0f); // run to end
                 InitBoneState();
             }
 
             // set currentFrame
-            this.currentFrame = frame;
+            currentFrame = frame;
             if (frameRounded >= 32767)
                 frameRounded = 32766;
 

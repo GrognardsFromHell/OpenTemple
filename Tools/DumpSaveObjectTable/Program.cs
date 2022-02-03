@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using OpenTemple.Core;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.Archive;

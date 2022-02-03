@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 
 namespace OpenTemple.Core.Systems.Pathfinding

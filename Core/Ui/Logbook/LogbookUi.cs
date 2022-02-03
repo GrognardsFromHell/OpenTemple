@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
@@ -153,31 +153,31 @@ namespace OpenTemple.Core.Ui.Logbook
 
 
         [TempleDllLocation(0x101ccde0)]
-        public void RecordSkillUse(GameObjectBody critter, SkillId skill)
+        public void RecordSkillUse(GameObject critter, SkillId skill)
         {
             Stub.TODO();
         }
 
         [TempleDllLocation(0x101d4ca0)]
-        public void RecordKill(GameObjectBody killer, GameObjectBody killed)
+        public void RecordKill(GameObject killer, GameObject killed)
         {
             Stub.TODO();
         }
 
         [TempleDllLocation(0x101d0070)]
-        public void RecordCriticalHit(GameObjectBody attacker)
+        public void RecordCriticalHit(GameObject attacker)
         {
             Stub.TODO();
         }
 
         [TempleDllLocation(0x101ccd40)]
-        public void RecordTrapDisarmed(GameObjectBody critter)
+        public void RecordTrapDisarmed(GameObject critter)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x101ccd90)]
-        public void RecordTrapSetOff(GameObjectBody critter)
+        public void RecordTrapSetOff(GameObject critter)
         {
             throw new NotImplementedException();
         }
@@ -207,20 +207,20 @@ namespace OpenTemple.Core.Ui.Logbook
         }
 
         [TempleDllLocation(0x101d4590)]
-        public void RecordCombatMiss(GameObjectBody performer)
+        public void RecordCombatMiss(GameObject performer)
         {
             Stub.TODO();
         }
 
         [TempleDllLocation(0x101d4530)]
-        public void RecordCombatHit(GameObjectBody member)
+        public void RecordCombatHit(GameObject member)
         {
             Stub.TODO();
         }
 
         [TempleDllLocation(0x101ce5e0)]
-        public void RecordCombatDamage(bool weaponDamage, int damageAmount, GameObjectBody attacker,
-            GameObjectBody victim)
+        public void RecordCombatDamage(bool weaponDamage, int damageAmount, GameObject attacker,
+            GameObject victim)
         {
             Stub.TODO();
         }

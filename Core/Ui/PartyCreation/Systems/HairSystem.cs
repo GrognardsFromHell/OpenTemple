@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems;
@@ -147,7 +147,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x10188ab0)]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             UpdateModelHair(charSpec, playerObj);
         }
@@ -164,7 +164,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             };
         }
 
-        private static void UpdateModelHair(CharEditorSelectionPacket charSpec, GameObjectBody playerObj)
+        private static void UpdateModelHair(CharEditorSelectionPacket charSpec, GameObject playerObj)
         {
             var hairSettings = CreateHairSettings(charSpec);
             playerObj.SetInt32(obj_f.critter_hair_style, hairSettings.Pack());

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;
@@ -131,7 +131,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x101892f0)]
-        public void Finalize(CharEditorSelectionPacket pkt, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket pkt, ref GameObject playerObj)
         {
             playerObj.SetInt32(obj_f.critter_height, pkt.height);
             playerObj.SetInt32(obj_f.critter_weight, pkt.weight);

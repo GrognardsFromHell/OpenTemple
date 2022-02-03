@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(118)]
     public class Skole : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (((GetGlobalFlag(202)) && (GetQuestState(42) != QuestState.Completed)))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(201)))
             {
@@ -56,7 +56,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -67,13 +67,13 @@ namespace Scripts
             ScriptDaemon.set_f("skole_dead");
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(202, true);
             ScriptDaemon.set_f("skole_dead", false);
             return RunDefault;
         }
-        public static bool prepare_goons(GameObjectBody attachee)
+        public static bool prepare_goons(GameObject attachee)
         {
             // This script schedules Skole's Goons
             // Reworked to use global timing system
@@ -81,7 +81,7 @@ namespace Scripts
             ScriptDaemon.record_time_stamp("s_skole_goons");
             return RunDefault;
         }
-        public static bool goons_attack(GameObjectBody attachee)
+        public static bool goons_attack(GameObject attachee)
         {
             if (GetQuestState(42) != QuestState.Completed && !ScriptDaemon.get_f("s_skole_goons_scheduled") && !ScriptDaemon.get_f("skole_dead"))
             {
@@ -93,7 +93,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void respawn(GameObjectBody attachee)
+        public static void respawn(GameObject attachee)
         {
             var box = Utilities.find_container_near(attachee, 1001);
             InventoryRespawn.RespawnInventory(box);

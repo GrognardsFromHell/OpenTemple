@@ -1144,10 +1144,10 @@ namespace OpenTemple.Core.Platform
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         private static extern bool ClipCursor(ref RECT lpRect);
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         private static extern bool ClipCursor(IntPtr lpRect);
 
         private static int IDC_ARROW = 32512;

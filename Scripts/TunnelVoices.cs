@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(463)]
     public class TunnelVoices : BaseObjectScript
     {
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(109) == QuestState.Mentioned || GetQuestState(109) == QuestState.Accepted))
             {
@@ -531,7 +531,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool in_proximity(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity(GameObject sfx, GameObject listener)
         {
             return sfx.DistanceTo(listener) <= 80;
         }

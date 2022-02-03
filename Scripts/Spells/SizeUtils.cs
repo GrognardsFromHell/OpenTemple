@@ -1,11 +1,11 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 
 namespace Scripts.Spells
 {
     public static class SizeUtils
     {
-        public static void ResetSizeCategory(GameObjectBody target)
+        public static void ResetSizeCategory(GameObject target)
         {
 
             // set new size - not a good idea, gives you 2x the penalty
@@ -29,7 +29,7 @@ namespace Scripts.Spells
             }
         }
 
-        public static void IncSizeCategory(GameObjectBody obj)
+        public static void IncSizeCategory(GameObject obj)
         {
             // set new size - not a good idea, gives you 2x the penalty
             var sizeCat = (SizeCategory) obj.GetInt32(obj_f.size);

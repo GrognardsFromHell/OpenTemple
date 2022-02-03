@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -1110,7 +1110,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         public static void InvisibilityAooIncurs(in DispatcherCallbackArgs args)
         {
             var dispIo = args.GetDispIoD20Query();
-            var obj = (GameObjectBody) dispIo.obj;
+            var obj = (GameObject) dispIo.obj;
             if (obj != null)
             {
                 if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
@@ -1259,17 +1259,17 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 {
                     if (!GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.DIEHARD))
                     {
-                        evt.objHndCaller.AddCondition(StatusEffects.Unconscious);
+                        evt.objHndCaller.AddCondition(Unconscious);
                         return;
                     }
                 }
                 else if (currentHp != 0)
                 {
-                    evt.objHndCaller.AddCondition(StatusEffects.Prone);
+                    evt.objHndCaller.AddCondition(Prone);
                     return;
                 }
 
-                evt.objHndCaller.AddCondition(StatusEffects.Disabled);
+                evt.objHndCaller.AddCondition(Disabled);
             }
         }
 
@@ -1684,7 +1684,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 }
                 else
                 {
-                    if (data != StatusEffects.NSDiseased)
+                    if (data != NSDiseased)
                     {
                         return;
                     }
@@ -1716,7 +1716,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
             // Find the highest level bard
             var brdLvl = 0;
-            GameObjectBody highBardDude = null;
+            GameObject highBardDude = null;
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
                 var dudeBrdLvl = partyMember.GetStat(Stat.level_bard);
@@ -3507,7 +3507,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             return bonVal;
         }
 
-        private static bool ConditionalInvisibilityApplies(int spellId, GameObjectBody observer)
+        private static bool ConditionalInvisibilityApplies(int spellId, GameObject observer)
         {
             if (spellId == 0 || !GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
             {
@@ -3684,7 +3684,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         {
             var charmedBy = evt.GetConditionObjArg(1);
             var dispIo = evt.GetDispIoD20Signal();
-            var killedCritter = (GameObjectBody) dispIo.obj;
+            var killedCritter = (GameObject) dispIo.obj;
 
             if (charmedBy == killedCritter)
             {

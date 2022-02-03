@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
@@ -46,7 +46,7 @@ namespace OpenTemple.Core.Systems
         private int combatTimeEventSthg;
 
         [TempleDllLocation(0x10AA8438)]
-        private GameObjectBody combatActor;
+        private GameObject combatActor;
 
         [TempleDllLocation(0x10AA8444)]
         private bool combatTimeEventIndicator;
@@ -131,7 +131,7 @@ namespace OpenTemple.Core.Systems
         private int _combatInitiative;
 
         [TempleDllLocation(0x100634e0)]
-        public void AdvanceTurn(GameObjectBody obj)
+        public void AdvanceTurn(GameObject obj)
         {
             if (GameSystems.Map.HasFleeInfo() && GameSystems.Map.IsFleeing())
             {
@@ -286,13 +286,13 @@ namespace OpenTemple.Core.Systems
         public int BrawlStatus { get; set; }
 
         [TempleDllLocation(0x10BD01C8)]
-        private GameObjectBody _brawlPlayer;
+        private GameObject _brawlPlayer;
 
         [TempleDllLocation(0x10BD01D0)]
-        private GameObjectBody _brawlOpponent;
+        private GameObject _brawlOpponent;
 
         [TempleDllLocation(0x100ebd40)]
-        public void Brawl(GameObjectBody player, GameObjectBody brawlAi)
+        public void Brawl(GameObject player, GameObject brawlAi)
         {
             BrawlStatus = -1; // reset brawl state (fixes weird issues... also allows brawling to be reused)
 
@@ -513,7 +513,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100633c0)]
-        private void FleeFromCombat(GameObjectBody critter)
+        private void FleeFromCombat(GameObject critter)
         {
             if (IsCombatActive())
             {
@@ -557,7 +557,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100630f0)]
-        public void CritterLeaveCombat(GameObjectBody obj)
+        public void CritterLeaveCombat(GameObject obj)
         {
             if (!GameSystems.Party.IsPlayerControlled(obj))
             {
@@ -647,7 +647,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100b70a0)]
-        public void AutoReloadCrossbow(GameObjectBody critter)
+        public void AutoReloadCrossbow(GameObject critter)
         {
             var weapon = GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponPrimary);
             if (weapon == null || !GameSystems.Item.IsCrossbow(weapon))
@@ -685,7 +685,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100570c0)]
-        public bool HasLineOfAttack(GameObjectBody obj, GameObjectBody target)
+        public bool HasLineOfAttack(GameObject obj, GameObject target)
         {
             using var objIt = new RaycastPacket();
             objIt.origin = obj.GetLocationFull();
@@ -737,7 +737,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1004e730)]
-        public void DispatchBeginRound(GameObjectBody obj, int numRounds)
+        public void DispatchBeginRound(GameObject obj, int numRounds)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher != null)
@@ -750,13 +750,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10062720)]
-        public bool IsCombatModeActive(GameObjectBody obj)
+        public bool IsCombatModeActive(GameObject obj)
         {
             return obj.GetCritterFlags().HasFlag(CritterFlag.COMBAT_MODE_ACTIVE);
         }
 
         [TempleDllLocation(0x100624c0)]
-        public GameObjectBody GetMainHandWeapon(GameObjectBody obj)
+        public GameObject GetMainHandWeapon(GameObject obj)
         {
             return GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
         }
@@ -771,13 +771,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10063010)]
-        public void ThrowItem(GameObjectBody critter, GameObjectBody item, locXY targetLocation)
+        public void ThrowItem(GameObject critter, GameObject item, locXY targetLocation)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x100629b0)]
-        private bool IsCloseEnoughForCombat(GameObjectBody handle)
+        private bool IsCloseEnoughForCombat(GameObject handle)
         {
             if (handle.type == ObjectType.pc)
             {
@@ -796,7 +796,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10062740)]
-        private void CritterEnterCombat(GameObjectBody critter)
+        private void CritterEnterCombat(GameObject critter)
         {
             var result = GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_EnterCombat);
             if (result)
@@ -808,7 +808,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100631e0)]
-        public void EnterCombat(GameObjectBody handle)
+        public void EnterCombat(GameObject handle)
         {
             if (GameSystems.D20.D20Query(handle, D20DispatcherKey.QUE_EnterCombat))
             {
@@ -836,14 +836,14 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10062fd0)]
-        public void ProjectileCleanup2(GameObjectBody projectile, GameObjectBody actor)
+        public void ProjectileCleanup2(GameObject projectile, GameObject actor)
         {
             ThrownItemCleanup(projectile, actor, null);
         }
 
         [TempleDllLocation(0x10062560)]
-        private void ThrownItemCleanup(GameObjectBody projectile, GameObjectBody actor,
-            GameObjectBody target, bool recursed = false)
+        private void ThrownItemCleanup(GameObject projectile, GameObject actor,
+            GameObject target, bool recursed = false)
         {
             var projectileFlags = projectile.ProjectileFlags;
             if (projectileFlags.HasFlag(ProjectileFlag.UNK_40))
@@ -879,12 +879,12 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007eb30)]
-        public bool AffiliationSame(GameObjectBody critterA, GameObjectBody critterB)
+        public bool AffiliationSame(GameObject critterA, GameObject critterB)
         {
             return GameSystems.Party.IsInParty(critterA) == GameSystems.Party.IsInParty(critterB);
         }
 
-        public bool IsUnarmed(GameObjectBody critter)
+        public bool IsUnarmed(GameObject critter)
         {
             if (GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponPrimary) != null)
                 return false;
@@ -893,15 +893,15 @@ namespace OpenTemple.Core.Systems
             return true;
         }
 
-        public bool DisarmCheck(GameObjectBody attacker, GameObjectBody defender)
+        public bool DisarmCheck(GameObject attacker, GameObject defender)
         {
-            GameObjectBody attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+            GameObject attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
             if (attackerWeapon == null)
             {
                 attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
             }
 
-            GameObjectBody defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponPrimary);
+            GameObject defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponPrimary);
             if (defenderWeapon == null)
             {
                 defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponSecondary);
@@ -988,12 +988,12 @@ namespace OpenTemple.Core.Systems
             return attackerSucceeded;
         }
 
-        public bool SunderCheck(GameObjectBody attacker, GameObjectBody defender)
+        public bool SunderCheck(GameObject attacker, GameObject defender)
         {
-            GameObjectBody attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+            GameObject attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
             if (attackerWeapon == null)
                 attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
-            GameObjectBody defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponPrimary);
+            GameObject defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponPrimary);
             if (defenderWeapon == null)
                 defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponSecondary);
             int attackerRoll = Dice.D20.Roll();
@@ -1063,7 +1063,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100b6230)]
-        public bool TripCheck(GameObjectBody attacker, GameObjectBody target)
+        public bool TripCheck(GameObject attacker, GameObject target)
         {
             if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Untripable))
             {
@@ -1071,7 +1071,7 @@ namespace OpenTemple.Core.Systems
                 return false;
             }
 
-            void AbilityScoreCheckModDispatch(GameObjectBody obj, GameObjectBody opponent, Stat statUsed,
+            void AbilityScoreCheckModDispatch(GameObject obj, GameObject opponent, Stat statUsed,
                 ref BonusList bonlist, SkillCheckFlags flags)
             {
                 var dispatcher = obj.GetDispatcher();
@@ -1140,7 +1140,7 @@ namespace OpenTemple.Core.Systems
         private int combatRoundCount = 0;
 
         [TempleDllLocation(0x100639a0)]
-        public bool StartCombat(GameObjectBody combatInitiator, bool setToFirstInitiativeFlag)
+        public bool StartCombat(GameObject combatInitiator, bool setToFirstInitiativeFlag)
         {
             if (IsCombatActive())
             {
@@ -1205,7 +1205,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10062ac0)]
-        private void AddToInitiativeWithinRect(GameObjectBody partyMember)
+        private void AddToInitiativeWithinRect(GameObject partyMember)
         {
             var loc = partyMember.GetLocation();
             TileRect trect;
@@ -1290,7 +1290,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100635e0)]
-        public void TurnProcessAi(GameObjectBody obj)
+        public void TurnProcessAi(GameObject obj)
         {
             var actor = GameSystems.D20.Initiative.CurrentActor;
             if (obj != actor && obj != GameSystems.D20.Actions.getNextSimulsPerformer())
@@ -1353,9 +1353,9 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100b90c0)]
-        public List<GameObjectBody> GetEnemiesCanMelee(GameObjectBody critter)
+        public List<GameObject> GetEnemiesCanMelee(GameObject critter)
         {
-            var result = new List<GameObjectBody>();
+            var result = new List<GameObject>();
 
             foreach (var combatant in GameSystems.D20.Initiative)
             {
@@ -1370,7 +1370,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100b8740)]
-        public bool CanMeleeTarget(GameObjectBody attacker, GameObjectBody target)
+        public bool CanMeleeTarget(GameObject attacker, GameObject target)
         {
             if (target == null)
             {
@@ -1430,7 +1430,7 @@ namespace OpenTemple.Core.Systems
             return objReach >= distance;
         }
 
-        public bool CanMeleeTargetRegardWeapon(GameObjectBody attacker, GameObjectBody weapon, GameObjectBody target)
+        public bool CanMeleeTargetRegardWeapon(GameObject attacker, GameObject weapon, GameObject target)
         {
             if (weapon != null)
             {
@@ -1451,7 +1451,7 @@ namespace OpenTemple.Core.Systems
             return objReach >= distToTgt;
         }
 
-        public bool IsWithinReach(GameObjectBody attacker, GameObjectBody target)
+        public bool IsWithinReach(GameObject attacker, GameObject target)
         {
             var reach = attacker.GetReach();
             var dist = attacker.DistanceToObjInFeet(target);
@@ -1459,7 +1459,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100b7df0)]
-        public void Heal(GameObjectBody critter, GameObjectBody healer, Dice dice, D20ActionType actionType)
+        public void Heal(GameObject critter, GameObject healer, Dice dice, D20ActionType actionType)
         {
             var prone = GameSystems.Critter.IsProne(critter) || GameSystems.Critter.IsDeadOrUnconscious(critter);
 
@@ -1485,7 +1485,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100b81d0)]
-        public void SpellHeal(GameObjectBody target, GameObjectBody healer, Dice dice, D20ActionType actionType,
+        public void SpellHeal(GameObject target, GameObject healer, Dice dice, D20ActionType actionType,
             int spellId)
         {
             if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
@@ -1514,7 +1514,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100b6ee0)]
-        public void HealDamage(GameObjectBody target, DispIoDamage dispIo)
+        public void HealDamage(GameObject target, DispIoDamage dispIo)
         {
             if (target.IsCritter() && !GameSystems.Critter.IsDeadNullDestroyed(target))
             {
@@ -1556,7 +1556,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TemplePlusLocation("combat.cpp:590")]
-        public bool HasLineOfAttackFromPosition(LocAndOffsets fromPosition, GameObjectBody target)
+        public bool HasLineOfAttackFromPosition(LocAndOffsets fromPosition, GameObject target)
         {
             using var objIt = new RaycastPacket();
             objIt.origin = fromPosition;

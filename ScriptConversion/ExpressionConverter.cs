@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Scripting;
 using Microsoft.Scripting.Utils;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
@@ -2435,21 +2435,21 @@ namespace ScriptConversion
             switch (propertyName)
             {
                 case "proto":
-                    return Map(nameof(GameObjectBody.ProtoId), GuessedType.Integer);
+                    return Map(nameof(GameObject.ProtoId), GuessedType.Integer);
                 case "area":
                     return Map("GetArea()", GuessedType.Integer);
                 case "name":
                     return Map("GetNameId()", GuessedType.Integer);
                 case "type":
-                    return Map(nameof(GameObjectBody.type), GuessedType.ObjectType);
+                    return Map(nameof(GameObject.type), GuessedType.ObjectType);
                 case "location":
-                    return Map(nameof(GameObjectBody.GetLocation) + "()", GuessedType.Unknown);
+                    return Map(nameof(GameObject.GetLocation) + "()", GuessedType.Unknown);
                 case "radius":
                     return Map("GetRadius()", GuessedType.Float);
                 case "height":
                     return Map("GetRenderHeight()", GuessedType.Float);
                 case "rotation":
-                    return Map(nameof(GameObjectBody.Rotation), GuessedType.Float);
+                    return Map(nameof(GameObject.Rotation), GuessedType.Float);
                 case "hit_dice":
                     return Map("GetHitDice()", GuessedType.Integer);
                 case "hit_dice_num":
@@ -2469,9 +2469,9 @@ namespace ScriptConversion
                     _lastType = GuessedType.Integer;
                     return true;
                 case "off_x":
-                    return Map(nameof(GameObjectBody.OffsetX), GuessedType.Float);
+                    return Map(nameof(GameObject.OffsetX), GuessedType.Float);
                 case "off_y":
-                    return Map(nameof(GameObjectBody.OffsetY), GuessedType.Float);
+                    return Map(nameof(GameObject.OffsetY), GuessedType.Float);
                 case "map":
                     return Map("GetMap()", GuessedType.Integer);
                 case "scripts":
@@ -2974,7 +2974,7 @@ namespace ScriptConversion
                         // If the RHS is a null handle, we need to specify the type
                         if (NodeToString(node.Right) == "OBJ_HANDLE_NULL")
                         {
-                            Result.Append(typeof(GameObjectBody).Name).Append(' ');
+                            Result.Append(typeof(GameObject).Name).Append(' ');
                         }
                         else
                         {

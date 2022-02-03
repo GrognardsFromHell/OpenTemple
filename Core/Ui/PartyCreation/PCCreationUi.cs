@@ -5,7 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
@@ -85,7 +85,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             && uiPcCreationActiveStageIdx == ChargenStages.CG_Stage_Stats;
 
         [TempleDllLocation(0x11e741a0)]
-        private GameObjectBody charEditorObjHnd;
+        private GameObject charEditorObjHnd;
 
         private readonly PartyAlignmentUi _partyAlignmentUi = new PartyAlignmentUi();
 
@@ -460,7 +460,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011e0b0)]
-        private static bool CheckSpareSpellSlotsForLevel1Caster(GameObjectBody player)
+        private static bool CheckSpareSpellSlotsForLevel1Caster(GameObject player)
         {
             var bonusSpells = 0;
             var firstClass = (Stat) player.GetInt32(obj_f.critter_level_idx, 0);
@@ -493,7 +493,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011e920)]
-        private void AutoAddSpellsMemorized(GameObjectBody handle)
+        private void AutoAddSpellsMemorized(GameObject handle)
         {
             var firstClass = (Stat) handle.GetInt32(obj_f.critter_level_idx, 0);
             var spellClass = SpellSystem.GetSpellClass(firstClass);
@@ -765,7 +765,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             }
         }
 
-        public GameObjectBody EditedChar => charEditorObjHnd;
+        public GameObject EditedChar => charEditorObjHnd;
     }
 
     public enum ChargenStages
@@ -859,7 +859,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             return true;
         }
 
-        void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
         }
 

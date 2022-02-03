@@ -307,8 +307,8 @@ namespace OpenTemple.Core.GFX
                 mMetadataValid = true;
 
                 // The texture should not be in the MRU cache at this point
-                Trace.Assert(this.mNextMoreRecentlyUsed == null);
-                Trace.Assert(this.mNextLessRecentlyUsed == null);
+                Trace.Assert(mNextMoreRecentlyUsed == null);
+                Trace.Assert(mNextLessRecentlyUsed == null);
                 MakeMru();
             }
             else

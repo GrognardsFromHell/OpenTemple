@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -269,7 +269,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             var old_spell_id = evt.GetConditionArg3();
             if (old_spell_id != 0)
             {
-                var spell_packet = Systems.GameSystems.Spell.GetActiveSpell(old_spell_id);
+                var spell_packet = GameSystems.Spell.GetActiveSpell(old_spell_id);
                 var prev_tgt = spell_packet.Targets[0].Object;
                 if (prev_tgt != null && prev_tgt.D20Query("Is Death Attack Target"))
                 {
@@ -301,7 +301,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             evt.SetConditionArg1(1);
         }
 
-        private static bool IsActiveCombatant(GameObjectBody critter)
+        private static bool IsActiveCombatant(GameObject critter)
         {
             return GameSystems.Combat.IsCombatActive()
                 && GameSystems.D20.Initiative.Contains(critter);

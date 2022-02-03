@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -100,7 +100,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             LevelupGetBonusFeats = GetBonusFeats
         };
 
-        private static IEnumerable<SelectableFeat> GetBonusFeats(GameObjectBody critter)
+        private static IEnumerable<SelectableFeat> GetBonusFeats(GameObject critter)
         {
             var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
             // Find the normal feat for each level

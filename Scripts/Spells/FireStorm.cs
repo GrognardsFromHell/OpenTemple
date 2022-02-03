@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -33,8 +33,8 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Fire Storm OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
-            var damage_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
+            var damage_list = new List<GameObject>();
             var dam = Dice.D6;
             dam = dam.WithCount(Math.Min(20, spell.casterLevel));
             var (xx, yy) = spell.caster.GetLocation(); // caster is in chamber

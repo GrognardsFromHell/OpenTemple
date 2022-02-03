@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Startup;
@@ -20,7 +20,7 @@ namespace OpenTemple.Core.Systems.D20
 
         // TODO This does not belong in this location
         [TempleDllLocation(0x100e1f10)]
-        public Dispatcher InitDispatcher(GameObjectBody obj)
+        public Dispatcher InitDispatcher(GameObject obj)
         {
             var dispatcherNew = new Dispatcher(obj);
             foreach (var globalAttachment in GameSystems.D20.Conditions.GlobalAttachments)
@@ -32,7 +32,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004fdb0)]
-        public void D20StatusInit(GameObjectBody obj)
+        public void D20StatusInit(GameObject obj)
         {
             if (obj.GetDispatcher() != null)
             {
@@ -113,7 +113,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100fee60)]
-        private void InitClass(Dispatcher dispatcher, GameObjectBody critter)
+        private void InitClass(Dispatcher dispatcher, GameObject critter)
         {
             if (!critter.IsCritter())
             {
@@ -199,7 +199,7 @@ namespace OpenTemple.Core.Systems.D20
             };
 
         [TempleDllLocation(0x1004bf30)]
-        private void InitDomainConditions(Dispatcher dispatcher, GameObjectBody critter)
+        private void InitDomainConditions(Dispatcher dispatcher, GameObject critter)
         {
             var domain1 = (DomainId) critter.GetInt32(obj_f.critter_domain_1);
             if (domain1 != DomainId.None)
@@ -233,7 +233,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100fd790)]
-        private void initRace(Dispatcher dispatcher, GameObjectBody critter)
+        private void initRace(Dispatcher dispatcher, GameObject critter)
         {
             if (!critter.IsCritter())
                 return;
@@ -291,7 +291,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004ca00)]
-        public void UpdateItemConditions(GameObjectBody obj)
+        public void UpdateItemConditions(GameObject obj)
         {
             var dispatcher = (Dispatcher) obj.GetDispatcher();
             if (!obj.IsCritter() || dispatcher == null)
@@ -322,7 +322,7 @@ namespace OpenTemple.Core.Systems.D20
         /// Checks whether an item's conditions apply depending on where it is located on a critter.
         /// </summary>
         [TempleDllLocation(0x100FEFA0)]
-        private bool AreItemConditionsActive(GameObjectBody item, int itemInvIdx)
+        private bool AreItemConditionsActive(GameObject item, int itemInvIdx)
         {
             if (item.type == ObjectType.weapon
                 || item.type == ObjectType.armor && item.GetArmorFlags().IsShield()
@@ -337,7 +337,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100ff500)]
-        private void InitFromItemConditionFields(Dispatcher dispatcher, GameObjectBody item, int invIdx)
+        private void InitFromItemConditionFields(Dispatcher dispatcher, GameObject item, int invIdx)
         {
             var itemConds = item.GetInt32Array(obj_f.item_pad_wielder_condition_array);
             var itemArgs = item.GetInt32Array(obj_f.item_pad_wielder_argument_array);
@@ -370,7 +370,7 @@ namespace OpenTemple.Core.Systems.D20
 
         [TempleDllLocation(0x1004ff30)]
         [TemplePlusLocation("d20.cpp:171")]
-        public void D20StatusRefresh(GameObjectBody critter)
+        public void D20StatusRefresh(GameObject critter)
         {
             Logger.Info("Refreshing D20 Status for {0}", critter);
             if (critter.GetDispatcher() is Dispatcher dispatcher)
@@ -386,7 +386,7 @@ namespace OpenTemple.Core.Systems.D20
 
         [TempleDllLocation(0x100fd2d0)]
         [TemplePlusLocation("d20.cpp:196")]
-        private void initFeats(Dispatcher dispatcher, GameObjectBody critter)
+        private void initFeats(Dispatcher dispatcher, GameObject critter)
         {
             foreach (var featId in GameSystems.Feat.FeatListElective(critter))
             {
@@ -473,7 +473,7 @@ namespace OpenTemple.Core.Systems.D20
 
         [TempleDllLocation(0x1004f910)]
         [TemplePlusLocation("d20.cpp:169")]
-        private void D20StatusInitFromInternalFields(GameObjectBody objHnd, Dispatcher dispatcher)
+        private void D20StatusInitFromInternalFields(GameObject objHnd, Dispatcher dispatcher)
         {
             Span<int> condArgs = stackalloc int[100];
 

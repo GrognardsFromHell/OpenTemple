@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Feats;
@@ -20,7 +20,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100731e0)]
-        public int LevelUpApply(GameObjectBody obj, LevelupPacket levelUpPacket)
+        public int LevelUpApply(GameObject obj, LevelupPacket levelUpPacket)
         {
             var numLvls = obj.GetArrayLength(obj_f.critter_level_idx);
             obj.SetInt32(obj_f.critter_level_idx, numLvls, (int) levelUpPacket.classCode);
@@ -142,7 +142,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10073420)]
-        public void NpcAddKnownSpells(GameObjectBody obj)
+        public void NpcAddKnownSpells(GameObject obj)
         {
             if (!obj.IsNPC())
             {

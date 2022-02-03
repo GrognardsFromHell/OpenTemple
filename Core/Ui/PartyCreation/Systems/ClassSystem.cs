@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -86,7 +86,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             UpdateActiveClass();
         }
 
-        private bool AreRequirementsMet(GameObjectBody playerObj, Stat classId, StringBuilder reasonList = null)
+        private bool AreRequirementsMet(GameObject playerObj, Stat classId, StringBuilder reasonList = null)
         {
             var isValid = true;
             var classSpec = D20ClassSystem.Classes[classId];
@@ -130,7 +130,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
         [TempleDllLocation(0x10188110)]
         [TemplePlusLocation("ui_pc_creation_hooks.cpp:137")]
-        public void Finalize(CharEditorSelectionPacket selPkt, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket selPkt, ref GameObject playerObj)
         {
             playerObj.ClearArray(obj_f.critter_level_idx);
             playerObj.SetInt32(obj_f.critter_level_idx, 0, (int) selPkt.classCode);

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,11 +23,11 @@ namespace Scripts
     [ObjectScript(167)]
     public class Feldrin : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(372)))
             {
@@ -36,7 +36,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -46,7 +46,7 @@ namespace Scripts
             SetGlobalFlag(177, true);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             while ((attachee.FindItemByName(8903) != null))
             {
@@ -57,7 +57,7 @@ namespace Scripts
             // create_item_in_inventory( 8903, attachee )
             if ((Utilities.obj_percent_hp(attachee) < 75))
             {
-                GameObjectBody found_pc = null;
+                GameObject found_pc = null;
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     if (pc.type == ObjectType.pc)
@@ -82,12 +82,12 @@ namespace Scripts
             CombatStandardRoutines.Spiritual_Weapon_Begone(attachee);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(177, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(176)))
             {
@@ -102,7 +102,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             if ((!GetGlobalFlag(176)))
@@ -113,7 +113,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool kill_brunk(GameObjectBody attachee)
+        public static bool kill_brunk(GameObject attachee)
         {
             SetGlobalFlag(174, true);
             return RunDefault;

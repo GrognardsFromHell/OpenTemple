@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems;
@@ -18,9 +18,9 @@ namespace OpenTemple.Core.Ui.PartyPool
 
         private readonly PartyPoolPortrait[] _portraits;
 
-        private GameObjectBody _selected;
+        private GameObject _selected;
 
-        public GameObjectBody Selected
+        public GameObject Selected
         {
             get => _selected;
             set
@@ -56,7 +56,7 @@ namespace OpenTemple.Core.Ui.PartyPool
             Container.Width = lastPortrait.X + lastPortrait.Width;
         }
 
-        private void Select(GameObjectBody player)
+        private void Select(GameObject player)
         {
             Selected = player;
             OnSelectedChanged?.Invoke();
@@ -86,9 +86,9 @@ namespace OpenTemple.Core.Ui.PartyPool
     {
         private WidgetImage _portrait;
 
-        private GameObjectBody _player;
+        private GameObject _player;
 
-        public GameObjectBody Player
+        public GameObject Player
         {
             get => _player;
             set

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 

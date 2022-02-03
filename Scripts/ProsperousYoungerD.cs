@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(17)]
     public class ProsperousYoungerD : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -52,7 +52,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -69,7 +69,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -95,17 +95,17 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.FloatLine(12057, triggerer);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(196, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -128,12 +128,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(232, true);
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(232, false);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -144,7 +144,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             var randy1 = RandomRange(1, 12);
             if (((attachee.GetMap() == 5035 || attachee.GetMap() == 5046 || attachee.GetMap() == 5018 || attachee.GetMap() == 5086 || attachee.GetMap() == 5055) && randy1 >= 6))
@@ -154,7 +154,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buttin(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool buttin(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8016);
             if ((npc != null))
@@ -170,7 +170,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool buttin2(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool buttin2(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8055);
             if ((npc != null))
@@ -186,7 +186,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool buttin3(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool buttin3(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14037);
             if ((npc != null))
@@ -202,7 +202,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool buttin4(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool buttin4(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8020);
             if ((npc != null))
@@ -218,7 +218,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool equip_transfer(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool equip_transfer(GameObject attachee, GameObject triggerer)
         {
             var itemA = attachee.FindItemByName(6142);
             if ((itemA != null))
@@ -264,7 +264,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool switch_to_tarah(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_tarah(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8805);
             var meleny = Utilities.find_npc_near(attachee, 8015);

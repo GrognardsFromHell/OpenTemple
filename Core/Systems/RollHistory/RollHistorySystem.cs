@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
@@ -128,8 +128,8 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10047bd0)]
-        public int AddAttackRoll(int attackRoll, int criticalConfirmRoll, GameObjectBody attacker,
-            GameObjectBody defender,
+        public int AddAttackRoll(int attackRoll, int criticalConfirmRoll, GameObject attacker,
+            GameObject defender,
             BonusList attackerBonus, BonusList defenderBonus, D20CAF flags)
         {
             var entry = new HistoryAttackRoll
@@ -147,7 +147,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10047C80)]
-        public int AddDamageRoll(GameObjectBody attacker, GameObjectBody victim, DamagePacket damPkt)
+        public int AddDamageRoll(GameObject attacker, GameObject victim, DamagePacket damPkt)
         {
             var entry = new HistoryDamageRoll(damPkt); // TODO: We should actually make a *copy* of the packet here
             entry.obj = attacker;
@@ -157,7 +157,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10047CF0)]
-        public int AddSkillCheck(GameObjectBody objHnd, GameObjectBody objHnd2, SkillId skillIdx, Dice dice,
+        public int AddSkillCheck(GameObject objHnd, GameObject objHnd2, SkillId skillIdx, Dice dice,
             int rollResult,
             int dc,
             in BonusList bonlist)
@@ -175,7 +175,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10047D90)]
-        public int AddSavingThrow(GameObjectBody obj, int dc, SavingThrowType saveType, D20SavingThrowFlag flags,
+        public int AddSavingThrow(GameObject obj, int dc, SavingThrowType saveType, D20SavingThrowFlag flags,
             Dice dice, int rollResult, in BonusList bonListIn)
         {
             var entry = new HistorySavingThrow();
@@ -190,7 +190,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10047e30)]
-        public int AddMiscCheck(GameObjectBody obj, int dc, string historyText, Dice dice, int rollResult,
+        public int AddMiscCheck(GameObject obj, int dc, string historyText, Dice dice, int rollResult,
             BonusList bonusList)
         {
             var entry = new HistoryMiscCheck();
@@ -204,7 +204,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10047ec0)]
-        public int AddPercentageCheck(GameObjectBody obj, GameObjectBody tgt, int failChance,
+        public int AddPercentageCheck(GameObject obj, GameObject tgt, int failChance,
             int combatMesFailureReason, int rollResult, int combatMesResult, int combatMesTitle)
         {
             var entry = new HistoryPercentageCheck();
@@ -219,7 +219,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10047F70)]
-        public int AddOpposedCheck(GameObjectBody performer, GameObjectBody opponent,
+        public int AddOpposedCheck(GameObject performer, GameObject opponent,
             int roll, int opposingRoll,
             in BonusList bonus, in BonusList opposingBonus,
             int combatMesLineTitle, D20CombatMessage combatMesLineResult, int flag)
@@ -256,7 +256,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x100475f0)]
-        public int AddMiscBonus(GameObjectBody critter, BonusList bonList, int line, int rollResult)
+        public int AddMiscBonus(GameObject critter, BonusList bonList, int line, int rollResult)
         {
             var entry = new HistoryBonusDetail(bonList, line, rollResult)
             {
@@ -266,7 +266,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x100480c0)]
-        public int AddTrapAttack(int attackRoll, int criticalConfirmRoll, int attackBonus, GameObjectBody victim,
+        public int AddTrapAttack(int attackRoll, int criticalConfirmRoll, int attackBonus, GameObject victim,
             BonusList acBonus, D20CAF caf)
         {
             var entry = new HistoryTrap();
@@ -285,9 +285,9 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x100e02a0)]
-        public void AddSpellCast(GameObjectBody caster, int spellEnum)
+        public void AddSpellCast(GameObject caster, int spellEnum)
         {
-            GameObjectBody observer;
+            GameObject observer;
             string actorName = null;
             if (caster != null)
             {
@@ -307,7 +307,7 @@ namespace OpenTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x100E01F0)]
-        public void CreateRollHistoryLineFromMesfile(int historyMesLine, GameObjectBody obj, GameObjectBody obj2)
+        public void CreateRollHistoryLineFromMesfile(int historyMesLine, GameObject obj, GameObject obj2)
         {
             var messageText = _messageTranslations[historyMesLine];
             string actorName = null;

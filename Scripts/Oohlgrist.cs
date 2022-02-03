@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(126)]
     public class Oohlgrist : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasMet(triggerer)))
             {
@@ -44,7 +44,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             // if should_modify_CR( attachee ):
             // modify_CR( attachee, get_av_level() )
@@ -57,7 +57,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.AddCondition("Rend")))
             {
@@ -66,7 +66,7 @@ namespace Scripts
 
             if (((Utilities.obj_percent_hp(attachee) < 50) && (!GetGlobalFlag(350)) && ((ScriptDaemon.get_v(454) & (0x20 + (1 << 7))) == 0))) // if he hasn't already been intimidated or regrouped
             {
-                GameObjectBody found_pc = null;
+                GameObject found_pc = null;
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     if (pc.type == ObjectType.pc)
@@ -111,12 +111,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(110, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -139,12 +139,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             // game.global_flags[112] = 1		### removed by Livonya
             return RunDefault;
         }
-        public static bool TalkAern(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool TalkAern(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8033);
             if ((npc != null))

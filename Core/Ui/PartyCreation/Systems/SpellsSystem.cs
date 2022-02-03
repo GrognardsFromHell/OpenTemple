@@ -1,5 +1,5 @@
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Spells;
@@ -161,7 +161,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
         [TempleDllLocation(0x1017f0a0)]
         [TemplePlusLocation("ui_pc_creation_hooks.cpp:183")]
-        public void Finalize(CharEditorSelectionPacket selPkt, ref GameObjectBody a2)
+        public void Finalize(CharEditorSelectionPacket selPkt, ref GameObject a2)
         {
         }
 

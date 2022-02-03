@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 using OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races;

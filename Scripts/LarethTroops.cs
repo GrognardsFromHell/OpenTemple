@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -53,7 +53,7 @@ namespace Scripts
         // 2**8 - Beacon designator
         // 2**9 - Archer guy put to sleep - skip turn when woken up to prevent approach, then reset
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(37) && (GetGlobalFlag(49) || !GetGlobalFlag(48))))
             {
@@ -75,12 +75,12 @@ namespace Scripts
             return SkipDefault;
         }
 
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             return OnDying(attachee, triggerer, false);
         }
         
-        public bool OnDying(GameObjectBody attachee, GameObjectBody triggerer, bool generated_from_timed_event_call)
+        public bool OnDying(GameObject attachee, GameObject triggerer, bool generated_from_timed_event_call)
         {
             if (GetGlobalFlag(403) && GetGlobalFlag(405))
             {
@@ -132,7 +132,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if (GetGlobalFlag(403) && GetGlobalFlag(405))
             {
@@ -198,7 +198,7 @@ namespace Scripts
             return RunDefault;
         }
 
-        public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
         {
             if (GetGlobalFlag(403) && GetGlobalFlag(405))
             {
@@ -208,12 +208,12 @@ namespace Scripts
             return RunDefault;
         }
 
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             return OnStartCombat(attachee, triggerer, false);
         }
 
-        public bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer, bool generated_from_timed_event_call)
+        public bool OnStartCombat(GameObject attachee, GameObject triggerer, bool generated_from_timed_event_call)
         {
             if (attachee.GetBaseStat(Stat.dexterity) == -30)
             {
@@ -258,8 +258,8 @@ namespace Scripts
                 {
                     // The "Call Lareth" section
                     // Calculates how many troops are down etc. and decides whether to call Lareth
-                    GameObjectBody seleucas = null;
-                    GameObjectBody lareth_sarge = null;
+                    GameObject seleucas = null;
+                    GameObject lareth_sarge = null;
                     foreach (var obj1 in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
                     {
                         if (obj1.GetNameId() == 14077)
@@ -495,12 +495,12 @@ namespace Scripts
             return RunDefault;
         }
 
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             return OnEndCombat(attachee, triggerer, false);
         }
 
-        public bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer, bool generated_from_timed_event_call)
+        public bool OnEndCombat(GameObject attachee, GameObject triggerer, bool generated_from_timed_event_call)
         {
             var ggv400 = GetGlobalVar(400);
             var ggv401 = GetGlobalVar(401);
@@ -535,8 +535,8 @@ namespace Scripts
 
                 if ((new[] { 14074, 14075, 14076, 14077 }).Contains(attachee.GetNameId()))
                 {
-                    GameObjectBody seleucas = null;
-                    GameObjectBody lareth_sarge = null;
+                    GameObject seleucas = null;
+                    GameObject lareth_sarge = null;
                     foreach (var obj1 in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
                     {
                         if (obj1.GetNameId() == 14077)
@@ -704,7 +704,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()) && (!GetGlobalFlag(363)) && (attachee.GetLeader() == null))
             {
@@ -774,7 +774,7 @@ namespace Scripts
             // Don't scrap the script - because of the "bring the leader here" treatment
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if (attachee.DistanceTo(triggerer) <= 31 && (GetGlobalVar(403) & ((2) + 0x4)) == 2)
             {
@@ -783,7 +783,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnSpellCast(GameObjectBody attachee, GameObjectBody triggerer, SpellPacketBody spell)
+        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
         {
             if (spell.spellEnum == WellKnownSpells.Fireball)
             {
@@ -810,20 +810,20 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void call_leader(GameObjectBody npc, GameObjectBody pc)
+        public static void call_leader(GameObject npc, GameObject pc)
         {
             var leader = PartyLeader;
             leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
             leader.BeginDialog(npc, 1);
             return;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             var loc = new locXY(526, 569);
             attachee.RunOff(loc);
             return RunDefault;
         }
-        public static bool run_off_to_back(GameObjectBody attachee, GameObjectBody triggerer, bool generated_from_timevent = false)
+        public static bool run_off_to_back(GameObject attachee, GameObject triggerer, bool generated_from_timevent = false)
         {
             if (!generated_from_timevent)
             {
@@ -854,13 +854,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool move_pc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool move_pc(GameObject attachee, GameObject triggerer)
         {
             FadeAndTeleport(0, 0, 0, 5005, 537, 545);
             // triggerer.move( location_from_axis( 537, 545 ) )
             return RunDefault;
         }
-        public static bool deliver_pc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool deliver_pc(GameObject attachee, GameObject triggerer)
         {
             triggerer.Move(new locXY(491, 541));
             return RunDefault;

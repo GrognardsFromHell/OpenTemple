@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(563)]
     public class KobortAmbushCaveexit : BaseObjectScript
     {
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(765) == 2 || GetGlobalVar(765) == 3 || GetGlobalFlag(283)))
             {
@@ -55,7 +55,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 50))
             {
@@ -64,7 +64,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool start_talking(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 600);

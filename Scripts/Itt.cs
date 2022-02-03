@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -442,7 +442,7 @@ namespace Scripts
             return;
         }
 
-        public static GameObjectBody rnt(int sourceX, int sourceY, int obj_name, int new_standpoint_ID, int new_x, int new_y, float new_rotation, int radius)
+        public static GameObject rnt(int sourceX, int sourceY, int obj_name, int new_standpoint_ID, int new_x, int new_y, float new_rotation, int radius)
         {
             // Relocate NPC To...
             // source_x, source_y - where the object currently is
@@ -476,7 +476,7 @@ namespace Scripts
             int radius,
             string extra_command,
             List<Standpoint> reserve_list,
-            out GameObjectBody transferee)
+            out GameObject transferee)
         {
             // Relocate NPC To... EARTH TEMPLE VARIANT
             // source_x, source_y - where the object currently is
@@ -573,7 +573,7 @@ namespace Scripts
             }
             return result;
         }
-        public static GameObjectBody rct(int script_x, int script_y, int obj_name, int new_x, int new_y, float new_rotation)
+        public static GameObject rct(int script_x, int script_y, int obj_name, int new_x, int new_y, float new_rotation)
         {
             // Relocate Container To...
             var transferee = fcnc(script_x, script_y, obj_name);
@@ -585,7 +585,7 @@ namespace Scripts
 
             return transferee;
         }
-        public static GameObjectBody rst(int script_x, int script_y, int obj_name, int new_x, int new_y, float new_rotation, int radius)
+        public static GameObject rst(int script_x, int script_y, int obj_name, int new_x, int new_y, float new_rotation, int radius)
         {
             // Relocate Scenery To...
             var transferee = fsnc(script_x, script_y, obj_name, radius);
@@ -597,7 +597,7 @@ namespace Scripts
 
             return transferee;
         }
-        public static void sps(GameObjectBody object_to_be_transferred, int new_standpoint_ID)
+        public static void sps(GameObject object_to_be_transferred, int new_standpoint_ID)
         {
             // standpoint set
             object_to_be_transferred.SetStandpoint(StandPointType.Day, new_standpoint_ID);
@@ -605,10 +605,10 @@ namespace Scripts
             return;
         }
 
-        private static GameObjectBody fnnc(Standpoint standpoint) =>
+        private static GameObject fnnc(Standpoint standpoint) =>
             fnnc(standpoint.Location, standpoint.NameId, standpoint.Radius);
 
-        private static GameObjectBody fnnc(locXY location, int name, int radius = 1)
+        private static GameObject fnnc(locXY location, int name, int radius = 1)
         {
             // Find NPC near coordinate, detection radius optional
             foreach (var npc in ObjList.ListVicinity(location, ObjectListFilter.OLC_NPC))
@@ -623,7 +623,7 @@ namespace Scripts
 
             return null;
         }
-        public static GameObjectBody fcnc(int xx, int yy, int name)
+        public static GameObject fcnc(int xx, int yy, int name)
         {
             // Find container near coordinate
             foreach (var container in ObjList.ListVicinity(new locXY(xx, yy), ObjectListFilter.OLC_CONTAINER))
@@ -637,7 +637,7 @@ namespace Scripts
 
             return null;
         }
-        public static GameObjectBody fsnc(int xx, int yy, int name, int radius)
+        public static GameObject fsnc(int xx, int yy, int name, int radius)
         {
             // Find scenery near coordinate
             foreach (var mang in ObjList.ListVicinity(new locXY(xx, yy), ObjectListFilter.OLC_SCENERY))
@@ -653,13 +653,13 @@ namespace Scripts
 
             return null;
         }
-        public static List<GameObjectBody> vlist()
+        public static List<GameObject> vlist()
         {
             using var moshe = ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC);
-            return new List<GameObjectBody>(moshe);
+            return new List<GameObject>(moshe);
         }
 
-        public static GameObjectBody spawn(int prot, int x, int y)
+        public static GameObject spawn(int prot, int x, int y)
         {
             var moshe = GameSystems.MapObject.CreateObject(prot, new locXY(x, y));
             if ((moshe != null))

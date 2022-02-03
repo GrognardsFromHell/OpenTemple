@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(84)]
     public class WeaverDaughter : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
             {
@@ -37,7 +37,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(698) == 5))
             {
@@ -47,7 +47,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool argue(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool argue(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8007);
             if ((npc != null))
@@ -63,7 +63,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool make_hate(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool make_hate(GameObject attachee, GameObject triggerer)
         {
             var r = attachee.GetReaction(triggerer);
             if ((r > 20))

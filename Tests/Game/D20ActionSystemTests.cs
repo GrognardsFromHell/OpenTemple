@@ -3,7 +3,7 @@ using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using OpenTemple.Core;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -27,7 +27,7 @@ namespace OpenTemple.Tests.Game
             ClearGameObjects();
         }
 
-        private GameObjectBody Create(int protoId)
+        private GameObject Create(int protoId)
         {
             var obj = GameSystems.MapObject.CreateObject(protoId, new locXY(500, 483));
             if (obj.IsCritter())
@@ -104,7 +104,7 @@ namespace OpenTemple.Tests.Game
             );
         }
 
-        private GameObjectBody CreatePlayer(int x = 500, int y = 477)
+        private GameObject CreatePlayer(int x = 500, int y = 477)
         {
             var player = GameSystems.MapObject.CreateObject(TestProtos.HumanMalePlayer, new locXY(x, y));
             GameSystems.Party.AddToPCGroup(player);

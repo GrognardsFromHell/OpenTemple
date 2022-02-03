@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(153)]
     public class Turnkey : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(208)))
             {
@@ -36,13 +36,13 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             // if should_modify_CR( attachee ):
             // modify_CR( attachee, get_av_level() )
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             // while(attachee.item_find(8903) != OBJ_HANDLE_NULL):
             // attachee.item_find(8903).destroy()
@@ -50,7 +50,7 @@ namespace Scripts
             // create_item_in_inventory( 8903, attachee )
             if (((Utilities.obj_percent_hp(attachee) < 30) && (!GetGlobalFlag(208))))
             {
-                GameObjectBody found_pc = null;
+                GameObject found_pc = null;
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     if (pc.type == ObjectType.pc)

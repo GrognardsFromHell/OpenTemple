@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.IO;
@@ -53,7 +53,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         };
 
         [TempleDllLocation(0x10BD2CD8)]
-        private readonly Dictionary<GameObjectBody, string> intgameselTexts = new Dictionary<GameObjectBody, string>();
+        private readonly Dictionary<GameObject, string> intgameselTexts = new Dictionary<GameObject, string>();
 
         [TempleDllLocation(0x102F920C)]
         private int _activePickerIndex = -1; // TODO: Just replace with _activePickers
@@ -166,7 +166,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
         [TempleDllLocation(0x10138cb0)]
         [TempleDllLocation(0x10BE60D8)]
-        public GameObjectBody Focus { get; set; }
+        public GameObject Focus { get; set; }
 
         [TempleDllLocation(0x10135970)]
         public bool IsPicking => _activePickerIndex >= 0;
@@ -296,7 +296,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10BE60E0)]
-        private readonly List<GameObjectBody> _selection = new List<GameObjectBody>();
+        private readonly List<GameObject> _selection = new List<GameObject>();
 
         private readonly PlayerSpellPointerRenderer _playerSpellPointerRenderer;
         private readonly SpellPointerRenderer _spellPointerRenderer;
@@ -361,7 +361,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10138c90)]
-        public void AddToFocusGroup(GameObjectBody obj)
+        public void AddToFocusGroup(GameObject obj)
         {
             if (!_selection.Contains(obj))
             {
@@ -370,7 +370,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10138cf0)]
-        private bool IsInScreenRect(IGameViewport viewport, GameObjectBody obj, RectangleF screenRect)
+        private bool IsInScreenRect(IGameViewport viewport, GameObject obj, RectangleF screenRect)
         {
             var screenPos = GameSystems.MapObject.GetScreenPosOfObject(viewport, obj);
             return screenPos.X - 10.0f <= screenRect.Right
@@ -380,9 +380,9 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10139b60)]
-        private List<GameObjectBody> FindPartyMembersInRect(IGameViewport viewport, RectangleF screenRect)
+        private List<GameObject> FindPartyMembersInRect(IGameViewport viewport, RectangleF screenRect)
         {
-            var result = new List<GameObjectBody>();
+            var result = new List<GameObject>();
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
                 if (IsInScreenRect(viewport, partyMember, screenRect))
@@ -506,7 +506,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         private PackedLinearColorA _boxSelectColor;
 
         [TempleDllLocation(0x10BE6210)]
-        private GameObjectBody PreviousRenderFocus;
+        private GameObject PreviousRenderFocus;
 
         [TempleDllLocation(0x10BE6204)]
         private TimePoint PreviousRenderFocusSet;
@@ -661,13 +661,13 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10023ec0)]
-        private void RenderOutline(IGameViewport viewport, GameObjectBody obj, ResourceRef<IMdfRenderMaterial> resourceRef)
+        private void RenderOutline(IGameViewport viewport, GameObject obj, ResourceRef<IMdfRenderMaterial> resourceRef)
         {
             UiSystems.GameView.GetMapObjectRenderer().RenderObjectHighlight(viewport, obj, resourceRef);
         }
 
         [TempleDllLocation(0x10138e20)]
-        private void RenderTooltip(IGameViewport viewport, GameObjectBody obj)
+        private void RenderTooltip(IGameViewport viewport, GameObject obj)
         {
             var leader = GameSystems.Party.GetConsciousLeader();
             UiSystems.Tooltip.RenderObjectTooltip(viewport, obj, leader);
@@ -690,7 +690,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10138c00)]
-        private void DrawDiscAtObj(IGameViewport viewport, GameObjectBody obj, IMdfRenderMaterial material, float rotation)
+        private void DrawDiscAtObj(IGameViewport viewport, GameObject obj, IMdfRenderMaterial material, float rotation)
         {
             var location = obj.GetLocationFull().ToInches3D();
             var radius = obj.GetRadius();
@@ -752,7 +752,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         /// Used to show the button that confirms the selection without selecting all possible targets.
         /// </summary>
         [TempleDllLocation(0x10135b30)]
-        public void ShowConfirmSelectionButton(GameObjectBody caster)
+        public void ShowConfirmSelectionButton(GameObject caster)
         {
             if (caster != null && GameSystems.Party.IsInParty(caster))
             {
@@ -1062,7 +1062,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10109980)]
-        private void DrawCircleInvalidTarget(IGameViewport viewport, GameObjectBody target, GameObjectBody caster, int spellEnum)
+        private void DrawCircleInvalidTarget(IGameViewport viewport, GameObject target, GameObject caster, int spellEnum)
         {
             var friendly = GameSystems.Critter.IsFriendly(target, caster);
             var outcome = friendly ? 6 : 7;
@@ -1070,7 +1070,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10109940)]
-        public void DrawCircleValidTarget(IGameViewport viewport, GameObjectBody target, GameObjectBody originator, int spellEnum)
+        public void DrawCircleValidTarget(IGameViewport viewport, GameObject target, GameObject originator, int spellEnum)
         {
             var friendly = GameSystems.Critter.IsFriendly(target, originator);
             var outcome = friendly ? 3 : 4;
@@ -1078,7 +1078,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10108c50)]
-        private void IntgameSpellTargetCircleRender(IGameViewport viewport, GameObjectBody target, int spellEnum, int outcome)
+        private void IntgameSpellTargetCircleRender(IGameViewport viewport, GameObject target, int spellEnum, int outcome)
         {
             var radius = target.GetRadius();
             var centerLoc = target.GetLocationFull();
@@ -1092,7 +1092,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10106d10)]
-        private void DrawPlayerSpellPointer(IGameViewport viewport, GameObjectBody originator, LocAndOffsets tgtLoc)
+        private void DrawPlayerSpellPointer(IGameViewport viewport, GameObject originator, LocAndOffsets tgtLoc)
         {
             var radius = originator.GetRadius() * 1.5f;
             var centerLoc = originator.GetLocationFull();
@@ -1178,7 +1178,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10108ed0)]
-        private void AddTargetNumberLabel(GameObjectBody obj, int tgtNumber)
+        private void AddTargetNumberLabel(GameObject obj, int tgtNumber)
         {
             // Append to the same object's text if it exists
             if (intgameselTexts.TryGetValue(obj, out var existingText))
@@ -1213,7 +1213,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
         public PickerBehavior Behavior { get; set; }
 
-        public GameObjectBody Target { get; set; }
+        public GameObject Target { get; set; }
 
         public GameRaycastFlags GetFlagsFromExclusions()
         {

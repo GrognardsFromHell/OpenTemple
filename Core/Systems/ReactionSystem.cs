@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Time;
 
@@ -12,16 +12,16 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10AA36D0)]
-        private GameObjectBody _reactionNpcObject;
+        private GameObject _reactionNpcObject;
 
         [TempleDllLocation(0x10AA36A8)]
-        private GameObjectBody _reactionPlayerObject;
+        private GameObject _reactionPlayerObject;
 
         [TempleDllLocation(0x10AA36A4)]
         private bool reactionState;
 
         [TempleDllLocation(0x10053ca0)]
-        public GameObjectBody GetLastReactionPlayer(GameObjectBody npc)
+        public GameObject GetLastReactionPlayer(GameObject npc)
         {
             if (_reactionNpcObject == npc)
             {
@@ -32,7 +32,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10053cd0)]
-        public bool HasMet(GameObjectBody who, GameObjectBody whom)
+        public bool HasMet(GameObject who, GameObject whom)
         {
             if (who == whom)
             {
@@ -54,7 +54,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x10054180)]
         [TempleDllLocation(0x10053e90)]
-        public int GetReaction(GameObjectBody critter, GameObjectBody towards)
+        public int GetReaction(GameObject critter, GameObject towards)
         {
             if (GameSystems.AI.NpcAiListFindEnemy(critter, towards))
             {
@@ -72,7 +72,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10053D60)]
-        public int NpcReactionLevelGet(GameObjectBody obj)
+        public int NpcReactionLevelGet(GameObject obj)
         {
             if (_reactionNpcObject == obj && _reactionPlayerObject != null && reactionState)
             {
@@ -89,7 +89,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10053f20)]
-        public void AdjustReaction(GameObjectBody npc, GameObjectBody towards, int adjustment)
+        public void AdjustReaction(GameObject npc, GameObject towards, int adjustment)
         {
             if (adjustment == 0)
             {
@@ -120,7 +120,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10053df0)]
-        private void SetReaction(GameObjectBody npc, int reactionLvl)
+        private void SetReaction(GameObject npc, int reactionLvl)
         {
             if (_reactionNpcObject == npc && _reactionPlayerObject != null)
             {
@@ -141,7 +141,7 @@ namespace OpenTemple.Core.Systems
 
         // TODO: This might be " start talking " / " start interacting "
         [TempleDllLocation(0x10053fe0)]
-        public void DialogReaction_10053FE0(GameObjectBody npc, GameObjectBody pc)
+        public void DialogReaction_10053FE0(GameObject npc, GameObject pc)
         {
             if (pc.IsPC() && npc.IsNPC())
             {
@@ -158,7 +158,7 @@ namespace OpenTemple.Core.Systems
 
         // TODO: This might be " stop talking  " / " stop interacting "
         [TempleDllLocation(0x10054090)]
-        public void NpcReactionUpdate(GameObjectBody npc, GameObjectBody pc)
+        public void NpcReactionUpdate(GameObject npc, GameObject pc)
         {
             if (npc.IsNPC())
             {
@@ -182,7 +182,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100541c0)]
-        public int AdjustBuyPrice(GameObjectBody npc, GameObjectBody pc, int a3)
+        public int AdjustBuyPrice(GameObject npc, GameObject pc, int a3)
         {
             int v4;
 

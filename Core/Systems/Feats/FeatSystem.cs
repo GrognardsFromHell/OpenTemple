@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.TabFiles;
 using OpenTemple.Core.Logging;
@@ -137,7 +137,7 @@ namespace OpenTemple.Core.Systems.Feats
         }
 
         [TempleDllLocation(0x1007C3D0)]
-        public bool HasFeat(GameObjectBody critter, FeatId featId)
+        public bool HasFeat(GameObject critter, FeatId featId)
         {
             return HasFeatCountByClass(critter, featId) > 0;
         }
@@ -146,7 +146,7 @@ namespace OpenTemple.Core.Systems.Feats
         /// Counts feats actively taken by the given critter which were
         /// not implied by race or other factors.
         /// </summary>
-        public int HasFeatCount(GameObjectBody obj, FeatId featId)
+        public int HasFeatCount(GameObject obj, FeatId featId)
         {
             int featCount = 0;
             var feats = obj.GetInt32Array(obj_f.critter_feat_idx);
@@ -161,7 +161,7 @@ namespace OpenTemple.Core.Systems.Feats
             return featCount;
         }
 
-        public int HasFeatCountByClass(GameObjectBody obj, FeatId featEnum, Stat? classLevelBeingRaised = null,
+        public int HasFeatCountByClass(GameObject obj, FeatId featEnum, Stat? classLevelBeingRaised = null,
             FeatId? rangerSpecializationFeat = null,
             DomainId newDomain1 = DomainId.None,
             DomainId newDomain2 = DomainId.None,
@@ -535,14 +535,14 @@ namespace OpenTemple.Core.Systems.Feats
 
         [TempleDllLocation(0x1007c3f0)]
         [TemplePlusLocation("feat.cpp:79")]
-        public IEnumerable<FeatId> FeatListElective(GameObjectBody critter)
+        public IEnumerable<FeatId> FeatListElective(GameObject critter)
         {
             return FeatListGet(critter);
         }
 
         [TempleDllLocation(0x1007c370)]
         [TemplePlusLocation("feat.cpp:78")]
-        public IEnumerable<FeatId> FeatListGet(GameObjectBody critter, Stat? classBeingLevelled = null,
+        public IEnumerable<FeatId> FeatListGet(GameObject critter, Stat? classBeingLevelled = null,
             FeatId? rangerSpecFeat = null)
         {
             int i = 0;
@@ -565,7 +565,7 @@ namespace OpenTemple.Core.Systems.Feats
         }
 
         [TempleDllLocation(0x1007cf30)]
-        public void AddFeat(GameObjectBody obj, FeatId featId)
+        public void AddFeat(GameObject obj, FeatId featId)
         {
             if (!ObjCheckFeatPrerequisites(obj, featId, 0, 0, 0, 0))
             {
@@ -578,25 +578,25 @@ namespace OpenTemple.Core.Systems.Feats
         }
 
         [TempleDllLocation(0x1007c8f0)]
-        private bool ObjCheckFeatPrerequisites(GameObjectBody obj, FeatId featId, int i, int i1, int i2, int i3)
+        private bool ObjCheckFeatPrerequisites(GameObject obj, FeatId featId, int i, int i1, int i2, int i3)
         {
             // TODO
             return true;
         }
 
-        public bool IsProficientWithWeapon(GameObjectBody critter, GameObjectBody weapon)
+        public bool IsProficientWithWeapon(GameObject critter, GameObject weapon)
         {
             return IsProficientWithWeaponType(critter, weapon.GetWeaponType());
         }
 
         [TempleDllLocation(0x1007c8d0)]
-        public bool IsProficientWithWeaponType(GameObjectBody critter, WeaponType weaponType)
+        public bool IsProficientWithWeaponType(GameObject critter, WeaponType weaponType)
         {
             return WeaponFeatCheck(critter, null, default, weaponType);
         }
 
         [TempleDllLocation(0x1007c4f0)]
-        public bool WeaponFeatCheck(GameObjectBody critter, IList<FeatId> featArray, Stat classBeingLeveled,
+        public bool WeaponFeatCheck(GameObject critter, IList<FeatId> featArray, Stat classBeingLeveled,
             WeaponType wpnType)
         {
             if (GameSystems.Item.WeaponSizeSthg(critter, wpnType) == 3)
@@ -757,7 +757,7 @@ namespace OpenTemple.Core.Systems.Feats
 
 
         [TempleDllLocation(0x1007c410)]
-        public bool IsProficientWithArmor(GameObjectBody critter, GameObjectBody armor)
+        public bool IsProficientWithArmor(GameObject critter, GameObject armor)
         {
             switch (armor.GetArmorFlags() & ArmorFlag.TYPE_BITMASK)
             {
@@ -868,7 +868,7 @@ namespace OpenTemple.Core.Systems.Feats
 
     public static class FeatCritterExtensions
     {
-        public static bool HasFeat(this GameObjectBody critter, FeatId featId)
+        public static bool HasFeat(this GameObject critter, FeatId featId)
         {
             return GameSystems.Feat.HasFeat(critter, featId);
         }

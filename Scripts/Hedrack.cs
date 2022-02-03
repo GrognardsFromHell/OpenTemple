@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(174)]
     public class Hedrack : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(144)))
             {
@@ -52,7 +52,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             Logger.Info("Hedrack First Heartbeat");
             if ((GetGlobalFlag(372)))
@@ -109,7 +109,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -119,7 +119,7 @@ namespace Scripts
             SetGlobalFlag(146, true);
             return RunDefault;
         }
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             var npc = Utilities.find_npc_near(attachee, 8001);
             if ((npc != null))
@@ -135,7 +135,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             Logger.Info("Hedrack san_start_combat");
             if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
@@ -316,12 +316,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(146, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GameSystems.Combat.IsCombatActive()))
             {
@@ -526,7 +526,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool talk_Romag(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool talk_Romag(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8037);
             if ((npc != null))
@@ -542,7 +542,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public bool summon_Iuz(GameObjectBody attachee, GameObjectBody triggerer)
+        public bool summon_Iuz(GameObject attachee, GameObject triggerer)
         {
             Logger.Info("Hedrack: Summoning Iuz");
             // needs to make Iuz appear near him
@@ -551,7 +551,7 @@ namespace Scripts
             Iuz.TurnTowards(attachee);
             return SkipDefault;
         }
-        public static bool talk_Iuz(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool talk_Iuz(GameObject attachee, GameObject triggerer, int line)
         {
             var Iuz = Utilities.find_npc_near(attachee, 8042);
             if ((Iuz != null))
@@ -567,7 +567,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool end_game(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool end_game(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(339, true);
             // play slides and end game
@@ -575,7 +575,7 @@ namespace Scripts
             GameSystems.Movies.MovieQueuePlayAndEndGame();
             return SkipDefault;
         }
-        public static bool give_robes(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool give_robes(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -585,7 +585,7 @@ namespace Scripts
             return SkipDefault;
         }
 
-        private static bool is_28_and_under(GameObjectBody speaker, GameObjectBody listener)
+        private static bool is_28_and_under(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -598,7 +598,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool unshit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool unshit(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {

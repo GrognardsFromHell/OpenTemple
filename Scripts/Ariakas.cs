@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(488)]
     public class Ariakas : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(501) == 8))
             {
@@ -60,7 +60,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(501) == 1))
             {
@@ -73,7 +73,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -87,16 +87,16 @@ namespace Scripts
             SetGlobalFlag(502, true);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(502, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(525) && !GetGlobalFlag(526)))
             {
@@ -157,7 +157,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             var hammer = attachee.FindItemByName(4079);
             hammer.SetItemFlag(ItemFlag.NO_TRANSFER);
@@ -175,7 +175,7 @@ namespace Scripts
             cloak.SetItemFlag(ItemFlag.NO_TRANSFER);
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             var hammer = attachee.FindItemByName(4079);
             hammer.ClearItemFlag(ItemFlag.NO_TRANSFER);
@@ -193,7 +193,7 @@ namespace Scripts
             cloak.ClearItemFlag(ItemFlag.NO_TRANSFER);
             return RunDefault;
         }
-        public static bool check_back(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool check_back(GameObject attachee, GameObject triggerer)
         {
             StartTimer(172800000, () => trouble()); // 2 days
             return RunDefault;
@@ -203,7 +203,7 @@ namespace Scripts
             SetGlobalVar(501, 3);
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -216,7 +216,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool switch_to_old_man(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_old_man(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14496);
             if ((npc != null))
@@ -226,35 +226,35 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool talkie_talkie(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool talkie_talkie(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 150);
             return RunDefault;
         }
-        public static bool start_alarm(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_alarm(GameObject attachee, GameObject triggerer)
         {
             Sound(4131, 2);
             return RunDefault;
         }
-        public static void set_inside_limiter(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void set_inside_limiter(GameObject attachee, GameObject triggerer)
         {
             StartTimer(7200000, () => out_of_time(attachee, triggerer)); // 2 hours
             SetGlobalVar(505, 1);
             return;
         }
-        public static void out_of_time(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void out_of_time(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(505, 2);
             return;
         }
-        public static bool bad_news(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool bad_news(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 930);
             return RunDefault;
         }
-        public static void very_bad_things(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void very_bad_things(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(510, 2);
             SetGlobalFlag(504, true);
@@ -262,19 +262,19 @@ namespace Scripts
             PartyLeader.AddReputation(53);
             return;
         }
-        public static bool wakefield_talk(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool wakefield_talk(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 1150);
             return RunDefault;
         }
-        public static bool suspicious_talk(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool suspicious_talk(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 1180);
             return RunDefault;
         }
-        public static void hextor_movie_setup(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void hextor_movie_setup(GameObject attachee, GameObject triggerer)
         {
             set_hextor_slides();
             return;

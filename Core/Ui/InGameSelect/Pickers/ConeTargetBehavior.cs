@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -20,7 +20,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x101386C0)]
-        private bool TargetPartyMember(GameObjectBody partyMember)
+        private bool TargetPartyMember(GameObject partyMember)
         {
             PickerState.Target = partyMember;
             Picker.SetConeTargets(partyMember.GetLocationFull());
@@ -28,7 +28,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10136bc0)]
-        private void SetPartyMemberTarget(GameObjectBody partyMember)
+        private void SetPartyMemberTarget(GameObject partyMember)
         {
             PickerState.Target = partyMember;
             ClearResults();
@@ -36,7 +36,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10136c40)]
-        private void ResetPartyMemberTarget(GameObjectBody obj)
+        private void ResetPartyMemberTarget(GameObject obj)
         {
             PickerState.Target = null;
             ClearResults();

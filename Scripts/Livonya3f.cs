@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(310)]
     public class Livonya3f : BaseObjectScript
     {
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(777) >= 1))
             {
@@ -38,7 +38,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetMap() == 5067 && (new[] { 14174, 14175, 14177, 13002 }).Contains(attachee.GetNameId())) // ToEE level 2 - big bugbear room scripting
             {
@@ -86,8 +86,8 @@ namespace Scripts
 
                     }
 
-                    var bugbears_near_door = new List<GameObjectBody>();
-                    var bugbears_near_south_entrance = new List<GameObjectBody>();
+                    var bugbears_near_door = new List<GameObject>();
+                    var bugbears_near_south_entrance = new List<GameObject>();
                     foreach (var bugbear_dude in ObjList.ListVicinity(new locXY(416, 359), ObjectListFilter.OLC_NPC))
                     {
                         if ((new[] { 14174, 14175, 14177 }).Contains(bugbear_dude.GetNameId()) && Utilities.willing_and_capable(bugbear_dude))

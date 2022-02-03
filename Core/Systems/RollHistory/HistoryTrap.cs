@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 using System.Threading;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 
 namespace OpenTemple.Core.Systems.RollHistory

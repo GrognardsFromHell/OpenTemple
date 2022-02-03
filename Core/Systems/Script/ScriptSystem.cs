@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using JetBrains.Annotations;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Logging;
@@ -20,10 +20,10 @@ namespace OpenTemple.Core.Systems.Script
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        public delegate void InitiateDialog(GameObjectBody obj1, GameObjectBody obj2, int scriptNumber,
+        public delegate void InitiateDialog(GameObject obj1, GameObject obj2, int scriptNumber,
             int unk1, int argFromEvent);
 
-        public delegate void ShowMessage(GameObjectBody speaker, GameObjectBody speakingTo, string text, int speechId);
+        public delegate void ShowMessage(GameObject speaker, GameObject speakingTo, string text, int speechId);
 
         private const bool IsEditor = false;
 
@@ -80,7 +80,7 @@ namespace OpenTemple.Core.Systems.Script
             _storyStateText.Clear();
         }
 
-        internal void SetDialogFunctions(Action<GameObjectBody, GameObjectBody, string, int> showTextBubble)
+        internal void SetDialogFunctions(Action<GameObject, GameObject, string, int> showTextBubble)
         {
             _showTextBubble = showTextBubble;
         }
@@ -153,7 +153,7 @@ namespace OpenTemple.Core.Systems.Script
         }
 
         [TempleDllLocation(0x10025d60)]
-        public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, int spellId,
+        public int ExecuteObjectScript(GameObject triggerer, GameObject attachee, int spellId,
             ObjScriptEvent evt)
         {
             var invocation = new ObjScriptInvocation();
@@ -169,7 +169,7 @@ namespace OpenTemple.Core.Systems.Script
         }
 
         [TempleDllLocation(0x10025d60)]
-        public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, GameObjectBody objectArg,
+        public int ExecuteObjectScript(GameObject triggerer, GameObject attachee, GameObject objectArg,
             ObjScriptEvent evt, int unk2)
         {
             var invocation = new ObjScriptInvocation();
@@ -179,7 +179,7 @@ namespace OpenTemple.Core.Systems.Script
             return Invoke(ref invocation) ? 1 : 0;
         }
 
-        public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, ObjScriptEvent evt)
+        public int ExecuteObjectScript(GameObject triggerer, GameObject attachee, ObjScriptEvent evt)
         {
             var invocation = new ObjScriptInvocation();
             invocation.eventId = evt;
@@ -234,13 +234,13 @@ namespace OpenTemple.Core.Systems.Script
         public void SetGlobalVar(int index, int value) => _globalVars[index] = value;
 
         [TempleDllLocation(0x10BCA76C)]
-        private GameObjectBody _animationScriptContext;
+        private GameObject _animationScriptContext;
 
         [TempleDllLocation(0x10BCA768)]
-        private Action<GameObjectBody, GameObjectBody, string, int> _showTextBubble;
+        private Action<GameObject, GameObject, string, int> _showTextBubble;
 
         [TempleDllLocation(0x100aeda0)]
-        public void SetAnimObject(GameObjectBody obj)
+        public void SetAnimObject(GameObject obj)
         {
             // Sets the Python global for which obj was just animated
             _animationScriptContext = obj;
@@ -271,7 +271,7 @@ namespace OpenTemple.Core.Systems.Script
             return newHookInstance;
         }
 
-        internal void ShowTextBubble(GameObjectBody obj, GameObjectBody listener, string npcLineText, int speechId)
+        internal void ShowTextBubble(GameObject obj, GameObject listener, string npcLineText, int speechId)
         {
             _showTextBubble(obj, listener, npcLineText, speechId);
             return;

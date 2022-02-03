@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -213,7 +213,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         public static bool ActionFrameQuiveringPalm(D20Action action)
         {
-            GameObjectBody performer = action.d20APerformer;
+            GameObject performer = action.d20APerformer;
 
             StandardAttackActionFrame(action);
             if (!action.d20Caf.HasFlag(D20CAF.HIT))
@@ -255,14 +255,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         public static ActionErrorCode ActionCheckDisarm(D20Action action, TurnBasedStatus tbStatus)
         {
-            GameObjectBody performer = action.d20APerformer;
+            GameObject performer = action.d20APerformer;
             if (GameSystems.Critter.IsProne(performer) ||
                 GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Unconscious))
             {
                 return ActionErrorCode.AEC_CANT_WHILE_PRONE;
             }
 
-            GameObjectBody weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
+            GameObject weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
 
             if (weapon != null && weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON)
             ) // ranged weapon - Need Melee Weapon error
@@ -272,7 +272,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
             if (action.d20ATarget != null)
             {
-                GameObjectBody targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponPrimary);
+                GameObject targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponPrimary);
                 if (targetWeapon == null)
                 {
                     targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponSecondary);
@@ -477,7 +477,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         public static bool ActionFrameDisarm(D20Action action)
         {
-            GameObjectBody performer = action.d20APerformer;
+            GameObject performer = action.d20APerformer;
             bool failedOnce = false;
             if (!GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Can_Perform_Disarm) )
             {
@@ -487,10 +487,10 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
             else if (GameSystems.Combat.DisarmCheck(action.d20APerformer, action.d20ATarget))
             {
-                GameObjectBody targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponPrimary);
-                GameObjectBody attackerWeapon = GameSystems.Item.ItemWornAt(performer, EquipSlot.WeaponPrimary);
-                GameObjectBody attackerOffhand = GameSystems.Item.ItemWornAt(performer, EquipSlot.WeaponSecondary);
-                GameObjectBody attackerShield = GameSystems.Item.ItemWornAt(performer, EquipSlot.Shield);
+                GameObject targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponPrimary);
+                GameObject attackerWeapon = GameSystems.Item.ItemWornAt(performer, EquipSlot.WeaponPrimary);
+                GameObject attackerOffhand = GameSystems.Item.ItemWornAt(performer, EquipSlot.WeaponSecondary);
+                GameObject attackerShield = GameSystems.Item.ItemWornAt(performer, EquipSlot.Shield);
                 if (targetWeapon == null)
                     targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponSecondary);
                 if (attackerWeapon == null && attackerOffhand == null)
@@ -589,7 +589,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
                     : ActionErrorCode.AEC_TARGET_TOO_FAR;
             }
 
-            GameObjectBody weapon =
+            GameObject weapon =
                 GameSystems.D20.D20QueryReturnObject(action.d20APerformer, D20DispatcherKey.QUE_Disarmed);
             if (weapon != null)
             {
@@ -658,7 +658,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         public static ActionErrorCode ActionCheckSunder(D20Action action, TurnBasedStatus tbStatus)
         {
-            GameObjectBody weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
+            GameObject weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
 
             if (weapon == null || weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON)
             ) // ranged weapon - Need Melee Weapon error
@@ -673,7 +673,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
             if (action.d20ATarget != null)
             {
-                GameObjectBody targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponPrimary);
+                GameObject targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponPrimary);
                 if (targetWeapon == null)
                 {
                     targetWeapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponSecondary);
@@ -815,7 +815,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         {
             if (GameSystems.Combat.SunderCheck(action.d20APerformer, action.d20ATarget))
             {
-                GameObjectBody weapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponPrimary);
+                GameObject weapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponPrimary);
                 if (weapon == null)
                     weapon = GameSystems.Item.ItemWornAt(action.d20ATarget, EquipSlot.WeaponSecondary);
                 if (weapon != null)
@@ -914,7 +914,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         /// Insert an action after the current action.
         /// </summary>
         [TempleDllLocation(0x10094b40)]
-        public static void InsertD20Action(GameObjectBody performer, D20ActionType type, int data1, GameObjectBody tgt,
+        public static void InsertD20Action(GameObject performer, D20ActionType type, int data1, GameObject tgt,
             LocAndOffsets loc, int radialMenuArg)
         {
             var currentAction = GameSystems.D20.Actions.CurrentSequence;
@@ -929,7 +929,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008e510)]
-        public static bool CastSpellProjectileHit(D20Action action, GameObjectBody projectile, GameObjectBody obj2)
+        public static bool CastSpellProjectileHit(D20Action action, GameObject projectile, GameObject obj2)
         {
             var projectileIdx = -1;
             var spellEnum = action.d20SpellData.SpellEnum;
@@ -983,7 +983,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return true;
         }
 
-        public static bool ProjectileHitPython(D20Action action, GameObjectBody projectile, GameObjectBody obj2)
+        public static bool ProjectileHitPython(D20Action action, GameObject projectile, GameObject obj2)
         {
             return GameSystems.Script.Actions.PyProjectileHit((D20DispatcherKey) action.data1, action, projectile,
                 obj2);
@@ -1207,7 +1207,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             var mmData = action.d20SpellData.metaMagicData;
             SpellStoreData spellData = new SpellStoreData(spellEnum, spellLvl, spellClass, mmData);
 
-            GameObjectBody item = null;
+            GameObject item = null;
 
             // if it's an item spell
             if (invIdx != D20ActionSystem.INV_IDX_INVALID)
@@ -1220,10 +1220,10 @@ namespace OpenTemple.Core.Systems.D20.Actions
             var spellEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
 
             // spell interruption
-            void spellInterruptApply(SchoolOfMagic spellSchool, GameObjectBody caster, int invIdx)
+            void spellInterruptApply(SchoolOfMagic spellSchool, GameObject caster, int invIdx)
             {
                 caster.AddCondition(StatusEffects.SpellInterrupted, 0, 0, 0);
-                GameObjectBody item = null;
+                GameObject item = null;
                 if (invIdx != D20ActionSystem.INV_IDX_INVALID)
                 {
                     item = GameSystems.Item.GetItemAtInvIdx(caster, invIdx);
@@ -1664,8 +1664,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x100968b0)]
         public static ActionErrorCode UnspecifiedAttackAddToSeq(D20Action d20a, ActionSequence actSeq, TurnBasedStatus tbStat) {
-	        GameObjectBody tgt = d20a.d20ATarget;
-	        GameObjectBody performer = d20a.d20APerformer;
+	        GameObject tgt = d20a.d20ATarget;
+	        GameObject performer = d20a.d20APerformer;
             var d20aCopy = d20a.Copy();
 	        int d20aNumInitial = actSeq.d20ActArrayNum;
 

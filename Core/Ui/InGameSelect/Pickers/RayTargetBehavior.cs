@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.Raycast;
@@ -41,7 +41,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
                     {
                         if (Result.objList == null)
                         {
-                            Result.objList = new List<GameObjectBody>();
+                            Result.objList = new List<GameObject>();
                         }
 
                         Result.objList.Add(resultItem.obj);

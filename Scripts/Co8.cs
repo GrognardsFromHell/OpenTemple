@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -29,26 +29,26 @@ namespace Scripts
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static readonly obj_f SPELL_FLAGS_BASE = obj_f.secretdoor_dc;
-        private static readonly List<GameObjectBody> has_obj_list = new List<GameObjectBody>();
-        private static readonly List<GameObjectBody> objs_to_destroy_list = new List<GameObjectBody>();
-        private static GameObjectBody holder = null;
-        private static GameObjectBody holder2 = null;
+        private static readonly List<GameObject> has_obj_list = new List<GameObject>();
+        private static readonly List<GameObject> objs_to_destroy_list = new List<GameObject>();
+        private static GameObject holder = null;
+        private static GameObject holder2 = null;
         private static readonly int ITEM_HOLDER = 1027;
-        public static void set_spell_flag(GameObjectBody obj, Co8SpellFlag flag)
+        public static void set_spell_flag(GameObject obj, Co8SpellFlag flag)
         {
             var val = (Co8SpellFlag) obj.GetInt(SPELL_FLAGS_BASE);
             obj.SetInt(SPELL_FLAGS_BASE, (int)(val | flag));
             obj.GetInt(SPELL_FLAGS_BASE);
         }
-        public static Co8SpellFlag get_spell_flags(GameObjectBody obj)
+        public static Co8SpellFlag get_spell_flags(GameObject obj)
         {
             return (Co8SpellFlag) obj.GetInt(SPELL_FLAGS_BASE);
         }
-        public static bool is_spell_flag_set(GameObjectBody obj, Co8SpellFlag flag)
+        public static bool is_spell_flag_set(GameObject obj, Co8SpellFlag flag)
         {
             return (obj.GetInt(SPELL_FLAGS_BASE) & (int) flag) != 0;
         }
-        public static void unset_spell_flag(GameObjectBody obj, Co8SpellFlag flag)
+        public static void unset_spell_flag(GameObject obj, Co8SpellFlag flag)
         {
             var val = get_spell_flags(obj);
             if ((val & flag) != 0)
@@ -57,7 +57,7 @@ namespace Scripts
                 obj.SetInt32(SPELL_FLAGS_BASE, (int) val);
             }
         }
-        public static bool are_spell_flags_null(GameObjectBody obj)
+        public static bool are_spell_flags_null(GameObject obj)
         {
             if (obj.GetInt(SPELL_FLAGS_BASE) == 0)
             {
@@ -135,9 +135,9 @@ namespace Scripts
             holder2.Destroy();
         }
 
-        public static GameObjectBody find_spell_obj_with_flag(GameObjectBody target, int item, Co8SpellFlag flag)
+        public static GameObject find_spell_obj_with_flag(GameObject target, int item, Co8SpellFlag flag)
         {
-            GameObjectBody ret = null;
+            GameObject ret = null;
             var item_holder = GameSystems.MapObject.CreateObject(ITEM_HOLDER, target.GetLocation());
             var prot_item = target.FindItemByProto(item);
             while (prot_item != null && ret == null)
@@ -163,7 +163,7 @@ namespace Scripts
             item_holder.Destroy();
             return ret;
         }
-        public static bool destroy_spell_obj_with_flag(GameObjectBody target, int proto_id, Co8SpellFlag flag)
+        public static bool destroy_spell_obj_with_flag(GameObject target, int proto_id, Co8SpellFlag flag)
         {
             var ret = false;
             var item_holder = GameSystems.MapObject.CreateObject(ITEM_HOLDER, target.GetLocation());
@@ -205,7 +205,7 @@ namespace Scripts
             return ret;
         }
 
-        public static bool is_in_party(GameObjectBody obj)
+        public static bool is_in_party(GameObject obj)
         {
             foreach (var x in GameSystems.Party.PartyMembers)
             {
@@ -218,9 +218,9 @@ namespace Scripts
 
             return false;
         }
-        public static void unequip(EquipSlot slot, GameObjectBody npc, bool whole_party = false)
+        public static void unequip(EquipSlot slot, GameObject npc, bool whole_party = false)
         {
-            IEnumerable<GameObjectBody> unequip_set;
+            IEnumerable<GameObject> unequip_set;
             if (whole_party)
             {
                 unequip_set = GameSystems.Party.PartyMembers;
@@ -287,7 +287,7 @@ namespace Scripts
         // End added by Shiningted                                        #
         // Added by Cerulean the Blue                                    #
 
-        public static GameObjectBody GetCritterHandle(SpellPacketBody spell, int critter_name)
+        public static GameObject GetCritterHandle(SpellPacketBody spell, int critter_name)
         {
             // Returns a handle that can be used to manipulate the summoned  creature object
             foreach (var critter in ObjList.ListVicinity(spell.aoeCenter.location, ObjectListFilter.OLC_CRITTERS))
@@ -314,7 +314,7 @@ namespace Scripts
             spell.EndSpell(true); // this forces the spell_end to work even with a non-empty target list
             return;
         }
-        public static void Timed_Destroy(GameObjectBody obj, int time)
+        public static void Timed_Destroy(GameObject obj, int time)
         {
             StartTimer(time, () => destroy(obj)); // 1000 = 1 second
             return;
@@ -322,14 +322,14 @@ namespace Scripts
 
         // Destroys obj.  Neccessary for time event destruction to work.
 
-        public static int destroy(GameObjectBody obj)
+        public static int destroy(GameObject obj)
         {
             // def destroy(obj): # Destroys obj.  Neccessary for time event destruction to work.
             obj.Destroy();
             return 1;
         }
 
-        public static void StopCombat(GameObjectBody obj, int flag)
+        public static void StopCombat(GameObject obj, int flag)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -357,46 +357,46 @@ namespace Scripts
         // idx	 = the index of the word (0-1), byte (0-3) or nibble (0-7) to use.
         // val	 = the value to be set.
 
-        public static int getObjVarDWord(GameObjectBody obj, obj_f var)
+        public static int getObjVarDWord(GameObject obj, obj_f var)
         {
             return obj.GetInt32(var);
         }
-        public static void setObjVarDWord(GameObjectBody obj, obj_f var, int val)
+        public static void setObjVarDWord(GameObject obj, obj_f var, int val)
         {
             obj.SetInt32(var, val);
         }
-        public static int getObjVarWord(GameObjectBody obj, obj_f var, int idx)
+        public static int getObjVarWord(GameObject obj, obj_f var, int idx)
         {
             return getObjVar(obj, var, idx, 65535, 16);
         }
-        public static void setObjVarWord(GameObjectBody obj, obj_f var, int idx, int val)
+        public static void setObjVarWord(GameObject obj, obj_f var, int idx, int val)
         {
             setObjVar(obj, var, idx, val, 65535, 16);
         }
-        public static int getObjVarByte(GameObjectBody obj, obj_f var, int idx)
+        public static int getObjVarByte(GameObject obj, obj_f var, int idx)
         {
             return getObjVar(obj, var, idx, 255, 8);
         }
-        public static void setObjVarByte(GameObjectBody obj, obj_f var, int idx, int val)
+        public static void setObjVarByte(GameObject obj, obj_f var, int idx, int val)
         {
             setObjVar(obj, var, idx, val, 255, 8);
         }
-        public static int getObjVarNibble(GameObjectBody obj, obj_f var, int idx)
+        public static int getObjVarNibble(GameObject obj, obj_f var, int idx)
         {
             return getObjVar(obj, var, idx, 15, 4);
         }
-        public static void setObjVarNibble(GameObjectBody obj, obj_f var, int idx, int val)
+        public static void setObjVarNibble(GameObject obj, obj_f var, int idx, int val)
         {
             setObjVar(obj, var, idx, val, 15, 4);
         }
-        public static int getObjVar(GameObjectBody obj, obj_f var, int idx, int mask, int bits)
+        public static int getObjVar(GameObject obj, obj_f var, int idx, int mask, int bits)
         {
             var bitMask = mask << (idx * bits);
             var val = obj.GetInt32(var) & bitMask;
             val = val >> (idx * bits);
             return (val & mask);
         }
-        public static void setObjVar(GameObjectBody obj, obj_f var, int idx, int val, int mask, int bits)
+        public static void setObjVar(GameObject obj, obj_f var, int idx, int val, int mask, int bits)
         {
             // print "obj=", object, " var=", var, " idx=", idx, " val=", val
             var bitMask = mask << (idx * bits);
@@ -409,7 +409,7 @@ namespace Scripts
         // some damage (which gets reduced to 0). This allows
         // the dealer to gain experience for killing the target.
 
-        public static void plink(GameObjectBody critter, SpellPacketBody spell)
+        public static void plink(GameObject critter, SpellPacketBody spell)
         {
             var invuln = (critter.GetObjectFlags() & ObjectFlag.INVULNERABLE) != 0;
             var dice = Dice.Parse("1d1");
@@ -421,12 +421,12 @@ namespace Scripts
             }
 
         }
-        public static void slay_critter(GameObjectBody critter, SpellPacketBody spell)
+        public static void slay_critter(GameObject critter, SpellPacketBody spell)
         {
             plink(critter, spell);
             critter.Kill();
         }
-        public static void slay_critter_by_effect(GameObjectBody critter, SpellPacketBody spell)
+        public static void slay_critter_by_effect(GameObject critter, SpellPacketBody spell)
         {
             plink(critter, spell);
             critter.KillWithDeathEffect();
@@ -434,7 +434,7 @@ namespace Scripts
         // This kills a critter, and gets rid of the body, while
         // dropping the equipment.
 
-        public static void disintegrate_critter(bool ensure_exp, GameObjectBody critter, SpellPacketBody spell)
+        public static void disintegrate_critter(bool ensure_exp, GameObject critter, SpellPacketBody spell)
         {
             spell.duration = 0;
             if (ensure_exp)

@@ -36,9 +36,9 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
         public WildShapeSpec(int ProtoId, int MinLvl, MonsterCategory MonCat)
         {
-            this.protoId = ProtoId;
-            this.minLvl = MinLvl;
-            this.monCat = MonCat;
+            protoId = ProtoId;
+            minLvl = MinLvl;
+            monCat = MonCat;
         }
     }
 

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Hedrack : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(144)))
             {
@@ -52,7 +52,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
@@ -109,7 +109,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -144,17 +144,17 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(146, true);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(146, false);
             return RunDefault;
         }
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             var npc = Utilities.find_npc_near(attachee, 8001);
 
@@ -172,11 +172,11 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((Utilities.obj_percent_hp(attachee) < 50))
             {
-                GameObjectBody found_pc = null;
+                GameObject found_pc = null;
 
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
@@ -201,7 +201,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool talk_Romag(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool talk_Romag(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8037);
 
@@ -218,7 +218,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool summon_Iuz(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool summon_Iuz(GameObject attachee, GameObject triggerer)
         {
             var location = attachee.GetLocationFull();
             location.location.locx -= 4;
@@ -226,7 +226,7 @@ namespace VanillaScripts
             GameSystems.MapObject.CreateObject(14266, location);
             return SkipDefault;
         }
-        public static bool talk_Iuz(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool talk_Iuz(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8037);
 
@@ -243,14 +243,14 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool end_game(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool end_game(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(339, true);
             Utilities.set_join_slides(attachee, triggerer);
             GameSystems.Movies.MovieQueuePlayAndEndGame();
             return SkipDefault;
         }
-        public static bool give_robes(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool give_robes(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {

@@ -1,14 +1,14 @@
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.Anim
 {
     public readonly struct AnimActionCallback
     {
-        public readonly GameObjectBody obj;
+        public readonly GameObject obj;
         public readonly int uniqueId;
 
-        public AnimActionCallback(GameObjectBody obj, int uniqueId)
+        public AnimActionCallback(GameObject obj, int uniqueId)
         {
             this.obj = obj;
             this.uniqueId = uniqueId;

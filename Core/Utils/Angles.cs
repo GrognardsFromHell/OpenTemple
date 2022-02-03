@@ -1,6 +1,6 @@
 using System;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 
 namespace OpenTemple.Core.Utils
@@ -17,7 +17,7 @@ namespace OpenTemple.Core.Utils
         public static float ToDegrees(float radians) => radians * 180.0f / MathF.PI;
 
         [TempleDllLocation(0x1001f8b0)]
-        public static float RotationTo(this GameObjectBody from, GameObjectBody to)
+        public static float RotationTo(this GameObject from, GameObject to)
         {
             return from.GetLocationFull().RotationTo(to.GetLocationFull());
         }

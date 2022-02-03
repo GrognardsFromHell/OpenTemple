@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(464)]
     public class PanathaesUnconscious : BaseObjectScript
     {
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(533)))
             {
@@ -95,7 +95,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool gather_panathaes(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool gather_panathaes(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(539) == 1))
             {
@@ -196,34 +196,34 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void increment_var_543(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void increment_var_543(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(543, GetGlobalVar(543) + 1);
             return;
         }
-        public static void increment_var_544(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void increment_var_544(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(544, GetGlobalVar(544) + 1);
             return;
         }
-        public static void increment_var_545(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void increment_var_545(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(545, GetGlobalVar(545) + 1);
             return;
         }
-        public void increment_var_556(GameObjectBody attachee, GameObjectBody triggerer)
+        public void increment_var_556(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(556, GetGlobalVar(556) + 1);
             DetachScript();
             return;
         }
-        public void increment_var_557(GameObjectBody attachee, GameObjectBody triggerer)
+        public void increment_var_557(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(557, GetGlobalVar(557) + 1);
             DetachScript();
             return;
         }
-        public static void check_evidence_rep_bor(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_bor(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(72)))
             {
@@ -250,7 +250,7 @@ namespace Scripts
 
             return;
         }
-        public static void check_evidence_rep_pan(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_pan(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(73)))
             {
@@ -277,7 +277,7 @@ namespace Scripts
 
             return;
         }
-        public static void check_evidence_rep_rak(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_rak(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(74)))
             {

@@ -140,7 +140,7 @@ namespace OpenTemple.Core.AAS {
 
         public static Matrix3x4 translationMatrix(float x, float y, float z)
         {
-            var result = Matrix3x4.Identity;
+            var result = Identity;
             result.m03 = x;
             result.m13 = y;
             result.m23 = z;

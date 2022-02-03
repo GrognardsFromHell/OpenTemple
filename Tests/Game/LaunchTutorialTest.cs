@@ -2,7 +2,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using FluentAssertions;
 using NUnit.Framework;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Tests.TestUtils;

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Utils;
 
@@ -679,7 +679,7 @@ namespace OpenTemple.Core.Systems.D20
             attackPacket.d20ActnType = D20ActionType.NONE;
         }
 
-        public static DispIoDamage CreateWithWeapon(GameObjectBody attacker, GameObjectBody victim)
+        public static DispIoDamage CreateWithWeapon(GameObject attacker, GameObject victim)
         {
             var result = new DispIoDamage();
             result.attackPacket.d20ActnType = D20ActionType.NONE;
@@ -688,7 +688,7 @@ namespace OpenTemple.Core.Systems.D20
             return result;
         }
 
-        public static DispIoDamage Create(GameObjectBody attacker, GameObjectBody victim)
+        public static DispIoDamage Create(GameObject attacker, GameObject victim)
         {
             var result = new DispIoDamage();
             result.attackPacket.d20ActnType = D20ActionType.NONE;

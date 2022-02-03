@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -27,9 +27,9 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.AI
 {
-    public delegate void AiCancelDialog(GameObjectBody critter);
+    public delegate void AiCancelDialog(GameObject critter);
 
-    public delegate void AiShowTextBubble(GameObjectBody critter, GameObjectBody speakingTo,
+    public delegate void AiShowTextBubble(GameObject critter, GameObject speakingTo,
         string text, int speechId);
 
     public class AiSystem : IGameSystem, IModuleAwareSystem
@@ -117,7 +117,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005d5e0)]
-        public void AddAiTimer(GameObjectBody obj)
+        public void AddAiTimer(GameObject obj)
         {
             var delay = GetAiEventDelay(obj);
             AiTimeEventSchedule_Normal(obj, delay);
@@ -125,7 +125,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005be60)]
-        public void AddOrReplaceAiTimer(GameObjectBody obj, int unknownFlag)
+        public void AddOrReplaceAiTimer(GameObject obj, int unknownFlag)
         {
             GameSystems.TimeEvent.Remove(TimeEventType.AI, evt => evt.arg1.handle == obj);
 
@@ -137,7 +137,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005be00)]
-        private void AiTimeEventSchedule_Normal(GameObjectBody obj, TimeSpan delay)
+        private void AiTimeEventSchedule_Normal(GameObject obj, TimeSpan delay)
         {
             GameSystems.TimeEvent.Remove(
                 TimeEventType.AI,
@@ -151,7 +151,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005b5f0)]
-        public void FollowerAddWithTimeEvent(GameObjectBody critter, bool forceFollower)
+        public void FollowerAddWithTimeEvent(GameObject critter, bool forceFollower)
         {
             if (!critter.IsNPC())
             {
@@ -176,13 +176,13 @@ namespace OpenTemple.Core.Systems.AI
 
 
         [TempleDllLocation(0x100588d0)]
-        public void RemoveAiTimer(GameObjectBody obj)
+        public void RemoveAiTimer(GameObject obj)
         {
             GameSystems.TimeEvent.Remove(TimeEventType.AI, evt => evt.arg1.handle == obj);
         }
 
         [TempleDllLocation(0x100e5460)]
-        public void OnAddToInitiative(GameObjectBody obj)
+        public void OnAddToInitiative(GameObject obj)
         {
             Stub.TODO();
         }
@@ -210,7 +210,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100584f0)]
-        private bool GetCurrentStandpoint(GameObjectBody obj, out locXY location)
+        private bool GetCurrentStandpoint(GameObject obj, out locXY location)
         {
             if (GameSystems.Critter.GetLeader(obj) != null)
             {
@@ -251,7 +251,7 @@ namespace OpenTemple.Core.Systems.AI
 
         [TempleDllLocation(0x1007f590)]
         [TempleDllLocation(0x10059270)]
-        public bool CanOpenPortals(GameObjectBody critter)
+        public bool CanOpenPortals(GameObject critter)
         {
             if (critter.IsPC())
             {
@@ -269,7 +269,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005e8d0)]
-        public void ProvokeHostility(GameObjectBody agitator, GameObjectBody provokedNpc, int rangeType, int flags)
+        public void ProvokeHostility(GameObject agitator, GameObject provokedNpc, int rangeType, int flags)
         {
             if (agitator == null || provokedNpc == null)
                 return;
@@ -416,7 +416,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005cca0)]
-        private void AddPosseToShitlist(GameObjectBody critter, GameObjectBody hostile)
+        private void AddPosseToShitlist(GameObject critter, GameObject hostile)
         {
             var leader = GameSystems.Critter.GetLeaderRecursive(hostile) ?? hostile;
             foreach (var follower in leader.EnumerateFollowers(true))
@@ -426,21 +426,21 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005cd30)]
-        public void AddToAllyList(GameObjectBody npc, GameObjectBody target)
+        public void AddToAllyList(GameObject npc, GameObject target)
         {
             AiListAppend(npc, target, 1);
         }
 
         [TempleDllLocation(0x1005c1e0)]
-        public void RemoveFromAllyList(GameObjectBody npc, GameObjectBody target)
+        public void RemoveFromAllyList(GameObject npc, GameObject target)
         {
             AiListRemove(npc, target, 1);
         }
 
         [TempleDllLocation(0x1005cc10)]
-        public void AddToShitlist(GameObjectBody obj, GameObjectBody target)
+        public void AddToShitlist(GameObject obj, GameObject target)
         {
-            GameObjectBody targetToAdd;
+            GameObject targetToAdd;
             if (target.IsPC())
             {
                 targetToAdd = target;
@@ -460,19 +460,19 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005c1a0)]
-        public void RemoveFromShitlist(GameObjectBody critter, GameObjectBody target)
+        public void RemoveFromShitlist(GameObject critter, GameObject target)
         {
             AiListRemove(critter, target, 0);
         }
 
         [TempleDllLocation(0x1005e030)]
-        public void ResetFightStatus(GameObjectBody critter)
+        public void ResetFightStatus(GameObject critter)
         {
             UpdateAiFlags(critter, 0, null);
         }
 
         [TempleDllLocation(0x1005e2b0)]
-        private void TryLockOnTarget(GameObjectBody critter, GameObjectBody leader, GameObjectBody tgt, bool isAlways1,
+        private void TryLockOnTarget(GameObject critter, GameObject leader, GameObject tgt, bool isAlways1,
             bool someFlag, bool skipAiStatusUpdate)
         {
             if (leader == tgt)
@@ -532,7 +532,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005df80)]
-        private void TryLockOnTarget(GameObjectBody critter, GameObjectBody target)
+        private void TryLockOnTarget(GameObject critter, GameObject target)
         {
             if (critter != null && critter.IsNPC() && target != null)
             {
@@ -547,14 +547,14 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005df40)]
-        public void SetNoFlee(GameObjectBody obj)
+        public void SetNoFlee(GameObject obj)
         {
             StopFleeing(obj);
             obj.SetCritterFlags(obj.GetCritterFlags() | CritterFlag.NO_FLEE);
         }
 
         [TempleDllLocation(0x1005de60)]
-        public void FleeFrom(GameObjectBody npc, GameObjectBody target)
+        public void FleeFrom(GameObject npc, GameObject target)
         {
             if (npc.IsNPC())
             {
@@ -563,7 +563,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005dea0)]
-        public void StopFleeing(GameObjectBody critter)
+        public void StopFleeing(GameObject critter)
         {
             if (critter.IsNPC())
             {
@@ -578,7 +578,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005e6a0)]
-        public void StopAttacking(GameObjectBody obj)
+        public void StopAttacking(GameObject obj)
         {
             if (obj.IsNPC())
             {
@@ -607,7 +607,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005e560)]
-        private void StopFighting(GameObjectBody npc, GameObjectBody target)
+        private void StopFighting(GameObject npc, GameObject target)
         {
             var targetLeader = GameSystems.Critter.GetLeaderRecursive(target);
             if (targetLeader != null)
@@ -646,7 +646,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005c4f0)]
-        private void RemoveTargetFromAiList(GameObjectBody obj, GameObjectBody target)
+        private void RemoveTargetFromAiList(GameObject obj, GameObject target)
         {
             if (obj.GetObject(obj_f.npc_combat_focus) == target)
             {
@@ -663,7 +663,7 @@ namespace OpenTemple.Core.Systems.AI
 
         // NO idea why this is in the AI subsystem
         [TempleDllLocation(0x1005bf20)]
-        public LockStatus AttemptToOpenDoor(GameObjectBody actor, GameObjectBody portal)
+        public LockStatus AttemptToOpenDoor(GameObject actor, GameObject portal)
         {
             if (GameSystems.MapObject.IsBusted(portal))
             {
@@ -739,7 +739,7 @@ namespace OpenTemple.Core.Systems.AI
          * Same as AttemptToOpenDoor but without actually it.
          */
         [TempleDllLocation(0x1005c0a0)]
-        public LockStatus DryRunAttemptOpenDoor(GameObjectBody actor, GameObjectBody portal)
+        public LockStatus DryRunAttemptOpenDoor(GameObject actor, GameObject portal)
         {
             if (GameSystems.MapObject.IsBusted(portal))
             {
@@ -801,7 +801,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
 
-        private bool IsBlockedForSpreadOut(Vector2 pos, GameObjectBody critter, float radius)
+        private bool IsBlockedForSpreadOut(Vector2 pos, GameObject critter, float radius)
         {
             var loc = LocAndOffsets.FromInches(pos);
 
@@ -821,7 +821,7 @@ namespace OpenTemple.Core.Systems.AI
 
         // This is nearly identical to the code in the formation system
         [TempleDllLocation(0x1005a640)]
-        public bool ForceSpreadOut(GameObjectBody critter, LocAndOffsets? optionalLocation = null)
+        public bool ForceSpreadOut(GameObject critter, LocAndOffsets? optionalLocation = null)
         {
             Logger.Info("ai_force_spreadout( {0} )", critter);
 
@@ -893,13 +893,13 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005a170)]
-        public int GetTalkingDistance(GameObjectBody critter)
+        public int GetTalkingDistance(GameObject critter)
         {
             return critter.IsPC() ? 5 : 10;
         }
 
         [TempleDllLocation(0x10057790)]
-        public void sub_10057790(GameObjectBody actor, GameObjectBody target)
+        public void sub_10057790(GameObject actor, GameObject target)
         {
             if (actor.id != target.id)
             {
@@ -923,7 +923,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100583e0)]
-        public void ClearWaypointDelay(GameObjectBody critter)
+        public void ClearWaypointDelay(GameObject critter)
         {
             if (critter.IsNPC())
             {
@@ -932,7 +932,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10058ca0)]
-        public int FindObstacleObj(GameObjectBody obj, locXY tgtLoc, out GameObjectBody obstructor)
+        public int FindObstacleObj(GameObject obj, locXY tgtLoc, out GameObject obstructor)
         {
             obstructor = null;
             var objLoc = obj.GetLocation();
@@ -991,7 +991,7 @@ namespace OpenTemple.Core.Systems.AI
 
         // regards facing (rather crudely however)
         [TempleDllLocation(0x10059470)]
-        public int HasLineOfSight(GameObjectBody obj, GameObjectBody target)
+        public int HasLineOfSight(GameObject obj, GameObject target)
         {
             var tgt = target;
             if (obj == target)
@@ -1090,7 +1090,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         // TODO Test this function
-        private bool IsFacingTarget(GameObjectBody obj, GameObjectBody target)
+        private bool IsFacingTarget(GameObject obj, GameObject target)
         {
             var relPosCode = obj.GetCompassDirection(target);
             var v3 = (relPosCode - MapObjectSystem.GetCurrentForwardDirection(obj)) % 8;
@@ -1106,11 +1106,11 @@ namespace OpenTemple.Core.Systems.AI
             Sleeping = 6
         }
 
-        public bool CanTalkTo(GameObjectBody speaker, GameObjectBody listener) =>
+        public bool CanTalkTo(GameObject speaker, GameObject listener) =>
             GetCannotTalkReason(speaker, listener) == CannotTalkCause.None;
 
         [TempleDllLocation(0x10058900)]
-        public CannotTalkCause GetCannotTalkReason(GameObjectBody speaker, GameObjectBody listener)
+        public CannotTalkCause GetCannotTalkReason(GameObject speaker, GameObject listener)
         {
             if (speaker.IsOffOrDestroyed)
                 return CannotTalkCause.CantSpeak;
@@ -1166,13 +1166,13 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005e410)]
-        public void CritterKilled(GameObjectBody critter, GameObjectBody killer)
+        public void CritterKilled(GameObject critter, GameObject killer)
         {
             Stub.TODO();
         }
 
         [TempleDllLocation(0x1005eec0)]
-        public void AiProcess(GameObjectBody critter)
+        public void AiProcess(GameObject critter)
         {
             // Check if Player Controlled (if so, skip)
             if (GameSystems.Party.IsPlayerControlled(critter))
@@ -1245,7 +1245,7 @@ namespace OpenTemple.Core.Systems.AI
             }
         }
 
-        private bool AiProcessHandleConfusion(GameObjectBody critter, int confusionState)
+        private bool AiProcessHandleConfusion(GameObject critter, int confusionState)
         {
             if (!GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Confused))
             {
@@ -1283,7 +1283,7 @@ namespace OpenTemple.Core.Systems.AI
                 }
             }
 
-            GameObjectBody confusionTgt = null;
+            GameObject confusionTgt = null;
             switch (confusionState)
             {
                 case 5:
@@ -1360,7 +1360,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005AD20)]
-        public bool IsPcUnderAiControl(GameObjectBody critter)
+        public bool IsPcUnderAiControl(GameObject critter)
         {
             if (!GameSystems.Party.IsPlayerControlled(critter)
                 && critter.IsPC()
@@ -1389,15 +1389,15 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005AE10)]
-        public void AiProcessPc(GameObjectBody critter)
+        public void AiProcessPc(GameObject critter)
         {
-            GameObjectBody charmedBy = null;
+            GameObject charmedBy = null;
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
                 charmedBy = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
             }
 
-            GameObjectBody afraidOf = null;
+            GameObject afraidOf = null;
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid))
             {
                 afraidOf = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Afraid);
@@ -1405,7 +1405,7 @@ namespace OpenTemple.Core.Systems.AI
 
             if (charmedBy != null && !GameSystems.Critter.IsFriendly(charmedBy, critter))
             {
-                GameObjectBody target;
+                GameObject target;
                 if (charmedBy.IsNPC())
                 {
                     target = charmedBy.GetObject(obj_f.npc_combat_focus);
@@ -1462,7 +1462,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10057030)]
-        private GameObjectBody AiPcFindVicinityNonfriendly(GameObjectBody objHnd)
+        private GameObject AiPcFindVicinityNonfriendly(GameObject objHnd)
         {
             using var listResult = ObjList.ListVicinity(objHnd, ObjectListFilter.OLC_CRITTERS);
 
@@ -1477,7 +1477,7 @@ namespace OpenTemple.Core.Systems.AI
             return null;
         }
 
-        private AiCombatRole GetRole(GameObjectBody obj)
+        private AiCombatRole GetRole(GameObject obj)
         {
             if (GameSystems.Critter.IsCaster(obj))
             {
@@ -1493,7 +1493,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100e50c0)]
-        internal bool StrategyParse(GameObjectBody critter, GameObjectBody target)
+        internal bool StrategyParse(GameObject critter, GameObject target)
         {
             #region preamble
 
@@ -1945,7 +1945,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005A1F0)]
-        internal void FleeProcess(GameObjectBody obj, GameObjectBody target)
+        internal void FleeProcess(GameObject obj, GameObject target)
         {
             if (target != null)
             {
@@ -1991,7 +1991,7 @@ namespace OpenTemple.Core.Systems.AI
         [TempleDllLocation(0x10aa73b8)]
         private bool isAlertingAllies;
 
-        internal AiFightStatus UpdateAiFlags(GameObjectBody critter, AiFightStatus aiFightStatus, GameObjectBody target)
+        internal AiFightStatus UpdateAiFlags(GameObject critter, AiFightStatus aiFightStatus, GameObject target)
         {
             // This is a call where we don't care about the sound map.
             int soundMap = -1;
@@ -1999,7 +1999,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005da00)]
-        internal AiFightStatus UpdateAiFlags(GameObjectBody critter, AiFightStatus aiFightStatus, GameObjectBody target,
+        internal AiFightStatus UpdateAiFlags(GameObject critter, AiFightStatus aiFightStatus, GameObject target,
             ref int soundMap)
         {
             Logger.Debug("{0} entering ai state: {1}, target: {2}", critter, aiFightStatus, target);
@@ -2131,7 +2131,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10057a70)]
-        public void GetAiFightStatus(GameObjectBody obj, out AiFightStatus status, out GameObjectBody target)
+        public void GetAiFightStatus(GameObject obj, out AiFightStatus status, out GameObject target)
         {
             var critFlags = obj.GetCritterFlags();
 
@@ -2169,7 +2169,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005d890)]
-        private void AlertAllies(GameObjectBody handle, GameObjectBody alertFrom, int rangeIdx)
+        private void AlertAllies(GameObject handle, GameObject alertFrom, int rangeIdx)
         {
             var range = rangeTiles[rangeIdx];
             var tileDelta = alertFrom.GetLocation().EstimateDistance(handle.GetLocation());
@@ -2204,7 +2204,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005d6f0)]
-        private void AlertAlly(GameObjectBody handle, GameObjectBody alertFrom, GameObjectBody alertDispatcher,
+        private void AlertAlly(GameObject handle, GameObject alertFrom, GameObject alertDispatcher,
             int rangeIdx)
         {
             if (handle == alertDispatcher || handle == alertFrom)
@@ -2248,14 +2248,14 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005cd50)]
-        private void FightStatusProcess(GameObjectBody obj, GameObjectBody newTgt)
+        private void FightStatusProcess(GameObject obj, GameObject newTgt)
         {
             if (GameSystems.Critter.IsDeadNullDestroyed(obj))
             {
                 return;
             }
 
-            GameObjectBody CheckNewTgt(GameObjectBody _obj, GameObjectBody _curTgt, GameObjectBody _newTgt)
+            GameObject CheckNewTgt(GameObject _obj, GameObject _curTgt, GameObject _newTgt)
             {
                 if (_curTgt == null)
                     return _newTgt;
@@ -2271,7 +2271,7 @@ namespace OpenTemple.Core.Systems.AI
                 return _curTgt;
             }
 
-            bool WithinFleeDistance(GameObjectBody _obj, GameObjectBody _tgt)
+            bool WithinFleeDistance(GameObject _obj, GameObject _tgt)
             {
                 if ((_obj.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != default)
                     return true;
@@ -2326,7 +2326,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005c650)]
-        private void FightOrFlight(GameObjectBody obj, GameObjectBody tgt)
+        private void FightOrFlight(GameObject obj, GameObject tgt)
         {
             if (ShouldFlee(obj, tgt))
             {
@@ -2339,7 +2339,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005c570)]
-        public bool ShouldFlee(GameObjectBody obj, GameObjectBody target)
+        public bool ShouldFlee(GameObject obj, GameObject target)
         {
             if ((obj.GetCritterFlags() & CritterFlag.NO_FLEE) != default
                 || (obj.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != default)
@@ -2375,7 +2375,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005bec0)]
-        public void GetAllyStrength(GameObjectBody obj, out int allyLevels, out int allyCount)
+        public void GetAllyStrength(GameObject obj, out int allyLevels, out int allyCount)
         {
             if (obj.IsPC())
             {
@@ -2396,7 +2396,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100590a0)]
-        public void CountFollowersAndSelf(out int allyCount, out int levelCount, GameObjectBody obj)
+        public void CountFollowersAndSelf(out int allyCount, out int levelCount, GameObject obj)
         {
             allyCount = 1;
             levelCount = 1;
@@ -2408,7 +2408,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100590f0)]
-        public int GetAllegianceStrength(GameObjectBody aiHandle, GameObjectBody tgt)
+        public int GetAllegianceStrength(GameObject aiHandle, GameObject tgt)
         {
             if (aiHandle == tgt)
             {
@@ -2443,7 +2443,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005c920)]
-        public bool WillKos(GameObjectBody aiHandle, GameObjectBody triggerer)
+        public bool WillKos(GameObject aiHandle, GameObject triggerer)
         {
             if (!ConsiderTarget(aiHandle, triggerer))
             {
@@ -2525,7 +2525,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100541a0)]
-        private int GetReaction(GameObjectBody aiHandle, GameObjectBody triggerer)
+        private int GetReaction(GameObject aiHandle, GameObject triggerer)
         {
             return GameSystems.Reaction.GetReaction(aiHandle, triggerer);
         }
@@ -2534,7 +2534,7 @@ namespace OpenTemple.Core.Systems.AI
         private readonly AiParamPacket[] aiParams = new AiParamPacket[100];
 
         [TempleDllLocation(0x10057a40)]
-        internal AiParamPacket GetAiParams(GameObjectBody obj)
+        internal AiParamPacket GetAiParams(GameObject obj)
         {
             var aiParamIdx = obj.GetInt32(obj_f.npc_ai_data);
             Trace.Assert(aiParamIdx >= 0 && aiParamIdx < 100000);
@@ -2542,7 +2542,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10059fc0)]
-        private bool AiListFind(GameObjectBody aiHandle, GameObjectBody tgt, int typeToFind)
+        private bool AiListFind(GameObject aiHandle, GameObject tgt, int typeToFind)
         {
             // ensure is NPC handle
             if (aiHandle == null)
@@ -2573,7 +2573,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005a070)]
-        internal void AiListRemove(GameObjectBody critter, GameObjectBody target, int aiType)
+        internal void AiListRemove(GameObject critter, GameObject target, int aiType)
         {
             var aiList = critter.GetObjectArray(obj_f.npc_ai_list_idx);
             int aiListCount = aiList.Count;
@@ -2604,7 +2604,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005c220)]
-        private void AiListAppend(GameObjectBody obj, GameObjectBody target, int aiListType)
+        private void AiListAppend(GameObject obj, GameObject target, int aiListType)
         {
             if (!GameSystems.AI.AiListFind(obj, target, aiListType))
             {
@@ -2615,7 +2615,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005d3f0)]
-        internal bool ConsiderTarget(GameObjectBody obj, GameObjectBody tgt)
+        internal bool ConsiderTarget(GameObject obj, GameObject tgt)
         {
             if (tgt == null || tgt == obj)
                 return false;
@@ -2699,14 +2699,14 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10057C50)]
-        internal bool IsCharmedBy(GameObjectBody critter, GameObjectBody charmer)
+        internal bool IsCharmedBy(GameObject critter, GameObject charmer)
         {
             return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) &&
                    GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) == charmer;
         }
 
         [TempleDllLocation(0x1005B7D0)]
-        internal bool TargetIsPcPartyNotDead(GameObjectBody partyMember)
+        internal bool TargetIsPcPartyNotDead(GameObject partyMember)
         {
             return partyMember.IsPC()
                    && PartyHasNoRemainingMembers() || GameSystems.Party.GetLivingPartyMemberCount() <= 1;
@@ -2728,13 +2728,13 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005c1c0)]
-        public bool NpcAiListFindEnemy(GameObjectBody aiObj, GameObjectBody tgt)
+        public bool NpcAiListFindEnemy(GameObject aiObj, GameObject tgt)
         {
             return AiListFind(aiObj, tgt, 0);
         }
 
         [TempleDllLocation(0x1005c200)]
-        public bool NpcAiListFindAlly(GameObjectBody aiObj, GameObjectBody tgt)
+        public bool NpcAiListFindAlly(GameObject aiObj, GameObject tgt)
         {
             return AiListFind(aiObj, tgt, 1);
         }
@@ -2752,7 +2752,7 @@ namespace OpenTemple.Core.Systems.AI
         };
 
         [TempleDllLocation(0x1005ced0)]
-        internal GameObjectBody FindSuitableTarget(GameObjectBody handle)
+        internal GameObject FindSuitableTarget(GameObject handle)
         {
             if (aiSearchingTgt)
                 return null;
@@ -2760,11 +2760,11 @@ namespace OpenTemple.Core.Systems.AI
             // begin search section
             aiSearchingTgt = true;
 
-            GameObjectBody objToTurnTowards = null;
+            GameObject objToTurnTowards = null;
             using var objList = ObjList.ListRangeTiles(handle, 18, ObjectListFilter.OLC_CRITTERS);
 
             var numCritters = objList.Count;
-            var critterList = new List<GameObjectBody>(objList);
+            var critterList = new List<GameObject>(objList);
             Span<long> tileDeltas = stackalloc long[numCritters];
 
             var leader = GameSystems.Critter.GetLeader(handle);
@@ -2799,7 +2799,7 @@ namespace OpenTemple.Core.Systems.AI
                 }
             }
 
-            GameObjectBody kosCandidate = null;
+            GameObject kosCandidate = null;
             for (var i = 0; i < numCritters; i++)
             {
                 var target = critterList[i];
@@ -2864,7 +2864,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005CB60)]
-        private GameObjectBody GetTargetFromDeadFriend(GameObjectBody obj, GameObjectBody target)
+        private GameObject GetTargetFromDeadFriend(GameObject obj, GameObject target)
         {
             if (!GameSystems.Critter.IsDeadNullDestroyed(target) || !target.IsNPC() || NpcAiListFindAlly(obj, target))
             {
@@ -2880,8 +2880,8 @@ namespace OpenTemple.Core.Systems.AI
             return null;
         }
 
-        private GameObjectBody GetFriendsCombatFocus(GameObjectBody handle, GameObjectBody friendHandle,
-            GameObjectBody leader)
+        private GameObject GetFriendsCombatFocus(GameObject handle, GameObject friendHandle,
+            GameObject leader)
         {
             var tgtObj = friendHandle;
             if (tgtObj.IsNPC())
@@ -2947,7 +2947,7 @@ namespace OpenTemple.Core.Systems.AI
 
 
         [TempleDllLocation(0x10059a10)]
-        public int CannotHear(GameObjectBody obj, GameObjectBody target, int tileRangeIdx)
+        public int CannotHear(GameObject obj, GameObject target, int tileRangeIdx)
         {
             var tgtLo = target;
             if (obj == target)
@@ -3046,7 +3046,7 @@ namespace OpenTemple.Core.Systems.AI
         /// first obstacle. Rather it sums up all the "cost" and returns it.
         /// </summary>
         [TempleDllLocation(0x10058ec0)]
-        private int SoundBlockageGet(GameObjectBody obj, GameObjectBody target)
+        private int SoundBlockageGet(GameObject obj, GameObject target)
         {
             var objLoc = obj.GetLocation();
             var tgtLoc = target.GetLocation();
@@ -3100,7 +3100,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10058b80)]
-        private int CannotHate(GameObjectBody aiHandle, GameObjectBody triggerer, GameObjectBody aiLeader)
+        private int CannotHate(GameObject aiHandle, GameObject triggerer, GameObject aiLeader)
         {
             var obj = aiHandle;
             if ((obj.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != 0 &&
@@ -3128,7 +3128,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100592d0)]
-        public LockStatus DryRunAttemptOpenContainer(GameObjectBody critter, GameObjectBody container)
+        public LockStatus DryRunAttemptOpenContainer(GameObject critter, GameObject container)
         {
             if (container.ProtoId == 1000
                 || GameSystems.MapObject.IsBusted(container)
@@ -3158,7 +3158,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005b950)]
-        public bool waypointsSthgsub_1005B950(GameObjectBody critter, bool immediate)
+        public bool waypointsSthgsub_1005B950(GameObject critter, bool immediate)
         {
             var aiFlags = critter.AiFlags;
             if (aiFlags.HasFlag(AiFlag.WaypointDelay))
@@ -3260,7 +3260,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10058590)]
-        private void NpcWander_10058590(GameObjectBody critter, LocAndOffsets target, float dist)
+        private void NpcWander_10058590(GameObject critter, LocAndOffsets target, float dist)
         {
             if (dist > locXY.INCH_PER_HALFTILE)
             {
@@ -3277,7 +3277,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10058430)]
-        public void CritterWaypointDelay(GameObjectBody critter, TimeSpan delay)
+        public void CritterWaypointDelay(GameObject critter, TimeSpan delay)
         {
             TimeEvent evt = new TimeEvent(TimeEventType.AI);
             critter.AiFlags |= AiFlag.WaypointDelay;
@@ -3286,7 +3286,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005f090)]
-        public void ExpireTimeEvent(GameObjectBody critter, bool isFirstHeartbeat)
+        public void ExpireTimeEvent(GameObject critter, bool isFirstHeartbeat)
         {
             var canDoHeartbeat = true;
             var isReschedule = true;
@@ -3380,7 +3380,7 @@ namespace OpenTemple.Core.Systems.AI
         /// Minimum update rate is 250ms, maximum is 5000ms at a distance of 60 tiles.
         /// </summary>
         [TempleDllLocation(0x10058850)]
-        public TimeSpan GetAiEventDelay(GameObjectBody critter)
+        public TimeSpan GetAiEventDelay(GameObject critter)
         {
             var distToParty = GameSystems.Party.DistanceToParty(critter);
             if (distToParty < 0 || distToParty > 60)
@@ -3399,7 +3399,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10058780)]
-        public bool MoveToLeader(GameObjectBody critter)
+        public bool MoveToLeader(GameObject critter)
         {
             if (GameSystems.Critter.IsDeadNullDestroyed(critter) || GameSystems.Combat.IsCombatActive())
             {
@@ -3430,7 +3430,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10058730)]
-        private bool CanDoHeartbeat(GameObjectBody critter)
+        private bool CanDoHeartbeat(GameObject critter)
         {
             if (GameSystems.Critter.IsDeadNullDestroyed(critter) || GameSystems.Combat.IsCombatActive())
             {
@@ -3447,7 +3447,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005bc00)]
-        internal bool NpcWander_1005BC00(GameObjectBody critter, bool flagSthg)
+        internal bool NpcWander_1005BC00(GameObject critter, bool flagSthg)
         {
             var isSleeping = GameSystems.Critter.IsSleeping(critter);
             if (!isSleeping && (critter.GetFlags() & (ObjectFlag.DONTDRAW | ObjectFlag.OFF)) != default)
@@ -3530,7 +3530,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1007a720)]
-        internal void GetAiSpells(out AiSpellList aiSpell, GameObjectBody obj, AiSpellType aiSpellType)
+        internal void GetAiSpells(out AiSpellList aiSpell, GameObject obj, AiSpellType aiSpellType)
         {
             aiSpell = new AiSpellList();
             aiSpell.spellEnums = new List<int>();
@@ -3712,13 +3712,13 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10063f90)]
-        private bool IsWorthless(GameObjectBody item)
+        private bool IsWorthless(GameObject item)
         {
             return item.GetInt32(obj_f.item_worth) == 0;
         }
 
         [TempleDllLocation(0x1005b1d0)]
-        internal bool LookForAndPickupItem(GameObjectBody obj, ObjectType wantedType)
+        internal bool LookForAndPickupItem(GameObject obj, ObjectType wantedType)
         {
             if (GameSystems.Critter.IsSavage(obj))
             {
@@ -3729,7 +3729,7 @@ namespace OpenTemple.Core.Systems.AI
 
             // Find the closest suitable item we could pick up directly
             using var itemsOnTheGround = ObjList.ListRangeTiles(obj, 10, filter);
-            GameObjectBody closestItem = null;
+            GameObject closestItem = null;
             float closestItemDistance = float.MaxValue;
             LocAndOffsets closestItemLocation = LocAndOffsets.Zero;
 
@@ -3796,7 +3796,7 @@ namespace OpenTemple.Core.Systems.AI
             return true;
         }
 
-        private bool ShouldPickUpItem(GameObjectBody critter, GameObjectBody item)
+        private bool ShouldPickUpItem(GameObject critter, GameObject item)
         {
             if ((item.GetItemFlags() & ItemFlag.NO_NPC_PICKUP) != default)
             {
@@ -3862,7 +3862,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005a190)]
-        internal void TargetLockUnset(GameObjectBody critter)
+        internal void TargetLockUnset(GameObject critter)
         {
             var critFlags2 = critter.GetCritterFlags2();
             if ((critFlags2 & CritterFlag2.TARGET_LOCK) != default)
@@ -3874,7 +3874,7 @@ namespace OpenTemple.Core.Systems.AI
 
         [TempleDllLocation(0x10058a30)]
         [TempleDllLocation(0x10058ae0)]
-        internal bool RefuseFollowCheck(GameObjectBody critter, GameObjectBody leader)
+        internal bool RefuseFollowCheck(GameObject critter, GameObject leader)
         {
             // NPC is being mind-controlled
             if ((critter.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != default
@@ -3898,7 +3898,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100e5290)]
-        internal bool AiStrategDefaultCast(GameObjectBody critter, GameObjectBody target, D20SpellData spellData,
+        internal bool AiStrategDefaultCast(GameObject critter, GameObject target, D20SpellData spellData,
             SpellPacketBody spellPkt)
         {
             GameSystems.Combat.EnterCombat(critter);
@@ -3966,7 +3966,7 @@ namespace OpenTemple.Core.Systems.AI
 
         private bool BreakFree(AiTactic aiTac)
         {
-            GameObjectBody performer = aiTac.performer;
+            GameObject performer = aiTac.performer;
 
             var currentActionNum = GameSystems.D20.Actions.CurrentSequence.d20ActArrayNum;
             if (!GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Is_BreakFree_Possible))
@@ -4001,7 +4001,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x100e2b80)]
-        private bool GetTargetForBreakFree(GameObjectBody obj, LocAndOffsets loc, out GameObjectBody target,
+        private bool GetTargetForBreakFree(GameObject obj, LocAndOffsets loc, out GameObject target,
             out float targetDistance)
         {
             targetDistance = 10000.0f;
@@ -4226,7 +4226,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10059440)]
-        public bool HasSurrendered(GameObjectBody npc, out GameObjectBody target)
+        public bool HasSurrendered(GameObject npc, out GameObject target)
         {
             GameSystems.AI.GetAiFightStatus(npc, out var aiFightStatus, out target);
             return aiFightStatus == AiFightStatus.SURRENDERED;

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
@@ -67,7 +67,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100514c0)]
-        public void AttemptDisarm(GameObjectBody critter, GameObjectBody trap, out bool success)
+        public void AttemptDisarm(GameObject critter, GameObject trap, out bool success)
         {
             throw new NotImplementedException();
         }
@@ -78,7 +78,7 @@ namespace OpenTemple.Core.Systems
             throw new NotImplementedException();
         }
 
-        private bool TryGetTrapFromObject(GameObjectBody trappedObj, out Trap trap)
+        private bool TryGetTrapFromObject(GameObject trappedObj, out Trap trap)
         {
             var script = GetTrapScript(trappedObj);
             if (script.scriptId == 0)
@@ -99,7 +99,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10050e30)]
-        public bool WillTrigger(GameObjectBody trappedObj, ObjScriptEvent? triggerEvent = null)
+        public bool WillTrigger(GameObject trappedObj, ObjScriptEvent? triggerEvent = null)
         {
             if (!TryGetTrapFromObject(trappedObj, out var trap))
             {
@@ -110,7 +110,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10050ea0)]
-        public bool WillTriggerForUser(GameObjectBody triggerer, GameObjectBody trappedObj)
+        public bool WillTriggerForUser(GameObject triggerer, GameObject trappedObj)
         {
             if (triggerer == null || !triggerer.IsCritter() || !WillTrigger(trappedObj))
             {
@@ -133,13 +133,13 @@ namespace OpenTemple.Core.Systems
             return false;
         }
 
-        private static ObjectScript GetTrapScript(GameObjectBody trappedObj)
+        private static ObjectScript GetTrapScript(GameObject trappedObj)
         {
             return trappedObj.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Trap);
         }
 
         [TempleDllLocation(0x10051350)]
-        public bool TryToDetect(GameObjectBody critter, GameObjectBody trappedObj, BonusList searchBonus)
+        public bool TryToDetect(GameObject critter, GameObject trappedObj, BonusList searchBonus)
         {
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill))
             {
@@ -179,7 +179,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100509c0)]
-        public void TrapSpotted(GameObjectBody triggerer, GameObjectBody trappedObj, bool suppressMessage)
+        public void TrapSpotted(GameObject triggerer, GameObject trappedObj, bool suppressMessage)
         {
             if (triggerer == null)
             {

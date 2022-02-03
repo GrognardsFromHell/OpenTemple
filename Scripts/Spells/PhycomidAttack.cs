@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -40,12 +40,12 @@ namespace Scripts.Spells
         {
             Logger.Info("phycomid attack OnBeginRound");
         }
-        public override void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("phycomid attack OnBeginProjectile");
             SetProjectileParticles(projectile, AttachParticles("sp-Acid Splash-proj", projectile));
         }
-        public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("phycomid attack OnEndProjectile");
             EndProjectileParticles(projectile);

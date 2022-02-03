@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -101,7 +101,7 @@ namespace OpenTemple.Core.Ui.CharSheet
                     return default;
                 }
 
-                GameObjectBody bagItem;
+                GameObject bagItem;
                 switch (_inventoryIdx)
                 {
                     case 1:

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.Spells;
 
@@ -22,9 +22,9 @@ namespace OpenTemple.Core.Systems.D20.Actions
         public ActionSequence prevSeq;
         public ActionSequence interruptSeq;
         public TurnBasedStatus tbStatus = new TurnBasedStatus();
-        public GameObjectBody performer;
+        public GameObject performer;
         public LocAndOffsets performerLoc;
-        public GameObjectBody targetObj;
+        public GameObject targetObj;
         public SpellPacketBody spellPktBody = new SpellPacketBody();
         public D20Action castSpellAction;
         public bool ignoreLos;

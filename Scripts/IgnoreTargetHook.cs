@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Conditions;
@@ -10,7 +10,7 @@ namespace Scripts
 {
     public class IgnoreTargetHook : IShouldIgnoreTargetHook
     {
-        public bool ShouldIgnoreTarget(GameObjectBody npc, GameObjectBody target)
+        public bool ShouldIgnoreTarget(GameObject npc, GameObject target)
         {
             if (IsSpiritualWeapon(target))
             {
@@ -52,7 +52,7 @@ namespace Scripts
         }
 
         // checks if target is warded from melee damage
-        private static bool IsWarded(GameObjectBody obj)
+        private static bool IsWarded(GameObject obj)
         {
             if (obj.HasCondition(SpellEffects.SpellOtilukesResilientSphere)
                 || obj.HasCondition(SpellEffects.SpellMeldIntoStone))
@@ -63,17 +63,17 @@ namespace Scripts
             return false;
         }
 
-        private static bool IsSleeping(GameObjectBody obj)
+        private static bool IsSleeping(GameObject obj)
         {
             return obj.HasCondition(SpellEffects.SpellSleep);
         }
 
-        private static bool IsSpiritualWeapon(GameObjectBody obj)
+        private static bool IsSpiritualWeapon(GameObject obj)
         {
             return obj.D20Query(D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.SpiritualWeapon, 1);
         }
 
-        private static int GetPowerLevel(GameObjectBody critter)
+        private static int GetPowerLevel(GameObject critter)
         {
             var lvl = GameSystems.Critter.GetHitDiceNum(critter);
             var crAdj = critter.GetInt32(obj_f.npc_challenge_rating);

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -335,7 +335,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
         [TempleDllLocation(0x10181fe0)]
         [TemplePlusLocation("ui_pc_creation_hooks.cpp:172")]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             if (charSpec.feat0.HasValue)
             {
@@ -383,7 +383,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         public SelectableFeat(FeatId featEnum)
         {
             this.featEnum = featEnum;
-            this.minLevel = 1;
+            minLevel = 1;
             IsAutomaticClassFeat = false;
             IsBonusSelectableFeat = false;
             IsIgnoreRequirements = false;

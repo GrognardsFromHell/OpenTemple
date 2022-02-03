@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.Script.Extensions;
 
@@ -16,7 +16,7 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
             _minimumValue = minimumValue;
         }
 
-        public bool FullfillsRequirements(GameObjectBody critter)
+        public bool FullfillsRequirements(GameObject critter)
         {
             var bab = GameSystems.Critter.GetBaseAttackBonus(critter);
             return bab >= _minimumValue;
@@ -38,7 +38,7 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
             _requiredFeats = requiredFeats.ToArray();
         }
 
-        public bool FullfillsRequirements(GameObjectBody critter)
+        public bool FullfillsRequirements(GameObject critter)
         {
             foreach (var featId in _requiredFeats)
             {
@@ -81,7 +81,7 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
             _races = races.ToArray();
         }
 
-        public bool FullfillsRequirements(GameObjectBody critter)
+        public bool FullfillsRequirements(GameObject critter)
         {
             var race = critter.GetRace();
             return Array.IndexOf(_races, race) != -1;
@@ -116,7 +116,7 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
             _minLevel = minLevel;
         }
 
-        public bool FullfillsRequirements(GameObjectBody critter)
+        public bool FullfillsRequirements(GameObject critter)
         {
             foreach (var classId in D20ClassSystem.ClassesWithSpellLists)
             {
@@ -151,7 +151,7 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
             _ranks = ranks;
         }
 
-        public bool FullfillsRequirements(GameObjectBody critter)
+        public bool FullfillsRequirements(GameObject critter)
         {
             return GameSystems.Skill.GetSkillRanks(critter, _skill) >= _ranks;
         }
@@ -171,7 +171,7 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
             _dice = dice;
         }
 
-        public bool FullfillsRequirements(GameObjectBody critter)
+        public bool FullfillsRequirements(GameObject critter)
         {
             var dice = GameSystems.D20.D20QueryInt(critter, "Sneak Attack Dice");
             return dice >= _dice;

@@ -1,6 +1,6 @@
 using System;
 using OpenTemple.Core.AAS;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
@@ -14,7 +14,7 @@ namespace OpenTemple.Core.Systems
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        public static float GetRadius(this GameObjectBody obj)
+        public static float GetRadius(this GameObject obj)
         {
             var radiusSet = obj.GetFlags().HasFlag(ObjectFlag.RADIUS_SET);
             float protoRadius;
@@ -92,7 +92,7 @@ namespace OpenTemple.Core.Systems
             return radius;
         }
 
-        public static float GetRenderHeight(this GameObjectBody obj, bool updateIfNeeded = false)
+        public static float GetRenderHeight(this GameObject obj, bool updateIfNeeded = false)
         {
             var renderHeight = obj.GetFloat(obj_f.render_height_3d);
 
@@ -107,7 +107,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10021a40)]
-        public static IAnimatedModel GetOrCreateAnimHandle(this GameObjectBody obj)
+        public static IAnimatedModel GetOrCreateAnimHandle(this GameObject obj)
         {
             // I think this belongs to the map_obj subsystem
             if (obj == null)
@@ -173,7 +173,7 @@ namespace OpenTemple.Core.Systems
             return model;
         }
 
-        private static void HandleAnimEvent(GameObjectBody obj, AasEvent evt)
+        private static void HandleAnimEvent(GameObject obj, AasEvent evt)
         {
             if (evt is AasCustomEvent customEvent)
             {
@@ -211,7 +211,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10264510)]
-        public static void FreeAnimHandle(this GameObjectBody obj)
+        public static void FreeAnimHandle(this GameObject obj)
         {
             if (obj == null)
             {
@@ -227,7 +227,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public static AnimatedModelParams GetAnimParams(this GameObjectBody obj)
+        public static AnimatedModelParams GetAnimParams(this GameObject obj)
         {
             var result = new AnimatedModelParams();
             result.scale = obj.GetScalePercent() / 100.0f;
@@ -287,7 +287,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100167f0)]
-        public static EncodedAnimId GetIdleAnimId(this GameObjectBody obj)
+        public static EncodedAnimId GetIdleAnimId(this GameObject obj)
         {
             var protoId = GameSystems.D20.D20QueryInt(obj, D20DispatcherKey.QUE_Polymorphed);
             if (protoId != 0)
@@ -339,7 +339,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10016910)]
-        public static EncodedAnimId GetFidgetAnimId(this GameObjectBody obj)
+        public static EncodedAnimId GetFidgetAnimId(this GameObject obj)
         {
             if (!obj.IsCritter())
             {
@@ -399,7 +399,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10021500)]
-        public static void UpdateRadius(this GameObjectBody obj, IAnimatedModel model)
+        public static void UpdateRadius(this GameObject obj, IAnimatedModel model)
         {
             var scale = GetScalePercent(obj);
             var radius = model.GetRadius(scale);
@@ -412,7 +412,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10021360)]
-        public static void UpdateRenderHeight(this GameObjectBody obj, IAnimatedModel model)
+        public static void UpdateRenderHeight(this GameObject obj, IAnimatedModel model)
         {
             var scale = GetScalePercent(obj);
             var height = model.GetHeight(scale);
@@ -421,7 +421,7 @@ namespace OpenTemple.Core.Systems
             obj.SetFlag(ObjectFlag.HEIGHT_SET, true);
         }
 
-        public static int GetScalePercent(this GameObjectBody obj)
+        public static int GetScalePercent(this GameObject obj)
         {
             var modelScale = obj.GetInt32(obj_f.model_scale);
 
@@ -440,7 +440,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10021d50)]
-        public static void SetAnimId(this GameObjectBody obj, EncodedAnimId animId)
+        public static void SetAnimId(this GameObject obj, EncodedAnimId animId)
         {
             // Propagate animations to main/off hand equipment for critters
             if (obj.IsCritter())
@@ -478,7 +478,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100246f0)]
-        public static void AdvanceAnimationTime(this GameObjectBody obj, float deltaTimeInSecs)
+        public static void AdvanceAnimationTime(this GameObject obj, float deltaTimeInSecs)
         {
             var model = obj.GetOrCreateAnimHandle();
             var animParams = obj.GetAnimParams();
@@ -487,7 +487,7 @@ namespace OpenTemple.Core.Systems
 
         // sectorChanged was previously an int but only was ever 1 = location changed, 2 = sector changed
         [TempleDllLocation(0x10025050)]
-        public static void UpdateRenderingState(this GameObjectBody obj, bool sectorChanged)
+        public static void UpdateRenderingState(this GameObject obj, bool sectorChanged)
         {
             obj.AdvanceAnimationTime(0.0f);
             var flags = obj.GetFlags();
@@ -543,7 +543,7 @@ namespace OpenTemple.Core.Systems
             obj.SetUInt32(obj_f.render_flags, renderflags);
         }
 
-        private static void HandleEnterNewSector(SectorLoc loc, GameObjectBody obj)
+        private static void HandleEnterNewSector(SectorLoc loc, GameObject obj)
         {
             {
                 using var sectorLock = new LockedMapSector(loc);
@@ -574,7 +574,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10021290)]
-        public static void DestroyRendering(this GameObjectBody obj)
+        public static void DestroyRendering(this GameObject obj)
         {
             GameSystems.Light.RemoveAttachedTo(obj);
 

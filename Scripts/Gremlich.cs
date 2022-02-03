@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(368)]
     public class Gremlich : BaseObjectScript
     {
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(929)))
             {
@@ -61,7 +61,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(926) >= 3))
             {
@@ -105,7 +105,7 @@ namespace Scripts
             // attachee.heal( OBJ_HANDLE_NULL, dice )
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(925, GetGlobalVar(925) + 1);
             if ((Utilities.obj_percent_hp(attachee) < 40))
@@ -177,7 +177,7 @@ namespace Scripts
             }
             return RunDefault;
         }
-        public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5001 || attachee.GetMap() == 5051 || attachee.GetMap() == 5121))
             {
@@ -193,7 +193,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(929)))
             {
@@ -202,7 +202,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnSpellCast(GameObjectBody attachee, GameObjectBody triggerer, SpellPacketBody spell)
+        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
         {
             if ((spell.spellEnum == WellKnownSpells.Flare || spell.spellEnum == WellKnownSpells.SearingLight || spell.spellEnum == WellKnownSpells.FaerieFire))
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(599)]
     public class OrcWarlock : BaseObjectScript
     {
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -32,7 +32,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var webbed = Livonya.break_free(attachee, 3);
             if ((GameSystems.Party.NPCFollowersSize + GameSystems.Party.PlayerCharactersSize == 8))
@@ -1574,7 +1574,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(500) == 1))
             {
@@ -1665,7 +1665,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(571)))
             {
@@ -1676,7 +1676,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void cast_buff(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void cast_buff(GameObject attachee, GameObject triggerer)
         {
             attachee.CastSpell(WellKnownSpells.ShieldOfFaith, attachee);
             return;

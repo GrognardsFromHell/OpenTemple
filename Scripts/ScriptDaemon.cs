@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -134,7 +134,7 @@ namespace Scripts
         // pad_i_4, pad_i_5 tested clean on all  #
         // protos								#
 
-        public static void npc_set(GameObjectBody attachee, int flagno)
+        public static void npc_set(GameObject attachee, int flagno)
         {
             // flagno is assumed to be from 1 to 31
             var exponent = flagno - 1;
@@ -152,7 +152,7 @@ namespace Scripts
             attachee.SetInt(obj_f.npc_pad_i_4, tempp);
             return;
         }
-        public static void npc_unset(GameObjectBody attachee, int flagno)
+        public static void npc_unset(GameObject attachee, int flagno)
         {
             // flagno is assumed to be from 1 to 31
             var exponent = flagno - 1;
@@ -169,7 +169,7 @@ namespace Scripts
             var tempp = attachee.GetInt(obj_f.npc_pad_i_4) & ~abc;
             attachee.SetInt(obj_f.npc_pad_i_4, tempp);
         }
-        public static bool npc_get(GameObjectBody attachee, int flagno)
+        public static bool npc_get(GameObject attachee, int flagno)
         {
             // flagno is assumed to be from 1 to 31
             var exponent = flagno - 1;
@@ -185,7 +185,7 @@ namespace Scripts
 
             return (attachee.GetInt(obj_f.npc_pad_i_4) & abc) != 0;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             // in case the 'script bearer' dies, pass the curse to someone else
             var not_found = 1;
@@ -204,11 +204,11 @@ namespace Scripts
             }
             return SkipDefault;
         }
-        public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetMap() == 5066) // temple level 1
             {
-                GameObjectBody grate_obj = null;
+                GameObject grate_obj = null;
                 foreach (var door_candidate in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PORTAL))
                 {
                     if ((door_candidate.GetNameId() == 120))
@@ -246,7 +246,7 @@ namespace Scripts
             // grate_npc.begin_dialog(game.leader, 1000)
             return SkipDefault;
         }
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((SelectedPartyLeader.GetMap() == 5008)) // Welcome Wench upstairs - PC left behind
             {
@@ -263,7 +263,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             var cur_map = attachee.GetMap();
             // PC Commentary (float lines/banter)  ###
@@ -798,7 +798,7 @@ namespace Scripts
             return RunDefault;
         }
 
-        private static void MarkSecretDoorFound(GameObjectBody obj)
+        private static void MarkSecretDoorFound(GameObject obj)
         {
             if ((obj.GetSecretDoorFlags() & SecretDoorFlag.SECRET_DOOR) != 0)
             {
@@ -806,11 +806,11 @@ namespace Scripts
             }
         }
 
-        public static void remove_from_all_groups(GameObjectBody obj)
+        public static void remove_from_all_groups(GameObject obj)
         {
             obj.RemoveFromAllGroups();
         }
-        public static void modify_temple_level_1(GameObjectBody pc)
+        public static void modify_temple_level_1(GameObject pc)
         {
             // Gives Temple monsters and NPCs san_dying scripts, so the game recognizes the player slaughtering mobs
             // gnolls near southern entrance
@@ -1436,7 +1436,7 @@ namespace Scripts
             // stirge.destroy()
             return;
         }
-        public static void modify_temple_level_2(GameObjectBody pc)
+        public static void modify_temple_level_2(GameObject pc)
         {
             var dummy = 1;
             return;
@@ -1569,7 +1569,7 @@ namespace Scripts
 
             return false;
         }
-        public static void destroy_weapons(GameObjectBody npc, int item1, int item2, int item3)
+        public static void destroy_weapons(GameObject npc, int item1, int item2, int item3)
         {
             if ((item1 != 0))
             {
@@ -1592,12 +1592,12 @@ namespace Scripts
 
             }
         }
-        public static void float_comment(GameObjectBody attachee, int line)
+        public static void float_comment(GameObject attachee, int line)
         {
             attachee.FloatLine(line, SelectedPartyLeader);
             return;
         }
-        public static void daemon_float_comment(GameObjectBody attachee, int line)
+        public static void daemon_float_comment(GameObject attachee, int line)
         {
             if (attachee.type == ObjectType.pc)
             {
@@ -1608,7 +1608,7 @@ namespace Scripts
 
             return;
         }
-        public static void proactivity(GameObjectBody npc, int line_no)
+        public static void proactivity(GameObject npc, int line_no)
         {
             npc.TurnTowards(PartyLeader);
             if ((!Utilities.critter_is_unconscious(PartyLeader) && PartyLeader.type == ObjectType.pc && !PartyLeader.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(PartyLeader)))
@@ -1704,9 +1704,9 @@ namespace Scripts
             }
 
         }
-        public static List<GameObjectBody> vlistxyr(int xx, int yy, int name, int radius)
+        public static List<GameObject> vlistxyr(int xx, int yy, int name, int radius)
         {
-            var greg = new List<GameObjectBody>();
+            var greg = new List<GameObject>();
             foreach (var npc in ObjList.ListVicinity(new locXY(xx, yy), ObjectListFilter.OLC_NPC))
             {
                 var (npc_x, npc_y) = npc.GetLocation();
@@ -1720,7 +1720,7 @@ namespace Scripts
 
             return greg;
         }
-        public static bool can_see2(GameObjectBody npc, GameObjectBody pc)
+        public static bool can_see2(GameObject npc, GameObject pc)
         {
             // Checks if there's an obstruction in the way (i.e. LOS regardless of facing)
             var orot = npc.Rotation; // Original rotation
@@ -1736,7 +1736,7 @@ namespace Scripts
             npc.Rotation = orot;
             return false;
         }
-        public static bool can_see_party(GameObjectBody npc)
+        public static bool can_see_party(GameObject npc)
         {
             foreach (var pc in PartyLeader.GetPartyMembers())
             {
@@ -1749,7 +1749,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool is_far_from_party(GameObjectBody npc, int dist = 20)
+        public static bool is_far_from_party(GameObject npc, int dist = 20)
         {
             // Returns 1 if npc is farther than specified distance from party
             foreach (var pc in PartyLeader.GetPartyMembers())
@@ -1763,7 +1763,7 @@ namespace Scripts
 
             return true;
         }
-        public static bool is_safe_to_talk_rfv(GameObjectBody npc, GameObjectBody pc, int radius = 20, bool facing_required = false, bool visibility_required = true)
+        public static bool is_safe_to_talk_rfv(GameObject npc, GameObject pc, int radius = 20, bool facing_required = false, bool visibility_required = true)
         {
             // visibility_required - Capability of seeing PC required (i.e. PC is not invisibile / sneaking)
             // -> use can_see2(npc, pc)
@@ -1795,7 +1795,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool within_rect_by_corners(GameObjectBody obj, int ulx, int uly, int brx, int bry)
+        public static bool within_rect_by_corners(GameObject obj, int ulx, int uly, int brx, int bry)
         {
             // refers to "visual" axes (edges parallel to your screen's edges rather than ToEE's native axes)
             var (xx, yy) = obj.GetLocation();
@@ -1806,7 +1806,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool encroach(GameObjectBody a, GameObjectBody b)
+        public static bool encroach(GameObject a, GameObject b)
         {
             // A primitive way of making distant AI combatants who don't close the distances by themselves move towards the player
             b.TurnTowards(a);
@@ -1918,7 +1918,7 @@ namespace Scripts
 
             return false;
         }
-        public static GameObjectBody buffee(locXY location, int det_range, IList<int> buff_list, IList<GameObjectBody> done_list)
+        public static GameObject buffee(locXY location, int det_range, IList<int> buff_list, IList<GameObject> done_list)
         {
             // finds people that are on a 'to buff' list "buff_list" (name array), around location "location", at range "det_range", that are not mentioned in "done_list"
             // e.g. in Alrrem's script you can find something like buffee( attachee.location, 15, [14344], [handle_to_other_werewolf] )
@@ -2217,8 +2217,8 @@ namespace Scripts
         }
 
         public static void loot_items(
-            GameObjectBody loot_source = null,
-            GameObjectBody pc = null,
+            GameObject loot_source = null,
+            GameObject pc = null,
             int loot_source_name = -1,
             IEnumerable<int> loot_source_names = null,
             int xx = -1, int yy = -1,
@@ -2238,10 +2238,10 @@ namespace Scripts
                 autoconvert_jewels = false;
             }
 
-            var tank_armor_0 = new List<GameObjectBody>();
-            var barbarian_armor_0 = new List<GameObjectBody>();
-            var druid_armor_0 = new List<GameObjectBody>();
-            var wizard_items_0 = new List<GameObjectBody>();
+            var tank_armor_0 = new List<GameObject>();
+            var barbarian_armor_0 = new List<GameObject>();
+            var druid_armor_0 = new List<GameObject>();
+            var wizard_items_0 = new List<GameObject>();
 
             var itemProtos = new HashSet<int>(item_proto_list ?? Array.Empty<int>());
 
@@ -2437,7 +2437,7 @@ namespace Scripts
             }
 
         }
-        public static int appraise_tool(GameObjectBody obj)
+        public static int appraise_tool(GameObject obj)
         {
             // Returns what you'd get for selling it
             var aa = sell_modifier();
@@ -2464,7 +2464,7 @@ namespace Scripts
             return 1000 * (int)(((int)(app_sum) / 1000));
         }
         
-        public static void autosell_item(GameObjectBody item_sought, int item_proto = -1, GameObjectBody pc = null, int item_quantity = 1, int display_float = 1)
+        public static void autosell_item(GameObject item_sought, int item_proto = -1, GameObject pc = null, int item_quantity = 1, int display_float = 1)
         {
             if (item_sought == null)
             {
@@ -2495,7 +2495,7 @@ namespace Scripts
 
             return;
         }
-        public static bool giv(GameObjectBody pc, int proto_id, bool in_group = false)
+        public static bool giv(GameObject pc, int proto_id, bool in_group = false)
         {
             if (!in_group)
             {
@@ -2581,7 +2581,7 @@ namespace Scripts
                 if (get_v("qs_emridy_time") == 1500)
                 {
                     SetQuestState(100, QuestState.Completed);
-                    GameObjectBody bro_smith = null;
+                    GameObject bro_smith = null;
                     foreach (var obj in ObjList.ListVicinity(new locXY(571, 434), ObjectListFilter.OLC_NPC))
                     {
                         if (obj.GetNameId() == 20005)

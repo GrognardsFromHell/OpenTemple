@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(32008)]
     public class Trap9Spikes : BaseObjectScript
     {
-        public override bool OnTrap(TrapSprungEvent trap, GameObjectBody triggerer)
+        public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
         {
             if ((trap.Type.Id == 9))
             {

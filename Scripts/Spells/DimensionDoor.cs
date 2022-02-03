@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -107,7 +107,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Dimension Door OnEndSpellCast");
         }
-        public static void fade_back_in(GameObjectBody target, LocAndOffsets loc, SpellPacketBody spell)
+        public static void fade_back_in(GameObject target, LocAndOffsets loc, SpellPacketBody spell)
         {
             target.Move(loc);
             AttachParticles("sp-Dimension Door", target);

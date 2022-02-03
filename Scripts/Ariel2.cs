@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,13 +23,13 @@ namespace Scripts
     [ObjectScript(377)]
     public class Ariel2 : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(919)))
             {
@@ -39,7 +39,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void respawn(GameObjectBody attachee)
+        public static void respawn(GameObject attachee)
         {
             var box = Utilities.find_container_near(attachee, 1055);
             InventoryRespawn.RespawnInventory(box);

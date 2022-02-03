@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.RadialMenus
 {
     public class RadialMenu
     {
-        public GameObjectBody obj { get; } // For which object is this the radial menu?
+        public GameObject obj { get; } // For which object is this the radial menu?
         public List<RadialMenuNode> nodes = new List<RadialMenuNode>();
         private readonly IComparer<int> _radialMenuNodeComparer;
 
-        public RadialMenu(GameObjectBody obj)
+        public RadialMenu(GameObject obj)
         {
             this.obj = obj;
             _radialMenuNodeComparer = Comparer<int>.Create(CompareRadialNodes);

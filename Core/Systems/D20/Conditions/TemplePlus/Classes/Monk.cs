@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Feats;
@@ -87,7 +87,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             LevelupGetBonusFeats = GetBonusFeats
         };
 
-        private static IEnumerable<SelectableFeat> GetBonusFeats(GameObjectBody critter)
+        private static IEnumerable<SelectableFeat> GetBonusFeats(GameObject critter)
         {
             var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
             if (newLvl == 2)
@@ -145,7 +145,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         /// gaining the AC bonus and further abilities.
         /// </summary>
         [TempleDllLocation(0x100fece0)]
-        public static bool FulfillsArmorAndLoadRequirement(GameObjectBody critter)
+        public static bool FulfillsArmorAndLoadRequirement(GameObject critter)
         {
             var armor = GameSystems.Item.ItemWornAt(critter, EquipSlot.Armor);
             if (armor != null && GameSystems.D20.D20QueryItem(armor, D20DispatcherKey.QUE_Armor_Get_AC_Bonus) != 0)

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Ui.PartyCreation
 {

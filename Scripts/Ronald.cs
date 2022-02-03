@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(287)]
     public class Ronald : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             var st = attachee.GetInt(obj_f.npc_pad_i_5);
             attachee.TurnTowards(triggerer);
@@ -133,7 +133,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(500)))
             {
@@ -210,7 +210,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -234,12 +234,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.FloatLine(12057, triggerer);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -262,12 +262,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool san_taking_damage(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool san_taking_damage(GameObject attachee, GameObject triggerer)
         {
             attachee.FloatLine(12054, triggerer);
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(237, true);
             var itemD = attachee.FindItemByName(4068);
@@ -296,7 +296,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(237, false);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -309,7 +309,7 @@ namespace Scripts
         }
         // after moathouse, sets to 283
 
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             // def san_new_map( attachee, triggerer ):		# after moathouse, sets to 283
             if ((attachee.GetMap() == 5004))
@@ -320,7 +320,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnSpellCast(GameObjectBody attachee, GameObjectBody triggerer, SpellPacketBody spell)
+        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
         {
             if ((spell.spellEnum == WellKnownSpells.CatsGrace || spell.spellEnum == WellKnownSpells.Invisibility))
             {
@@ -349,7 +349,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -359,7 +359,7 @@ namespace Scripts
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool argue_lareth(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool argue_lareth(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8002);
             if ((npc != null))
@@ -375,7 +375,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool war(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool war(GameObject attachee, GameObject triggerer)
         {
             var hedrack = Utilities.find_npc_near(attachee, 8032);
             var iuz = Utilities.find_npc_near(attachee, 8042);
@@ -390,7 +390,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_cuthbert(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_cuthbert(GameObject attachee, GameObject triggerer, int line)
         {
             var cuthbert = Utilities.find_npc_near(attachee, 8043);
             if ((cuthbert != null))
@@ -404,7 +404,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool argue_tuelk(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool argue_tuelk(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8026);
             if ((npc != null))
@@ -420,12 +420,12 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool reset_st(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool reset_st(GameObject attachee, GameObject triggerer)
         {
             attachee.SetInt(obj_f.npc_pad_i_5, 1);
             return SkipDefault;
         }
-        public static bool summon_parents(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool summon_parents(GameObject attachee, GameObject triggerer)
         {
             var willi = GameSystems.MapObject.CreateObject(14676, attachee.GetLocation().OffsetTiles(-3, 0));
             AttachParticles("sp-Raise Dead", willi);
@@ -436,7 +436,7 @@ namespace Scripts
             attachee.TurnTowards(willi);
             return SkipDefault;
         }
-        public static bool argue_willi(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool argue_willi(GameObject attachee, GameObject triggerer, int line)
         {
             var willi = Utilities.find_npc_near(attachee, 14676);
             if ((willi != null))
@@ -453,13 +453,13 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool done(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool done(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(692, 10);
             attachee.SetInt(obj_f.npc_pad_i_5, 2);
             return SkipDefault;
         }
-        public static bool reunion(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool reunion(GameObject attachee, GameObject triggerer)
         {
             var willi = Utilities.find_npc_near(attachee, 14676);
             willi.SetCritterFlag(CritterFlag.MUTE);
@@ -467,7 +467,7 @@ namespace Scripts
             attachee.SetCritterFlag(CritterFlag.MUTE);
             return SkipDefault;
         }
-        public static bool rejoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool rejoin(GameObject attachee, GameObject triggerer)
         {
             attachee.ClearCritterFlag(CritterFlag.MUTE);
             var willi = Utilities.find_npc_near(attachee, 14676);
@@ -477,7 +477,7 @@ namespace Scripts
             SetGlobalVar(692, 11);
             return SkipDefault;
         }
-        public static bool equip_all(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool equip_all(GameObject attachee, GameObject triggerer)
         {
             Utilities.create_item_in_inventory(7002, attachee);
             Utilities.create_item_in_inventory(7001, attachee);
@@ -512,7 +512,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool equip_leather(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool equip_leather(GameObject attachee, GameObject triggerer)
         {
             var itemC = attachee.FindItemByName(6056);
             if ((itemC != null))
@@ -526,7 +526,7 @@ namespace Scripts
             Utilities.create_item_in_inventory(7001, attachee);
             return RunDefault;
         }
-        public static bool equip_rest(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool equip_rest(GameObject attachee, GameObject triggerer)
         {
             Utilities.create_item_in_inventory(7002, attachee);
             Utilities.create_item_in_inventory(7001, attachee);

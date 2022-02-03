@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(122)]
     public class Alrrem : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             ScriptDaemon.record_time_stamp(517);
             triggerer.TurnTowards(attachee); // added by Livonya
@@ -65,7 +65,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(372)))
             {
@@ -88,7 +88,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -99,17 +99,17 @@ namespace Scripts
             ScriptDaemon.record_time_stamp(459);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(344, false);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(107, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -231,7 +231,7 @@ namespace Scripts
                 if ((GetGlobalVar(713) == 16 && attachee.GetLeader() == null && !GameSystems.Combat.IsCombatActive()))
                 {
                     var buff_list = new[] { 14344, 14195, 14343 }; // Werewolf, Oohlgrist, Hydra
-                    var mang1 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new List<GameObjectBody>());
+                    var mang1 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new List<GameObject>());
                     if (mang1 == null)
                     {
                         SetGlobalVar(713, GetGlobalVar(713) + 1);
@@ -246,7 +246,7 @@ namespace Scripts
                 {
                     var buff_list = new[] { 14344, 14195, 14343 }; // Werewolf, Oohlgrist, Hydra
                     var Tubal = Utilities.find_npc_near(attachee, 14212);
-                    var mang1 = ScriptDaemon.buffee(Tubal.GetLocation(), 20, buff_list, new List<GameObjectBody>());
+                    var mang1 = ScriptDaemon.buffee(Tubal.GetLocation(), 20, buff_list, new List<GameObject>());
                     if (mang1 == null)
                     {
                         SetGlobalVar(713, GetGlobalVar(713) + 1);
@@ -265,7 +265,7 @@ namespace Scripts
                 {
                     var buff_list = new[] { 14344, 14224 }; // Werewolf, Aern
                     var Antonio = Utilities.find_npc_near(attachee, 14211);
-                    var mang1 = ScriptDaemon.buffee(Antonio.GetLocation(), 20, buff_list, new List<GameObjectBody>());
+                    var mang1 = ScriptDaemon.buffee(Antonio.GetLocation(), 20, buff_list, new List<GameObject>());
                     if (mang1 == null)
                     {
                         SetGlobalVar(713, GetGlobalVar(713) + 1);
@@ -283,7 +283,7 @@ namespace Scripts
                 if ((GetGlobalVar(713) == 20 && attachee.GetLeader() == null && !GameSystems.Combat.IsCombatActive()))
                 {
                     var buff_list = new[] { 14344, 14195, 14343 }; // Werewolf, Oohlgrist, Hydra
-                    var mang1 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new List<GameObjectBody>());
+                    var mang1 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new List<GameObject>());
                     if (mang1 == null)
                     {
                         SetGlobalVar(713, GetGlobalVar(713) + 1);
@@ -299,7 +299,7 @@ namespace Scripts
                     var Tubal = Utilities.find_npc_near(attachee, 14212);
                     Tubal.TurnTowards(attachee);
                     var buff_list = new[] { 14344, 14195, 14343 }; // Werewolf, Oohlgrist, Hydra
-                    var mang1 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new List<GameObjectBody>());
+                    var mang1 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new List<GameObject>());
                     if (mang1 == null)
                     {
                         SetGlobalVar(713, GetGlobalVar(713) + 1);
@@ -313,7 +313,7 @@ namespace Scripts
                 if ((GetGlobalVar(713) == 28 && attachee.GetLeader() == null && !GameSystems.Combat.IsCombatActive()))
                 {
                     var buff_list = new[] { 14344, 14195, 14343 }; // Werewolf, Oohlgrist, Hydra
-                    var mang1 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new List<GameObjectBody>());
+                    var mang1 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new List<GameObject>());
                     var mang2 = ScriptDaemon.buffee(attachee.GetLocation(), 20, buff_list, new[] { mang1 });
                     if (mang2 == null)
                     {
@@ -341,14 +341,14 @@ namespace Scripts
             SetGlobalVar(713, GetGlobalVar(713) + 1);
             return RunDefault;
         }
-        public static bool escort_below(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool escort_below(GameObject attachee, GameObject triggerer)
         {
             // game.global_flags[144] = 1
             SetGlobalVar(691, 3);
             FadeAndTeleport(0, 0, 0, 5080, 478, 451);
             return RunDefault;
         }
-        public static bool talk_Ashrem(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool talk_Ashrem(GameObject attachee, GameObject triggerer, int line)
         {
             var ashrem = Utilities.find_npc_near(attachee, 8040);
             if ((ashrem != null))

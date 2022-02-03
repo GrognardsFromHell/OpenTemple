@@ -5,7 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
@@ -33,7 +33,7 @@ namespace OpenTemple.Core.Systems
 
         public SectorLoc SectorLoc { get; }
 
-        public GameObjectBody SourceObject { get; }
+        public GameObject SourceObject { get; }
 
         public ObjectEventShape Shape { get; }
 
@@ -49,9 +49,9 @@ namespace OpenTemple.Core.Systems
 
         public float ConeRadians { get; }
 
-        public List<GameObjectBody> PreviouslyAffected { get; } = new List<GameObjectBody>();
+        public List<GameObject> PreviouslyAffected { get; } = new List<GameObject>();
 
-        public ObjectEvent(SectorLoc sectorLoc, GameObjectBody sourceObject, int enterCallbackId, int leaveCallbackId,
+        public ObjectEvent(SectorLoc sectorLoc, GameObject sourceObject, int enterCallbackId, int leaveCallbackId,
             ObjectListFilter objListFlags, float radiusInch, float coneAngleStart, float coneRadians)
         {
             Trace.Assert(sourceObject != null);
@@ -91,7 +91,7 @@ namespace OpenTemple.Core.Systems
             return new LineSegment(from, to);
         }
 
-        public IEnumerable<GameObjectBody> EnumerateObjectsInEffect()
+        public IEnumerable<GameObject> EnumerateObjectsInEffect()
         {
             var currentPos = SourceObject.GetLocationFull();
 
@@ -263,7 +263,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100c3310)]
-        private void OnLeaveAreaOfEffect(GameObjectBody effectSource, GameObjectBody obj, int eventId)
+        private void OnLeaveAreaOfEffect(GameObject effectSource, GameObject obj, int eventId)
         {
             if (obj.IsCritter())
             {
@@ -277,7 +277,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100c3290)]
-        private void OnEnterAreaOfEffect(GameObjectBody effectSource, GameObjectBody obj, int eventId)
+        private void OnEnterAreaOfEffect(GameObject effectSource, GameObject obj, int eventId)
         {
             if (obj.IsCritter())
             {
@@ -388,7 +388,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10045290)]
-        public void NotifyMoved(GameObjectBody obj, LocAndOffsets fromLoc, LocAndOffsets toLoc)
+        public void NotifyMoved(GameObject obj, LocAndOffsets fromLoc, LocAndOffsets toLoc)
         {
             if (_processingPendingMovement)
             {
@@ -410,7 +410,7 @@ namespace OpenTemple.Core.Systems
             return _nextId;
         }
 
-        public int AddEvent(GameObjectBody aoeObj, int onEnterFuncIdx, int onLeaveFuncIdx, ObjectListFilter olcFilter,
+        public int AddEvent(GameObject aoeObj, int onEnterFuncIdx, int onLeaveFuncIdx, ObjectListFilter olcFilter,
             float radiusInch)
         {
             return AddEvent(aoeObj, onEnterFuncIdx, onLeaveFuncIdx, olcFilter,
@@ -418,7 +418,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10045580)]
-        public int AddEvent(GameObjectBody aoeObj, int onEnterFuncIdx, int onLeaveFuncIdx, ObjectListFilter olcFilter,
+        public int AddEvent(GameObject aoeObj, int onEnterFuncIdx, int onLeaveFuncIdx, ObjectListFilter olcFilter,
             float radiusInch, float angleBase, float angleSize)
         {
             if (aoeObj == null)
@@ -462,11 +462,11 @@ namespace OpenTemple.Core.Systems
 
         private readonly struct PendingObjectMovement
         {
-            public readonly GameObjectBody Obj;
+            public readonly GameObject Obj;
             public readonly LocAndOffsets From;
             public readonly LocAndOffsets To;
 
-            public PendingObjectMovement(GameObjectBody obj, LocAndOffsets from, LocAndOffsets to)
+            public PendingObjectMovement(GameObject obj, LocAndOffsets from, LocAndOffsets to)
             {
                 Obj = obj;
                 From = from;

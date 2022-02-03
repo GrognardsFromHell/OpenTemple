@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace Scripts
     [ObjectScript(482)]
     public class Elementalist : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 100);
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(501) == 3 && !Utilities.is_daytime()))
             {
@@ -37,7 +37,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -59,7 +59,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(505) == 0))
             {
@@ -85,7 +85,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(97) == QuestState.Botched))
             {
@@ -99,7 +99,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool switch_to_ariakas(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_ariakas(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8731);
             if ((npc != null))
@@ -109,20 +109,20 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool dump_old_man(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool dump_old_man(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             Sound(4035, 1);
             AttachParticles("sp-Teleport", attachee);
             return RunDefault;
         }
-        public static void shake(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void shake(GameObject attachee, GameObject triggerer)
         {
             Sound(4130);
             GameSystems.Scroll.ShakeScreen(50, 6400);
             return;
         }
-        public static void out_of_time(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void out_of_time(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(505, 3);
             return;

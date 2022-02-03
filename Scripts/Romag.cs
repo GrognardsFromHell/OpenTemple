@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(119)]
     public class Romag : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasMet(triggerer)))
             {
@@ -49,7 +49,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(372)))
             {
@@ -66,7 +66,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -77,12 +77,12 @@ namespace Scripts
             ScriptDaemon.record_time_stamp(456);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(104, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -136,18 +136,18 @@ namespace Scripts
             SetGlobalVar(727, GetGlobalVar(727) + 1);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             romag_call_help(attachee);
             SetGlobalFlag(347, false);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             romag_call_help(attachee);
             if ((Utilities.obj_percent_hp(attachee) < 50 && (!attachee.HasMet(triggerer))))
             {
-                GameObjectBody found_pc = null;
+                GameObject found_pc = null;
                 foreach (var pc in PartyLeader.GetPartyMembers())
                 {
                     attachee.AIRemoveFromShitlist(pc);
@@ -182,7 +182,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool talk_Hedrack(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool talk_Hedrack(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8046);
             if ((npc != null))
@@ -198,7 +198,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool escort_below(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool escort_below(GameObject attachee, GameObject triggerer)
         {
             // game.global_flags[144] = 1
             SetGlobalVar(691, 1);
@@ -207,7 +207,7 @@ namespace Scripts
             FadeAndTeleport(0, 0, 0, 5080, 478, 451);
             return RunDefault;
         }
-        public static void romag_call_help(GameObjectBody attachee)
+        public static void romag_call_help(GameObject attachee)
         {
             if (attachee.GetMap() == 5066 && (!ScriptDaemon.get_f("j_earth_commander_troops_temple_1")) && ScriptDaemon.within_rect_by_corners(attachee, 440, 432, 440, 451)) // temple level 1
             {

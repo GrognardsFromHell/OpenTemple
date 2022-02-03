@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.Spells;
 
@@ -29,11 +29,11 @@ namespace OpenTemple.Core.Systems.Script
         {
         }
 
-        public virtual void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int targetIndex)
+        public virtual void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int targetIndex)
         {
         }
 
-        public virtual void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int targetIndex)
+        public virtual void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int targetIndex)
         {
         }
 

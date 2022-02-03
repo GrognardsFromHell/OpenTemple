@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -48,7 +48,7 @@ namespace Scripts
         private static int casterIdNext = BASECASTERID;
         // Main stench processing routine.
 
-        public static void processStench(GameObjectBody caster, int spell_id)
+        public static void processStench(GameObject caster, int spell_id)
         {
             // Get caster ID, initialising if necessary.
             var casterId = Co8.getObjVarNibble(caster, STATE_VAR, CID);
@@ -217,11 +217,11 @@ namespace Scripts
 
             return;
         }
-        public static bool inStenchArea(GameObjectBody caster, GameObjectBody critter)
+        public static bool inStenchArea(GameObject caster, GameObject critter)
         {
             return (critter.DistanceTo(caster) < 10);
         }
-        public static int attemptSave(GameObjectBody caster, int spell_id, GameObjectBody critter, int status)
+        public static int attemptSave(GameObject caster, int spell_id, GameObject critter, int status)
         {
             // In stink area - attempt saving throw.
             if ((critter.SavingThrowSpell(24, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, caster, spell_id)))
@@ -243,7 +243,7 @@ namespace Scripts
         }
         // Give the critter an effect object with the appropriate effect.
 
-        public static void applyStenchEffect(int casterId, int spell_id, GameObjectBody critter, int status)
+        public static void applyStenchEffect(int casterId, int spell_id, GameObject critter, int status)
         {
             var stench_obj = getStenchObj(critter);
             if ((stench_obj != null))
@@ -276,7 +276,7 @@ namespace Scripts
             Co8.setObjVarNibble(stench_obj, EFFECT_VAR, casterId, status);
             return;
         }
-        public static void removeStenchEffect(int casterId, int spell_id, GameObjectBody critter, int status, bool unNullify)
+        public static void removeStenchEffect(int casterId, int spell_id, GameObject critter, int status, bool unNullify)
         {
             var stench_obj = getStenchObj(critter);
             if ((stench_obj != null))
@@ -326,7 +326,7 @@ namespace Scripts
 
             return;
         }
-        public static GameObjectBody createStenchObject(int spell_id, GameObjectBody critter, int status)
+        public static GameObject createStenchObject(int spell_id, GameObject critter, int status)
         {
             var stench_obj = GameSystems.MapObject.CreateObject(OBJ_SPELL_STENCH, critter.GetLocation());
             stench_obj.SetItemFlag(ItemFlag.NO_DROP);
@@ -369,7 +369,7 @@ namespace Scripts
             AttachParticles("sp-Stinking Cloud Hit", critter);
             return stench_obj;
         }
-        public static GameObjectBody getStenchObj(GameObjectBody critter)
+        public static GameObject getStenchObj(GameObject critter)
         {
             var it = 0;
             var stench_obj = critter.FindItemByName(OBJ_SPELL_STENCH);
@@ -386,7 +386,7 @@ namespace Scripts
 
             return stench_obj;
         }
-        public static void neutraliseStench(GameObjectBody critter, int duration)
+        public static void neutraliseStench(GameObject critter, int duration)
         {
             Logger.Info("Neutralising stench on: {0}", critter);
             var stench_obj = getStenchObj(critter);
@@ -408,7 +408,7 @@ namespace Scripts
             StartTimer(1000 * duration, () => unNeutraliseStench(critter));
             return;
         }
-        public static void unNeutraliseStench(GameObjectBody critter)
+        public static void unNeutraliseStench(GameObject critter)
         {
             var curedCount = Co8.getObjVarNibble(critter, STATE_VAR, COUNTER);
             Logger.Info("Un-neutralising stench, curedCount={0}", curedCount);
@@ -425,7 +425,7 @@ namespace Scripts
 
             return;
         }
-        public static void nullifyWeapons(GameObjectBody critter)
+        public static void nullifyWeapons(GameObject critter)
         {
             for (var num = 4000; num < 5000; num++)
             {
@@ -443,7 +443,7 @@ namespace Scripts
 
             return;
         }
-        public static void reenableWeapons(GameObjectBody critter)
+        public static void reenableWeapons(GameObject critter)
         {
             for (var num = 4000; num < 5000; num++)
             {
@@ -460,7 +460,7 @@ namespace Scripts
 
             return;
         }
-        public static void endStench(GameObjectBody caster, int spell_id)
+        public static void endStench(GameObject caster, int spell_id)
         {
             var casterId = 1;
             if ((caster != null))
@@ -490,7 +490,7 @@ namespace Scripts
 
             return;
         }
-        public static bool has_necklace(GameObjectBody critter)
+        public static bool has_necklace(GameObject critter)
         {
             var full = critter.ItemWornAt(EquipSlot.Necklace);
             if (full != null && full.GetNameId() == 6107)

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(321)]
     public class CaptainAbiram : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((GetGlobalVar(979) == 2) && (GetGlobalFlag(980)))
@@ -49,7 +49,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5170 || attachee.GetMap() == 5135))
             {
@@ -78,17 +78,17 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(550, true);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(550, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (((attachee.GetMap() == 5170 || attachee.GetMap() == 5135) && GetGlobalVar(948) == 1))
             {
@@ -136,7 +136,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 50))
             {
@@ -145,7 +145,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool is_groovier_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_groovier_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -158,14 +158,14 @@ namespace Scripts
 
             return false;
         }
-        public static bool start_talking(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool start_talking(GameObject attachee, GameObject triggerer)
         {
             var npc = Utilities.find_npc_near(attachee, 8703);
             attachee.TurnTowards(npc);
             PartyLeader.BeginDialog(attachee, 270);
             return RunDefault;
         }
-        public static bool switch_to_wilfrick(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_wilfrick(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8703);
             if ((npc != null))
@@ -176,12 +176,12 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool remove_panathaes(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool remove_panathaes(GameObject attachee, GameObject triggerer)
         {
             if (triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8791)))
             {
@@ -332,7 +332,7 @@ namespace Scripts
             // game.global_vars[549] = 2
             return RunDefault;
         }
-        public static bool remove_rakham(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool remove_rakham(GameObject attachee, GameObject triggerer)
         {
             if (triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8766)))
             {
@@ -356,7 +356,7 @@ namespace Scripts
             SetGlobalVar(549, 3);
             return RunDefault;
         }
-        public static bool remove_boroquin(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool remove_boroquin(GameObject attachee, GameObject triggerer)
         {
             if (triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8767)))
             {
@@ -380,7 +380,7 @@ namespace Scripts
             SetGlobalVar(549, 1);
             return RunDefault;
         }
-        public static void rep_routine(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void rep_routine(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(75)))
             {

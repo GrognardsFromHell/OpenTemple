@@ -109,7 +109,7 @@ namespace OpenTemple.Core.Platform
 
         public MessageCharArgs(char character)
         {
-            this.Character = character;
+            Character = character;
         }
     }
 
@@ -121,7 +121,7 @@ namespace OpenTemple.Core.Platform
         public Message(MessageType type)
         {
             this.type = type;
-            this.created = TimePoint.Now;
+            created = TimePoint.Now;
         }
 
         public Message(ExitMessageArgs messageArgs) : this(MessageType.EXIT)

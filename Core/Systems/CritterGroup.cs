@@ -1,16 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 
 namespace OpenTemple.Core.Systems
 {
-    public sealed class CritterGroup : IList<GameObjectBody>, IReadOnlyList<GameObjectBody>
+    public sealed class CritterGroup : IList<GameObject>, IReadOnlyList<GameObject>
     {
-        private IComparer<GameObjectBody> _comparer;
+        private IComparer<GameObject> _comparer;
 
-        private readonly List<GameObjectBody> _members = new List<GameObjectBody>();
+        private readonly List<GameObject> _members = new List<GameObject>();
 
         public void Sort()
         {
@@ -20,7 +20,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void Add(GameObjectBody item)
+        public void Add(GameObject item)
         {
             _members.Add(item);
             Sort();
@@ -31,14 +31,14 @@ namespace OpenTemple.Core.Systems
             _members.Clear();
         }
 
-        public bool Contains(GameObjectBody obj) => _members.Contains(obj);
+        public bool Contains(GameObject obj) => _members.Contains(obj);
 
-        public void CopyTo(GameObjectBody[] array, int arrayIndex)
+        public void CopyTo(GameObject[] array, int arrayIndex)
         {
             _members.CopyTo(array, arrayIndex);
         }
 
-        public bool Remove(GameObjectBody item)
+        public bool Remove(GameObject item)
         {
             var result = _members.Remove(item);
             Sort();
@@ -49,7 +49,7 @@ namespace OpenTemple.Core.Systems
 
         public bool IsReadOnly => false;
 
-        public IComparer<GameObjectBody> Comparer
+        public IComparer<GameObject> Comparer
         {
             get => _comparer;
             set
@@ -59,7 +59,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public IEnumerator<GameObjectBody> GetEnumerator()
+        public IEnumerator<GameObject> GetEnumerator()
         {
             return _members.GetEnumerator();
         }
@@ -69,12 +69,12 @@ namespace OpenTemple.Core.Systems
             return ((IEnumerable) _members).GetEnumerator();
         }
 
-        public int IndexOf(GameObjectBody item)
+        public int IndexOf(GameObject item)
         {
             return _members.IndexOf(item);
         }
 
-        public void Insert(int index, GameObjectBody item)
+        public void Insert(int index, GameObject item)
         {
             _members.Insert(index, item);
             Sort();
@@ -85,7 +85,7 @@ namespace OpenTemple.Core.Systems
             _members.RemoveAt(index);
         }
 
-        public GameObjectBody this[int index]
+        public GameObject this[int index]
         {
             get => _members[index];
             set

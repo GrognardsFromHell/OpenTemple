@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -34,7 +34,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Hold Person OnSpellEffect");
             spell.duration = 1 * spell.casterLevel;
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             foreach (var target_item in spell.Targets)
             {
                 var npc = spell.caster; // added so NPC's will choose valid targets

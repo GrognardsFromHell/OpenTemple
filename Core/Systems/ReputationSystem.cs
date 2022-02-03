@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Logging;
@@ -159,7 +159,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10054d70)]
-        public bool HasFactionFromReputation(GameObjectBody pc, int faction)
+        public bool HasFactionFromReputation(GameObject pc, int faction)
         {
             if (faction == 0 || !pc.IsPC())
             {
@@ -184,7 +184,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10054BD0)]
-        public int GetReactionModFromReputation(GameObjectBody pc, GameObjectBody npc)
+        public int GetReactionModFromReputation(GameObject pc, GameObject npc)
         {
             if (!pc.IsPC() || !npc.IsNPC())
             {
@@ -208,7 +208,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100546e0)]
-        public bool HasReputation(GameObjectBody pc, int reputationId)
+        public bool HasReputation(GameObject pc, int reputationId)
         {
             if (_earnedReputations.TryGetValue(reputationId, out var earnedRep))
             {
@@ -219,7 +219,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10054740)]
-        public void AddReputation(GameObjectBody pc, int reputationId)
+        public void AddReputation(GameObject pc, int reputationId)
         {
             if (!pc.IsPC())
             {
@@ -249,7 +249,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10054820)]
-        public void RemoveReputation(GameObjectBody pc, int reputationId)
+        public void RemoveReputation(GameObject pc, int reputationId)
         {
             if (pc.IsPC())
             {
@@ -261,7 +261,7 @@ namespace OpenTemple.Core.Systems
         /// Returns a random reputation that is affecting the NPC's reaction towards the player.
         /// </summary>
         [TempleDllLocation(0x10054cb0)]
-        public bool TryGetReputationAffectingReaction(GameObjectBody pc, GameObjectBody npc, out int reputationId)
+        public bool TryGetReputationAffectingReaction(GameObject pc, GameObject npc, out int reputationId)
         {
             reputationId = 0;
             if (!pc.IsPC() || !npc.IsNPC())
@@ -321,7 +321,7 @@ namespace OpenTemple.Core.Systems
         /// Gets a greeting message referencing an earned reputation (either positive or negative).
         /// </summary>
         [TempleDllLocation(0x10054850)]
-        public bool TryGetGreeting(GameObjectBody pc, GameObjectBody npc, int reputationId, out string greeting)
+        public bool TryGetGreeting(GameObject pc, GameObject npc, int reputationId, out string greeting)
         {
             if (!pc.IsPC() || !npc.IsNPC())
             {

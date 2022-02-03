@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -34,7 +34,7 @@ namespace Scripts.Spells
         {
             var check = Co8.check_for_protection_from_spells(spell.Targets, 0);
             Logger.Info("Mass Inflict Moderate Wounds OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             var dice = Dice.Parse("2d8");
             dice = dice.WithModifier(Math.Min(30, spell.casterLevel));
             foreach (var target_item in spell.Targets)

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(213)]
     public class Mona : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(60) == QuestState.Completed && GetGlobalFlag(315)))
             {
@@ -60,7 +60,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -70,7 +70,7 @@ namespace Scripts
             SetQuestState(60, QuestState.Botched);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(60) == QuestState.Completed && GetGlobalFlag(315)))
             {
@@ -88,7 +88,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buttin(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool buttin(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8015);
             if ((npc != null))
@@ -104,7 +104,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool schedule_gremlich(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool schedule_gremlich(GameObject attachee, GameObject triggerer)
         {
             StartTimer(86400000, () => set_gremlich()); // 86400000ms is 1 day
             ScriptDaemon.record_time_stamp("s_gremlich_1");
@@ -116,7 +116,7 @@ namespace Scripts
             ScriptDaemon.set_f("s_gremlich_1_scheduled");
             return RunDefault;
         }
-        public static bool encounter_picker(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool encounter_picker(GameObject attachee, GameObject triggerer)
         {
             var enc = RandomRange(1, 6);
             if ((enc == 1))
@@ -194,7 +194,7 @@ namespace Scripts
             SetGlobalVar(564, 1);
             return RunDefault;
         }
-        public static void gremlich_movie_setup(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void gremlich_movie_setup(GameObject attachee, GameObject triggerer)
         {
             set_gremlich_slides();
             return;

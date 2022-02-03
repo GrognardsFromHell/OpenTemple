@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -19,14 +19,14 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10138740)]
-        private bool TargetPartyMember(GameObjectBody partyMember)
+        private bool TargetPartyMember(GameObject partyMember)
         {
             SetPartyMemberTarget(partyMember);
             return FinalizePicker();
         }
 
         [TempleDllLocation(0x10136c80)]
-        private void SetPartyMemberTarget(GameObjectBody target)
+        private void SetPartyMemberTarget(GameObject target)
         {
             PickerState.Target = target;
             ClearResults();
@@ -52,7 +52,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10136c40)]
-        private void ResetPartyMemberTarget(GameObjectBody obj)
+        private void ResetPartyMemberTarget(GameObject obj)
         {
             PickerState.Target = null;
             ClearResults();
@@ -117,7 +117,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10137430)]
-        private static bool HasLineOfSight(GameObjectBody source, LocAndOffsets target)
+        private static bool HasLineOfSight(GameObject source, LocAndOffsets target)
         {
             var objIterator = new RaycastPacket();
             objIterator.flags |= RaycastFlag.StopAfterFirstBlockerFound | RaycastFlag.ExcludeItemObjects;

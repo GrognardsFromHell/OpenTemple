@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Spells;
@@ -14,13 +14,13 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
     {
         private readonly WidgetScrollBar _scrollbar;
 
-        private readonly GameObjectBody _caster;
+        private readonly GameObject _caster;
 
         private readonly SpellsPerDay _spellsPerDay;
 
         public event Action<int, int> OnUnmemorizeSpell;
 
-        public MemorizedSpellsList(Rectangle rectangle, GameObjectBody caster, SpellsPerDay spellsPerDay) :
+        public MemorizedSpellsList(Rectangle rectangle, GameObject caster, SpellsPerDay spellsPerDay) :
             base(rectangle)
         {
             _caster = caster;

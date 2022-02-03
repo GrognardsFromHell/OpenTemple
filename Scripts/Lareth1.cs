@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -26,7 +26,7 @@ namespace Scripts
         // pad3: internal flags
         // 2**1 - have cast Dispell
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(834, true);
             if ((triggerer.GetPartyMembers().Any(o => o.HasItemByName(11003)) && attachee.FindItemByName(11003) == null))
@@ -92,7 +92,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null && !attachee.IsAffectedBySpell() && (PartyAlignment == Alignment.LAWFUL_NEUTRAL || PartyAlignment == Alignment.LAWFUL_EVIL || PartyAlignment == Alignment.LAWFUL_GOOD || PartyAlignment == Alignment.NEUTRAL)))
             {
@@ -124,7 +124,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -206,7 +206,7 @@ namespace Scripts
             return RunDefault;
         }
 
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.FloatLine(12058, triggerer); // "You have earned my wrath!"
             if ((attachee.GetLeader() == null && (!attachee.HasEquippedByName(1) || !attachee.HasEquippedByName(4071))))
@@ -249,12 +249,12 @@ namespace Scripts
             return RunDefault;
         }
 
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             return OnStartCombat(attachee, triggerer, false, 0);
         }
 
-        public bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer, bool generated_from_timed_event_call, int talk_stage)
+        public bool OnStartCombat(GameObject attachee, GameObject triggerer, bool generated_from_timed_event_call, int talk_stage)
         {
             if (attachee.IsUnconscious())
             {
@@ -467,8 +467,8 @@ namespace Scripts
             {
                 if ((ggv400 & (0x40)) == 0)
                 {
-                    GameObjectBody found_pc = null;
-                    var obj_list = new List<GameObjectBody>();
+                    GameObject found_pc = null;
+                    var obj_list = new List<GameObject>();
                     using var firstList = ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC);
                     obj_list.AddRange(firstList);
                     
@@ -694,7 +694,7 @@ namespace Scripts
             return RunDefault;
         }
 
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.IsUnconscious())
             {
@@ -764,7 +764,7 @@ namespace Scripts
             // attachee.obj_set_int(obj_f_critter_strategy, 82)
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(37, false);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -787,7 +787,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(726, GetGlobalVar(726) + 1);
             if ((GameSystems.Combat.IsCombatActive()))
@@ -892,7 +892,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             if ((StoryState <= 1 && !GetGlobalFlag(806)))
             {
@@ -920,7 +920,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(806)))
             {
@@ -944,7 +944,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             var randy1 = RandomRange(1, 12); // added by ShiningTed
                                              // if (attachee.map == 5065):				## Removed by Livonya
@@ -994,7 +994,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool buff_npc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -1015,7 +1015,7 @@ namespace Scripts
             attachee.CastSpell(WellKnownSpells.ShieldOfFaith, attachee);
             return RunDefault;
         }
-        public static bool buff_npc_two(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc_two(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -1034,7 +1034,7 @@ namespace Scripts
             attachee.CastSpell(WellKnownSpells.BullsStrength, attachee);
             return RunDefault;
         }
-        public static bool buff_npc_three(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool buff_npc_three(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasEquippedByName(1) || !attachee.HasEquippedByName(4071)))
             {
@@ -1043,7 +1043,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             ScriptDaemon.record_time_stamp(425);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -1053,7 +1053,7 @@ namespace Scripts
             }
 
             attachee.RunOff();
-            var obj_list = new List<GameObjectBody>();
+            var obj_list = new List<GameObject>();
             using var firstList = ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC);
             obj_list.AddRange(firstList);
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation().OffsetTiles(- 35, 0), ObjectListFilter.OLC_NPC))
@@ -1108,14 +1108,14 @@ namespace Scripts
             // game.encounter_queue.append(3000)
             return RunDefault;
         }
-        public static bool demo_end_game(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool demo_end_game(GameObject attachee, GameObject triggerer)
         {
             // play slides and end game
             return RunDefault;
         }
         // added by ShiningTed
 
-        public static bool argue_ron(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool argue_ron(GameObject attachee, GameObject triggerer, int line)
         {
             // def argue_ron( attachee, triggerer, line): # added by ShiningTed
             var npc = Utilities.find_npc_near(attachee, 14681);
@@ -1132,7 +1132,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool equip_transfer(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool equip_transfer(GameObject attachee, GameObject triggerer)
         {
             var itemA = attachee.FindItemByName(4071);
             if ((itemA != null))
@@ -1146,7 +1146,7 @@ namespace Scripts
         }
         // added by ShiningTed
 
-        public static bool create_spiders(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool create_spiders(GameObject attachee, GameObject triggerer)
         {
             // def create_spiders( attachee, triggerer ): # added by ShiningTed
             // Modified by Sitra Achara -
@@ -1175,9 +1175,9 @@ namespace Scripts
         }
         public static int lareth_troops_state()
         {
-            GameObjectBody seleucas = null;
-            GameObjectBody lareth_sarge_1 = null;
-            GameObjectBody lareth_sarge_2 = null;
+            GameObject seleucas = null;
+            GameObject lareth_sarge_1 = null;
+            GameObject lareth_sarge_2 = null;
             var troop_count = 0;
             foreach (var obj in ObjList.ListVicinity(new locXY(490, 535), ObjectListFilter.OLC_NPC))
             {
@@ -1213,18 +1213,18 @@ namespace Scripts
         }
         // Destroys object.  Neccessary for time event destruction to work.
 
-        public static int destroy(GameObjectBody obj)
+        public static int destroy(GameObject obj)
         {
             // def destroy(obj): # Destroys object.  Neccessary for time event destruction to work.
             obj.Destroy();
             return 1;
         }
-        public static void lareth_abandon(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void lareth_abandon(GameObject attachee, GameObject triggerer)
         {
             SelectedPartyLeader.RemoveFollower(attachee);
             return;
         }
-        public static bool party_too_far_from_lareth(GameObjectBody lareth)
+        public static bool party_too_far_from_lareth(GameObject lareth)
         {
             foreach (var pc in SelectedPartyLeader.GetPartyMembers())
             {
@@ -1237,7 +1237,7 @@ namespace Scripts
 
             return true;
         }
-        public static bool player_entrenched_in_corridor(GameObjectBody attachee)
+        public static bool player_entrenched_in_corridor(GameObject attachee)
         {
             var outside_corridor_count = 0;
             var pc_count = 0;
@@ -1268,7 +1268,7 @@ namespace Scripts
             }
 
         }
-        public static void kill_beacon_obj(GameObjectBody obj_beacon, GameObjectBody attachee)
+        public static void kill_beacon_obj(GameObject obj_beacon, GameObject attachee)
         {
             if (attachee.D20Query(D20DispatcherKey.QUE_Prone))
             {

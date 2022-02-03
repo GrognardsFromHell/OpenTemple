@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -31,7 +31,7 @@ namespace Scripts
         // from the party
         // returns: the PyObjHandle of the object found, OBJ_HANDLE_NULL if not found
 
-        public static GameObjectBody party_transfer_to(GameObjectBody target, int oname)
+        public static GameObject party_transfer_to(GameObject target, int oname)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -46,7 +46,7 @@ namespace Scripts
 
             return null;
         }
-        public static GameObjectBody find_npc_near(GameObjectBody obj, int name)
+        public static GameObject find_npc_near(GameObject obj, int name)
         {
             foreach (var npc in ObjList.ListVicinity(obj.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -59,7 +59,7 @@ namespace Scripts
 
             return null;
         }
-        public static GameObjectBody find_container_near(GameObjectBody obj, int name)
+        public static GameObject find_container_near(GameObject obj, int name)
         {
             foreach (var container in ObjList.ListVicinity(obj.GetLocation(), ObjectListFilter.OLC_CONTAINER))
             {
@@ -72,7 +72,7 @@ namespace Scripts
 
             return null;
         }
-        public static int group_average_level(GameObjectBody pc)
+        public static int group_average_level(GameObject pc)
         {
             var count = 0;
             var level = 0;
@@ -93,7 +93,7 @@ namespace Scripts
             var avg = (level / count) + (count - 4) / 2;
             return avg;
         }
-        public static int group_wilderness_lore(GameObjectBody pc)
+        public static int group_wilderness_lore(GameObject pc)
         {
             var high = 0;
             var level = 0;
@@ -114,7 +114,7 @@ namespace Scripts
 
             return high;
         }
-        public static int obj_percent_hp(GameObjectBody obj)
+        public static int obj_percent_hp(GameObject obj)
         {
             var curr = obj.GetStat(Stat.hp_current);
             var max = obj.GetStat(Stat.hp_max);
@@ -136,7 +136,7 @@ namespace Scripts
             var percent = (curr * 100) / max;
             return percent;
         }
-        public static int group_percent_hp(GameObjectBody pc)
+        public static int group_percent_hp(GameObject pc)
         {
             var percent = 0;
             var cnt = 0;
@@ -161,7 +161,7 @@ namespace Scripts
 
             return percent;
         }
-        public static int group_pc_percent_hp(GameObjectBody attachee, GameObjectBody pc)
+        public static int group_pc_percent_hp(GameObject attachee, GameObject pc)
         {
             var percent = 0;
             var cnt = 0;
@@ -190,7 +190,7 @@ namespace Scripts
 
             return percent;
         }
-        public static int group_kobort_percent_hp(GameObjectBody attachee, GameObjectBody pc)
+        public static int group_kobort_percent_hp(GameObject attachee, GameObject pc)
         {
             var percent = 0;
             var cnt = 0;
@@ -219,7 +219,7 @@ namespace Scripts
 
             return percent;
         }
-        public static GameObjectBody create_item_in_inventory(int item_proto_num, GameObjectBody npc)
+        public static GameObject create_item_in_inventory(int item_proto_num, GameObject npc)
         {
             var item = GameSystems.MapObject.CreateObject(item_proto_num, npc.GetLocation());
             if ((item != null))
@@ -233,7 +233,7 @@ namespace Scripts
         {
             return GameSystems.TimeEvent.IsDaytime;
         }
-        public static bool is_safe_to_talk(GameObjectBody speaker, GameObjectBody listener, int distt = 15, bool pc_only = true)
+        public static bool is_safe_to_talk(GameObject speaker, GameObject listener, int distt = 15, bool pc_only = true)
         {
             if ((speaker.HasLineOfSight(listener) && (listener.type == ObjectType.pc || !pc_only)))
             {
@@ -264,16 +264,16 @@ namespace Scripts
             return;
         }
 
-        public static bool critter_is_unconscious(GameObjectBody npc) => GameSystems.Critter.IsDeadOrUnconscious(npc);
+        public static bool critter_is_unconscious(GameObject npc) => GameSystems.Critter.IsDeadOrUnconscious(npc);
         // HTN - returns true if obj is an "item" (obj.h)
 
-        public static bool obj_is_item(GameObjectBody obj)
+        public static bool obj_is_item(GameObject obj)
         {
             return (obj.type == ObjectType.projectile) || (obj.type == ObjectType.weapon) || (obj.type == ObjectType.ammo) || (obj.type == ObjectType.armor) || (obj.type == ObjectType.scroll) || (obj.type == ObjectType.bag);
         }
-        public static List<GameObjectBody> pyspell_targetarray_copy_to_obj_list(SpellPacketBody spell)
+        public static List<GameObject> pyspell_targetarray_copy_to_obj_list(SpellPacketBody spell)
         {
-            var copy_list = new List<GameObjectBody>();
+            var copy_list = new List<GameObject>();
             foreach (var item in spell.Targets)
             {
                 copy_list.Add(item.Object);
@@ -288,7 +288,7 @@ namespace Scripts
         // Returns : nada
         // Purpose : queues up all the end slides for the end game
 
-        public static void set_end_slides(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void set_end_slides(GameObject attachee, GameObject triggerer)
         {
             // ZUGGTMOY
             if (GetGlobalFlag(189))
@@ -759,7 +759,7 @@ namespace Scripts
         // Returns : nada
         // Purpose : queues up all the end slides before going to verbobonc/co8
 
-        public static void set_end_slides_nc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void set_end_slides_nc(GameObject attachee, GameObject triggerer)
         {
             // ZUGGTMOY
             if (GetGlobalFlag(189))
@@ -954,7 +954,7 @@ namespace Scripts
         // Returns : nada
         // Purpose : queues up all the co8 slides for the NC end game
 
-        public static void set_end_slides_co8(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void set_end_slides_co8(GameObject attachee, GameObject triggerer)
         {
             // INTRO
             GameSystems.Movies.MovieQueueAdd(700);
@@ -1588,7 +1588,7 @@ namespace Scripts
         // Returns : nada
         // Purpose : queues up the end slides if you join the temple
 
-        public static void set_join_slides(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void set_join_slides(GameObject attachee, GameObject triggerer)
         {
             if (GetGlobalFlag(327))
             {
@@ -1752,7 +1752,7 @@ namespace Scripts
         // Returns : 1 if character is not at full health, else 0
         // Purpose : to heal only characters that need it
 
-        public static int should_heal_hp_on(GameObjectBody obj)
+        public static int should_heal_hp_on(GameObject obj)
         {
             var cur = obj.GetStat(Stat.hp_current);
             var max = obj.GetStat(Stat.hp_max);
@@ -1768,7 +1768,7 @@ namespace Scripts
         // Returns : 1 if obj is diseased, else 0
         // Purpose : to heal only characters that need it
 
-        public static int should_heal_disease_on(GameObjectBody obj)
+        public static int should_heal_disease_on(GameObject obj)
         {
             // check if obj is diseased
             if ((obj.GetStat(Stat.hp_current) >= -9))
@@ -1783,7 +1783,7 @@ namespace Scripts
         // Returns : 1 if obj is poisoned, else 0
         // Purpose : to heal only characters that need it
 
-        public static int should_heal_poison_on(GameObjectBody obj)
+        public static int should_heal_poison_on(GameObject obj)
         {
             // check if obj has poison on them
             if ((obj.GetStat(Stat.hp_current) >= -9))
@@ -1798,7 +1798,7 @@ namespace Scripts
         // Returns : 1 if obj is dead, else 0
         // Purpose : to heal only characters that need it
 
-        public static int should_resurrect_on(GameObjectBody obj)
+        public static int should_resurrect_on(GameObject obj)
         {
             if ((obj.GetStat(Stat.hp_current) <= -10))
             {
@@ -1807,7 +1807,7 @@ namespace Scripts
 
             return 0;
         }
-        public static bool zap(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool zap(GameObject attachee, GameObject triggerer)
         {
             var damage_dice = Dice.Parse("2d4");
             AttachParticles("sp-Shocking Grasp", triggerer);
@@ -1887,7 +1887,7 @@ namespace Scripts
             // def rsetup(): # I commonly make this typo :P - SA
             restup();
         }
-        public static void reward_pc(int proto_id, GameObjectBody pc, GameObjectBody npc)
+        public static void reward_pc(int proto_id, GameObject pc, GameObject npc)
         {
             var aaa = GameSystems.MapObject.CreateObject(proto_id, SelectedPartyLeader.GetLocation());
             if (pc.GetItem(aaa))
@@ -1908,9 +1908,9 @@ namespace Scripts
         }
         
         // mode select: 0 - PCs only; 1 - Controllable PCs and NPCs (summons excluded); 2- group_list
-        public static GameObjectBody party_closest(GameObjectBody attachee, bool conscious_only = true, int mode_select = 1, bool exclude_warded = false, bool exclude_charmed = true, bool exclude_spiritual_weapon = true)
+        public static GameObject party_closest(GameObject attachee, bool conscious_only = true, int mode_select = 1, bool exclude_warded = false, bool exclude_charmed = true, bool exclude_spiritual_weapon = true)
         {
-            GameObjectBody closest_one = null;
+            GameObject closest_one = null;
             foreach (var obj in SelectedPartyLeader.GetPartyMembers())
             {
                 if (((!obj.IsUnconscious()) || !conscious_only) && (obj.type == ObjectType.pc || mode_select >= 1) && (!obj.D20Query(D20DispatcherKey.QUE_ExperienceExempt) || mode_select == 2 || obj.type == ObjectType.pc))
@@ -1940,7 +1940,7 @@ namespace Scripts
         }
         // meant for NPCs, to see if they should be capable of manoeuvring
 
-        public static bool willing_and_capable(GameObjectBody attachee)
+        public static bool willing_and_capable(GameObject attachee)
         {
             // def willing_and_capable( attachee ): # meant for NPCs, to see if they should be capable of manoeuvring
             if (attachee.GetLeader() == null && !attachee.IsUnconscious() && !attachee.D20Query(D20DispatcherKey.QUE_Is_BreakFree_Possible) && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && !attachee.D20Query(D20DispatcherKey.QUE_Helpless) && !attachee.HasCondition(SpellEffects.SpellOtilukesResilientSphere))
@@ -1953,9 +1953,9 @@ namespace Scripts
             }
 
         }
-        public static GameObjectBody GetDelegatePc(GameObjectBody attachee, int distt = 20, bool requireLos = false)
+        public static GameObject GetDelegatePc(GameObject attachee, int distt = 20, bool requireLos = false)
         {
-            GameObjectBody delegatePc = null;
+            GameObject delegatePc = null;
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
                 if ((pc.type == ObjectType.pc && !pc.IsUnconscious() && !pc.D20Query(D20DispatcherKey.QUE_Prone) && attachee.DistanceTo(pc) <= distt && (requireLos || attachee.HasLineOfSight(pc))))

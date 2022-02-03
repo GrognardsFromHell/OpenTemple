@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using OpenTemple.Core;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
@@ -45,7 +45,7 @@ namespace OpenTemple.Windows
         // Types that are known to NOT be singletons and thus don't need to be scanned for singleton access
         private static readonly ISet<Type> KnownInstanceTypes = new HashSet<Type>
         {
-            typeof(GameObjectBody),
+            typeof(GameObject),
             typeof(Dice),
             typeof(locXY),
             typeof(LocAndOffsets)

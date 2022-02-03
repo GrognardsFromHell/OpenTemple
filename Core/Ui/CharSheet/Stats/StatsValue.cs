@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
@@ -14,10 +14,10 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
         private readonly WidgetText _label;
 
-        private readonly Func<GameObjectBody, InlineElement> _valueSupplier;
+        private readonly Func<GameObject, InlineElement> _valueSupplier;
 
         public StatsValue(
-            Func<GameObjectBody, string> valueSupplier,
+            Func<GameObject, string> valueSupplier,
             Rectangle rect,
             StatsUiTexture downImage,
             StatsUiTexture hoverImage,
@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
         }
 
         public StatsValue(
-            Func<GameObjectBody, InlineElement> valueSupplier,
+            Func<GameObject, InlineElement> valueSupplier,
             Rectangle rect,
             StatsUiTexture downImage,
             StatsUiTexture hoverImage,

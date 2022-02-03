@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Logging;
@@ -58,7 +58,7 @@ namespace OpenTemple.Core.Systems
         /// Maintains the same order as the party group.
         /// </summary>
         [TempleDllLocation(0x1002abb0)]
-        private class SelectedMemberComparer : IComparer<GameObjectBody>
+        private class SelectedMemberComparer : IComparer<GameObject>
         {
             private CritterGroup _party;
 
@@ -67,7 +67,7 @@ namespace OpenTemple.Core.Systems
                 _party = party;
             }
 
-            public int Compare(GameObjectBody x, GameObjectBody y)
+            public int Compare(GameObject x, GameObject y)
             {
                 var xIdx = _party.IndexOf(x);
                 var yIdx = _party.IndexOf(y);
@@ -79,7 +79,7 @@ namespace OpenTemple.Core.Systems
         /// Sorts AI followers to the end of the list.
         /// </summary>
         [TempleDllLocation(0x1002b920)]
-        private class PartyMemberComparer : IComparer<GameObjectBody>
+        private class PartyMemberComparer : IComparer<GameObject>
         {
             private readonly CritterGroup _aiFollowers;
             private readonly CritterGroup _party;
@@ -90,7 +90,7 @@ namespace OpenTemple.Core.Systems
                 _party = party;
             }
 
-            public int Compare(GameObjectBody x, GameObjectBody y)
+            public int Compare(GameObject x, GameObject y)
             {
                 if (x == y)
                 {
@@ -141,7 +141,7 @@ namespace OpenTemple.Core.Systems
         public void SaveGame(SavedGameState savedGameState)
         {
 
-            static ObjectId[] SaveGroup(IEnumerable<GameObjectBody> group)
+            static ObjectId[] SaveGroup(IEnumerable<GameObject> group)
             {
                 return group.Select(obj => obj.id).ToArray();
             }
@@ -225,7 +225,7 @@ namespace OpenTemple.Core.Systems
         private const int PARTY_SIZE_MAX = 8;
 
         [TempleDllLocation(0x1002BBE0)]
-        public void AddToPCGroup(GameObjectBody obj)
+        public void AddToPCGroup(GameObject obj)
         {
             var npcFollowers = _npcs.Count;
             var pcs = _pcs.Count;
@@ -240,7 +240,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002BC40)]
-        public void AddToNPCGroup(GameObjectBody obj)
+        public void AddToNPCGroup(GameObject obj)
         {
             var npcFollowers = _npcs.Count;
             if (npcFollowers >= 5)
@@ -258,7 +258,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002B560)]
-        public bool AddToSelection(GameObjectBody obj)
+        public bool AddToSelection(GameObject obj)
         {
             if (!_party.Contains(obj))
                 return false;
@@ -268,7 +268,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002b5a0)]
-        public void RemoveFromSelection(GameObjectBody obj)
+        public void RemoveFromSelection(GameObject obj)
         {
             _selected.Remove(obj);
         }
@@ -280,26 +280,26 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002b5f0)]
-        public bool IsSelected(GameObjectBody obj) => _selected.Contains(obj);
+        public bool IsSelected(GameObject obj) => _selected.Contains(obj);
 
-        public IEnumerable<GameObjectBody> PartyMembers => _party;
+        public IEnumerable<GameObject> PartyMembers => _party;
 
-        public IEnumerable<GameObjectBody> PlayerCharacters => _pcs;
+        public IEnumerable<GameObject> PlayerCharacters => _pcs;
 
         public int PlayerCharactersSize => _pcs.Count;
 
         [TempleDllLocation(0x1002b360)]
         [TempleDllLocation(0x1002b190)]
-        public IEnumerable<GameObjectBody> NPCFollowers => _npcs;
+        public IEnumerable<GameObject> NPCFollowers => _npcs;
 
         public int NPCFollowersSize => _npcs.Count;
 
         public bool HasMaxNPCFollowers => _npcs.Count >= 3;
 
-        public IReadOnlyList<GameObjectBody> Selected => _selected;
+        public IReadOnlyList<GameObject> Selected => _selected;
 
         [TempleDllLocation(0x1002b1b0)]
-        public bool IsInParty(GameObjectBody obj) => _party.Contains(obj);
+        public bool IsInParty(GameObject obj) => _party.Contains(obj);
 
         [TempleDllLocation(0x1002b2b0)]
         public int PartySize => _party.Count;
@@ -307,7 +307,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1002b380)]
         public int AiFollowerCount => _aiFollowers.Count;
 
-        public GameObjectBody GetLeader()
+        public GameObject GetLeader()
         {
             if (_pcs.Count == 0)
             {
@@ -319,7 +319,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x1002BE60)]
         [return:MaybeNull]
-        public GameObjectBody GetConsciousLeader()
+        public GameObject GetConsciousLeader()
         {
             foreach (var selected in _selected)
             {
@@ -355,10 +355,10 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002b150)]
-        public GameObjectBody GetPartyGroupMemberN(int index) => _party[index];
+        public GameObject GetPartyGroupMemberN(int index) => _party[index];
 
         [TempleDllLocation(0x1002B170)]
-        public GameObjectBody GetPCGroupMemberN(int index) => _pcs[index];
+        public GameObject GetPCGroupMemberN(int index) => _pcs[index];
 
         // One entry per coin type
         private int[] _partyMoney = new int[4];
@@ -455,7 +455,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002bd00)]
-        public void RemoveFromAllGroups(GameObjectBody obj)
+        public void RemoveFromAllGroups(GameObject obj)
         {
             _selected.Remove(obj);
             _aiFollowers.Remove(obj);
@@ -465,7 +465,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002bca0)]
-        public bool AddAIFollower(GameObjectBody obj)
+        public bool AddAIFollower(GameObject obj)
         {
             if (_aiFollowers.Count >= 10)
             {
@@ -479,13 +479,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002b220)]
-        public bool IsAiFollower(GameObjectBody obj)
+        public bool IsAiFollower(GameObject obj)
         {
             return _aiFollowers.Contains(obj);
         }
 
         [TempleDllLocation(0x1002b390)]
-        public bool IsPlayerControlled(GameObjectBody obj)
+        public bool IsPlayerControlled(GameObject obj)
         {
             if (!IsInParty(obj))
             {
@@ -508,7 +508,7 @@ namespace OpenTemple.Core.Systems
                 return false;
 
             // check if charmed by someone
-            GameObjectBody leader;
+            GameObject leader;
             if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
                 leader = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Charmed);
@@ -521,7 +521,7 @@ namespace OpenTemple.Core.Systems
             // checked if afraid of someone & can see them
             if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Afraid))
             {
-                GameObjectBody fearer;
+                GameObject fearer;
                 fearer = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Afraid);
                 if (fearer != null && obj.DistanceToObjInFeet(fearer) < 40.0f
                                    && GameSystems.Combat.HasLineOfAttack(fearer, obj))
@@ -648,7 +648,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002B820)]
-        public void GiveMoneyFromItem(GameObjectBody item)
+        public void GiveMoneyFromItem(GameObject item)
         {
             var moneyAmt = item.GetInt32(obj_f.money_quantity);
             var moneyType = item.GetInt32(obj_f.money_type);
@@ -665,13 +665,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002bd50)]
-        public GameObjectBody GetMemberWithHighestSkill(SkillId skill)
+        public GameObject GetMemberWithHighestSkill(SkillId skill)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x1002b240)]
-        public int DistanceToParty(GameObjectBody obj)
+        public int DistanceToParty(GameObject obj)
         {
             var objLocation = obj.GetLocation();
 
@@ -714,7 +714,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public int IndexOf(GameObjectBody critter) => _party.IndexOf(critter);
+        public int IndexOf(GameObject critter) => _party.IndexOf(critter);
 
         [TempleDllLocation(0x1002b610)]
         public void SaveSelection(int groupIndex)

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(262)]
     public class BurneApprentice : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((attachee.GetLeader() != null))
@@ -57,7 +57,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -94,7 +94,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -118,12 +118,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             attachee.FloatLine(12057, triggerer);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -146,12 +146,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(239, true);
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(239, false);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -162,7 +162,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             var randy1 = RandomRange(1, 16);
             if (((attachee.GetMap() == 5012) && randy1 >= 14))
@@ -176,7 +176,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool destroy_orb(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool destroy_orb(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(326, true);
             // set timer for 4 days and then end game or go to verbo
@@ -184,7 +184,7 @@ namespace Scripts
             ScriptDaemon.record_time_stamp("s_zuggtmoy_banishment_initiate");
             return RunDefault;
         }
-        public static void pishella_destroy_skull_while_party_npc(GameObjectBody pc, GameObjectBody npc)
+        public static void pishella_destroy_skull_while_party_npc(GameObject pc, GameObject npc)
         {
             var pisha = GameSystems.MapObject.CreateObject(14447, npc.GetLocation());
             pisha.SetObjectFlag(ObjectFlag.DONTDRAW);
@@ -195,14 +195,14 @@ namespace Scripts
             Utilities.party_transfer_to(pisha, 2203);
             pisha.SetObjectFlag(ObjectFlag.OFF);
         }
-        public static bool play_effect(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool play_effect(GameObject attachee, GameObject triggerer)
         {
             // play particle effect to destroy the orb
             AttachParticles("orb-destroy", attachee);
             Sound(4036, 1);
             return RunDefault;
         }
-        public static bool return_Zuggtmoy(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool return_Zuggtmoy(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(188) && !GetGlobalFlag(189)))
             {
@@ -232,7 +232,7 @@ namespace Scripts
         {
             FadeAndTeleport(0, 0, 0, 5121, 228, 507);
         }
-        public static bool switch_to_tarah(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_tarah(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8805);
             var pishella = Utilities.find_npc_near(attachee, 8069);

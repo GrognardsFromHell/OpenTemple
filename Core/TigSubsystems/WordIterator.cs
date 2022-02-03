@@ -60,8 +60,8 @@ namespace OpenTemple.Core.TigSubsystems
             this.font = font;
             this.extents = extents;
             this.style = style;
-            this.glyphs = font.FontFace.Glyphs;
-            this.state = 0;
+            glyphs = font.FontFace.Glyphs;
+            state = 0;
         }
 
         internal bool MoveToNextRun(out LayoutRun nextRun)
@@ -74,7 +74,7 @@ namespace OpenTemple.Core.TigSubsystems
                     nextRun = default;
                     return false;
                 case 0:
-                    this.currentY = extents.Y;
+                    currentY = extents.Y;
 
                     lastLine = false;
 

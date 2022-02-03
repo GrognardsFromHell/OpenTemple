@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
@@ -11,7 +11,7 @@ namespace OpenTemple.Core.Systems
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private static int GetLevelForResurrection(GameObjectBody critter)
+        private static int GetLevelForResurrection(GameObject critter)
         {
             if (critter.IsPC())
             {
@@ -24,7 +24,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100809c0)]
-        public static bool Resurrect(GameObjectBody critter, ResurrectionType type)
+        public static bool Resurrect(GameObject critter, ResurrectionType type)
         {
             var success = false;
             if (CanResurrect(critter, type))
@@ -38,7 +38,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080870)]
-        public static bool CanResurrect(GameObjectBody critter, ResurrectionType type)
+        public static bool CanResurrect(GameObject critter, ResurrectionType type)
         {
             if (!critter.HasFlag(ObjectFlag.DESTROYED) && GameSystems.Stat.GetCurrentHP(critter) > -10)
             {
@@ -86,7 +86,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007fd30)]
-        private static bool ResurrectAndApplyPenalties(GameObjectBody critter, ResurrectionType type)
+        private static bool ResurrectAndApplyPenalties(GameObject critter, ResurrectionType type)
         {
             switch (type)
             {

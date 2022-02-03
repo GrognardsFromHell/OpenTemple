@@ -290,11 +290,11 @@ namespace OpenTemple.Core.AAS
 		var anims = skeleton.Animations;
 		Trace.Assert(animIdx >= 0 && animIdx < anims.Count);
 
-		this.animation = anims[animIdx];
-		this.distancePerSecond = animation.Streams[0].DPS;
-		this.frameRate = animation.Streams[0].FrameRate;
+		animation = anims[animIdx];
+		distancePerSecond = animation.Streams[0].DPS;
+		frameRate = animation.Streams[0].FrameRate;
 		SetEvents(owner, animation);
-		this.streamCount = 0;
+		streamCount = 0;
 
 		// TODO: The entire variation stuff is unused I think
 		Span<int> skaStreamIdxMap = stackalloc int[4]; // Maps this player's streams to their respective idx in the SKA anim

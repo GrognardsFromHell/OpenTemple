@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;
@@ -70,7 +70,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x101870c0)]
-        public void Finalize(CharEditorSelectionPacket pkt, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket pkt, ref GameObject playerObj)
         {
             Trace.Assert(pkt.deityId.HasValue);
             playerObj.SetInt32(obj_f.critter_deity, (int) pkt.deityId.Value);

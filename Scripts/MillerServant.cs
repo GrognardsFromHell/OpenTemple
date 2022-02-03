@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,18 +23,18 @@ namespace Scripts
     [ObjectScript(13)]
     public class MillerServant : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public static bool beggar_soon(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool beggar_soon(GameObject attachee, GameObject triggerer)
         {
             triggerer.AddCondition("Fallen_Paladin", 0, 0);
             StartTimer(86400000, () => beggar_now(attachee, triggerer));
             return RunDefault;
         }
-        public static bool beggar_now(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool beggar_now(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             SetGlobalFlag(199, true);
@@ -51,14 +51,14 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool complete_quest(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool complete_quest(GameObject attachee, GameObject triggerer)
         {
             SetQuestState(10, QuestState.Completed);
             attachee.AdjustReaction(triggerer, +30);
             StartTimer(90000000, () => visited_church(attachee, triggerer));
             return RunDefault;
         }
-        public static bool visited_church(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool visited_church(GameObject attachee, GameObject triggerer)
         {
             GetGlobalFlag(302);
             return RunDefault;

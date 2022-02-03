@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Jaer : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -40,7 +40,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -60,7 +60,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             if (((attachee.GetArea() == 1) || (attachee.GetArea() == 3)))
             {
@@ -75,7 +75,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool transfer_fire_balls(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool transfer_fire_balls(GameObject attachee, GameObject triggerer)
         {
             while ((attachee.FindItemByName(2207) != null))
             {
@@ -88,7 +88,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             return RunDefault;

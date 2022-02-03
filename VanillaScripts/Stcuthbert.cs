@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace VanillaScripts
     public class Stcuthbert : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(328, true);
             if ((!GameSystems.Combat.IsCombatActive()))
@@ -49,7 +49,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool switch_to_iuz(GameObjectBody cuthbert, GameObjectBody pc, int line)
+        public static bool switch_to_iuz(GameObject cuthbert, GameObject pc, int line)
         {
             var iuz = Utilities.find_npc_near(cuthbert, 8042);
 
@@ -66,7 +66,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool cuthbert_raise_good(GameObjectBody cuthbert, GameObjectBody pc)
+        public static bool cuthbert_raise_good(GameObject cuthbert, GameObject pc)
         {
             foreach (var obj in GameSystems.Party.PartyMembers)
             {
@@ -86,7 +86,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool turn_off_gods(GameObjectBody cuthbert, GameObjectBody pc)
+        public static bool turn_off_gods(GameObject cuthbert, GameObject pc)
         {
             cuthbert.RemoveFromInitiative();
             cuthbert.SetObjectFlag(ObjectFlag.OFF);

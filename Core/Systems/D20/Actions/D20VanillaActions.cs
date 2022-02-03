@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -233,7 +233,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         {
             var itemSlot = 203;
             var target = action.d20ATarget;
-            GameObjectBody thrownItem = null;
+            GameObject thrownItem = null;
             var targetLoc = action.d20ATarget.GetLocationFull();
             var sourceLoc = action.d20APerformer.GetLocationFull();
             if (!action.d20Caf.HasFlag(D20CAF.HIT))
@@ -246,7 +246,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 targetLoc = LocAndOffsets.FromInches(targetLoc.ToInches2D() + hitOffset);
             }
 
-            GameObjectBody weapon = null;
+            GameObject weapon = null;
             if (!action.d20Caf.HasFlag(D20CAF.TOUCH_ATTACK))
             {
                 weapon = GameSystems.D20.GetAttackWeapon(action.d20APerformer, action.data1, action.d20Caf);
@@ -305,8 +305,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
 
         [TempleDllLocation(0x100982e0)]
-        public static bool RangedAttackProjectileHit(D20Action action, GameObjectBody projectile,
-            GameObjectBody thrownItem)
+        public static bool RangedAttackProjectileHit(D20Action action, GameObject projectile,
+            GameObject thrownItem)
         {
             var attacker = action.d20APerformer;
             GameSystems.RollHistory.CreateRollHistoryString(action.rollHistId1);
@@ -436,8 +436,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return true;
         }
 
-        private static void ThrowThrownItemBack(GameObjectBody attacker, GameObjectBody defender,
-            GameObjectBody thrownItem,
+        private static void ThrowThrownItemBack(GameObject attacker, GameObject defender,
+            GameObject thrownItem,
             int useWeaponSlot,
             D20CAF attackFlags)
         {
@@ -911,10 +911,10 @@ namespace OpenTemple.Core.Systems.D20.Actions
                 projectileProto = 3000;
             }
 
-            var newTargets = new List<GameObjectBody>();
+            var newTargets = new List<GameObject>();
             if (targettingMode == UiPickerType.Multi)
             {
-                spellPkt.projectiles = new GameObjectBody[spellPkt.Targets.Length];
+                spellPkt.projectiles = new GameObject[spellPkt.Targets.Length];
 
                 for (var i = 0; i < spellPkt.projectiles.Length; i++)
                 {
@@ -959,7 +959,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             }
             else if (targettingMode == UiPickerType.Single || targettingMode == UiPickerType.Area)
             {
-                GameObjectBody projectile;
+                GameObject projectile;
                 if (targettingMode == UiPickerType.Single || spellPkt.animFlags.HasFlag(SpellAnimationFlag.SAF_UNK8))
                 {
                     projectile = GameSystems.D20.Combat.CreateProjectileAndThrow(
@@ -2076,7 +2076,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
 
         [TempleDllLocation(0x1008fbe0)]
-        public static bool ThrowGrenadeProjectileHit(D20Action action, GameObjectBody target, GameObjectBody ammoItem)
+        public static bool ThrowGrenadeProjectileHit(D20Action action, GameObject target, GameObject ammoItem)
         {
             GameSystems.RollHistory.CreateRollHistoryString(action.rollHistId1);
             GameSystems.RollHistory.CreateRollHistoryString(action.rollHistId2);

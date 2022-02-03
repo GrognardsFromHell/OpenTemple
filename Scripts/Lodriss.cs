@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace Scripts
     [ObjectScript(117)]
     public class Lodriss : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             // Respawn
             if ((!GetGlobalFlag(912)))
@@ -61,7 +61,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -77,7 +77,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             if (GetQuestState(42) == QuestState.Completed)
             {
@@ -88,23 +88,23 @@ namespace Scripts
             SetGlobalFlag(369, false);
             return RunDefault;
         }
-        public static bool kill_lodriss(GameObjectBody attachee)
+        public static bool kill_lodriss(GameObject attachee)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             ScriptDaemon.set_f("lodriss_killed_outside");
             return RunDefault;
         }
-        public static bool kill_skole(GameObjectBody attachee)
+        public static bool kill_skole(GameObject attachee)
         {
             StartTimer(86400000, () => skole_dead(attachee));
             return RunDefault;
         }
-        public static bool skole_dead(GameObjectBody attachee)
+        public static bool skole_dead(GameObject attachee)
         {
             SetGlobalFlag(201, true);
             return RunDefault;
         }
-        public static bool get_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_rep(GameObject attachee, GameObject triggerer)
         {
             if (!triggerer.HasReputation(7))
             {
@@ -119,7 +119,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool make_like(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool make_like(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetReaction(triggerer) <= 71))
             {
@@ -128,7 +128,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static int check_skole(GameObjectBody attachee)
+        public static int check_skole(GameObject attachee)
         {
             var skole = Utilities.find_npc_near(attachee, 14134);
             if ((skole == null))
@@ -149,14 +149,14 @@ namespace Scripts
 
             return 0;
         }
-        public static bool evac_partial(GameObjectBody attachee)
+        public static bool evac_partial(GameObject attachee)
         {
             ScriptDaemon.set_f("boatmens_tavern_evac_on");
             attachee.SetScriptId(ObjScriptEvent.FirstHeartbeat, 117);
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool evac(GameObjectBody attachee)
+        public static bool evac(GameObject attachee)
         {
             ScriptDaemon.set_f("boatmens_tavern_evac_on");
             attachee.SetScriptId(ObjScriptEvent.FirstHeartbeat, 117); // san_first_heartbeat
@@ -176,7 +176,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void respawn(GameObjectBody attachee)
+        public static void respawn(GameObject attachee)
         {
             var box = Utilities.find_container_near(attachee, 1004);
             InventoryRespawn.RespawnInventory(box);

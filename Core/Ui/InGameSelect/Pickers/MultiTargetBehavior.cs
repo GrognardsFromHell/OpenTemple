@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -24,7 +24,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x100b9ba0)]
-        private bool AlreadyHasTarget(GameObjectBody target)
+        private bool AlreadyHasTarget(GameObject target)
         {
             if (target == null)
             {
@@ -59,7 +59,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10136f50)]
-        private void AddTarget(GameObjectBody obj)
+        private void AddTarget(GameObject obj)
         {
             if (Result.HasMultipleResults)
             {
@@ -70,7 +70,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
                 var previousTarget = Result.handle;
                 ClearResults();
                 Result.flags = PickerResultFlags.PRF_HAS_MULTI_OBJ;
-                Result.objList = new List<GameObjectBody> {previousTarget, obj};
+                Result.objList = new List<GameObject> {previousTarget, obj};
             }
             else
             {
@@ -81,7 +81,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10138370)]
-        private bool PickerMultiHandleTargetSelection(GameObjectBody handle)
+        private bool PickerMultiHandleTargetSelection(GameObject handle)
         {
             if (!CanAddTarget(handle))
             {
@@ -107,7 +107,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             return FinalizePicker();
         }
 
-        private bool CanAddTarget(GameObjectBody handle)
+        private bool CanAddTarget(GameObject handle)
         {
             if (Picker.modeTarget.HasFlag(UiPickerType.OnceMulti) && AlreadyHasTarget(handle))
             {

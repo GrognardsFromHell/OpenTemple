@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -70,7 +70,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10043390)]
-        private bool GetFormationOffset(GameObjectBody obj, float rotation, out float xOut, out float yOut)
+        private bool GetFormationOffset(GameObject obj, float rotation, out float xOut, out float yOut)
         {
             // Calculate the maximum diameter of any party member
             var maxDiameter = 0.0f;
@@ -179,7 +179,7 @@ namespace OpenTemple.Core.Systems
             return i != 0;
         }
 
-        private bool FindIntersectingPosition(IReadOnlyList<GameObjectBody> partyMembers,
+        private bool FindIntersectingPosition(IReadOnlyList<GameObject> partyMembers,
             ReadOnlySpan<LocAndOffsets> positions,
             Vector2 partyMemberPos,
             float partyMemberRadius)
@@ -388,7 +388,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100435c0)]
-        private void PartySelectedFormationMoveToPosition_FindPath(GameObjectBody partyMember, int count,
+        private void PartySelectedFormationMoveToPosition_FindPath(GameObject partyMember, int count,
             LocAndOffsets from, LocAndOffsets plannedPos, out LocAndOffsets actualPos)
         {
             actualPos = plannedPos;

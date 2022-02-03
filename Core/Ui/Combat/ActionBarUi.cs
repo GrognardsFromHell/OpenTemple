@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
@@ -26,7 +26,7 @@ namespace OpenTemple.Core.Ui.Combat
         private bool uiCombat_10C040B0;
 
         [TempleDllLocation(0x10c040c0)]
-        private GameObjectBody actionBarActor;
+        private GameObject actionBarActor;
 
         [TempleDllLocation(0x10c040b8)]
         private readonly ActionBar _actionBar = GameSystems.Vagrant.AllocateActionBar();

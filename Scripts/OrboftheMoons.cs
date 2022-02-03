@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,14 +23,14 @@ namespace Scripts
     [ObjectScript(284)]
     public class OrboftheMoons : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
         // this is for oil, acid, Alchemist's fire etc
 
-        public override bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             // def san_insert_item( attachee, triggerer ):	## this is for oil, acid, Alchemist's fire etc
             var cap1 = triggerer.GetNameId();
@@ -79,12 +79,12 @@ namespace Scripts
             // outside combat we don't have to worry, it's just party members moving it around
             return RunDefault;
         }
-        public override bool OnRemoveItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnRemoveItem(GameObject attachee, GameObject triggerer)
         {
             attachee.Destroy();
             return RunDefault;
         }
-        public static void get_rid_of_it(GameObjectBody obj, GameObjectBody victim)
+        public static void get_rid_of_it(GameObject obj, GameObject victim)
         {
             var eff1 = obj.GetInt(obj_f.item_pad_i_1);
             if (eff1 == 0 || eff1 == null)

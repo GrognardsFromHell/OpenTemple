@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 
 namespace OpenTemple.Core.Systems.Protos
@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Systems.Protos
             2011, 2012, 2013, 2014, 2015, 2035, 2036, 2037, 2038, 2039
         };
 
-        public static void SetDefaultValues(int protoId, GameObjectBody obj)
+        public static void SetDefaultValues(int protoId, GameObject obj)
         {
             obj.SetInt32(obj_f.description, protoId);
             obj.SetFloat(obj_f.radius, 0);

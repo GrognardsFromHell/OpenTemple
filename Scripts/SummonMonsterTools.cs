@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -38,7 +38,7 @@ namespace Scripts
 
             return;
         }
-        public static GameObjectBody SummonMonster_GetHandle(SpellPacketBody spell, int proto_id)
+        public static GameObject SummonMonster_GetHandle(SpellPacketBody spell, int proto_id)
         {
             // Returns a handle that can be used to manipulate the familiar creature object
             foreach (var obj in ObjList.ListVicinity(spell.aoeCenter.location, ObjectListFilter.OLC_CRITTERS))
@@ -58,18 +58,18 @@ namespace Scripts
 
             return null;
         }
-        public static int SummonMonster_Get_ID(GameObjectBody obj)
+        public static int SummonMonster_Get_ID(GameObject obj)
         {
             // Returns embedded ID number
             return obj.GetInt(obj_f.secretdoor_dc);
         }
-        public static int SummonMonster_Set_ID(GameObjectBody obj, int val)
+        public static int SummonMonster_Set_ID(GameObject obj, int val)
         {
             // Embeds ID number into mobile object.  Returns ID number.
             obj.SetInt(obj_f.secretdoor_dc, val);
             return obj.GetInt(obj_f.secretdoor_dc);
         }
-        public static void SummonMonster_Clear_ID(GameObjectBody obj)
+        public static void SummonMonster_Clear_ID(GameObject obj)
         {
             // Clears embedded ID number from mobile object
             obj.SetInt(obj_f.secretdoor_dc, 0);

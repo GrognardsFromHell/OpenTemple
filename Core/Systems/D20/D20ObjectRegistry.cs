@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Resources;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 
 namespace OpenTemple.Core.Systems.D20
@@ -11,9 +11,9 @@ namespace OpenTemple.Core.Systems.D20
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BCAD94)] [TempleDllLocation(0x10BCAD98)]
-        private readonly List<GameObjectBody> _objects = new List<GameObjectBody>();
+        private readonly List<GameObject> _objects = new List<GameObject>();
 
-        public IEnumerable<GameObjectBody> Objects => _objects;
+        public IEnumerable<GameObject> Objects => _objects;
 
         [TempleDllLocation(0x100dfa30)]
         public D20ObjectRegistry()
@@ -55,7 +55,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100dfad0)]
-        public void Add(GameObjectBody obj)
+        public void Add(GameObject obj)
         {
             if (!_objects.Contains(obj))
             {
@@ -64,13 +64,13 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100dfb00)]
-        public bool Contains(GameObjectBody obj)
+        public bool Contains(GameObject obj)
         {
             return _objects.Contains(obj);
         }
 
         [TempleDllLocation(0x100dfb50)]
-        public void Remove(GameObjectBody obj)
+        public void Remove(GameObject obj)
         {
             _objects.Remove(obj);
         }

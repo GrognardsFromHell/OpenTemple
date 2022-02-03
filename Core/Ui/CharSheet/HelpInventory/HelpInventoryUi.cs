@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -54,12 +54,12 @@ namespace OpenTemple.Core.Ui.CharSheet.HelpInventory
         }
 
         [TempleDllLocation(0x101628D0)]
-        public InlineElement GetObjectHelp(GameObjectBody obj, GameObjectBody observer)
+        public InlineElement GetObjectHelp(GameObject obj, GameObject observer)
         {
             return UiSystems.Tooltip.GetObjectDescriptionContent(obj, observer);
         }
 
-        public void ShowItemDescription(GameObjectBody item, GameObjectBody observer)
+        public void ShowItemDescription(GameObject item, GameObject observer)
         {
             var text = UiSystems.CharSheet.Help.GetObjectHelp(item, observer);
             SetHelpText(text);

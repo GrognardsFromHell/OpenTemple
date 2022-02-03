@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -44,12 +44,12 @@ namespace VanillaScripts.Spells
         {
             Logger.Info("Produce Flame OnBeginRound");
         }
-        public override void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Produce Flame OnBeginProjectile");
             SetProjectileParticles(projectile, AttachParticles("sp-Produce Flame-proj", projectile));
         }
-        public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Produce Flame OnEndProjectile");
             spell.caster.D20SendSignalEx(D20DispatcherKey.SIG_TouchAttack, spell.Targets[index_of_target].Object);

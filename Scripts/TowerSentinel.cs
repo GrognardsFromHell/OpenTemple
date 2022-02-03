@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(121)]
     public class TowerSentinel : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8002))))
             {
@@ -36,7 +36,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -45,7 +45,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -98,7 +98,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool talk_lareth(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool talk_lareth(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8002);
             if ((npc != null))
@@ -110,7 +110,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             // loc = location_from_axis(427,406)
             // attachee.runoff(loc)
@@ -118,7 +118,7 @@ namespace Scripts
             Co8.Timed_Destroy(attachee, 5000);
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -131,14 +131,14 @@ namespace Scripts
 
             return false;
         }
-        public static void call_leader(GameObjectBody npc, GameObjectBody pc)
+        public static void call_leader(GameObject npc, GameObject pc)
         {
             var leader = PartyLeader;
             leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
             leader.BeginDialog(npc, 1);
             return;
         }
-        public static void call_leaderplease(GameObjectBody npc, GameObjectBody pc)
+        public static void call_leaderplease(GameObject npc, GameObject pc)
         {
             var leader = PartyLeader;
             leader.Move(pc.GetLocation().OffsetTiles(-2, 0));

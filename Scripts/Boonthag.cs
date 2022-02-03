@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,13 +23,13 @@ namespace Scripts
     [ObjectScript(593)]
     public class Boonthag : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5095))
             {
@@ -52,7 +52,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -63,7 +63,7 @@ namespace Scripts
             SetGlobalFlag(568, true);
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5095) && (GetGlobalVar(986) == 3))
             {
@@ -78,7 +78,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5095))
             {
@@ -172,7 +172,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             var kallop = Utilities.find_npc_near(attachee, 8815);
@@ -181,7 +181,7 @@ namespace Scripts
             kallop.RunOff(location);
             return RunDefault;
         }
-        public static bool comment_20(GameObjectBody speaker, GameObjectBody listener)
+        public static bool comment_20(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 20))
             {
@@ -190,7 +190,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool boonthag_exit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool boonthag_exit(GameObject attachee, GameObject triggerer)
         {
             attachee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
             attachee.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
@@ -202,13 +202,13 @@ namespace Scripts
             StartTimer(8000, () => boonthag_off(attachee, triggerer));
             return RunDefault;
         }
-        public static bool boonthag_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool boonthag_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             ScriptDaemon.npc_set(attachee, 3);
             return RunDefault;
         }
-        public static bool increment_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool increment_rep(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(81)))
             {

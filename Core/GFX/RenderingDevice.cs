@@ -1826,11 +1826,11 @@ namespace OpenTemple.Core.GFX
         [MaybeNull]
         private SharpDX.Direct3D11.Device1 _d3d11Device1;
 
-        private SharpDX.Direct3D11.DeviceContext _context;
+        private DeviceContext _context;
         private ResourceRef<RenderTargetTexture> _backBuffer;
         private ResourceRef<RenderTargetDepthStencil> _backBufferDepthStencil;
 
-        internal SharpDX.Direct3D11.DeviceContext Context => _context;
+        internal DeviceContext Context => _context;
 
         struct RenderTarget
         {
@@ -1920,7 +1920,7 @@ namespace OpenTemple.Core.GFX
             /// </summary>
             public IntPtr WindowHandle { get; }
 
-            private SharpDX.DXGI.SwapChain _swapChain;
+            private SwapChain _swapChain;
 
             public WindowOutputSurface(D3D11Device device, IntPtr windowHandle)
             {

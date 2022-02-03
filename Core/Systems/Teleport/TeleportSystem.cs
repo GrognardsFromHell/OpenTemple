@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20;
@@ -33,8 +33,8 @@ namespace OpenTemple.Core.Systems.Teleport
         private bool _isTeleportingPc = false;
 
         [TempleDllLocation(0x10ab74bc)]
-        private readonly List<Tuple<GameObjectBody, locXY>> _teleportingObjects =
-            new List<Tuple<GameObjectBody, locXY>>();
+        private readonly List<Tuple<GameObject, locXY>> _teleportingObjects =
+            new List<Tuple<GameObject, locXY>>();
 
         [TempleDllLocation(0x10084ae0)]
         public bool IsProcessing { get; private set; }
@@ -384,7 +384,7 @@ namespace OpenTemple.Core.Systems.Teleport
             }
         }
 
-        private bool TryMoveTo(GameObjectBody partyMember, float radius, LocAndOffsets currentLocation,
+        private bool TryMoveTo(GameObject partyMember, float radius, LocAndOffsets currentLocation,
             float xOffset, float yOffset)
         {
             var loc = new LocAndOffsets(
@@ -476,7 +476,7 @@ namespace OpenTemple.Core.Systems.Teleport
         }
 
         [TempleDllLocation(0x10084fb0)]
-        public void RemoveObjectFromCurrentMap(GameObjectBody obj)
+        public void RemoveObjectFromCurrentMap(GameObject obj)
         {
             ResetObject(obj);
 
@@ -497,7 +497,7 @@ namespace OpenTemple.Core.Systems.Teleport
         }
 
         [TempleDllLocation(0x10084b30)]
-        private void ResetObject(GameObjectBody obj)
+        private void ResetObject(GameObject obj)
         {
             GameSystems.Anim.Interrupt(obj, AnimGoalPriority.AGP_5, false);
 
@@ -520,7 +520,7 @@ namespace OpenTemple.Core.Systems.Teleport
         }
 
         [TempleDllLocation(0x100856d0)]
-        private void AddTeleportingObject(GameObjectBody obj, locXY location)
+        private void AddTeleportingObject(GameObject obj, locXY location)
         {
             var flags = obj.GetFlags();
             if (flags.HasFlag(ObjectFlag.TEXT))
@@ -587,13 +587,13 @@ namespace OpenTemple.Core.Systems.Teleport
         }
 
         [TempleDllLocation(0x100850a0)]
-        public bool HasDayNightTransfer(GameObjectBody obj)
+        public bool HasDayNightTransfer(GameObject obj)
         {
             return _dayNightTransfer.HasDayNightTransfer(obj);
         }
 
         [TempleDllLocation(0x10085020)]
-        public int GetCurrentDayNightTransferMap(GameObjectBody obj)
+        public int GetCurrentDayNightTransferMap(GameObject obj)
         {
             return _dayNightTransfer.GetCurrentDayNightTransferMap(obj);
         }
@@ -605,7 +605,7 @@ namespace OpenTemple.Core.Systems.Teleport
         }
 
         [TempleDllLocation(0x10085110)]
-        public void RemoveDayNightTransfer(GameObjectBody critter)
+        public void RemoveDayNightTransfer(GameObject critter)
         {
             _dayNightTransfer.RemoveDayNightTransfer(critter);
         }
@@ -614,7 +614,7 @@ namespace OpenTemple.Core.Systems.Teleport
         /// Checks if a given object is being moved to another map.
         /// </summary>
         [TempleDllLocation(0x10084af0)]
-        public bool IsTeleporting(GameObjectBody obj)
+        public bool IsTeleporting(GameObject obj)
         {
             foreach (var (teleportingObj, _) in _teleportingObjects)
             {

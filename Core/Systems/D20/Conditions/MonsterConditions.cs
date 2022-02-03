@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Actions;
@@ -667,7 +667,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             }
         }
 
-        private static void FleeFromTargetOrParty(GameObjectBody npc, GameObjectBody target)
+        private static void FleeFromTargetOrParty(GameObject npc, GameObject target)
         {
             if (GameSystems.Party.IsInParty(target))
             {

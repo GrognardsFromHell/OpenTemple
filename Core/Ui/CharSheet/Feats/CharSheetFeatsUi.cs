@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Feats;
@@ -82,7 +82,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Feats
         }
 
         [TempleDllLocation(0x101bbdb0)]
-        public void Show(GameObjectBody critter)
+        public void Show(GameObject critter)
         {
             // Build the list of feats to display
             _featsToDisplay.Clear();

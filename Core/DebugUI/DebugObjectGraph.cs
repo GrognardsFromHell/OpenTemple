@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 
 namespace OpenTemple.Core.DebugUI
@@ -70,8 +70,8 @@ namespace OpenTemple.Core.DebugUI
         {
             private static long _counter = 1;
 
-            private static readonly ConditionalWeakTable<GameObjectBody, IdAttachment> Table
-                = new ConditionalWeakTable<GameObjectBody, IdAttachment>();
+            private static readonly ConditionalWeakTable<GameObject, IdAttachment> Table
+                = new ConditionalWeakTable<GameObject, IdAttachment>();
 
             public long Id { get; }
 
@@ -80,13 +80,13 @@ namespace OpenTemple.Core.DebugUI
                 Id = _counter++;
             }
 
-            public static long GetId(GameObjectBody obj)
+            public static long GetId(GameObject obj)
             {
                 return Table.GetOrCreateValue(obj).Id;
             }
         }
 
-        private void RenderObjectNode(GameObjectBody obj)
+        private void RenderObjectNode(GameObject obj)
         {
             var header = obj.type + " - " + GameSystems.MapObject.GetDisplayName(obj);
 
@@ -117,7 +117,7 @@ namespace OpenTemple.Core.DebugUI
             ImGui.PopID();
         }
 
-        private void RenderObjectInfo(GameObjectBody obj)
+        private void RenderObjectInfo(GameObject obj)
         {
             if (!obj.IsProto())
             {

@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.GameObjects;

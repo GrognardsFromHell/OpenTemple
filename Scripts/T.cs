@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -42,7 +42,7 @@ namespace Scripts
             FadeAndTeleport(0, 0, 0, 5121, 509, 652);
         }
         
-        public static GameObjectBody tf()
+        public static GameObject tf()
         {
             var obj = s(14000 + GetGlobalVar(998));
             Logger.Info("{0}", obj.GetInt32(obj_f.npc_pad_i_3) + " " + obj.GetInt32(obj_f.npc_pad_i_4) + " " + obj.GetInt32(obj_f.npc_pad_i_5));
@@ -292,7 +292,7 @@ namespace Scripts
 
             return;
         }
-        public static string which_class(GameObjectBody pc)
+        public static string which_class(GameObject pc)
         {
             var lev_barb = pc.GetStat(Stat.level_barbarian);
             var lev_bard = pc.GetStat(Stat.level_bard);
@@ -593,7 +593,7 @@ namespace Scripts
 
             return;
         }
-        public static bool giv(GameObjectBody pc, int proto_id, bool in_group = false)
+        public static bool giv(GameObject pc, int proto_id, bool in_group = false)
         {
             if (!in_group)
             {
@@ -644,7 +644,7 @@ namespace Scripts
         }
         // AI tester, optionally select different proto (default - troll)
 
-        public static GameObjectBody tai(int strat, int prot = 14262)
+        public static GameObject tai(int strat, int prot = 14262)
         {
             // def tai(strat, prot = 14262): # AI tester, optionally select different proto (default - troll)
             SetGlobalFlag(403, true); // Test mode flag
@@ -659,7 +659,7 @@ namespace Scripts
         }
         // AI tester, by proto, optionally alter strategy
 
-        public static GameObjectBody ptai(int prot, int strat)
+        public static GameObject ptai(int prot, int strat)
         {
             // def ptai(prot, strat = -999): # AI tester, by proto, optionally alter strategy
             SetGlobalFlag(403, true); // Test mode flag
@@ -702,7 +702,7 @@ namespace Scripts
         }
         // Test Spiritual Weapon Thingamajig
 
-        public static GameObjectBody tsw()
+        public static GameObject tsw()
         {
             // def tsw():	# Test Spiritual Weapon Thingamajig
             SetGlobalFlag(403, true); // Test mode flag
@@ -716,9 +716,9 @@ namespace Scripts
             return tro;
         }
 
-        public static List<GameObjectBody> fnl(int obj_name, int radius)
+        public static List<GameObject> fnl(int obj_name, int radius)
         {
-            var gladius = new List<GameObjectBody>();
+            var gladius = new List<GameObject>();
             foreach (var moshe in ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC))
             {
                 if (moshe.DistanceTo(PartyLeader) <= radius && moshe.GetNameId() == obj_name)
@@ -730,7 +730,7 @@ namespace Scripts
 
             return gladius;
         }
-        public static GameObjectBody bsp(int prot)
+        public static GameObject bsp(int prot)
         {
             var a = GameSystems.MapObject.CreateObject(prot, SelectedPartyLeader.GetLocation());
             a.ClearNpcFlag(NpcFlag.KOS);
@@ -806,9 +806,9 @@ namespace Scripts
 
             }
         }
-        public static List<GameObjectBody> vlist3(int radius)
+        public static List<GameObject> vlist3(int radius)
         {
-            var gladius = new List<GameObjectBody>();
+            var gladius = new List<GameObject>();
             foreach (var moshe in ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC))
             {
                 if (moshe.DistanceTo(PartyLeader) <= radius)
@@ -835,7 +835,7 @@ namespace Scripts
 
             return gladius;
         }
-        public static void hl(GameObjectBody obj)
+        public static void hl(GameObject obj)
         {
             // highlight the sucker
             AttachParticles("ef-minocloud", obj);
@@ -1145,7 +1145,7 @@ namespace Scripts
         // @	@	@	@	@	@	@	@	@	@
         // ------------------------------------------------------------------------------------------
 
-        public static GameObjectBody s(int prot)
+        public static GameObject s(int prot)
         {
             var (x, y) = SelectedPartyLeader.GetLocation();
             var a = spawn(prot, x, y + 1);
@@ -1177,7 +1177,7 @@ namespace Scripts
             return 1;
         }
         
-        public static GameObjectBody fnn(int name = -1, bool living_only = true, bool multiple = false)
+        public static GameObject fnn(int name = -1, bool living_only = true, bool multiple = false)
         {
             var got_one = 0;
             foreach (var npc in ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC))
@@ -1215,7 +1215,7 @@ namespace Scripts
 
             return null;
         }
-        public static GameObjectBody fnn(string name)
+        public static GameObject fnn(string name)
         {
             foreach (var npc in ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -1230,7 +1230,7 @@ namespace Scripts
         }
         // find PCs near
 
-        public static GameObjectBody fpn(int name, bool living_only = true, bool multiple = false)
+        public static GameObject fpn(int name, bool living_only = true, bool multiple = false)
         {
             foreach (var pc in ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_PC))
             {
@@ -1263,7 +1263,7 @@ namespace Scripts
             return null;
         }
 
-        public static GameObjectBody fpn(string name)
+        public static GameObject fpn(string name)
         {
             foreach (var pc in ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_PC))
             {
@@ -1284,12 +1284,12 @@ namespace Scripts
             SelectedPartyLeader.AddFollower(a);
         }
 
-        public static List<GameObjectBody> vlist(int npc_name)
+        public static List<GameObject> vlist(int npc_name)
         {
             using var moshe = ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC);
             if (npc_name != -1)
             {
-                var return_list = new List<GameObjectBody>();
+                var return_list = new List<GameObject>();
                 foreach (var obj in moshe)
                 {
                         if (npc_name == obj.GetNameId())
@@ -1302,14 +1302,14 @@ namespace Scripts
             }
             else
             {
-                return new List<GameObjectBody>(moshe);
+                return new List<GameObject>(moshe);
             }
 
         }
-        public static List<GameObjectBody> vlist(List<int> npc_names)
+        public static List<GameObject> vlist(List<int> npc_names)
         {
             using var moshe = ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC);
-            var return_list = new List<GameObjectBody>();
+            var return_list = new List<GameObject>();
             foreach (var obj in moshe)
             {
                 if (npc_names.Contains(obj.GetNameId()))
@@ -1321,7 +1321,7 @@ namespace Scripts
             return return_list;
         }
 
-        public static GameObjectBody spawn(int prot, int x, int y)
+        public static GameObject spawn(int prot, int x, int y)
         {
             var moshe = GameSystems.MapObject.CreateObject(prot, new locXY(x, y));
             if ((moshe != null))

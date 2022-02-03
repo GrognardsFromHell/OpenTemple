@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -33,7 +33,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
             return _pkt.feat3.HasValue;
         }
 
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             Trace.Assert(charSpec.feat3.HasValue);
             GameSystems.Feat.AddFeat(playerObj, charSpec.feat3.Value);

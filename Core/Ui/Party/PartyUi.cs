@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
@@ -22,10 +22,10 @@ namespace OpenTemple.Core.Ui.Party
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BE33F8)]
-        public GameObjectBody ForceHovered { get; set; }
+        public GameObject ForceHovered { get; set; }
 
         [TempleDllLocation(0x10BE3400)]
-        public GameObjectBody ForcePressed { get; set; }
+        public GameObject ForcePressed { get; set; }
 
         [TempleDllLocation(0x10BE2E98)]
         private List<PartyUiPortrait> _portraits = new List<PartyUiPortrait>();
@@ -44,13 +44,13 @@ namespace OpenTemple.Core.Ui.Party
         private bool _canSwapPartyMembers;
 
         [TempleDllLocation(0x10BE33D4)]
-        private Func<GameObjectBody, bool> _targetClickCallback;
+        private Func<GameObject, bool> _targetClickCallback;
 
         [TempleDllLocation(0x10BE33D8)]
-        private Action<GameObjectBody> _targetOnEnterCallback;
+        private Action<GameObject> _targetOnEnterCallback;
 
         [TempleDllLocation(0x10BE33DC)]
-        private Action<GameObjectBody> _targetOnExitCallback;
+        private Action<GameObject> _targetOnExitCallback;
 
         [TempleDllLocation(0x102F8EB4)]
         private int dword_102F8EB4;
@@ -63,8 +63,8 @@ namespace OpenTemple.Core.Ui.Party
 
         // Related to target picking
         [TempleDllLocation(0x10131950)]
-        public void SetTargetCallbacks(Func<GameObjectBody, bool> onClick, Action<GameObjectBody> onEnter,
-            Action<GameObjectBody> onExit)
+        public void SetTargetCallbacks(Func<GameObject, bool> onClick, Action<GameObject> onEnter,
+            Action<GameObject> onExit)
         {
             _targetClickCallback = onClick;
             _targetOnEnterCallback = onEnter;
@@ -72,7 +72,7 @@ namespace OpenTemple.Core.Ui.Party
         }
 
         [TempleDllLocation(0x101318D0)]
-        private bool InvokeTargetClickCallback(GameObjectBody obj)
+        private bool InvokeTargetClickCallback(GameObject obj)
         {
             var result = false;
             if (_targetClickCallback != null)
@@ -93,7 +93,7 @@ namespace OpenTemple.Core.Ui.Party
         /// Used for dropping things on party member portrait.
         /// </summary>
         [TempleDllLocation(0x10131a00)]
-        public bool TryGetPartyMemberByWidget(WidgetBase widget, out GameObjectBody partyMember)
+        public bool TryGetPartyMemberByWidget(WidgetBase widget, out GameObject partyMember)
         {
             if (widget is PortraitButton button)
             {
@@ -106,7 +106,7 @@ namespace OpenTemple.Core.Ui.Party
         }
 
         [TempleDllLocation(0x10131910)]
-        private void InvokeTargetOnEnterCallback(GameObjectBody obj)
+        private void InvokeTargetOnEnterCallback(GameObject obj)
         {
             _targetOnEnterCallback?.Invoke(obj);
         }
@@ -404,7 +404,7 @@ namespace OpenTemple.Core.Ui.Party
         }
 
         [TempleDllLocation(0x10131a50)]
-        public bool TryGetPartyMemberRect(GameObjectBody caster, out Rectangle rectangle)
+        public bool TryGetPartyMemberRect(GameObject caster, out Rectangle rectangle)
         {
             var portrait = _portraits.Find(p => p.PartyMember == caster);
             if (portrait != null)

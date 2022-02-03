@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(485)]
     public class HextorInvader : BaseObjectScript
     {
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -296,7 +296,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(505) == 0))
             {
@@ -322,7 +322,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8738))
             {
@@ -343,7 +343,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(97) == QuestState.Botched))
             {
@@ -395,7 +395,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(525)))
             {
@@ -407,7 +407,7 @@ namespace Scripts
             }
 
         }
-        public static void destroy_gear(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void destroy_gear(GameObject attachee, GameObject triggerer)
         {
             var fighter_longsword = attachee.FindItemByName(4132);
             fighter_longsword.Destroy();
@@ -439,12 +439,12 @@ namespace Scripts
             halfplate.Destroy();
             return;
         }
-        public static void out_of_time(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void out_of_time(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(505, 3);
             return;
         }
-        public static bool tower_attack(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool tower_attack(GameObject attachee, GameObject triggerer)
         {
             SpawnParticles("sp-Fireball-Hit", new locXY(455, 609));
             SpawnParticles("ef-fireburning", new locXY(455, 609));
@@ -457,7 +457,7 @@ namespace Scripts
             StartTimer(12000, () => tower_attack_followup());
             return RunDefault;
         }
-        public static bool church_attack(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool church_attack(GameObject attachee, GameObject triggerer)
         {
             SpawnParticles("sp-Fireball-Hit", new locXY(490, 224));
             SpawnParticles("ef-fireburning", new locXY(490, 224));
@@ -470,7 +470,7 @@ namespace Scripts
             StartTimer(12000, () => church_attack_followup());
             return RunDefault;
         }
-        public static bool grove_attack(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool grove_attack(GameObject attachee, GameObject triggerer)
         {
             SpawnParticles("sp-Fireball-Hit", new locXY(617, 523));
             SpawnParticles("ef-fireburning", new locXY(617, 523));
@@ -483,7 +483,7 @@ namespace Scripts
             StartTimer(12000, () => grove_attack_followup());
             return RunDefault;
         }
-        public static bool wench_attack(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool wench_attack(GameObject attachee, GameObject triggerer)
         {
             SpawnParticles("sp-Fireball-Hit", new locXY(621, 397));
             SpawnParticles("ef-fireburning", new locXY(621, 397));

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(142)]
     public class Senshock : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((Utilities.find_npc_near(attachee, 8032) != null))
             {
@@ -45,7 +45,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null && !GameSystems.Combat.IsCombatActive()))
             {
@@ -54,7 +54,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -64,7 +64,7 @@ namespace Scripts
             SetGlobalFlag(147, true);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(779) == 0))
             {
@@ -80,7 +80,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
@@ -157,12 +157,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(147, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5080))
             {
@@ -254,7 +254,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.type == ObjectType.pc))
             {
@@ -267,12 +267,12 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool senshock_kills_hedrack(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool senshock_kills_hedrack(GameObject attachee, GameObject triggerer)
         {
             StartTimer(7200000, () => senshock_check_kill(attachee));
             return RunDefault;
         }
-        public static bool senshock_check_kill(GameObjectBody attachee)
+        public static bool senshock_check_kill(GameObject attachee)
         {
             if ((!GetGlobalFlag(146)))
             {
@@ -286,7 +286,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_22_and_under(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_22_and_under(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {

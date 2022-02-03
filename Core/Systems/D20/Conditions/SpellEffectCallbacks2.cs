@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -94,7 +94,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                             return;
                         }
 
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -227,7 +227,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         /// <summary>
         /// Checks that the weapons wielded by the creature aren't too large after a size category change.
         /// </summary>
-        private static void UnequipTooLargeWeapons(GameObjectBody critter)
+        private static void UnequipTooLargeWeapons(GameObject critter)
         {
             if (critter.IsMonsterCategory(MonsterCategory.giant))
             {
@@ -266,7 +266,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         /// <summary>
         /// Update a creature's reach after a size category change.
         /// </summary>
-        private static void RefreshReach(GameObjectBody critter)
+        private static void RefreshReach(GameObject critter)
         {
             // TODO: Instead of changing a creature's reach field when a condition ends, the reach should be queried using a dispatcher type,
             // TODO: to which this condition would subscribe.
@@ -414,7 +414,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
                         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                             spellPkt.spellId, 0);
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -467,7 +467,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
                         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                             spellPkt.spellId, 0);
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -757,7 +757,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     return;
                 }
 
-                if (!attacker.HasCondition(SpellEffects.SpellSummoned))
+                if (!attacker.HasCondition(SpellSummoned))
                 {
                     return;
                 }
@@ -824,8 +824,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 if (v4 <= 0)
                 {
                     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                    SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                    Spell_remove_spell(evt.WithoutIO, 0, 0);
+                    Spell_remove_mod(evt.WithoutIO, 0);
                 }
             }
         }
@@ -893,8 +893,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         public static void sub_100DBD90(in DispatcherCallbackArgs evt)
         {
             GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Remove_Disease, 0, 0);
-            SpellEffects.Spell_remove_spell(in evt, 0, 0);
-            SpellEffects.Spell_remove_mod(in evt, 0);
+            Spell_remove_spell(in evt, 0, 0);
+            Spell_remove_mod(in evt, 0);
         }
 
 
@@ -1116,8 +1116,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 var dispIo = evt.GetDispIoSavingThrow();
                 dispIo.bonlist.AddBonus(data1, 34, data2);
                 GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_spell(evt.WithoutIO, 0, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
             }
         }
 
@@ -1163,7 +1163,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             if (spellPkt.RemoveTarget(evt.objHndCaller))
             {
                 GameSystems.Spell.EndSpell(spellId);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
             }
             else
             {
@@ -1202,7 +1202,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 }
             }
 
-            SpellEffects.Spell_remove_mod(in evt, 0);
+            Spell_remove_mod(in evt, 0);
         }
 
         [DispTypes(DispatcherType.D20Query)]
@@ -1419,8 +1419,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             if (spellPkt.spellEnum == WellKnownSpells.MirrorImage || data == 1 || spellPkt.Targets.Length > 0)
             {
                 GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_spell(evt.WithoutIO, 0, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
             }
         }
 
@@ -1448,7 +1448,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                         return;
                     }
 
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_mod(in evt, 0);
                     var v5 = GameSystems.ParticleSys.CreateAtObj("sp-Stinking Cloud Hit", evt.objHndCaller);
                     spellPkt.AddTarget(evt.objHndCaller, v5, true);
                     var condArg3 = evt.GetConditionArg3();
@@ -1814,7 +1814,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 remaining, amount, statName);
             var suffix = $": {statName} [{remaining}]";
             GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20035, TextFloaterColor.White, suffix: suffix);
-            SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+            Spell_remove_mod(evt.WithoutIO, 0);
         }
 
         [DispTypes(DispatcherType.ConditionAddPre)]
@@ -1825,8 +1825,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             if (dispIo.condStruct == (ConditionSpec) data)
             {
                 dispIo.outputFlag = false;
-                SpellEffects.Spell_remove_spell(in evt, 0, 0);
-                SpellEffects.Spell_remove_mod(in evt, 0);
+                Spell_remove_spell(in evt, 0, 0);
+                Spell_remove_mod(in evt, 0);
             }
         }
 
@@ -2165,8 +2165,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             {
                 if (GameSystems.Critter.IsDeadNullDestroyed(spellPkt.caster))
                 {
-                    SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                    Spell_remove_spell(evt.WithoutIO, 0, 0);
+                    Spell_remove_mod(evt.WithoutIO, 0);
                 }
                 else
                 {
@@ -2237,7 +2237,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
                     else if (evt.dispKey == D20DispatcherKey.OnLeaveAoE)
                     {
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -2306,8 +2306,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100dbdf0)]
         public static void RemoveSpellOnAdd(in DispatcherCallbackArgs evt)
         {
-            SpellEffects.Spell_remove_spell(in evt, 0, 0);
-            SpellEffects.Spell_remove_mod(in evt, 0);
+            Spell_remove_spell(in evt, 0, 0);
+            Spell_remove_mod(in evt, 0);
         }
 
 
@@ -2332,8 +2332,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     }
                 }
 
-                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_spell(evt.WithoutIO, 0, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
             }
         }
 
@@ -2370,8 +2370,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     break;
                 case 0xAC:
                 case 0x103:
-                    if (!evt.objHndCaller.HasCondition(SpellEffects.SpellCalmEmotions)
-                        && !evt.objHndCaller.HasCondition(SpellEffects.SpellRemoveFear))
+                    if (!evt.objHndCaller.HasCondition(SpellCalmEmotions)
+                        && !evt.objHndCaller.HasCondition(SpellRemoveFear))
                     {
                         dispIo.damage.AddDamageBonus(-data1, 13, data2);
                     }
@@ -2396,7 +2396,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             evt.GetDispIOTurnBasedStatus();
             var condArg1 = evt.GetConditionArg1();
             if (GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) &&
-                !evt.objHndCaller.HasCondition(SpellEffects.SpellDelayPoison))
+                !evt.objHndCaller.HasCondition(SpellDelayPoison))
             {
                 if (GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Immune_Poison))
                 {
@@ -2556,8 +2556,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             if (dispIo.data1 != evt.GetConditionArg1())
             {
                 GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(in evt, 0, 0);
-                SpellEffects.Spell_remove_mod(in evt, 0);
+                Spell_remove_spell(in evt, 0, 0);
+                Spell_remove_mod(in evt, 0);
             }
         }
 
@@ -2603,8 +2603,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 return;
             }
 
-            var killed = (GameObjectBody) dispIo.obj;
-            GameObjectBody spellTarget = null;
+            var killed = (GameObject) dispIo.obj;
+            GameObject spellTarget = null;
             if (spellPkt.Targets.Length > 0)
             {
                 spellTarget = spellPkt.Targets[0].Object;
@@ -2621,8 +2621,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
                 GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_Grapple_Removed,
                     spellPkt.spellId, 0);
-                SpellEffects.Spell_remove_spell(in evt, 0, 0);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_spell(in evt, 0, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
             }
         }
 
@@ -2679,7 +2679,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
                         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                             spellPkt.spellId, 0);
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -2723,7 +2723,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
             if (D20ModSpells.CheckSpellResistance(action.d20ATarget, spellPktBody))
             {
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
                 evt.RemoveThisCondition();
                 return;
             }
@@ -2731,7 +2731,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             // TemplePlus: Fixed target not getting a saving throw
             if (spellPktBody.SavingThrow(action.d20ATarget))
             {
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
                 evt.RemoveThisCondition();
                 return;
             }
@@ -2758,7 +2758,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             spellPktBody.AddTarget(action.d20ATarget, partSys);
             GameSystems.Spell.UpdateSpellPacket(spellPktBody);
             GameSystems.Script.Spells.UpdateSpell(spellPktBody.spellId);
-            SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+            Spell_remove_mod(evt.WithoutIO, 0);
         }
 
         [DispTypes(DispatcherType.Tooltip)]
@@ -2828,7 +2828,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
                         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                             spellPkt.spellId, 0);
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -2872,7 +2872,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
                         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                             spellPkt.spellId, 0);
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -3198,8 +3198,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             if ((dispIo.flags & 0x20) != 0)
             {
                 GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(in evt, 0, 0);
-                SpellEffects.Spell_remove_mod(in evt, 0);
+                Spell_remove_spell(in evt, 0, 0);
+                Spell_remove_mod(in evt, 0);
             }
 
             if ((dispIo.flags & 0x40) == 0)
@@ -3244,8 +3244,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     var spellName = GameSystems.Spell.GetSpellName(spellPkt.spellEnum);
                     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20002, TextFloaterColor.White,
                         suffix: $" [{spellName}]");
-                    SpellEffects.Spell_remove_spell(in evt, 0, 0);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_spell(in evt, 0, 0);
+                    Spell_remove_mod(in evt, 0);
                 }
             }
             else
@@ -3383,7 +3383,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     return;
                 }
 
-                SpellEffects.Spell_remove_mod(in evt, 0);
+                Spell_remove_mod(in evt, 0);
             }
 
             GameSystems.Spell.UpdateSpellPacket(spPkt);
@@ -3417,7 +3417,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                             return;
                         }
 
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -3444,8 +3444,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             if (!GameSystems.Party.IsInParty(spellPkt.caster))
             {
                 Logger.Info("ending spell=( {0} ) on obj=( {1} ) because caster is not in party!", spellName, objName);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_spell(evt.WithoutIO, 0, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
                 return;
             }
 
@@ -3456,8 +3456,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 {
                     Logger.Info("ending spell=( {0} ) on obj=( {1} ) because target is not in party!", spellName,
                         objName);
-                    SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                    Spell_remove_spell(evt.WithoutIO, 0, 0);
+                    Spell_remove_mod(evt.WithoutIO, 0);
                 }
                 else
                 {
@@ -3481,8 +3481,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             if ((dispIo.attackPacket.flags & D20CAF.FINAL_ATTACK_ROLL) != 0)
             {
                 GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_spell(evt.WithoutIO, 0, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
             }
         }
 
@@ -3745,8 +3745,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                     if (v8 <= 0)
                     {
                         GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                        SpellEffects.Spell_remove_spell(in evt, 0, 0);
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_spell(in evt, 0, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
                     else
                     {
@@ -3832,7 +3832,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                                 "d20_mods_spells.c / _soften_earth_and_stone_hit_trigger(): cannot remove target");
                             return;
                         }
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
 
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -3968,7 +3968,7 @@ TP Replaced @ condition.cpp:3588
                 GameSystems.D20.Combat.SpellDamageFull(evt.objHndCaller, spellPkt.caster, dice, DamageType.Force,
                     D20AttackPower.UNSPECIFIED, D20ActionType.CAST_SPELL, spellId, 0);
             }
-            SpellEffects.Spell_remove_mod(in evt, 0);
+            Spell_remove_mod(in evt, 0);
         }
 
         [DispTypes(DispatcherType.D20Signal)]
@@ -4023,7 +4023,7 @@ TP Replaced @ condition.cpp:3588
 
             var evtId = evt.GetConditionArg3();
             GameSystems.ObjectEvent.Remove(evtId);
-            SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+            Spell_remove_mod(evt.WithoutIO, 0);
         }
 
         [DispTypes(DispatcherType.Tooltip)]
@@ -4173,8 +4173,8 @@ TP Replaced @ condition.cpp:3588
                 if (remainingAbsorption <= 0)
                 {
                     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                    SpellEffects.Spell_remove_spell(in evt, 0, 0);
-                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    Spell_remove_spell(in evt, 0, 0);
+                    Spell_remove_mod(in evt, 0);
                 }
                 else
                 {
@@ -4274,7 +4274,7 @@ TP Replaced @ condition.cpp:3588
                 }
             }
 
-            SpellEffects.Spell_remove_mod(in evt, 0);
+            Spell_remove_mod(in evt, 0);
         }
 
         [DispTypes(DispatcherType.D20Query)]
@@ -4329,7 +4329,7 @@ TP Replaced @ condition.cpp:3588
 
                         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                             spellPkt.spellId, 0);
-                        SpellEffects.Spell_remove_mod(in evt, 0);
+                        Spell_remove_mod(in evt, 0);
                     }
                     GameSystems.Spell.UpdateSpellPacket(spellPkt);
                     GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
@@ -4408,7 +4408,7 @@ TP Replaced @ condition.cpp:3588
 
                 var dca = new DispatcherCallbackArgs(evt.subDispNode, evt.objHndCaller, DispatcherType.D20Signal,
                     D20DispatcherKey.SIG_Remove_Concentration, null);
-                SpellEffects.Spell_remove_mod(dca, 0);
+                Spell_remove_mod(dca, 0);
             }
         }
 
@@ -4453,7 +4453,7 @@ TP Replaced @ condition.cpp:3588
                 return;
             }
 
-            if (!attacker.HasCondition(SpellEffects.SpellSummoned))
+            if (!attacker.HasCondition(SpellSummoned))
             {
                 return;
             }
@@ -4572,7 +4572,7 @@ TP Replaced @ condition.cpp:3588
             int condArg3;
             int condArg2;
             int v5;
-            GameObjectBody v6;
+            GameObject v6;
             SpellPacketBody spellPkt;
 
             var condArg1 = evt.GetConditionArg1();
@@ -4662,7 +4662,7 @@ TP Replaced @ condition.cpp:3588
         {
             var condArg1 = evt.GetConditionArg1();
             if (GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) &&
-                evt.objHndCaller.HasCondition(SpellEffects.SpellSummoned))
+                evt.objHndCaller.HasCondition(SpellSummoned))
             {
                 var v2 = GameSystems.Critter.GetHitDiceNum(evt.objHndCaller) * data1;
                 GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20005, TextFloaterColor.White, $"[{v2}] ");
@@ -4721,8 +4721,8 @@ TP Replaced @ condition.cpp:3588
                 if (D20ModSpells.CheckSpellResistance(v1.d20ATarget, spellPkt))
                 {
                     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                    SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                    Spell_remove_spell(evt.WithoutIO, 0, 0);
+                    Spell_remove_mod(evt.WithoutIO, 0);
                 }
                 else
                 {
@@ -4741,8 +4741,8 @@ TP Replaced @ condition.cpp:3588
                     GameSystems.D20.Combat.SpellDamageFull(v1.d20ATarget, evt.objHndCaller, v5, DamageType.Magic, D20AttackPower.UNSPECIFIED,
                         D20ActionType.CAST_SPELL, spellPkt.spellId, 0);
                     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                    SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                    Spell_remove_spell(evt.WithoutIO, 0, 0);
+                    Spell_remove_mod(evt.WithoutIO, 0);
                 }
             }
             else
@@ -4876,15 +4876,15 @@ TP Replaced @ condition.cpp:3588
                     v3 = -data1;
                     goto LABEL_11;
                 case 0xAC:
-                    if (!evt.objHndCaller.HasCondition(SpellEffects.SpellCalmEmotions)
-                        && !evt.objHndCaller.HasCondition(SpellEffects.SpellRemoveFear))
+                    if (!evt.objHndCaller.HasCondition(SpellCalmEmotions)
+                        && !evt.objHndCaller.HasCondition(SpellRemoveFear))
                     {
                         dispIo.bonOut.AddBonus(-data1, 13, data2);
                     }
 
                     break;
                 case 0x103:
-                    if (!evt.objHndCaller.HasCondition(SpellEffects.SpellCalmEmotions))
+                    if (!evt.objHndCaller.HasCondition(SpellCalmEmotions))
                     {
                         dispIo.bonOut.AddBonus(-data1, 13, data2);
                     }
@@ -4893,7 +4893,7 @@ TP Replaced @ condition.cpp:3588
                 case 0x104:
                 case 0x12A:
                 case 0x12B:
-                    if (!evt.objHndCaller.HasCondition(SpellEffects.SpellCalmEmotions))
+                    if (!evt.objHndCaller.HasCondition(SpellCalmEmotions))
                     {
                         dispIo.bonOut.AddBonus(data1, 13, data2);
                     }
@@ -4992,8 +4992,8 @@ TP Replaced @ condition.cpp:3588
                     spellPkt.spellId, 0);
                 GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                     0);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+                Spell_remove_spell(evt.WithoutIO, 0, 0);
+                Spell_remove_mod(evt.WithoutIO, 0);
             }
         }
 
@@ -5198,7 +5198,7 @@ TP Replaced @ condition.cpp:3588
         public static void entangleMoveRestrict(in DispatcherCallbackArgs evt, int data1, int data2)
         {
             var dispIo = evt.GetDispIoMoveSpeed();
-            if (!evt.objHndCaller.HasCondition(SpellEffects.SpellControlPlantsDisentangle)
+            if (!evt.objHndCaller.HasCondition(SpellControlPlantsDisentangle)
                 && !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement))
             {
                 dispIo.bonlist.SetOverallCap(1, 0, 0, data2);

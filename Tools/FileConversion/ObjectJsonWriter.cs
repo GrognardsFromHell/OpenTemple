@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.GameObjects;
@@ -136,9 +136,9 @@ namespace ConvertMapToText
 
             var standpoints = (IReadOnlyList<long>) standpointsObj;
 
-            var standPointDay = GameObjectBody.DeserializeStandpoint(standpoints, 0);
-            var standPointNight = GameObjectBody.DeserializeStandpoint(standpoints, 1);
-            var standPointScout = GameObjectBody.DeserializeStandpoint(standpoints, 2);
+            var standPointDay = GameObject.DeserializeStandpoint(standpoints, 0);
+            var standPointNight = GameObject.DeserializeStandpoint(standpoints, 1);
+            var standPointScout = GameObject.DeserializeStandpoint(standpoints, 2);
 
             writer.WriteStartObject("npc_standpoints");
             writer.WriteStartObject("day");

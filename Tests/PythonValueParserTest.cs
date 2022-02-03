@@ -1,6 +1,6 @@
 using System;
 using FluentAssertions;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames.Co8State;
 using NUnit.Framework;
 

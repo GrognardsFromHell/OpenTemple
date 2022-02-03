@@ -1,5 +1,5 @@
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 
@@ -15,7 +15,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        public static string BuildItemTooltip(GameObjectBody observer, GameObjectBody item)
+        public static string BuildItemTooltip(GameObject observer, GameObject item)
         {
             var tooltipBuilder = new StringBuilder();
 

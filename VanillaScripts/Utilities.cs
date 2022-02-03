@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Utilities
     {
 
-        public static GameObjectBody party_transfer_to(GameObjectBody target, int oname)
+        public static GameObject party_transfer_to(GameObject target, int oname)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -39,7 +39,7 @@ namespace VanillaScripts
 
             return null;
         }
-        public static GameObjectBody find_npc_near(GameObjectBody obj, int name)
+        public static GameObject find_npc_near(GameObject obj, int name)
         {
             foreach (var npc in ObjList.ListVicinity(obj.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -52,7 +52,7 @@ namespace VanillaScripts
 
             return null;
         }
-        public static GameObjectBody find_container_near(GameObjectBody obj, int name)
+        public static GameObject find_container_near(GameObject obj, int name)
         {
             foreach (var container in ObjList.ListVicinity(obj.GetLocation(), ObjectListFilter.OLC_CONTAINER))
             {
@@ -65,7 +65,7 @@ namespace VanillaScripts
 
             return null;
         }
-        public static int group_average_level(GameObjectBody pc)
+        public static int group_average_level(GameObject pc)
         {
             var count = 0;
 
@@ -90,7 +90,7 @@ namespace VanillaScripts
 
             return avg;
         }
-        public static int obj_percent_hp(GameObjectBody obj)
+        public static int obj_percent_hp(GameObject obj)
         {
             var curr = obj.GetStat(Stat.hp_current);
 
@@ -117,7 +117,7 @@ namespace VanillaScripts
 
             return percent;
         }
-        public static int group_percent_hp(GameObjectBody pc)
+        public static int group_percent_hp(GameObject pc)
         {
             var percent = 0;
 
@@ -149,7 +149,7 @@ namespace VanillaScripts
 
             return percent;
         }
-        public static void create_item_in_inventory(int item_proto_num, GameObjectBody npc)
+        public static void create_item_in_inventory(int item_proto_num, GameObject npc)
         {
             var item = GameSystems.MapObject.CreateObject(item_proto_num, npc.GetLocation());
 
@@ -164,7 +164,7 @@ namespace VanillaScripts
         {
             return GameSystems.TimeEvent.IsDaytime;
         }
-        public static bool is_safe_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_safe_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -190,7 +190,7 @@ namespace VanillaScripts
             FadeAndTeleport(0, 0, 996 + quest_number, 5001, 711, 521);
             return;
         }
-        public static int critter_is_unconscious(GameObjectBody npc)
+        public static int critter_is_unconscious(GameObject npc)
         {
             var curr = npc.GetStat(Stat.hp_current);
 
@@ -206,11 +206,11 @@ namespace VanillaScripts
 
             return 0;
         }
-        public static bool obj_is_item(GameObjectBody obj)
+        public static bool obj_is_item(GameObject obj)
         {
             return (obj.type == ObjectType.projectile) || (obj.type == ObjectType.weapon) || (obj.type == ObjectType.ammo) || (obj.type == ObjectType.armor) || (obj.type == ObjectType.scroll) || (obj.type == ObjectType.bag);
         }
-        public static void set_end_slides(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void set_end_slides(GameObject attachee, GameObject triggerer)
         {
             if (GetGlobalFlag(189))
             {
@@ -539,7 +539,7 @@ namespace VanillaScripts
 
             return;
         }
-        public static void set_join_slides(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void set_join_slides(GameObject attachee, GameObject triggerer)
         {
             if (GetGlobalFlag(327))
             {
@@ -698,7 +698,7 @@ namespace VanillaScripts
             GameSystems.Movies.MovieQueueAdd(206);
             return;
         }
-        public static int should_heal_hp_on(GameObjectBody obj)
+        public static int should_heal_hp_on(GameObject obj)
         {
             var cur = obj.GetStat(Stat.hp_current);
 
@@ -711,7 +711,7 @@ namespace VanillaScripts
 
             return 0;
         }
-        public static int should_heal_disease_on(GameObjectBody obj)
+        public static int should_heal_disease_on(GameObject obj)
         {
             if ((obj.GetStat(Stat.hp_current) >= -9))
             {
@@ -720,7 +720,7 @@ namespace VanillaScripts
 
             return 0;
         }
-        public static int should_heal_poison_on(GameObjectBody obj)
+        public static int should_heal_poison_on(GameObject obj)
         {
             if ((obj.GetStat(Stat.hp_current) >= -9))
             {
@@ -729,7 +729,7 @@ namespace VanillaScripts
 
             return 0;
         }
-        public static int should_resurrect_on(GameObjectBody obj)
+        public static int should_resurrect_on(GameObject obj)
         {
             if ((obj.GetStat(Stat.hp_current) <= -10))
             {

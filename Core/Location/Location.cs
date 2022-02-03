@@ -249,7 +249,7 @@ namespace OpenTemple.Core.Location
 
         public LocAndOffsets(int locx, int locy, float offX, float offY)
         {
-            this.location = new locXY(locx, locy);
+            location = new locXY(locx, locy);
             off_x = offX;
             off_y = offY;
         }
@@ -433,7 +433,7 @@ namespace OpenTemple.Core.Location
                     throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
             }
 
-            return LocAndOffsets.FromInches(result);
+            return FromInches(result);
         }
 
         // This is the epsilon used in vanilla (although they used a double here, pointlessly)
@@ -469,8 +469,8 @@ namespace OpenTemple.Core.Location
 
         public Subtile(int x, int y)
         {
-            this.X = x;
-            this.Y = y;
+            X = x;
+            Y = y;
         }
 
         [TempleDllLocation(0x10040750)]

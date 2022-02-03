@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
@@ -14,9 +14,9 @@ namespace OpenTemple.Core.Systems.Anim
     {
         private object value;
 
-        public GameObjectBody obj
+        public GameObject obj
         {
-            get => (GameObjectBody) value;
+            get => (GameObject) value;
             set => this.value = value;
         }
 
@@ -85,7 +85,7 @@ namespace OpenTemple.Core.Systems.Anim
         public int currentState;
         public int field_14; // Compared against currentGoal
         public GameTime nextTriggerTime;
-        public GameObjectBody animObj;
+        public GameObject animObj;
         public int currentGoal;
         public int field_2C;
         public List<AnimSlotGoalStackEntry> goals = new List<AnimSlotGoalStackEntry>();

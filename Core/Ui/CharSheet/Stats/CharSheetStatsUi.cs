@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 using System.Globalization;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
@@ -321,7 +321,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             Container.Add(secondaryAtkValue);
         }
 
-        private string GetMovementSpeedText(GameObjectBody obj)
+        private string GetMovementSpeedText(GameObject obj)
         {
             var movementSpeed = obj.Dispatch41GetMoveSpeed(out _);
             return ((int) movementSpeed).ToString();
@@ -340,7 +340,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
         }
 
         [TempleDllLocation(0x101c4740)]
-        private string GetSecondaryWeaponAttackBonus(GameObjectBody critter)
+        private string GetSecondaryWeaponAttackBonus(GameObject critter)
         {
             var secondaryWeapon = GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponSecondary);
             if (secondaryWeapon != null && secondaryWeapon.type != ObjectType.armor)
@@ -362,7 +362,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
         }
 
         [TempleDllLocation(0x101c4420)]
-        private string GetPrimaryWeaponAttackBonus(GameObjectBody critter)
+        private string GetPrimaryWeaponAttackBonus(GameObject critter)
         {
             var primaryWeapon = GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponPrimary);
             var secondaryWeapon = GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponSecondary);
@@ -403,7 +403,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             throw new NotImplementedException();
         }
 
-        private static string GetHeightText(GameObjectBody obj)
+        private static string GetHeightText(GameObject obj)
         {
             var height = obj.GetStat(Stat.height);
             var inches = height % locXY.INCH_PER_FEET;
@@ -411,7 +411,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             return $"{inches}'{feet}\"";
         }
 
-        private static InlineElement GetHitPointsText(GameObjectBody obj)
+        private static InlineElement GetHitPointsText(GameObject obj)
         {
             var currentHp = obj.GetStat(Stat.hp_current);
             var maxHp = obj.GetStat(Stat.hp_max);
@@ -448,12 +448,12 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             throw new NotImplementedException();
         }
 
-        private static string GetStatValue(GameObjectBody obj, Stat stat)
+        private static string GetStatValue(GameObject obj, Stat stat)
         {
             return obj.GetStat(stat).ToString(CultureInfo.InvariantCulture);
         }
 
-        private static InlineElement GetAbilityScoreValue(GameObjectBody obj, Stat stat)
+        private static InlineElement GetAbilityScoreValue(GameObject obj, Stat stat)
         {
             var baseScore = obj.GetBaseStat(stat);
             var score = obj.GetStat(stat);
@@ -472,7 +472,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             return result;
         }
 
-        private static string GetStatModifierText(GameObjectBody obj, Stat stat)
+        private static string GetStatModifierText(GameObject obj, Stat stat)
         {
             var score = obj.GetStat(stat);
 

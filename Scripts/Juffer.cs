@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(128)]
     public class Juffer : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(127)))
             {
@@ -36,7 +36,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -45,7 +45,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool jufferlaugh(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool jufferlaugh(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8024);
             if ((npc != null))
@@ -61,7 +61,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool jufferhelp(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool jufferhelp(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8024);
             if ((npc != null))
@@ -77,7 +77,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             return RunDefault;

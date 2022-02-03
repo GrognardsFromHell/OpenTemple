@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -73,7 +73,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Heal OnEndSpellCast");
         }
-        public static bool check_for_tensers(GameObjectBody target)
+        public static bool check_for_tensers(GameObject target)
         {
             if (Co8.find_spell_obj_with_flag(target, 6400, Co8SpellFlag.TensersTransformation) != null)
             {
@@ -86,7 +86,7 @@ namespace Scripts.Spells
             }
 
         }
-        public void replace_tensers(GameObjectBody target)
+        public void replace_tensers(GameObject target)
         {
             var spell_obj = GameSystems.MapObject.CreateObject(6400, target.GetLocation());
             Co8.set_spell_flag(spell_obj, Co8SpellFlag.TensersTransformation);

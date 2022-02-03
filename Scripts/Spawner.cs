@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -28,7 +28,7 @@ namespace Scripts
         // -Moathouse: Moathouse respawns
         // -delayed DH spawn in Town Hall until after council meeting
 
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (((GetGlobalVar(972) == 2) && (attachee.GetMap() == 5004)))
             {
@@ -43,7 +43,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             var c_time = Council.council_time();
             if ((attachee.GetMap() == 5048 && ScriptDaemon.get_v(435) != 0 && c_time == 1))
@@ -78,7 +78,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void Moathouse_Respawn(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void Moathouse_Respawn(GameObject attachee, GameObject triggerer)
         {
             GameSystems.MapObject.CreateObject(2050, new locXY(487, 480));
             GameSystems.MapObject.CreateObject(2051, new locXY(512, 478));
@@ -87,7 +87,7 @@ namespace Scripts
             attachee.Destroy();
             return;
         }
-        public static void Council_Script(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void Council_Script(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5048 && !GetGlobalFlag(432)))
             {
@@ -158,7 +158,7 @@ namespace Scripts
 
             return;
         }
-        public static int to_be_deleted(GameObjectBody npc)
+        public static int to_be_deleted(GameObject npc)
         {
             // 8008 - Gundigoot
             // 8054 - Burne
@@ -175,7 +175,7 @@ namespace Scripts
 
             return 0;
         }
-        public static void destroy_weapons(GameObjectBody npc, int item1, int item2, int item3)
+        public static void destroy_weapons(GameObject npc, int item1, int item2, int item3)
         {
             if ((item1 != 0))
             {

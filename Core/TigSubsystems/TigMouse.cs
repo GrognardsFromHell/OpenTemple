@@ -92,7 +92,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         public void GetState(out TigMouseState state)
         {
-            state = this.mouseState;
+            state = mouseState;
         }
 
         public void SetButtonState(MouseButton button, bool pressed)

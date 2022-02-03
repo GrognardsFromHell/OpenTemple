@@ -268,7 +268,7 @@ namespace OpenTemple.Core.GFX
             public ShaderCode(string source)
             {
                 this.source = source;
-                this.compiledVariants = new List<Tuple<ShaderDefines, ResourceRef<T>>>();
+                compiledVariants = new List<Tuple<ShaderDefines, ResourceRef<T>>>();
             }
         }
 

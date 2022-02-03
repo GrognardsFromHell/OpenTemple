@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(207)]
     public class KOSOnNonEarth : BaseObjectScript
     {
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((new[] { 14337, 14338 }).Contains(attachee.GetNameId()))
             {
@@ -38,7 +38,7 @@ namespace Scripts
             DetachScript();
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((ScriptDaemon.get_v(454) & 1) != 0 && GetGlobalFlag(104))
             {
@@ -94,7 +94,7 @@ namespace Scripts
             }
 
         }
-        public static void remove_dagger(GameObjectBody npc)
+        public static void remove_dagger(GameObject npc)
         {
             var dagger = npc.FindItemByProto(4060);
             while (dagger != null)

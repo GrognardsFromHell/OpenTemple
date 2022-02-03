@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -40,7 +40,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             PickerState.tgtIdx = 0;
         }
 
-        protected void SetSingleResult(GameObjectBody obj)
+        protected void SetSingleResult(GameObject obj)
         {
             Trace.Assert(obj != null);
             PickerState.Picker.result.flags = PickerResultFlags.PRF_HAS_SINGLE_OBJ;
@@ -83,7 +83,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
               return flags != 0;
         }
 
-        protected void SetResultLocation(GameObjectBody obj)
+        protected void SetResultLocation(GameObject obj)
         {
             Result.flags |= PickerResultFlags.PRF_HAS_LOCATION;
             Result.location = obj.GetLocationFull();
@@ -200,7 +200,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         #region Party UI Targetting Callbacks
 
         [TempleDllLocation(0x10136E60)]
-        protected bool SelectSingleTargetCallback(GameObjectBody obj)
+        protected bool SelectSingleTargetCallback(GameObject obj)
         {
             if (obj != null)
             {
@@ -216,7 +216,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10138590)]
-        protected void PickerMultiSingleCheckFlags(GameObjectBody target)
+        protected void PickerMultiSingleCheckFlags(GameObject target)
         {
             PickerState.Target = target;
 
@@ -264,7 +264,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10136b90)]
-        protected void ActivePickerReset(GameObjectBody obj)
+        protected void ActivePickerReset(GameObject obj)
         {
             PickerState.Target = null;
             PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);

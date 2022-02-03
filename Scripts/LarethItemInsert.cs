@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(186)]
     public class LarethItemInsert : BaseObjectScript
     {
-        public override bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             if (((triggerer.GetNameId() == 8048) || (triggerer.GetNameId() == 8049) || (triggerer.GetNameId() == 1204)))
             {
@@ -39,7 +39,7 @@ namespace Scripts
             }
             else if (triggerer.GetNameId() == 1001 && SelectedPartyLeader.GetMap() == 5001 && (new[] { 1, 3006, 4120, 6097, 6098, 6099, 6100 }).Contains(attachee.GetNameId())) // note: for some reason most of Lareth's item have a "name" field of 1, and another has 3006. Will be fixed in the future inside Protos.tab, for now this is a hotfix
             {
-                GameObjectBody bro_smith = null;
+                GameObject bro_smith = null;
                 foreach (var npc in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_NPC))
                 {
                     if (npc.GetNameId() == 20005)
@@ -54,7 +54,7 @@ namespace Scripts
                     return SkipDefault;
                 }
 
-                GameObjectBody pc_dude;
+                GameObject pc_dude;
                 if (Utilities.is_safe_to_talk(bro_smith, SelectedPartyLeader))
                 {
                     pc_dude = SelectedPartyLeader;
@@ -90,7 +90,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static void pc_give_item_back(GameObjectBody pc, GameObjectBody item)
+        public static void pc_give_item_back(GameObject pc, GameObject item)
         {
             pc.GetItem(item);
         }

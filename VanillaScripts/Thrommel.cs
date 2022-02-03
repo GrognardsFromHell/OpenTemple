@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Thrommel : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -36,7 +36,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(150, true);
             if ((attachee.GetLeader() != null))
@@ -46,12 +46,12 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(150, false);
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             if (((attachee.GetMap() == 5062) || (attachee.GetMap() == 5093) || (attachee.GetMap() == 5113) || (attachee.GetMap() == 5001)))
             {
@@ -66,13 +66,13 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(151, true);
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool check_follower_thrommel_comments(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool check_follower_thrommel_comments(GameObject attachee, GameObject triggerer)
         {
             var npc = Utilities.find_npc_near(attachee, 8014);
 
@@ -97,7 +97,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool schedule_reward(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool schedule_reward(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(152, true);
             attachee.SetObjectFlag(ObjectFlag.OFF);

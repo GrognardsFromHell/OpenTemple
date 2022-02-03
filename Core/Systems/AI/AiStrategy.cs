@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Spells;
 
@@ -16,14 +16,14 @@ namespace OpenTemple.Core.Systems.AI
     {
         public AiTacticDef aiTac;
         public int field4;
-        public GameObjectBody performer;
-        public GameObjectBody target;
+        public GameObject performer;
+        public GameObject target;
         public int tacticIdx;
         public D20SpellData d20SpellData;
         public int field24;
         public SpellPacketBody spellPktBody;
 
-        public AiTactic(GameObjectBody performer, GameObjectBody target)
+        public AiTactic(GameObject performer, GameObject target)
         {
             this.performer = performer;
             this.target = target;
@@ -59,8 +59,8 @@ namespace OpenTemple.Core.Systems.AI
             if (spellEnum != -1)
             {
                 aiTacOut.spellPktBody.caster = aiTacOut.performer;
-                aiTacOut.spellPktBody.spellClass = this.spellsKnown[tacIdx].classCode;
-                aiTacOut.spellPktBody.spellKnownSlotLevel = this.spellsKnown[tacIdx].spellLevel;
+                aiTacOut.spellPktBody.spellClass = spellsKnown[tacIdx].classCode;
+                aiTacOut.spellPktBody.spellKnownSlotLevel = spellsKnown[tacIdx].spellLevel;
                 GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
                 aiTacOut.d20SpellData.SetSpellData(spellEnum, spellPktBody.spellClass,
                     spellPktBody.spellKnownSlotLevel, -1, spellPktBody.metaMagicData);

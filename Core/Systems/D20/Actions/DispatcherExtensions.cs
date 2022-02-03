@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Utils;
 
@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
     public static class DispatcherExtensions
     {
 
-        public static MetaMagicData DispatchMetaMagicModify(this GameObjectBody critter, MetaMagicData data)
+        public static MetaMagicData DispatchMetaMagicModify(this GameObject critter, MetaMagicData data)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -22,7 +22,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return dispIo.mmData;
         }
 
-        public static bool Dispatch64ImmunityCheck(this GameObjectBody critter, DispIoImmunity dispIo)
+        public static bool Dispatch64ImmunityCheck(this GameObject critter, DispIoImmunity dispIo)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -35,8 +35,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return dispIo.returnVal != 0;
         }
 
-        public static void DispatchSpellResistanceCasterLevelCheck(this GameObjectBody critter,
-            GameObjectBody target, BonusList casterLvlBonus, SpellPacketBody spell)
+        public static void DispatchSpellResistanceCasterLevelCheck(this GameObject critter,
+            GameObject target, BonusList casterLvlBonus, SpellPacketBody spell)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -51,7 +51,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             dispatcher.Process(DispatcherType.SpellResistanceCasterLevelCheck, D20DispatcherKey.NONE, dispIo);
         }
 
-        public static int Dispatch45SpellResistanceMod(this GameObjectBody critter, SpellEntry spell)
+        public static int Dispatch45SpellResistanceMod(this GameObject critter, SpellEntry spell)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -67,7 +67,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return dispIo.bonList.OverallBonus;
         }
 
-        public static int DispatchSpellDcBase(this GameObjectBody critter, SpellEntry spell)
+        public static int DispatchSpellDcBase(this GameObject critter, SpellEntry spell)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -83,7 +83,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return dispIo.bonList.OverallBonus;
         }
 
-        public static int DispatchSpellDcMod(this GameObjectBody critter, SpellEntry spell)
+        public static int DispatchSpellDcMod(this GameObject critter, SpellEntry spell)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -100,7 +100,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004dd00)]
-        public static int DispatchForCritter(this GameObjectBody obj, DispIoBonusList eventObj, DispatcherType dispType,
+        public static int DispatchForCritter(this GameObject obj, DispIoBonusList eventObj, DispatcherType dispType,
             D20DispatcherKey dispKey)
         {
             if (obj == null || !obj.IsCritter())
@@ -125,13 +125,13 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004e7f0)]
-        public static int Dispatch10AbilityScoreLevelGet(this GameObjectBody obj, Stat stat, DispIoBonusList arg)
+        public static int Dispatch10AbilityScoreLevelGet(this GameObject obj, Stat stat, DispIoBonusList arg)
         {
             return DispatchForCritter(obj, arg, DispatcherType.AbilityScoreLevel, (D20DispatcherKey) (stat + 1));
         }
 
         [TempleDllLocation(0x1004d620)]
-        public static int Dispatch35CasterLevelModify(this GameObjectBody critter, SpellPacketBody spellPkt)
+        public static int Dispatch35CasterLevelModify(this GameObject critter, SpellPacketBody spellPkt)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -148,7 +148,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return dispIo.return_val;
         }
 
-        public static ActionCostType DispatchActionCostMod(this GameObjectBody critter,
+        public static ActionCostType DispatchActionCostMod(this GameObject critter,
             ActionCostPacket acp, TurnBasedStatus tbStatus, D20Action action)
         {
             var dispatcher = critter.GetDispatcher();
@@ -163,7 +163,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004cfb0)]
-        public static float Dispatch40GetMoveSpeedBase(this GameObjectBody critter, out BonusList bonusList,
+        public static float Dispatch40GetMoveSpeedBase(this GameObject critter, out BonusList bonusList,
             out float factor)
         {
             var dispatcher = critter.GetDispatcher();
@@ -185,7 +185,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004d080)]
-        public static float Dispatch41GetMoveSpeed(this GameObjectBody critter, out BonusList bonusList)
+        public static float Dispatch41GetMoveSpeed(this GameObject critter, out BonusList bonusList)
         {
             var dispatcher = critter.GetDispatcher();
             var dispIo = DispIoMoveSpeed.Default;
@@ -223,14 +223,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004d1d0)]
-        public static float DispatchGetRunSpeed(this GameObjectBody critter, out BonusList bonusList)
+        public static float DispatchGetRunSpeed(this GameObject critter, out BonusList bonusList)
         {
             return Dispatch41GetMoveSpeed(critter, out bonusList) * 4.0f;
         }
 
         [TempleDllLocation(0x1004ED70)]
-        public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, ref BonusList bonusList,
-            GameObjectBody opposingObj, SkillCheckFlags flag)
+        public static int dispatch1ESkillLevel(this GameObject critter, SkillId skill, ref BonusList bonusList,
+            GameObject opposingObj, SkillCheckFlags flag)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -248,7 +248,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004ED70)]
-        public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, GameObjectBody opposingObj,
+        public static int dispatch1ESkillLevel(this GameObject critter, SkillId skill, GameObject opposingObj,
             SkillCheckFlags flag)
         {
             var noBonus = BonusList.Default;
@@ -256,13 +256,13 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004f330)]
-        public static int DispatchProjectileCreated(this GameObjectBody attacker, GameObjectBody projectile, D20CAF caf)
+        public static int DispatchProjectileCreated(this GameObject attacker, GameObject projectile, D20CAF caf)
         {
             DispIoAttackBonus dispIo = DispIoAttackBonus.Default;
             dispIo.attackPacket.dispKey = 1;
             dispIo.attackPacket.d20ActnType = D20ActionType.STANDARD_ATTACK;
             dispIo.attackPacket.attacker = attacker;
-            GameObjectBody weapon;
+            GameObject weapon;
             if (caf.HasFlag(D20CAF.SECONDARY_WEAPON))
             {
                 weapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
@@ -285,7 +285,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004f420)]
-        public static int DispatchProjectileDestroyed(this GameObjectBody attacker, GameObjectBody projectile,
+        public static int DispatchProjectileDestroyed(this GameObject attacker, GameObject projectile,
             D20CAF caf)
         {
             DispIoAttackBonus dispIo = DispIoAttackBonus.Default;
@@ -293,7 +293,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             dispIo.attackPacket.d20ActnType = D20ActionType.STANDARD_ATTACK;
             dispIo.attackPacket.attacker = attacker;
 
-            GameObjectBody weapon;
+            GameObject weapon;
             if (caf.HasFlag(D20CAF.SECONDARY_WEAPON))
             {
                 weapon = GameSystems.Item.GetItemAtInvIdx(attacker, 204);
@@ -315,20 +315,20 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004e990)]
-        public static int DispatchGetToHitModifiersFromDefender(this GameObjectBody attacker, DispIoAttackBonus dispIo)
+        public static int DispatchGetToHitModifiersFromDefender(this GameObject attacker, DispIoAttackBonus dispIo)
         {
             return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo,
                 DispatcherType.ToHitBonusFromDefenderCondition, 0);
         }
 
         [TempleDllLocation(0x1004e920)]
-        public static int DispatchGetAcAdjustedByAttacker(this GameObjectBody a1, DispIoAttackBonus a2)
+        public static int DispatchGetAcAdjustedByAttacker(this GameObject a1, DispIoAttackBonus a2)
         {
             return GameSystems.Stat.DispatchAttackBonus(a1, null, ref a2, DispatcherType.AcModifyByAttacker, 0);
         }
 
         // TemplePlus extension
-        public static void DispatchSpellDamage(this GameObjectBody obj, DamagePacket damage, GameObjectBody target, SpellPacketBody spellPkt)
+        public static void DispatchSpellDamage(this GameObject obj, DamagePacket damage, GameObject target, SpellPacketBody spellPkt)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher != null)
@@ -344,14 +344,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004e940)]
-        public static int DispatchToHitBonusBase(this GameObjectBody attacker)
+        public static int DispatchToHitBonusBase(this GameObject attacker)
         {
             var dispIo = DispIoAttackBonus.Default;
             return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo, DispatcherType.ToHitBonusBase, D20DispatcherKey.NONE);
         }
 
         [TempleDllLocation(0x1004e940)]
-        public static int DispatchToHitBonusBase(this GameObjectBody attacker, ref DispIoAttackBonus dispIo)
+        public static int DispatchToHitBonusBase(this GameObject attacker, ref DispIoAttackBonus dispIo)
         {
             var dispKey = (D20DispatcherKey) dispIo.attackPacket.dispKey;
             return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo, DispatcherType.ToHitBonusBase,
@@ -359,7 +359,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004ee50)]
-        public static int DispatchGetLevel(this GameObjectBody critter, int classOffset, BonusList bonlist, GameObjectBody contextObj)
+        public static int DispatchGetLevel(this GameObject critter, int classOffset, BonusList bonlist, GameObject contextObj)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher != null)
@@ -377,14 +377,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004d270)]
-        public static void DispatchDispelCheck(this GameObjectBody critter, DispIoDispelCheck dispIo)
+        public static void DispatchDispelCheck(this GameObject critter, DispIoDispelCheck dispIo)
         {
             var dispatcher = critter.GetDispatcher();
             dispatcher?.Process(DispatcherType.DispelCheck, D20DispatcherKey.NONE, dispIo);
         }
 
         [TempleDllLocation(0x1004d480)]
-        public static int DispatchGetAbilityLoss(this GameObjectBody critter, DispIoAbilityLoss dispIo)
+        public static int DispatchGetAbilityLoss(this GameObject critter, DispIoAbilityLoss dispIo)
         {
             dispIo.flags |= 8;
 
@@ -401,7 +401,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004d3e0)]
-        public static D20DispatcherKey DispatchHasImmunityTrigger(this GameObjectBody critter,
+        public static D20DispatcherKey DispatchHasImmunityTrigger(this GameObject critter,
             DispIoTypeImmunityTrigger dispIo)
         {
             var dispatcher = critter.GetDispatcher();
@@ -423,7 +423,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004d500)]
-        public static Dice DispatchGetAttackDice(this GameObjectBody critter, DispIoAttackDice dispIo)
+        public static Dice DispatchGetAttackDice(this GameObject critter, DispIoAttackDice dispIo)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher != null)
@@ -445,7 +445,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004ec10)]
-        public static int DispatchAttackerConcealmentMissChance(this GameObjectBody attacker) {
+        public static int DispatchAttackerConcealmentMissChance(this GameObject attacker) {
 
             var dispatcher = attacker.GetDispatcher();
             if (dispatcher == null)
@@ -458,7 +458,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
             return dispIo.bonlist.HighestBonus;
         }
 
-        public static int DispatchDefenderConcealmentMissChance(this GameObjectBody victim, DispIoAttackBonus dispIo) {
+        public static int DispatchDefenderConcealmentMissChance(this GameObject victim, DispIoAttackBonus dispIo) {
             var dispatcher = victim.GetDispatcher();
             if (dispatcher == null)
             {
@@ -471,25 +471,25 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004e9d0)]
-        public static void DispatchDealingDamage(this GameObjectBody attacker, DispIoDamage dispIo)
+        public static void DispatchDealingDamage(this GameObject attacker, DispIoDamage dispIo)
         {
             attacker.DispatchDamage(DispatcherType.DealingDamage, dispIo);
         }
 
         [TempleDllLocation(0x1004ea30)]
-        public static void DispatchTakingDamage(this GameObjectBody victim, DispIoDamage dispIo)
+        public static void DispatchTakingDamage(this GameObject victim, DispIoDamage dispIo)
         {
             victim.DispatchDamage(DispatcherType.TakingDamage, dispIo);
         }
 
         [TempleDllLocation(0x1004ea50)]
-        public static void DispatchDealingDamage2(this GameObjectBody attacker, DispIoDamage dispIo)
+        public static void DispatchDealingDamage2(this GameObject attacker, DispIoDamage dispIo)
         {
             attacker.DispatchDamage(DispatcherType.DealingDamage2, dispIo);
         }
 
         [TempleDllLocation(0x1004ea70)]
-        public static void DispatchTakingDamageFinal(this GameObjectBody victim, DispIoDamage dispIo)
+        public static void DispatchTakingDamageFinal(this GameObject victim, DispIoDamage dispIo)
         {
             EnsureMinimumDamage1(dispIo.damage);
             victim.DispatchDamage(DispatcherType.TakingDamage2, dispIo);
@@ -517,21 +517,21 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004e040)]
-        public static void DispatchDamage(this GameObjectBody critter, DispatcherType type, DispIoDamage dispIo)
+        public static void DispatchDamage(this GameObject critter, DispatcherType type, DispIoDamage dispIo)
         {
             var dispatcher = critter.GetDispatcher();
             dispatcher?.Process(type, D20DispatcherKey.NONE, dispIo);
         }
 
         [TempleDllLocation(0x1004eaa0)]
-        public static void DispatchHealing(this GameObjectBody critter, DispIoDamage dispIo)
+        public static void DispatchHealing(this GameObject critter, DispIoDamage dispIo)
         {
             var dispatcher = critter.GetDispatcher();
             dispatcher?.Process(DispatcherType.ReceiveHealing, D20DispatcherKey.NONE, dispIo);
         }
 
         [TempleDllLocation(0x1004f650)]
-        public static void DispatchDestructionDomainSignal(this GameObjectBody critter, D20DispatcherKey dispKey)
+        public static void DispatchDestructionDomainSignal(this GameObject critter, D20DispatcherKey dispKey)
         {
             var dispatcher = critter.GetDispatcher();
             var dispIo = new DispIoD20Signal();
@@ -539,14 +539,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004eaf0)]
-        public static int DispatchGetCritExtraDice(this GameObjectBody attacker, ref DispIoAttackBonus dispIo)
+        public static int DispatchGetCritExtraDice(this GameObject attacker, ref DispIoAttackBonus dispIo)
         {
             return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo,
                 DispatcherType.GetCriticalHitExtraDice, D20DispatcherKey.NONE);
         }
 
         [TempleDllLocation(0x1004f200)]
-        public static int DispatchGetArmorMaxDexBonus(this GameObjectBody armor)
+        public static int DispatchGetArmorMaxDexBonus(this GameObject armor)
         {
             var dispIo = DispIoObjBonus.Default;
             var itemName = GameSystems.MapObject.GetDisplayName(armor, armor);
@@ -566,14 +566,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004cf50)]
-        public static void DispatchNewCalendarDay(this GameObjectBody critter)
+        public static void DispatchNewCalendarDay(this GameObject critter)
         {
             var dispatcher = critter.GetDispatcher();
             dispatcher?.Process(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_CALENDARICAL, null);
         }
 
         [TempleDllLocation(0x1004cf80)]
-        public static void DispatchRested(this GameObjectBody critter)
+        public static void DispatchRested(this GameObject critter)
         {
             var dispatcher = critter.GetDispatcher();
             dispatcher?.Process(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, null);

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -34,7 +34,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Scorching Ray OnSpellEffect");
         }
-        public override void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Scorching Ray OnBeginProjectile");
             var projectiles = Math.Min(3, (spell.casterLevel + 1) / 4);
@@ -44,7 +44,7 @@ namespace Scripts.Spells
             }
 
         }
-        public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Scorching Ray OnEndProjectile");
             

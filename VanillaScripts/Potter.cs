@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Potter : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(64)))
             {
@@ -36,7 +36,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool make_hate(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool make_hate(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetReaction(triggerer) >= 20))
             {

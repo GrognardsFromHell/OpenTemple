@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using IronPython.Compiler.Ast;
 using IronPython.Modules;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -25,10 +25,10 @@ namespace ScriptConversion
         private static readonly Dictionary<Type, GuessedType> NativeGuessedTypeMapping =
             new Dictionary<Type, GuessedType>
             {
-                {typeof(GameObjectBody), GuessedType.Object},
+                {typeof(GameObject), GuessedType.Object},
                 {typeof(TrapSprungEvent), GuessedType.TrapSprungEvent},
                 {typeof(SpellPacketBody), GuessedType.Spell},
-                {typeof(List<GameObjectBody>), GuessedType.ObjectList},
+                {typeof(List<GameObject>), GuessedType.ObjectList},
                 {typeof(SpellTarget[]), GuessedType.SpellTargets},
                 {typeof(bool), GuessedType.Bool},
                 {typeof(int), GuessedType.Integer},
@@ -101,7 +101,7 @@ namespace ScriptConversion
         /// </summary>
         private static readonly Dictionary<Type, string> SpecialManagedTypeNames = new Dictionary<Type, string>
         {
-            {typeof(List<GameObjectBody>), "List<" + typeof(GameObjectBody).Name + ">"},
+            {typeof(List<GameObject>), "List<" + typeof(GameObject).Name + ">"},
             {typeof(void), "void"},
             {typeof(bool), "bool"},
             {typeof(int), "int"},
@@ -173,7 +173,7 @@ namespace ScriptConversion
 
         public static GuessedType FromManagedType(Type t)
         {
-            if (typeof(IEnumerable<GameObjectBody>).IsAssignableFrom(t))
+            if (typeof(IEnumerable<GameObject>).IsAssignableFrom(t))
             {
                 return GuessedType.ObjectList;
             }

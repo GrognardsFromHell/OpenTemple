@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(32000)]
     public class BasicTrap : BaseObjectScript
     {
-        public override bool OnTrap(TrapSprungEvent trap, GameObjectBody triggerer)
+        public override bool OnTrap(TrapSprungEvent trap, GameObject triggerer)
         {
             AttachParticles(trap.Type.ParticleSystemId, trap.Object);
             foreach (var dmg in trap.Type.Damage)

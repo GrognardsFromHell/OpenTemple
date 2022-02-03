@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Skole : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (((GetGlobalFlag(202)) && (GetQuestState(42) != QuestState.Completed)))
             {
@@ -36,7 +36,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(201)))
             {
@@ -46,22 +46,22 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(202, false);
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(202, true);
             return RunDefault;
         }
-        public static bool prepare_goons(GameObjectBody attachee)
+        public static bool prepare_goons(GameObject attachee)
         {
             StartTimer(259200000, () => goons_attack(attachee));
             return RunDefault;
         }
-        public static bool goons_attack(GameObjectBody attachee)
+        public static bool goons_attack(GameObject attachee)
         {
             if (GetQuestState(42) != QuestState.Completed)
             {

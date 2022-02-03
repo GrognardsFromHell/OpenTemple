@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -38,13 +38,13 @@ namespace Scripts.Spells
         {
             Logger.Info("Disrupt Undead OnBeginRound");
         }
-        public override void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Disrupt Undead OnBeginProjectile");
             // spell.proj_partsys_id = game.particles( 'sp-Disrupt Undead-proj', projectile )
             SetProjectileParticles(projectile, AttachParticles("sp-Disrupt Undead-proj", projectile));
         }
-        public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Disrupt Undead OnEndProjectile");
             spell.duration = 0;

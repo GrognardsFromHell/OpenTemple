@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 
 namespace OpenTemple.Core.Systems.Pathfinding
@@ -31,7 +31,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
 
         public ref struct AnimPathData
         {
-            public GameObjectBody handle; // TODO: movingObj
+            public GameObject handle; // TODO: movingObj
             public locXY srcLoc;
             public locXY destLoc;
             public int size;

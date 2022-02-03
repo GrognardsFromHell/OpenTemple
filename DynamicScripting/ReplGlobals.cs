@@ -3,7 +3,7 @@ using System.Dynamic;
 using System.Linq;
 using OpenTemple.Core;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 
@@ -18,9 +18,9 @@ namespace OpenTemple.DynamicScripting
 
         public GameConfig Config => Globals.Config;
 
-        public GameObjectBody PartyLeader => GameSystems.Party.GetLeader();
+        public GameObject PartyLeader => GameSystems.Party.GetLeader();
 
-        public GameObjectBody FindByName(string namePart)
+        public GameObject FindByName(string namePart)
         {
             return GameSystems.Object
                 .EnumerateNonProtos()

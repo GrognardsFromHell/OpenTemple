@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.Script.Extensions;

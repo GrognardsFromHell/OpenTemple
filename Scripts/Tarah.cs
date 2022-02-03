@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,11 +23,11 @@ namespace Scripts
     [ObjectScript(342)]
     public class Tarah : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             return RunDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(993) == 2))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -57,13 +57,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(949, false);
             PartyLeader.RemoveReputation(40);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -81,7 +81,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 55))
             {
@@ -90,7 +90,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool switch_to_kenan(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_kenan(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8804);
             if ((npc != null))
@@ -100,7 +100,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_sharar(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_sharar(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8806);
             if ((npc != null))
@@ -110,7 +110,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_gadham(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_gadham(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8807);
             if ((npc != null))
@@ -120,7 +120,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_abaddon(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_abaddon(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8808);
             if ((npc != null))
@@ -130,7 +130,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_gershom(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_gershom(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8810);
             if ((npc != null))
@@ -140,7 +140,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_daniel(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_daniel(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8720);
             if ((npc != null))
@@ -151,7 +151,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_meleny(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_meleny(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8015);
             if ((npc != null))
@@ -162,7 +162,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_riana(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_riana(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8058);
             if ((npc != null))
@@ -173,7 +173,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_fruella(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_fruella(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8067);
             if ((npc != null))
@@ -184,7 +184,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_serena(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_serena(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8056);
             if ((npc != null))
@@ -195,7 +195,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_pishella(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_pishella(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8069);
             if ((npc != null))
@@ -206,7 +206,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_kella(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_kella(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8070);
             if ((npc != null))
@@ -217,7 +217,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool pick_to_grope(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool pick_to_grope(GameObject attachee, GameObject triggerer)
         {
             if (triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8015)))
             {
@@ -250,7 +250,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool create_skel(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool create_skel(GameObject attachee, GameObject triggerer)
         {
             var skel1 = GameSystems.MapObject.CreateObject(14602, new locXY(498, 575));
             skel1.Rotation = 2.5f;
@@ -280,7 +280,7 @@ namespace Scripts
             Sound(4015, 1);
             return RunDefault;
         }
-        public static bool destroy_skel(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool destroy_skel(GameObject attachee, GameObject triggerer)
         {
             var skel = Utilities.find_npc_near(attachee, 14602);
             var abby = Utilities.find_npc_near(attachee, 8808);
@@ -305,7 +305,7 @@ namespace Scripts
         }
         // doesn't work reliably
 
-        public static void pick_random_four(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pick_random_four(GameObject attachee, GameObject triggerer)
         {
             // def pick_random_four( attachee, triggerer ):	##doesn't work reliably
             var rr = RandomRange(3, 4);
@@ -317,7 +317,7 @@ namespace Scripts
         }
         // doesn't work reliably
 
-        public static void pick_random_five(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pick_random_five(GameObject attachee, GameObject triggerer)
         {
             // def pick_random_five( attachee, triggerer ):	##doesn't work reliably
             var rr = RandomRange(3, 5);
@@ -329,7 +329,7 @@ namespace Scripts
         }
         // doesn't work reliably
 
-        public static void pick_random_six(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pick_random_six(GameObject attachee, GameObject triggerer)
         {
             // def pick_random_six( attachee, triggerer ):	##doesn't work reliably
             var rr = RandomRange(3, 6);
@@ -341,7 +341,7 @@ namespace Scripts
         }
         // doesn't work reliably
 
-        public static void pick_random_seven(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pick_random_seven(GameObject attachee, GameObject triggerer)
         {
             // def pick_random_seven( attachee, triggerer ):	##doesn't work reliably
             var rr = RandomRange(3, 7);
@@ -353,7 +353,7 @@ namespace Scripts
         }
         // doesn't work reliably
 
-        public static void pick_random_eight(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pick_random_eight(GameObject attachee, GameObject triggerer)
         {
             // def pick_random_eight( attachee, triggerer ):	##doesn't work reliably
             var rr = RandomRange(3, 8);
@@ -363,7 +363,7 @@ namespace Scripts
             AttachParticles("ef-MinoCloud", pc);
             return;
         }
-        public static int kill_pc_3(GameObjectBody attachee, GameObjectBody triggerer)
+        public static int kill_pc_3(GameObject attachee, GameObject triggerer)
         {
             var pc = GameSystems.Party.GetPartyGroupMemberN(2);
             if ((pc.type == ObjectType.pc))
@@ -380,7 +380,7 @@ namespace Scripts
 
             return 1;
         }
-        public static int kill_pc_4(GameObjectBody attachee, GameObjectBody triggerer)
+        public static int kill_pc_4(GameObject attachee, GameObject triggerer)
         {
             var pc = GameSystems.Party.GetPartyGroupMemberN(3);
             if ((pc.type == ObjectType.pc))
@@ -397,7 +397,7 @@ namespace Scripts
 
             return 1;
         }
-        public static int kill_pc_5(GameObjectBody attachee, GameObjectBody triggerer)
+        public static int kill_pc_5(GameObject attachee, GameObject triggerer)
         {
             var pc = GameSystems.Party.GetPartyGroupMemberN(4);
             if ((pc.type == ObjectType.pc))
@@ -414,7 +414,7 @@ namespace Scripts
 
             return 1;
         }
-        public static int kill_pc_6(GameObjectBody attachee, GameObjectBody triggerer)
+        public static int kill_pc_6(GameObject attachee, GameObject triggerer)
         {
             var pc = GameSystems.Party.GetPartyGroupMemberN(5);
             if ((pc.type == ObjectType.pc))
@@ -431,7 +431,7 @@ namespace Scripts
 
             return 1;
         }
-        public static int kill_pc_7(GameObjectBody attachee, GameObjectBody triggerer)
+        public static int kill_pc_7(GameObject attachee, GameObject triggerer)
         {
             var pc = GameSystems.Party.GetPartyGroupMemberN(6);
             if ((pc.type == ObjectType.pc))
@@ -448,7 +448,7 @@ namespace Scripts
 
             return 1;
         }
-        public static bool dom_mon(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool dom_mon(GameObject attachee, GameObject triggerer)
         {
             var leader = PartyLeader;
             AttachParticles("sp-Charm Monster", leader);
@@ -471,7 +471,7 @@ namespace Scripts
             gershom.TurnTowards(attachee);
             return RunDefault;
         }
-        public static bool dom_mon_end(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool dom_mon_end(GameObject attachee, GameObject triggerer)
         {
             var pc = PartyLeader;
             AttachParticles("Fizzle", pc);
@@ -479,7 +479,7 @@ namespace Scripts
             AttachParticles("Fizzle", attachee);
             return RunDefault;
         }
-        public static void daniel_see_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void daniel_see_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             var daniel = Utilities.find_npc_near(attachee, 8720);
@@ -490,7 +490,7 @@ namespace Scripts
             tarah.TurnTowards(daniel);
             return;
         }
-        public static void kella_see_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void kella_see_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             var kella = Utilities.find_npc_near(attachee, 8070);
@@ -501,7 +501,7 @@ namespace Scripts
             tarah.TurnTowards(kella);
             return;
         }
-        public static void meleny_see_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void meleny_see_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             var meleny = Utilities.find_npc_near(attachee, 8015);
@@ -512,7 +512,7 @@ namespace Scripts
             tarah.TurnTowards(meleny);
             return;
         }
-        public static void fruella_see_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void fruella_see_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             var fruella = Utilities.find_npc_near(attachee, 8067);
@@ -523,7 +523,7 @@ namespace Scripts
             tarah.TurnTowards(fruella);
             return;
         }
-        public static void riana_see_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void riana_see_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             var riana = Utilities.find_npc_near(attachee, 8058);
@@ -534,7 +534,7 @@ namespace Scripts
             tarah.TurnTowards(riana);
             return;
         }
-        public static void serena_see_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void serena_see_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             var serena = Utilities.find_npc_near(attachee, 8056);
@@ -545,7 +545,7 @@ namespace Scripts
             tarah.TurnTowards(serena);
             return;
         }
-        public static void pishella_see_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pishella_see_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             var pishella = Utilities.find_npc_near(attachee, 8069);
@@ -556,7 +556,7 @@ namespace Scripts
             tarah.TurnTowards(pishella);
             return;
         }
-        public static void pc2_see_tarah(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pc2_see_tarah(GameObject attachee, GameObject triggerer)
         {
             var tarah = Utilities.find_npc_near(attachee, 8805);
             var pc2 = GameSystems.Party.GetPartyGroupMemberN(1);
@@ -567,7 +567,7 @@ namespace Scripts
             tarah.TurnTowards(pc2);
             return;
         }
-        public static void start_fight(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void start_fight(GameObject attachee, GameObject triggerer)
         {
             attachee.Attack(triggerer);
             var kenan = Utilities.find_npc_near(attachee, 8804);

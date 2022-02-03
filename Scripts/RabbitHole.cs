@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(398)]
     public class RabbitHole : BaseObjectScript
     {
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(937) == 0 && GetQuestState(89) >= QuestState.Accepted))
             {
@@ -32,7 +32,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(937) >= 4))
             {
@@ -49,7 +49,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(937) == 1))
             {
@@ -59,14 +59,14 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var leader = PartyLeader;
             Co8.StopCombat(attachee, 0);
             leader.BeginDialog(attachee, 4000);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5143 && GetGlobalVar(937) == 2))
             {
@@ -93,7 +93,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool close_enough(GameObjectBody speaker, GameObjectBody listener)
+        public static bool close_enough(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 5))
             {

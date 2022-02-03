@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.IO;
@@ -79,7 +79,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10021930)]
-        public void FreeRenderState(GameObjectBody obj)
+        public void FreeRenderState(GameObject obj)
         {
             obj.DestroyRendering();
 
@@ -98,7 +98,7 @@ namespace OpenTemple.Core.Systems
         /// - It's being fully deleted via <see cref="RemoveMapObj"/>
         /// - An item is being moved into a container
         /// </summary>
-        public void OnObjectRemovedFromWorld(GameObjectBody obj)
+        public void OnObjectRemovedFromWorld(GameObject obj)
         {
             if (obj.HasFlag(ObjectFlag.TEXT))
             {
@@ -164,7 +164,7 @@ namespace OpenTemple.Core.Systems
         /// a game object, use <see cref="ObjectSystem.Destroy"/> instead.
         /// </summary>
         [TempleDllLocation(0x100219B0)]
-        public void RemoveMapObj(GameObjectBody obj)
+        public void RemoveMapObj(GameObject obj)
         {
             OnObjectRemovedFromWorld(obj);
 
@@ -197,14 +197,14 @@ namespace OpenTemple.Core.Systems
             return true;
         }
 
-        public string GetDisplayNameForParty(GameObjectBody obj)
+        public string GetDisplayNameForParty(GameObject obj)
         {
             var observer = GameSystems.Party.GetConsciousLeader();
             return GetDisplayName(obj, observer);
         }
 
         [TempleDllLocation(0x1001fa80)]
-        public string GetDisplayName(GameObjectBody obj, GameObjectBody observer)
+        public string GetDisplayName(GameObject obj, GameObject observer)
         {
             if (obj == null)
             {
@@ -245,7 +245,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001f970)]
-        public string GetDisplayName(GameObjectBody obj) => GetDisplayName(obj, obj);
+        public string GetDisplayName(GameObject obj) => GetDisplayName(obj, obj);
 
         [TempleDllLocation(0x100C2110)]
         public void AddDynamicObjectsToSector(ref SectorObjects sectorObjects, SectorLoc loc, bool unknownFlag)
@@ -263,7 +263,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001e800)]
-        public void StartAnimating(GameObjectBody obj)
+        public void StartAnimating(GameObject obj)
         {
             var flags = obj.GetFlags();
             if (flags.HasFlag(ObjectFlag.OFF) || flags.HasFlag(ObjectFlag.DESTROYED))
@@ -289,7 +289,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10020F50)]
-        public void SetFlags(GameObjectBody obj, ObjectFlag flags)
+        public void SetFlags(GameObject obj, ObjectFlag flags)
         {
             if (flags.HasFlag(ObjectFlag.FLAT))
             {
@@ -317,7 +317,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10021020)]
-        public void ClearFlags(GameObjectBody obj, ObjectFlag flags)
+        public void ClearFlags(GameObject obj, ObjectFlag flags)
         {
             if (flags.HasFlag(ObjectFlag.FLAT))
             {
@@ -365,7 +365,7 @@ namespace OpenTemple.Core.Systems
         /**
          * Changes the FLAT flag of an object and re-sorts the object-list in the sector.
          */
-        private void ChangeFlat(GameObjectBody obj, bool enabled)
+        private void ChangeFlat(GameObject obj, bool enabled)
         {
             obj.SetFlag(ObjectFlag.FLAT, enabled);
 
@@ -387,7 +387,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10025950)]
-        public void Move(GameObjectBody obj, LocAndOffsets loc)
+        public void Move(GameObject obj, LocAndOffsets loc)
         {
             if (obj.GetFlags().HasFlag(ObjectFlag.DESTROYED))
             {
@@ -444,7 +444,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x10025590)]
         [TempleDllLocation(0x10025cb0)]
-        public void MoveOffsets(GameObjectBody obj, float offsetX, float offsetY)
+        public void MoveOffsets(GameObject obj, float offsetX, float offsetY)
         {
             if (obj.HasFlag(ObjectFlag.DESTROYED))
             {
@@ -475,7 +475,7 @@ namespace OpenTemple.Core.Systems
             GameSystems.Light.MoveObjectLightOffsets(obj, offsetX, offsetY);
         }
 
-        private void HandleDepthChange(GameObjectBody obj, LocAndOffsets oldLoc, LocAndOffsets newLoc)
+        private void HandleDepthChange(GameObject obj, LocAndOffsets oldLoc, LocAndOffsets newLoc)
         {
             // Handle changes in depth (entering/exiting deep water)
             var oldHeight = GameSystems.Height.GetDepth(oldLoc);
@@ -489,7 +489,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10025f70)]
-        public void MoveToMap(GameObjectBody obj, int mapId, LocAndOffsets loc)
+        public void MoveToMap(GameObject obj, int mapId, LocAndOffsets loc)
         {
             var curMap = GameSystems.Map.GetCurrentMapId();
 
@@ -504,7 +504,7 @@ namespace OpenTemple.Core.Systems
             }
 
             // Collect all objects that need to be moved (includes equipment / container content)
-            var moveList = new List<GameObjectBody> {obj};
+            var moveList = new List<GameObject> {obj};
             foreach (var childObj in obj.EnumerateChildren())
             {
                 moveList.Add(childObj);
@@ -543,7 +543,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001ffe0)]
-        public void AddAiTimerOnSectorLoad(GameObjectBody obj, bool unknownFlag)
+        public void AddAiTimerOnSectorLoad(GameObject obj, bool unknownFlag)
         {
             if (!IsEditor)
             {
@@ -643,7 +643,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100252d0)]
-        public void MoveItem(GameObjectBody item, locXY loc)
+        public void MoveItem(GameObject item, locXY loc)
         {
             var flags = item.GetFlags();
             if (flags.HasFlag(ObjectFlag.DESTROYED))
@@ -682,7 +682,7 @@ namespace OpenTemple.Core.Systems
         /// </summary>
         [TempleDllLocation(0x10028d20)]
         [TempleDllLocation(0x10026330)]
-        public GameObjectBody CreateObject(GameObjectBody protoObj, LocAndOffsets location)
+        public GameObject CreateObject(GameObject protoObj, LocAndOffsets location)
         {
             var obj = GameSystems.Object.CreateFromProto(protoObj, location);
 
@@ -691,16 +691,16 @@ namespace OpenTemple.Core.Systems
             return obj;
         }
 
-        public GameObjectBody CreateObject(GameObjectBody protoObj, locXY location) =>
+        public GameObject CreateObject(GameObject protoObj, locXY location) =>
             CreateObject(protoObj, new LocAndOffsets(location));
 
         /// <summary>
         /// Creates a new object with the given prototype at the given location.
         /// </summary>
-        public GameObjectBody CreateObject(int protoId, locXY location) =>
+        public GameObject CreateObject(int protoId, locXY location) =>
             CreateObject(protoId, new LocAndOffsets(location));
 
-        public GameObjectBody CreateObject(int protoId, LocAndOffsets location)
+        public GameObject CreateObject(int protoId, LocAndOffsets location)
         {
             var protoObj = GameSystems.Proto.GetProtoById(protoId);
             return CreateObject(protoObj, location);
@@ -708,7 +708,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x10028d70)]
         [TempleDllLocation(0x100263b0)]
-        public GameObjectBody CloneObject(GameObjectBody obj, LocAndOffsets location)
+        public GameObject CloneObject(GameObject obj, LocAndOffsets location)
         {
             var dest = GameSystems.Object.Clone(obj);
 
@@ -731,7 +731,7 @@ namespace OpenTemple.Core.Systems
             return dest;
         }
 
-        public void InitDynamic(GameObjectBody obj, locXY location)
+        public void InitDynamic(GameObject obj, locXY location)
         {
             // Mark the object and all its children as dynamic
             obj.SetFlag(ObjectFlag.DYNAMIC, true);
@@ -784,7 +784,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10021d20)]
-        public bool HasAnim(GameObjectBody obj, EncodedAnimId animId)
+        public bool HasAnim(GameObject obj, EncodedAnimId animId)
         {
             var animModel = obj.GetOrCreateAnimHandle();
             if (animModel != null)
@@ -796,7 +796,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001f770)]
-        public void MakeItemParented(GameObjectBody item, GameObjectBody parent)
+        public void MakeItemParented(GameObject item, GameObject parent)
         {
             Trace.Assert(parent != null);
 
@@ -811,11 +811,11 @@ namespace OpenTemple.Core.Systems
 
         #region Global Stashed Object
 
-        private GameObjectBody _globalStashedObject;
+        private GameObject _globalStashedObject;
         private FrozenObjRef _globalStashedObjectRef;
 
         [TempleDllLocation(0x100206d0)]
-        private bool ValidateFrozenRef(ref GameObjectBody obj, in FrozenObjRef frozenRef)
+        private bool ValidateFrozenRef(ref GameObject obj, in FrozenObjRef frozenRef)
         {
             if (obj == null || frozenRef.guid.IsNull)
             {
@@ -842,7 +842,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10808CE8)]
-        public GameObjectBody GlobalStashedObject
+        public GameObject GlobalStashedObject
         {
             [TempleDllLocation(0x10020ee0)]
             get
@@ -880,7 +880,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10020540)]
-        public FrozenObjRef CreateFrozenRef(GameObjectBody obj)
+        public FrozenObjRef CreateFrozenRef(GameObject obj)
         {
             FrozenObjRef result;
             if (obj == null)
@@ -911,7 +911,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10020610)]
-        public bool Unfreeze(in FrozenObjRef frozenRef, out GameObjectBody obj)
+        public bool Unfreeze(in FrozenObjRef frozenRef, out GameObject obj)
         {
             if (frozenRef.guid.IsNull)
             {
@@ -931,7 +931,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10020370)]
-        public bool LoadFrozenRef(out GameObjectBody objOut, out FrozenObjRef frozenRef, BinaryReader fh)
+        public bool LoadFrozenRef(out GameObject objOut, out FrozenObjRef frozenRef, BinaryReader fh)
         {
             var objId = fh.ReadObjectId();
             locXY location = fh.ReadTileLocation();
@@ -962,7 +962,7 @@ namespace OpenTemple.Core.Systems
             return true;
         }
 
-        public void SaveFrozenRef(GameObjectBody obj, BinaryWriter writer)
+        public void SaveFrozenRef(GameObject obj, BinaryWriter writer)
         {
             ObjectId id;
             int mapNumber;
@@ -995,7 +995,7 @@ namespace OpenTemple.Core.Systems
         #endregion
 
         [TempleDllLocation(0x1001fb60)]
-        public string GetLongDescription(GameObjectBody obj, GameObjectBody observer)
+        public string GetLongDescription(GameObject obj, GameObject observer)
         {
             if (obj.type == ObjectType.key)
             {
@@ -1033,13 +1033,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001fc20)]
-        public bool HasLongDescription(GameObjectBody obj)
+        public bool HasLongDescription(GameObject obj)
         {
             return !string.IsNullOrEmpty(GetLongDescription(obj, obj));
         }
 
         [TempleDllLocation(0x1001e730)]
-        public bool IsBusted(GameObjectBody obj)
+        public bool IsBusted(GameObject obj)
         {
             if (obj.HasFlag(ObjectFlag.DESTROYED))
             {
@@ -1064,7 +1064,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001fe40)]
-        public bool SetLocked(GameObjectBody obj, bool locked)
+        public bool SetLocked(GameObject obj, bool locked)
         {
             if (obj.ProtoId == 1000)
             {
@@ -1117,7 +1117,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100249d0)]
-        public void SetRotation(GameObjectBody obj, float rotation)
+        public void SetRotation(GameObject obj, float rotation)
         {
             while (rotation >= 2 * MathF.PI)
             {
@@ -1146,7 +1146,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10025CF0)]
-        public bool HasBlockingObjectInDir(GameObjectBody actor, LocAndOffsets fromLocation,
+        public bool HasBlockingObjectInDir(GameObject actor, LocAndOffsets fromLocation,
             CompassDirection direction, ObstacleFlag blockingFlags)
         {
             return GetObstacleInternal(actor, fromLocation, direction, blockingFlags, out var obstacleObj) != 0
@@ -1154,13 +1154,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10025280)]
-        public int GetBlockingObjectInDir(GameObjectBody actor, LocAndOffsets fromLocation,
-            CompassDirection direction, ObstacleFlag blockingFlags, out GameObjectBody obstacleObj)
+        public int GetBlockingObjectInDir(GameObject actor, LocAndOffsets fromLocation,
+            CompassDirection direction, ObstacleFlag blockingFlags, out GameObject obstacleObj)
         {
             return GetObstacleInternal(actor, fromLocation, direction, blockingFlags, out obstacleObj);
         }
 
-        public static CompassDirection GetCurrentForwardDirection(GameObjectBody obj)
+        public static CompassDirection GetCurrentForwardDirection(GameObject obj)
         {
             var compassSlice = (int) (Angles.ToDegrees(obj.Rotation) / 45);
             if ((compassSlice & 1) == 0)
@@ -1172,9 +1172,9 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10024A60)]
-        private int GetObstacleInternal(GameObjectBody actor, LocAndOffsets loc, CompassDirection direction,
+        private int GetObstacleInternal(GameObject actor, LocAndOffsets loc, CompassDirection direction,
             ObstacleFlag blockingFlags,
-            out GameObjectBody obstacleObj)
+            out GameObject obstacleObj)
         {
             obstacleObj = null;
             if (direction.IsCardinalDirection())
@@ -1389,20 +1389,20 @@ namespace OpenTemple.Core.Systems
             return weightSum;
         }
 
-        public bool IsHiddenByFlags(GameObjectBody obj)
+        public bool IsHiddenByFlags(GameObject obj)
         {
             return (obj.GetFlags() & _hiddenFlags) != default;
         }
 
         [TempleDllLocation(0x1001dab0)]
-        public Vector2 GetScreenPosOfObject(IGameViewport viewport, GameObjectBody obj)
+        public Vector2 GetScreenPosOfObject(IGameViewport viewport, GameObject obj)
         {
             var worldLoc = obj.GetLocationFull().ToInches3D();
             return viewport.WorldToScreen(worldLoc);
         }
 
         [TempleDllLocation(0x1001fcb0)]
-        public bool IsUntargetable(GameObjectBody obj)
+        public bool IsUntargetable(GameObject obj)
         {
             if ((obj.GetFlags() & (ObjectFlag.OFF | ObjectFlag.CLICK_THROUGH | ObjectFlag.DONTDRAW)) != 0)
             {
@@ -1430,7 +1430,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10022bc0)]
-        public Rectangle GetObjectRect(IGameViewport viewport, GameObjectBody obj, ObjectRectFlags flags = default)
+        public Rectangle GetObjectRect(IGameViewport viewport, GameObject obj, ObjectRectFlags flags = default)
         {
             // i & 8 seems to force
             if (!flags.HasFlag(ObjectRectFlags.IgnoreHidden) && IsHiddenByFlags(obj))
@@ -1464,7 +1464,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10020060)]
-        public void SetTransparency(GameObjectBody obj, int newOpacity)
+        public void SetTransparency(GameObject obj, int newOpacity)
         {
             var currentOpacity = obj.GetInt32(obj_f.transparency);
             obj.SetInt32(obj_f.transparency, newOpacity);
@@ -1506,7 +1506,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001dba0)]
-        public void ChangeTotalDamage(GameObjectBody obj, int overallDamage)
+        public void ChangeTotalDamage(GameObject obj, int overallDamage)
         {
             // Temporary hitpoints are tracked separately
             if (overallDamage < 0)
@@ -1522,7 +1522,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001db10)]
-        public int ChangeSubdualDamage(GameObjectBody critter, int damage)
+        public int ChangeSubdualDamage(GameObject critter, int damage)
         {
             if (!critter.IsCritter())
             {
@@ -1546,7 +1546,7 @@ namespace OpenTemple.Core.Systems
         /// <summary>
         /// Checks if the game object is visible in any viewport on screen.
         /// </summary>
-        public bool IsOnScreen(GameObjectBody obj)
+        public bool IsOnScreen(GameObject obj)
         {
             foreach (var gameView in GameViews.AllVisible)
             {

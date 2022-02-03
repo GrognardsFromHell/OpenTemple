@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(386)]
     public class GnomeGuard : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((Utilities.is_daytime()))
             {
@@ -36,7 +36,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (((PartyLeader.HasReputation(35) || PartyLeader.HasReputation(42)) && (attachee.GetMap() == 5121))) // turns on Verbobonc Exterior backup patrol
             {
@@ -49,7 +49,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -75,7 +75,7 @@ namespace Scripts
             StartTimer(60000, () => go_away(attachee));
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var leader = SelectedPartyLeader;
             if (((GetQuestState(67) == QuestState.Accepted) && (!GetGlobalFlag(963))))
@@ -101,7 +101,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(34) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(42) || PartyLeader.HasReputation(44) || PartyLeader.HasReputation(35) || PartyLeader.HasReputation(43) || PartyLeader.HasReputation(46) || (GetGlobalVar(993) == 5 && !GetGlobalFlag(870))))
             {
@@ -128,7 +128,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(34)) || (PartyLeader.HasReputation(35)))
             {
@@ -141,7 +141,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool guard_backup(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool guard_backup(GameObject attachee, GameObject triggerer)
         {
             var guard_1 = GameSystems.MapObject.CreateObject(14700, attachee.GetLocation().OffsetTiles(-4, 0));
             guard_1.TurnTowards(PartyLeader);
@@ -151,7 +151,7 @@ namespace Scripts
             guard_3.TurnTowards(PartyLeader);
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -164,7 +164,7 @@ namespace Scripts
 
             return false;
         }
-        public static int is_close(GameObjectBody speaker, GameObjectBody listener)
+        public static int is_close(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -177,7 +177,7 @@ namespace Scripts
 
             return 0;
         }
-        public static bool go_away(GameObjectBody attachee)
+        public static bool go_away(GameObject attachee)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;

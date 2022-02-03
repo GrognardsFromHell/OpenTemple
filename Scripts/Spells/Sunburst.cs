@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -39,16 +39,16 @@ namespace Scripts.Spells
         {
             Logger.Info("Sunburst OnBeginRound");
         }
-        public override void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Sunburst OnBeginProjectile");
             SetProjectileParticles(projectile, AttachParticles("sp-Searing Light", projectile));
         }
-        public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Sunburst OnEndProjectile");
             SpawnParticles("sp-Sunburst", spell.aoeCenter);
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             spell.duration = 100 * spell.casterLevel;
             var dam = Dice.D6;
             var dam2 = Dice.Parse("6d6");
@@ -127,7 +127,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Sunburst OnEndSpellCast");
         }
-        public bool is_kobold(GameObjectBody target)
+        public bool is_kobold(GameObject target)
         {
             Logger.Info("is_kobold");
             // all kobolds are the humanoid type, the reptilian subtype, are small, and have the alertness feat
@@ -146,7 +146,7 @@ namespace Scripts.Spells
 
             return false;
         }
-        public bool is_drow(GameObjectBody target)
+        public bool is_drow(GameObject target)
         {
             Logger.Info("is_drow");
             // all drow are elvish npcs with white hair, with spell resistance, that usually worship Lolth, and that usually are evil
@@ -188,7 +188,7 @@ namespace Scripts.Spells
 
             return false;
         }
-        public bool SR_status(GameObjectBody target)
+        public bool SR_status(GameObject target)
         {
             Logger.Info("SR_status");
             // conditions that give Spell Resistance

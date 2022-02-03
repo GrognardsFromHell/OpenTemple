@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20.Conditions;
@@ -77,8 +77,8 @@ namespace OpenTemple.Core.Systems.D20.Actions
         public int data1; // generic piece of data
         public D20CAF d20Caf; // Based on D20_CAF flags
         public uint field_C; // unknown use
-        public GameObjectBody d20APerformer;
-        public GameObjectBody d20ATarget;
+        public GameObject d20APerformer;
+        public GameObject d20ATarget;
         public LocAndOffsets destLoc; // action located (usually movement destination)
         public float distTraversed; // distanced traversed by a move action
         public int radialMenuActualArg; // the value chosen by radial menu toggle/slider
@@ -101,7 +101,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10093810)]
-        public D20Action(D20ActionType type, GameObjectBody performer)
+        public D20Action(D20ActionType type, GameObject performer)
         {
             d20ActType = type;
             d20APerformer = performer;
@@ -109,7 +109,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10093810)]
-        internal void Reset(GameObjectBody performer)
+        internal void Reset(GameObject performer)
         {
 	        d20APerformer = performer;
 	        d20ActType = D20ActionType.NONE;
@@ -171,7 +171,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
 	        var curSeq = GameSystems.D20.Actions.CurrentSequence;
 	        var orgTgtCount = curSeq.spellPktBody.Targets.Length;
-	        List<GameObjectBody> validTargets = new List<GameObjectBody>(orgTgtCount);
+	        List<GameObject> validTargets = new List<GameObject>(orgTgtCount);
 
 	        for (var i = 0; i < orgTgtCount; i++){
 		        var tgt = curSeq.spellPktBody.Targets[i].Object;
@@ -207,7 +207,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
 		private int CastSpellProcessTargets(D20Action action, SpellPacketBody spellPkt) {
 
-			List<GameObjectBody> targets = new List<GameObjectBody>();
+			List<GameObject> targets = new List<GameObject>();
 
 			for (var i = 0u; i < spellPkt.Targets.Length; i++) {
 				var tgt = spellPkt.Targets[i].Object;

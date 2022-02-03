@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -36,7 +36,7 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Mass Charm Monster OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             spell.duration = 600 * spell.casterLevel;
             var hitDiceAmount = 2 * spell.casterLevel;
             if (Co8Settings.CharmSpellDCModifier)
@@ -108,7 +108,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Mass Charm Monster OnEndSpellCast");
         }
-        public void removeCharmMonster(GameObjectBody caster, GameObjectBody target)
+        public void removeCharmMonster(GameObject caster, GameObject target)
         {
             Logger.Info("Mass Charm Monster - removing charm. {0}{1}", caster, target);
             caster.RemoveAIFollower(target);

@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.ObjScript;
@@ -22,7 +22,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10053b20)]
-        public bool TriggerTileScript(locXY tileLoc, GameObjectBody obj)
+        public bool TriggerTileScript(locXY tileLoc, GameObject obj)
         {
             if (GetTileScript(tileLoc, out var tileScript))
             {
@@ -148,7 +148,7 @@ namespace OpenTemple.Core.Systems
             sector.tileScriptsDirty = true;
         }
 
-        public void TriggerSectorScript(SectorLoc loc, GameObjectBody obj)
+        public void TriggerSectorScript(SectorLoc loc, GameObject obj)
         {
             if (GetSectorScript(loc, out var script))
             {

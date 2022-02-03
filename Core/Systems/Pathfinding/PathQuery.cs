@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 
 namespace OpenTemple.Core.Systems.Pathfinding
@@ -11,9 +11,9 @@ namespace OpenTemple.Core.Systems.Pathfinding
         public LocAndOffsets to;
         public int maxShortPathFindLength;
         public int field2c;
-        public GameObjectBody critter; // Set PQF_HAS_CRITTER
+        public GameObject critter; // Set PQF_HAS_CRITTER
 
-        public GameObjectBody targetObj; // Set PQF_TARGET_OBJ
+        public GameObject targetObj; // Set PQF_TARGET_OBJ
 
         /*
          When ADJ_RADIUS is set, (usually when there's a TARGET_OBJ)

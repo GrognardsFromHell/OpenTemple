@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Utils;
@@ -764,7 +764,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             var hpMax = evt.objHndCaller.GetBaseStat(Stat.hp_max);
             if (evt.objHndCaller.IsPC() || evt.objHndCaller.IsNPC())
             {
-                GameObjectBody critter = evt.objHndCaller;
+                GameObject critter = evt.objHndCaller;
                 if (!GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Has_No_Con_Score))
                 {
                     var conMod = critter.GetStat(Stat.con_mod);
@@ -1022,11 +1022,11 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100ff020)]
-        private static void AddThrownWeapons(GameObjectBody critter)
+        private static void AddThrownWeapons(GameObject critter)
         {
             var primaryWeaponProto = 0;
 
-            void AddMenuEntry(GameObjectBody thrownItem, D20ActionType actionType, bool isSecondaryWeapon = false)
+            void AddMenuEntry(GameObject thrownItem, D20ActionType actionType, bool isSecondaryWeapon = false)
             {
                 var itemName = GameSystems.MapObject.GetDisplayName(thrownItem, critter);
                 var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(5088);

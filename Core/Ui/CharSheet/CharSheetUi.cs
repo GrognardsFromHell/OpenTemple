@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
@@ -79,7 +79,7 @@ namespace OpenTemple.Core.Ui.CharSheet
         private CharUiParams _uiParams;
 
         [TempleDllLocation(0x10BE9968)]
-        private Func<GameObjectBody, bool> _itemPickedCallback;
+        private Func<GameObject, bool> _itemPickedCallback;
 
         [TempleDllLocation(0x10BE996C)]
         private Action _closeCallback; // TODO: Unused
@@ -390,7 +390,7 @@ namespace OpenTemple.Core.Ui.CharSheet
         }
 
         [TempleDllLocation(0x10148fb0)]
-        public void CallItemPickCallback(GameObjectBody item)
+        public void CallItemPickCallback(GameObject item)
         {
             if (_itemPickedCallback == null || _itemPickedCallback(item))
             {
@@ -456,7 +456,7 @@ namespace OpenTemple.Core.Ui.CharSheet
         }
 
         [TempleDllLocation(0x101499e0)]
-        public void Show(GameObjectBody obj)
+        public void Show(GameObject obj)
         {
             if (CurrentCritter != null)
             {
@@ -611,7 +611,7 @@ namespace OpenTemple.Core.Ui.CharSheet
 
         [TempleDllLocation(0x10144050)]
         [TempleDllLocation(0x10BE9940)]
-        public GameObjectBody? CurrentCritter { get; private set; }
+        public GameObject? CurrentCritter { get; private set; }
 
         [TempleDllLocation(0x10143fe0)]
         [TempleDllLocation(0x10BE9948)]
@@ -743,7 +743,7 @@ namespace OpenTemple.Core.Ui.CharSheet
         private CharInventoryState _state;
 
         [TempleDllLocation(0x10149dd0)]
-        public void ShowInState(CharInventoryState state, GameObjectBody obj)
+        public void ShowInState(CharInventoryState state, GameObject obj)
         {
             Hide(state);
             Show(obj);
@@ -796,7 +796,7 @@ namespace OpenTemple.Core.Ui.CharSheet
         private SliderParams? _itemTransfer;
 
         [TempleDllLocation(0x10149e80)]
-        public bool SplitItem(GameObjectBody item, GameObjectBody parent, int minAmt, int itemQty,
+        public bool SplitItem(GameObject item, GameObject parent, int minAmt, int itemQty,
             string texturePath, int transferType, int itemInsertLocation, int sum, ItemInsertFlag flags)
         {
             if (!_itemTransfer.HasValue)
@@ -854,13 +854,13 @@ namespace OpenTemple.Core.Ui.CharSheet
         }
 
         [TempleDllLocation(0x101493D0)]
-        private void TransferItemCallback(GameObjectBody obj)
+        private void TransferItemCallback(GameObject obj)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x10144400)]
-        public void ShowItemDetailsPopup(GameObjectBody item, GameObjectBody observer)
+        public void ShowItemDetailsPopup(GameObject item, GameObject observer)
         {
             if (!UiSystems.Popup.IsAnyOpen() && GameSystems.MapObject.HasLongDescription(item))
             {
@@ -876,7 +876,7 @@ namespace OpenTemple.Core.Ui.CharSheet
         /// the inventory is closed, otherwise it is kept open.
         /// </summary>
         [TempleDllLocation(0x10149e20)]
-        public void ShowItemPicker(GameObjectBody critter, Func<GameObjectBody, bool> callback)
+        public void ShowItemPicker(GameObject critter, Func<GameObject, bool> callback)
         {
             _itemPickedCallback = callback;
             State = CharInventoryState.CastingSpell;

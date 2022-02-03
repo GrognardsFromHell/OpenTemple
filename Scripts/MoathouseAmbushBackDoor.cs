@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,13 +23,13 @@ namespace Scripts
     [ObjectScript(564)]
     public class MoathouseAmbushBackDoor : BaseObjectScript
     {
-        public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnUse(GameObject attachee, GameObject triggerer)
         {
             // used by door in Moathouse Interior to Moathouse Back Door to tell which Ambush to turn on
             SetGlobalVar(710, 3);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(765) == 1 || GetGlobalVar(765) == 2 || GetGlobalFlag(283)))
             {
@@ -52,7 +52,7 @@ namespace Scripts
             attachee.SetScriptId(ObjScriptEvent.StartCombat, 2); // san_start_combat
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Falrinth : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasMet(triggerer)))
             {
@@ -36,7 +36,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(164)))
             {
@@ -61,12 +61,12 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(335, true);
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(164)))
             {
@@ -75,7 +75,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -98,7 +98,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool falrinth_escape(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool falrinth_escape(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(164, true);
             StartTimer(43200000, () => falrinth_return(attachee));
@@ -106,7 +106,7 @@ namespace VanillaScripts
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool falrinth_return(GameObjectBody attachee)
+        public static bool falrinth_return(GameObject attachee)
         {
             SetGlobalFlag(164, false);
             attachee.ClearObjectFlag(ObjectFlag.OFF);

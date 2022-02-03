@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
@@ -76,7 +76,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100508c0)]
-        public void CritterKilled(GameObjectBody critter)
+        public void CritterKilled(GameObject critter)
         {
             if ( critter.IsNPC() )
             {
@@ -125,7 +125,7 @@ namespace OpenTemple.Core.Systems
             IgnoreTotal = 0x10
         }
 
-        private SpawnRate GetSpawnRate(GameObjectBody obj)
+        private SpawnRate GetSpawnRate(GameObject obj)
         {
             var npcFlags = obj.GetNPCFlags();
             var result = 0;
@@ -147,7 +147,7 @@ namespace OpenTemple.Core.Systems
             return (SpawnRate) result;
         }
 
-        private void SetSpawnRate(GameObjectBody obj, SpawnRate spawnRate)
+        private void SetSpawnRate(GameObject obj, SpawnRate spawnRate)
         {
             var npcFlags = obj.GetNPCFlags();
             npcFlags &= ~(NpcFlag.GENERATOR_RATE1 | NpcFlag.GENERATOR_RATE2 | NpcFlag.GENERATOR_RATE3);
@@ -217,7 +217,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10050590)]
-        private void GetNpcGeneratorInfoFromField(GameObjectBody obj, out NpcGeneratorInfo npcGenInfo)
+        private void GetNpcGeneratorInfoFromField(GameObject obj, out NpcGeneratorInfo npcGenInfo)
         {
             var pickledGeneratorData = obj.GetInt32(obj_f.npc_generator_data);
             npcGenInfo = default;
@@ -243,7 +243,7 @@ namespace OpenTemple.Core.Systems
         struct NpcGeneratorInfo
         {
             public SpawnerFlag flags;
-            public GameObjectBody obj;
+            public GameObject obj;
             public int generatorId;
             public int maxConcurrent;
             public int maxTotal;
@@ -260,7 +260,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10050740)]
-        public bool ProcessSpawnerTick(GameObjectBody generator, out TimeSpan delay)
+        public bool ProcessSpawnerTick(GameObject generator, out TimeSpan delay)
         {
             if (!generator.IsNPC() || (generator.GetNPCFlags() & NpcFlag.GENERATOR) == 0)
             {

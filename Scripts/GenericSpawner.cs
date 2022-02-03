@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -27,7 +27,7 @@ namespace Scripts
         // -Temple exterior: Flags Burnt Farm, Ruined Temple House, Temple Tower visited
         // -Temple lvl2: Fix for giving Countess Tillahi instructions if you've been taken blindfolded into the Temple
 
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5001 || attachee.GetMap() == 5002 || attachee.GetMap() == 5051 || attachee.GetMap() == 5062 || attachee.GetMap() == 5068 || attachee.GetMap() == 5069 || attachee.GetMap() == 5091 || attachee.GetMap() == 5112 || attachee.GetMap() == 5094 || attachee.GetMap() == 5113 || attachee.GetMap() == 5108 || attachee.GetMap() == 5093 || attachee.GetMap() == 5095 || attachee.GetMap() == 5111 || attachee.GetMap() == 5121 || attachee.GetMap() == 5132))
             {
@@ -160,7 +160,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5112))
             {
@@ -550,7 +550,7 @@ namespace Scripts
 
             return;
         }
-        public static void verbo_tax(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void verbo_tax(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(549) && !GetGlobalFlag(826) && !GetGlobalFlag(260)))
             {
@@ -572,7 +572,7 @@ namespace Scripts
         }
         // EVERYTHING BELOW HAS TO DO WITH SITRA'S RANNOS AND GREMAG MOD AS FAR AS I KNOW #
 
-        public static int council_heartbeat(GameObjectBody attachee)
+        public static int council_heartbeat(GameObject attachee)
         {
             var c_time = Council.council_time();
             // 1 - between 22:00 and 22:30 on council day
@@ -883,7 +883,7 @@ namespace Scripts
             moshe.Destroy();
             return;
         }
-        public static int to_be_deleted_outdoors(GameObjectBody npc)
+        public static int to_be_deleted_outdoors(GameObject npc)
         {
             // 8008 - Gundigoot
             // 8048 - Rannos
@@ -908,13 +908,13 @@ namespace Scripts
 
             return 0;
         }
-        public static void lightly_damage(GameObjectBody npc)
+        public static void lightly_damage(GameObject npc)
         {
             npc.Damage(null, DamageType.Poison, Dice.D6);
             npc.Damage(null, DamageType.Subdual, Dice.Parse("3d3"), D20AttackPower.NORMAL);
             return;
         }
-        public static void heavily_damage(GameObjectBody npc)
+        public static void heavily_damage(GameObject npc)
         {
             // note: this script kills an NPC
             // since the san_dying is triggered, it makes the game think you killed him
@@ -948,7 +948,7 @@ namespace Scripts
 
             return;
         }
-        public static void destroy_weapons(GameObjectBody npc, int item1, int item2, int item3)
+        public static void destroy_weapons(GameObject npc, int item1, int item2, int item3)
         {
             if ((item1 != 0))
             {
@@ -982,7 +982,7 @@ namespace Scripts
 
             return;
         }
-        public static void heal_script(GameObjectBody healer, GameObjectBody target)
+        public static void heal_script(GameObject healer, GameObject target)
         {
             if ((Utilities.obj_percent_hp(target) < 100))
             {
@@ -1016,12 +1016,12 @@ namespace Scripts
 
             return;
         }
-        public static void float_comment(GameObjectBody attachee, int line)
+        public static void float_comment(GameObject attachee, int line)
         {
             attachee.FloatLine(line, SelectedPartyLeader);
             return;
         }
-        public static void proactivity(GameObjectBody npc, int line_no)
+        public static void proactivity(GameObject npc, int line_no)
         {
             npc.TurnTowards(PartyLeader);
             if ((!Utilities.critter_is_unconscious(PartyLeader) && PartyLeader.type == ObjectType.pc && !PartyLeader.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(PartyLeader)))

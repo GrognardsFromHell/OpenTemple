@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,23 +23,23 @@ namespace VanillaScripts
     public class BurneApprentice : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public static bool destroy_orb(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool destroy_orb(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(326, true);
             StartTimer(345600000, () => return_Zuggtmoy(attachee, triggerer));
             return RunDefault;
         }
-        public static bool play_effect(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool play_effect(GameObject attachee, GameObject triggerer)
         {
             AttachParticles("orb-destroy", attachee);
             return RunDefault;
         }
-        public static bool return_Zuggtmoy(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool return_Zuggtmoy(GameObject attachee, GameObject triggerer)
         {
             Fade(0, 0, 301, 0);
             Utilities.set_end_slides(attachee, triggerer);

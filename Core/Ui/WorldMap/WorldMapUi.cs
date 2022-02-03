@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using JetBrains.Annotations;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.IO.SaveGames.UiState;
@@ -307,7 +307,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                             );
 
                             // Search for the party member with the highest survival skill to roll against the encounter
-                            GameObjectBody partyMemberWithHighestSkill = null;
+                            GameObject partyMemberWithHighestSkill = null;
                             var highestSurvivalSkill = -1;
                             foreach (var partyMember in GameSystems.Party.PartyMembers)
                             {

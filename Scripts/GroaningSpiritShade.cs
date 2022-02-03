@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(503)]
     public class GroaningSpiritShade : BaseObjectScript
     {
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(991) <= 2))
             {
@@ -32,7 +32,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -50,7 +50,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool kill_spirit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool kill_spirit(GameObject attachee, GameObject triggerer)
         {
             AttachParticles("CounterSpell", attachee);
             SetGlobalVar(991, 3);

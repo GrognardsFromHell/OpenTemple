@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
@@ -38,7 +38,7 @@ namespace OpenTemple.Core.Systems.Vfx
         }
 
         [TempleDllLocation(0x100875c0)]
-        public void LightningBolt(GameObjectBody caster, LocAndOffsets targetLocation)
+        public void LightningBolt(GameObject caster, LocAndOffsets targetLocation)
         {
             // Make it so the lightning bolt originates directly at the caster's fingertips
             var source = GetCastingRef(caster);
@@ -50,7 +50,7 @@ namespace OpenTemple.Core.Systems.Vfx
         }
 
         [TempleDllLocation(0x10087480)]
-        public void ChainLightning(GameObjectBody caster, IEnumerable<GameObjectBody> targets)
+        public void ChainLightning(GameObject caster, IEnumerable<GameObject> targets)
         {
             var origin = GetCastingRef(caster);
 
@@ -66,7 +66,7 @@ namespace OpenTemple.Core.Systems.Vfx
             _chainLightningEffect = new ChainLightningEffect(_chainLightningRenderer, TimePoint.Now, origin, effectTargets);
         }
 
-        private static Vector3 GetCastingRef(GameObjectBody caster)
+        private static Vector3 GetCastingRef(GameObject caster)
         {
             var animParams = caster.GetAnimParams();
             var animModel = caster.GetOrCreateAnimHandle();

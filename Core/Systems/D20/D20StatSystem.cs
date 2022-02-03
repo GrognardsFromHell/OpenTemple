@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems.D20.Actions;
@@ -298,7 +298,7 @@ namespace OpenTemple.Core.Systems.D20
             return statMesExt[20000 + (int) stat];
         }
 
-        public int GetValue(GameObjectBody obj, Stat stat, int statArg = -1)
+        public int GetValue(GameObject obj, Stat stat, int statArg = -1)
         {
             switch (GetType(stat))
             {
@@ -338,7 +338,7 @@ namespace OpenTemple.Core.Systems.D20
         public static int GetModifierForAbilityScore(int abilityScore) => abilityScore / 2 - 5;
 
         [TempleDllLocation(0x10074CF0)]
-        public int ObjStatBaseGet(GameObjectBody obj, Stat stat)
+        public int ObjStatBaseGet(GameObject obj, Stat stat)
         {
             var statType = GetType(stat);
 
@@ -370,7 +370,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10074AD0)]
-        private int GetBaseSpeed(GameObjectBody obj, Stat stat)
+        private int GetBaseSpeed(GameObject obj, Stat stat)
         {
             var race = StatLevelGet(obj, Stat.race);
             int speedInFeet;
@@ -401,7 +401,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10074350)]
-        private int GetMoney(GameObjectBody obj, Stat stat)
+        private int GetMoney(GameObject obj, Stat stat)
         {
             if (obj.type == ObjectType.pc)
             {
@@ -497,7 +497,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10075050)]
-        private int StatGetBaseLoad(GameObjectBody obj, Stat stat)
+        private int StatGetBaseLoad(GameObject obj, Stat stat)
         {
             if (stat == Stat.load)
             {
@@ -513,7 +513,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100745F0)]
-        private int StatGetLoad(GameObjectBody obj, Stat stat)
+        private int StatGetLoad(GameObject obj, Stat stat)
         {
             if (stat == Stat.load)
             {
@@ -561,7 +561,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10074010)]
-        private int Obj_Get_HP_Max_or_Current_or_SubdualDamage(GameObjectBody obj, Stat stat)
+        private int Obj_Get_HP_Max_or_Current_or_SubdualDamage(GameObject obj, Stat stat)
         {
             if (obj.IsCritter() && obj.GetInt32(obj_f.hp_pts) == UninitializedHitPoints)
             {
@@ -582,7 +582,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10074800)]
-        public int StatLevelGet(GameObjectBody obj, Stat stat)
+        public int StatLevelGet(GameObject obj, Stat stat)
         {
             switch (GetType(stat))
             {
@@ -630,7 +630,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10074580)]
-        private int GetAbilityMods(GameObjectBody obj, Stat stat)
+        private int GetAbilityMods(GameObject obj, Stat stat)
         {
             // Get actual modifier value
             var statValue = GameSystems.Stat.ObjStatBaseGet(obj, stat - 255);
@@ -660,7 +660,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100742A0)]
-        private int GetSpeed(GameObjectBody obj, Stat stat)
+        private int GetSpeed(GameObject obj, Stat stat)
         {
             var baseSpeed = ObjStatBaseGet(obj, stat);
             if (stat == Stat.run_speed)
@@ -691,7 +691,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10073f30)]
-        private int Get_HP_Base_or_Current__or_Subdual_Damage(GameObjectBody obj, Stat stat)
+        private int Get_HP_Base_or_Current__or_Subdual_Damage(GameObject obj, Stat stat)
         {
             switch (stat)
             {
@@ -713,7 +713,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100740C0)]
-        private int GetCombatValue(GameObjectBody obj, Stat stat)
+        private int GetCombatValue(GameObject obj, Stat stat)
         {
             switch (stat)
             {
@@ -747,7 +747,7 @@ namespace OpenTemple.Core.Systems.D20
             }
         }
 
-        public int GetLevelStat(GameObjectBody obj, Stat stat)
+        public int GetLevelStat(GameObject obj, Stat stat)
         {
             var lvlArr = obj.GetInt32Array(obj_f.critter_level_idx);
             var numItems = lvlArr.Count;
@@ -774,7 +774,7 @@ namespace OpenTemple.Core.Systems.D20
             return result;
         }
 
-        public int GetSpellCastingStat(GameObjectBody handle, Stat stat, int statArg)
+        public int GetSpellCastingStat(GameObject handle, Stat stat, int statArg)
         {
             int ret = 0;
 
@@ -798,7 +798,7 @@ namespace OpenTemple.Core.Systems.D20
             return ret;
         }
 
-        public int GetPsiStat(GameObjectBody handle, Stat stat, int statArg = -1)
+        public int GetPsiStat(GameObject handle, Stat stat, int statArg = -1)
         {
             if (stat == Stat.psi_points_max)
             {
@@ -813,7 +813,7 @@ namespace OpenTemple.Core.Systems.D20
             return 0;
         }
 
-        public int GetPsiStatBase(GameObjectBody handle, Stat stat, int statArg = -1)
+        public int GetPsiStatBase(GameObject handle, Stat stat, int statArg = -1)
         {
             if (stat == Stat.psi_points_max)
             {
@@ -829,7 +829,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10074B30)]
-        public int GetType3StatBase(GameObjectBody obj, Stat stat)
+        public int GetType3StatBase(GameObject obj, Stat stat)
         {
             switch (stat)
             {
@@ -865,7 +865,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004d690)]
-        public SizeCategory DispatchGetSizeCategory(GameObjectBody obj)
+        public SizeCategory DispatchGetSizeCategory(GameObject obj)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -1117,7 +1117,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004E870)]
-        public static int Dispatch13SavingThrow(GameObjectBody obj, SavingThrowType saveType,
+        public static int Dispatch13SavingThrow(GameObject obj, SavingThrowType saveType,
             DispIoSavingThrow dispIo)
         {
             var dispatcherKey = GetDispatcherKeyForSavingThrow(saveType);
@@ -1125,7 +1125,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004e8a0)]
-        public static int Dispatch14SavingThrowResistance(GameObjectBody obj, SavingThrowType saveType,
+        public static int Dispatch14SavingThrowResistance(GameObject obj, SavingThrowType saveType,
             DispIoSavingThrow dispIo)
         {
             var dispatcherKey = GetDispatcherKeyForSavingThrow(saveType);
@@ -1133,7 +1133,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004e8d0)]
-        public static int Dispatch40SavingThrow(GameObjectBody critter, SavingThrowType saveType, DispIoSavingThrow dispIo)
+        public static int Dispatch40SavingThrow(GameObject critter, SavingThrowType saveType, DispIoSavingThrow dispIo)
         {
             var dispatcherKey = GetDispatcherKeyForSavingThrow(saveType);
             return DispatchSavingThrow(critter, dispIo, DispatcherType.CountersongSaveThrow, dispatcherKey);
@@ -1162,33 +1162,33 @@ namespace OpenTemple.Core.Systems.D20
 
 
         [TempleDllLocation(0x1004eb30)]
-        private int Dispatch26hGetMaxHP(GameObjectBody obj, DispIoBonusList bonusList)
+        private int Dispatch26hGetMaxHP(GameObject obj, DispIoBonusList bonusList)
         {
             return obj.DispatchForCritter(bonusList, DispatcherType.MaxHP, 0);
         }
 
         [TempleDllLocation(0x1004eb10)]
-        private int Dispatch25CurrentHP(GameObjectBody obj, DispIoBonusList bonusList)
+        private int Dispatch25CurrentHP(GameObject obj, DispIoBonusList bonusList)
         {
             return obj.DispatchForCritter(bonusList, DispatcherType.CurrentHP, 0);
         }
 
         // TODO This does not belong here
         [TempleDllLocation(0x1004e900)]
-        public int GetAC(GameObjectBody attacker, DispIoAttackBonus attackBonus)
+        public int GetAC(GameObject attacker, DispIoAttackBonus attackBonus)
         {
             return DispatchAttackBonus(attacker, null, ref attackBonus, DispatcherType.GetAC, 0);
         }
 
         // TODO This does not belong here
         [TempleDllLocation(0x1004e970)]
-        public int Dispatch16GetToHitBonus(GameObjectBody attacker, DispIoAttackBonus attackBonus)
+        public int Dispatch16GetToHitBonus(GameObject attacker, DispIoAttackBonus attackBonus)
         {
             return DispatchAttackBonus(attacker, null, ref attackBonus, DispatcherType.ToHitBonus2, 0);
         }
 
         [TempleDllLocation(0x1004dec0)]
-        public int DispatchAttackBonus(GameObjectBody attacker, GameObjectBody victim, ref DispIoAttackBonus dispIo,
+        public int DispatchAttackBonus(GameObject attacker, GameObject victim, ref DispIoAttackBonus dispIo,
             DispatcherType dispType, D20DispatcherKey key)
         {
             var dispatcher = attacker.GetDispatcher();
@@ -1213,7 +1213,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004DDF0)]
-        private static int DispatchSavingThrow(GameObjectBody obj,
+        private static int DispatchSavingThrow(GameObject obj,
             DispIoSavingThrow dispIo,
             DispatcherType dispatcherType,
             D20DispatcherKey saveType)
@@ -1244,7 +1244,7 @@ namespace OpenTemple.Core.Systems.D20
         /// not called for protos (which was actually true during creation). Probably a pointless exercise.
         /// </summary>
         [TempleDllLocation(0x100739d0)]
-        public static void SetDefaultPlayerHP(GameObjectBody obj)
+        public static void SetDefaultPlayerHP(GameObject obj)
         {
             if (!obj.IsProto() && obj.IsPC())
             {
@@ -1253,7 +1253,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x10074e10)]
-        public int SetBasicStat(GameObjectBody obj, Stat stat, int value)
+        public int SetBasicStat(GameObject obj, Stat stat, int value)
         {
             // Handle read-only stats
             if (stat >= Stat.str_mod && stat <= Stat.carried_weight
@@ -1309,7 +1309,7 @@ namespace OpenTemple.Core.Systems.D20
             return ObjStatBaseGet(obj, stat);
         }
 
-        private void SetNpcMoney(GameObjectBody obj, Stat stat, int value)
+        private void SetNpcMoney(GameObject obj, Stat stat, int value)
         {
             if (obj.IsNPC())
             {
@@ -1332,7 +1332,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1001DC20)]
-        public int GetCurrentHP(GameObjectBody obj)
+        public int GetCurrentHP(GameObject obj)
         {
             return StatLevelGet(obj, Stat.hp_current);
         }
@@ -1411,7 +1411,7 @@ namespace OpenTemple.Core.Systems.D20
     public static class D20StatExtensions
     {
         [TempleDllLocation(0x1004e810)]
-        public static int GetBaseStat(this GameObjectBody obj, Stat stat)
+        public static int GetBaseStat(this GameObject obj, Stat stat)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher != null)
@@ -1424,6 +1424,6 @@ namespace OpenTemple.Core.Systems.D20
             return GameSystems.Stat.ObjStatBaseGet(obj, stat);
         }
 
-        public static int GetStat(this GameObjectBody obj, Stat stat) => GameSystems.Stat.StatLevelGet(obj, stat);
+        public static int GetStat(this GameObject obj, Stat stat) => GameSystems.Stat.StatLevelGet(obj, stat);
     }
 }

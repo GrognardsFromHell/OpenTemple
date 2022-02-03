@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Ui.Widgets;
@@ -63,7 +63,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             _weight = new StatBlockValue(doc, "weight");
         }
 
-        public void Update(CharEditorSelectionPacket pkt, GameObjectBody critter, ChargenStages completedStages)
+        public void Update(CharEditorSelectionPacket pkt, GameObject critter, ChargenStages completedStages)
         {
             for (var i = 0; i < pkt.abilityStats.Length; i++)
             {
@@ -97,7 +97,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011d470)]
-        private void UpdateExperienceAndLevel(GameObjectBody critter, ChargenStages completedStages)
+        private void UpdateExperienceAndLevel(GameObject critter, ChargenStages completedStages)
         {
             if (critter != null && completedStages >= ChargenStages.CG_Stage_Class)
             {
@@ -116,7 +116,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011cd10)]
-        private void UpdateHpAndAc(GameObjectBody critter, ChargenStages completedStages)
+        private void UpdateHpAndAc(GameObject critter, ChargenStages completedStages)
         {
             if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
             {
@@ -133,7 +133,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011d010)]
-        private void UpdateSavingThrows(GameObjectBody critter, ChargenStages completedStages)
+        private void UpdateSavingThrows(GameObject critter, ChargenStages completedStages)
         {
             if (critter != null && completedStages >= ChargenStages.CG_Stage_Class)
             {
@@ -153,7 +153,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011ca20)]
-        private void UpdateInitiativeAndSpeed(GameObjectBody critter, ChargenStages completedStages)
+        private void UpdateInitiativeAndSpeed(GameObject critter, ChargenStages completedStages)
         {
             if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
             {
@@ -171,7 +171,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011c6c0)]
-        private void UpdateAttackBonus(GameObjectBody critter, ChargenStages completedStages)
+        private void UpdateAttackBonus(GameObject critter, ChargenStages completedStages)
         {
             if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
             {

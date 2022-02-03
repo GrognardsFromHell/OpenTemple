@@ -1,6 +1,6 @@
 using System;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems;
@@ -62,7 +62,7 @@ namespace OpenTemple.Core.Ui.CharSheet
             base.Render();
         }
 
-        private string BuildClassText(GameObjectBody currentCritter, bool shortClassNames, bool omitLevelText)
+        private string BuildClassText(GameObject currentCritter, bool shortClassNames, bool omitLevelText)
         {
             var textBuilder = new StringBuilder();
 

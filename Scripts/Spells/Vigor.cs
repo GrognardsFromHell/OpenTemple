@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -69,7 +69,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Vigor OnEndSpellCast");
         }
-        public static void heal_tick_vigor(GameObjectBody target, Dice dice)
+        public static void heal_tick_vigor(GameObject target, Dice dice)
         {
             target.Heal(null, dice);
             target.HealSubdual(null, dice);

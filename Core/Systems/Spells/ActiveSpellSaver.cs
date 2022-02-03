@@ -1,5 +1,5 @@
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames.GameState;
 
 namespace OpenTemple.Core.Systems.Spells

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -25,7 +25,7 @@ namespace Scripts
     {
         // these scripts are used to get Hommlet interior doors that normally lead to Hommlet exterior to instead lead to the custom Hommlet substitute map where WotGS is staged while WotGS is active.
 
-        public override bool OnUse(GameObjectBody door, GameObjectBody triggerer)
+        public override bool OnUse(GameObject door, GameObject triggerer)
         {
             if ((GetGlobalVar(501) == 4 || GetGlobalVar(501) == 5 || GetGlobalVar(501) == 6))
             {

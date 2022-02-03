@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Tolub : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5052))
             {
@@ -36,7 +36,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(97, true);
             if ((GetQuestState(36) == QuestState.Accepted))
@@ -46,12 +46,12 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(97, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(10) >= 2))
             {
@@ -77,13 +77,13 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool brawl(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool brawl(GameObject attachee, GameObject triggerer)
         {
             attachee.SetReaction(triggerer, -100);
             GameSystems.Combat.Brawl(triggerer, attachee);
             return RunDefault;
         }
-        public static bool brawl_end(GameObjectBody attachee, GameObjectBody triggerer, int brawl_state)
+        public static bool brawl_end(GameObject attachee, GameObject triggerer, int brawl_state)
         {
             if ((brawl_state == 0))
             {

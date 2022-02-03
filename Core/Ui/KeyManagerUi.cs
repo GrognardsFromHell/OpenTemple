@@ -783,8 +783,8 @@ namespace OpenTemple.Core.Ui
             this.eventId = eventId;
             this.primaryKeyCode = primaryKeyCode;
             this.primaryOnDown = primaryOnDown;
-            this.secondaryKeyCode = 0;
-            this.secondaryOnDown = false;
+            secondaryKeyCode = 0;
+            secondaryOnDown = false;
         }
 
         public HotKeySpec(bool unkBool, bool unkBool2, HotKeyModifier modifier, InGameHotKey eventId,

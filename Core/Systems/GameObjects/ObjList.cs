@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.Raycast;
@@ -57,7 +57,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         OLC_PATH_BLOCKER = 0x18006 // added for pathfinding purposes
     }
 
-    public class ObjList : IDisposable, IEnumerable<GameObjectBody>
+    public class ObjList : IDisposable, IEnumerable<GameObject>
     {
         private ObjList()
         {
@@ -72,7 +72,7 @@ namespace OpenTemple.Core.Systems.GameObjects
 
         public int Count => _objectsCount;
 
-        public GameObjectBody this[int index] => _objects.Memory.Span[index];
+        public GameObject this[int index] => _objects.Memory.Span[index];
 
         public static ObjectListFilter GetFromType(ObjectType type)
         {
@@ -207,12 +207,12 @@ namespace OpenTemple.Core.Systems.GameObjects
             }
         }
 
-        private static readonly MemoryPool<GameObjectBody> MemoryPool = MemoryPool<GameObjectBody>.Shared;
+        private static readonly MemoryPool<GameObject> MemoryPool = MemoryPool<GameObject>.Shared;
 
         [TempleDllLocation(0x10808CF8)]
         private static int dword_10808CF8;
 
-        private IMemoryOwner<GameObjectBody> _objects;
+        private IMemoryOwner<GameObject> _objects;
 
         private int _objectsCount;
 
@@ -240,7 +240,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         }
 
         [TempleDllLocation(0x100C0CA0)] // kind of...
-        private void Add(GameObjectBody obj)
+        private void Add(GameObject obj)
         {
             EnsureCapacity(_objectsCount + 1);
             _objects.Memory.Span[_objectsCount++] = obj;
@@ -401,7 +401,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         /// but uses the location of the given object.
         /// </summary>
         [TempleDllLocation(0x100211d0)]
-        public static ObjList ListVicinity(GameObjectBody obj, ObjectListFilter flags)
+        public static ObjList ListVicinity(GameObject obj, ObjectListFilter flags)
         {
             return ListVicinity(obj.GetLocation(), flags);
         }
@@ -450,7 +450,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         Lists objects in a tile radius.
         */
         [TempleDllLocation(0x100591f0)]
-        public static ObjList ListRangeTiles(GameObjectBody obj, int rangeTiles, ObjectListFilter filter)
+        public static ObjList ListRangeTiles(GameObject obj, int rangeTiles, ObjectListFilter filter)
         {
             var location = obj.GetLocationFull();
             var rangeInches = rangeTiles * locXY.INCH_PER_TILE;
@@ -501,7 +501,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         }
 
         [TempleDllLocation(0x1010d740)]
-        public static ObjList ListCone(GameObjectBody critter, ObjectListFilter flags, float radiusFeet,
+        public static ObjList ListCone(GameObject critter, ObjectListFilter flags, float radiusFeet,
             float coneStartAngleDeg, float coneArcDeg)
         {
             // TODO: Should this not be extended by the critter's radius?
@@ -513,7 +513,7 @@ namespace OpenTemple.Core.Systems.GameObjects
             return ListCone(location, radiusInches, coneStart, coneWidth, flags);
         }
 
-        public IEnumerator<GameObjectBody> GetEnumerator()
+        public IEnumerator<GameObject> GetEnumerator()
         {
             for (int i = 0; i < Count; i++)
             {

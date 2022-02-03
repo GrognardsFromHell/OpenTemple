@@ -13,5 +13,7 @@
     <RuntimeRoslynVersion>3.8.0</RuntimeRoslynVersion>
 
     <BuildRoslynVersion>3.8.0</BuildRoslynVersion>
+    
+    <IronPythonVersion>2.7.11</IronPythonVersion>
   </PropertyGroup>
 </Project>

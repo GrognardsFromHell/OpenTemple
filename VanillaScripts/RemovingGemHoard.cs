@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class RemovingGemHoard : BaseObjectScript
     {
 
-        public override bool OnRemoveItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnRemoveItem(GameObject attachee, GameObject triggerer)
         {
             var zuggtmoy = Utilities.find_npc_near(triggerer, 8064);
 

@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Schema;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
@@ -64,7 +64,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10063e80)]
-        public GameObjectBody GetParent(GameObjectBody item)
+        public GameObject GetParent(GameObject item)
         {
             if (item == null || !item.IsItem())
             {
@@ -164,7 +164,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public string GetAttachBone(GameObjectBody obj)
+        public string GetAttachBone(GameObject obj)
         {
             var wearFlags = obj.GetItemWearFlags();
             var slot = obj.GetItemInventoryLocation();
@@ -191,7 +191,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065010)]
-        public GameObjectBody ItemWornAt(GameObjectBody wearer, EquipSlot slot)
+        public GameObject ItemWornAt(GameObject wearer, EquipSlot slot)
         {
             if (wearer == null)
             {
@@ -218,7 +218,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100651B0)]
-        public GameObjectBody GetItemAtInvIdx(GameObjectBody container, int index)
+        public GameObject GetItemAtInvIdx(GameObject container, int index)
         {
             if (container.IsCritter() && GameSystems.D20.D20Query(container, D20DispatcherKey.QUE_Polymorphed))
             {
@@ -237,7 +237,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10066730)]
-        public WeaponAnimType GetWeaponAnimType(GameObjectBody weapon, GameObjectBody wielder)
+        public WeaponAnimType GetWeaponAnimType(GameObject weapon, GameObject wielder)
         {
             var wieldType = GetWieldType(wielder, weapon);
             IImmutableDictionary<WeaponType, WeaponAnimType> weaponAnimTypes;
@@ -263,7 +263,7 @@ namespace OpenTemple.Core.Systems
         /// 3 for special stuff? (item too large)
         /// </summary>
         [TempleDllLocation(0x10066580)]
-        public int GetWieldType(GameObjectBody wearer, GameObjectBody item, bool regardEnlargement = false)
+        public int GetWieldType(GameObject wearer, GameObject item, bool regardEnlargement = false)
         {
             var wieldType = 3;
             if (!item.id)
@@ -346,7 +346,7 @@ namespace OpenTemple.Core.Systems
             return wieldType;
         }
 
-        public bool IsStackable(GameObjectBody item)
+        public bool IsStackable(GameObject item)
         {
             switch (item.type)
             {
@@ -370,7 +370,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100641B0)]
-        public bool GetQuantityField(GameObjectBody item, out obj_f field)
+        public bool GetQuantityField(GameObject item, out obj_f field)
         {
             switch (item.type)
             {
@@ -427,7 +427,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10066C60)]
-        public int GetItemWeight(GameObjectBody item)
+        public int GetItemWeight(GameObject item)
         {
             if (item.type == ObjectType.money)
             {
@@ -446,7 +446,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067B80)]
-        public int GetTotalCarriedWeight(GameObjectBody obj)
+        public int GetTotalCarriedWeight(GameObject obj)
         {
             if (obj.type == ObjectType.container)
             {
@@ -523,7 +523,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006d890)]
-        public void PoopInventory(GameObjectBody obj, bool unsetNoTransfer, bool onlyInvulnerable = false)
+        public void PoopInventory(GameObject obj, bool unsetNoTransfer, bool onlyInvulnerable = false)
         {
             // Note: Also replaces 0x1006db80 by introducing "onlyInvulnerable" param and moving
             // check for proto 1000 to callers
@@ -574,7 +574,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10069ae0)]
-        public void ForceRemove(GameObjectBody item, GameObjectBody parent)
+        public void ForceRemove(GameObject item, GameObject parent)
         {
             if (parent == null)
             {
@@ -674,7 +674,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public bool IsNormalCrossbow(GameObjectBody obj)
+        public bool IsNormalCrossbow(GameObject obj)
         {
             if (obj.type == ObjectType.weapon)
             {
@@ -688,7 +688,7 @@ namespace OpenTemple.Core.Systems
             return false;
         }
 
-        public void AddItemToContainer(GameObjectBody container, int protoId, int quantity = 1)
+        public void AddItemToContainer(GameObject container, int protoId, int quantity = 1)
         {
             if (quantity <= 0)
             {
@@ -724,7 +724,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006d3d0)]
-        public void SpawnInventorySource(GameObjectBody obj)
+        public void SpawnInventorySource(GameObject obj)
         {
             var spawnOnce = false;
             int invSrcId;
@@ -840,7 +840,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006bd30)]
-        private void SpawnAmmoForWeapon(GameObjectBody container, GameObjectBody item)
+        private void SpawnAmmoForWeapon(GameObject container, GameObject item)
         {
             if (item.type == ObjectType.weapon)
             {
@@ -854,7 +854,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x1006bba0)]
         [TempleDllLocation(0x10065400)]
-        public void SpawnAmmoForWeapon(GameObjectBody container, WeaponAmmoType ammoType, int quantity)
+        public void SpawnAmmoForWeapon(GameObject container, WeaponAmmoType ammoType, int quantity)
         {
             if (quantity <= 0)
             {
@@ -934,7 +934,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1006b780)]
         [TempleDllLocation(0x1006b860)]
         private void AddValuablesToContainer(int minValue, int maxValue,
-            GameObjectBody container, ValuableSpec[] valuableTypes)
+            GameObject container, ValuableSpec[] valuableTypes)
         {
             if (minValue <= 0 && maxValue <= 0)
             {
@@ -964,7 +964,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006dcf0)]
-        public void PossiblySpawnInvenSource(GameObjectBody obj)
+        public void PossiblySpawnInvenSource(GameObject obj)
         {
             var inventorySource = GetInventorySource(obj);
             if (inventorySource == 0)
@@ -1018,7 +1018,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10064be0)]
-        public int GetInventorySource(GameObjectBody obj)
+        public int GetInventorySource(GameObject obj)
         {
             if (obj.IsContainer())
             {
@@ -1033,7 +1033,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10069f60)]
-        public void Remove(GameObjectBody item)
+        public void Remove(GameObject item)
         {
             var parent = GetParent(item);
             if (parent == null)
@@ -1051,7 +1051,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10063e20)]
-        public static void SetWeaponSlotDefaults(GameObjectBody obj)
+        public static void SetWeaponSlotDefaults(GameObject obj)
         {
             if (obj.IsPC())
             {
@@ -1064,12 +1064,12 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10069e00)]
-        public void ClearInventory(GameObjectBody obj, bool keepPersistent)
+        public void ClearInventory(GameObject obj, bool keepPersistent)
         {
             // Objects are moved here temporarily to be deleted
             var targetLocation = obj.GetLocation();
 
-            var children = new List<GameObjectBody>(obj.EnumerateChildren());
+            var children = new List<GameObject>(obj.EnumerateChildren());
 
             foreach (var child in children)
             {
@@ -1090,7 +1090,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006d300)]
-        public void SpawnTutorialEquipment(GameObjectBody obj)
+        public void SpawnTutorialEquipment(GameObject obj)
         {
             ClearInventory(obj, false);
 
@@ -1106,7 +1106,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006d100)]
-        public void WieldBestAll(GameObjectBody critter, GameObjectBody target = null)
+        public void WieldBestAll(GameObject critter, GameObject target = null)
         {
             for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
             {
@@ -1115,7 +1115,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006d140)]
-        private void WieldBestAllExceptWeapons(GameObjectBody critter)
+        private void WieldBestAllExceptWeapons(GameObject critter)
         {
             for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
             {
@@ -1129,7 +1129,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006aa80)]
-        public bool UnequipItemInSlot(GameObjectBody critter, EquipSlot slot)
+        public bool UnequipItemInSlot(GameObject critter, EquipSlot slot)
         {
             var item = ItemWornAt(critter, slot);
             if (item != null)
@@ -1143,7 +1143,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006a640)]
-        public bool UnequipItem(GameObjectBody item)
+        public bool UnequipItem(GameObject item)
         {
             var invIdx = item.GetItemInventoryLocation();
             if (IsInvIdxWorn(invIdx))
@@ -1168,13 +1168,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10064c40)]
-        public bool IsMagical(GameObjectBody item) => item.GetItemFlags().HasFlag(ItemFlag.IS_MAGICAL);
+        public bool IsMagical(GameObject item) => item.GetItemFlags().HasFlag(ItemFlag.IS_MAGICAL);
 
         /// <summary>
         /// Identifies all items in the given container / critter.
         /// </summary>
         [TempleDllLocation(0x10064c70)]
-        public void IdentifyAll(GameObjectBody container)
+        public void IdentifyAll(GameObject container)
         {
             foreach (var item in container.EnumerateChildren())
             {
@@ -1188,7 +1188,7 @@ namespace OpenTemple.Core.Systems
         private const int MagicalItemWorthBonus = 1000000;
 
         [TempleDllLocation(0x1006CCC0)]
-        public void WieldBest(GameObjectBody critter, int invIdx, GameObjectBody target)
+        public void WieldBest(GameObject critter, int invIdx, GameObject target)
         {
             if (invIdx == InvIdxWeaponSecondary)
             {
@@ -1214,7 +1214,7 @@ namespace OpenTemple.Core.Systems
                 }
             }
 
-            GameObjectBody bestSecondaryWeapon = null;
+            GameObject bestSecondaryWeapon = null;
 
             var inventory = critter.EnumerateChildren().ToArray();
 
@@ -1341,7 +1341,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067310)]
-        private int GetAmmoQuantity(GameObjectBody critter, WeaponAmmoType ammoType)
+        private int GetAmmoQuantity(GameObject critter, WeaponAmmoType ammoType)
         {
             var ammoItem = FindAmmoItem(critter, ammoType);
 
@@ -1354,7 +1354,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065320)]
-        private GameObjectBody FindAmmoItem(GameObjectBody container, WeaponAmmoType ammoType)
+        private GameObject FindAmmoItem(GameObject container, WeaponAmmoType ammoType)
         {
             foreach (var item in container.EnumerateChildren())
             {
@@ -1368,10 +1368,10 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006bd90)]
-        private float GetExpectedWeaponDamage(GameObjectBody weapon,
-            GameObjectBody offhandWeapon,
-            GameObjectBody attacker,
-            GameObjectBody target)
+        private float GetExpectedWeaponDamage(GameObject weapon,
+            GameObject offhandWeapon,
+            GameObject attacker,
+            GameObject target)
         {
             var primaryWeaponExpectedDmg = 0.0f;
             var secondaryWeapExpectedDmg = 0.0f;
@@ -1484,21 +1484,21 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006bb50)]
-        public void ItemPlaceInIndex(GameObjectBody item, int invIdx)
+        public void ItemPlaceInIndex(GameObject item, int invIdx)
         {
             var parent = GetParent(item);
             ItemTransferWithFlags(item, parent, invIdx, ItemInsertFlag.Unk4, null);
         }
 
         [TempleDllLocation(0x1006AA60)]
-        public bool ItemDrop(GameObjectBody item)
+        public bool ItemDrop(GameObject item)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x1006b040)]
-        public ItemErrorCode ItemTransferWithFlags(GameObjectBody item, GameObjectBody receiver, int invIdx,
-            ItemInsertFlag flags, GameObjectBody bag)
+        public ItemErrorCode ItemTransferWithFlags(GameObject item, GameObject receiver, int invIdx,
+            ItemInsertFlag flags, GameObject bag)
         {
             var parent = GetParent(item);
             if (parent == null || receiver == null || item == null)
@@ -1672,7 +1672,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067b10)]
-        private void TransferPcInvLocation(GameObjectBody item, int itemInvLocation)
+        private void TransferPcInvLocation(GameObject item, int itemInvLocation)
         {
             var parent = GetParent(item);
             if (parent == null)
@@ -1688,7 +1688,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067970)]
-        private void PcInvLocationSet(GameObjectBody parent, int itemInvLocation, int itemInvLocationNew)
+        private void PcInvLocationSet(GameObject parent, int itemInvLocation, int itemInvLocationNew)
         {
             for (var i = 1; i < 21; ++i)
             {
@@ -1700,8 +1700,8 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006A6E0)]
-        private ItemErrorCode ItemTransferToSuitableEquipSlot(GameObjectBody owner, GameObjectBody receiver,
-            GameObjectBody item, int a6, ItemInsertFlag flags)
+        private ItemErrorCode ItemTransferToSuitableEquipSlot(GameObject owner, GameObject receiver,
+            GameObject item, int a6, ItemInsertFlag flags)
         {
             if (!receiver.IsCritter())
             {
@@ -1735,8 +1735,8 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006AB50)]
-        private ItemErrorCode PerformSwap(GameObjectBody owner, GameObjectBody receiver, GameObjectBody item,
-            GameObjectBody itemPrevious, int equippedItemSlot, int a7, ItemInsertFlag flags)
+        private ItemErrorCode PerformSwap(GameObject owner, GameObject receiver, GameObject item,
+            GameObject itemPrevious, int equippedItemSlot, int a7, ItemInsertFlag flags)
         {
             if (IsItemNonTransferrable(itemPrevious, receiver) != ItemErrorCode.OK)
             {
@@ -1834,7 +1834,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006a000)]
-        private ItemErrorCode PerformTransfer(GameObjectBody owner, GameObjectBody receiver, GameObjectBody item,
+        private ItemErrorCode PerformTransfer(GameObject owner, GameObject receiver, GameObject item,
             int invSlot, ItemInsertFlag flags)
         {
             if (owner != null && owner.IsCritter() && IsInvIdxWorn(invSlot))
@@ -1873,7 +1873,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100654e0)]
-        public GameObjectBody CheckRangedWeaponAmmo(GameObjectBody critter)
+        public GameObject CheckRangedWeaponAmmo(GameObject critter)
         {
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
             {
@@ -1903,7 +1903,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065470)]
-        public bool AmmoMatchesWeapon(GameObjectBody weapon, GameObjectBody ammoItem)
+        public bool AmmoMatchesWeapon(GameObject weapon, GameObject ammoItem)
         {
             if (weapon.type != ObjectType.weapon)
             {
@@ -1926,7 +1926,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065990)]
-        public bool AmmoMatchesItemAtSlot(GameObjectBody critter, EquipSlot slot)
+        public bool AmmoMatchesItemAtSlot(GameObject critter, EquipSlot slot)
         {
             var ammo = CheckRangedWeaponAmmo(critter);
             var weapon = ItemWornAt(critter, slot);
@@ -1937,7 +1937,7 @@ namespace OpenTemple.Core.Systems
         /// Returned value is in copper coins.
         /// </summary>
         [TempleDllLocation(0x10067c90)]
-        private int GetItemWorthRegardIdentified(GameObjectBody item)
+        private int GetItemWorthRegardIdentified(GameObject item)
         {
             if (item.type == ObjectType.money)
             {
@@ -1968,7 +1968,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10064d20)]
-        public int GetTotalCurrencyAmount(GameObjectBody obj)
+        public int GetTotalCurrencyAmount(GameObject obj)
         {
             switch (obj.type)
             {
@@ -2006,7 +2006,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067100)]
-        public bool IsIdentified(GameObjectBody item)
+        public bool IsIdentified(GameObject item)
         {
             if (!item.IsItem())
             {
@@ -2019,7 +2019,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006cc30)]
-        public GameObjectBody GiveItemByProto(GameObjectBody obj, ushort protoId)
+        public GameObject GiveItemByProto(GameObject obj, ushort protoId)
         {
             var proto = GameSystems.Proto.GetProtoById(protoId);
             var item = GameSystems.MapObject.CreateObject(proto, obj.GetLocation());
@@ -2031,7 +2031,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006b6c0)]
-        public bool SetItemParent(GameObjectBody item, GameObjectBody receiver, ItemInsertFlag flags = default)
+        public bool SetItemParent(GameObject item, GameObject receiver, ItemInsertFlag flags = default)
         {
             if (receiver.IsContainer())
             {
@@ -2053,7 +2053,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006a810)]
-        public bool SetParentAdvanced(GameObjectBody item, GameObjectBody parent, int invIdx, ItemInsertFlag flags)
+        public bool SetParentAdvanced(GameObject item, GameObject parent, int invIdx, ItemInsertFlag flags)
         {
             var itemInsertLocation = INVENTORY_IDX_UNDEFINED;
 
@@ -2075,7 +2075,7 @@ namespace OpenTemple.Core.Systems
                 return false;
             }
 
-            GameObjectBody itemAtSlot = null;
+            GameObject itemAtSlot = null;
             var invIdxIsWornSlot = false;
             if (IsInvIdxWorn(invIdx))
             {
@@ -2138,7 +2138,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006A3A0)]
-        private bool TransferTo(GameObjectBody item, GameObjectBody parent, int itemInsertLocation)
+        private bool TransferTo(GameObject item, GameObject parent, int itemInsertLocation)
         {
             var currentParent = GetParent(item);
             if (currentParent == null)
@@ -2156,7 +2156,7 @@ namespace OpenTemple.Core.Systems
                 return false;
             }
 
-            GameObjectBody currentItemAtIdx = null;
+            GameObject currentItemAtIdx = null;
             var isEquipmentSlot = false;
             if (itemInsertLocation != -1 & IsInvIdxWorn(itemInsertLocation))
             {
@@ -2219,7 +2219,7 @@ namespace OpenTemple.Core.Systems
         private const int Columns = 10;
 
         [TempleDllLocation(0x10068e80)]
-        private bool CheckInvIdxOrStackable(GameObjectBody item, GameObjectBody parent, int invIdx)
+        private bool CheckInvIdxOrStackable(GameObject item, GameObject parent, int invIdx)
         {
             if (IsInvIdxWorn(invIdx))
             {
@@ -2252,13 +2252,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067640)]
-        private void RemoveDecayTimer(GameObjectBody item)
+        private void RemoveDecayTimer(GameObject item)
         {
             GameSystems.TimeEvent.Remove(TimeEventType.ItemDecay, evt => evt.arg1.handle == item);
         }
 
         [TempleDllLocation(0x100694b0)]
-        public void InsertAtLocation(GameObjectBody item, GameObjectBody receiver, int itemInsertLocation)
+        public void InsertAtLocation(GameObject item, GameObject receiver, int itemInsertLocation)
         {
             if (itemInsertLocation == -1)
             {
@@ -2376,7 +2376,7 @@ namespace OpenTemple.Core.Systems
         /// Updates the critter's light flags based on the equipped item's light flags.
         /// </summary>
         [TempleDllLocation(0x10066260)]
-        private void UpdateCritterLightFlags(GameObjectBody item, GameObjectBody receiver)
+        private void UpdateCritterLightFlags(GameObject item, GameObject receiver)
         {
             const ItemFlag lightMask = ItemFlag.LIGHT_XLARGE
                                        | ItemFlag.LIGHT_LARGE
@@ -2434,8 +2434,8 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10069000)]
-        public ItemErrorCode ItemInsertGetLocation(GameObjectBody item, GameObjectBody receiver,
-            ref int itemInsertLocation, GameObjectBody bag, ItemInsertFlag flags)
+        public ItemErrorCode ItemInsertGetLocation(GameObject item, GameObject receiver,
+            ref int itemInsertLocation, GameObject bag, ItemInsertFlag flags)
         {
             var hasLocationOutput = true;
             var invIdx = INVENTORY_IDX_UNDEFINED;
@@ -2648,8 +2648,8 @@ namespace OpenTemple.Core.Systems
         private const int InvIdxLockpicks = 215;
 
         [TempleDllLocation(0x10067F90)]
-        private ItemErrorCode CheckTransferToWieldSlot(GameObjectBody item, int itemInsertLocation,
-            GameObjectBody receiver)
+        private ItemErrorCode CheckTransferToWieldSlot(GameObject item, int itemInsertLocation,
+            GameObject receiver)
         {
             // These might be old Arkanum polymorph spell flags not used in ToEE
             var spellFlags = receiver.GetSpellFlags();
@@ -2711,7 +2711,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        private ItemErrorCode CheckHandOccupancyForBuckler(GameObjectBody item, GameObjectBody receiver)
+        private ItemErrorCode CheckHandOccupancyForBuckler(GameObject item, GameObject receiver)
         {
             var offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
             var shield = ItemWornAt(receiver, EquipSlot.Shield);
@@ -2728,7 +2728,7 @@ namespace OpenTemple.Core.Systems
             return ItemErrorCode.OK;
         }
 
-        private ItemErrorCode CheckHandOccupancyForShield(GameObjectBody item, GameObjectBody receiver)
+        private ItemErrorCode CheckHandOccupancyForShield(GameObject item, GameObject receiver)
         {
             var secondarya = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
 
@@ -2775,11 +2775,11 @@ namespace OpenTemple.Core.Systems
             return ItemErrorCode.OK;
         }
 
-        private ItemErrorCode CheckHandOccupancy2(GameObjectBody item, GameObjectBody receiver)
+        private ItemErrorCode CheckHandOccupancy2(GameObject item, GameObject receiver)
         {
-            GameObjectBody mainHand = null;
-            GameObjectBody offHand = null;
-            GameObjectBody shield = null;
+            GameObject mainHand = null;
+            GameObject offHand = null;
+            GameObject shield = null;
             if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
             {
                 mainHand = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
@@ -2836,10 +2836,10 @@ namespace OpenTemple.Core.Systems
             return ItemErrorCode.Has_No_Art;
         }
 
-        private ItemErrorCode CheckHandOccupancy(GameObjectBody item, GameObjectBody receiver)
+        private ItemErrorCode CheckHandOccupancy(GameObject item, GameObject receiver)
         {
-            GameObjectBody offHand = null;
-            GameObjectBody shield = null;
+            GameObject offHand = null;
+            GameObject shield = null;
             if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
             {
                 offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
@@ -2905,7 +2905,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067680)]
-        private ItemErrorCode ItemCheckSlotAndWieldFlags(GameObjectBody item, GameObjectBody receiver, in int invIdx)
+        private ItemErrorCode ItemCheckSlotAndWieldFlags(GameObject item, GameObject receiver, in int invIdx)
         {
             var wearFlags = item.GetItemWearFlags();
             switch (invIdx)
@@ -3011,7 +3011,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065fa0)]
-        private int FindEmptyInvIdx(GameObjectBody item, GameObjectBody parent, int idxMin, int idxMax)
+        private int FindEmptyInvIdx(GameObject item, GameObject parent, int idxMin, int idxMax)
         {
             for (var i = idxMin; i < idxMax; i++)
             {
@@ -3025,7 +3025,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067DF0)]
-        public GameObjectBody FindMatchingStackableItem(GameObjectBody receiver, GameObjectBody item)
+        public GameObject FindMatchingStackableItem(GameObject receiver, GameObject item)
         {
             if (!IsIdentified(item))
             {
@@ -3090,7 +3090,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100679c0)]
-        private GameObjectBody BagFindLast(GameObjectBody parent)
+        private GameObject BagFindLast(GameObject parent)
         {
             for (var i = INVENTORY_BAG_IDX_END; i >= INVENTORY_BAG_IDX_START; i--)
             {
@@ -3105,7 +3105,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10066a50)]
-        private int BagFindInvenIdx(GameObjectBody parent, GameObjectBody receiverBag)
+        private int BagFindInvenIdx(GameObject parent, GameObject receiverBag)
         {
             for (var i = INVENTORY_BAG_IDX_START; i <= INVENTORY_BAG_IDX_END; i++)
             {
@@ -3117,13 +3117,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100698b0)]
-        public bool BagIsEmpty(GameObjectBody critter, GameObjectBody bag)
+        public bool BagIsEmpty(GameObject critter, GameObject bag)
         {
             return GetBagItemsCount(critter, bag) == 0;
         }
 
         [TempleDllLocation(0x10067aa0)]
-        public int GetBagItemsCount(GameObjectBody critter, GameObjectBody bag)
+        public int GetBagItemsCount(GameObject critter, GameObject bag)
         {
             var count = 0;
             var startIdx = BagGetContentStartIdx(critter, bag);
@@ -3140,14 +3140,14 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100679f0)]
-        private int BagGetContentStartIdx(GameObjectBody parent, GameObjectBody receiverBag)
+        private int BagGetContentStartIdx(GameObject parent, GameObject receiverBag)
         {
             var bagIdx = BagFindInvenIdx(parent, receiverBag);
             return 24 * (bagIdx - INVENTORY_BAG_IDX_START);
         }
 
         [TempleDllLocation(0x10067a20)]
-        private int BagGetContentMaxIdx(GameObjectBody parent, GameObjectBody receiverBag)
+        private int BagGetContentMaxIdx(GameObject parent, GameObject receiverBag)
         {
             var bagContentStartIdx = BagGetContentStartIdx(parent, receiverBag);
 
@@ -3180,7 +3180,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10066010)]
-        public ItemErrorCode IsItemNonTransferrable(GameObjectBody item, GameObjectBody receiver)
+        public ItemErrorCode IsItemNonTransferrable(GameObject item, GameObject receiver)
         {
             var parent = GetParent(item);
             var itemFlags = item.GetItemFlags();
@@ -3205,7 +3205,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10066430)]
-        public bool IsIncompatibleWithDruid(GameObjectBody item, GameObjectBody wearer)
+        public bool IsIncompatibleWithDruid(GameObject item, GameObject wearer)
         {
             if (GameSystems.Stat.StatLevelGet(wearer, Stat.level_druid) >= 1 && item.GetMaterial() == Material.metal)
             {
@@ -3225,7 +3225,7 @@ namespace OpenTemple.Core.Systems
         private bool _workingOnJunkpile;
 
         [TempleDllLocation(0x10069A20)]
-        private bool JunkpileOnRemoveItem(GameObjectBody parent)
+        private bool JunkpileOnRemoveItem(GameObject parent)
         {
             var result = false;
             if (_workingOnJunkpile)
@@ -3258,14 +3258,14 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10069870)]
-        public void MoveItemClearNoTransfer(GameObjectBody item, locXY location)
+        public void MoveItemClearNoTransfer(GameObject item, locXY location)
         {
             item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
             GameSystems.MapObject.MoveItem(item, location);
         }
 
         [TempleDllLocation(0x100669a0)]
-        public int GetWeaponSlotsIndex(GameObjectBody pc)
+        public int GetWeaponSlotsIndex(GameObject pc)
         {
             return pc.GetInt32(obj_f.pc_weaponslots_idx, 0);
         }
@@ -3279,7 +3279,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10069970)]
-        public int GetAppraisedWorth(GameObjectBody item, GameObjectBody appraise, GameObjectBody seller, int a4 = 0)
+        public int GetAppraisedWorth(GameObject item, GameObject appraise, GameObject seller, int a4 = 0)
         {
             // TODO: a4 was always zero
             Stub.TODO();
@@ -3325,7 +3325,7 @@ namespace OpenTemple.Core.Systems
             copper = money;
         }
 
-        public bool IsEquipped(GameObjectBody item)
+        public bool IsEquipped(GameObject item)
         {
             var parent = GameSystems.Item.GetParent(item);
             if (parent == null)
@@ -3338,7 +3338,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007d190)]
-        public bool ItemCanBePickpocketed(GameObjectBody item)
+        public bool ItemCanBePickpocketed(GameObject item)
         {
             if (IsEquipped(item) || GetItemWeight(item) > 1)
             {
@@ -3349,7 +3349,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10064a50)]
-        public bool HasKey(GameObjectBody critter, int keyId)
+        public bool HasKey(GameObject critter, int keyId)
         {
             if (GameUiBridge.IsKeyAcquired(keyId))
             {
@@ -3379,7 +3379,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100649b0)]
-        private bool HasKeyInInventory(GameObjectBody obj, int keyId)
+        private bool HasKeyInInventory(GameObject obj, int keyId)
         {
             if (keyId == 0)
             {
@@ -3402,19 +3402,19 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10066e90)]
-        public void UseOnObject(GameObjectBody user, GameObjectBody item, GameObjectBody target)
+        public void UseOnObject(GameObject user, GameObject item, GameObject target)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x10066fe0)]
-        public void UseOnLocation(GameObjectBody critter, GameObjectBody item, LocAndOffsets location)
+        public void UseOnLocation(GameObject critter, GameObject item, LocAndOffsets location)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x10065c30)]
-        public int GetReachWithWeapon(GameObjectBody weapon, GameObjectBody critter)
+        public int GetReachWithWeapon(GameObject weapon, GameObject critter)
         {
             if (weapon != null && weapon.type == ObjectType.weapon)
             {
@@ -3436,7 +3436,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100643a0)]
-        public bool IsThrownWeaponProjectile(GameObjectBody item)
+        public bool IsThrownWeaponProjectile(GameObject item)
         {
             switch (item.ProtoId)
             {
@@ -3455,7 +3455,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100648b0)]
-        public void ItemSpellChargeConsume(GameObjectBody item, int chargesUsedUp = 1)
+        public void ItemSpellChargeConsume(GameObject item, int chargesUsedUp = 1)
         {
             var spellCharges = item.GetInt32(obj_f.item_spell_charges_idx);
             if (spellCharges == -1)
@@ -3492,7 +3492,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10064b40)]
-        public bool UsesWandAnim(GameObjectBody item)
+        public bool UsesWandAnim(GameObject item)
         {
             return item != null
                    && item.type.IsEquipment()
@@ -3500,7 +3500,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100659e0)]
-        public bool IsWieldingUnloadedCrossbow(GameObjectBody critter)
+        public bool IsWieldingUnloadedCrossbow(GameObject critter)
         {
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
             {
@@ -3523,35 +3523,35 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065780)]
-        public bool IsCrossbow(GameObjectBody weapon)
+        public bool IsCrossbow(GameObject weapon)
         {
             return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsCrossbow(weapon.GetWeaponType());
         }
 
         [TempleDllLocation(0x1008f330)]
-        public bool IsThrowingWeapon(GameObjectBody weapon)
+        public bool IsThrowingWeapon(GameObject weapon)
         {
             return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsThrowingWeapon(weapon.GetWeaponType());
         }
 
-        public bool IsRangedWeapon(GameObjectBody weapon)
+        public bool IsRangedWeapon(GameObject weapon)
         {
             return weapon.type == ObjectType.weapon && weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON);
         }
 
-        public bool IsTripWeapon(GameObjectBody weapon)
+        public bool IsTripWeapon(GameObject weapon)
         {
             return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsTripWeapon(weapon.GetWeaponType());
         }
 
         [TempleDllLocation(0x10065760)]
-        public int GetWeaponProjectileProto(GameObjectBody weapon)
+        public int GetWeaponProjectileProto(GameObject weapon)
         {
             return weapon.GetWeaponAmmoType().GetProjectileProtoId();
         }
 
         [TempleDllLocation(0x10066b00)]
-        public GameObjectBody SplitObjectFromStack(GameObjectBody itemStack, LocAndOffsets placeAt)
+        public GameObject SplitObjectFromStack(GameObject itemStack, LocAndOffsets placeAt)
         {
             var canSplit = IsStackable(itemStack);
 
@@ -3571,7 +3571,7 @@ namespace OpenTemple.Core.Systems
         /// Why not merge it directly?
         /// </summary>
         [TempleDllLocation(0x1006cb10)]
-        public GameObjectBody GiveItemAndFindMatchingStack(GameObjectBody item, GameObjectBody receiver)
+        public GameObject GiveItemAndFindMatchingStack(GameObject item, GameObject receiver)
         {
             if (!GameSystems.Item.SetItemParent(item, receiver))
             {
@@ -3587,7 +3587,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067360)]
-        public void RangedWeaponDeductAmmo(GameObjectBody attacker)
+        public void RangedWeaponDeductAmmo(GameObject attacker)
         {
             if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Polymorphed))
             {
@@ -3623,7 +3623,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065890)]
-        public bool MainWeaponUsesAmmo(GameObjectBody critter)
+        public bool MainWeaponUsesAmmo(GameObject critter)
         {
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
             {
@@ -3640,7 +3640,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065ad0)]
-        public bool ReloadEquippedWeapon(GameObjectBody critter)
+        public bool ReloadEquippedWeapon(GameObject critter)
         {
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
             {
@@ -3658,19 +3658,19 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10064870)]
-        public int GetItemSpellCharges(GameObjectBody item)
+        public int GetItemSpellCharges(GameObject item)
         {
             return item.GetInt32(obj_f.item_spell_charges_idx);
         }
 
         [TempleDllLocation(0x11eb6453)]
-        public bool IsProtoWornAt(GameObjectBody wearer, EquipSlot slot, int protoId)
+        public bool IsProtoWornAt(GameObject wearer, EquipSlot slot, int protoId)
         {
             var item = ItemWornAt(wearer, slot);
             return item != null && item.ProtoId == protoId;
         }
 
-        public bool IsBuckler(GameObjectBody shield)
+        public bool IsBuckler(GameObject shield)
         {
             if (!shield.type.IsEquipment())
             {
@@ -3681,7 +3681,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067080)]
-        public void ScheduleContainerRestock(GameObjectBody container)
+        public void ScheduleContainerRestock(GameObject container)
         {
             // We cannot respawn the content of container that do not have an inventory source specified
             if (GameSystems.Item.GetInventorySource(container) == 0)
@@ -3701,7 +3701,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100664b0)]
-        public int WeaponSizeSthg(GameObjectBody critter, WeaponType wpnType)
+        public int WeaponSizeSthg(GameObject critter, WeaponType wpnType)
         {
             SizeCategory weaponSize;
 
@@ -3800,7 +3800,7 @@ namespace OpenTemple.Core.Systems
 
         [TempleDllLocation(0x1006d190)]
         [TemplePlusLocation("python_integration_obj.cpp:291")]
-        public void GiveStartingEquipment(GameObjectBody pc)
+        public void GiveStartingEquipment(GameObject pc)
         {
             ClearInventory(pc, false);
 
@@ -3903,10 +3903,10 @@ namespace OpenTemple.Core.Systems
 
     public static class ItemExtensions
     {
-        public static int GetItemInventoryLocation(GameObjectBody obj) =>
+        public static int GetItemInventoryLocation(GameObject obj) =>
             obj.GetInt32(obj_f.item_inv_location);
 
-        public static bool TryGetQuantity(this GameObjectBody obj, out int quantity)
+        public static bool TryGetQuantity(this GameObject obj, out int quantity)
         {
             if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
             {
@@ -3919,7 +3919,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100642b0)]
-        public static int GetQuantity(this GameObjectBody obj)
+        public static int GetQuantity(this GameObject obj)
         {
             if (!TryGetQuantity(obj, out var quantity))
             {
@@ -3930,7 +3930,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100642f0)]
-        public static bool SetQuantity(this GameObjectBody obj, int quantity)
+        public static bool SetQuantity(this GameObject obj, int quantity)
         {
             if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
             {
@@ -3942,7 +3942,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10064330)]
-        public static bool ReduceQuantity(this GameObjectBody obj, int byAmount)
+        public static bool ReduceQuantity(this GameObject obj, int byAmount)
         {
             if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
             {
@@ -3960,7 +3960,7 @@ namespace OpenTemple.Core.Systems
             return false;
         }
 
-        public static bool IncreaseQuantity(this GameObjectBody obj, int byAmount)
+        public static bool IncreaseQuantity(this GameObject obj, int byAmount)
         {
             if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
             {
@@ -3972,14 +3972,14 @@ namespace OpenTemple.Core.Systems
             return false;
         }
 
-        public static string GetInventoryIconPath(this GameObjectBody item)
+        public static string GetInventoryIconPath(this GameObject item)
         {
             var artId = item.GetInt32(obj_f.item_inv_aid);
             return GameSystems.UiArtManager.GetInventoryIconPath(artId);
         }
 
         [TempleDllLocation(0x100644b0)]
-        public static GameObjectBody FindItemByProto(this GameObjectBody container, int protoId,
+        public static GameObject FindItemByProto(this GameObject container, int protoId,
             bool skipEquipment = false)
         {
             foreach (var item in container.EnumerateChildren())
@@ -3999,7 +3999,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100643f0)]
-        public static GameObjectBody FindItemByName(this GameObjectBody container, int nameId,
+        public static GameObject FindItemByName(this GameObject container, int nameId,
             bool skipEquipment = false)
         {
             foreach (var item in container.EnumerateChildren())
@@ -4019,7 +4019,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100d2f30)]
-        public static void AddConditionToItem(this GameObjectBody item, ConditionSpec condition, params int[] args)
+        public static void AddConditionToItem(this GameObject item, ConditionSpec condition, params int[] args)
         {
             var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
             var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);
@@ -4039,7 +4039,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100d3020)]
-        public static void RemoveConditionFromItem(this GameObjectBody item, ConditionSpec condition)
+        public static void RemoveConditionFromItem(this GameObject item, ConditionSpec condition)
         {
             var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
             var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);

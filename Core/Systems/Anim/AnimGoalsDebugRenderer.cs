@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems.MapSector;
@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Systems.Anim
             }
         }
 
-        public static void RenderAnimGoals(IGameViewport viewport, GameObjectBody obj)
+        public static void RenderAnimGoals(IGameViewport viewport, GameObject obj)
         {
             RenderCurrentGoalPath(viewport, obj);
 
@@ -142,7 +142,7 @@ namespace OpenTemple.Core.Systems.Anim
             textEngine.RenderTextLayout(originX, originY, layout);
         }
 
-        private static void RenderCurrentGoalPath(IGameViewport viewport, GameObjectBody obj)
+        private static void RenderCurrentGoalPath(IGameViewport viewport, GameObject obj)
         {
             var slot = GameSystems.Anim.GetSlot(obj);
             if (slot == null || !slot.path.IsComplete)

@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
@@ -386,7 +386,7 @@ namespace OpenTemple.Core.Ui.PartyPool
             if (player.handle == null)
             {
                 using var reader = new BinaryReader(new MemoryStream(player.data));
-                var handle = GameObjectBody.Load(reader);
+                var handle = GameObject.Load(reader);
                 handle.UnfreezeIds();
                 handle.SetLocation(locXY.Zero);
                 GameSystems.MapObject.InitDynamic(handle, locXY.Zero);
@@ -753,7 +753,7 @@ namespace OpenTemple.Core.Ui.PartyPool
         }
 
         [TempleDllLocation(0x10166490)]
-        public void Add(GameObjectBody player)
+        public void Add(GameObject player)
         {
             throw new NotImplementedException();
         }
@@ -775,7 +775,7 @@ namespace OpenTemple.Core.Ui.PartyPool
         public Alignment alignment;
         public int hpMax;
         public int field_14C;
-        public GameObjectBody handle;
+        public GameObject handle;
         public SlotState state;
         public bool Selected;
 

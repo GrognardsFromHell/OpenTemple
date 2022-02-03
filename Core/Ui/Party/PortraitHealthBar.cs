@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;
@@ -15,9 +15,9 @@ namespace OpenTemple.Core.Ui.Party
 
         private readonly WidgetImage _subdualImage;
 
-        private readonly GameObjectBody _partyMember;
+        private readonly GameObject _partyMember;
 
-        public PortraitHealthBar(GameObjectBody partyMember, Rectangle rectangle) : base(rectangle)
+        public PortraitHealthBar(GameObject partyMember, Rectangle rectangle) : base(rectangle)
         {
             _partyMember = partyMember;
 

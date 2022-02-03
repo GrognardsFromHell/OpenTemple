@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 
 namespace OpenTemple.Core.Systems.Pathfinding
@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         public int field4;
         public LocAndOffsets from;
         public LocAndOffsets to;
-        public GameObjectBody mover;
+        public GameObject mover;
         public CompassDirection[] directions = Array.Empty<CompassDirection>();
         public int nodeCount3; // TODO REMOVE, Replace with directions.Count
         public int initTo1;

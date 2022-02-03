@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(586)]
     public class HbEastWest : BaseObjectScript
     {
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -33,7 +33,7 @@ namespace Scripts
             destroy_gear(attachee, triggerer);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var webbed = Livonya.break_free(attachee, 3);
             // MELEE TROOPS  #
@@ -159,7 +159,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5095))
             {
@@ -210,7 +210,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void destroy_gear(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void destroy_gear(GameObject attachee, GameObject triggerer)
         {
             var dexterity_gloves_2 = attachee.FindItemByName(6199);
             dexterity_gloves_2.Destroy();
@@ -240,7 +240,7 @@ namespace Scripts
             unholy_heavy_mace.Destroy();
             return;
         }
-        public static bool talk_40(GameObjectBody speaker, GameObjectBody listener)
+        public static bool talk_40(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -253,12 +253,12 @@ namespace Scripts
 
             return false;
         }
-        public static bool orc_rund_1_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool orc_rund_1_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool orc_rund_2_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool orc_rund_2_off(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;

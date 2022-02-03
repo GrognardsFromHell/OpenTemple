@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
@@ -19,13 +19,13 @@ namespace OpenTemple.Core.Systems.Raycast
         public IReadOnlyList<GoalDestination> GoalDestinations => _goalDestinations;
 
         [TempleDllLocation(0x100bac20)]
-        public void GoalDestinationsAdd(GameObjectBody obj, LocAndOffsets loc)
+        public void GoalDestinationsAdd(GameObject obj, LocAndOffsets loc)
         {
             _goalDestinations.Add(new GoalDestination(obj, loc));
         }
 
         [TempleDllLocation(0x100bac80)]
-        public void GoalDestinationsRemove(GameObjectBody obj)
+        public void GoalDestinationsRemove(GameObject obj)
         {
             _goalDestinations.RemoveAll(gd => gd.obj == obj);
         }
@@ -38,11 +38,11 @@ namespace OpenTemple.Core.Systems.Raycast
 
         public struct GoalDestination
         {
-            public readonly GameObjectBody obj;
+            public readonly GameObject obj;
 
             public readonly LocAndOffsets loc;
 
-            public GoalDestination(GameObjectBody obj, LocAndOffsets loc)
+            public GoalDestination(GameObject obj, LocAndOffsets loc)
             {
                 this.obj = obj;
                 this.loc = loc;
@@ -55,7 +55,7 @@ namespace OpenTemple.Core.Systems.Raycast
 
 
         [TempleDllLocation(0x100222E0)]
-		private static bool IsInSelectionCircle(GameObjectBody handle, Vector3 pos)
+		private static bool IsInSelectionCircle(GameObject handle, Vector3 pos)
 		{
 			var location = handle.GetLocationFull();
 			var center = location.ToInches3D();
@@ -68,7 +68,7 @@ namespace OpenTemple.Core.Systems.Raycast
 		}
 
 		[TempleDllLocation(0x10022210)]
-		static bool IsPreferredSelectionObject(GameObjectBody selCurrent, GameObjectBody selNew)
+		static bool IsPreferredSelectionObject(GameObject selCurrent, GameObject selNew)
 		{
 			if (selCurrent == null || selNew == null)
 			{
@@ -93,7 +93,7 @@ namespace OpenTemple.Core.Systems.Raycast
 		}
 
 		[TempleDllLocation(0x10022360)]
-		public bool PickObjectOnScreen(IGameViewport viewport, int x, int y, out GameObjectBody pickedHandle, GameRaycastFlags flags)
+		public bool PickObjectOnScreen(IGameViewport viewport, int x, int y, out GameObject pickedHandle, GameRaycastFlags flags)
 		{
 			if (flags == 0) {
 				flags = GameRaycastFlags.HITTEST_3D;
@@ -104,10 +104,10 @@ namespace OpenTemple.Core.Systems.Raycast
 			var hitTest3d = (flags & GameRaycastFlags.HITTEST_3D) != 0;
 			Ray3d ray = default;
 
-			GameObjectBody selectedByCircle = null;
-			GameObjectBody selectedByCylinder = null;
+			GameObject selectedByCircle = null;
+			GameObject selectedByCylinder = null;
 			float closestCylinderHit = float.MaxValue;
-			GameObjectBody selectedByMesh = null;
+			GameObject selectedByMesh = null;
 			float closestMeshHit = float.MaxValue;
 
 			if (hitTest3d) {

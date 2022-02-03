@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -26,7 +26,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
 
         private readonly WidgetTooltipRenderer _tooltipRenderer = new ();
 
-        public GameObjectBody CurrentItem
+        public GameObject CurrentItem
         {
             get
             {
@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             }
         }
 
-        public GameObjectBody Critter { get; set; }
+        public GameObject Critter { get; set; }
 
         protected override void Dispose(bool disposing)
         {
@@ -128,7 +128,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             }
         }
 
-        private void RenderItemInSlot(GameObjectBody item, PackedLinearColorA itemTint)
+        private void RenderItemInSlot(GameObject item, PackedLinearColorA itemTint)
         {
             // Don't render the item if it is currently being dragged elsewhere
             if (item == UiSystems.CharSheet.Inventory.DraggedObject)
@@ -181,7 +181,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             }
         }
 
-        private void RenderItemQuantity(GameObjectBody item)
+        private void RenderItemQuantity(GameObject item)
         {
             // Renders the stack size on top of the slot
             if (item.TryGetQuantity(out var quantity))
@@ -263,7 +263,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             }
         }
 
-        public GameObjectBody Container => Critter;
+        public GameObject Container => Critter;
 
         public int InventoryIndex => GameSystems.Item.InvIdxForSlot(_slot);
     }

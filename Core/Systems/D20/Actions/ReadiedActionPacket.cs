@@ -1,11 +1,11 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.D20.Actions
 {
     public class ReadiedActionPacket
     {
         public int flags;
-        public GameObjectBody interrupter;
+        public GameObject interrupter;
         public ReadyVsTypeEnum readyType;
     }
 

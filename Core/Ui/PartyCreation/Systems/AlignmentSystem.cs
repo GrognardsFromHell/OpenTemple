@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -114,7 +114,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x10187870)]
-        public void Finalize(CharEditorSelectionPacket selPkt, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket selPkt, ref GameObject playerObj)
         {
             Trace.Assert(selPkt.alignment.HasValue);
             playerObj.SetInt32(obj_f.critter_alignment, (int) selPkt.alignment.Value);

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -219,7 +219,7 @@ namespace Scripts.Spells
             }
         }
 
-        public static int FindFamiliarProto(GameObjectBody master, bool x)
+        public static int FindFamiliarProto(GameObject master, bool x)
         {
             // Returns either the familiar creature's proto ID ( x = 1 ) or the familiar inventory object ( x = 0 )
             foreach (var (f, p) in familiar_table)
@@ -241,7 +241,7 @@ namespace Scripts.Spells
             return 0;
         }
 
-        public static GameObjectBody GetFamiliarHandle(SpellPacketBody spell, int familiar_proto_id)
+        public static GameObject GetFamiliarHandle(SpellPacketBody spell, int familiar_proto_id)
         {
             // Returns a handle that can be used to manipulate the familiar creature object
             foreach (var npc in ObjList.ListVicinity(spell.aoeCenter.location, ObjectListFilter.OLC_CRITTERS))
@@ -258,26 +258,26 @@ namespace Scripts.Spells
             return null;
         }
 
-        public static int get_ID(GameObjectBody obj)
+        public static int get_ID(GameObject obj)
         {
             // Returns embedded ID number
             return obj.GetInt(obj_f.secretdoor_dc);
         }
 
-        public static int set_ID(GameObjectBody obj, int val)
+        public static int set_ID(GameObject obj, int val)
         {
             // Embeds ID number into mobile object.  Returns ID number.
             obj.SetInt(obj_f.secretdoor_dc, val);
             return obj.GetInt(obj_f.secretdoor_dc);
         }
 
-        public static void clear_ID(GameObjectBody obj)
+        public static void clear_ID(GameObject obj)
         {
             // Clears embedded ID number from mobile object
             obj.SetInt(obj_f.secretdoor_dc, 0);
         }
 
-        public static GameObjectBody FindMaster(GameObjectBody npc)
+        public static GameObject FindMaster(GameObject npc)
         {
             // Not actually used in the spell, but could be handy in the future.  Returns the character that is the master for a given summoned familiar ( npc )
             foreach (var p_master in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_CRITTERS))
@@ -298,14 +298,14 @@ namespace Scripts.Spells
             return null;
         }
 
-        public static int GetLevel(GameObjectBody npc)
+        public static int GetLevel(GameObject npc)
         {
             // Returns characters combined sorcerer and wizard levels
             var level = npc.GetStat(Stat.level_sorcerer) + npc.GetStat(Stat.level_wizard);
             return level;
         }
 
-        public static int Fortitude(GameObjectBody npc)
+        public static int Fortitude(GameObject npc)
         {
             // Returns Fortitude Save Bonus for all the casters class levels
             var bonus = 0;
@@ -327,7 +327,7 @@ namespace Scripts.Spells
             return bonus;
         }
 
-        public static int Reflex(GameObjectBody npc)
+        public static int Reflex(GameObject npc)
         {
             // Returns Reflex Save Bonus for all the casters class levels
             var bonus = 0;
@@ -350,7 +350,7 @@ namespace Scripts.Spells
             return bonus;
         }
 
-        public static int Will(GameObjectBody npc)
+        public static int Will(GameObject npc)
         {
             // Returns Will Save Bonus for all the casters class levels
             var bonus = 0;
@@ -372,7 +372,7 @@ namespace Scripts.Spells
             return bonus;
         }
 
-        public static void RemoveDead(GameObjectBody npc, GameObjectBody critter)
+        public static void RemoveDead(GameObject npc, GameObject critter)
         {
             if (critter.GetStat(Stat.hp_current) <= -10)
             {

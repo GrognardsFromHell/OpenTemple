@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(113)]
     public class Wat : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasMet(triggerer)))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -50,12 +50,12 @@ namespace Scripts
             SetQuestState(39, QuestState.Botched);
             return RunDefault;
         }
-        public static bool kill_dick(GameObjectBody attachee)
+        public static bool kill_dick(GameObject attachee)
         {
             StartTimer(14400000, () => kill_dick_callback(attachee)); // call kill_dick_callback in 4 hours
             return SkipDefault;
         }
-        public static bool kill_dick_callback(GameObjectBody attachee)
+        public static bool kill_dick_callback(GameObject attachee)
         {
             var npc = Utilities.find_npc_near(attachee, 8018);
             if ((npc != null))

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -83,7 +83,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             .AddQueryHandler("Turn Undead Charges", GetTurnUndeadCharges)
             .Build();
 
-        public static int GetTurnUndeadCharges(this GameObjectBody critter)
+        public static int GetTurnUndeadCharges(this GameObject critter)
         {
             return (int) GameSystems.D20.D20QueryReturnData(critter, "Turn Undead Charges");
         }

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -36,13 +36,13 @@ namespace Scripts
             {12054, 14909},
         };
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
 
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             StartTimer(86400000,
                 () => RemoveDead(PartyLeader, attachee)); // remove the familiar from the party in 24 hours
@@ -95,7 +95,7 @@ namespace Scripts
             return RunDefault;
         }
 
-        public static int FindFamiliarInvType(GameObjectBody attachee)
+        public static int FindFamiliarInvType(GameObject attachee)
         {
             foreach (var (f, p) in familiar_table)
             {
@@ -108,24 +108,24 @@ namespace Scripts
             return 0;
         }
 
-        public static int get_ID(GameObjectBody obj)
+        public static int get_ID(GameObject obj)
         {
             return obj.GetInt(obj_f.secretdoor_dc);
         }
 
-        public static void clear_ID(GameObjectBody obj)
+        public static void clear_ID(GameObject obj)
         {
             // Clears embedded ID number from mobile object
             obj.SetInt(obj_f.secretdoor_dc, 0);
         }
 
-        public static int GetLevel(GameObjectBody npc)
+        public static int GetLevel(GameObject npc)
         {
             var level = npc.GetStat(Stat.level_sorcerer) + npc.GetStat(Stat.level_wizard);
             return level;
         }
 
-        public static bool StowFamiliar(GameObjectBody attachee, GameObjectBody pc)
+        public static bool StowFamiliar(GameObject attachee, GameObject pc)
         {
             // identify familiar  and match to familiar inventory icon
             var familiar_proto = FindFamiliarInvType(attachee);
@@ -158,7 +158,7 @@ namespace Scripts
             return SkipDefault;
         }
 
-        public static GameObjectBody FindMaster(GameObjectBody npc)
+        public static GameObject FindMaster(GameObject npc)
         {
             // Not actually used in the spell, but could be handy in the future.  Returns the character that is the master for a given summoned familiar ( npc )
             foreach (var p_master in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_CRITTERS))
@@ -179,7 +179,7 @@ namespace Scripts
             return null;
         }
 
-        public static void RemoveDead(GameObjectBody npc, GameObjectBody critter)
+        public static void RemoveDead(GameObject npc, GameObject critter)
         {
             if (critter.GetStat(Stat.hp_current) <= -10)
             {

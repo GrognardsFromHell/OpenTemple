@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(484)]
     public class Wakefield : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -40,7 +40,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -67,7 +67,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(505) == 0))
             {
@@ -77,12 +77,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(501, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(61)))
             {
@@ -155,7 +155,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(527, true);
             var rod = attachee.FindItemByName(4232);
@@ -174,7 +174,7 @@ namespace Scripts
             cloak.SetItemFlag(ItemFlag.NO_TRANSFER);
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(527, false);
             var rod = attachee.FindItemByName(4232);
@@ -193,7 +193,7 @@ namespace Scripts
             cloak.ClearItemFlag(ItemFlag.NO_TRANSFER);
             return RunDefault;
         }
-        public static void hextor_buff_2(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void hextor_buff_2(GameObject attachee, GameObject triggerer)
         {
             attachee.CastSpell(WellKnownSpells.RighteousMight, attachee);
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
@@ -212,12 +212,12 @@ namespace Scripts
 
             return;
         }
-        public static bool set_var_501(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool set_var_501(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(501, 5);
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -230,28 +230,28 @@ namespace Scripts
 
             return false;
         }
-        public static void out_of_time(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void out_of_time(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(505, 3);
             return;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool flag_no_transfer(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool flag_no_transfer(GameObject attachee, GameObject triggerer)
         {
             var orb = attachee.FindItemByName(2203);
             orb.SetItemFlag(ItemFlag.NO_TRANSFER);
             return RunDefault;
         }
-        public static bool td_attack(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool td_attack(GameObject attachee, GameObject triggerer)
         {
             StartTimer(6000, () => defense_attack(attachee, triggerer));
             return RunDefault;
         }
-        public static bool defense_attack(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool defense_attack(GameObject attachee, GameObject triggerer)
         {
             SpawnParticles("sp-Fireball-Hit", new locXY(493, 469));
             SpawnParticles("ef-fireburning", new locXY(493, 469));

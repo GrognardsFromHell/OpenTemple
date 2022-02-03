@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Platform;
@@ -370,7 +370,7 @@ namespace OpenTemple.Core.Ui.Dialog
         }
 
         [TempleDllLocation(0x1014cde0)]
-        public void ShowTextBubble(GameObjectBody critter, GameObjectBody speakingto, string text, int speechid)
+        public void ShowTextBubble(GameObject critter, GameObject speakingto, string text, int speechid)
         {
             DialogCreateBubble(critter, speakingto, critter.IsNPC() ? 2 : 0, -1, text, speechid);
         }
@@ -385,7 +385,7 @@ namespace OpenTemple.Core.Ui.Dialog
         }
 
         [TempleDllLocation(0x1014BA40)]
-        public void CancelDialog(GameObjectBody obj)
+        public void CancelDialog(GameObject obj)
         {
             if (dialog_slot_idx != null && dialog_slot_idx.pc == obj)
             {
@@ -413,7 +413,7 @@ namespace OpenTemple.Core.Ui.Dialog
         }
 
         [TempleDllLocation(0x1014bad0)]
-        public void DialogHideForPartyMember(GameObjectBody obj)
+        public void DialogHideForPartyMember(GameObject obj)
         {
             dialog_slot_idx = null;
             if (GameSystems.Party.IsInParty(obj))
@@ -424,7 +424,7 @@ namespace OpenTemple.Core.Ui.Dialog
         }
 
         [TempleDllLocation(0x1014BFF0)]
-        public void sub_1014BFF0(GameObjectBody obj)
+        public void sub_1014BFF0(GameObject obj)
         {
             if (GameSystems.Party.IsInParty(obj))
             {
@@ -434,7 +434,7 @@ namespace OpenTemple.Core.Ui.Dialog
         }
 
         [TempleDllLocation(0x1014bb20)]
-        public void PlayVoiceLine(GameObjectBody speaker, GameObjectBody listener, int soundId)
+        public void PlayVoiceLine(GameObject speaker, GameObject listener, int soundId)
         {
             GameSystems.Dialog.PlayVoiceLine(speaker, listener, soundId);
         }
@@ -466,7 +466,7 @@ namespace OpenTemple.Core.Ui.Dialog
         private DialogState dialog_slot_idx;
 
         [TempleDllLocation(0x1014ced0)]
-        public void InitiateDialog(GameObjectBody pc, GameObjectBody npc, int scriptId, int i, int lineNumber)
+        public void InitiateDialog(GameObject pc, GameObject npc, int scriptId, int i, int lineNumber)
         {
             if (!GameSystems.Critter.IsDeadNullDestroyed(pc)
                 && !GameSystems.Critter.IsDeadOrUnconscious(pc)
@@ -664,14 +664,14 @@ namespace OpenTemple.Core.Ui.Dialog
             UpdateLayout();
         }
 
-        private void TurnTowards(GameObjectBody pc, GameObjectBody npc)
+        private void TurnTowards(GameObject pc, GameObject npc)
         {
             GameSystems.Anim.Interrupt(pc, AnimGoalPriority.AGP_3);
             GameSystems.Anim.PushRotate(pc, pc.RotationTo(npc));
         }
 
         [TempleDllLocation(0x1014cd70)]
-        public void SayDefaultResponse(GameObjectBody pc, GameObjectBody npc)
+        public void SayDefaultResponse(GameObject pc, GameObject npc)
         {
             GameSystems.Reaction.DialogReaction_10053FE0(npc, pc);
             var text = GameSystems.Dialog.Dialog_10037AF0(npc, pc);
@@ -684,7 +684,7 @@ namespace OpenTemple.Core.Ui.Dialog
         }
 
         [TempleDllLocation(0x1014c840)]
-        public void DialogCreateBubble(GameObjectBody actor, GameObjectBody tgt, int a3, int textDuration, string text,
+        public void DialogCreateBubble(GameObject actor, GameObject tgt, int a3, int textDuration, string text,
             int soundId)
         {
             if (tgt != null
@@ -702,7 +702,7 @@ namespace OpenTemple.Core.Ui.Dialog
         }
 
         [TempleDllLocation(0x1014c720)]
-        public void DialogLineAppend(GameObjectBody speaker, string text)
+        public void DialogLineAppend(GameObject speaker, string text)
         {
             var speakerName = GameSystems.MapObject.GetDisplayNameForParty(speaker);
 

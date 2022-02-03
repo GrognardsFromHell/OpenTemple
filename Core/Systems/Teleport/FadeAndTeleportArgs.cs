@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.Fade;
@@ -11,7 +11,7 @@ namespace OpenTemple.Core.Systems.Teleport
     {
         public FadeAndTeleportFlags flags; // FadeAndTeleportFlags
         public int field4;
-        public GameObjectBody somehandle;
+        public GameObject somehandle;
         public locXY destLoc;
         public int destMap;
         public int movieId;

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -33,8 +33,8 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Heal OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
-            var has_tensers_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
+            var has_tensers_list = new List<GameObject>();
             var is_tensers = false;
             foreach (var target in spell.Targets)
             {
@@ -72,7 +72,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Heal OnEndSpellCast");
         }
-        public static bool check_for_tensers(GameObjectBody target)
+        public static bool check_for_tensers(GameObject target)
         {
             if (Co8.find_spell_obj_with_flag(target, 6400, Co8SpellFlag.TensersTransformation) != null)
             {
@@ -85,7 +85,7 @@ namespace Scripts.Spells
             }
 
         }
-        public static void replace_tensers(GameObjectBody target)
+        public static void replace_tensers(GameObject target)
         {
             var spell_obj = GameSystems.MapObject.CreateObject(6400, target.GetLocation());
             Co8.set_spell_flag(spell_obj, Co8SpellFlag.TensersTransformation);

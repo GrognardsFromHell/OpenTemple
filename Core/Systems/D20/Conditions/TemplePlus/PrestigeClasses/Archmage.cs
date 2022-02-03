@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -127,7 +127,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             FeatId.SPELL_FOCUS_TRANSMUTATION
         };
 
-        public bool FullfillsRequirements(GameObjectBody critter)
+        public bool FullfillsRequirements(GameObject critter)
         {
             foreach (var firstFocusId in SpellFocusFeats)
             {

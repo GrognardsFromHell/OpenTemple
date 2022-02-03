@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(6)]
     public class Captain : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(8014)) && !GetGlobalFlag(309)))
             {
@@ -42,14 +42,14 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             // if should_modify_CR( attachee ): #no longer necessary!
             // modify_CR( attachee, get_av_level() )
             var dummy = 1;
             return RunDefault;
         }
-        public static bool argue(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool argue(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14001);
             if ((npc != null))
@@ -65,7 +65,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool make_elmo_talk(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool make_elmo_talk(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8000);
             if ((npc != null))
@@ -81,7 +81,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool make_otis_talk(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool make_otis_talk(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8014);
             if ((npc != null))

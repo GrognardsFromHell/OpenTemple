@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Knight : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((triggerer.FindItemByName(3014) != null))
             {
@@ -36,13 +36,13 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
-                GameObjectBody good_pc = null;
+                GameObject good_pc = null;
 
-                GameObjectBody near_pc = null;
+                GameObject near_pc = null;
 
                 foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
@@ -86,7 +86,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool distribute_magic_items(GameObjectBody npc, GameObjectBody pc)
+        public static bool distribute_magic_items(GameObject npc, GameObject pc)
         {
             foreach (var obj in pc.GetPartyMembers())
             {
@@ -97,7 +97,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool transfer_scrolls(GameObjectBody npc, GameObjectBody pc)
+        public static bool transfer_scrolls(GameObject npc, GameObject pc)
         {
             Utilities.create_item_in_inventory(9288, pc);
             Utilities.create_item_in_inventory(9280, pc);
@@ -113,7 +113,7 @@ namespace VanillaScripts
             Utilities.create_item_in_inventory(9056, pc);
             return RunDefault;
         }
-        public static bool knight_party(GameObjectBody npc, GameObjectBody pc)
+        public static bool knight_party(GameObject npc, GameObject pc)
         {
             pc.AddReputation(22);
             foreach (var obj in pc.GetPartyMembers())
@@ -124,7 +124,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static void run_off(GameObjectBody npc, GameObjectBody pc)
+        public static void run_off(GameObject npc, GameObject pc)
         {
             foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_NPC))
             {

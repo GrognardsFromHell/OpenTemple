@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Taki : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -52,7 +52,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var leader = attachee.GetLeader();
 
@@ -72,7 +72,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool switch_to_ashrem(GameObjectBody attachee, GameObjectBody triggerer, int line, int alternate_line)
+        public static bool switch_to_ashrem(GameObject attachee, GameObject triggerer, int line, int alternate_line)
         {
             var ashrem = Utilities.find_npc_near(attachee, 8040);
 

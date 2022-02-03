@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using JetBrains.Annotations;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
@@ -397,7 +397,7 @@ namespace OpenTemple.Core.Systems
         private const float MaxDistanceForSmoothScrollingSquared =
             MaxDistanceForSmoothScrolling * MaxDistanceForSmoothScrolling;
 
-        public void CenterOnSmooth(GameObjectBody obj)
+        public void CenterOnSmooth(GameObject obj)
         {
             var location = obj.GetLocation();
             CenterOnSmooth(location.locx, location.locy);

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -183,7 +183,7 @@ namespace Scripts
             }
 
             var is_camp = RandomRange(1, 1); // Added by Cerulean the Blue
-            var enemies = new List<GameObjectBody>();
+            var enemies = new List<GameObject>();
             var i = 0;
             var total = encounter.Enemies.Count;
             // target = OBJ_HANDLE_NULL ## TESTING!!! REMOVE!!!
@@ -1981,7 +1981,7 @@ namespace Scripts
             return p_list[RandomRange(0, p_list.Count - 1)];
         }
 
-        public static locXY random_location(locXY loc, int range, GameObjectBody target)
+        public static locXY random_location(locXY loc, int range, GameObject target)
         {
             Logger.Info("Generating Location");
             var (x, y) = loc;
@@ -2029,7 +2029,7 @@ namespace Scripts
             return location;
         }
 
-        public static int group_skill_level(GameObjectBody pc, SkillId skill)
+        public static int group_skill_level(GameObject pc, SkillId skill)
         {
             var high = 0;
             var level = 0;

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -38,7 +38,7 @@ namespace Scripts.Spells
             // remove targets greater than num_affected
             if (spell.Targets.Length > num_targets_affected)
             {
-                var remove_list = new List<GameObjectBody>();
+                var remove_list = new List<GameObject>();
                 var index = 0;
                 foreach (var target_item in spell.Targets)
                 {
@@ -58,7 +58,7 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Color Spray OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             spell.duration = 0;
             AttachParticles("sp-Color Spray", spell.caster);
             foreach (var target_item in spell.Targets)

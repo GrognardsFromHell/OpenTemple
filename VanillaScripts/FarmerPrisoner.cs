@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class FarmerPrisoner : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasMet(triggerer)))
             {
@@ -52,7 +52,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool banter(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool banter(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8037);
 
@@ -69,25 +69,25 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             var loc = new locXY(427, 406);
 
             attachee.RunOff(loc);
             return RunDefault;
         }
-        public static bool eat_in_three(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool eat_in_three(GameObject attachee, GameObject triggerer)
         {
             StartTimer(86400000, () => mandy_eaten(attachee));
             StartTimer(259200000, () => whitman_eaten(attachee));
             return RunDefault;
         }
-        public static bool mandy_eaten(GameObjectBody attachee)
+        public static bool mandy_eaten(GameObject attachee)
         {
             SetGlobalFlag(170, true);
             return RunDefault;
         }
-        public static bool whitman_eaten(GameObjectBody attachee)
+        public static bool whitman_eaten(GameObject attachee)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
@@ -188,7 +188,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         private LocAndOffsets uiIntgamePathpreviewFrom;
 
         [TempleDllLocation(0x10107580)]
-        public void RenderMovementTarget(IGameViewport viewport, LocAndOffsets loc, GameObjectBody mover)
+        public void RenderMovementTarget(IGameViewport viewport, LocAndOffsets loc, GameObject mover)
         {
             var radius = mover.GetRadius();
 
@@ -589,7 +589,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10109be0)]
-        private void PathRenderEndpointCircle(IGameViewport viewport, LocAndOffsets loc, GameObjectBody obj, float zoffset)
+        private void PathRenderEndpointCircle(IGameViewport viewport, LocAndOffsets loc, GameObject obj, float zoffset)
         {
             var radius = obj.GetRadius();
             DrawCircle3d(

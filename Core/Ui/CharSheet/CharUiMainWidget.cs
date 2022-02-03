@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.TigSubsystems;
@@ -41,7 +41,7 @@ namespace OpenTemple.Core.Ui.CharSheet
             _attributeRollCountLabel = new WidgetText("", "char-ui-attribute-rerolls");
         }
 
-        private GameObjectBody CurrentCritter => UiSystems.CharSheet.CurrentCritter;
+        private GameObject CurrentCritter => UiSystems.CharSheet.CurrentCritter;
 
         [TempleDllLocation(0x101445f0)]
         public override void Render()

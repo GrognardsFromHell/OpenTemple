@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(161)]
     public class FemalePrisoner1 : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (((GetGlobalFlag(131)) && !(attachee.GetMap() == 5121)))
             {
@@ -36,7 +36,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -45,7 +45,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5121))
             {
@@ -59,7 +59,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
@@ -69,7 +69,7 @@ namespace Scripts
             attachee.RunOff();
             return RunDefault;
         }
-        public static bool npc_check1(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool npc_check1(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14251);
             if ((npc != null))
@@ -85,7 +85,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool npc_check2(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool npc_check2(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14430);
             if ((npc != null))
@@ -101,7 +101,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool npc_check3(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool npc_check3(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14431);
             if ((npc != null))
@@ -117,7 +117,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool get_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_rep(GameObject attachee, GameObject triggerer)
         {
             if (!triggerer.HasReputation(7))
             {
@@ -132,7 +132,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool free_rep(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool free_rep(GameObject attachee, GameObject triggerer)
         {
             if (!triggerer.HasReputation(16))
             {

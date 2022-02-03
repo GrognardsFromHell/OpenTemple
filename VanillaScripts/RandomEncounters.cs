@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -76,7 +76,7 @@ namespace VanillaScripts
                 {
                     if (is_sleep_encounter)
                     {
-                        var party = new List<GameObjectBody>();
+                        var party = new List<GameObject>();
 
                         foreach (var pc in GameSystems.Party.PartyMembers)
                         {

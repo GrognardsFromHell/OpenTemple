@@ -1,11 +1,11 @@
 ﻿using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.RadialMenus
 {
-    public delegate bool RadialMenuEntryCallback(GameObjectBody critter, ref RadialMenuEntry entry);
+    public delegate bool RadialMenuEntryCallback(GameObject critter, ref RadialMenuEntry entry);
 
     public struct RadialMenuEntry
     {
@@ -152,12 +152,12 @@ namespace OpenTemple.Core.Systems.RadialMenus
             return result;
         }
 
-        public int AddAsChild(GameObjectBody critter, int parentId)
+        public int AddAsChild(GameObject critter, int parentId)
         {
             return GameSystems.D20.RadialMenu.AddChildNode(critter, ref this, parentId);
         }
 
-        public int AddAsChild(GameObjectBody critter, RadialMenuStandardNode standardNode)
+        public int AddAsChild(GameObject critter, RadialMenuStandardNode standardNode)
         {
             return GameSystems.D20.RadialMenu.AddToStandardNode(critter, ref this, standardNode);
         }

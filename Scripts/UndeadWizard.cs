@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(527)]
     public class UndeadWizard : BaseObjectScript
     {
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -43,7 +43,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool spawn_undead_backup(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool spawn_undead_backup(GameObject attachee, GameObject triggerer)
         {
             Sound(4045, 1);
             var ga1 = GameSystems.MapObject.CreateObject(14135, new locXY(504, 458));

@@ -2,7 +2,7 @@
 using System.Text;
 using FluentAssertions;
 using NUnit.Framework;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.Protos;
 
 namespace OpenTemple.Tests.Core.Systems.Proto

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(73)]
     public class Innkeeper1 : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5008)) // upstairs - arranging for lodging for a PC
             {
@@ -45,7 +45,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5007))
             {
@@ -78,7 +78,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool set_room_flag(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool set_room_flag(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(56, true);
             StartTimer(86390000, () => room_no_longer_available());
@@ -91,7 +91,7 @@ namespace Scripts
             GameSystems.RandomEncounter.UpdateSleepStatus();
             return RunDefault;
         }
-        public static int can_stay_behind(GameObjectBody obj)
+        public static int can_stay_behind(GameObject obj)
         {
             if (obj.type == ObjectType.pc)
             {
@@ -100,12 +100,12 @@ namespace Scripts
 
             return 0;
         }
-        public static void mark_pc_dropoff(GameObjectBody obj)
+        public static void mark_pc_dropoff(GameObject obj)
         {
             obj.SetScriptId(ObjScriptEvent.Dialog, 439);
             ScriptDaemon.set_f("pc_dropoff");
         }
-        public static bool contest_who(GameObjectBody attachee)
+        public static bool contest_who(GameObject attachee)
         {
             foreach (var n in new[] { 8010, 8005, 8011, 8000 })
             {
@@ -119,7 +119,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool contest_drink(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool contest_drink(GameObject attachee, GameObject triggerer)
         {
             var npcs_awake = 0;
             foreach (var n in new[] { 8009, 8010, 8005, 8011 })

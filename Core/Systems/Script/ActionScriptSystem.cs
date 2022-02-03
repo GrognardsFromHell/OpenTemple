@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Ui.InGameSelect;
@@ -7,7 +7,7 @@ namespace OpenTemple.Core.Systems.Script
 {
     public class ActionScriptSystem
     {
-        public bool PyProjectileHit(D20DispatcherKey actionData1, D20Action action, GameObjectBody projectile, GameObjectBody obj2)
+        public bool PyProjectileHit(D20DispatcherKey actionData1, D20Action action, GameObject projectile, GameObject obj2)
         {
             throw new System.NotImplementedException();
         }

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(77)]
     public class Sergeant : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(37) && (GetGlobalFlag(49) || !GetGlobalFlag(48))))
             {
@@ -44,7 +44,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -53,7 +53,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()) && (!GetGlobalFlag(363)) && (attachee.GetLeader() == null))
             {
@@ -126,24 +126,24 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             var loc = new locXY(526, 569);
             attachee.RunOff(loc);
             return RunDefault;
         }
-        public static bool move_pc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool move_pc(GameObject attachee, GameObject triggerer)
         {
             FadeAndTeleport(0, 0, 0, 5005, 537, 545);
             // triggerer.move( location_from_axis( 537, 545 ) )
             return RunDefault;
         }
-        public static bool deliver_pc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool deliver_pc(GameObject attachee, GameObject triggerer)
         {
             triggerer.Move(new locXY(491, 541));
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -156,7 +156,7 @@ namespace Scripts
 
             return false;
         }
-        public static void call_leader(GameObjectBody npc, GameObjectBody pc)
+        public static void call_leader(GameObject npc, GameObject pc)
         {
             var leader = PartyLeader;
             leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
@@ -207,7 +207,7 @@ namespace Scripts
             }
 
         }
-        public static void twitch_stop(GameObjectBody obj, float rot_new)
+        public static void twitch_stop(GameObject obj, float rot_new)
         {
             obj.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
             obj.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
@@ -217,7 +217,7 @@ namespace Scripts
         // 481, 530, rot = 3.14 - archer
         // 483, 541, rot = 4 - spear
 
-        public static void sps(GameObjectBody object_to_be_transferred, int new_standpoint_ID)
+        public static void sps(GameObject object_to_be_transferred, int new_standpoint_ID)
         {
             // standpoint set
             object_to_be_transferred.SetStandpoint(StandPointType.Day, new_standpoint_ID);

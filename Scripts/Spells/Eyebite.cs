@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -66,7 +66,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Eyebite OnSpellStruck");
         }
-        public void biteTarget(GameObjectBody target, GameObjectBody caster, int spell_id, int spell_dc, int duration)
+        public void biteTarget(GameObject target, GameObject caster, int spell_id, int spell_dc, int duration)
         {
             Logger.Info("Eyebiting {0}", target);
             // Fortitude saving throw to negate

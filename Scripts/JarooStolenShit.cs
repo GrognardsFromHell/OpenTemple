@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(417)]
     public class JarooStolenShit : BaseObjectScript
     {
-        public override bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             StartTimer(1000, () => check_theft(attachee, triggerer)); // 1 second
             return RunDefault;
@@ -33,7 +33,7 @@ namespace Scripts
         // game.global_flags[500] = 1
         // return SKIP_DEFAULT
 
-        public static bool check_theft(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool check_theft(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(243)))
             {

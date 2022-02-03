@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Platform;
@@ -124,7 +124,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100F3D60)]
-        public bool RadmenuHotkeySthg(GameObjectBody obj, DIK key)
+        public bool RadmenuHotkeySthg(GameObject obj, DIK key)
         {
             if (!_hotkeyTable.TryGetValue(key, out var hotkeyEntry) ||
                 hotkeyEntry.d20ActionType == D20ActionType.UNASSIGNED)

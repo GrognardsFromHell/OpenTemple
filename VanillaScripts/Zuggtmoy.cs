@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Zuggtmoy : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(181)))
             {
@@ -41,7 +41,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(359)))
             {
@@ -55,13 +55,13 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
-                GameObjectBody nearby_unmet_pc = null;
+                GameObject nearby_unmet_pc = null;
 
-                GameObjectBody distant_pc = null;
+                GameObject distant_pc = null;
 
                 var found_close_pc = false;
 
@@ -128,7 +128,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(183)))
             {
@@ -142,7 +142,7 @@ namespace VanillaScripts
             return RunDefault;
         }
 
-        public override bool OnTrueSeeing(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnTrueSeeing(GameObject attachee, GameObject triggerer)
         {
             if (GetGlobalFlag(181))
             {
@@ -154,17 +154,17 @@ namespace VanillaScripts
             return RunDefault;
         }
 
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(181, false);
             transform_into_demon_form(attachee, triggerer, -1);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((Utilities.obj_percent_hp(attachee) < 20))
             {
-                GameObjectBody nearby_pc = null;
+                GameObject nearby_pc = null;
 
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
@@ -209,7 +209,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool transform_into_demon_form(GameObjectBody zuggtmoy, GameObjectBody pc, int line)
+        public static bool transform_into_demon_form(GameObject zuggtmoy, GameObject pc, int line)
         {
             if ((!GetGlobalFlag(193)))
             {
@@ -255,14 +255,14 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool crone_wait(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool crone_wait(GameObject zuggtmoy, GameObject pc)
         {
             zuggtmoy.AddCondition("Invisible", 0, 0);
             zuggtmoy.SetObjectFlag(ObjectFlag.DONTDRAW);
             SetGlobalFlag(181, true);
             return RunDefault;
         }
-        public static bool zuggtmoy_pc_persuade(GameObjectBody zuggtmoy, GameObjectBody pc, int success, int failure)
+        public static bool zuggtmoy_pc_persuade(GameObject zuggtmoy, GameObject pc, int success, int failure)
         {
             if ((!pc.SavingThrow(10, SavingThrowType.Will, D20SavingThrowFlag.NONE)))
             {
@@ -275,7 +275,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool zuggtmoy_pc_charm(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_pc_charm(GameObject zuggtmoy, GameObject pc)
         {
             pc.Dominate(zuggtmoy);
             if ((GameSystems.Party.PlayerCharactersSize == 1))
@@ -289,7 +289,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public static bool zuggtmoy_regenerate_and_attack(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_regenerate_and_attack(GameObject zuggtmoy, GameObject pc)
         {
             var dice = Dice.Parse("1d10+1000");
 
@@ -298,27 +298,27 @@ namespace VanillaScripts
             zuggtmoy.Attack(pc);
             return RunDefault;
         }
-        public static bool zuggtmoy_banish(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_banish(GameObject zuggtmoy, GameObject pc)
         {
             SetGlobalFlag(188, true);
             Fade(0, 0, 301, 0);
             zuggtmoy_end_game(zuggtmoy, pc);
             return RunDefault;
         }
-        public static bool zuggtmoy_die(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_die(GameObject zuggtmoy, GameObject pc)
         {
             SetGlobalFlag(189, true);
             Fade(0, 0, 302, 0);
             zuggtmoy_end_game(zuggtmoy, pc);
             return RunDefault;
         }
-        public static bool zuggtmoy_end_game(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_end_game(GameObject zuggtmoy, GameObject pc)
         {
             Utilities.set_end_slides(zuggtmoy, pc);
             GameSystems.Movies.MovieQueuePlayAndEndGame();
             return RunDefault;
         }
-        public static bool zuggtmoy_pillar_gone(GameObjectBody zuggtmoy, GameObjectBody pc)
+        public static bool zuggtmoy_pillar_gone(GameObject zuggtmoy, GameObject pc)
         {
             foreach (var obj in ObjList.ListVicinity(zuggtmoy.GetLocation(), ObjectListFilter.OLC_SCENERY))
             {

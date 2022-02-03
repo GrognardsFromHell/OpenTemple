@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(2)]
     public class BlackJay : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
@@ -45,7 +45,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -62,7 +62,7 @@ namespace Scripts
         }
         // THIS IS DEFAULT SCRIPT TO GET TWO WEAPON FIGHTERS TO USE TWO WEAPONS (this is needed) ##
 
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if (((attachee.GetNameId() == 14238 || attachee.GetNameId() == 14697 || attachee.GetNameId() == 14573 || attachee.GetNameId() == 14824) && (!attachee.HasEquippedByName(4099) || !attachee.HasEquippedByName(4100))))
             {
@@ -94,7 +94,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if (GetGlobalFlag(403) && GetGlobalFlag(405))
             {
@@ -301,7 +301,7 @@ namespace Scripts
         }
         // THIS IS DEFAULT SCRIPT TO GET TWO WEAPON FIGHTERS TO USE TWO WEAPONS (this may not be needed) ##
 
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GameSystems.Combat.IsCombatActive()))
             {
@@ -359,7 +359,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {

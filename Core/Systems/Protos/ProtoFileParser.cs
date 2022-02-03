@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.TabFiles;
 using OpenTemple.Core.Logging;
@@ -70,11 +70,11 @@ namespace OpenTemple.Core.Systems.Protos
             return false;
         }
 
-        public delegate void ProtoCallback(GameObjectBody protoObj, int protoId);
+        public delegate void ProtoCallback(GameObject protoObj, int protoId);
 
-        public static List<GameObjectBody> Parse(string path, ProtoCallback objectPreprocessor = null)
+        public static List<GameObject> Parse(string path, ProtoCallback objectPreprocessor = null)
         {
-            var result = new List<GameObjectBody>();
+            var result = new List<GameObject>();
 
             void ProcessProtoRecord(in TabFileRecord record)
             {
@@ -86,7 +86,7 @@ namespace OpenTemple.Core.Systems.Protos
                     return;
                 }
 
-                var obj = GameObjectBody.CreateProto(type, protoId);
+                var obj = GameObject.CreateProto(type, protoId);
 
                 objectPreprocessor?.Invoke(obj, protoId);
 

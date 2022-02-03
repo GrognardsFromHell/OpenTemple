@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(270)]
     public class ElmoSober : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((GetGlobalVar(900) == 32))
@@ -46,7 +46,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -71,12 +71,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(934, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -105,13 +105,13 @@ namespace Scripts
             // game.new_sid = 0
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(236, true);
             Logger.Info("elmo joins");
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(236, false);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -122,7 +122,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnNewMap(GameObject attachee, GameObject triggerer)
         {
             var randy1 = RandomRange(1, 16);
             if (((attachee.GetMap() == 5052 || attachee.GetMap() == 5007) && randy1 >= 15))
@@ -141,7 +141,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool make_otis_talk(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool make_otis_talk(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8014);
             if ((npc != null))
@@ -157,7 +157,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool make_lila_talk(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool make_lila_talk(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14001);
             if ((npc != null))
@@ -173,7 +173,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool make_Fruella_talk(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool make_Fruella_talk(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14037);
             if ((npc != null))
@@ -185,7 +185,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool make_saduj_talk(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool make_saduj_talk(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 14689);
             if ((npc != null))
@@ -197,7 +197,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_thrommel(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool switch_to_thrommel(GameObject attachee, GameObject triggerer)
         {
             var npc = Utilities.find_npc_near(attachee, 8031);
             if ((npc != null))
@@ -215,10 +215,10 @@ namespace Scripts
         }
         // edited by darmagon for sober elmo
 
-        public static bool elmo_joins_first_time(GameObjectBody attachee, GameObjectBody triggerer, bool sober)
+        public static bool elmo_joins_first_time(GameObject attachee, GameObject triggerer, bool sober)
         {
             // def elmo_joins_first_time( attachee, triggerer, sober ):	#edited by darmagon for sober elmo
-            GameObjectBody new_elmo;
+            GameObject new_elmo;
             if (sober)
             {
                 var loc = attachee.GetLocation();
@@ -253,7 +253,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static void equip_transfer(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void equip_transfer(GameObject attachee, GameObject triggerer)
         {
             var rchain = attachee.FindItemByName(6049);
             if (rchain != null)

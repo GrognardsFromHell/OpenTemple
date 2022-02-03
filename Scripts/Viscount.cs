@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(338)]
     public class Viscount : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (GetGlobalVar(923) == 0)
             {
@@ -75,7 +75,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(992)))
             {
@@ -112,7 +112,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -143,7 +143,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 8703))
             {
@@ -184,7 +184,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             SetCounter(0, GetCounter(0) + 1);
             if ((GetCounter(0) == 1))
@@ -234,7 +234,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(34)))
             {
@@ -247,7 +247,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool distribute_verbobonc_uniform(GameObjectBody npc, GameObjectBody pc)
+        public static bool distribute_verbobonc_uniform(GameObject npc, GameObject pc)
         {
             foreach (var obj in pc.GetPartyMembers())
             {
@@ -257,7 +257,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool overseers_show_up(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool overseers_show_up(GameObject attachee, GameObject triggerer)
         {
             var samson = GameSystems.MapObject.CreateObject(14660, new locXY(482, 494));
             samson.TurnTowards(triggerer);
@@ -268,7 +268,7 @@ namespace Scripts
             goliath.Attack(PartyLeader);
             return RunDefault;
         }
-        public static bool guards_show_up(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool guards_show_up(GameObject attachee, GameObject triggerer)
         {
             var guard1 = GameSystems.MapObject.CreateObject(14644, new locXY(481, 493));
             guard1.TurnTowards(triggerer);
@@ -285,7 +285,7 @@ namespace Scripts
             guard4.Attack(PartyLeader);
             return RunDefault;
         }
-        public static bool guardian_show_up(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool guardian_show_up(GameObject attachee, GameObject triggerer)
         {
             var bathsheba = GameSystems.MapObject.CreateObject(14659, new locXY(484, 494));
             bathsheba.TurnTowards(triggerer);
@@ -293,7 +293,7 @@ namespace Scripts
             bathsheba.Attack(PartyLeader);
             return RunDefault;
         }
-        public static bool mages_show_up(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool mages_show_up(GameObject attachee, GameObject triggerer)
         {
             var mage1 = GameSystems.MapObject.CreateObject(14658, attachee.GetLocation().OffsetTiles(-4, 0));
             AttachParticles("sp-Teleport", mage1);
@@ -315,7 +315,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void ditch_captains(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void ditch_captains(GameObject attachee, GameObject triggerer)
         {
             var abiram = Utilities.find_npc_near(attachee, 8706);
             abiram.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
@@ -325,7 +325,7 @@ namespace Scripts
             achan.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
             return;
         }
-        public static bool switch_to_captain(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool switch_to_captain(GameObject attachee, GameObject triggerer, int line)
         {
             var abiram = Utilities.find_npc_near(attachee, 8706);
             var absalom = Utilities.find_npc_near(attachee, 8707);
@@ -347,7 +347,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool schedule_bandits_1(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool schedule_bandits_1(GameObject attachee, GameObject triggerer)
         {
             var tempp = GetGlobalVar(923);
             if (GetGlobalVar(923) == 0)
@@ -379,7 +379,7 @@ namespace Scripts
             ScriptDaemon.set_f("s_ranths_bandits_scheduled");
             return RunDefault;
         }
-        public static void slavers_movie_setup(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void slavers_movie_setup(GameObject attachee, GameObject triggerer)
         {
             set_slavers_slides();
             return;

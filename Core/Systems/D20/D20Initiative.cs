@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Logging;
@@ -15,14 +15,14 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.D20
 {
-    public class D20Initiative : IDisposable, IReadOnlyList<GameObjectBody>
+    public class D20Initiative : IDisposable, IReadOnlyList<GameObject>
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         /// <summary>
         /// This is for tests that want to override the initiative to ensure a specific turn order.
         /// </summary>
-        public Func<GameObjectBody, int>? InitiativeOverride { get; set; }
+        public Func<GameObject, int>? InitiativeOverride { get; set; }
 
         [TempleDllLocation(0x10BCAD90)]
         private bool _surpriseRound;
@@ -31,13 +31,13 @@ namespace OpenTemple.Core.Systems.D20
         private readonly CritterGroup _initiativeOrder = new CritterGroup();
 
         [TempleDllLocation(0x10BCAD88)]
-        private GameObjectBody? _currentActor;
+        private GameObject? _currentActor;
 
         [TempleDllLocation(0x100dec60)]
         public void OnExitCombat()
         {
             // The list can change while we iterate...
-            var copiedList = new List<GameObjectBody>(_initiativeOrder);
+            var copiedList = new List<GameObject>(_initiativeOrder);
             foreach (var member in copiedList)
             {
                 GameSystems.Script.ExecuteObjectScript(member, member, ObjScriptEvent.ExitCombat);
@@ -60,18 +60,18 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100dedb0)]
-        public int GetInitiative(GameObjectBody obj)
+        public int GetInitiative(GameObject obj)
         {
             return obj.GetInt32(obj_f.initiative);
         }
 
         [TempleDllLocation(0x100dedd0)]
-        public bool Contains(GameObjectBody obj)
+        public bool Contains(GameObject obj)
         {
             return _initiativeOrder.Contains(obj);
         }
 
-        public GameObjectBody? CurrentActor
+        public GameObject? CurrentActor
         {
             [TempleDllLocation(0x100dee40)]
             get => _currentActor;
@@ -83,15 +83,15 @@ namespace OpenTemple.Core.Systems.D20
         [TempleDllLocation(0x100dee50)]
         public int CurrentActorIndex => _initiativeOrder.IndexOf(_currentActor);
 
-        public int IndexOf(GameObjectBody obj) => _initiativeOrder.IndexOf(obj);
+        public int IndexOf(GameObject obj) => _initiativeOrder.IndexOf(obj);
 
         /// <summary>
         /// Sorts by initiative in descending order.
         /// </summary>
-        private class InitiativeComparer : IComparer<GameObjectBody>
+        private class InitiativeComparer : IComparer<GameObject>
         {
             [TempleDllLocation(0x100def20)]
-            public int Compare(GameObjectBody? x, GameObjectBody? y)
+            public int Compare(GameObject? x, GameObject? y)
             {
                 var xInit = x?.GetInt32(obj_f.initiative) ?? int.MinValue;
                 var yInit = y?.GetInt32(obj_f.initiative) ?? int.MinValue;
@@ -192,7 +192,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100df1e0)]
-        public void AddToInitiative(GameObjectBody obj)
+        public void AddToInitiative(GameObject obj)
         {
             if (Contains(obj))
             {
@@ -230,7 +230,7 @@ namespace OpenTemple.Core.Systems.D20
             }
         }
 
-        private int RollInitiative(GameObjectBody obj)
+        private int RollInitiative(GameObject obj)
         {
             int initiative;
             if (InitiativeOverride != null)
@@ -300,14 +300,14 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004cef0)]
-        public void DispatchInitiative(GameObjectBody obj)
+        public void DispatchInitiative(GameObject obj)
         {
             var dispatcher = obj.GetDispatcher();
             dispatcher?.Process(DispatcherType.Initiative, D20DispatcherKey.NONE, null);
         }
 
         [TempleDllLocation(0x100df2e0)]
-        public void SetInitiative(GameObjectBody obj, int initiative)
+        public void SetInitiative(GameObject obj, int initiative)
         {
             obj.SetInt32(obj_f.initiative, initiative);
             ArbitrateConflicts();
@@ -318,7 +318,7 @@ namespace OpenTemple.Core.Systems.D20
         /// Sets the initiative of the given object to be just before another.
         /// </summary>
         [TempleDllLocation(0x100df350)]
-        public void SetInitiativeBefore(GameObjectBody obj, GameObjectBody objBefore)
+        public void SetInitiativeBefore(GameObject obj, GameObject objBefore)
         {
             var targetInitiative = GetInitiative(objBefore);
             obj.SetInt32(obj_f.initiative, targetInitiative);
@@ -336,7 +336,7 @@ namespace OpenTemple.Core.Systems.D20
         /// </summary>
         [TempleDllLocation(0x100df3d0)]
         [TempleDllLocation(0x100df570)]
-        public void SetInitiativeTo(GameObjectBody obj, GameObjectBody targetObj)
+        public void SetInitiativeTo(GameObject obj, GameObject targetObj)
         {
             var targetInitiative = GetInitiative(targetObj);
             obj.SetInt32(obj_f.initiative, targetInitiative);
@@ -372,7 +372,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100df500)]
-        public void AddSurprisedCondition(GameObjectBody obj)
+        public void AddSurprisedCondition(GameObject obj)
         {
             Stub.TODO();
             AddToInitiative(obj);
@@ -380,7 +380,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100df530)]
-        public void RemoveFromInitiative(GameObjectBody obj)
+        public void RemoveFromInitiative(GameObject obj)
         {
             // We cannot immediately remove the object because it still has to be in the initiative list
             // in order to find the next actor.
@@ -397,7 +397,7 @@ namespace OpenTemple.Core.Systems.D20
             _initiativeOrder.Remove(obj);
         }
 
-        public int GetInitiativeBonus(GameObjectBody obj, out BonusList bonusList)
+        public int GetInitiativeBonus(GameObject obj, out BonusList bonusList)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -414,7 +414,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100df5a0)]
-        public void Move(GameObjectBody obj, int toIndex)
+        public void Move(GameObject obj, int toIndex)
         {
             var currentIndex = _initiativeOrder.IndexOf(obj);
 
@@ -435,7 +435,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100dedf0)]
-        public IEnumerator<GameObjectBody> GetEnumerator()
+        public IEnumerator<GameObject> GetEnumerator()
         {
             return _initiativeOrder.GetEnumerator();
         }
@@ -448,6 +448,6 @@ namespace OpenTemple.Core.Systems.D20
         [TempleDllLocation(0x100deda0)]
         public int Count => _initiativeOrder.Count;
 
-        public GameObjectBody this[int index] => _initiativeOrder[index];
+        public GameObject this[int index] => _initiativeOrder[index];
     }
 }

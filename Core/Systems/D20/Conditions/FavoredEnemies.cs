@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.Feats;
 
 namespace OpenTemple.Core.Systems.D20.Conditions
@@ -37,12 +37,12 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             new FavoredEnemyType(FeatId.FAVORED_ENEMY_HUMANOID_HUMAN, MonsterCategory.humanoid, MonsterSubtype.human),
         };
 
-        public static bool IsOfType(GameObjectBody critter, int favoredEnemyTypeIdx)
+        public static bool IsOfType(GameObject critter, int favoredEnemyTypeIdx)
         {
             return Types[favoredEnemyTypeIdx].IsOfType(critter);
         }
 
-        public static bool GetFavoredEnemyBonusAgainst(GameObjectBody critter, GameObjectBody target,
+        public static bool GetFavoredEnemyBonusAgainst(GameObject critter, GameObject target,
             out int bonus, out FeatId featId)
         {
             // As per rules, if a creature matches more than one type, the highest one is used
@@ -93,7 +93,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             Subtype = 0;
         }
 
-        public bool IsOfType(GameObjectBody critter)
+        public bool IsOfType(GameObject critter)
         {
             if ( GameSystems.Critter.IsCategory(critter, Category) )
             {

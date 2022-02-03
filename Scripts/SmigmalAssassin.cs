@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -27,7 +27,7 @@ namespace Scripts
         // 4500 - Rapier +2, 4701 - Wakizashi +1
         // 4112 is dagger of venom, useless for AI
 
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -36,7 +36,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             // if (not attachee.has_wielded(4500) or not attachee.has_wielded(4112)):
             if ((!attachee.HasEquippedByName(4500) || !attachee.HasEquippedByName(4701)))
@@ -47,7 +47,7 @@ namespace Scripts
             // game.new_sid = 0
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             while ((attachee.FindItemByName(8903) != null))
             {
@@ -65,7 +65,7 @@ namespace Scripts
             // game.new_sid = 0
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             // if (not attachee.has_wielded(4500) or not attachee.has_wielded(4112)):
             if ((GameSystems.Party.PartyMembers).Contains(attachee)) // fixes huge lag when charmed (due to doing repeated item_wield_best_all() at high frequency)

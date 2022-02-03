@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(180)]
     public class BrauApprenticeBeggar : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((SelectedPartyLeader.HasReputation(32) || SelectedPartyLeader.HasReputation(30) || SelectedPartyLeader.HasReputation(29)))
             {
@@ -60,7 +60,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(205)))
             {
@@ -69,7 +69,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -92,7 +92,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() == null))
             {
@@ -105,12 +105,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(240, true);
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(240, false);
             foreach (var pc in GameSystems.Party.PartyMembers)
@@ -121,13 +121,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool get_drunk(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool get_drunk(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             StartTimer(3600000, () => comeback_drunk(attachee));
             return RunDefault;
         }
-        public static bool comeback_drunk(GameObjectBody attachee)
+        public static bool comeback_drunk(GameObject attachee)
         {
             attachee.ClearObjectFlag(ObjectFlag.OFF);
             SetGlobalFlag(207, true);
@@ -135,12 +135,12 @@ namespace Scripts
             StartTimer(time, () => get_sober(attachee));
             return RunDefault;
         }
-        public static bool get_sober(GameObjectBody attachee)
+        public static bool get_sober(GameObject attachee)
         {
             SetGlobalFlag(207, false);
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             var loc = new locXY(427, 406);
             attachee.RunOff(loc);

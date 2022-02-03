@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Particles.Instances;
@@ -1048,7 +1048,7 @@ TP Replaced @ ability_fixes.cpp:71
         public static void QueryAcBonus(in DispatcherCallbackArgs evt, int data)
         {
             var dispIo = evt.GetDispIoD20Query();
-            var item = (GameObjectBody) dispIo.obj;
+            var item = (GameObject) dispIo.obj;
             var acBonus = evt.GetConditionArg(data);
 
             // This is used for item dispatchers
@@ -1490,7 +1490,7 @@ TP Replaced @ ability_fixes.cpp:71
             }
         }
 
-        private static bool IsWeaponOrAmmo(ref AttackPacket attackPacket, GameObjectBody item)
+        private static bool IsWeaponOrAmmo(ref AttackPacket attackPacket, GameObject item)
         {
             var weaponUsed = attackPacket.GetWeaponUsed();
             if (weaponUsed == item)
@@ -1528,7 +1528,7 @@ TP Replaced @ ability_fixes.cpp:71
         public static void ArmorOrShieldGetMaxSpeed(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIoD20Query();
-            var obj = (GameObjectBody) dispIo.obj;
+            var obj = (GameObject) dispIo.obj;
             var wearer = GameSystems.Item.GetParent(obj);
             if (wearer == null)
             {
@@ -1566,7 +1566,7 @@ TP Replaced @ ability_fixes.cpp:71
         public static void ArmorOrShieldGetMaxDexBonus(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIoD20Query();
-            var obj = (GameObjectBody) dispIo.obj;
+            var obj = (GameObject) dispIo.obj;
             if (obj.type == ObjectType.armor)
             {
                 dispIo.return_val = obj.GetInt32(obj_f.armor_max_dex_bonus);
@@ -2176,7 +2176,7 @@ TP Replaced @ ability_fixes.cpp:71
             if (dispIo != null)
             {
                 var condArg3 = evt.GetConditionArg3();
-                var obj = (GameObjectBody) dispIo.obj;
+                var obj = (GameObject) dispIo.obj;
                 if (obj == GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3))
                 {
                     dispIo.return_val = 1;
@@ -2234,7 +2234,7 @@ TP Replaced @ ability_fixes.cpp:71
             var earthGemProto = GameSystems.Proto.GetProtoById(WellKnownProtos.EarthElementalPowerGem);
             var fireGemProto = GameSystems.Proto.GetProtoById(WellKnownProtos.FireElementalPowerGem);
             var waterGemProto = GameSystems.Proto.GetProtoById(WellKnownProtos.WaterElementalPowerGem);
-            var combiningWith = (GameObjectBody) dispIo.obj;
+            var combiningWith = (GameObject) dispIo.obj;
             var combiningWithName = GameSystems.MapObject.GetDisplayName(combiningWith);
 
             int argIndex;
@@ -2323,7 +2323,7 @@ TP Replaced @ ability_fixes.cpp:71
             var condArg2 = evt.GetConditionArg2();
             if (evt.GetConditionArg4() < condArg2)
             {
-                ItemEffects.UseableItemRadialEntry(in evt);
+                UseableItemRadialEntry(in evt);
             }
         }
 
@@ -2753,7 +2753,7 @@ TP Replaced @ ability_fixes.cpp:71
             }
         }
 
-        private static void AddGemSpellRadialEntry(in DispatcherCallbackArgs evt, GameObjectBody item,
+        private static void AddGemSpellRadialEntry(in DispatcherCallbackArgs evt, GameObject item,
             int spellIdx, int parentNodeIdx, bool quicken = false)
         {
             var itemInvIdx = evt.GetConditionArg3();
@@ -2826,7 +2826,7 @@ TP Replaced @ ability_fixes.cpp:71
             }
         }
 
-        private static void AddWhiteGemRadialMenu(in DispatcherCallbackArgs evt, GameObjectBody item, int parentIdxa)
+        private static void AddWhiteGemRadialMenu(in DispatcherCallbackArgs evt, GameObject item, int parentIdxa)
         {
             var condArg4 = evt.GetConditionArg4();
             if (((condArg4 >> 16) & 0xFF) == 0)
@@ -2845,7 +2845,7 @@ TP Replaced @ ability_fixes.cpp:71
             }
         }
 
-        private static void AddOrangeGemRadialMenu(in DispatcherCallbackArgs evt, GameObjectBody item,
+        private static void AddOrangeGemRadialMenu(in DispatcherCallbackArgs evt, GameObject item,
             in int parentIdxa)
         {
             var condArg5 = evt.GetConditionArg(4);
@@ -2865,7 +2865,7 @@ TP Replaced @ ability_fixes.cpp:71
             }
         }
 
-        private static void AddRedGemRadialMenu(in DispatcherCallbackArgs evt, GameObjectBody item, int parentIdxa)
+        private static void AddRedGemRadialMenu(in DispatcherCallbackArgs evt, GameObject item, int parentIdxa)
         {
             var condArg6 = evt.GetConditionArg(5);
             if (((condArg6 >> 16) & 0xFF) == 0)
@@ -2884,7 +2884,7 @@ TP Replaced @ ability_fixes.cpp:71
             }
         }
 
-        private static void AddBlueGemRadialMenu(in DispatcherCallbackArgs evt, GameObjectBody item, int parentIdxa)
+        private static void AddBlueGemRadialMenu(in DispatcherCallbackArgs evt, GameObject item, int parentIdxa)
         {
             var condArg7 = evt.GetConditionArg(6);
             if (((condArg7 >> 16) & 0xFF) == 0)
@@ -3027,7 +3027,7 @@ TP Replaced @ ability_fixes.cpp:71
         public static void GetWeaponGlowType(in DispatcherCallbackArgs evt, int weaponGlowType)
         {
             var dispIo = evt.GetDispIoD20Query();
-            var queryForObj = (GameObjectBody) dispIo.obj;
+            var queryForObj = (GameObject) dispIo.obj;
 
             // This may be called directly on the item in which case the object is null
             if (evt.objHndCaller != null)

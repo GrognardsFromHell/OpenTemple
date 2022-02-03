@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -188,7 +188,7 @@ namespace Scripts
             {FeatId.WEAPON_FOCUS_HALBERD, 4412},
         };
 
-        public void GiveStartingEquipment(GameObjectBody pc)
+        public void GiveStartingEquipment(GameObject pc)
         {
             foreach (var (f, p) in proto_table)
             {

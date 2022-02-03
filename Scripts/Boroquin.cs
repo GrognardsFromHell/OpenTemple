@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(330)]
     public class Boroquin : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(109) == QuestState.Completed))
             {
@@ -52,7 +52,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5169 && GetGlobalVar(549) == 1))
             {
@@ -89,7 +89,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -104,16 +104,16 @@ namespace Scripts
             SetGlobalFlag(540, true);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             return SkipDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(540, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -144,7 +144,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnSpellCast(GameObjectBody attachee, GameObjectBody triggerer, SpellPacketBody spell)
+        public override bool OnSpellCast(GameObject attachee, GameObject triggerer, SpellPacketBody spell)
         {
             if ((spell.spellEnum == WellKnownSpells.CharmPerson || spell.spellEnum == WellKnownSpells.CharmMonster))
             {
@@ -154,7 +154,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void increment_var_536(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void increment_var_536(GameObject attachee, GameObject triggerer)
         {
             if ((!attachee.HasMet(triggerer)))
             {
@@ -163,34 +163,34 @@ namespace Scripts
 
             return;
         }
-        public static void increment_var_543(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void increment_var_543(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(543, GetGlobalVar(543) + 1);
             return;
         }
-        public static void increment_var_544(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void increment_var_544(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(544, GetGlobalVar(544) + 1);
             return;
         }
-        public static void increment_var_545(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void increment_var_545(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(545, GetGlobalVar(545) + 1);
             return;
         }
-        public void increment_var_555(GameObjectBody attachee, GameObjectBody triggerer)
+        public void increment_var_555(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(555, GetGlobalVar(555) + 1);
             DetachScript();
             return;
         }
-        public void increment_var_557(GameObjectBody attachee, GameObjectBody triggerer)
+        public void increment_var_557(GameObject attachee, GameObject triggerer)
         {
             SetGlobalVar(557, GetGlobalVar(557) + 1);
             DetachScript();
             return;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
@@ -203,13 +203,13 @@ namespace Scripts
 
             return false;
         }
-        public static bool howdy_ho(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool howdy_ho(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(PartyLeader);
             PartyLeader.BeginDialog(attachee, 10);
             return RunDefault;
         }
-        public static void gen_panathaes_loc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void gen_panathaes_loc(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(539) == 0))
             {
@@ -251,7 +251,7 @@ namespace Scripts
 
             return;
         }
-        public static void pick_kidnapper(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pick_kidnapper(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(542) == 0))
             {
@@ -276,7 +276,7 @@ namespace Scripts
             // rakham is kidnapper
             return;
         }
-        public static void gen_kids_loc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void gen_kids_loc(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(540) == 0 && GetGlobalVar(541) == 0))
             {
@@ -306,7 +306,7 @@ namespace Scripts
 
             return;
         }
-        public static void check_for_locket(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_for_locket(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(542) == 1))
             {
@@ -315,7 +315,7 @@ namespace Scripts
 
             return;
         }
-        public static void check_evidence_rep_bor(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_bor(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(72)))
             {
@@ -342,7 +342,7 @@ namespace Scripts
 
             return;
         }
-        public static void check_evidence_rep_pan(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_pan(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(73)))
             {
@@ -369,7 +369,7 @@ namespace Scripts
 
             return;
         }
-        public static void check_evidence_rep_rak(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void check_evidence_rep_rak(GameObject attachee, GameObject triggerer)
         {
             if ((PartyLeader.HasReputation(74)))
             {
@@ -396,7 +396,7 @@ namespace Scripts
 
             return;
         }
-        public static bool revert_ggf_538(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool revert_ggf_538(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(538, false);
             return RunDefault;

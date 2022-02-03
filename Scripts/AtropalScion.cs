@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(291)]
     public class AtropalScion : BaseObjectScript
     {
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -32,7 +32,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             AttachParticles("DesecrateEarth", attachee);
             foreach (var obj in PartyLeader.GetPartyMembers())
@@ -79,7 +79,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             foreach (var blech in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -104,12 +104,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnInsertItem(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnInsertItem(GameObject attachee, GameObject triggerer)
         {
             StartTimer(20000, () => make_it_gone(attachee));
             return RunDefault;
         }
-        public static void make_it_gone(GameObjectBody attachee)
+        public static void make_it_gone(GameObject attachee)
         {
             attachee.Destroy();
             // game.particles( "sp-summon monster I", game.party[0] )

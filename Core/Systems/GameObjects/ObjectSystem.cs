@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Text;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -44,7 +44,7 @@ namespace OpenTemple.Core.Systems.GameObjects
             mObjRegistry.RemoveDynamicObjectsFromIndex();
         }
 
-        public IEnumerable<GameObjectBody> EnumerateNonProtos()
+        public IEnumerable<GameObject> EnumerateNonProtos()
         {
             foreach (var obj in mObjRegistry)
             {
@@ -58,7 +58,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         }
 
         // Get the handle for an object by its object id
-        public GameObjectBody GetObject(ObjectId id)
+        public GameObject GetObject(ObjectId id)
         {
             // It may already be part of the registries index
             var handle = mObjRegistry.GetById(id);
@@ -101,7 +101,7 @@ namespace OpenTemple.Core.Systems.GameObjects
             return null;
         }
 
-        public void Add(GameObjectBody obj)
+        public void Add(GameObject obj)
         {
             // Add it to the registry
             var id = obj.id;
@@ -116,7 +116,7 @@ namespace OpenTemple.Core.Systems.GameObjects
 
         // Frees the memory associated with the game object and removes it from the object table
         [TempleDllLocation(0x1009e0d0)]
-        public void Remove(GameObjectBody obj)
+        public void Remove(GameObject obj)
         {
             // Remove associated obj find nodes
             if (!obj.IsProto())
@@ -129,7 +129,7 @@ namespace OpenTemple.Core.Systems.GameObjects
 
         // Checks if the given handle points to an active object. Null handles
         // are considered valid
-        public bool IsValidHandle(GameObjectBody obj)
+        public bool IsValidHandle(GameObject obj)
         {
             if (obj == null)
             {
@@ -140,7 +140,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         }
 
         // Resolve an id for persisting a reference to the given object
-        public ObjectId GetPersistableId(GameObjectBody obj)
+        public ObjectId GetPersistableId(GameObject obj)
         {
             if (obj == null)
             {
@@ -206,11 +206,11 @@ namespace OpenTemple.Core.Systems.GameObjects
         /// Creates a new object with the given prototype at the given location.
         /// </summary>
         [TempleDllLocation(0x100a0c00)]
-        public GameObjectBody CreateFromProto(GameObjectBody protoObj, LocAndOffsets location)
+        public GameObject CreateFromProto(GameObject protoObj, LocAndOffsets location)
         {
             Trace.Assert(protoObj != null && protoObj.IsProto());
 
-            var obj = new GameObjectBody();
+            var obj = new GameObject();
             obj.id = ObjectId.CreatePermanent();
 
             obj.protoId = protoObj.id;
@@ -254,9 +254,9 @@ namespace OpenTemple.Core.Systems.GameObjects
         /// Loads an object from the given file.
         /// </summary>
         [TempleDllLocation(0x100DE690)]
-        public GameObjectBody LoadFromFile(BinaryReader reader)
+        public GameObject LoadFromFile(BinaryReader reader)
         {
-            var obj = GameObjectBody.Load(reader);
+            var obj = GameObject.Load(reader);
             Add(obj);
             return obj;
         }
@@ -265,7 +265,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         /// Calls a given callback for each non prototype object.
         /// </summary>
         /// <param name="callback"></param>
-        public void ForEachObj(Action<GameObjectBody> callback)
+        public void ForEachObj(Action<GameObject> callback)
         {
             foreach (var obj in GameObjects)
             {
@@ -276,12 +276,12 @@ namespace OpenTemple.Core.Systems.GameObjects
         /// <summary>
         /// Returns all non prototype objects.
         /// </summary>
-        public IEnumerable<GameObjectBody> GameObjects => mObjRegistry.Where(x => !x.IsProto());
+        public IEnumerable<GameObject> GameObjects => mObjRegistry.Where(x => !x.IsProto());
 
         /**
          * Clone an existing object and give it the requested location.
          */
-        public GameObjectBody Clone(GameObjectBody src)
+        public GameObject Clone(GameObject src)
         {
             var dest = src.Clone();
 
@@ -305,7 +305,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         }
 
         [TempleDllLocation(0x100257a0)]
-        public void Destroy(GameObjectBody obj)
+        public void Destroy(GameObject obj)
         {
             var name = GameSystems.MapObject.GetDisplayName(obj);
             Logger.Info("Destroying {0}", name);
@@ -355,12 +355,12 @@ namespace OpenTemple.Core.Systems.GameObjects
             obj.SetFlag(ObjectFlag.DESTROYED, true);
         }
 
-        public void AddToIndex(ObjectId id, GameObjectBody obj)
+        public void AddToIndex(ObjectId id, GameObject obj)
         {
             mObjRegistry.AddToIndex(obj, id);
         }
 
-        public void SetGenderRace(GameObjectBody obj, Gender gender, RaceId race)
+        public void SetGenderRace(GameObject obj, Gender gender, RaceId race)
         {
             GameSystems.Stat.SetBasicStat(obj, Stat.race, (int) race);
             GameSystems.Stat.SetBasicStat(obj, Stat.gender, (int) gender);

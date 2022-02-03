@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Ui
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10c040e8)]
-        public GameObjectBody intgameTargetFromRaycast { get; private set; }
+        public GameObject intgameTargetFromRaycast { get; private set; }
 
         [TempleDllLocation(0x102fc640)]
         public bool uiIntgameWidgetEnteredForRender { get; private set; }
@@ -135,7 +135,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10C04118)]
-        private GameObjectBody intgameActor;
+        private GameObject intgameActor;
 
         private int _panicKeys = 0;
 
@@ -389,7 +389,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10173f30)]
-        private bool UiIntgameRaycast(IGameViewport viewport, int screenX, int screenY, GameRaycastFlags flags, out GameObjectBody obj)
+        private bool UiIntgameRaycast(IGameViewport viewport, int screenX, int screenY, GameRaycastFlags flags, out GameObject obj)
         {
             if ( uiIntgameTargetObjFromPortraits != null )
             {
@@ -475,7 +475,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10c04120)]
-        private GameObjectBody uiIntgameTargetObjFromPortraits;
+        private GameObject uiIntgameTargetObjFromPortraits;
 
         [TempleDllLocation(0x10174750)]
         private bool ToggleAcquisition(IGameViewport viewport, MessageMouseArgs mouseArgs)
@@ -865,7 +865,7 @@ namespace OpenTemple.Core.Ui
 
         [TempleDllLocation(0x10173b30)]
         [TemplePlusLocation("ui_intgame_turnbased.cpp:186")]
-        private bool ShouldRenderThreatRange(GameObjectBody obj)
+        private bool ShouldRenderThreatRange(GameObject obj)
         {
             var isFocus = obj == UiSystems.InGameSelect.Focus;
             if (isFocus)
@@ -917,7 +917,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10174970)]
-        public void TargetFromPortrait(GameObjectBody obj)
+        public void TargetFromPortrait(GameObject obj)
         {
             if ( GameSystems.D20.Actions.SeqPickerHasTargetingType() )
             {

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -39,7 +39,7 @@ namespace Scripts.Spells
             // spell.caster.float_mesfile_line('mes\\spell.mes', 16008)
             // spell.spell_end(spell.id)
             // return
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             spell.duration = 60 * spell.casterLevel;
             // spawn one control_plants scenery object
             var control_plants_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, spell.aoeCenter);

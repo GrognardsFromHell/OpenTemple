@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(172)]
     public class Iuz : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(371)))
             {
@@ -45,14 +45,14 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             // if should_modify_CR( attachee ):
             // modify_CR( attachee, get_av_level() )
             SetGlobalFlag(327, true);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             Logger.Info("Iuz start combat");
             SetGlobalVar(32, GetGlobalVar(32) + 1);
@@ -154,7 +154,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GetGlobalFlag(361)))
             {
@@ -376,7 +376,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool iuz_pc_persuade(GameObjectBody iuz, GameObjectBody pc, int success, int failure)
+        public static bool iuz_pc_persuade(GameObject iuz, GameObject pc, int success, int failure)
         {
             if ((!pc.SavingThrow(10, SavingThrowType.Will, D20SavingThrowFlag.NONE)))
             {
@@ -389,7 +389,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool iuz_pc_charm(GameObjectBody iuz, GameObjectBody pc)
+        public static bool iuz_pc_charm(GameObject iuz, GameObject pc)
         {
             // auto dire charm the PC
             pc.Dominate(iuz);
@@ -405,7 +405,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public bool switch_to_hedrack(GameObjectBody iuz, GameObjectBody pc)
+        public bool switch_to_hedrack(GameObject iuz, GameObject pc)
         {
             Logger.Info("Iuz: Switching to Hedrack");
             var hedrack = Utilities.find_npc_near(iuz, 8032);
@@ -422,7 +422,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_cuthbert(GameObjectBody iuz, GameObjectBody pc, int line)
+        public static bool switch_to_cuthbert(GameObject iuz, GameObject pc, int line)
         {
             var cuthbert = Utilities.find_npc_near(iuz, 8043);
             if ((cuthbert != null))
@@ -438,7 +438,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool find_ron(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool find_ron(GameObject attachee, GameObject triggerer, int line)
         {
             var ron = Utilities.find_npc_near(attachee, 8730);
             var cuthbert = Utilities.find_npc_near(attachee, 8043);
@@ -456,7 +456,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool iuz_animate_troops(GameObjectBody iuz, GameObjectBody triggerer)
+        public static bool iuz_animate_troops(GameObject iuz, GameObject triggerer)
         {
             // raise or heal Hedrack and gargoyles
             AttachParticles("sp-Unholy Blight", iuz);
@@ -838,12 +838,12 @@ namespace Scripts
             StartTimer(2000, () => make_hostile());
             return SkipDefault;
         }
-        public static bool orientation(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool orientation(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             return RunDefault;
         }
-        public static bool unshit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool unshit(GameObject attachee, GameObject triggerer)
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {

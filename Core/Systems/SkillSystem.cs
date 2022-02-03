@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
@@ -160,7 +160,7 @@ namespace OpenTemple.Core.Systems
         public string GetSkillEnglishName(SkillId skill) => _skillNamesEnglish[skill];
 
         [TempleDllLocation(0x1007d210)]
-        public void ShowSkillMessage(GameObjectBody obj, SkillMessageId messageId)
+        public void ShowSkillMessage(GameObject obj, SkillMessageId messageId)
         {
             throw new NotImplementedException();
         }
@@ -199,7 +199,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007daa0)]
-        public int AddSkillRanks(GameObjectBody obj, SkillId skillId, int ranksToAdd)
+        public int AddSkillRanks(GameObject obj, SkillId skillId, int ranksToAdd)
         {
             // Get the last class the character leveled up as
             var levClass = Stat.level_fighter; // default
@@ -237,7 +237,7 @@ namespace OpenTemple.Core.Systems
         // 1 << (spellSchool + 4)
         [TempleDllLocation(0x1007D530)]
         [TempleDllLocation(0x1007dba0)]
-        public bool SkillRoll(GameObjectBody critter, SkillId skill, int dc, out int missedDcBy, SkillCheckFlags flags)
+        public bool SkillRoll(GameObject critter, SkillId skill, int dc, out int missedDcBy, SkillCheckFlags flags)
         {
             if (!CanUseSkill(critter, skill))
             {
@@ -296,7 +296,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007d830)]
-        public int GetEffectiveBonus(GameObjectBody critter, SkillId skill, GameObjectBody opponent,
+        public int GetEffectiveBonus(GameObject critter, SkillId skill, GameObject opponent,
             SkillCheckFlags flags)
         {
             if (!CanUseSkill(critter, skill))
@@ -309,19 +309,19 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007d400)]
-        public int GetSkillRanks(GameObjectBody critter, SkillId skill)
+        public int GetSkillRanks(GameObject critter, SkillId skill)
         {
             return critter.GetInt32(obj_f.critter_skill_idx, (int) skill) / 2;
         }
 
         [TempleDllLocation(0x1007d260)]
-        public int GetSkillHalfRanks(GameObjectBody critter, SkillId skill)
+        public int GetSkillHalfRanks(GameObject critter, SkillId skill)
         {
             return critter.GetInt32(obj_f.critter_skill_idx, (int) skill);
         }
 
         [TempleDllLocation(0x1007da10)]
-        public bool PickInventoryScroll(GameObjectBody critter)
+        public bool PickInventoryScroll(GameObject critter)
         {
             var pickargs = new PickerArgs();
             pickargs.caster = critter;
@@ -334,14 +334,14 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007d8b0)]
-        private void PickerInventoryCallback(ref PickerResult result, GameObjectBody critter)
+        private void PickerInventoryCallback(ref PickerResult result, GameObject critter)
         {
             throw new NotImplementedException();
         }
 
         // TODO Shouldn't this be a list... You could be able to find more than one door with a single use of the skill
         [TempleDllLocation(0x1007dbd0)]
-        public bool TryUseSearchSkill(GameObjectBody seeker, out GameObjectBody found)
+        public bool TryUseSearchSkill(GameObject seeker, out GameObject found)
         {
             found = null;
 
@@ -380,7 +380,7 @@ namespace OpenTemple.Core.Systems
         /// <summary>
         /// Let other party members roll against DC10 to support the searching character.
         /// </summary>
-        private BonusList BuildBonusListWithSearchSupporters(GameObjectBody seeker)
+        private BonusList BuildBonusListWithSearchSupporters(GameObject seeker)
         {
             var bonlist = BonusList.Default;
             using var listResult = ObjList.ListVicinity(seeker, ObjectListFilter.OLC_CRITTERS);
@@ -408,7 +408,7 @@ namespace OpenTemple.Core.Systems
             return bonlist;
         }
 
-        private bool CanUseSkill(GameObjectBody critter, SkillId skill)
+        private bool CanUseSkill(GameObject critter, SkillId skill)
         {
             if (!_skills.TryGetValue(skill, out var skillProps))
             {
@@ -440,7 +440,7 @@ namespace OpenTemple.Core.Systems
 
         // Try a DC10 skill check to support another critter while performing a skill check
         [TempleDllLocation(0x1007d720)]
-        public bool TrySupportingSkillCheck(SkillId skill, GameObjectBody critter, SkillCheckFlags flag)
+        public bool TrySupportingSkillCheck(SkillId skill, GameObject critter, SkillCheckFlags flag)
         {
             if (!CanUseSkill(critter, skill))
             {
@@ -495,7 +495,7 @@ namespace OpenTemple.Core.Systems
 
     public static class CritterSkillExtensions
     {
-        public static bool HasRanksIn(this GameObjectBody critter, SkillId skill)
+        public static bool HasRanksIn(this GameObject critter, SkillId skill)
         {
             return GameSystems.Skill.GetSkillRanks(critter, skill) > 0;
         }

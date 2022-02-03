@@ -1,4 +1,4 @@
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.Script
 {
@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Systems.Script
         /// <summary>
         /// The trap game object.
         /// </summary>
-        public GameObjectBody Object { get; }
+        public GameObject Object { get; }
 
         /// <summary>
         /// Definition of the trap type.

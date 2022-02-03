@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
     {
         [TempleDllLocation(0x100f1470)]
         [TemplePlusLocation("radialmenu.cpp")]
-        private void AddSpell(GameObjectBody caster, SpellStoreData spData)
+        private void AddSpell(GameObject caster, SpellStoreData spData)
         {
             if (spData.spellStoreState.usedUp)
             {
@@ -90,7 +90,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
             }
         }
 
-        private static bool TryGetParentNodeForSpell(GameObjectBody caster,
+        private static bool TryGetParentNodeForSpell(GameObject caster,
             int spellClass,
             int spellLevel,
             out RadialMenuStandardNode parentNode)
@@ -139,7 +139,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
 
         [TempleDllLocation(0x100f1010)]
         [TemplePlusLocation("spell.cpp")]
-        private void SetSpontaneousCastingAltNode(GameObjectBody obj, int nodeIdx, SpellStoreData spellData)
+        private void SetSpontaneousCastingAltNode(GameObject obj, int nodeIdx, SpellStoreData spellData)
         {
             var spellClassCode = spellData.classCode;
             if (GameSystems.Spell.IsDomainSpell(spellClassCode))

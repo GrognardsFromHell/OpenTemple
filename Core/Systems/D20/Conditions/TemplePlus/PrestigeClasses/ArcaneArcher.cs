@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -137,7 +137,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         #region Imbue Arrow feat
 
-        public static bool ImbueOk(GameObjectBody attachee, SpellStoreData spData)
+        public static bool ImbueOk(GameObject attachee, SpellStoreData spData)
         {
             if (!GameSystems.Spell.spellCanCast(attachee, spData.spellEnum, spData.classCode, spData.spellLevel))
             {
@@ -361,7 +361,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             }
         }
 
-        private static GameObjectBody FireArrowProjectile(D20Action action, LocAndOffsets targetLoc)
+        private static GameObject FireArrowProjectile(D20Action action, LocAndOffsets targetLoc)
         {
             var wpn = action.d20APerformer.ItemWornAt(EquipSlot.WeaponPrimary);
             if (wpn == null)
@@ -383,7 +383,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             var projectileHandle = GameSystems.D20.Combat.CreateProjectileAndThrow(startLoc, projectileProto, 0, 0,
                 targetLoc, action.d20APerformer, action.d20ATarget);
             projectileHandle.OffsetZ = 60f;
-            GameObjectBody ammoItem = null;
+            GameObject ammoItem = null;
             if (GameSystems.D20.Actions.ProjectileAppend(action, projectileHandle, ammoItem))
             {
                 // print "Seeker Arrow Action Frame: Projectile Appended"

@@ -5,7 +5,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using OpenTemple.Core;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -17,7 +17,7 @@ namespace OpenTemple.Tests.Game
 {
     public class CombatTest : HeadlessGameTest
     {
-        private GameObjectBody _player;
+        private GameObject _player;
 
         [OneTimeSetUp]
         public void SetupScenario()
@@ -190,7 +190,7 @@ namespace OpenTemple.Tests.Game
             ActionLog.Count(a => a.d20APerformer == zombie1).Should().Be(1);
         }
 
-        private void SetupScenarioForTwoZombies(out GameObjectBody zombie1, out GameObjectBody zombie2)
+        private void SetupScenarioForTwoZombies(out GameObject zombie1, out GameObject zombie2)
         {
             // Initially, the logs should be empty.
             CombatLog.Should().BeEmpty();

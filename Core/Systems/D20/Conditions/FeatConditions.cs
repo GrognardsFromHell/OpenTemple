@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -987,7 +987,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         };
 
         [TempleDllLocation(0x100fca20)]
-        private static void AddCallFamiliarSubEntry(GameObjectBody caster, int familiarIdx, int parentIdx)
+        private static void AddCallFamiliarSubEntry(GameObject caster, int familiarIdx, int parentIdx)
         {
             var familiarProtoId = FamiliarProtos[familiarIdx];
             var familiarProto = GameSystems.Proto.GetProtoById((ushort) familiarProtoId);
@@ -1023,7 +1023,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100fc680)]
-        private static int AnimalCompanionRefreshHp(in DispatcherCallbackArgs evt, GameObjectBody obj)
+        private static int AnimalCompanionRefreshHp(in DispatcherCallbackArgs evt, GameObject obj)
         {
             var master = evt.GetConditionObjArg(1);
             if (master != null)
@@ -1067,8 +1067,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x100fc3d0)]
         [TemplePlusLocation("ability_fixes.cpp:82")]
-        private static void AnimalCompanionRunoff(ConditionAttachment conditionAttachment, GameObjectBody owner,
-            GameObjectBody obj)
+        private static void AnimalCompanionRunoff(ConditionAttachment conditionAttachment, GameObject owner,
+            GameObject obj)
         {
             GameSystems.Party.RemoveFromAllGroups(obj);
             GameUiBridge.UpdatePartyUi();
@@ -1103,7 +1103,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             }
         }
 
-        private static int GetWeeklyUsesOfRemoveDisease(GameObjectBody critter)
+        private static int GetWeeklyUsesOfRemoveDisease(GameObject critter)
         {
             var paladinLevels = critter.GetStat(Stat.level_paladin) / 3;
             return (paladinLevels - 3) / 3; // On level 6 you get it once, then every 3 levels thereafter
@@ -1313,7 +1313,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             var v9 = 0;
             var dispIo = evt.GetDispIoD20Query();
             var v2 = dispIo;
-            var v3 = (GameObjectBody) dispIo.obj;
+            var v3 = (GameObject) dispIo.obj;
             var v5 = evt.objHndCaller.GetStat(Stat.level_barbarian);
             if (v5 >= 2)
             {
@@ -1391,7 +1391,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100b7040)]
-        private static bool IsWeaponAllowedForFlurryOfBlows(GameObjectBody obj, GameObjectBody wielder)
+        private static bool IsWeaponAllowedForFlurryOfBlows(GameObject obj, GameObject wielder)
         {
             var result = true;
             if (obj != null)
@@ -1563,7 +1563,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100fc0e0)]
-        private static void AnimalCompanionGetRadialMenuOptions(GameObjectBody ObjHnd, int animalCompanionIdx,
+        private static void AnimalCompanionGetRadialMenuOptions(GameObject ObjHnd, int animalCompanionIdx,
             int parentIdx)
         {
             var protoId = AnimalCompanionProtoIds[animalCompanionIdx];
@@ -1627,7 +1627,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             var condArg1 = evt.GetConditionArg1();
             var dispIo = evt.GetDispIoD20Signal();
             evt.SetConditionArg1(condArg1 - 1);
-            var target = (GameObjectBody) dispIo.obj;
+            var target = (GameObject) dispIo.obj;
             evt.SetConditionObjArg(1, target);
         }
 
@@ -1654,7 +1654,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             }
         }
 
-        private static bool CanBeUsedForWeaponFinesse(GameObjectBody wielder, GameObjectBody weapon)
+        private static bool CanBeUsedForWeaponFinesse(GameObject wielder, GameObject weapon)
         {
             if (weapon == null)
             {
@@ -1881,7 +1881,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100fd3f0)]
         [TemplePlusLocation("animalcompanion.cpp")]
         private static void AnimalCompanionSummonCallback(string nameIn, ConditionAttachment conditionAttachment,
-            GameObjectBody master, int animalCompanionIdx)
+            GameObject master, int animalCompanionIdx)
         {
             if (AnimalCompanionTrimName(nameIn, out var nameTrimmed))
             {
@@ -1890,7 +1890,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100fc520)]
-        private static void AnimalCompanionAdd(ConditionAttachment conditionAttachment, GameObjectBody leader,
+        private static void AnimalCompanionAdd(ConditionAttachment conditionAttachment, GameObject leader,
             int animalCompanionIdx, string customName)
         {
             var companionProtoId = AnimalCompanionProtoIds[animalCompanionIdx];
@@ -3556,7 +3556,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100fccd0)]
-        private static void SummonFamiliar(ConditionAttachment conditionAttachment, GameObjectBody summoner,
+        private static void SummonFamiliar(ConditionAttachment conditionAttachment, GameObject summoner,
             string name, int familiarIdx)
         {
             var protoId = FamiliarProtos[familiarIdx];
@@ -3578,7 +3578,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         }
 
         [TempleDllLocation(0x100fd440)]
-        private static void DismissFamiliar(ConditionAttachment conditionAttachment, GameObjectBody familiar)
+        private static void DismissFamiliar(ConditionAttachment conditionAttachment, GameObject familiar)
         {
             GameSystems.Object.Destroy(familiar);
             // TODO: This is borked and is supposed to reset the object arg in slot 0

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -33,7 +33,7 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Prismatic Spray OnSpellEffect");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             AttachParticles("sp-Prismatic Spray", spell.caster);
             var dam = Dice.Parse("1d1");
             var npc = spell.caster;
@@ -436,7 +436,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Prismatic Spray OnEndSpellCast");
         }
-        public static void end_poison(SpellPacketBody spell, GameObjectBody id)
+        public static void end_poison(SpellPacketBody spell, GameObject id)
         {
             id.AddCondition("sp-Neutralize Poison", spell.spellId, spell.duration, 0);
         }

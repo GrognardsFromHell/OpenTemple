@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
@@ -358,7 +358,7 @@ namespace OpenTemple.Core.Systems
             return CreateSoundStream(soundId, loopCount, 127, 64);
         }
 
-        public int PositionalSound(int soundId, GameObjectBody source)
+        public int PositionalSound(int soundId, GameObject source)
         {
             return PositionalSound(soundId, 1, source);
         }
@@ -370,7 +370,7 @@ namespace OpenTemple.Core.Systems
 
         /// <returns>The stream id or -1.</returns>
         [TempleDllLocation(0x1003d090)]
-        public int PositionalSound(int soundId, int loopCount, GameObjectBody source)
+        public int PositionalSound(int soundId, int loopCount, GameObject source)
         {
             if (soundId == -1)
             {
@@ -771,7 +771,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1003c770)]
-        public void StartCombatMusic(GameObjectBody obj)
+        public void StartCombatMusic(GameObject obj)
         {
             if (!_combatMusicPlaying && obj != null && obj.IsNPC())
             {
@@ -809,7 +809,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1003C8B0)]
-        public void StopCombatMusic(GameObjectBody handle)
+        public void StopCombatMusic(GameObject handle)
         {
             if ( _combatMusicPlaying && handle != null )
             {
@@ -871,7 +871,7 @@ namespace OpenTemple.Core.Systems
         public bool IsValidSoundId(int soundId) => FindSoundFilename(soundId) != null;
 
         [TempleDllLocation(0x1003bdd0)]
-        public SoundSourceSize GetSoundSourceSize(GameObjectBody obj)
+        public SoundSourceSize GetSoundSourceSize(GameObject obj)
         {
             if (obj.type == ObjectType.scenery)
             {
@@ -896,7 +896,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1003BE30)]
-        public int GetSoundOutOfRangeRange(GameObjectBody obj)
+        public int GetSoundOutOfRangeRange(GameObject obj)
         {
             var sourceSize = GetSoundSourceSize(obj);
             return _positionalAudioConfig.AttenuationRangeEnd[sourceSize] / 28;

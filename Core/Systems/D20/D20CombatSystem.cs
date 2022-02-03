@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Runtime.InteropServices.ComTypes;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
@@ -320,7 +320,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100B5480)]
-        private bool XpGainProcess(GameObjectBody obj, int xpGainRaw)
+        private bool XpGainProcess(GameObject obj, int xpGainRaw)
         {
             if (xpGainRaw <= 0 || obj == null)
                 return false;
@@ -367,7 +367,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100B53B0)]
-        private int GetMulticlassXpReductionPercent(GameObjectBody obj)
+        private int GetMulticlassXpReductionPercent(GameObject obj)
         {
             var highestLvl = -1;
             var reductionPct = 0;
@@ -457,12 +457,12 @@ namespace OpenTemple.Core.Systems.D20
 
         public string GetCombatMesLine(D20CombatMessage message) => GetCombatMesLine((int) message);
 
-        public void FloatCombatLine(GameObjectBody obj, D20CombatMessage message, string prefix = null,
+        public void FloatCombatLine(GameObject obj, D20CombatMessage message, string prefix = null,
             string suffix = null)
             => FloatCombatLine(obj, (int) message, prefix, suffix);
 
         [TempleDllLocation(0x100b4b60)]
-        public void FloatCombatLine(GameObjectBody obj, int line, string prefix = null, string suffix = null,
+        public void FloatCombatLine(GameObject obj, int line, string prefix = null, string suffix = null,
             TextFloaterColor? forcedColor = null)
         {
             TextFloaterColor floatColor;
@@ -508,7 +508,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b4f20)]
-        public bool SavingThrow(GameObjectBody critter, GameObjectBody opponent, int dc,
+        public bool SavingThrow(GameObject critter, GameObject opponent, int dc,
             SavingThrowType saveType, D20SavingThrowFlag flags = D20SavingThrowFlag.NONE)
         {
             var dispIo = DispIoSavingThrow.Default;
@@ -586,7 +586,7 @@ namespace OpenTemple.Core.Systems.D20
             return countersongResult + saveThrowRoll >= dc;
         }
 
-        public bool SavingThrowSpell(GameObjectBody objHnd, GameObjectBody caster, int DC, SpellSavingThrow spellSaveType,
+        public bool SavingThrowSpell(GameObject objHnd, GameObject caster, int DC, SpellSavingThrow spellSaveType,
             D20SavingThrowFlag D20STDFlags, int spellId)
         {
             SavingThrowType saveType;
@@ -612,7 +612,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b83c0)]
-        public bool SavingThrowSpell(GameObjectBody objHnd, GameObjectBody caster, int DC, SavingThrowType saveType,
+        public bool SavingThrowSpell(GameObject objHnd, GameObject caster, int DC, SavingThrowType saveType,
             D20SavingThrowFlag D20STDFlags, int spellId)
         {
             D20SavingThrowFlag flags;
@@ -677,7 +677,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b9460)]
-        public void KillWithDeathEffect(GameObjectBody critter, GameObjectBody killer)
+        public void KillWithDeathEffect(GameObject critter, GameObject killer)
         {
             if (!critter.AddCondition("Killed By Death Effect", 0, 0))
             {
@@ -688,7 +688,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b8a00)]
-        public void Kill(GameObjectBody critter, GameObjectBody killer)
+        public void Kill(GameObject critter, GameObject killer)
         {
             if (DoOnDeathScripts(critter, killer))
             {
@@ -708,7 +708,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b88e0)]
-        private void AwardExperienceForKill(GameObjectBody killer, GameObjectBody killed)
+        private void AwardExperienceForKill(GameObject killer, GameObject killed)
         {
             GameUiBridge.RecordKill(killer, killed);
             if (GameSystems.Party.IsInParty(killer))
@@ -768,7 +768,7 @@ namespace OpenTemple.Core.Systems.D20
             GameSystems.D20.Experience.AwardExperience();
         }
 
-        private bool DoOnDeathScripts(GameObjectBody obj, GameObjectBody killer)
+        private bool DoOnDeathScripts(GameObject obj, GameObject killer)
         {
             if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Dead))
             {
@@ -818,7 +818,7 @@ namespace OpenTemple.Core.Systems.D20
 
 
         [TempleDllLocation(0x100B7950)]
-        public int DealAttackDamage(GameObjectBody attacker, GameObjectBody target, int d20Data, D20CAF flags,
+        public int DealAttackDamage(GameObject attacker, GameObject target, int d20Data, D20CAF flags,
             D20ActionType actionType)
         {
             GameSystems.AI.ProvokeHostility(attacker, target, 1, 0);
@@ -856,7 +856,7 @@ namespace OpenTemple.Core.Systems.D20
             {
                 GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(11, attacker, target);
                 FloatCombatLine(attacker, 45); // Miss (Concealment)!
-                var soundId = GameSystems.SoundMap.CombatFindWeaponSound(weaponUsed, attacker, target, 6);
+                var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weaponUsed, attacker, target, 6);
                 GameSystems.SoundGame.PositionalSound(soundId, attacker);
 
                 GameSystems.D20.D20SendSignal(attacker, D20DispatcherKey.SIG_Attack_Made, evtObjDam);
@@ -868,7 +868,7 @@ namespace OpenTemple.Core.Systems.D20
                 FloatCombatLine(attacker, 29);
                 GameSystems.D20.D20SendSignal(attacker, D20DispatcherKey.SIG_Attack_Made, evtObjDam);
 
-                var soundId = GameSystems.SoundMap.CombatFindWeaponSound(weaponUsed, attacker, target, 6);
+                var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weaponUsed, attacker, target, 6);
                 GameSystems.SoundGame.PositionalSound(soundId, attacker);
 
                 if (flags.HasFlag(D20CAF.DEFLECT_ARROWS))
@@ -934,7 +934,7 @@ namespace OpenTemple.Core.Systems.D20
                 // play sound
                 var soundId = GameSystems.SoundMap.GetCritterSoundEffect(target, CritterSoundEffect.Attack);
                 GameSystems.SoundGame.PositionalSound(soundId, target);
-                soundId = GameSystems.SoundMap.CombatFindWeaponSound(evtObjCritDice.attackPacket.weaponUsed, attacker,
+                soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(evtObjCritDice.attackPacket.weaponUsed, attacker,
                     target,
                     7);
                 GameSystems.SoundGame.PositionalSound(soundId, attacker);
@@ -945,7 +945,7 @@ namespace OpenTemple.Core.Systems.D20
             else
             {
                 var soundId =
-                    GameSystems.SoundMap.CombatFindWeaponSound(evtObjDam.attackPacket.weaponUsed, attacker, target, 5);
+                    GameSystems.SoundMap.GetSoundIdForItemEvent(evtObjDam.attackPacket.weaponUsed, attacker, target, 5);
                 GameSystems.SoundGame.PositionalSound(soundId, attacker);
             }
 
@@ -970,7 +970,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b6b30)]
-        private void DamageCritter(GameObjectBody attacker, GameObjectBody victim, DispIoDamage dispIoDamage)
+        private void DamageCritter(GameObject attacker, GameObject victim, DispIoDamage dispIoDamage)
         {
             var attackingCritterType = victim.type;
             if (attacker != null)
@@ -1076,7 +1076,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b86c0)]
-        public bool TargetWithinReachOfLoc(GameObjectBody attacker, GameObjectBody target, LocAndOffsets loc)
+        public bool TargetWithinReachOfLoc(GameObject attacker, GameObject target, LocAndOffsets loc)
         {
             var reach = attacker.GetReach();
             var radiusFt = attacker.GetRadius() / locXY.INCH_PER_FEET; // Conversion to feet
@@ -1090,7 +1090,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         // miss chances handling
-        private int GetDefenderConcealmentMissChance(GameObjectBody attacker, GameObjectBody victim, D20Action d20a)
+        private int GetDefenderConcealmentMissChance(GameObject attacker, GameObject victim, D20Action d20a)
         {
             if (attacker.HasCondition(SpellEffects.SpellTrueStrike))
             {
@@ -1359,7 +1359,7 @@ namespace OpenTemple.Core.Systems.D20
 
 
         [TempleDllLocation(0x100b8600)]
-        public bool CanMeleeTargetAtLocation(GameObjectBody attacker, GameObjectBody defender, LocAndOffsets loc)
+        public bool CanMeleeTargetAtLocation(GameObject attacker, GameObject defender, LocAndOffsets loc)
         {
             if (GameSystems.Critter.IsDeadOrUnconscious(attacker))
             {
@@ -1391,7 +1391,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b6a50)]
-        private bool CanAttackTargetAtLocRegardItem(GameObjectBody obj, GameObjectBody weapon, GameObjectBody targetObj,
+        private bool CanAttackTargetAtLocRegardItem(GameObject obj, GameObject weapon, GameObject targetObj,
             LocAndOffsets loc)
         {
             if (weapon != null)
@@ -1425,7 +1425,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b5270)]
-        public bool IsWithinThreeFeet(GameObjectBody obj, GameObjectBody target, LocAndOffsets loc)
+        public bool IsWithinThreeFeet(GameObject obj, GameObject target, LocAndOffsets loc)
         {
             var radiusFt = target.GetRadius() / locXY.INCH_PER_FEET;
             var distFt = obj.DistanceToLocInFeet(loc) - radiusFt;
@@ -1436,7 +1436,7 @@ namespace OpenTemple.Core.Systems.D20
         private const float InterruptSearchIncrement = 4.0f;
 
         [TempleDllLocation(0x100b8b40)]
-        public bool FindAttacksOfOpportunity(GameObjectBody mover, Path path, float aooFreeDistFeet,
+        public bool FindAttacksOfOpportunity(GameObject mover, Path path, float aooFreeDistFeet,
             out List<AttackOfOpportunity> attacks)
         {
             // aooFreeDistFeet specifies the minimum distance traveled before an AoO is registered (e.g. for Withdrawal it will receive 5 feet)
@@ -1502,9 +1502,9 @@ namespace OpenTemple.Core.Systems.D20
             return attacks != null;
         }
 
-        public List<GameObjectBody> GetHostileCombatantList(GameObjectBody critter)
+        public List<GameObject> GetHostileCombatantList(GameObject critter)
         {
-            var result = new List<GameObjectBody>();
+            var result = new List<GameObject>();
             foreach (var combatant in GameSystems.D20.Initiative)
             {
                 if (critter != combatant && !GameSystems.Critter.IsFriendly(critter, combatant))
@@ -1516,7 +1516,7 @@ namespace OpenTemple.Core.Systems.D20
             return result;
         }
 
-        public IEnumerable<GameObjectBody> EnumerateEnemiesInRange(GameObjectBody critter, float rangeFeet)
+        public IEnumerable<GameObject> EnumerateEnemiesInRange(GameObject critter, float rangeFeet)
         {
             var perfLoc = critter.GetLocationFull();
 
@@ -1539,7 +1539,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b4830)]
-        public float EstimateDistance(GameObjectBody performer, locXY destLoc, int isZero, double d)
+        public float EstimateDistance(GameObject performer, locXY destLoc, int isZero, double d)
         {
             var animPathSpec = new AnimPathData();
             animPathSpec.srcLoc = performer.GetLocation();
@@ -1571,8 +1571,8 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b4d00)]
-        public GameObjectBody CreateProjectileAndThrow(LocAndOffsets sourceLoc, int protoId, int missX, int missY,
-            LocAndOffsets targetLoc, GameObjectBody attacker, GameObjectBody target)
+        public GameObject CreateProjectileAndThrow(LocAndOffsets sourceLoc, int protoId, int missX, int missY,
+            LocAndOffsets targetLoc, GameObject attacker, GameObject target)
         {
             if (sourceLoc.location == targetLoc.location)
             {
@@ -1606,7 +1606,7 @@ namespace OpenTemple.Core.Systems.D20
             dispIo.attackPacket.attacker = action.d20APerformer;
             dispIo.attackPacket.dispKey = attackType;
             dispIo.attackPacket.d20ActnType = action.d20ActType;
-            GameObjectBody weapon;
+            GameObject weapon;
             if (action.d20Caf.HasFlag(D20CAF.SECONDARY_WEAPON))
             {
                 weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponSecondary);
@@ -1639,7 +1639,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b9500)]
-        public bool ReflexSaveAndDamage(GameObjectBody victim, GameObjectBody attacker, int dc,
+        public bool ReflexSaveAndDamage(GameObject victim, GameObject attacker, int dc,
             D20SavingThrowReduction reduction, D20SavingThrowFlag savingThrowFlags,
             Dice attackDice, DamageType attackType, D20AttackPower attackPower, D20ActionType actionType, int spellId)
         {
@@ -1732,14 +1732,14 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b9080)]
-        public void SpellDamageFull(GameObjectBody target, GameObjectBody attacker, Dice dicePacked, DamageType damType,
+        public void SpellDamageFull(GameObject target, GameObject attacker, Dice dicePacked, DamageType damType,
             D20AttackPower attackPower, D20ActionType actionType, int spellId, D20CAF d20caf)
         {
             DealSpellDamage(target, attacker, dicePacked, damType, attackPower, 100, 103, actionType, spellId, d20caf);
         }
 
         [TempleDllLocation(0x100b7f80)]
-        public void DealSpellDamage(GameObjectBody tgt, GameObjectBody attacker, Dice dice, DamageType type,
+        public void DealSpellDamage(GameObject tgt, GameObject attacker, Dice dice, DamageType type,
             D20AttackPower attackPower, int reduction, int damageDescId, D20ActionType actionType, int spellId,
             D20CAF flags)
         {
@@ -1769,7 +1769,7 @@ namespace OpenTemple.Core.Systems.D20
 
             if (attacker != null && attacker.IsCritter())
             {
-                GameObjectBody weapon;
+                GameObject weapon;
                 if (flags.HasFlag(D20CAF.SECONDARY_WEAPON))
                 {
                     weapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
@@ -1813,7 +1813,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b94c0)]
-        public void DoUnclassifiedDamage(GameObjectBody target, GameObjectBody attacker, Dice dmgDice,
+        public void DoUnclassifiedDamage(GameObject target, GameObject attacker, Dice dmgDice,
             DamageType damageType,
             D20AttackPower attackPowerType, D20ActionType actionType)
         {
@@ -1821,7 +1821,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b8d70)]
-        public void DoDamage(GameObjectBody target, GameObjectBody attacker, Dice dmgDice, DamageType damageType,
+        public void DoDamage(GameObject target, GameObject attacker, Dice dmgDice, DamageType damageType,
             D20AttackPower attackPowerType, int reduction, int damageDescMesKey, D20ActionType actionType)
         {
             Trace.Assert(target != null);
@@ -1904,14 +1904,14 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b6950)]
-        public bool IsTrapped(GameObjectBody obj)
+        public bool IsTrapped(GameObject obj)
         {
             return (obj.type == ObjectType.portal || obj.type == ObjectType.container)
                    && GameSystems.Trap.WillTrigger(obj);
         }
 
         [TempleDllLocation(0x100b64c0)]
-        public bool TryFeint(GameObjectBody attacker, GameObjectBody defender)
+        public bool TryFeint(GameObject attacker, GameObject defender)
         {
             var attackerRoll = Dice.D20.Roll();
             var defenderRoll = Dice.D20.Roll();
@@ -1951,7 +1951,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b9200)]
-        public bool IsFlankedBy(GameObjectBody victim, GameObjectBody attacker)
+        public bool IsFlankedBy(GameObject victim, GameObject attacker)
         {
             if (victim == null)
             {
@@ -1994,7 +1994,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b9160)]
-        public bool HasThreateningCrittersAtLoc(GameObjectBody obj, LocAndOffsets loc)
+        public bool HasThreateningCrittersAtLoc(GameObject obj, LocAndOffsets loc)
         {
             foreach (var combatant in GameSystems.D20.Initiative)
             {
@@ -2028,7 +2028,7 @@ namespace OpenTemple.Core.Systems.D20
 
 
         [TempleDllLocation(0x100b8990)]
-        public void KillWithDestroyEffect(GameObjectBody obj, GameObjectBody killer)
+        public void KillWithDestroyEffect(GameObject obj, GameObject killer)
         {
             if (DoOnDeathScripts(obj, killer))
             {
@@ -2041,7 +2041,7 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b82e0)]
-        public GameObjectBody GetCleaveTarget(GameObjectBody objHnd)
+        public GameObject GetCleaveTarget(GameObject objHnd)
         {
             // TODO This actually seems incorrect given that cleave has to use the reach of the weapon that is being cleaved with
             var reach = objHnd.GetReach();
@@ -2062,7 +2062,7 @@ namespace OpenTemple.Core.Systems.D20
             return null;
         }
 
-        public void DealWeaponlikeSpellDamage(GameObjectBody tgt, GameObjectBody attacker, Dice dice, DamageType type,
+        public void DealWeaponlikeSpellDamage(GameObject tgt, GameObject attacker, Dice dice, DamageType type,
             D20AttackPower attackPower, int damFactor, int damageDescId, D20ActionType actionType, int spellId,
             D20CAF flags, int projectileIdx = 0)
         {

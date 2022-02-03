@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Startup.Discovery;
@@ -21,7 +21,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             .AddHandler(DispatcherType.DealingDamage, (in DispatcherCallbackArgs evt) =>
             {
                 DispIoDamage dispIo = evt.GetDispIoDamage();
-                GameObjectBody weapon = dispIo.attackPacket.GetWeaponUsed();
+                GameObject weapon = dispIo.attackPacket.GetWeaponUsed();
                 if (weapon != null)
                     return;
 

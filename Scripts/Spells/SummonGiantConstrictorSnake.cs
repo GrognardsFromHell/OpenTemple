@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -64,7 +64,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Summon Giant Constictor Snake OnEndSpellCast");
         }
-        public static GameObjectBody GetHandle(SpellPacketBody spell, int proto_id)
+        public static GameObject GetHandle(SpellPacketBody spell, int proto_id)
         {
             // Returns a handle that can be used to manipulate the familiar creature object
             foreach (var npc in ObjList.ListVicinity(spell.aoeCenter.location, ObjectListFilter.OLC_CRITTERS))
@@ -82,18 +82,18 @@ namespace Scripts.Spells
 
             return null;
         }
-        public static int get_ID(GameObjectBody obj)
+        public static int get_ID(GameObject obj)
         {
             // Returns embedded ID number
             return obj.GetInt(obj_f.secretdoor_dc);
         }
-        public static int set_ID(GameObjectBody obj, int val)
+        public static int set_ID(GameObject obj, int val)
         {
             // Embeds ID number into mobile object.  Returns ID number.
             obj.SetInt(obj_f.secretdoor_dc, val);
             return obj.GetInt(obj_f.secretdoor_dc);
         }
-        public static void clear_ID(GameObjectBody obj)
+        public static void clear_ID(GameObject obj)
         {
             // Clears embedded ID number from mobile object
             obj.SetInt(obj_f.secretdoor_dc, 0);

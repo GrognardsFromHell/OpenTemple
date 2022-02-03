@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
@@ -44,7 +44,7 @@ namespace OpenTemple.Core.Systems.Anim
         public FrozenObjRef parentTracking;
 
         [TempleDllLocation(0x100556C0)]
-        public bool InitWithInterrupt(GameObjectBody obj, AnimGoalType goalType)
+        public bool InitWithInterrupt(GameObject obj, AnimGoalType goalType)
         {
             return Init(obj, goalType, true);
         }
@@ -55,7 +55,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10055570)]
-        public bool Init(GameObjectBody handle, AnimGoalType type, bool withInterrupt = false)
+        public bool Init(GameObject handle, AnimGoalType type, bool withInterrupt = false)
         {
             if (((uint) goalType & 0x80000000) != 0 || goalType >= AnimGoalType.count)
             {
@@ -171,7 +171,7 @@ namespace OpenTemple.Core.Systems.Anim
             return true;
         }
 
-        public AnimSlotGoalStackEntry(GameObjectBody handle, AnimGoalType type, bool withInterrupt = false)
+        public AnimSlotGoalStackEntry(GameObject handle, AnimGoalType type, bool withInterrupt = false)
         {
             Init(handle, type, withInterrupt);
         }

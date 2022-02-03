@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(435)]
     public class ThePostNPC : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5001))
             {
@@ -47,7 +47,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             return SkipDefault;
         }
@@ -58,19 +58,19 @@ namespace Scripts
         // game.fade_and_teleport(0,0,0,5019,454,467)
         // return SKIP_DEFAULT
 
-        public static bool tele2(GameObjectBody dialer, int town, int x, int y)
+        public static bool tele2(GameObject dialer, int town, int x, int y)
         {
             FadeAndTeleport(300, 0, 0, town, x, y);
             StartTimer(100, () => bananaphone(dialer, x, y));
             return SkipDefault;
         }
-        public static bool bananaphone(GameObjectBody dialer, int x, int y)
+        public static bool bananaphone(GameObject dialer, int x, int y)
         {
             var op = GameSystems.MapObject.CreateObject(14800, new locXY(x + 1, y + 1));
             dialer.BeginDialog(op, 3000);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5051))
             {
@@ -106,7 +106,7 @@ namespace Scripts
         // #check the vars in console!
         // return SKIP_DEFAULT
 
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             var leader = PartyLeader;
             Co8.StopCombat(attachee, 0);

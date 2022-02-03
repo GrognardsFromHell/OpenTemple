@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CSharp.RuntimeBinder;
 using OpenTemple.Core;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Scripting;
@@ -42,7 +42,7 @@ namespace OpenTemple.DynamicScripting
             "System.Linq",
             typeof(UiSystems).Namespace,
             typeof(GameSystems).Namespace,
-            typeof(GameObjectBody).Namespace,
+            typeof(GameObject).Namespace,
             typeof(locXY).Namespace,
             typeof(Vector2).Namespace,
             typeof(SkillId).Namespace,

@@ -1,5 +1,5 @@
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems
@@ -56,7 +56,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x1017e480)]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
         {
             playerObj.SetInt32(obj_f.critter_portrait, charSpec.portraitId);
         }

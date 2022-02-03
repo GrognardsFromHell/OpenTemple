@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -35,7 +35,7 @@ namespace Scripts
         // obj_f_pad_i_9 records the type of melee weapon					##
         // obj_f_pad_i_8 records quantity of thrown weapon					##
 
-        public static void tag_weapons(GameObjectBody npc)
+        public static void tag_weapons(GameObject npc)
         {
             npc.WieldBestInAllSlots(); // equip something
             var weaponx = npc.ItemWornAt(EquipSlot.WeaponPrimary); // find weapon being used
@@ -75,7 +75,7 @@ namespace Scripts
         }
         // This recalls all weapons and shield, and resets variables to 0			##
 
-        public static void get_everything(GameObjectBody npc)
+        public static void get_everything(GameObject npc)
         {
             var weapon1 = npc.GetInt(obj_f.pad_i_9); // recall melee weapon
             var weapon2 = npc.GetInt(obj_f.pad_i_7); // recall ranged weapon
@@ -111,7 +111,7 @@ namespace Scripts
         }
         // This switches to melee weapon and shield						##
 
-        public static void get_melee_weapon(GameObjectBody npc)
+        public static void get_melee_weapon(GameObject npc)
         {
             if (Utilities.critter_is_unconscious(npc)) // no reason to run script if unconcious
             {
@@ -148,7 +148,7 @@ namespace Scripts
         }
         // This switches to ranged weapon only							##
 
-        public static void get_ranged_weapon(GameObjectBody npc)
+        public static void get_ranged_weapon(GameObject npc)
         {
             if (Utilities.critter_is_unconscious(npc)) // no reason to run script if unconcious
             {
@@ -187,7 +187,7 @@ namespace Scripts
         }
         // This checks for any ammo. Not specific to ranged weapon.				##
 
-        public static int detect_ammo(GameObjectBody npc)
+        public static int detect_ammo(GameObject npc)
         {
             var itemcount = 5004;
             while ((itemcount <= 5099))
@@ -205,7 +205,7 @@ namespace Scripts
         }
         // This determines if weapon equiped is ranged or melee					##
 
-        public static int detect_weapon_type(GameObjectBody npc)
+        public static int detect_weapon_type(GameObject npc)
         {
             var weapon1 = npc.GetInt(obj_f.pad_i_9); // recall melee weapon
             var weapon2 = npc.GetInt(obj_f.pad_i_7); // recall ranged weapon
@@ -229,7 +229,7 @@ namespace Scripts
         // Useful for any Humanoid melee NPC type						##
         // NOTE:  All float messages need to be removed before final release!!!!
 
-        public static void get_melee_strategy(GameObjectBody npc)
+        public static void get_melee_strategy(GameObject npc)
         {
             if (Utilities.critter_is_unconscious(npc)) // no reason to run script if unconcious
             {
@@ -761,7 +761,7 @@ namespace Scripts
 
         // This records the original strategy from the protos.tab				##
 
-        public static void tag_strategy(GameObjectBody npc)
+        public static void tag_strategy(GameObject npc)
         {
             var xyx = npc.GetInt(obj_f.critter_strategy); // get original strategy
             npc.SetInt(obj_f.pad_i_0, xyx); // record the original strategy
@@ -770,7 +770,7 @@ namespace Scripts
 
         // This calls for the Break Free from Web routine					##
 
-        public static bool break_free(GameObjectBody npc, string range = "5ft")
+        public static bool break_free(GameObject npc, string range = "5ft")
         {
             if (range == "10ft")
             {
@@ -783,7 +783,7 @@ namespace Scripts
             throw new ArgumentOutOfRangeException();
         }
 
-        public static bool break_free(GameObjectBody npc, int range = 3)
+        public static bool break_free(GameObject npc, int range = 3)
         {
 
             foreach (var obj in PartyLeader.GetPartyMembers())

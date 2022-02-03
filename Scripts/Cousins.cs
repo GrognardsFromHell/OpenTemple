@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(378)]
     public class Cousins : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5158))
             {
@@ -68,7 +68,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if (((GetGlobalVar(959) == 1) && (attachee.GetMap() == 5052)))
             {
@@ -123,7 +123,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -135,7 +135,7 @@ namespace Scripts
             Utilities.create_item_in_inventory(6046, attachee);
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5071 || attachee.GetMap() == 5072 || attachee.GetMap() == 5073 || attachee.GetMap() == 5075 || attachee.GetMap() == 5076 || attachee.GetMap() == 5077))
             {
@@ -190,7 +190,7 @@ namespace Scripts
             }
             return SkipDefault;
         }
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(943) <= 4))
             {
@@ -219,7 +219,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5052))
             {
@@ -335,7 +335,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnWillKos(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(989)))
             {
@@ -344,12 +344,12 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool wait_a_day(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool wait_a_day(GameObject attachee, GameObject triggerer)
         {
             StartTimer(86400000, () => wait(attachee)); // 1 day
             return RunDefault;
         }
-        public static bool wait(GameObjectBody attachee)
+        public static bool wait(GameObject attachee)
         {
             SetGlobalVar(930, 2);
             return RunDefault;
@@ -359,7 +359,7 @@ namespace Scripts
             SetGlobalVar(978, 2);
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 50))
             {
@@ -368,18 +368,18 @@ namespace Scripts
 
             return false;
         }
-        public static bool go_away(GameObjectBody attachee)
+        public static bool go_away(GameObject attachee)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off(GameObject attachee, GameObject triggerer)
         {
             attachee.RunOff();
             StartTimer(5000, () => go_away(attachee));
             return RunDefault;
         }
-        public static bool run_off_2(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off_2(GameObject attachee, GameObject triggerer)
         {
             var runningOffTo = attachee.RunOff();
             var nephew1 = Utilities.find_npc_near(attachee, 14653);
@@ -438,7 +438,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool run_off_3(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off_3(GameObject attachee, GameObject triggerer)
         {
             attachee.SetObjectFlag(ObjectFlag.OFF);
             AttachParticles("sp-Invisibility", attachee);
@@ -469,7 +469,7 @@ namespace Scripts
             Sound(4031, 1);
             return RunDefault;
         }
-        public static void pass_out_1_a(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pass_out_1_a(GameObject attachee, GameObject triggerer)
         {
             Fade(43200, 4119, 0, 12);
             Sound(4119, 1);
@@ -516,7 +516,7 @@ namespace Scripts
 
             return;
         }
-        public static void pass_out_1_b(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void pass_out_1_b(GameObject attachee, GameObject triggerer)
         {
             Fade(43200, 4117, 0, 12);
             Sound(4117, 1);
@@ -737,7 +737,7 @@ namespace Scripts
 
             return;
         }
-        public static void strip_forest(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void strip_forest(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_PC))
             {
@@ -757,7 +757,7 @@ namespace Scripts
 
             return;
         }
-        public static void unequip_forest(EquipSlot slot, GameObjectBody npc)
+        public static void unequip_forest(EquipSlot slot, GameObject npc)
         {
             // doesn't work for npcs with no transfer flag on items
             var random_x = RandomRange(513, 528);
@@ -770,7 +770,7 @@ namespace Scripts
             // container.destroy()
             return;
         }
-        public static void strip_swamp(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void strip_swamp(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_PC))
             {
@@ -790,7 +790,7 @@ namespace Scripts
 
             return;
         }
-        public static void unequip_swamp(EquipSlot slot, GameObjectBody npc)
+        public static void unequip_swamp(EquipSlot slot, GameObject npc)
         {
             // doesn't work for npcs with no transfer flag on items
             var random_x = RandomRange(467, 478);
@@ -803,7 +803,7 @@ namespace Scripts
             // container.destroy()
             return;
         }
-        public static void strip_river(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void strip_river(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_PC))
             {
@@ -823,7 +823,7 @@ namespace Scripts
 
             return;
         }
-        public static void unequip_river(EquipSlot slot, GameObjectBody npc)
+        public static void unequip_river(EquipSlot slot, GameObject npc)
         {
             // doesn't work for npcs with no transfer flag on items
             var random_x = RandomRange(469, 484);
@@ -884,7 +884,7 @@ namespace Scripts
 
             return;
         }
-        public static void spawn_attackers_for_snitch(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void spawn_attackers_for_snitch(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5071 || attachee.GetMap() == 5075)) // forests
             {
@@ -1085,7 +1085,7 @@ namespace Scripts
             SetGlobalVar(945, 28);
             return;
         }
-        public static void spawn_attackers_for_narc(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void spawn_attackers_for_narc(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5071 || attachee.GetMap() == 5075)) // forests
             {
@@ -1286,7 +1286,7 @@ namespace Scripts
             SetGlobalVar(945, 29);
             return;
         }
-        public static void spawn_attackers_for_whistleblower(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void spawn_attackers_for_whistleblower(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5071 || attachee.GetMap() == 5075)) // forests
             {

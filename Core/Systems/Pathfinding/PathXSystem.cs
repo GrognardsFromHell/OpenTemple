@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
@@ -20,7 +20,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         #region Debug stuff for diagnostic render
 
         private LocAndOffsets pdbgFrom, pdbgTo;
-        private GameObjectBody pdbgMover, pdbgTargetObj;
+        private GameObject pdbgMover, pdbgTargetObj;
         private bool pdbgGotPath;
         private int pdbgShortRangeError;
         private bool pdbgUsingNodes, pdbgAbortedSansNodes;
@@ -1522,7 +1522,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10040c30)]
-        public bool PathDestIsClear(PathQuery pq, GameObjectBody mover, LocAndOffsets destLoc)
+        public bool PathDestIsClear(PathQuery pq, GameObject mover, LocAndOffsets destLoc)
         {
             var objIt = new RaycastPacket();
             objIt.origin = destLoc;
@@ -1829,7 +1829,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
             PathQueryFlags.PQF_ADJ_RADIUS_REQUIRE_LOS | PathQueryFlags.PQF_ADJUST_RADIUS |
             PathQueryFlags.PQF_TARGET_OBJ;
 
-        public bool CanPathTo(GameObjectBody obj, GameObjectBody target, PathQueryFlags flags = DefaultPathToFlags,
+        public bool CanPathTo(GameObject obj, GameObject target, PathQueryFlags flags = DefaultPathToFlags,
             float maxDistanceFeet = -1)
         {
             var from = obj.GetLocationFull();
@@ -1871,7 +1871,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10057F80)]
-        public GameObjectBody CanPathToParty(GameObjectBody obj, bool excludeUnconscious = true)
+        public GameObject CanPathToParty(GameObject obj, bool excludeUnconscious = true)
         {
             if (GameSystems.Party.IsInParty(obj))
                 return null;

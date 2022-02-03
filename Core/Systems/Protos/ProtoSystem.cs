@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.GameObjects;
@@ -15,7 +15,7 @@ namespace OpenTemple.Core.Systems.Protos
 
         private readonly ObjectSystem _objectSystem;
 
-        private readonly Dictionary<int, GameObjectBody> _prototypes = new Dictionary<int, GameObjectBody>();
+        private readonly Dictionary<int, GameObject> _prototypes = new Dictionary<int, GameObject>();
 
         public ProtoSystem(ObjectSystem objectSystem)
         {
@@ -121,7 +121,7 @@ namespace OpenTemple.Core.Systems.Protos
 
         [TempleDllLocation(0x1003aac0)]
         [TemplePlusLocation("protos.cpp:68")]
-        private void SetCritterAttacks(GameObjectBody proto)
+        private void SetCritterAttacks(GameObject proto)
         {
             if (proto.IsCritter())
             {
@@ -163,7 +163,7 @@ namespace OpenTemple.Core.Systems.Protos
         ///     Sets the critter experience to what would be required to reach their current level, in case it is lower.
         /// </summary>
         [TempleDllLocation(0x1003ac50)]
-        private void SetCritterXp(GameObjectBody obj)
+        private void SetCritterXp(GameObject obj)
         {
             if (obj.IsCritter())
             {
@@ -177,12 +177,12 @@ namespace OpenTemple.Core.Systems.Protos
             }
         }
 
-        public IEnumerable<GameObjectBody> EnumerateProtos()
+        public IEnumerable<GameObject> EnumerateProtos()
         {
             return _prototypes.Values;
         }
 
-        public IEnumerable<GameObjectBody> EnumerateProtos(ObjectType type)
+        public IEnumerable<GameObject> EnumerateProtos(ObjectType type)
         {
             foreach (var proto in _prototypes.Values)
             {
@@ -194,7 +194,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003ad70)]
-        public GameObjectBody GetProtoById(int protoId)
+        public GameObject GetProtoById(int protoId)
         {
             Trace.Assert(protoId <= ushort.MaxValue);
             var id = ObjectId.CreatePrototype((ushort) protoId);

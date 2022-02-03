@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.MesFiles;
@@ -319,7 +319,7 @@ namespace OpenTemple.Core.Systems
             GameSystems.TimeEvent.ClearForMapClose();
 
             // We need to make a copy because we are about to modify it
-            List<GameObjectBody> objects = new List<GameObjectBody>(GameSystems.Object.EnumerateNonProtos());
+            List<GameObject> objects = new List<GameObject>(GameSystems.Object.EnumerateNonProtos());
 
             foreach (var obj in objects)
             {
@@ -479,7 +479,7 @@ namespace OpenTemple.Core.Systems
         public IEnumerable<int> VisitedMaps => mVisitedMaps;
 
         [TempleDllLocation(0x10071700)]
-        public void MarkVisitedMap(GameObjectBody obj)
+        public void MarkVisitedMap(GameObject obj)
         {
             if (!obj.IsPC())
             {

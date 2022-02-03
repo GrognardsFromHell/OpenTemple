@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,12 +23,12 @@ namespace Scripts
     [ObjectScript(392)]
     public class HextorClericWelkwood : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5093 && GetGlobalVar(960) == 3))
             {
@@ -38,7 +38,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -61,7 +61,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_cool_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_cool_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 20))
             {
@@ -70,7 +70,7 @@ namespace Scripts
 
             return false;
         }
-        public static bool run_off_gang(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool run_off_gang(GameObject attachee, GameObject triggerer)
         {
             Sound(4031, 1);
             AttachParticles("sp-Invisibility", attachee);
@@ -98,7 +98,7 @@ namespace Scripts
             sb.SetObjectFlag(ObjectFlag.OFF);
             return RunDefault;
         }
-        public static bool go_boom(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool go_boom(GameObject attachee, GameObject triggerer)
         {
             SpawnParticles("sp-Fireball-Hit", new locXY(484, 468));
             SpawnParticles("ef-fire-lazy", new locXY(484, 468));

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class Dala : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(88)))
             {
@@ -44,7 +44,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetQuestState(37) == QuestState.Completed))
             {
@@ -73,17 +73,17 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public override bool OnCaughtThief(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnCaughtThief(GameObject attachee, GameObject triggerer)
         {
             triggerer.BeginDialog(attachee, 120);
             return RunDefault;
         }
-        public static bool reset_global_flag_89(GameObjectBody attachee)
+        public static bool reset_global_flag_89(GameObject attachee)
         {
             SetGlobalFlag(89, false);
             return RunDefault;
         }
-        public static bool make_dick_talk(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool make_dick_talk(GameObject attachee, GameObject triggerer, int line)
         {
             var npc = Utilities.find_npc_near(attachee, 8018);
 

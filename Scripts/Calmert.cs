@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(5)]
     public class Calmert : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(28) && !triggerer.HasReputation(2)))
             {
@@ -56,7 +56,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5012))
             {
@@ -106,7 +106,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -122,7 +122,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if (SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8730)))
             {
@@ -343,7 +343,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             foreach (var npc in PartyLeader.GetPartyMembers())
             {
@@ -371,12 +371,12 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(817, false);
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalVar(724) == 0 && attachee.GetLeader() == null && !GameSystems.Combat.IsCombatActive()) && !PartyAlignment.IsGood())
             {
@@ -393,7 +393,7 @@ namespace Scripts
             SetGlobalVar(724, GetGlobalVar(724) + 1);
             return RunDefault;
         }
-        public static bool create_terjon(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool create_terjon(GameObject attachee, GameObject triggerer)
         {
             var terjonLoc = attachee.GetLocation();
             terjonLoc.locx -= 4;
@@ -402,7 +402,7 @@ namespace Scripts
             AttachParticles("sp-Dimension Door", terjon);
             return RunDefault;
         }
-        public static bool switch_to_terjon(GameObjectBody npc, GameObjectBody pc)
+        public static bool switch_to_terjon(GameObject npc, GameObject pc)
         {
             var terjon = Utilities.find_npc_near(npc, 20003);
             foreach (var target in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_PC))
@@ -420,7 +420,7 @@ namespace Scripts
             terjon.Attack(pc);
             return RunDefault;
         }
-        public static bool look_spugnoir(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool look_spugnoir(GameObject attachee, GameObject triggerer)
         {
             foreach (var npc in PartyLeader.GetPartyMembers())
             {
@@ -449,12 +449,12 @@ namespace Scripts
             attachee.Attack(triggerer);
             return RunDefault;
         }
-        public static bool beggar_cavanaugh(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool beggar_cavanaugh(GameObject attachee, GameObject triggerer)
         {
             StartTimer(86400000, () => beggar_now(attachee, triggerer));
             return RunDefault;
         }
-        public static bool beggar_now(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool beggar_now(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(205, true);
             SetGlobalVar(24, GetGlobalVar(24) + 1);
@@ -470,7 +470,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void respawn(GameObjectBody attachee)
+        public static void respawn(GameObject attachee)
         {
             var box = Utilities.find_container_near(attachee, 1001);
             InventoryRespawn.RespawnInventory(box);

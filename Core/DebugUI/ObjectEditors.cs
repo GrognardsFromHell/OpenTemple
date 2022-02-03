@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 
 namespace OpenTemple.Core.DebugUI
@@ -10,7 +10,7 @@ namespace OpenTemple.Core.DebugUI
     {
         private static readonly List<ObjectEditor> Editors = new();
 
-        public static void Edit(GameObjectBody obj)
+        public static void Edit(GameObject obj)
         {
             foreach (var otherEditor in Editors)
             {

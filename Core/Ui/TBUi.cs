@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems;
@@ -42,7 +42,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x1014deb0)]
-        public void OpenContainer(GameObjectBody actor, GameObjectBody container)
+        public void OpenContainer(GameObject actor, GameObject container)
         {
             if (container.GetSpellFlags().HasFlag(SpellFlag.STONED))
             {
@@ -94,7 +94,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x1010ea60)]
-        private int GetContainerTotalGoldWorth(GameObjectBody container)
+        private int GetContainerTotalGoldWorth(GameObject container)
         {
             var totalWorth = 0;
             if (container.type == ObjectType.container)
@@ -112,7 +112,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x1014e050)]
-        public void InitiateDialog(GameObjectBody actor, GameObjectBody npc)
+        public void InitiateDialog(GameObject actor, GameObject npc)
         {
             if (GameSystems.Script.ExecuteObjectScript(actor, npc, ObjScriptEvent.Dialog) == 1)
             {

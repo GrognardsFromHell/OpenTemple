@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -24,7 +24,7 @@ namespace Scripts
     [ObjectScript(446)]
     public class Earthcombat : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetNameId() == 14913) // grate
             {
@@ -46,7 +46,7 @@ namespace Scripts
             return SkipDefault;
         }
 
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEnterCombat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetNameId() == 14913) // grate
             {
@@ -59,7 +59,7 @@ namespace Scripts
             return RunDefault;
         }
 
-        public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnExitCombat(GameObject attachee, GameObject triggerer)
         {
             // attahcee.standpoint_set(STANDPOINT_DAY, attachee.obj_get_int(obj_f_npc_pad_i_3))
             // attahcee.standpoint_set(STANDPOINT_NIGHT, attachee.obj_get_int(obj_f_npc_pad_i_3))
@@ -72,7 +72,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnStartCombat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetNameId() == 14913) // harpy grate
             {
@@ -119,11 +119,11 @@ namespace Scripts
             return RunDefault;
         }
 
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetNameId() == 14913) // grating
             {
-                GameObjectBody grate_obj = null;
+                GameObject grate_obj = null;
                 foreach (var door_candidate in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PORTAL))
                 {
                     if ((door_candidate.GetNameId() == 120))
@@ -147,7 +147,7 @@ namespace Scripts
             }
             else if (attachee.GetNameId() == 14914) // Earth Temple Barrier
             {
-                GameObjectBody barrier_obj = null;
+                GameObject barrier_obj = null;
                 foreach (var door_candidate in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PORTAL))
                 {
                     if ((door_candidate.GetNameId() == 121))
@@ -169,7 +169,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnEndCombat(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetNameId() == 14811) // The Beacon
             {
@@ -203,7 +203,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool san_enter_combat_backup_with_beacon_shit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool san_enter_combat_backup_with_beacon_shit(GameObject attachee, GameObject triggerer)
         {
             Livonya.tag_strategy(attachee);
             if (attachee.GetNameId() == 14811) // The Beacon
@@ -321,7 +321,7 @@ namespace Scripts
             // npc.npc_flag_unset(ONF_KOS_OVERRIDE)
             return RunDefault;
         }
-        public static bool san_start_combat_with_beacon_shit(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool san_start_combat_with_beacon_shit(GameObject attachee, GameObject triggerer)
         {
             if (attachee.GetNameId() == 14811) // The Beacon
             {
@@ -347,7 +347,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void ghouls_harpies_join_in(GameObjectBody attachee)
+        public static void ghouls_harpies_join_in(GameObject attachee)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -420,7 +420,7 @@ namespace Scripts
                     if (should_drop_grate)
                     {
                         ScriptDaemon.set_f("harpy_grate");
-                        GameObjectBody grate_obj = null;
+                        GameObject grate_obj = null;
                         foreach (var obj in ObjList.ListVicinity(new locXY(415, 556), ObjectListFilter.OLC_PORTAL))
                         {
                             if (obj.GetNameId() == 120)
@@ -481,7 +481,7 @@ namespace Scripts
 
             return 0;
         }
-        public static void grate_away(GameObjectBody npc)
+        public static void grate_away(GameObject npc)
         {
             npc.ExecuteObjectScript(npc, ObjScriptEvent.Dying);
         }
@@ -511,19 +511,19 @@ namespace Scripts
 
             SetGlobalVar(35, RandomRange(1, 20) + highest_listen_mod);
         }
-        public static void earth_temple_haul_inside(GameObjectBody pc, GameObjectBody npc, int line)
+        public static void earth_temple_haul_inside(GameObject pc, GameObject npc, int line)
         {
             StartTimer(181150, () => move_party_inside(pc, npc, 1555, 480, 393));
             Fade(180, 0, 0, 1);
         }
-        public static void move_party_inside(GameObjectBody pc, GameObjectBody npc, int line, int x, int y)
+        public static void move_party_inside(GameObject pc, GameObject npc, int line, int x, int y)
         {
             FadeAndTeleport(30, 0, 0, 5066, x, y);
             // game.global_vars[1] = 400
             StartTimer(100, () => talk_to_gatekeeper(pc, npc, line, x, y));
             return;
         }
-        public static void talk_to_gatekeeper(GameObjectBody pc, GameObjectBody npc, int line, int x, int y)
+        public static void talk_to_gatekeeper(GameObject pc, GameObject npc, int line, int x, int y)
         {
             var op = GameSystems.MapObject.CreateObject(14915, new locXY(x + 1, y + 1));
             op.SetScriptId(ObjScriptEvent.Dialog, 446);
@@ -544,7 +544,7 @@ namespace Scripts
             return;
         }
 
-        public static void switch_to_npc(GameObjectBody pc, GameObjectBody originator_npc, string npc_name = null,
+        public static void switch_to_npc(GameObject pc, GameObject originator_npc, string npc_name = null,
             int dest_line = 0, int failsafe_line = 0)
         {
             int npc_name_num;
@@ -569,7 +569,7 @@ namespace Scripts
         }
 
 
-        public static void switch_to_npc(GameObjectBody pc, GameObjectBody originator_npc, int npc_name = 0, int dest_line = 0, int failsafe_line = 0)
+        public static void switch_to_npc(GameObject pc, GameObject originator_npc, int npc_name = 0, int dest_line = 0, int failsafe_line = 0)
         {
             foreach (var obj in ObjList.ListVicinity(pc.GetLocation(), ObjectListFilter.OLC_NPC))
             {
@@ -602,7 +602,7 @@ namespace Scripts
 
             return;
         }
-        public static void earth_attack_party(GameObjectBody pc, GameObjectBody npc)
+        public static void earth_attack_party(GameObject pc, GameObject npc)
         {
             if (npc.GetNameId() == 14915)
             {
@@ -620,19 +620,19 @@ namespace Scripts
 
             return;
         }
-        public static void destroy_npc(GameObjectBody npc)
+        public static void destroy_npc(GameObject npc)
         {
             npc.Destroy();
         }
-        public static void call_dying_script(GameObjectBody obj)
+        public static void call_dying_script(GameObject obj)
         {
             obj.ExecuteObjectScript(obj, ObjScriptEvent.Dying);
         }
-        public static void set_barrier_off(GameObjectBody obj)
+        public static void set_barrier_off(GameObject obj)
         {
             obj.SetObjectFlag(ObjectFlag.OFF);
         }
-        public static void barrier_away(GameObjectBody npc, int barrier_smash_stage = 1)
+        public static void barrier_away(GameObject npc, int barrier_smash_stage = 1)
         {
             if (barrier_smash_stage == 1)
             {
@@ -878,15 +878,15 @@ namespace Scripts
             }
 
         }
-        public static void timed_unconceal(GameObjectBody obj)
+        public static void timed_unconceal(GameObject obj)
         {
             obj.Unconceal();
         }
-        public static void timed_attack(GameObjectBody npc, GameObjectBody pc)
+        public static void timed_attack(GameObject npc, GameObject pc)
         {
             npc.Attack(pc);
         }
-        public static void switch_to_gatekeeper(GameObjectBody pc, int line)
+        public static void switch_to_gatekeeper(GameObject pc, int line)
         {
             var (xx, yy) = pc.GetLocation();
             if (xx >= 466 && xx <= 501 && yy >= 378 && yy <= 420)

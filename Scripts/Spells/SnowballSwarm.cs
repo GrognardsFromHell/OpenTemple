@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -39,16 +39,16 @@ namespace Scripts.Spells
         {
             Logger.Info("Snowball Swarm OnBeginRound");
         }
-        public override void OnBeginProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnBeginProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Snowball Swarm OnBeginProjectile");
             // spell.proj_partsys_id = game.particles( 'sp-Snowball Swarm-proj', projectile )
             SetProjectileParticles(projectile, AttachParticles("sp-Snowball Swarm-proj", projectile));
         }
-        public override void OnEndProjectile(SpellPacketBody spell, GameObjectBody projectile, int index_of_target)
+        public override void OnEndProjectile(SpellPacketBody spell, GameObject projectile, int index_of_target)
         {
             Logger.Info("Snowball Swarm OnEndProjectile");
-            var remove_list = new List<GameObjectBody>();
+            var remove_list = new List<GameObject>();
             spell.duration = 0;
             var dam = Dice.D6;
             // calculate dice rolled

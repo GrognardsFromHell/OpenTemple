@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Systems.Spells;
@@ -93,7 +93,7 @@ namespace OpenTemple.Core.Systems.Script
         }
 
         [TempleDllLocation(0x100c0390)]
-        public void SpellTriggerProjectile(int spellId, SpellEvent evt, GameObjectBody projectile, int projectileIdx)
+        public void SpellTriggerProjectile(int spellId, SpellEvent evt, GameObject projectile, int projectileIdx)
         {
             throw new NotImplementedException();
         }

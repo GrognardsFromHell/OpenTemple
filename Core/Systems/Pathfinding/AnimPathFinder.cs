@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.GameObjects;
@@ -294,7 +294,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10050ba0)]
-        private GameObjectBody FindTrapAtLocation(locXY loc)
+        private GameObject FindTrapAtLocation(locXY loc)
         {
             using var objListResult = ObjList.ListTile(loc, ObjectListFilter.OLC_TRAP);
             if (objListResult.Count > 0)
@@ -306,7 +306,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x100208b0)]
-        private GameObjectBody FindBurningScenery(locXY loc)
+        private GameObject FindBurningScenery(locXY loc)
         {
             using var objListResult = ObjList.ListTile(loc, ObjectListFilter.OLC_SCENERY);
 

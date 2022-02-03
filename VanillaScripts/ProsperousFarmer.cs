@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace VanillaScripts
     public class ProsperousFarmer : BaseObjectScript
     {
 
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((GetGlobalFlag(196)))
             {
@@ -56,7 +56,7 @@ namespace VanillaScripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             SetQuestState(6, QuestState.Botched);
             SetGlobalFlag(333, true);
@@ -68,7 +68,7 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-        public static bool give_sword(GameObjectBody pc)
+        public static bool give_sword(GameObject pc)
         {
             var item = GameSystems.MapObject.CreateObject(4222, pc.GetLocation());
 

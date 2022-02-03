@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.Systems.MapSector
@@ -54,7 +54,7 @@ namespace OpenTemple.Core.Systems.MapSector
                 yield return Next();
             }
         }
-        public IEnumerable<GameObjectBody> EnumerateObjects()
+        public IEnumerable<GameObject> EnumerateObjects()
         {
             while (HasNext)
             {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using ImGuiNET;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -17,7 +17,7 @@ namespace OpenTemple.Core.DebugUI
 {
     public class ObjectEditor
     {
-        public readonly GameObjectBody Object;
+        public readonly GameObject Object;
 
         public bool Active = true;
 
@@ -25,7 +25,7 @@ namespace OpenTemple.Core.DebugUI
 
         private readonly List<EditablePropertyGroup> Groups = new List<EditablePropertyGroup>();
 
-        public ObjectEditor(GameObjectBody o)
+        public ObjectEditor(GameObject o)
         {
             Object = o;
             if (Object.IsProto())
@@ -319,7 +319,7 @@ namespace OpenTemple.Core.DebugUI
             }
         }
 
-        private string BuildClassLevels(GameObjectBody critter)
+        private string BuildClassLevels(GameObject critter)
         {
             var levelList = new List<(string, int)>();
 
@@ -548,11 +548,11 @@ namespace OpenTemple.Core.DebugUI
 
     internal class AbilityModifierLabel : IPropertyEditor
     {
-        private readonly GameObjectBody _critter;
+        private readonly GameObject _critter;
 
         private readonly Stat _stat;
 
-        public AbilityModifierLabel(GameObjectBody critter, Stat stat)
+        public AbilityModifierLabel(GameObject critter, Stat stat)
         {
             _critter = critter;
             _stat = stat;

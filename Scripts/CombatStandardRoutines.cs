@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
 
     public class CombatStandardRoutines
     {
-        public static bool should_modify_CR(GameObjectBody attachee)
+        public static bool should_modify_CR(GameObject attachee)
         {
             return false; // now done in the DLL properly!!! MWAHAHAHA
         }
@@ -79,7 +79,7 @@ namespace Scripts
 
             return best_CR_fit;
         }
-        public static int CR_mod_new(GameObjectBody attachee, int party_av_level)
+        public static int CR_mod_new(GameObject attachee, int party_av_level)
         {
             if (party_av_level == -1)
             {
@@ -89,7 +89,7 @@ namespace Scripts
             var CR_tot = attachee.GetStat(Stat.level) + attachee.GetInt(obj_f.npc_challenge_rating);
             return (CR_tot_new(party_av_level, CR_tot) - attachee.GetStat(Stat.level));
         }
-        public static void modify_CR(GameObjectBody attachee, int party_av_level)
+        public static void modify_CR(GameObject attachee, int party_av_level)
         {
             ScriptDaemon.npc_set(attachee, 31);
             if (party_av_level == -1)
@@ -119,7 +119,7 @@ namespace Scripts
             }
 
         }
-        public static void create_break_free_potion(GameObjectBody attachee)
+        public static void create_break_free_potion(GameObject attachee)
         {
             // creates a potion of breakfree (the workaround for making AI attempt break free)
             // ALSO, THIS IS USED FOR BREAK FREE
@@ -129,7 +129,7 @@ namespace Scripts
             }
 
         }
-        public static void Spiritual_Weapon_Begone(GameObjectBody attachee)
+        public static void Spiritual_Weapon_Begone(GameObject attachee)
         {
             // mwahaha this is no longer necessary!!!
 

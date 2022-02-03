@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(339)]
     public class HextorCleric : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             attachee.TurnTowards(triggerer);
             if ((GetGlobalVar(928) == 1))
@@ -49,7 +49,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnFirstHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetMap() == 5140))
             {
@@ -74,7 +74,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -92,7 +92,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetNameId() == 14717 && attachee.GetMap() == 5140))
             {
@@ -101,7 +101,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             if ((!GameSystems.Combat.IsCombatActive()))
             {
@@ -121,7 +121,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_better_to_talk(GameObject speaker, GameObject listener)
         {
             if ((speaker.DistanceTo(listener) <= 200))
             {
@@ -130,13 +130,13 @@ namespace Scripts
 
             return false;
         }
-        public static bool next_spell(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool next_spell(GameObject attachee, GameObject triggerer)
         {
             attachee.CastSpell(WellKnownSpells.SpellResistance, attachee);
             attachee.PendingSpellsToMemorized();
             return RunDefault;
         }
-        public static bool thaddeus_countdown(GameObjectBody attachee, GameObjectBody triggerer)
+        public static bool thaddeus_countdown(GameObject attachee, GameObject triggerer)
         {
             StartTimer(172800000, () => stop_watch()); // 2 days
             return RunDefault;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Script.Extensions;
@@ -72,7 +72,7 @@ namespace OpenTemple.Core.Systems.Dialog
             }
         }
 
-        public string GetNpcLine(GameObjectBody speaker, GameObjectBody listener, int fromKey, int toKey)
+        public string GetNpcLine(GameObject speaker, GameObject listener, int fromKey, int toKey)
         {
             var speakerGender = (Gender) speaker.GetStat(Stat.gender);
             var listenerGender = (Gender) listener.GetStat(Stat.gender);
@@ -151,7 +151,7 @@ namespace OpenTemple.Core.Systems.Dialog
         /// 22000: invisible pc
         /// </summary>
         [TempleDllLocation(0x10036b20)]
-        public string GetNpcClassBasedLine(GameObjectBody npc, GameObjectBody pc, int baseLine)
+        public string GetNpcClassBasedLine(GameObject npc, GameObject pc, int baseLine)
         {
             var npcGender = npc.GetGender();
             var pcGender = pc.GetGender();
@@ -187,7 +187,7 @@ namespace OpenTemple.Core.Systems.Dialog
         /// <summary>
         /// </summary>
         [TempleDllLocation(0x10036c80)]
-        public string GetNpcRaceBasedLine(GameObjectBody npc, GameObjectBody pc, int baseLine)
+        public string GetNpcRaceBasedLine(GameObject npc, GameObject pc, int baseLine)
         {
             var npcGender = npc.GetGender();
             var pcGender = pc.GetGender();

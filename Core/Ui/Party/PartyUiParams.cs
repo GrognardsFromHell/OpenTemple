@@ -75,7 +75,7 @@ namespace OpenTemple.Core.Ui.Party
 
             var partyUiMainWindow = uiParams.GetRectangleParam(20);
 
-            this.party_ui_main_window = partyUiMainWindow;
+            party_ui_main_window = partyUiMainWindow;
 
             party_ui_portrait_button = uiParams.GetRectangleParam(40);
             party_ui_fx_button = uiParams.GetRectangleParam(60); // TODO: UNUSED?
@@ -90,14 +90,14 @@ namespace OpenTemple.Core.Ui.Party
             partyUiRemoveIcon.Width += 2;
             partyUiRemoveIcon.Height += 2;
 
-            this.party_ui_remove_icon = partyUiRemoveIcon;
+            party_ui_remove_icon = partyUiRemoveIcon;
 
             var partyUiLevelIcon = uiParams.GetRectangleParam(170);
             partyUiLevelIcon.X--;
             partyUiLevelIcon.Y--;
             partyUiLevelIcon.Width += 2;
             partyUiLevelIcon.Height += 2;
-            this.party_ui_level_icon = partyUiLevelIcon;
+            party_ui_level_icon = partyUiLevelIcon;
 
             outer_border_color = uiParams.GetColorParam(700);
             inner_border_color = uiParams.GetColorParam(720);

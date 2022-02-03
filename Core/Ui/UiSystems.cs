@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.SaveGames.UiState;
@@ -313,7 +313,7 @@ namespace OpenTemple.Core.Ui
     public class WrittenUi
     {
         [TempleDllLocation(0x10160f50)]
-        public void Show(GameObjectBody item)
+        public void Show(GameObject item)
         {
             throw new NotImplementedException();
         }
@@ -329,7 +329,7 @@ namespace OpenTemple.Core.Ui
 
         public int field_c { get; set; }
 
-        public Action<GameObjectBody> callback { get; set; }
+        public Action<GameObject> callback { get; set; }
 
         public string header { get; set; }
 
@@ -337,9 +337,9 @@ namespace OpenTemple.Core.Ui
 
         public int transferType { get; set; }
 
-        public GameObjectBody obj { get; set; }
+        public GameObject obj { get; set; }
 
-        public GameObjectBody parent { get; set; }
+        public GameObject parent { get; set; }
 
         public int sum { get; set; }
 
@@ -381,7 +381,7 @@ namespace OpenTemple.Core.Ui
     public class TrackUi
     {
         [TempleDllLocation(0x10169e50)]
-        public void Show(GameObjectBody tracker)
+        public void Show(GameObject tracker)
         {
             throw new NotImplementedException();
         }
@@ -398,7 +398,7 @@ namespace OpenTemple.Core.Ui
     public class SkillMasteryUi
     {
         [TempleDllLocation(0x10bf3548)]
-        private GameObjectBody skillMasteryObj;
+        private GameObject skillMasteryObj;
 
         [TempleDllLocation(0x10bf3538)]
         private int skillMasteryIdx;
@@ -407,7 +407,7 @@ namespace OpenTemple.Core.Ui
         private int[] skillIdx;
 
         [TempleDllLocation(0x1016a0b0)]
-        public void SkillMasteryCallback(GameObjectBody objHnd)
+        public void SkillMasteryCallback(GameObject objHnd)
         {
             if (objHnd == skillMasteryObj)
             {
@@ -438,7 +438,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x101536c0)]
-        public void CreateItem(GameObjectBody creator, int actionData1)
+        public void CreateItem(GameObject creator, int actionData1)
         {
             throw new NotImplementedException();
         }

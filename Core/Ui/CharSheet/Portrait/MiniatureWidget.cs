@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.Widgets;
@@ -10,7 +10,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
 {
     public class MiniatureWidget : WidgetButtonBase
     {
-        public GameObjectBody Object { get; set; }
+        public GameObject Object { get; set; }
 
         private int _rotationPivot;
 

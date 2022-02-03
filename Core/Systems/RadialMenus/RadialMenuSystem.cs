@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
@@ -239,7 +239,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f0110)]
-        private bool RadialMenuCallbackDefault(GameObjectBody obj, ref RadialMenuEntry radMenuEntry)
+        private bool RadialMenuCallbackDefault(GameObject obj, ref RadialMenuEntry radMenuEntry)
         {
             GameSystems.D20.Actions.TurnBasedStatusInit(obj);
             GameSystems.D20.Actions.SequenceSwitch(obj);
@@ -273,7 +273,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f01b0)]
-        private bool RadialCallbackMovementMaybe(GameObjectBody critter, ref RadialMenuEntry entry)
+        private bool RadialCallbackMovementMaybe(GameObject critter, ref RadialMenuEntry entry)
         {
             GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(entry.d20ActionType, entry.d20ActionData1);
             GameSystems.D20.Actions.RadialMenuSetSeqPicker(entry.d20ActionType, entry.d20ActionData1,
@@ -284,7 +284,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f0a70)]
-        public void SortRadialMenu(GameObjectBody obj)
+        public void SortRadialMenu(GameObject obj)
         {
             GetRadialMenu(obj).Sort();
         }
@@ -307,7 +307,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f0670)]
-        public int AddChildNode(GameObjectBody critter, ref RadialMenuEntry entry, int parentIdx)
+        public int AddChildNode(GameObject critter, ref RadialMenuEntry entry, int parentIdx)
         {
             if (entry.type == RadialMenuEntryType.Action && entry.callback == null)
             {
@@ -330,7 +330,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f0710)]
-        private int AddRootNode(GameObjectBody critter, ref RadialMenuEntry entry)
+        private int AddRootNode(GameObject critter, ref RadialMenuEntry entry)
         {
             if (entry.type == RadialMenuEntryType.Action && entry.callback == null)
             {
@@ -349,7 +349,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f0d10)]
-        public int AddParentChildNode(GameObjectBody critter, ref RadialMenuEntry entry, int parentIdx)
+        public int AddParentChildNode(GameObject critter, ref RadialMenuEntry entry, int parentIdx)
         {
             var radMenu = GetRadialMenu(critter);
             var node = new RadialMenuNode();
@@ -372,7 +372,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
             return index;
         }
 
-        public int AddToStandardNode(GameObjectBody handle, ref RadialMenuEntry entry,
+        public int AddToStandardNode(GameObject handle, ref RadialMenuEntry entry,
             RadialMenuStandardNode standardNode)
         {
             var node = GetStandardNode(standardNode);
@@ -387,7 +387,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f0200)]
-        public bool RadialMenuCheckboxOrSliderCallback(GameObjectBody obj, ref RadialMenuEntry radEntry)
+        public bool RadialMenuCheckboxOrSliderCallback(GameObject obj, ref RadialMenuEntry radEntry)
         {
             int actualArg;
             var node = activeRadialMenu.nodes[activeRadialMenuNode];
@@ -422,7 +422,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
 
         [TempleDllLocation(0x100f2650)]
         [TemplePlusLocation("radialmenu.cpp:110")]
-        public void BuildStandardRadialMenu(GameObjectBody critter)
+        public void BuildStandardRadialMenu(GameObject critter)
         {
             AssignMenu(critter);
             standardNodeIndices[0] = 0; // root
@@ -558,7 +558,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f0ee0)]
-        private void AssignMenu(GameObjectBody critter)
+        private void AssignMenu(GameObject critter)
         {
             var radialMenu = GetRadialMenu(critter);
             if (radialMenu != null)
@@ -576,7 +576,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
             radialMenu.nodes.Add(node);
         }
 
-        private void SetStandardNode(GameObjectBody handle, RadialMenuStandardNode stdNode,
+        private void SetStandardNode(GameObject handle, RadialMenuStandardNode stdNode,
             RadialMenuStandardNode specialParent)
         {
             var meskey = 1000 + (int)stdNode;
@@ -659,7 +659,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
                 AddChildNode(handle, ref radMenuEntry, standardNodeIndices[(int)specialParent]);
         }
 
-        private int GetSpellClassFromSpecialNode(GameObjectBody handle, RadialMenuStandardNode specialParent)
+        private int GetSpellClassFromSpecialNode(GameObject handle, RadialMenuStandardNode specialParent)
         {
             var spellClasses = new List<int>();
             foreach (var classEnum in D20ClassSystem.ClassesWithSpellLists)
@@ -680,7 +680,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f04d0)]
-        public RadialMenu GetRadialMenu(GameObjectBody obj)
+        public RadialMenu GetRadialMenu(GameObject obj)
         {
             foreach (var radialMenu in _radialMenus)
             {
@@ -699,7 +699,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
             return GameSystems.Spell.GetSpellsRadialMenuOptions(statIdx);
         }
 
-        public bool ActivateEntry(GameObjectBody critter, RadialMenuEntry entry)
+        public bool ActivateEntry(GameObject critter, RadialMenuEntry entry)
         {
             GameSystems.Critter.BuildRadialMenu(critter);
 
@@ -789,7 +789,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f05f0)]
-        private void ShowMessageAfterSilentToggle(GameObjectBody critter, ref RadialMenuEntry radEntry)
+        private void ShowMessageAfterSilentToggle(GameObject critter, ref RadialMenuEntry radEntry)
         {
             if (radEntry.HasArgument)
             {
@@ -853,7 +853,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f07d0)]
-        public void BuildRadialMenuAndSetToActive(GameObjectBody obj, Vector2 worldPosition)
+        public void BuildRadialMenuAndSetToActive(GameObject obj, Vector2 worldPosition)
         {
             GameSystems.Critter.BuildRadialMenu(obj);
             activeRadialMenu = GetRadialMenu(obj);
@@ -1086,14 +1086,14 @@ namespace OpenTemple.Core.Systems.RadialMenus
         public RadialMenuEntry SelectedRadialMenuEntry { get; private set; }
 
         [TempleDllLocation(0x100f0290)]
-        public bool CopyEntryToSelected(GameObjectBody obj, ref RadialMenuEntry entry)
+        public bool CopyEntryToSelected(GameObject obj, ref RadialMenuEntry entry)
         {
             SelectedRadialMenuEntry = entry;
             return GameSystems.D20.RadialMenu.RadialMenuCallbackDefault(obj, ref entry);
         }
 
         [TempleDllLocation(0x100f0780)]
-        public void SetMorphsTo(GameObjectBody obj, int nodeIdx, int morphsInto)
+        public void SetMorphsTo(GameObject obj, int nodeIdx, int morphsInto)
         {
             var radialMenu = GetRadialMenu(obj);
             if (radialMenu == null)
@@ -1108,7 +1108,7 @@ namespace OpenTemple.Core.Systems.RadialMenus
             }
         }
 
-        public bool PythonActionCallback(GameObjectBody critter, ref RadialMenuEntry entry)
+        public bool PythonActionCallback(GameObject critter, ref RadialMenuEntry entry)
         {
             GameSystems.D20.Actions.TurnBasedStatusInit(critter);
             GameSystems.D20.Actions.SequenceSwitch(critter);

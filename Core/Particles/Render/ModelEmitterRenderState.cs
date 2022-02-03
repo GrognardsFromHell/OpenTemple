@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Particles.Render
 
         public ModelEmitterRenderState(IAnimatedModel model)
         {
-            this.Model = model;
+            Model = model;
         }
 
         public void Dispose()

@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -35,7 +35,7 @@ namespace Scripts.Spells
             Logger.Info("Modify Memory OnSpellEffect");
             spell.duration = 1;
             // First find the nearest NPC to the target location
-            GameObjectBody new_targ = null;
+            GameObject new_targ = null;
             var dist = 4;
             foreach (var obj in ObjList.ListVicinity(spell.aoeCenter.location, ObjectListFilter.OLC_NPC))
             {
@@ -175,7 +175,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Modify Memory OnEndSpellCast");
         }
-        public static void reset_sid(GameObjectBody targ, int id_x)
+        public static void reset_sid(GameObject targ, int id_x)
         {
             targ.SetScriptId(ObjScriptEvent.Heartbeat, id_x);
             Sound(7461, 1);

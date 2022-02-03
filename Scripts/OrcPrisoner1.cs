@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
@@ -23,7 +23,7 @@ namespace Scripts
     [ObjectScript(131)]
     public class OrcPrisoner1 : BaseObjectScript
     {
-        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDialog(GameObject attachee, GameObject triggerer)
         {
             if ((attachee.GetLeader() != null))
             {
@@ -60,7 +60,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDying(GameObject attachee, GameObject triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
             {
@@ -76,14 +76,14 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnResurrect(GameObject attachee, GameObject triggerer)
         {
             SetGlobalFlag(135, false);
             return RunDefault;
         }
         // added by ShiningTed
 
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnHeartbeat(GameObject attachee, GameObject triggerer)
         {
             // def san_heartbeat( attachee, triggerer ): # added by ShiningTed
             if ((!GameSystems.Combat.IsCombatActive()))
@@ -106,7 +106,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnJoin(GameObject attachee, GameObject triggerer)
         {
             var obj = Utilities.find_npc_near(attachee, 8025);
             if ((obj != null))
@@ -116,7 +116,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
+        public override bool OnDisband(GameObject attachee, GameObject triggerer)
         {
             foreach (var obj in triggerer.GetPartyMembers())
             {
@@ -143,7 +143,7 @@ namespace Scripts
         }
         // added by ShiningTed
 
-        public static bool argue_ron(GameObjectBody attachee, GameObjectBody triggerer, int line)
+        public static bool argue_ron(GameObject attachee, GameObject triggerer, int line)
         {
             // def argue_ron( attachee, triggerer, line): # added by ShiningTed
             var npc = Utilities.find_npc_near(attachee, 8730);

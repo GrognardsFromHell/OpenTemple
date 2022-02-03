@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Drawing;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -111,13 +111,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a2870)]
-        public void Remove(GameObjectBody obj)
+        public void Remove(GameObject obj)
         {
             Stub.TODO();
         }
 
         [TempleDllLocation(0x100a2200)]
-        public void FloatLine(GameObjectBody obj, TextFloaterCategory category, TextFloaterColor color, string text)
+        public void FloatLine(GameObject obj, TextFloaterCategory category, TextFloaterColor color, string text)
         {
             // Try to append the line to an existing floater
             TextFloater floater = null;
@@ -278,7 +278,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a27d0)]
-        public void CritterDied(GameObjectBody critter)
+        public void CritterDied(GameObject critter)
         {
             if (!critter.HasFlag(ObjectFlag.TEXT_FLOATER))
             {
@@ -304,7 +304,7 @@ namespace OpenTemple.Core.Systems
 
         private class TextFloater : IDisposable
         {
-            public GameObjectBody Object { get; }
+            public GameObject Object { get; }
             public float ObjectHeight { get; private set; }
             public List<TextFloaterLine> Lines { get; } = new();
 
@@ -322,7 +322,7 @@ namespace OpenTemple.Core.Systems
                 }
             }
 
-            public TextFloater(GameObjectBody obj)
+            public TextFloater(GameObject obj)
             {
                 Object = obj;
                 ObjectHeight = obj.GetRenderHeight();

@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.FlowModel;
@@ -12,9 +12,9 @@ namespace OpenTemple.Core.Ui.Party
     {
         private readonly IStyleDefinition _hpTextSubdualStyle = Globals.UiStyles.Get("hp-text-subdual");
 
-        private readonly GameObjectBody _obj;
+        private readonly GameObject _obj;
 
-        public GameObjectBody PartyMember => _obj;
+        public GameObject PartyMember => _obj;
 
         private int _currentPortraitId;
 
@@ -25,7 +25,7 @@ namespace OpenTemple.Core.Ui.Party
         private WidgetImage _highlightHover;
         private WidgetImage _highlightPressed;
 
-        public PortraitButton(GameObjectBody obj)
+        public PortraitButton(GameObject obj)
         {
             _obj = obj;
 
