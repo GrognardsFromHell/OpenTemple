@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -145,7 +146,7 @@ public static class GameSystems
 
     public static DiseaseSystem Disease { get; private set; }
 
-    private static List<(long, string)> _timing = new ();
+    private static List<(long, string)> _timing = new();
 
     private static List<IGameSystem> _initializedSystems = new List<IGameSystem>();
 
@@ -162,8 +163,7 @@ public static class GameSystems
     public static IEnumerable<IResetAwareSystem> ResetAwareSystems
         => _initializedSystems.OfType<IResetAwareSystem>();
 
-    [TempleDllLocation(0x10307054)]
-    public static bool ModuleLoaded { get; private set; }
+    [TempleDllLocation(0x10307054)] public static bool ModuleLoaded { get; private set; }
 
     public static void Init()
     {
@@ -412,8 +412,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         throw new NotImplementedException();
     }
 
-    [TempleDllLocation(0x11E726AC)]
-    public static TimePoint LastAdvanceTime { get; private set; }
+    [TempleDllLocation(0x11E726AC)] public static TimePoint LastAdvanceTime { get; private set; }
 
     public static void AdvanceTime()
     {
@@ -827,11 +826,9 @@ public class ItemEffectSystem : IGameSystem, IModuleAwareSystem
 
 public class SectorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
 {
-    [TempleDllLocation(0x10AB7470)]
-    public int SectorLimitX { get; private set; }
+    [TempleDllLocation(0x10AB7470)] public int SectorLimitX { get; private set; }
 
-    [TempleDllLocation(0x10AB7448)]
-    public int SectorLimitY { get; private set; }
+    [TempleDllLocation(0x10AB7448)] public int SectorLimitY { get; private set; }
 
     [TempleDllLocation(0x10081bc0)]
     public void Dispose()
@@ -1309,11 +1306,9 @@ public class GMeshSystem : IGameSystem
 
 public class PlayerSystem : IGameSystem, IResetAwareSystem
 {
-    [TempleDllLocation(0x10aa9508)]
-    private GameObject _player;
+    [TempleDllLocation(0x10aa9508)] private GameObject _player;
 
-    [TempleDllLocation(0x10aa94e8)]
-    private ObjectId _playerId;
+    [TempleDllLocation(0x10aa94e8)] private ObjectId _playerId;
 
     [TempleDllLocation(0x1006ede0)]
     public PlayerSystem()
@@ -1368,6 +1363,8 @@ public class PlayerSystem : IGameSystem, IResetAwareSystem
 
 public class SoundMapSystem : IGameSystem
 {
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
     public void Dispose()
     {
     }
@@ -1383,12 +1380,178 @@ public class SoundMapSystem : IGameSystem
         return portal.GetInt32(obj_f.sound_effect) + (int) type;
     }
 
+    private const int ItemGetBase = 5950;
+    private const int ItemDropBase = 5960;
+
+    private const int OffsetItemUse = 0;
+    private const int OffsetItemHit1 = 1;
+    private const int OffsetItemHit2 = 2;
+    private const int OffsetItemHit3 = 3;
+    private const int OffsetItemHitCritical = 4;
+    private const int OffsetItemAttacking = 5;
+    private const int OffsetItemMiss = 6;
+    private const int OffsetItemOutOfAmmo = 7;
+
+    // see snd_item.mes
+    private const int ItemMatFlesh = 0;
+    private const int ItemMatMetalLight = 1;
+    private const int ItemMatMetal = 2;
+    private const int ItemMatStone = 3;
+    private const int ItemMatWood = 4;
+    private const int ItemMatGlass = 5;
+    private const int ItemMatCloth = 6;
+    private const int ItemMatPaper = 7;
+    private const int ItemMatCoin = 8;
+
+    // Offsets for ITEM_GET_BASE or ITEM_DROP_BASE based on material
+    [TempleDllLocation(0x102bea18)] private static readonly ImmutableDictionary<Material, int> MaterialSoundOffsets =
+        new Dictionary<Material, int>
+            {
+                {Material.stone, ItemMatStone},
+                {Material.brick, ItemMatStone},
+                {Material.wood, ItemMatWood},
+                {Material.plant, ItemMatWood},
+                {Material.flesh, ItemMatFlesh},
+                {Material.metal, ItemMatMetal},
+                {Material.glass, ItemMatGlass},
+                {Material.cloth, ItemMatCloth},
+                {Material.liquid, ItemMatFlesh},
+                {Material.paper, ItemMatPaper},
+                {Material.gas, ItemMatFlesh},
+                {Material.force, ItemMatMetalLight},
+                {Material.fire, ItemMatFlesh},
+                {Material.powder, ItemMatFlesh},
+            }
+            .ToImmutableDictionary();
+
     [TempleDllLocation(0x1006e0b0)]
-    public int CombatFindWeaponSound(GameObject weapon, GameObject attacker, GameObject target,
-        int soundType)
+    public int GetSoundIdForItemEvent(GameObject item, GameObject wielder, GameObject target, int eventType)
     {
-        Stub.TODO();
-        return 0;
+        var itemSoundId = item?.GetInt32(obj_f.sound_effect) ?? 0;
+
+        switch (eventType)
+        {
+            case 0:
+                return GetItemMaterialDependentSound(item, ItemGetBase);
+            case 1:
+                return GetItemMaterialDependentSound(item, ItemDropBase);
+            case 2:
+                if (itemSoundId == 0)
+                {
+                    return -1;
+                }
+
+                return itemSoundId + OffsetItemUse;
+            case 3:
+                if (itemSoundId == 0)
+                {
+                    return -1;
+                }
+
+                return itemSoundId + OffsetItemOutOfAmmo;
+            case 4:
+                if (itemSoundId == 0)
+                {
+                    return -1;
+                }
+
+                return itemSoundId + OffsetItemAttacking;
+            case 5:
+            case 7:
+            {
+                if (target == null)
+                {
+                    return -1;
+                }
+
+                if (itemSoundId != 0)
+                {
+                    int soundId;
+                    if (eventType == 7)
+                    {
+                        soundId = itemSoundId + OffsetItemHitCritical;
+                    }
+                    else
+                    {
+                        soundId = itemSoundId + (GameSystems.Random.GetBool() ? OffsetItemHit1 : OffsetItemHit2);
+                    }
+
+                    if (GameSystems.SoundGame.IsValidSoundId(soundId))
+                    {
+                        return soundId;
+                    }
+                }
+
+                if (target.IsCritter())
+                {
+                    var armor = GameSystems.Item.ItemWornAt(target, EquipSlot.Armor);
+                    if (armor != null)
+                    {
+                        target = armor;
+                    }
+                }
+
+                var material = target.GetMaterial();
+                var weaponType = item != null ? item.GetWeaponType() : wielder.GetUnarmedStrikeWeaponType();
+                var hitSound = eventType == 7 ? 0 : GameSystems.Random.GetInt(1, 3);
+                return EncodeWeaponSound(weaponType, material, hitSound);
+            }
+            case 6:
+            {
+                if (itemSoundId != 0 && GameSystems.SoundGame.IsValidSoundId(itemSoundId + OffsetItemMiss))
+                {
+                    return itemSoundId + OffsetItemMiss;
+                }
+
+                var weaponType = item != null ? item.GetWeaponType() : wielder.GetUnarmedStrikeWeaponType();
+                return EncodeWeaponSound(weaponType, default, 4);
+            }
+            default:
+                return -1;
+        }
+    }
+
+    private static int EncodeWeaponSound(WeaponType weaponType, Material materialHit, int soundType)
+    {
+        var result = unchecked((int) 0xC0000000);
+        result |= ((int) materialHit & 0x1F) << 10;
+        result |= ((int) weaponType & 0x7F) << 3;
+        result |= soundType & 0x7;
+        return result;
+    }
+
+    private static void DecodeWeaponSound(int soundId, out WeaponType weaponType, out Material materialHit,
+        out int soundType)
+    {
+        materialHit = (Material) ((soundId >> 10) & 0x1F);
+        weaponType = (WeaponType) ((soundId >> 3) & 0x7F);
+        soundType = soundId & 7;
+    }
+
+    public bool IsEncodedWeaponSound(int soundId)
+    {
+        return (soundId & 0xC0000000) == 0xC0000000;
+    }
+
+    private static int GetItemMaterialDependentSound(GameObject item, int baseId)
+    {
+        if (item == null)
+        {
+            return -1;
+        }
+
+        if (item.type == ObjectType.money)
+        {
+            return baseId + ItemMatCoin;
+        }
+
+        var materialOffset = MaterialSoundOffsets[item.GetMaterial()];
+        if (materialOffset == ItemMatMetal && GameSystems.Item.GetItemWeight(item) <= 2000)
+        {
+            materialOffset = ItemMatMetalLight;
+        }
+
+        return baseId + materialOffset;
     }
 
     [TempleDllLocation(0x1006dfd0)]
@@ -1420,7 +1583,7 @@ public class SoundMapSystem : IGameSystem
         }
     }
 
-    private static readonly Dictionary<TileMaterial, int> FootstepBaseSound = new Dictionary<TileMaterial, int>
+    private static readonly Dictionary<TileMaterial, int> FootstepBaseSound = new()
     {
         {TileMaterial.Dirt, 2904},
         {TileMaterial.Grass, 2912},
@@ -1466,7 +1629,36 @@ public class SoundMapSystem : IGameSystem
     [TempleDllLocation(0x1006e440)]
     public string GetWeaponHitSoundPath(int soundId)
     {
-        throw new NotImplementedException();
+        DecodeWeaponSound(soundId, out var weaponType, out var materialHit, out var soundType);
+
+        var weaponTypeName = WeaponTypes.TypeToId[weaponType];
+        var materialHitName = Materials.MaterialToId[materialHit];
+        while (true)
+        {
+            var filename = soundType switch
+            {
+                0 => $"sound/dynamic/hitsounds/WT_{weaponTypeName}-{materialHitName}-critical.wav",
+                4 => $"sound/dynamic/hitsounds/WT_{weaponTypeName}-miss.wav",
+                _ => $"sound/dynamic/hitsounds/WT_{weaponTypeName}-{materialHitName}-{soundType}.wav"
+            };
+
+            if (Tig.FS.FileExists(filename))
+            {
+                return filename;
+            }
+
+            // Attempt other hit types before falling back to other weapon types
+            if (soundType == 2 || soundType == 3)
+            {
+                --soundType;
+            }
+            // Fall back to another weapon type
+            else if (!WeaponTypes.FallbackSound.TryGetValue(weaponType, out weaponType))
+            {
+                Logger.Info("Missing sound (no fallback weapon type): {0}", filename);
+                return "sound/soundmissing.wav";
+            }
+        }
     }
 }
 
@@ -1546,17 +1738,13 @@ public class SectorScriptSystem : IGameSystem
 
 public class TownMapSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
 {
-    [TempleDllLocation(0x10AA3340)]
-    private byte[] dword_10AA3340;
+    [TempleDllLocation(0x10AA3340)] private byte[] dword_10AA3340;
 
-    [TempleDllLocation(0x10aa3344)]
-    private int numTimesToRead;
+    [TempleDllLocation(0x10aa3344)] private int numTimesToRead;
 
-    [TempleDllLocation(0x10aa32f0)]
-    private int dword_10AA32F0;
+    [TempleDllLocation(0x10aa32f0)] private int dword_10AA32F0;
 
-    [TempleDllLocation(0x10aa32fc)]
-    private int dword_10AA32FC;
+    [TempleDllLocation(0x10aa32fc)] private int dword_10AA32FC;
 
     public void Dispose()
     {
@@ -1792,7 +1980,7 @@ public class CheatsSystem : IGameSystem
         {
             if (GameSystems.Party.IsAiFollower(partyMember))
                 continue;
-                
+
             LevelupCritter(partyMember);
         }
     }

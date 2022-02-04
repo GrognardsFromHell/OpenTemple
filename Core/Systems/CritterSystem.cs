@@ -2492,11 +2492,6 @@ public static class CritterExtensions
     [TempleDllLocation(0x1007f5b0)]
     public static GameObject GetSubstituteInventory(this GameObject npc)
     {
-        GameObject v1;
-        GameObject v2;
-        ulong v3;
-        int result;
-
         if (npc == null || !npc.IsNPC() || GameSystems.Critter.GetLeader(npc) != null)
         {
             return null;
@@ -2520,6 +2515,18 @@ public static class CritterExtensions
     public static bool AllegianceShared(this GameObject critter, GameObject otherCritter)
     {
         return GameSystems.Critter.NpcAllegianceShared(critter, otherCritter);
+    }
+
+    public static SizeCategory GetSizeCategory(this GameObject critter)
+    {
+        return (SizeCategory) critter.GetStat(Stat.size);
+    }
+
+    public static WeaponType GetUnarmedStrikeWeaponType(this GameObject critter)
+    {
+        return critter.GetSizeCategory() < SizeCategory.Medium
+            ? WeaponType.unarmed_strike_small_being
+            : WeaponType.unarmed_strike_medium_sized_being;
     }
 
 }

@@ -860,7 +860,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     public string FindSoundFilename(int soundId)
     {
         // weapon hit sounds (encoded data)
-        if ((soundId & 0xC0000000) == 0xC0000000)
+        if (GameSystems.SoundMap.IsEncodedWeaponSound(soundId))
         {
             return GameSystems.SoundMap.GetWeaponHitSoundPath(soundId);
         }

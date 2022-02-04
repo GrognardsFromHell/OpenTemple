@@ -136,24 +136,7 @@ internal static class ProtoColumns
         Columns[24] = new Int32EnumParser<SizeCategory>(obj_f.size, sizeMapping);
         Columns[25] = new Int32Parser(obj_f.hp_pts);
         Columns[26] = new Int32Parser(obj_f.hp_damage);
-        var materialMapping = new Dictionary<string, Material>
-        {
-            {"mat_stone", Material.stone},
-            {"mat_brick", Material.brick},
-            {"mat_wood", Material.wood},
-            {"mat_plant", Material.plant},
-            {"mat_flesh", Material.flesh},
-            {"mat_metal", Material.metal},
-            {"mat_glass", Material.glass},
-            {"mat_cloth", Material.cloth},
-            {"mat_liquid", Material.liquid},
-            {"mat_paper", Material.paper},
-            {"mat_gas", Material.gas},
-            {"mat_force", Material.force},
-            {"mat_fire", Material.fire},
-            {"mat_powder", Material.powder},
-        };
-        Columns[27] = new Int32EnumParser<Material>(obj_f.material, materialMapping);
+        Columns[27] = new Int32EnumParser<Material>(obj_f.material, Materials.IdToMaterial);
         Columns[28] = new SkipParser();
         Columns[29] = new Int32Parser(obj_f.sound_effect);
         Columns[30] = new Int32Parser(obj_f.category);
@@ -330,83 +313,7 @@ internal static class ProtoColumns
         Columns[69] = new D20DmgTypeParser(obj_f.weapon_attacktype);
         Columns[70] = new DiceParser(obj_f.weapon_damage_dice);
         Columns[71] = new Int32Parser(obj_f.weapon_animtype);
-        var weaponTypeMapping = new Dictionary<string, WeaponType>
-        {
-            {"gauntlet", WeaponType.gauntlet},
-            {"unarmed_strike_medium_sized_being", WeaponType.unarmed_strike_medium_sized_being},
-            {"unarmed_strike_small_being", WeaponType.unarmed_strike_small_being},
-            {"dagger", WeaponType.dagger},
-            {"punching_dagger", WeaponType.punching_dagger},
-            {"spiked_gauntlet", WeaponType.spiked_gauntlet},
-            {"light_mace", WeaponType.light_mace},
-            {"sickle", WeaponType.sickle},
-            {"club", WeaponType.club},
-            {"shortspear", WeaponType.shortspear},
-            {"heavy_mace", WeaponType.heavy_mace},
-            {"morningstar", WeaponType.morningstar},
-            {"quarterstaff", WeaponType.quarterstaff},
-            {"spear", WeaponType.spear},
-            {"light_crossbow", WeaponType.light_crossbow},
-            {"dart", WeaponType.dart},
-            {"sling", WeaponType.sling},
-            {"heavy_crossbow", WeaponType.heavy_crossbow},
-            {"javelin", WeaponType.javelin},
-            {"throwing_axe", WeaponType.throwing_axe},
-            {"light_hammer", WeaponType.light_hammer},
-            {"handaxe", WeaponType.handaxe},
-            {"light_lance", WeaponType.light_lance},
-            {"light_pick", WeaponType.light_pick},
-            {"sap", WeaponType.sap},
-            {"short_sword", WeaponType.short_sword},
-            {"battleaxe", WeaponType.battleaxe},
-            {"light_flail", WeaponType.light_flail},
-            {"heavy_lance", WeaponType.heavy_lance},
-            {"longsword", WeaponType.longsword},
-            {"heavy_pick", WeaponType.heavy_pick},
-            {"rapier", WeaponType.rapier},
-            {"scimitar", WeaponType.scimitar},
-            {"trident", WeaponType.trident},
-            {"warhammer", WeaponType.warhammer},
-            {"falchion", WeaponType.falchion},
-            {"heavy_flail", WeaponType.heavy_flail},
-            {"glaive", WeaponType.glaive},
-            {"greataxe", WeaponType.greataxe},
-            {"greatclub", WeaponType.greatclub},
-            {"greatsword", WeaponType.greatsword},
-            {"guisarme", WeaponType.guisarme},
-            {"halberd", WeaponType.halberd},
-            {"longspear", WeaponType.longspear},
-            {"ranseur", WeaponType.ranseur},
-            {"scythe", WeaponType.scythe},
-            {"shortbow", WeaponType.shortbow},
-            {"composite_shortbow", WeaponType.composite_shortbow},
-            {"longbow", WeaponType.longbow},
-            {"composite_longbow", WeaponType.composite_longbow},
-            {"halfling_kama", WeaponType.halfling_kama},
-            {"kukri", WeaponType.kukri},
-            {"halfling_nunchaku", WeaponType.halfling_nunchaku},
-            {"halfling_siangham", WeaponType.halfling_siangham},
-            {"kama", WeaponType.kama},
-            {"nunchaku", WeaponType.nunchaku},
-            {"siangham", WeaponType.siangham},
-            {"bastard_sword", WeaponType.bastard_sword},
-            {"dwarven_waraxe", WeaponType.dwarven_waraxe},
-            {"gnome_hooked_hammer", WeaponType.gnome_hooked_hammer},
-            {"orc_double_axe", WeaponType.orc_double_axe},
-            {"spike_chain", WeaponType.spike_chain},
-            {"dire_flail", WeaponType.dire_flail},
-            {"two_bladed_sword", WeaponType.two_bladed_sword},
-            {"dwarven_urgrosh", WeaponType.dwarven_urgrosh},
-            {"hand_crossbow", WeaponType.hand_crossbow},
-            {"shuriken", WeaponType.shuriken},
-            {"whip", WeaponType.whip},
-            {"repeating_crossbow", WeaponType.repeating_crossbow},
-            {"net", WeaponType.net},
-            {"grapple", WeaponType.grapple},
-            {"ray", WeaponType.ray},
-            {"grenade", WeaponType.grenade},
-        };
-        Columns[72] = new Int32EnumParser<WeaponType>(obj_f.weapon_type, weaponTypeMapping, true);
+        Columns[72] = new Int32EnumParser<WeaponType>(obj_f.weapon_type, WeaponTypes.IdToType, true);
         Columns[73] = new CritRangeParser(obj_f.weapon_crit_range);
         var ammoFlagMapping = new Dictionary<string, AmmoFlag>
         {
