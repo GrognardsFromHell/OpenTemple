@@ -149,8 +149,6 @@ public class HelpSystem : IGameSystem
         if (record[ColumnPrevId])
         {
             topic.PrevId = record[ColumnPrevId].AsString().ToUpperInvariant();
-            Stub.TODO();
-            // We are not handling the prevId correctly as it was handled before (see LinkTopics)
         }
 
         var tok = new Tokenizer(record[ColumnnVirtualParents].AsString());
@@ -413,6 +411,19 @@ public class HelpSystem : IGameSystem
     [TempleDllLocation(0x100e7280)]
     private void LinkTopics(D20HelpTopic topic)
     {
+        if (topic.PrevId != null && topic.PrevId != hashTAG_ROOT)
+        {
+            if (_helpTopics.TryGetValue(topic.PrevId, out var prevSibling))
+            {
+                // Put it into the same parent topic as the previous node and link it up
+                topic.ParentId = prevSibling.ParentId;
+                prevSibling.NextId = topic.Id;
+                return;
+            }
+            
+            Logger.Warn("Help topic '{0}' has unknown previous-sibling id '{1}'.", topic, topic.PrevId);
+        }
+        
         if (topic.Id == hashTAG_ROOT)
         {
             topic.ParentId = null;
@@ -483,7 +494,7 @@ public class HelpSystem : IGameSystem
     private int help_table_pad = -1; // I believe this may be "last topic requested"
 
     [TempleDllLocation(0x11867700)]
-    private readonly List<HelpRequest> _helpRequests = new List<HelpRequest>();
+    private readonly List<HelpRequest> _helpRequests = new ();
 
     private HelpRequest CurrentRequest
     {

@@ -964,33 +964,6 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     }
 }
 
-
-public enum PortalSoundEffect
-{
-    Open = 0,
-    Close,
-    Locked = 2
-}
-
-/**
-     * TODO: This might correspond to the scs_ python enum
-     * scs_critically_hit = 0
-     * scs_dying = 1
-     * scs_dying_gruesome = 2
-     * scs_fidgeting = 3
-     * scs_attacking = 4
-     * scs_alerted = 5
-     * scs_agitated = 6
-     * scs_footsteps = 7
-     */
-public enum CritterSoundEffect
-{
-    Attack = 0,
-    Death = 1,
-    Unk5 = 5,
-    Footsteps = 7
-}
-
 public enum SoundSourceSize
 {
     Small = 0,

@@ -288,7 +288,7 @@ public class ItemSlotBehavior
     private static void UseItem(GameObject critter, GameObject item)
     {
         Logger.Info("Use item via dragging.");
-        var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(item, critter, null, 2);
+        var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(item, critter, null, ItemSoundEffect.Use);
         GameSystems.SoundGame.PositionalSound(soundId, 1, critter);
 
         if (GameSystems.Script.ExecuteObjectScript(critter, item, 0, ObjScriptEvent.Use) == 0)
@@ -325,7 +325,7 @@ public class ItemSlotBehavior
     {
         Logger.Info("Dropping item via drag&drop");
 
-        var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(item, critter, null, 1);
+        var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(item, critter, null, ItemSoundEffect.Drop);
         GameSystems.SoundGame.PositionalSound(soundId, 1, critter);
 
         if (IsSplittable(item, out var quantity))

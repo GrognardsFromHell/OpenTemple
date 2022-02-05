@@ -59,6 +59,7 @@ public class ItemSystem : IGameSystem
         Stub.TODO();
     }
 
+    [TempleDllLocation(0x10063dc0)]
     public void Dispose()
     {
     }

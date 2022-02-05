@@ -856,7 +856,7 @@ public class D20CombatSystem
         {
             GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(11, attacker, target);
             FloatCombatLine(attacker, 45); // Miss (Concealment)!
-            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weaponUsed, attacker, target, 6);
+            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weaponUsed, attacker, target, ItemSoundEffect.Miss);
             GameSystems.SoundGame.PositionalSound(soundId, attacker);
 
             GameSystems.D20.D20SendSignal(attacker, D20DispatcherKey.SIG_Attack_Made, evtObjDam);
@@ -868,7 +868,7 @@ public class D20CombatSystem
             FloatCombatLine(attacker, 29);
             GameSystems.D20.D20SendSignal(attacker, D20DispatcherKey.SIG_Attack_Made, evtObjDam);
 
-            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weaponUsed, attacker, target, 6);
+            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weaponUsed, attacker, target, ItemSoundEffect.Hit);
             GameSystems.SoundGame.PositionalSound(soundId, attacker);
 
             if (flags.HasFlag(D20CAF.DEFLECT_ARROWS))
@@ -936,7 +936,7 @@ public class D20CombatSystem
             GameSystems.SoundGame.PositionalSound(soundId, target);
             soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(evtObjCritDice.attackPacket.weaponUsed, attacker,
                 target,
-                7);
+                ItemSoundEffect.CriticalHit);
             GameSystems.SoundGame.PositionalSound(soundId, attacker);
 
             // increase crit hits in logbook
@@ -945,7 +945,7 @@ public class D20CombatSystem
         else
         {
             var soundId =
-                GameSystems.SoundMap.GetSoundIdForItemEvent(evtObjDam.attackPacket.weaponUsed, attacker, target, 5);
+                GameSystems.SoundMap.GetSoundIdForItemEvent(evtObjDam.attackPacket.weaponUsed, attacker, target, ItemSoundEffect.Hit);
             GameSystems.SoundGame.PositionalSound(soundId, attacker);
         }
 

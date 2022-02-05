@@ -27,18 +27,32 @@ namespace OpenTemple.Core.Systems;
 public class CritterSystem : IGameSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
+    
     private const bool IsEditor = false;
 
-    private Dictionary<int, string> _skillUi;
+    private readonly Dictionary<int, ImmutableList<string>> _addMeshes;    
 
+    private readonly Dictionary<int, string> _skillUi;
+    
+    [TempleDllLocation(0x1007e310)]
     public CritterSystem()
     {
+        // Vanilla used to load rules/xp_critter.mes and mes/critter.mes
+        // Those files are from Arcanum and unused in ToEE
+        
         _skillUi = Tig.FS.ReadMesFile("mes/skill_ui.mes");
 
-        Stub.TODO();
+        var mapping = Tig.FS.ReadMesFile("rules/addmesh.mes");
+        _addMeshes = new Dictionary<int, ImmutableList<string>>(mapping.Count);
+        foreach (var (key, line) in mapping)
+        {
+            _addMeshes[key] = line.Split(";", StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .ToImmutableList();
+        }
     }
 
+    [TempleDllLocation(0x1007e3f0)]
     public void Dispose()
     {
     }
@@ -661,9 +675,7 @@ public class CritterSystem : IGameSystem
             return null;
         }
     }
-
-    private Dictionary<int, ImmutableList<string>> _addMeshes;
-
+    
     /// <summary>
     /// This is called initially when the model is loaded for an object and adds NPC specific add meshes.
     /// </summary>
@@ -680,18 +692,6 @@ public class CritterSystem : IGameSystem
 
     private IImmutableList<string> GetAddMeshes(int matIdx, int raceOffset)
     {
-        if (_addMeshes == null)
-        {
-            var mapping = Tig.FS.ReadMesFile("rules/addmesh.mes");
-            _addMeshes = new Dictionary<int, ImmutableList<string>>(mapping.Count);
-            foreach (var (key, line) in mapping)
-            {
-                _addMeshes[key] = line.Split(";", StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim())
-                    .ToImmutableList();
-            }
-        }
-
         if (_addMeshes.TryGetValue(matIdx + raceOffset, out var materials))
         {
             return materials;

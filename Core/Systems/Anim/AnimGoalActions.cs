@@ -4566,7 +4566,7 @@ public static partial class AnimGoalActions
             weapon = GameSystems.Item.ItemWornAt(sourceObj, EquipSlot.WeaponSecondary);
         }
 
-        var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weapon, sourceObj, targetObj, 4);
+        var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(weapon, sourceObj, targetObj, ItemSoundEffect.Attacking);
         GameSystems.SoundGame.PositionalSound(soundId, 1, sourceObj);
 
         PlayWaterRipples(sourceObj);

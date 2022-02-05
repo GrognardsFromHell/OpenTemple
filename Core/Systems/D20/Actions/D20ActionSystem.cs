@@ -73,9 +73,9 @@ public class D20ActionSystem : IDisposable
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private AooIndicatorRenderer _aooIndicatorRenderer = new AooIndicatorRenderer();
+    private AooIndicatorRenderer _aooIndicatorRenderer = new();
 
-    private static readonly Dictionary<CursorType, string> CursorPaths = new Dictionary<CursorType, string>
+    private static readonly Dictionary<CursorType, string> CursorPaths = new()
     {
         {CursorType.AttackOfOpportunity, "art/interface/combat_ui/attack-of-opportunity.tga"},
         {CursorType.AttackOfOpportunityGrey, "art/interface/combat_ui/attack-of-opportunity-grey.tga"},
@@ -117,22 +117,20 @@ public class D20ActionSystem : IDisposable
     /// move actions and such.
     /// </summary>
     public event Action<D20Action>? OnActionStarted;
+
     public event Action<D20Action>? OnActionEnded;
 
-    private readonly Dictionary<int, PythonActionSpec> _pythonActions = new Dictionary<int, PythonActionSpec>();
+    private readonly Dictionary<int, PythonActionSpec> _pythonActions = new();
 
-    public D20Action globD20Action = new D20Action();
+    public D20Action globD20Action = new();
 
     private D20DispatcherKey globD20ActionKey;
 
-    [TempleDllLocation(0x118A09A0)]
-    private List<ActionSequence> actSeqArray = new List<ActionSequence>();
+    [TempleDllLocation(0x118A09A0)] private List<ActionSequence> actSeqArray = new();
 
-    [TempleDllLocation(0x118CD574)]
-    private ActionSequence? actSeqInterrupt;
+    [TempleDllLocation(0x118CD574)] private ActionSequence? actSeqInterrupt;
 
-    [TempleDllLocation(0x1186A8F0)]
-    internal ActionSequence? CurrentSequence { get; set; }
+    [TempleDllLocation(0x1186A8F0)] internal ActionSequence? CurrentSequence { get; set; }
 
     [TempleDllLocation(0x1008a090)]
     internal D20Action CurrentAction
@@ -144,61 +142,47 @@ public class D20ActionSystem : IDisposable
         }
     }
 
-    [TempleDllLocation(0x118CD2A0)]
-    internal int actSeqTargetsIdx => actSeqTargets.Count;
+    [TempleDllLocation(0x118CD2A0)] internal int actSeqTargetsIdx => actSeqTargets.Count;
 
-    [TempleDllLocation(0x118CD2A8)]
-    internal List<GameObject> actSeqTargets = new List<GameObject>();
+    [TempleDllLocation(0x118CD2A8)] internal List<GameObject> actSeqTargets = new();
 
-    [TempleDllLocation(0x118CD3A8)]
-    internal LocAndOffsets actSeqSpellLoc;
+    [TempleDllLocation(0x118CD3A8)] internal LocAndOffsets actSeqSpellLoc;
 
-    [TempleDllLocation(0x118CD400)]
-    private D20Action actSeqPickerAction;
+    [TempleDllLocation(0x118CD400)] private D20Action actSeqPickerAction;
 
-    [TempleDllLocation(0x10B3D5A0)]
-    internal bool actSeqPickerActive { get; private set; }
+    [TempleDllLocation(0x10B3D5A0)] internal bool actSeqPickerActive { get; private set; }
 
-    [TempleDllLocation(0x1186A900)]
-    private List<ReadiedActionPacket> _readiedActions = new List<ReadiedActionPacket>();
+    [TempleDllLocation(0x1186A900)] private List<ReadiedActionPacket> _readiedActions = new();
 
-    [TempleDllLocation(0x10B3BF48)]
-    private Dictionary<int, string> _translations;
+    [TempleDllLocation(0x10B3BF48)] private Dictionary<int, string> _translations;
 
     /// <summary>
     /// This is from vanilla. In general we could go as high as we want.
     /// </summary>
     private const int MaxSimultPerformers = 8;
 
-    [TempleDllLocation(0x118A06C0)]
-    [TempleDllLocation(0x10B3D5B8)]
-    private readonly List<GameObject> _simultPerformerQueue = new ();
+    [TempleDllLocation(0x118A06C0)] [TempleDllLocation(0x10B3D5B8)]
+    private readonly List<GameObject> _simultPerformerQueue = new();
 
     // Vanilla stored the object who this was for in _simultPerformerQueue[numSimultPerformers],
     // which essentially reused the area past the actual simultaneous performers for storing
     // the object for which the turn based status was saved.
     // I think this saves the turn based status for a critter who had to abort their sequence during
     // a simultaneous turn, so that it can be restored later.
-    [TempleDllLocation(0x118CD3C0)]
-    private (GameObject actor, TurnBasedStatus status)? _abortedSimultaneousSequence;
+    [TempleDllLocation(0x118CD3C0)] private (GameObject actor, TurnBasedStatus status)? _abortedSimultaneousSequence;
 
-    [TempleDllLocation(0x10B3D5BC)]
-    private int simulsIdx;
+    [TempleDllLocation(0x10B3D5BC)] private int simulsIdx;
 
-    [TempleDllLocation(0x10B3D59C)]
-    private int _aiTurnActions;
+    [TempleDllLocation(0x10B3D59C)] private int _aiTurnActions;
 
-    [TempleDllLocation(0x1186A8E8)]
-    private ResourceRef<ITexture> _aooIcon;
+    [TempleDllLocation(0x1186A8E8)] private ResourceRef<ITexture> _aooIcon;
 
-    [TempleDllLocation(0x1186A8EC)]
-    private ResourceRef<ITexture> _aooGreyIcon;
+    [TempleDllLocation(0x1186A8EC)] private ResourceRef<ITexture> _aooGreyIcon;
 
     [TempleDllLocation(0x10092800)]
     public D20ActionSystem()
     {
         _translations = Tig.FS.ReadMesFile("mes/action.mes");
-        Stub.TODO();
 
         _aooIcon = Tig.Textures.Resolve("art/interface/COMBAT_UI/Attack-of-Opportunity.tga", false);
         _aooGreyIcon = Tig.Textures.Resolve("art/interface/COMBAT_UI/Attack-of-Opportunity-Grey.tga", false);
@@ -308,8 +292,7 @@ public class D20ActionSystem : IDisposable
     }
 
     // describes the new hourglass state when current state is i after doing an action that costs j
-    [TempleDllLocation(0x102CC538)]
-    private static readonly int[,] TurnBasedStatusTransitionMatrix = new int[7, 5]
+    [TempleDllLocation(0x102CC538)] private static readonly int[,] TurnBasedStatusTransitionMatrix = new int[7, 5]
     {
         {0, -1, -1, -1, -1},
         {1, 0, -1, -1, -1},
@@ -795,6 +778,7 @@ public class D20ActionSystem : IDisposable
                     CurrentSequence);
                 CurrentSequence = newSequence;
             }
+
             Logger.Debug("SequenceSwitch: \t new Current Seq: {0}", CurrentSequence);
             return true;
         }
@@ -1114,7 +1098,8 @@ public class D20ActionSystem : IDisposable
                 }
                 else if (_aiTurnActions >= Globals.Config.AITurnMaxActions)
                 {
-                    Logger.Debug("Advancing turn for {0} because it exceeded the max. number of follow-up AI actions per turn: {1}",
+                    Logger.Debug(
+                        "Advancing turn for {0} because it exceeded the max. number of follow-up AI actions per turn: {1}",
                         CurrentSequence.performer, _aiTurnActions);
                     GameSystems.Combat.AdvanceTurn(GameSystems.D20.Initiative.CurrentActor);
                 }
@@ -2159,11 +2144,9 @@ public class D20ActionSystem : IDisposable
     [TempleDllLocation(0x118CD3B8)]
     internal D20TargetClassification seqPickerTargetingType = D20TargetClassification.Invalid;
 
-    [TempleDllLocation(0x118A0980)]
-    internal D20ActionType seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
+    [TempleDllLocation(0x118A0980)] internal D20ActionType seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
 
-    [TempleDllLocation(0x118CD570)]
-    internal int seqPickerD20ActnData1; // init to 0
+    [TempleDllLocation(0x118CD570)] internal int seqPickerD20ActnData1; // init to 0
 
     [TempleDllLocation(0x1008a0f0)]
     public bool SeqPickerHasTargetingType()
@@ -2521,14 +2504,11 @@ public class D20ActionSystem : IDisposable
         public GameObject ammoItem;
     }
 
-    [TempleDllLocation(0x118A0720)]
-    private List<ProjectileEntry> _projectiles = new List<ProjectileEntry>();
+    [TempleDllLocation(0x118A0720)] private readonly List<ProjectileEntry> _projectiles = new();
 
-    [TempleDllLocation(0x10B3D5A4)]
-    private ActionErrorCode actnProcState;
+    [TempleDllLocation(0x10B3D5A4)] private ActionErrorCode actnProcState;
 
-    [TempleDllLocation(0x10B3D5C4)]
-    private bool performedDefaultAction;
+    [TempleDllLocation(0x10B3D5C4)] private bool performedDefaultAction;
 
     [TempleDllLocation(0x1008B1E0)]
     public bool ProjectileAppend(D20Action action, GameObject projHndl, GameObject thrownItem)
@@ -2657,8 +2637,7 @@ public class D20ActionSystem : IDisposable
     [TempleDllLocation(0x100927f0)]
     public bool rollbackSequenceFlag { get; private set; }
 
-    [TempleDllLocation(0x10B3D5C0)]
-    public bool performingDefaultAction { get; set; }
+    [TempleDllLocation(0x10B3D5C0)] public bool performingDefaultAction { get; set; }
 
     [TempleDllLocation(0x10094f70)]
     internal ActionErrorCode MoveSequenceParse(D20Action d20aIn, ActionSequence actSeq, TurnBasedStatus tbStat,
@@ -4120,6 +4099,7 @@ public class D20ActionSystem : IDisposable
             Logger.Debug("Advancing to simul current {0}", ++simulsIdx);
             return true;
         }
+
         return false;
     }
 
@@ -4150,8 +4130,7 @@ public class D20ActionSystem : IDisposable
 
     #region Cursor management
 
-    [TempleDllLocation(0x10B3D5A8)]
-    private CursorType _currentCursor;
+    [TempleDllLocation(0x10B3D5A8)] private CursorType _currentCursor;
 
     [TempleDllLocation(0x11869244)] [TempleDllLocation(0x11869294)] [TempleDllLocation(0x1186926c)]
     private readonly List<string> _currentSequenceTooltips = new List<string>();
@@ -4293,15 +4272,14 @@ public class D20ActionSystem : IDisposable
         return result;
     }
 
-    [TempleDllLocation(0x11869240)]
-    private float _movementFeet;
+    [TempleDllLocation(0x11869240)] private float _movementFeet;
 
-    [TempleDllLocation(0x11869298)]
-    private ActionErrorCode _uiIntgameActionErrorCode;
+    [TempleDllLocation(0x11869298)] private ActionErrorCode _uiIntgameActionErrorCode;
 
     [TempleDllLocation(0x10097320)]
     [TemplePlusLocation("ui_intgame_turnbased.cpp:1044")]
-    public void HourglassUpdate(IGameViewport viewport, bool intgameAcquireOn, bool intgameSelectionConfirmed, bool showPathPreview)
+    public void HourglassUpdate(IGameViewport viewport, bool intgameAcquireOn, bool intgameSelectionConfirmed,
+        bool showPathPreview)
     {
         float greenMoveLength = 0.0f;
         float totalMoveLength = 0.0f;
@@ -4403,7 +4381,8 @@ public class D20ActionSystem : IDisposable
                     {
                         greenMoveLength = -1.0f;
                     }
-                    else if (GetHourglassTransition(tbStat.hourglassState, ActionCostType.FullRound) == HourglassState.INVALID)
+                    else if (GetHourglassTransition(tbStat.hourglassState, ActionCostType.FullRound) ==
+                             HourglassState.INVALID)
                     {
                         totalMoveLength = greenMoveLength;
                         greenMoveLength = -1.0f;

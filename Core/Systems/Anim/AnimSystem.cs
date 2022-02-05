@@ -2588,7 +2588,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         if (GameSystems.Party.IsInParty(sourceObj))
         {
-            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(targetObj, sourceObj, null, 0);
+            var soundId = GameSystems.SoundMap.GetSoundIdForItemEvent(targetObj, sourceObj, null, ItemSoundEffect.PickUp);
             GameSystems.SoundGame.PositionalSound(soundId, 1, sourceObj);
         }
 

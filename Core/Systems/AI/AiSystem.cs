@@ -2104,7 +2104,7 @@ public class AiSystem : IGameSystem, IModuleAwareSystem
                 return AiFightStatus.NONE;
             }
 
-            soundMap = GameSystems.SoundMap.GetCritterSoundEffect(critter, CritterSoundEffect.Unk5);
+            soundMap = GameSystems.SoundMap.GetCritterSoundEffect(critter, CritterSoundEffect.Alerted);
         }
 
         if (critter.IsPC())
