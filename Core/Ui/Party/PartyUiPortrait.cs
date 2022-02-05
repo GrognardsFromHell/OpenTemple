@@ -16,7 +16,7 @@ public class PartyUiPortrait : IDisposable
 
     public WidgetContainer Widget { get; }
 
-    private readonly List<BuffDebuffButton> _buffDebuffIcons = new List<BuffDebuffButton>();
+    private readonly List<BuffDebuffButton> _buffDebuffIcons = new();
 
     public event Action<PartyUiPortrait, MessageWidgetArgs> OnPortraitWidgetMsg;
 

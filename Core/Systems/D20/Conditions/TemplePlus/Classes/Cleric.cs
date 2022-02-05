@@ -27,7 +27,7 @@ public class Cleric
 {
     public static readonly Stat ClassId = Stat.level_cleric;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("cleric")
+    public static readonly D20ClassSpec ClassSpec = new("cleric")
     {
         classEnum = ClassId,
         helpTopic = "TAG_CLERICS",

@@ -47,13 +47,13 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
     /// <summary>
     /// Dummy save game info to represent making a new save when we're in save game mode.
     /// </summary>
-    private static readonly SaveGameInfo NewSaveDummy = new SaveGameInfo()
+    private static readonly SaveGameInfo NewSaveDummy = new()
     {
         Type = SaveGameType.NewSave
     };
 
     [TempleDllLocation(0x10c0a44c)]
-    private List<SaveGameInfo> _saves = new List<SaveGameInfo>();
+    private List<SaveGameInfo> _saves = new();
 
     private SaveGameInfo _selectedSave;
 

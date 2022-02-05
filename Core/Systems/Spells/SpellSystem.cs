@@ -45,11 +45,10 @@ public class SpellSystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSys
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private readonly Dictionary<int, List<SpellMultiOption>> _multiOptions
-        = new Dictionary<int, List<SpellMultiOption>>();
+    private readonly Dictionary<int, List<SpellMultiOption>> _multiOptions = new();
 
     [TempleDllLocation(0x10AAF218)]
-    private Dictionary<int, ActiveSpell> _activeSpells = new Dictionary<int, ActiveSpell>();
+    private Dictionary<int, ActiveSpell> _activeSpells = new();
 
     [TempleDllLocation(0x10BD0238)]
     private Dictionary<int, string> _spellsRadialMenuOptions;
@@ -777,28 +776,28 @@ return false;
 
     private static readonly EncodedAnimId[] WandAnimIds =
     {
-        new EncodedAnimId(NormalAnimType.WandAbjurationConjuring),
-        new EncodedAnimId(NormalAnimType.WandAbjurationConjuring),
-        new EncodedAnimId(NormalAnimType.WandConjurationConjuring),
-        new EncodedAnimId(NormalAnimType.WandDivinationConjuring),
-        new EncodedAnimId(NormalAnimType.WandEnchantmentConjuring),
-        new EncodedAnimId(NormalAnimType.WandEvocationConjuring),
-        new EncodedAnimId(NormalAnimType.WandIllusionConjuring),
-        new EncodedAnimId(NormalAnimType.WandNecromancyConjuring),
-        new EncodedAnimId(NormalAnimType.WandTransmutationConjuring)
+        new(NormalAnimType.WandAbjurationConjuring),
+        new(NormalAnimType.WandAbjurationConjuring),
+        new(NormalAnimType.WandConjurationConjuring),
+        new(NormalAnimType.WandDivinationConjuring),
+        new(NormalAnimType.WandEnchantmentConjuring),
+        new(NormalAnimType.WandEvocationConjuring),
+        new(NormalAnimType.WandIllusionConjuring),
+        new(NormalAnimType.WandNecromancyConjuring),
+        new(NormalAnimType.WandTransmutationConjuring)
     };
 
     private static readonly EncodedAnimId[] SpellSchoolAnimIds =
     {
-        new EncodedAnimId(NormalAnimType.AbjurationConjuring),
-        new EncodedAnimId(NormalAnimType.AbjurationConjuring),
-        new EncodedAnimId(NormalAnimType.ConjurationConjuring),
-        new EncodedAnimId(NormalAnimType.DivinationConjuring),
-        new EncodedAnimId(NormalAnimType.EnchantmentConjuring),
-        new EncodedAnimId(NormalAnimType.EvocationConjuring),
-        new EncodedAnimId(NormalAnimType.IllusionConjuring),
-        new EncodedAnimId(NormalAnimType.NecromancyConjuring),
-        new EncodedAnimId(NormalAnimType.TransmutationConjuring)
+        new(NormalAnimType.AbjurationConjuring),
+        new(NormalAnimType.AbjurationConjuring),
+        new(NormalAnimType.ConjurationConjuring),
+        new(NormalAnimType.DivinationConjuring),
+        new(NormalAnimType.EnchantmentConjuring),
+        new(NormalAnimType.EvocationConjuring),
+        new(NormalAnimType.IllusionConjuring),
+        new(NormalAnimType.NecromancyConjuring),
+        new(NormalAnimType.TransmutationConjuring)
     };
 
     [TempleDllLocation(0x100757c0)]

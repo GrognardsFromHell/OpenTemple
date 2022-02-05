@@ -33,9 +33,9 @@ public class AiTactic
 public class AiStrategy
 {
     public string name { get; }
-    public List<AiTacticDef> aiTacDefs = new List<AiTacticDef>();
-    public List<int> field54 = new List<int>();
-    public List<SpellStoreData> spellsKnown = new List<SpellStoreData>();
+    public List<AiTacticDef> aiTacDefs = new();
+    public List<int> field54 = new();
+    public List<SpellStoreData> spellsKnown = new();
     public int numTactics => aiTacDefs.Count;
 
     public AiStrategy(string name)

@@ -57,7 +57,7 @@ public class ObjFadeSystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameS
     private int _serial;
 
     [TempleDllLocation(0x10AA3230)]
-    private readonly Dictionary<int, ObjFadeArgs> _objFadeTable = new Dictionary<int, ObjFadeArgs>();
+    private readonly Dictionary<int, ObjFadeArgs> _objFadeTable = new();
 
     [TempleDllLocation(0x1004c130)]
     public ObjFadeSystem()

@@ -13,7 +13,7 @@ public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem, IRes
     [TempleDllLocation(0x109dd854)]
     public SleepStatus SleepStatus { get; set; }
 
-    private List<int> _encounterQueue = new List<int>();
+    private List<int> _encounterQueue = new();
 
     public bool TryTakeQueuedEncounter(out int encounterId)
     {
@@ -134,7 +134,7 @@ public class RandomEncounter
     public int Title { get; set; }
     public int DC { get; set; }
     public int Map { get; set; }
-    public List<RandomEncounterEnemy> Enemies { get; set; } = new List<RandomEncounterEnemy>();
+    public List<RandomEncounterEnemy> Enemies { get; set; } = new();
     public locXY Location { get; set; }
 
     public void AddEnemies(int protoId, int count)

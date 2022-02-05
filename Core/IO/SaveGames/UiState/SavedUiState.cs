@@ -8,7 +8,7 @@ public class SavedUiState
     private const uint Sentinel = 0xBEEFCAFEu;
 
     // Initialized here because it's unused (and never set)
-    public SavedRandomEncounterUiState RandomEncounterState { get; set; } = new SavedRandomEncounterUiState();
+    public SavedRandomEncounterUiState RandomEncounterState { get; set; } = new();
     public SavedDialogUiState DialogState { get; set; }
     public SavedLogbookUiState LogbookState { get; set; }
     public SavedTownmapUiState TownmapState { get; set; }

@@ -32,7 +32,7 @@ public class PCCreationUi : IDisposable
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     // TODO: Provide a way to customize. Co8 uses starting map 5107 for all alignments
-    private static readonly Dictionary<Alignment, int> StartMaps = new Dictionary<Alignment, int>
+    private static readonly Dictionary<Alignment, int> StartMaps = new()
     {
         {Alignment.TRUE_NEUTRAL, 5100},
         {Alignment.LAWFUL_NEUTRAL, 5103},
@@ -52,10 +52,10 @@ public class PCCreationUi : IDisposable
     private int dword_10BDB8E4 = 1000;
 
     [TempleDllLocation(0x102f7938)]
-    private readonly List<IChargenSystem> chargenSystems = new List<IChargenSystem>();
+    private readonly List<IChargenSystem> chargenSystems = new();
 
     [TempleDllLocation(0x11e72f00)]
-    private CharEditorSelectionPacket charEdSelPkt = new CharEditorSelectionPacket();
+    private CharEditorSelectionPacket charEdSelPkt = new();
 
     [TempleDllLocation(0x10bddd18)]
     private WidgetContainer _mainWindow;
@@ -87,7 +87,7 @@ public class PCCreationUi : IDisposable
     [TempleDllLocation(0x11e741a0)]
     private GameObject charEditorObjHnd;
 
-    private readonly PartyAlignmentUi _partyAlignmentUi = new PartyAlignmentUi();
+    private readonly PartyAlignmentUi _partyAlignmentUi = new();
 
     private readonly IComparer<SpellStoreData> _spellPriorityComparer;
 
@@ -736,7 +736,7 @@ public class PCCreationUi : IDisposable
             {
                 D20RollHistoryLine.Create(topic.Title),
                 D20RollHistoryLine.Create("\n"),
-                new D20RollHistoryLine(topic.Text, topic.Links)
+                new(topic.Text, topic.Links)
             });
         }
         else
@@ -811,7 +811,7 @@ public class CharEditorSelectionPacket
     public FeatId? feat0;
     public FeatId? feat1;
     public FeatId? feat2;
-    public Dictionary<SkillId, int> skillPointsAdded = new Dictionary<SkillId, int>(); // idx corresponds to skill enum
+    public Dictionary<SkillId, int> skillPointsAdded = new(); // idx corresponds to skill enum
     public int skillPointsSpent;
     public int availableSkillPoints;
     public int[] spellEnums = new int[SpellSystem.SPELL_ENUM_MAX_VANILLA];

@@ -177,7 +177,7 @@ public class D20StatusSystem
     }
 
     private static readonly Dictionary<DomainId, MappedDomainCondition> DomainConditionMapping =
-        new Dictionary<DomainId, MappedDomainCondition>
+        new()
         {
             {DomainId.Air, new MappedDomainCondition(DomainConditions.TurnUndead, 5, 0)},
             {DomainId.Animal, new MappedDomainCondition(DomainConditions.AnimalDomain, 0, 0)},

@@ -7,7 +7,7 @@ namespace OpenTemple.Core.Systems.RadialMenus;
 public class RadialMenu
 {
     public GameObject obj { get; } // For which object is this the radial menu?
-    public List<RadialMenuNode> nodes = new List<RadialMenuNode>();
+    public List<RadialMenuNode> nodes = new();
     private readonly IComparer<int> _radialMenuNodeComparer;
 
     public RadialMenu(GameObject obj)
@@ -52,7 +52,7 @@ public class RadialMenuNode
     public RadialMenuEntry entry;
 
     // Indices of children in the radial menu
-    public List<int> children = new List<int>();
+    public List<int> children = new();
 
     // Index of parent node or -1
     public int parent = -1;

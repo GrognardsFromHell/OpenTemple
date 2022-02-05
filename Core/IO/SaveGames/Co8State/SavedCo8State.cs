@@ -10,15 +10,15 @@ namespace OpenTemple.Core.IO.SaveGames.Co8State;
 
 public class SavedCo8State
 {
-    public Dictionary<string, string> PersistentData { get; } = new Dictionary<string, string>();
+    public Dictionary<string, string> PersistentData { get; } = new();
 
-    public Dictionary<string, bool> Flags { get; set; } = new Dictionary<string, bool>();
+    public Dictionary<string, bool> Flags { get; set; } = new();
 
-    public Dictionary<string, int> Vars { get; set; } = new Dictionary<string, int>();
+    public Dictionary<string, int> Vars { get; set; } = new();
 
-    public Dictionary<string, string> StringVars { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, string> StringVars { get; set; } = new();
 
-    public Dictionary<int, ObjectId[]> ActiveSpellTargets { get; set; } = new Dictionary<int, ObjectId[]>();
+    public Dictionary<int, ObjectId[]> ActiveSpellTargets { get; set; } = new();
 
     public static SavedCo8State Load(string co8Path)
     {

@@ -68,9 +68,9 @@ public class TownMapContent : WidgetButtonBase
 
     private readonly TownMapTileRenderer _tileRenderer;
 
-    private readonly List<TownMapMarker> _markers = new List<TownMapMarker>();
+    private readonly List<TownMapMarker> _markers = new();
 
-    private readonly List<WidgetImage> _markerImages = new List<WidgetImage>();
+    private readonly List<WidgetImage> _markerImages = new();
 
     public List<TownMapMarker> Markers
     {
@@ -87,9 +87,9 @@ public class TownMapContent : WidgetButtonBase
 
     public event Action<TownMapMarker> OnMarkerRemoved;
 
-    private readonly List<locXY> _partyPositions = new List<locXY>();
+    private readonly List<locXY> _partyPositions = new();
 
-    private readonly List<WidgetImage> _partyPositionImages = new List<WidgetImage>();
+    private readonly List<WidgetImage> _partyPositionImages = new();
 
     public List<locXY> PartyPositions
     {
@@ -599,7 +599,7 @@ public class TownMapContent : WidgetButtonBase
         }
     }
 
-    private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
+    private readonly WidgetTooltipRenderer _tooltipRenderer = new();
     private TownMapControlMode _controlMode = TownMapControlMode.Pan;
 
     [TempleDllLocation(0x1012c180)]
@@ -638,7 +638,7 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x10028ec0)]
     public static Vector2 TileToWorld(locXY tilePos)
     {
-        return new (
+        return new Vector2(
             (tilePos.locy - tilePos.locx - 1) * 20,
             (tilePos.locy + tilePos.locx) * 14
         );

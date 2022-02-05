@@ -10,7 +10,7 @@ public sealed class CritterGroup : IList<GameObject>, IReadOnlyList<GameObject>
 {
     private IComparer<GameObject> _comparer;
 
-    private readonly List<GameObject> _members = new List<GameObject>();
+    private readonly List<GameObject> _members = new();
 
     public void Sort()
     {

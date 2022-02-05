@@ -17,20 +17,19 @@ public class PlayerVoiceSet
     public bool Male { get; }
 
     // Lines that do not have a context
-    private readonly Dictionary<PlayerVoiceLine, List<string>> _lines =
-        new Dictionary<PlayerVoiceLine, List<string>>();
+    private readonly Dictionary<PlayerVoiceLine, List<string>> _lines = new();
 
     // Lines depending on area
     // Keys 1200-1299
-    private readonly Dictionary<int, string> _areaFirstVisited = new Dictionary<int, string>();
+    private readonly Dictionary<int, string> _areaFirstVisited = new();
 
     // Lines depending on tagged scenery
     // Keys 1400-1499
-    private readonly Dictionary<int, string> _taggedScenerySeen = new Dictionary<int, string>();
+    private readonly Dictionary<int, string> _taggedScenerySeen = new();
 
     // Lines depending on deity
     // Keys 3000-3099
-    private readonly Dictionary<DeityId, string> _divinePowerUsed = new Dictionary<DeityId, string>();
+    private readonly Dictionary<DeityId, string> _divinePowerUsed = new();
 
     public PlayerVoiceSet(int key, string name, string ruleFilename)
     {

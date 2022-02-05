@@ -9,7 +9,7 @@ namespace OpenTemple.Core.Systems;
 
 public class InvenSourceSystem : IGameSystem
 {
-    private readonly Dictionary<int, InventorySource> _sources = new Dictionary<int, InventorySource>();
+    private readonly Dictionary<int, InventorySource> _sources = new();
 
     [TempleDllLocation(0x10053220)]
     public InvenSourceSystem()
@@ -236,9 +236,9 @@ public class InventorySource
     public int JewelryMaxValue { get; set; }
     public int BuyListId { get; set; }
 
-    public List<InventorySourceItem> Items { get; } = new List<InventorySourceItem>();
+    public List<InventorySourceItem> Items { get; } = new();
 
-    public List<List<int>> OneOfLists { get; } = new List<List<int>>();
+    public List<List<int>> OneOfLists { get; } = new();
 
     public InventorySource(int id)
     {

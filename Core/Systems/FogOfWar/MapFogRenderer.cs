@@ -176,7 +176,7 @@ public class FogOfWarRenderer : IDisposable
 		samplerState.minFilter = TextureFilterType.Linear;
 
 		MaterialSamplerSpec[] samplers = {
-			new MaterialSamplerSpec(new ResourceRef<ITexture>(_blurredFogTexture.Resource), samplerState)
+			new(new ResourceRef<ITexture>(_blurredFogTexture.Resource), samplerState)
 		};
 
 		_material.Dispose();

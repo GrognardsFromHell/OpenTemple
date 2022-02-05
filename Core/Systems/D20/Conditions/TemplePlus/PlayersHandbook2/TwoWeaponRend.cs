@@ -27,8 +27,8 @@ public class TwoWeaponRend
     // Rend information would be lost if the game is saved in the middle of a full attack
     // but this shouldn't be a significant problem.
 
-    private static readonly List<GameObject> primaryList = new List<GameObject>();
-    private static readonly List<GameObject> secondaryList = new List<GameObject>();
+    private static readonly List<GameObject> primaryList = new();
+    private static readonly List<GameObject> secondaryList = new();
     public static void TwoWeaponRendBeginRound(in DispatcherCallbackArgs evt)
     {
         // Clear out the list of enemies hit with the primary and secondary weapon

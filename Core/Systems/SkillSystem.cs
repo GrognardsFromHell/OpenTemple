@@ -37,22 +37,22 @@ public class SkillSystem : IGameSystem
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x102cba30)]
-    private readonly Dictionary<SkillId, SkillProps> _skills = new Dictionary<SkillId, SkillProps>();
+    private readonly Dictionary<SkillId, SkillProps> _skills = new();
 
-    private readonly Dictionary<SkillId, string> _skillNames = new Dictionary<SkillId, string>();
+    private readonly Dictionary<SkillId, string> _skillNames = new();
 
-    private readonly Dictionary<SkillId, string> _skillNamesEnglish = new Dictionary<SkillId, string>();
+    private readonly Dictionary<SkillId, string> _skillNamesEnglish = new();
 
-    private readonly Dictionary<SkillId, string> _skillShortDescriptions = new Dictionary<SkillId, string>();
+    private readonly Dictionary<SkillId, string> _skillShortDescriptions = new();
 
-    private readonly Dictionary<string, SkillId> _skillByEnumNames = new Dictionary<string, SkillId>();
-    private readonly Dictionary<SkillId, string> _skillEnumNames = new Dictionary<SkillId, string>();
+    private readonly Dictionary<string, SkillId> _skillByEnumNames = new();
+    private readonly Dictionary<SkillId, string> _skillEnumNames = new();
 
-    private readonly Dictionary<SkillId, string> _skillHelpTopics = new Dictionary<SkillId, string>();
+    private readonly Dictionary<SkillId, string> _skillHelpTopics = new();
 
-    private readonly Dictionary<SkillMessageId, string> _skillMessages = new Dictionary<SkillMessageId, string>();
+    private readonly Dictionary<SkillMessageId, string> _skillMessages = new();
 
-    private readonly Dictionary<int, string> _skillUiMessages = new Dictionary<int, string>();
+    private readonly Dictionary<int, string> _skillUiMessages = new();
 
     // Compares two skills by their translated name
     public IComparer<SkillId> SkillNameComparer { get; }

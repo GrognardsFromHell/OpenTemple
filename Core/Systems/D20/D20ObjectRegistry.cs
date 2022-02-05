@@ -11,7 +11,7 @@ public class D20ObjectRegistry : IDisposable
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10BCAD94)] [TempleDllLocation(0x10BCAD98)]
-    private readonly List<GameObject> _objects = new List<GameObject>();
+    private readonly List<GameObject> _objects = new();
 
     public IEnumerable<GameObject> Objects => _objects;
 

@@ -56,7 +56,7 @@ public class FavoredSoul
         IsIgnoreRequirements = true
     }).ToImmutableList();
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("favored_soul")
+    public static readonly D20ClassSpec ClassSpec = new("favored_soul")
     {
         classEnum = ClassId,
         helpTopic = "TAG_FAVORED_SOULS",

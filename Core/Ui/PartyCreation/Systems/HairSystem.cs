@@ -28,14 +28,14 @@ internal class HairSystem : IChargenSystem
     private static readonly PackedLinearColorA[] HairColors =
     {
         // 0-7 Hair Colors (RGBA)
-        new PackedLinearColorA(24, 22, 30, 255), //Black
-        new PackedLinearColorA(255, 224, 146, 255), //Blonde
-        new PackedLinearColorA(68, 146, 192, 255), //Blue
-        new PackedLinearColorA(115, 75, 67, 255), //Brown
-        new PackedLinearColorA(207, 144, 102, 255), //LtBrown
-        new PackedLinearColorA(223, 158, 205, 255), //Pink
-        new PackedLinearColorA(217, 131, 75, 255), //Red
-        new PackedLinearColorA(251, 251, 251, 255), //White
+        new(24, 22, 30, 255), //Black
+        new(255, 224, 146, 255), //Blonde
+        new(68, 146, 192, 255), //Blue
+        new(115, 75, 67, 255), //Brown
+        new(207, 144, 102, 255), //LtBrown
+        new(223, 158, 205, 255), //Pink
+        new(217, 131, 75, 255), //Red
+        new(251, 251, 251, 255), //White
     };
 
     private static readonly HairStyle[] HairStyles =

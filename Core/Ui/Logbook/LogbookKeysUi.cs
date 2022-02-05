@@ -22,7 +22,7 @@ public class LogbookKeysUi : IDisposable
     private bool _showPopupForNewKey = true;
 
     [TempleDllLocation(0x10c4c698)]
-    private readonly Dictionary<int, KeylogEntry> _keys = new Dictionary<int, KeylogEntry>();
+    private readonly Dictionary<int, KeylogEntry> _keys = new();
 
     public WidgetContainer Container { get; }
 
@@ -32,7 +32,7 @@ public class LogbookKeysUi : IDisposable
     [TempleDllLocation(0x10c4c680)]
     private readonly LogbookKeyButton[] _rows = new LogbookKeyButton[10];
 
-    private readonly LogbookKeyTranslations _translations = new LogbookKeyTranslations();
+    private readonly LogbookKeyTranslations _translations = new();
 
     private LogbookKeyDetailsUi _details;
 

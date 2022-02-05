@@ -13,10 +13,10 @@ public class SpellDescriptors : IEnumerable<SpellEntry>
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private static readonly Regex FilenamePattern = new Regex(@"^(\d+).*");
+    private static readonly Regex FilenamePattern = new(@"^(\d+).*");
 
     [TempleDllLocation(0x10AAF428)]
-    private readonly Dictionary<int, SpellEntry> _spells = new Dictionary<int, SpellEntry>();
+    private readonly Dictionary<int, SpellEntry> _spells = new();
 
     [TempleDllLocation(0x1007B5B0)]
     public SpellDescriptors()

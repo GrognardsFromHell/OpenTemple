@@ -6,7 +6,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState;
 
 public class SavedDescriptionState
 {
-    public List<string> CustomNames { get; set; } = new List<string>();
+    public List<string> CustomNames { get; set; } = new();
 
     [TempleDllLocation(0x100868b0)]
     public static SavedDescriptionState Read(BinaryReader reader)

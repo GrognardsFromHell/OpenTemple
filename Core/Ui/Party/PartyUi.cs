@@ -28,7 +28,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
     public GameObject ForcePressed { get; set; }
 
     [TempleDllLocation(0x10BE2E98)]
-    private List<PartyUiPortrait> _portraits = new List<PartyUiPortrait>();
+    private List<PartyUiPortrait> _portraits = new();
 
     [TempleDllLocation(0x10BE33E0)]
     private bool ui_party_widgets_need_refresh;

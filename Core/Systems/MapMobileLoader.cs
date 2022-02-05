@@ -25,7 +25,7 @@ public class MapMobileLoader
 
     private readonly IFileSystem _fs;
 
-    private readonly Dictionary<ObjectId, GameObject> _mobiles = new Dictionary<ObjectId, GameObject>();
+    private readonly Dictionary<ObjectId, GameObject> _mobiles = new();
 
     public IEnumerable<GameObject> Mobiles => _mobiles.Values;
 

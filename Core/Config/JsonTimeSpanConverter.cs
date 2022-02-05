@@ -6,7 +6,7 @@ namespace OpenTemple.Core.Config;
 
 public class JsonTimeSpanConverter : JsonConverterFactory
 {
-    private readonly Converter _converter = new Converter();
+    private readonly Converter _converter = new();
 
     public override bool CanConvert(Type typeToConvert)
     {

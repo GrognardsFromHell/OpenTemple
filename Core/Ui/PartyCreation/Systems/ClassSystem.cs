@@ -17,7 +17,7 @@ internal class ClassSystem : IChargenSystem
 
     public WidgetContainer Container { get; private set; }
 
-    private readonly SelectionList<Stat?> _classList = new SelectionList<Stat?>();
+    private readonly SelectionList<Stat?> _classList = new();
 
     private CharEditorSelectionPacket _pkt;
 

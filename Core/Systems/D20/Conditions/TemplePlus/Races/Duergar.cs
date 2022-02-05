@@ -25,7 +25,7 @@ public class Duergar
 {
     public const RaceId Id = RaceId.dwarf + (3 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.dwarf, Subrace.duergar)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.dwarf, Subrace.duergar)
     {
         effectiveLevel = 1,
         helpTopic = "TAG_DUERGAR",

@@ -42,7 +42,7 @@ public class AiSystem : IGameSystem, IModuleAwareSystem
     [TempleDllLocation(0x102BD4E0)]
     public bool IsNpcFightingAllowed { get; set; } = true;
 
-    private AiStrategies _strategies = new AiStrategies();
+    private AiStrategies _strategies = new();
 
     [TempleDllLocation(0x10056d50)]
     public AiSystem()

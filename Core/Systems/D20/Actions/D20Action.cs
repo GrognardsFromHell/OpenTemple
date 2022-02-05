@@ -85,7 +85,7 @@ public class D20Action
 	public int rollHistId1 = -1;
 	public int rollHistId2 = -1;
 
-	public D20SpellData d20SpellData = new D20SpellData();
+	public D20SpellData d20SpellData = new();
 	public int spellId;
 	public int animID;
 	public PathQueryResult path;

@@ -48,10 +48,10 @@ internal class Quest
 public class QuestSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
 {
     [TempleDllLocation(0x10aa73dc)]
-    private readonly Dictionary<int, Quest> _quests = new Dictionary<int, Quest>();
+    private readonly Dictionary<int, Quest> _quests = new();
 
     [TempleDllLocation(0x10aa73d8)]
-    private readonly Dictionary<int, QuestState> _questStates = new Dictionary<int, QuestState>();
+    private readonly Dictionary<int, QuestState> _questStates = new();
 
     [TempleDllLocation(0x1005f660)]
     public QuestSystem()

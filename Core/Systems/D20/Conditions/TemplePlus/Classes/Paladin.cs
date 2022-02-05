@@ -27,7 +27,7 @@ public class Paladin
 {
     public static readonly Stat ClassId = Stat.level_paladin;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("paladin")
+    public static readonly D20ClassSpec ClassSpec = new("paladin")
     {
         classEnum = ClassId,
         helpTopic = "TAG_PALADINS",

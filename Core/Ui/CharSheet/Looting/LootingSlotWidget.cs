@@ -10,7 +10,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting;
 
 public class LootingSlotWidget : WidgetContainer
 {
-    public static readonly Size Size = new Size(50, 51);
+    public static readonly Size Size = new(50, 51);
     public const int MarginRight = 3;
     public const int MarginBottom = 3;
 
@@ -29,7 +29,7 @@ public class LootingSlotWidget : WidgetContainer
 
     private readonly WidgetText _quantityLabel;
 
-    private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
+    private readonly WidgetTooltipRenderer _tooltipRenderer = new();
 
     private readonly ItemSlotBehavior _behavior;
 

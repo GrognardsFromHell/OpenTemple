@@ -55,8 +55,6 @@ public class ItemSystem : IGameSystem
         }
 
         _junkpileActive = true;
-
-        Stub.TODO();
     }
 
     [TempleDllLocation(0x10063dc0)]
@@ -908,28 +906,28 @@ public class ItemSystem : IGameSystem
     [TempleDllLocation(0x102be7a4)]
     private static readonly ValuableSpec[] GemTypes =
     {
-        new ValuableSpec(50, 12041, 12042),
+        new(50, 12041, 12042),
         // NOTE: Vanilla skipped the following line of gems
-        new ValuableSpec(100, 12035, 12040),
-        new ValuableSpec(500, 12034, 12039),
-        new ValuableSpec(1000, 12010, 12038),
-        new ValuableSpec(5000, 12036, 12037)
+        new(100, 12035, 12040),
+        new(500, 12034, 12039),
+        new(1000, 12010, 12038),
+        new(5000, 12036, 12037)
     };
 
     // These MUST be sorted in ascending order of value
     [TempleDllLocation(0x102BE7EC)]
     private static readonly ValuableSpec[] JewelryTypes =
     {
-        new ValuableSpec(50, 6180, 6190),
+        new(50, 6180, 6190),
         // NOTE: Vanilla skipped the following line of valuables
-        new ValuableSpec(100, 6181, 6185),
-        new ValuableSpec(250, 6182, 6194),
-        new ValuableSpec(500, 6186, 6191),
-        new ValuableSpec(750, 6183, 6193),
-        new ValuableSpec(1000, 6184, 6192),
-        new ValuableSpec(2500, 6187, 6197),
-        new ValuableSpec(5000, 6188, 6195),
-        new ValuableSpec(7500, 6189, 6196)
+        new(100, 6181, 6185),
+        new(250, 6182, 6194),
+        new(500, 6186, 6191),
+        new(750, 6183, 6193),
+        new(1000, 6184, 6192),
+        new(2500, 6187, 6197),
+        new(5000, 6188, 6195),
+        new(7500, 6189, 6196)
     };
 
     [TempleDllLocation(0x1006b780)]

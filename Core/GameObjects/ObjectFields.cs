@@ -62,7 +62,7 @@ public static class ObjectFields
     private const int sSectionCount = 20;
 
     private static readonly Dictionary<obj_f, ObjectFieldType> sFieldTypeMapping =
-        new Dictionary<obj_f, ObjectFieldType>
+        new()
         {
             {obj_f.begin, ObjectFieldType.BeginSection},
             {obj_f.location, ObjectFieldType.Int64},

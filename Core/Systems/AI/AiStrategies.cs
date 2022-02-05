@@ -13,9 +13,9 @@ internal class AiStrategies
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private readonly List<AiStrategy> aiStrategies = new List<AiStrategy>();
+    private readonly List<AiStrategy> aiStrategies = new();
 
-    private readonly Dictionary<int, AiStrategy> aiCustomStrats = new Dictionary<int, AiStrategy>();
+    private readonly Dictionary<int, AiStrategy> aiCustomStrats = new();
 
     internal void LoadStrategies(string path)
     {

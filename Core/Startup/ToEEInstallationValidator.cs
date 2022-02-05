@@ -56,5 +56,5 @@ public class ValidationReport
 {
     public bool IsValid { get; set; }
 
-    public List<string> Messages { get; } = new List<string>();
+    public List<string> Messages { get; } = new();
 }

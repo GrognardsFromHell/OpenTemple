@@ -77,7 +77,7 @@ public class SecretdoorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwa
     // after they have detected one end of it.
     // TODO: Validate this. They should actually only get to know the other end once they've used the secret passage
     [TempleDllLocation(0x109DD880)]
-    private readonly List<int> _nameListSeen = new List<int>();
+    private readonly List<int> _nameListSeen = new();
 
     [TempleDllLocation(0x10046550)]
     public void MarkUsed(GameObject target)

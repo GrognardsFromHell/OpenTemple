@@ -29,7 +29,7 @@ public class SparseArray<T> : IReadOnlyList<T>, ISparseArray, IDisposable where 
     /// <summary>
     /// Returns a new empty array of this type.
     /// </summary>
-    public static SparseArray<T> Empty => new SparseArray<T>();
+    public static SparseArray<T> Empty => new();
 
     public bool HasIndex(int index)
     {

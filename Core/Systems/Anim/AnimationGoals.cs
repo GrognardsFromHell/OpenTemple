@@ -191,7 +191,7 @@ public class AnimationGoals
     private const int DELAY_SLOT = AnimStateTransition.DelaySlot;
     private const int DELAY_RANDOM = AnimStateTransition.DelayRandom;
 
-    private Dictionary<AnimGoalType, AnimGoal> _goals = new Dictionary<AnimGoalType,AnimGoal>();
+    private Dictionary<AnimGoalType, AnimGoal> _goals = new();
 
     private void Add(AnimGoal goal)
     {

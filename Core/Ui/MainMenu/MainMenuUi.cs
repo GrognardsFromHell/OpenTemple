@@ -312,7 +312,7 @@ public class MainMenuUi : IDisposable
     private WidgetContainer mMainWidget;
 
     private Dictionary<MainMenuPage, WidgetContainer>
-        mPageWidgets = new Dictionary<MainMenuPage, WidgetContainer>();
+        mPageWidgets = new();
 
     // The widget that contains all pages
     private WidgetContainer mPagesWidget;
@@ -493,12 +493,12 @@ class ViewCinematicsDialog
 
     private int mSelection = 0;
     private WidgetContainer mWidget;
-    private Dictionary<int, string> mMovieNames = new Dictionary<int, string>();
+    private Dictionary<int, string> mMovieNames = new();
     private WidgetScrollView mListBox;
-    private List<WidgetButton> btnIds = new List<WidgetButton>();
-    private List<int> seenIndices = new List<int>(); // indices into movieIds / mMovieNames
+    private List<WidgetButton> btnIds = new();
+    private List<int> seenIndices = new(); // indices into movieIds / mMovieNames
 
-    private List<int> movieIds = new List<int>
+    private List<int> movieIds = new()
     {
         1000, 1009, 1007,
         1012, 1002, 1015,

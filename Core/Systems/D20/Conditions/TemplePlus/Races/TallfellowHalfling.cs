@@ -27,7 +27,7 @@ public class TallfellowHalfling
 
     private const RaceId Id = RaceId.halfling + (1 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.halfling, Subrace.tallfellow)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.halfling, Subrace.tallfellow)
     {
         effectiveLevel = 0,
         helpTopic = "TAG_TALLFELLOW_HALFLING",

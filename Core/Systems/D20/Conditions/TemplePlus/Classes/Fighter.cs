@@ -31,7 +31,7 @@ public class Fighter
         MeleeWeaponMastery.BaseFeatId, VexingFlanker.Id, RangedWeaponMastery.BaseFeatId
     }.Select(f => new SelectableFeat(f)).ToImmutableList();
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("fighter")
+    public static readonly D20ClassSpec ClassSpec = new("fighter")
     {
         classEnum = ClassId,
         helpTopic = "TAG_FIGHTERS",

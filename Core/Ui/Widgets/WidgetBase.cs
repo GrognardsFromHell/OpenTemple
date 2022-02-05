@@ -391,7 +391,7 @@ public class WidgetBase : Styleable, IDisposable
 
     public Rectangle Rectangle
     {
-        get => new Rectangle(GetPos(), GetSize());
+        get => new(GetPos(), GetSize());
         set
         {
             SetPos(value.Location);
@@ -656,7 +656,7 @@ public class WidgetBase : Styleable, IDisposable
     protected Func<MessageKeyStateChangeArgs, bool> mKeyStateChangeHandler;
     protected Func<MessageCharArgs, bool> mCharHandler;
 
-    protected List<WidgetContent> _content = new List<WidgetContent>();
+    protected List<WidgetContent> _content = new();
     private bool _visible = true;
 
 

@@ -52,7 +52,7 @@ public static class CompassDirectionExtensions
 
 public struct locXY
 {
-    public static locXY Zero = new locXY(0, 0);
+    public static locXY Zero = new(0, 0);
 
     public const float INCH_PER_TILE = 28.284271247461900976033774484194f; // SQRT(800)
 
@@ -241,7 +241,7 @@ public struct locXY
 
 public struct LocAndOffsets
 {
-    public static LocAndOffsets Zero => new LocAndOffsets(0, 0, 0, 0);
+    public static LocAndOffsets Zero => new(0, 0, 0, 0);
 
     public locXY location;
     public float off_x;

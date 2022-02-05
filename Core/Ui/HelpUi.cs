@@ -350,8 +350,8 @@ public static class ScrollBoxHelpExtensions
 
         scrollBox.SetEntries(new List<D20RollHistoryLine>
         {
-            new D20RollHistoryLine(firstLine, new List<D20HelpLink>()),
-            new D20RollHistoryLine(topic.Text, topic.Links)
+            new(firstLine, new List<D20HelpLink>()),
+            new(topic.Text, topic.Links)
         });
     }
 }

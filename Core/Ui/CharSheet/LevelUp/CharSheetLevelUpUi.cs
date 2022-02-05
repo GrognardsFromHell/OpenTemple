@@ -6,7 +6,7 @@ namespace OpenTemple.Core.Ui.CharSheet.LevelUp;
 public class CharSheetLevelUpUi : IDisposable
 {
     [TempleDllLocation(0x102FA6C8)]
-    private List<ICharGenSystem> _levelUpSystems = new List<ICharGenSystem>();
+    private List<ICharGenSystem> _levelUpSystems = new();
 
     [TempleDllLocation(0x10BE9970)]
     private bool dword_10BE9970;

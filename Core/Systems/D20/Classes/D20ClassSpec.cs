@@ -73,7 +73,7 @@ public class D20ClassSpec
     public Stat spellDcStat = Stat.strength; // stat that determines spell DC level
     public bool hasArmoredArcaneCasterFeature;
 
-    public List<ICritterRequirement> Requirements { get; set; } = new List<ICritterRequirement>();
+    public List<ICritterRequirement> Requirements { get; set; } = new();
 
     public D20ClassSpec(string id)
     {

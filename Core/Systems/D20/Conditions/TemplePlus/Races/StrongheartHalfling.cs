@@ -25,7 +25,7 @@ public class StrongheartHalfling
 {
     private const RaceId Id = RaceId.halfling + (3 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.halfling, Subrace.strongheart_halfling)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.halfling, Subrace.strongheart_halfling)
     {
         effectiveLevel = 0,
         helpTopic = "TAG_STRONGHEART_HALFLING",

@@ -32,7 +32,7 @@ public class MysticTheurge
 
     public const Stat ClassId = Stat.level_mystic_theurge;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("mystic_theurge")
+    public static readonly D20ClassSpec ClassSpec = new("mystic_theurge")
     {
         classEnum = ClassId,
         helpTopic = "TAG_MYSTIC_THEURGES",

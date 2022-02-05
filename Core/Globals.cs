@@ -13,7 +13,7 @@ namespace OpenTemple.Core;
 /// </summary>
 public static class Globals
 {
-    public static GameLib GameLib { get; set; } = new GameLib();
+    public static GameLib GameLib { get; set; } = new();
 
     public static GameLoop GameLoop { get; set; }
 

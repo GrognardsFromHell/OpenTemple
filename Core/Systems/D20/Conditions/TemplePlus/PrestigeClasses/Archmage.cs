@@ -32,7 +32,7 @@ public class Archmage
 
     private const Stat ClassId = Stat.level_archmage;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("archmage")
+    public static readonly D20ClassSpec ClassSpec = new("archmage")
     {
         classEnum = ClassId,
         helpTopic = "TAG_ARCHMAGES",

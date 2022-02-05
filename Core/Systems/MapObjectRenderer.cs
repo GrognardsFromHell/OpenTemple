@@ -342,14 +342,14 @@ public class MapObjectRenderer : IDisposable
 
         var lights = new List<Light3d>
         {
-            new Light3d
+            new()
             {
                 type = Light3dType.Directional,
                 color = new LinearColor(1, 1, 1),
                 dir = new Vector4(-0.7071200013160706f, -0.7071200013160706f, 0, 0),
             },
 
-            new Light3d
+            new()
             {
                 type = Light3dType.Directional,
                 color = new LinearColor(1, 1, 1),

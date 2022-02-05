@@ -33,10 +33,10 @@ public class MapObjectSystem : IGameSystem
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     // Loaded from rules/materials.mes
-    private readonly Dictionary<int, ReplacementSet> _replacementSets = new Dictionary<int, ReplacementSet>();
+    private readonly Dictionary<int, ReplacementSet> _replacementSets = new();
 
     private static readonly Dictionary<string, MaterialPlaceholderSlot> SlotMapping =
-        new Dictionary<string, MaterialPlaceholderSlot>
+        new()
         {
             {"CHEST", MaterialPlaceholderSlot.CHEST},
             {"BOOTS", MaterialPlaceholderSlot.BOOTS},

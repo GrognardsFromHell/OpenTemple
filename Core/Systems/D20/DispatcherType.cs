@@ -118,7 +118,7 @@ public static class DispatcherTypes
 {
 
     private static readonly Dictionary<DispatcherType, Type> IOTypes =
-        new Dictionary<DispatcherType, Type>
+        new()
         {
             {DispatcherType.ConditionAdd, null},
             {DispatcherType.ConditionRemove, null},

@@ -56,7 +56,7 @@ public class TerrainSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
 
     public LinearColor Tint
     {
-        get => new LinearColor(_terrainTint);
+        get => new(_terrainTint);
         set => _terrainTint = new PackedLinearColorA(value);
     }
 

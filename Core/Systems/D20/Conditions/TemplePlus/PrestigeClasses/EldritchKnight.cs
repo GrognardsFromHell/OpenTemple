@@ -27,7 +27,7 @@ public class EldritchKnight
 {
     public const Stat ClassId = Stat.level_eldritch_knight;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("eldritch_knight")
+    public static readonly D20ClassSpec ClassSpec = new("eldritch_knight")
     {
         classEnum = Stat.level_eldritch_knight,
         helpTopic = "TAG_ELDRITCH_KNIGHTS",

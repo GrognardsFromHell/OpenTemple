@@ -69,7 +69,7 @@ public class MainWindow : IMainWindow
 
     public IntPtr InstanceHandle => _instanceHandle;
 
-    public Size Size => new Size(_width, _height);
+    public Size Size => new(_width, _height);
 
     public WindowConfig WindowConfig
     {
@@ -1109,8 +1109,8 @@ public class MainWindow : IMainWindow
         SWP_NOACTIVATE = 0x0010,
         SWP_FRAMECHANGED = 0x0020;
 
-    private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-    private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+    private static readonly IntPtr HWND_TOPMOST = new(-1);
+    private static readonly IntPtr HWND_NOTOPMOST = new(-2);
 
     private WindowMsgFilter mWindowMsgFilter;
 

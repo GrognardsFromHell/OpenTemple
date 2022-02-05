@@ -36,13 +36,13 @@ namespace OpenTemple.Core.Ui;
 
 public static class UiSystems
 {
-    private static readonly List<IDisposable> _disposableSystems = new List<IDisposable>();
+    private static readonly List<IDisposable> _disposableSystems = new();
 
-    private static readonly List<ITimeAwareSystem> _timeAwareSystems = new List<ITimeAwareSystem>();
+    private static readonly List<ITimeAwareSystem> _timeAwareSystems = new();
 
-    private static readonly List<IResetAwareSystem> _resetAwareSystems = new List<IResetAwareSystem>();
+    private static readonly List<IResetAwareSystem> _resetAwareSystems = new();
 
-    private static readonly List<ISaveGameAwareUi> _saveSystems = new List<ISaveGameAwareUi>();
+    private static readonly List<ISaveGameAwareUi> _saveSystems = new();
 
     public static MainMenuUi MainMenu { get; private set; }
 

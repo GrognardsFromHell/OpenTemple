@@ -11,14 +11,14 @@ namespace OpenTemple.Core.Ui.UtilityBar;
 
 public class UtilityBarHistoryUi
 {
-    private static readonly WidgetButtonStyle ToggleRollButtonStyle = new WidgetButtonStyle
+    private static readonly WidgetButtonStyle ToggleRollButtonStyle = new()
     {
         NormalImagePath = "art/interface/history/Tab_Roll_Unselected.tga",
         HoverImagePath = "art/interface/history/Tab_Roll_Hover.tga",
         PressedImagePath = "art/interface/history/Tab_Roll_Click.tga"
     };
 
-    private static readonly WidgetButtonStyle ToggleDialogButtonStyle = new WidgetButtonStyle
+    private static readonly WidgetButtonStyle ToggleDialogButtonStyle = new()
     {
         NormalImagePath = "art/interface/history/Dialog_Unselected.tga",
         HoverImagePath = "art/interface/history/Dialog_Hover.tga",
@@ -49,7 +49,7 @@ public class UtilityBarHistoryUi
     [TempleDllLocation(0x10bdde34)]
     public bool IsVisible => _container.Visible;
 
-    private List<D20RollHistoryLine> _lines = new List<D20RollHistoryLine>();
+    private List<D20RollHistoryLine> _lines = new();
 
     [TempleDllLocation(0x101226a0)]
     public UtilityBarHistoryUi()

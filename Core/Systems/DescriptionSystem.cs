@@ -25,7 +25,7 @@ public class DescriptionSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleA
     private Dictionary<int, string> _gameKeyLog;
 
     [TempleDllLocation(0x10AB7578)]
-    private readonly List<string> _customNames = new List<string>();
+    private readonly List<string> _customNames = new();
 
     [TempleDllLocation(0x100865d0)]
     public DescriptionSystem()

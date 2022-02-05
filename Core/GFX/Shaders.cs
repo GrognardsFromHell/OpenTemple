@@ -131,7 +131,7 @@ public class PixelShader : Shader<PixelShader, SharpDX.Direct3D11.PixelShader>
 
 public class Shaders : IDisposable
 {
-    private static readonly ShaderDefines EmptyDefines = new ShaderDefines();
+    private static readonly ShaderDefines EmptyDefines = new();
 
     private readonly RenderingDevice _device;
 
@@ -314,11 +314,9 @@ public class Shaders : IDisposable
 
     // For each shader file, we may have multiple compiled
     // variants depending on the defines used
-    private Dictionary<string, ShaderCode<VertexShader>> mVertexShaders =
-        new Dictionary<string, ShaderCode<VertexShader>>();
+    private Dictionary<string, ShaderCode<VertexShader>> mVertexShaders = new();
 
-    private Dictionary<string, ShaderCode<PixelShader>> mPixelShaders =
-        new Dictionary<string, ShaderCode<PixelShader>>();
+    private Dictionary<string, ShaderCode<PixelShader>> mPixelShaders = new();
 
     private ResourceLifecycleCallbacks mRegistration;
 }

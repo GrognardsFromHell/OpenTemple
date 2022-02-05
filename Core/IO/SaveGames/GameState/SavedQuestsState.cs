@@ -9,7 +9,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState;
 
 public class SavedQuestsState
 {
-    public Dictionary<int, SavedQuestProgress> Quests = new Dictionary<int, SavedQuestProgress>(200);
+    public Dictionary<int, SavedQuestProgress> Quests = new(200);
 
     [TempleDllLocation(0x1005f320)]
     public static SavedQuestsState Read(BinaryReader reader)

@@ -16,7 +16,7 @@ public class TownMapTileRenderer : WidgetContent
 
     private TileRenderer _bigTileRenderer;
 
-    private readonly FogTileRenderer _fogTileRenderer = new FogTileRenderer();
+    private readonly FogTileRenderer _fogTileRenderer = new();
 
     public Rectangle SourceRect { get; set; }
 

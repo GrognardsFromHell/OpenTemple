@@ -5,7 +5,7 @@ namespace OpenTemple.Core.IO.SaveGames.UiState;
 
 public class SavedDialogUiState
 {
-    public List<SavedDialogUiLine> Lines { get; set; } = new List<SavedDialogUiLine>();
+    public List<SavedDialogUiLine> Lines { get; set; } = new();
 
     [TempleDllLocation(0x1014cd50)]
     public static SavedDialogUiState Read(BinaryReader reader)

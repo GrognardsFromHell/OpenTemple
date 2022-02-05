@@ -69,7 +69,7 @@ internal class ImGuiRenderer
         public RawViewportF[] Viewports;
         public RasterizerState RS;
         public BlendState BlendState;
-        public RawColor4 BlendFactor = new RawColor4();
+        public RawColor4 BlendFactor = new();
         public int SampleMask;
         public int StencilRef;
         public DepthStencilState DepthStencilState;
@@ -454,9 +454,9 @@ internal class ImGuiRenderer
             // Create the input layout
             var local_layout = new InputElement[]
             {
-                new InputElement("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
-                new InputElement("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
-                new InputElement("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0),
+                new("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
+                new("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
+                new("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0),
             };
             g_pInputLayout = new InputLayout(g_pd3dDevice, g_pVertexShaderBlob, local_layout);
 

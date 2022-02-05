@@ -28,7 +28,7 @@ public class D20Initiative : IDisposable, IReadOnlyList<GameObject>
     private bool _surpriseRound;
 
     [TempleDllLocation(0x10BCAC78)]
-    private readonly CritterGroup _initiativeOrder = new CritterGroup();
+    private readonly CritterGroup _initiativeOrder = new();
 
     [TempleDllLocation(0x10BCAD88)]
     private GameObject? _currentActor;

@@ -19,7 +19,7 @@ public class ConditionRegistry
 
     private readonly List<ConditionAttachment> _globalAttachments;
 
-    private readonly List<ConditionSpec> _pendingExtensions = new List<ConditionSpec>();
+    private readonly List<ConditionSpec> _pendingExtensions = new();
 
     [TempleDllLocation(0x100e19a0)]
     public ConditionRegistry()

@@ -229,14 +229,14 @@ public class DeitySystem : IGameSystem
 
     private static readonly DeitySpec[] Deities =
     {
-        new DeitySpec(DeityId.NONE)
+        new(DeityId.NONE)
         {
             Alignment = Alignment.TRUE_NEUTRAL,
             EnglishName = "No Deity",
             IsSelectable = true,
             FavoredWeapon = WeaponType.bastard_sword // easter egg :)
         },
-        new DeitySpec(DeityId.BOCCOB)
+        new(DeityId.BOCCOB)
         {
             Alignment = Alignment.TRUE_NEUTRAL,
             EnglishName = "Boccob",
@@ -246,7 +246,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.quarterstaff
         },
-        new DeitySpec(DeityId.CORELLON_LARETHIAN)
+        new(DeityId.CORELLON_LARETHIAN)
         {
             Alignment = Alignment.CHAOTIC_GOOD,
             EnglishName = "Corellon Larethian",
@@ -256,7 +256,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.longsword
         },
-        new DeitySpec(DeityId.EHLONNA)
+        new(DeityId.EHLONNA)
         {
             Alignment = Alignment.NEUTRAL_GOOD,
             EnglishName = "Ehlonna",
@@ -267,7 +267,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.longbow
         },
-        new DeitySpec(DeityId.ERYTHNUL)
+        new(DeityId.ERYTHNUL)
         {
             Alignment = Alignment.CHAOTIC_EVIL,
             EnglishName = "Erythnul",
@@ -277,7 +277,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.morningstar
         },
-        new DeitySpec(DeityId.FHARLANGHN)
+        new(DeityId.FHARLANGHN)
         {
             Alignment = Alignment.TRUE_NEUTRAL,
             EnglishName = "Fharlanghn",
@@ -291,7 +291,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.quarterstaff
         },
-        new DeitySpec(DeityId.GARL_GLITTERGOLD)
+        new(DeityId.GARL_GLITTERGOLD)
         {
             Alignment = Alignment.NEUTRAL_GOOD,
             EnglishName = "Garl Glittergold",
@@ -301,7 +301,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.battleaxe
         },
-        new DeitySpec(DeityId.GRUUMSH)
+        new(DeityId.GRUUMSH)
         {
             Alignment = Alignment.CHAOTIC_EVIL,
             EnglishName = "Gruumsh",
@@ -311,7 +311,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.longspear
         },
-        new DeitySpec(DeityId.HEIRONEOUS)
+        new(DeityId.HEIRONEOUS)
         {
             Alignment = Alignment.LAWFUL_GOOD,
             EnglishName = "Heironeous",
@@ -321,7 +321,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.longsword
         },
-        new DeitySpec(DeityId.HEXTOR)
+        new(DeityId.HEXTOR)
         {
             Alignment = Alignment.LAWFUL_EVIL,
             EnglishName = "Hextor",
@@ -331,7 +331,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.heavy_flail
         },
-        new DeitySpec(DeityId.KORD)
+        new(DeityId.KORD)
         {
             Alignment = Alignment.CHAOTIC_GOOD,
             EnglishName = "Kord",
@@ -341,7 +341,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.greatsword
         },
-        new DeitySpec(DeityId.MORADIN)
+        new(DeityId.MORADIN)
         {
             Alignment = Alignment.LAWFUL_GOOD,
             EnglishName = "Moradin",
@@ -351,7 +351,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.warhammer
         },
-        new DeitySpec(DeityId.NERULL)
+        new(DeityId.NERULL)
         {
             Alignment = Alignment.NEUTRAL_EVIL,
             EnglishName = "Nerull",
@@ -361,7 +361,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.scythe
         },
-        new DeitySpec(DeityId.OBAD_HAI)
+        new(DeityId.OBAD_HAI)
         {
             Alignment = Alignment.TRUE_NEUTRAL,
             EnglishName = "Obad-Hai",
@@ -372,7 +372,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.quarterstaff
         },
-        new DeitySpec(DeityId.OLIDAMMARA)
+        new(DeityId.OLIDAMMARA)
         {
             Alignment = Alignment.CHAOTIC_NEUTRAL,
             EnglishName = "Olidammara",
@@ -382,7 +382,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.rapier
         },
-        new DeitySpec(DeityId.PELOR)
+        new(DeityId.PELOR)
         {
             Alignment = Alignment.NEUTRAL_GOOD,
             EnglishName = "Pelor",
@@ -392,7 +392,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.heavy_mace
         },
-        new DeitySpec(DeityId.ST_CUTHBERT)
+        new(DeityId.ST_CUTHBERT)
         {
             Alignment = Alignment.LAWFUL_NEUTRAL,
             EnglishName = "St. Cuthbert",
@@ -402,7 +402,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.heavy_mace
         },
-        new DeitySpec(DeityId.VECNA)
+        new(DeityId.VECNA)
         {
             Alignment = Alignment.NEUTRAL_EVIL,
             EnglishName = "Vecna",
@@ -412,7 +412,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.dagger
         },
-        new DeitySpec(DeityId.WEE_JAS)
+        new(DeityId.WEE_JAS)
         {
             Alignment = Alignment.LAWFUL_NEUTRAL,
             EnglishName = "Wee Jas",
@@ -422,7 +422,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.dagger
         },
-        new DeitySpec(DeityId.YONDALLA)
+        new(DeityId.YONDALLA)
         {
             Alignment = Alignment.LAWFUL_GOOD,
             EnglishName = "Yondalla",
@@ -432,7 +432,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = true,
             FavoredWeapon = WeaponType.short_sword
         },
-        new DeitySpec(DeityId.OLD_FAITH)
+        new(DeityId.OLD_FAITH)
         {
             Alignment = Alignment.TRUE_NEUTRAL,
             EnglishName = "Old Faith",
@@ -441,7 +441,7 @@ public class DeitySystem : IGameSystem
             // taken to match Shillelagh, also seems appropriate
             FavoredWeapon = WeaponType.quarterstaff
         },
-        new DeitySpec(DeityId.ZUGGTMOY)
+        new(DeityId.ZUGGTMOY)
         {
             Alignment = Alignment.CHAOTIC_EVIL,
             EnglishName = "Zuggtmoy",
@@ -449,7 +449,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = false,
             FavoredWeapon = WeaponType.scythe
         },
-        new DeitySpec(DeityId.IUZ)
+        new(DeityId.IUZ)
         {
             Alignment = Alignment.CHAOTIC_EVIL,
             EnglishName = "Iuz",
@@ -457,7 +457,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = false,
             FavoredWeapon = WeaponType.greatsword
         },
-        new DeitySpec(DeityId.LOLTH)
+        new(DeityId.LOLTH)
         {
             Alignment = Alignment.CHAOTIC_EVIL,
             EnglishName = "Lolth",
@@ -466,7 +466,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = false,
             FavoredWeapon = WeaponType.whip
         },
-        new DeitySpec(DeityId.PROCAN)
+        new(DeityId.PROCAN)
         {
             Alignment = Alignment.TRUE_NEUTRAL,
             EnglishName = "Procan",
@@ -474,7 +474,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = false,
             FavoredWeapon = WeaponType.trident
         },
-        new DeitySpec(DeityId.NOREBO)
+        new(DeityId.NOREBO)
         {
             Alignment = Alignment.CHAOTIC_NEUTRAL,
             EnglishName = "Norebo",
@@ -483,7 +483,7 @@ public class DeitySystem : IGameSystem
             // https://en.wikipedia.org/wiki/Norebo
             FavoredWeapon = WeaponType.dagger
         },
-        new DeitySpec(DeityId.PYREMIUS)
+        new(DeityId.PYREMIUS)
         {
             Alignment = Alignment.NEUTRAL_EVIL,
             EnglishName = "Pyremius",
@@ -491,7 +491,7 @@ public class DeitySystem : IGameSystem
             IsSelectable = false,
             FavoredWeapon = WeaponType.longsword
         },
-        new DeitySpec(DeityId.RALISHAZ)
+        new(DeityId.RALISHAZ)
         {
             Alignment = Alignment.CHAOTIC_NEUTRAL,
             EnglishName = "Ralishaz",
@@ -576,11 +576,11 @@ public class DeitySpec
 
     public string HelpTopic { get; set; }
 
-    public List<DomainId> Domains { get; } = new List<DomainId>();
+    public List<DomainId> Domains { get; } = new();
 
-    public List<Stat> FavoredClasses { get; } = new List<Stat>();
+    public List<Stat> FavoredClasses { get; } = new();
 
-    public List<RaceId> FavoredRaces { get; } = new List<RaceId>();
+    public List<RaceId> FavoredRaces { get; } = new();
 
     public bool IsSelectable { get; set; }
 

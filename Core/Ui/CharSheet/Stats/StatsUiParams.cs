@@ -180,7 +180,7 @@ public class StatsUiParams
     public Rectangle SpeedLabel;
     public Rectangle SpeedValue;
 
-    public Dictionary<StatsUiTexture, string> TexturePaths { get; set; } = new Dictionary<StatsUiTexture, string>();
+    public Dictionary<StatsUiTexture, string> TexturePaths { get; set; } = new();
 }
 
 public enum StatsUiTexture

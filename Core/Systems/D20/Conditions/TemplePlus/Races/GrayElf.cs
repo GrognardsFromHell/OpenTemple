@@ -25,7 +25,7 @@ public class GrayElf
 {
     public const RaceId Id = RaceId.elf + (3 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.elf, Subrace.gray_elf)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.elf, Subrace.gray_elf)
     {
         effectiveLevel = 0,
         helpTopic = "TAG_GRAY_ELF",

@@ -1858,7 +1858,7 @@ public class RenderingDevice : IDisposable
         }
     };
 
-    private Stack<RenderTarget> _renderTargetStack = new Stack<RenderTarget>(16);
+    private Stack<RenderTarget> _renderTargetStack = new(16);
 
     private FeatureLevel _featureLevel = FeatureLevel.Level_9_1;
 

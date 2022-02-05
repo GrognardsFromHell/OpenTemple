@@ -11,7 +11,7 @@ public static class Barbarian
 {
     public const Stat ClassId = Stat.level_barbarian;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("barbarian")
+    public static readonly D20ClassSpec ClassSpec = new("barbarian")
     {
         classEnum = ClassId,
         helpTopic = "TAG_BARBARIANS",

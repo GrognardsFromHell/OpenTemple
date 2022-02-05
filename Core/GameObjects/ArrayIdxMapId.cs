@@ -9,7 +9,7 @@ public readonly struct ArrayIdxMapId
 
     public bool IsValid => Id != -1;
 
-    public static readonly ArrayIdxMapId Null = new ArrayIdxMapId(-1);
+    public static readonly ArrayIdxMapId Null = new(-1);
 
     public ArrayIdxMapId(int id)
     {

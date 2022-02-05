@@ -192,5 +192,5 @@ public sealed class WidgetButtonStyles
         }
     }
 
-    private readonly Dictionary<string, WidgetButtonStyle> _styles = new Dictionary<string, WidgetButtonStyle>();
+    private readonly Dictionary<string, WidgetButtonStyle> _styles = new();
 }

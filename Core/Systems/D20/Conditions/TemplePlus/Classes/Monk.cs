@@ -15,7 +15,7 @@ public class Monk
 {
     public static readonly Stat ClassId = Stat.level_monk;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("monk")
+    public static readonly D20ClassSpec ClassSpec = new("monk")
     {
         classEnum = ClassId,
         helpTopic = "TAG_MONKS",

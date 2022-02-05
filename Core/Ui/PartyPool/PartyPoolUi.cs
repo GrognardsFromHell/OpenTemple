@@ -88,10 +88,10 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     private readonly PartyPoolPortraits _portraits;
 
     [TempleDllLocation(0x10bf0f30)]
-    private List<ObjectId> pcCreationObjIdBuffer = new List<ObjectId>();
+    private List<ObjectId> pcCreationObjIdBuffer = new();
 
     [TempleDllLocation(0x10bf253c)]
-    private readonly List<PartyPoolPlayer> _availablePlayers = new List<PartyPoolPlayer>();
+    private readonly List<PartyPoolPlayer> _availablePlayers = new();
 
     private List<PartyPoolPlayer> _filteredPlayers;
 

@@ -25,11 +25,11 @@ internal class AnimatedModel : IDisposable
     public readonly VariationSelector[] variations = new VariationSelector[8];
     public bool hasClothBones = false;
     public int clothBoneId = 0;
-    public List<AasClothStuff1> cloth_stuff1 = new List<AasClothStuff1>();
+    public List<AasClothStuff1> cloth_stuff1 = new();
     public CollisionSphere collisionSpheresHead;
     public CollisionCylinder collisionCylindersHead;
-    public EventHandler EventHandler { get; set; } = new EventHandler(null);
-    public List<AasSubmeshWithMaterial> submeshes = new List<AasSubmeshWithMaterial>();
+    public EventHandler EventHandler { get; set; } = new(null);
+    public List<AasSubmeshWithMaterial> submeshes = new();
     public float drivenTime = 0.0f;
     public float timeForClothSim = 0.0f;
     public float drivenDistance = 0.0f;
@@ -1526,7 +1526,7 @@ class AasSubmeshWithMaterial : IDisposable
         indices = null;
     }
 
-    private List<MeshMaterialPair> meshes = new List<MeshMaterialPair>();
+    private List<MeshMaterialPair> meshes = new();
 
     public void Dispose()
     {

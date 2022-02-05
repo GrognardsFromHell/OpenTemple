@@ -19,9 +19,9 @@ public class GameConfig
     /// </summary>
     public string InstallationFolder { get; set; }
 
-    public RenderingConfig Rendering { get; set; } = new RenderingConfig();
+    public RenderingConfig Rendering { get; set; } = new();
 
-    public WindowConfig Window { get; set; } = new WindowConfig();
+    public WindowConfig Window { get; set; } = new();
 
     public bool EnableDebugUI { get; set; } = true;
 
@@ -178,7 +178,7 @@ public class GameConfig
 
     public int StartupTip { get; set; } = 0;
 
-    public List<SeenMovie> SeenMovies { get; set; } = new List<SeenMovie>
+    public List<SeenMovie> SeenMovies { get; set; } = new()
     {
         new SeenMovie(304)
     };

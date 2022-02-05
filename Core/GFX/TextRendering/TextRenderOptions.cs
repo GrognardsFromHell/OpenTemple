@@ -38,7 +38,7 @@ public readonly struct TextRenderOptions
     [Pure]
     public TextRenderOptions WithRotation(float angle, Vector2 center = default)
     {
-        return new(
+        return new TextRenderOptions(
             Flags | TextRenderFlags.ApplyRotation,
             Opacity,
             angle,
@@ -49,7 +49,7 @@ public readonly struct TextRenderOptions
     [Pure]
     public TextRenderOptions WithOpacity(float opacity)
     {
-        return new(
+        return new TextRenderOptions(
             Flags | TextRenderFlags.ApplyOpacity,
             Math.Clamp(opacity, 0f, 1f),
             RotationAngle,

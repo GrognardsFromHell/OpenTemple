@@ -70,5 +70,5 @@ public static class Vector3Extensions
         return new Vector3(Result.X, Result.Y, Result.Z);
     }
 
-    public static Vector2 ToVector2(this Vector3 vector) => new Vector2(vector.X, vector.Y);
+    public static Vector2 ToVector2(this Vector3 vector) => new(vector.X, vector.Y);
 }

@@ -78,7 +78,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     private int[] _stashedSoundSchemes = new int[2];
 
     [TempleDllLocation(0x108f2738)]
-    private readonly Dictionary<int, string> _soundIndex = new Dictionary<int, string>();
+    private readonly Dictionary<int, string> _soundIndex = new();
 
     [TempleDllLocation(0x1003c9f0)]
     public int MusicVolume => musicVolume;
@@ -979,7 +979,7 @@ public class PositionalAudioConfig
     /// This seems to be relative to the center of the screen.
     /// </summary>
     public Dictionary<SoundSourceSize, int> AttenuationRangeStart { get; } =
-        new Dictionary<SoundSourceSize, int>
+        new()
         {
             { SoundSourceSize.Small, 50 },
             { SoundSourceSize.Medium, 50 },
@@ -993,7 +993,7 @@ public class PositionalAudioConfig
     /// TODO: This should calculate based on the screen edge.
     /// </summary>
     public Dictionary<SoundSourceSize, int> AttenuationRangeEnd { get; } =
-        new Dictionary<SoundSourceSize, int>
+        new()
         {
             { SoundSourceSize.Small, 150 },
             { SoundSourceSize.Medium, 400 },
@@ -1005,7 +1005,7 @@ public class PositionalAudioConfig
     /// The volume for sound sources of a given size at minimum attenuation.
     /// </summary>
     public Dictionary<SoundSourceSize, int> AttenuationMaxVolume { get; } =
-        new Dictionary<SoundSourceSize, int>
+        new()
         {
             { SoundSourceSize.Small, 40 },
             { SoundSourceSize.Medium, 70 },
@@ -1057,7 +1057,7 @@ public class SoundScheme
     public string schemeName;
     public int schemelistKey;
     public int schemeId;
-    public List<SoundSchemeElement> lines = new List<SoundSchemeElement>();
+    public List<SoundSchemeElement> lines = new();
     public string combatintro;
     public string combatloop;
 

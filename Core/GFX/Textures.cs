@@ -52,9 +52,9 @@ internal class InvalidTexture : ITexture
 
     public string GetName() => "<invalid>";
 
-    public Rectangle GetContentRect() => new Rectangle(0, 0, 1, 1);
+    public Rectangle GetContentRect() => new(0, 0, 1, 1);
 
-    public Size GetSize() => new Size(1, 1);
+    public Size GetSize() => new(1, 1);
 
     public void FreeDeviceTexture()
     {
@@ -476,9 +476,7 @@ public class Textures
     private TextureLoader mLoader;
     private int mNextFreeId = 1;
 
-    private readonly Dictionary<int, ResourceRef<ITexture>> mTexturesById =
-        new Dictionary<int, ResourceRef<ITexture>>();
+    private readonly Dictionary<int, ResourceRef<ITexture>> mTexturesById = new();
 
-    private readonly Dictionary<string, ResourceRef<ITexture>> mTexturesByName =
-        new Dictionary<string, ResourceRef<ITexture>>();
+    private readonly Dictionary<string, ResourceRef<ITexture>> mTexturesByName = new();
 }

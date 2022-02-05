@@ -13,7 +13,7 @@ internal class EventHandler
 {
     private readonly Action<AasEvent> _animEventHandler;
 
-    private readonly LegacyScriptConverter _scriptConverter = new LegacyScriptConverter();
+    private readonly LegacyScriptConverter _scriptConverter = new();
 
     private AnimEvents _flagsOut;
 

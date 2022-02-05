@@ -37,8 +37,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
 
     // Saves the last view settings (position and zoom) for each map
     [TempleDllLocation(0x10be0d70)]
-    private readonly Dictionary<int, TownmapPosition> _savedMapViewSettings
-        = new Dictionary<int, TownmapPosition>();
+    private readonly Dictionary<int, TownmapPosition> _savedMapViewSettings = new();
 
     [TempleDllLocation(0x10be1f54)]
     [TempleDllLocation(0x10be1f58)]
@@ -50,10 +49,10 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     private bool _showFogOfWar;
 
     [TempleDllLocation(0x10be17b0)]
-    private readonly Dictionary<int, List<TownMapMarker>> _userMarkers = new Dictionary<int, List<TownMapMarker>>();
+    private readonly Dictionary<int, List<TownMapMarker>> _userMarkers = new();
 
     // Stores which predefined markers have been revealed for the user
-    private readonly HashSet<PredefinedMarkerId> _revealedMarkers = new HashSet<PredefinedMarkerId>();
+    private readonly HashSet<PredefinedMarkerId> _revealedMarkers = new();
 
     private string _currentCursor;
 

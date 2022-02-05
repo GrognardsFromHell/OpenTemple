@@ -28,10 +28,10 @@ internal class FeatsSystem : IChargenSystem
     private List<SelectableFeat> mBonusFeats;
     private bool mFeatsActivated;
 
-    private List<SelectableFeat> mExistingFeats = new List<SelectableFeat>();
-    private List<SelectableFeat> mSelectableFeats = new List<SelectableFeat>();
-    private List<SelectableFeat> mMultiSelectFeats = new List<SelectableFeat>();
-    private List<SelectableFeat> mMultiSelectMasterFeats = new List<SelectableFeat>();
+    private List<SelectableFeat> mExistingFeats = new();
+    private List<SelectableFeat> mSelectableFeats = new();
+    private List<SelectableFeat> mMultiSelectFeats = new();
+    private List<SelectableFeat> mMultiSelectMasterFeats = new();
 
     private readonly IComparer<SelectableFeat> _featComparer;
 

@@ -89,8 +89,8 @@ public class MdfMaterialFactory : IDisposable
 		}
 	}
 
-	private Dictionary<int, ResourceRef<IMdfRenderMaterial>> mIdRegistry = new Dictionary<int, ResourceRef<IMdfRenderMaterial>>();
-	private Dictionary<string, ResourceRef<IMdfRenderMaterial>> mNameRegistry = new Dictionary<string, ResourceRef<IMdfRenderMaterial>>();
+	private Dictionary<int, ResourceRef<IMdfRenderMaterial>> mIdRegistry = new();
+	private Dictionary<string, ResourceRef<IMdfRenderMaterial>> mNameRegistry = new();
 	private int _nextFreeId = 1;
 
 	private Material CreateDeviceMaterial(string name, MdfMaterial spec)
@@ -287,9 +287,9 @@ public class MdfMaterialFactory : IDisposable
 internal class InvalidMdfRenderMaterial : IMdfRenderMaterial
 {
 
-	public static InvalidMdfRenderMaterial Instance { get; } = new InvalidMdfRenderMaterial();
+	public static InvalidMdfRenderMaterial Instance { get; } = new();
 
-	private readonly MdfMaterial _spec = new MdfMaterial(MdfType.Textured);
+	private readonly MdfMaterial _spec = new(MdfType.Textured);
 
 	public void Reference()
 	{

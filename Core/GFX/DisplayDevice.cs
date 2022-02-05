@@ -17,5 +17,5 @@ public class DisplayDevice {
     // Name to display to the end user
     public string name;
     // Outputs associated with this display device
-    public List<DisplayDeviceOutput> outputs = new List<DisplayDeviceOutput>();
+    public List<DisplayDeviceOutput> outputs = new();
 };

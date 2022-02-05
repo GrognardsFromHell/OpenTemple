@@ -37,7 +37,7 @@ public class TigConsole
 
     private string _lastCompletionQuery = "";
 
-    private List<string> _lastCompletionsResult = new List<string>();
+    private List<string> _lastCompletionsResult = new();
 
     [TempleDllLocation(0x101df7c0)]
     public void ToggleVisible()
@@ -45,7 +45,7 @@ public class TigConsole
         IsVisible = !IsVisible;
     }
 
-    private readonly List<string> _log = new List<string>();
+    private readonly List<string> _log = new();
 
     private bool _scrollToBottom;
 
@@ -57,7 +57,7 @@ public class TigConsole
 
     private int mCommandHistoryPos;
 
-    private readonly List<string> mCommandHistory = new List<string>();
+    private readonly List<string> mCommandHistory = new();
 
     // Cache the delegate because it'll be passed to native code
     private readonly ImGuiInputTextCallback _commandEditCallbackDelegate;

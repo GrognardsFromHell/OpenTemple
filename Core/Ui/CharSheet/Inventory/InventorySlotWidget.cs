@@ -13,11 +13,11 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 {
     private static readonly PackedLinearColorA SlotBackground = PackedLinearColorA.Black;
 
-    private static readonly PackedLinearColorA SlotNormalOutline = new PackedLinearColorA(100, 100, 100, 255);
+    private static readonly PackedLinearColorA SlotNormalOutline = new(100, 100, 100, 255);
 
-    private static readonly PackedLinearColorA SlotRedOutline = new PackedLinearColorA(255, 0, 0, 255);
+    private static readonly PackedLinearColorA SlotRedOutline = new(255, 0, 0, 255);
 
-    private static readonly PackedLinearColorA SlotCantWearOutline = new PackedLinearColorA(216, 16, b: 0x10, 255);
+    private static readonly PackedLinearColorA SlotCantWearOutline = new(216, 16, b: 0x10, 255);
 
     private readonly PackedLinearColorA _slotHoverColor;
 
@@ -25,7 +25,7 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
     private readonly WidgetText _quantityLabel;
 
-    private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
+    private readonly WidgetTooltipRenderer _tooltipRenderer = new();
 
     private readonly WidgetRectangle _background;
 
@@ -63,7 +63,7 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
     public static WidgetText CreateQuantityLabel()
     {
-        return new("", "inventory-slot-quantity");
+        return new WidgetText("", "inventory-slot-quantity");
     }
 
     public override void Render()

@@ -13,7 +13,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems;
 [TempleDllLocation(0x102f7a98)]
 internal class AbilitiesSystem : IChargenSystem
 {
-    private readonly Dictionary<Stat, IChargenSystem> _featuresByClass = new Dictionary<Stat, IChargenSystem>
+    private readonly Dictionary<Stat, IChargenSystem> _featuresByClass = new()
     {
         {Stat.level_cleric, new ClericFeaturesUi()},
         {Stat.level_wizard, new WizardFeaturesUi()},

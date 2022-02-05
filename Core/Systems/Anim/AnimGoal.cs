@@ -17,7 +17,7 @@ public class AnimGoal
     public bool interruptAll = false;
     public bool PersistOnAreaTransition = false; // Indicates that it should be saved
     public int field_10 = 0;
-    public List<AnimGoalType> relatedGoal = new List<AnimGoalType>();
-    public List<AnimGoalState> states = new List<AnimGoalState>();
+    public List<AnimGoalType> relatedGoal = new();
+    public List<AnimGoalState> states = new();
     public AnimGoalState? state_special;
 }

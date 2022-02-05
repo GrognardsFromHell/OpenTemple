@@ -82,7 +82,7 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
         }
     }
 
-    private readonly List<CachedSector> _sectorCache = new List<CachedSector>();
+    private readonly List<CachedSector> _sectorCache = new();
 
     [TempleDllLocation(0x10082700)]
     public Sector LockSector(SectorLoc loc)

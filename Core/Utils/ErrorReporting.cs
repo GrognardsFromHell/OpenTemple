@@ -7,7 +7,7 @@ namespace OpenTemple.Core.Utils;
 
 public static class ErrorReporting
 {
-    public static List<UnhandledError> Queue { get; } = new List<UnhandledError>();
+    public static List<UnhandledError> Queue { get; } = new();
 
     public static bool DisableErrorReporting { get; set; }
 

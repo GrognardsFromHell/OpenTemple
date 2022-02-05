@@ -15,9 +15,9 @@ public enum WidgetTabStyle
 
 public class WidgetTabBar : WidgetContainer
 {
-    private readonly List<string> _labels = new List<string>();
+    private readonly List<string> _labels = new();
 
-    private readonly List<WidgetTabButton> _tabs = new List<WidgetTabButton>();
+    private readonly List<WidgetTabButton> _tabs = new();
 
     private WidgetTabStyle _style = WidgetTabStyle.Small;
 

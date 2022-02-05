@@ -45,10 +45,10 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         the anim system to try and interrupt as many animations as possible.
     */
     [TempleDllLocation(0x10AA4BB0)]
-    private bool mAllSlotsUsed;
+    private bool _allSlotsUsed;
 
     [TempleDllLocation(0x118CE520)]
-    private List<AnimSlot> mSlots = new List<AnimSlot>();
+    private List<AnimSlot> _slots = new();
 
     [TempleDllLocation(0x102AC880)]
     private AnimSlotId animIdGlobal;
@@ -88,7 +88,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x10307540)]
     private int _nextUniqueActionId = 1;
 
-    public AnimationGoals Goals { get; } = new AnimationGoals();
+    public AnimationGoals Goals { get; } = new();
 
     [TempleDllLocation(0x10016bb0)]
     public AnimSystem()
@@ -116,7 +116,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
              slotIdx != -1;
              slotIdx = GameSystems.Anim.GetNextRunSlotIdxForObj(obj, slotIdx))
         {
-            yield return GameSystems.Anim.mSlots[slotIdx];
+            yield return GameSystems.Anim._slots[slotIdx];
         }
     }
 
@@ -124,9 +124,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x10054E20)]
     private int GetFirstRunSlotIdxForObj(GameObject handle)
     {
-        for (int i = 0; i < mSlots.Count; i++)
+        for (int i = 0; i < _slots.Count; i++)
         {
-            var slot = mSlots[i];
+            var slot = _slots[i];
 
             if (slot.IsActive
                 && !slot.IsStopProcessing
@@ -145,9 +145,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x10054E70)]
     private int GetNextRunSlotIdxForObj(GameObject handle, int startSlot)
     {
-        for (int i = startSlot + 1; i < mSlots.Count; i++)
+        for (int i = startSlot + 1; i < _slots.Count; i++)
         {
-            var slot = mSlots[i];
+            var slot = _slots[i];
 
             if (slot.IsActive
                 && !slot.IsStopProcessing
@@ -185,7 +185,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
     private AnimSlot GetRunSlot(int index)
     {
-        return mSlots[index];
+        return _slots[index];
     }
 
     [TempleDllLocation(0x10016C40)]
@@ -196,7 +196,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             return null;
         }
 
-        foreach (var slot in mSlots)
+        foreach (var slot in _slots)
         {
             if (slot.id.slotIndex == id.slotIndex && slot.id.uniqueId == id.uniqueId)
             {
@@ -277,7 +277,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         lastSlotPushedTo_ = newSlotId;
         slotIdOut = lastSlotPushedTo_;
 
-        var runInfo = mSlots[lastSlotPushedTo_.slotIndex];
+        var runInfo = _slots[lastSlotPushedTo_.slotIndex];
         runInfo.currentState = 0;
         runInfo.field_14 = -1;
         runInfo.animObj = stackEntry.self.obj;
@@ -381,18 +381,18 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1001B830)]
     public bool ProcessAnimEvent(TimeEvent evt)
     {
-        if (mAllSlotsUsed)
+        if (_allSlotsUsed)
         {
             InterruptAllGoalsUpToPriority(AnimGoalPriority.AGP_3);
-            mAllSlotsUsed = false;
+            _allSlotsUsed = false;
         }
 
         // The animation slot id we're triggered for
         var triggerId = new AnimSlotId(evt.arg1.int32, evt.arg2.int32, evt.arg3.int32);
 
-        Trace.Assert(triggerId.slotIndex >= 0 && triggerId.slotIndex < mSlots.Count);
+        Trace.Assert(triggerId.slotIndex >= 0 && triggerId.slotIndex < _slots.Count);
 
-        var slot = mSlots[triggerId.slotIndex];
+        var slot = _slots[triggerId.slotIndex];
 
         // This seems like a pretty stupid check since slots cannot "move"
         // and the first part of their ID must be the slot index
@@ -777,7 +777,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
              slotIdx != -1;
              slotIdx = GetNextRunSlotIdxForObj(obj, slotIdx))
         {
-            var slot = mSlots[slotIdx];
+            var slot = _slots[slotIdx];
 
             if (!slot.IsActive)
             {
@@ -822,7 +822,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     public void InterruptAllGoalsUpToPriority(AnimGoalPriority priority)
     {
         Trace.Assert(priority >= AnimGoalPriority.AGP_NONE && priority <= AnimGoalPriority.AGP_HIGHEST);
-        foreach (var slot in mSlots)
+        foreach (var slot in _slots)
         {
             if (slot.IsActive)
             {
@@ -838,7 +838,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x10056090)]
     public bool InterruptGoals(AnimSlot slot, AnimGoalPriority priority)
     {
-        Trace.Assert(slot.id.slotIndex < mSlots.Count);
+        Trace.Assert(slot.id.slotIndex < _slots.Count);
 
         if (!slot.IsActive)
         {
@@ -950,9 +950,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     {
         // Find a free slot
         int freeSlot = -1;
-        for (int i = 0; i < mSlots.Count; i++)
+        for (int i = 0; i < _slots.Count; i++)
         {
-            if (!mSlots[i].IsActive)
+            if (!_slots[i].IsActive)
             {
                 freeSlot = i;
                 break;
@@ -961,11 +961,11 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         if (freeSlot == -1)
         {
-            freeSlot = mSlots.Count;
-            mSlots.Add(new AnimSlot());
+            freeSlot = _slots.Count;
+            _slots.Add(new AnimSlot());
         }
 
-        var slot = mSlots[freeSlot];
+        var slot = _slots[freeSlot];
         slot.id.slotIndex = freeSlot;
         slot.id.uniqueId = nextUniqueId++;
         slot.id.field_8 = 0;
@@ -1027,9 +1027,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         slot.Clear();
 
         // Clean up slots from the back
-        while (mSlots.Count > 0 && !mSlots[^1].IsActive)
+        while (_slots.Count > 0 && !_slots[^1].IsActive)
         {
-            mSlots.RemoveAt(mSlots.Count - 1);
+            _slots.RemoveAt(_slots.Count - 1);
         }
 
         if (mActiveGoalCount == 0)
@@ -1240,7 +1240,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1000c890)]
     public bool InterruptAll()
     {
-        foreach (var slot in mSlots)
+        foreach (var slot in _slots)
         {
             if (!InterruptGoals(slot, AnimGoalPriority.AGP_7))
             {
@@ -1273,7 +1273,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         while (slotIdx != lastSlot)
         {
             lastSlot = slotIdx;
-            if (slotIdx != -1 && !InterruptGoals(mSlots[slotIdx], priority))
+            if (slotIdx != -1 && !InterruptGoals(_slots[slotIdx], priority))
             {
                 return false;
             }
@@ -1323,9 +1323,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1000c950)]
     public void InterruptAllForTbCombat()
     {
-        for (var i = mSlots.Count - 1; i >= 0; i--)
+        for (var i = _slots.Count - 1; i >= 0; i--)
         {
-            var slot = mSlots[i];
+            var slot = _slots[i];
             if (slot.IsActive
                 && slot.animObj.type != ObjectType.portal /* ... why???? */
                 && !CurrentGoalHasField10_1(slot) /* continue in combat?? */
@@ -1363,8 +1363,8 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
     private Dictionary<int, SavedAnimSlot> SaveSlots()
     {
-        var result = new Dictionary<int, SavedAnimSlot>(mSlots.Count);
-        foreach (var animSlot in mSlots)
+        var result = new Dictionary<int, SavedAnimSlot>(_slots.Count);
+        foreach (var animSlot in _slots)
         {
             result[animSlot.id.slotIndex] = SaveSlot(animSlot);
         }
@@ -1465,7 +1465,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     private void LoadGame(SavedAnimState animState)
     {
         // We assume anims have been cleared using Reset()
-        Trace.Assert(mSlots.Count == 0);
+        Trace.Assert(_slots.Count == 0);
 
         nextUniqueId = animState.NextUniqueId;
         mActiveGoalCount = animState.ActiveGoalCount;
@@ -1478,7 +1478,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             if (slot != null)
             {
                 EnsureSlotIndexValid(slotIndex);
-                mSlots[slotIndex] = slot;
+                _slots[slotIndex] = slot;
             }
         }
     }
@@ -1487,7 +1487,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     {
         // TODO: This sucks hard, it probably needs to be a dictionary...
         var slotsAlloced = new List<AnimSlotId>();
-        while (mSlots.Count < slotIndex + 1)
+        while (_slots.Count < slotIndex + 1)
         {
             slotsAlloced.Add(AllocSlot());
         }
@@ -1585,7 +1585,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1000c120)]
     public void Reset()
     {
-        mSlots.Clear();
+        _slots.Clear();
         mActiveGoalCount = 0;
         _nextUniqueActionId = 1;
     }
@@ -1599,7 +1599,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     public bool IsIdleOrFidgeting(GameObject actor)
     {
         // TODO: This function was broken in vanilla and likely never worked
-        var slot = mSlots[GetFirstRunSlotIdxForObj(actor)];
+        var slot = _slots[GetFirstRunSlotIdxForObj(actor)];
         if (slot.currentGoal != 0)
         {
             return false;
@@ -1758,7 +1758,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         for (int idx = GetFirstRunSlotIdxForObj(handle); idx != -1; idx = GetNextRunSlotIdxForObj(handle, idx))
         {
-            var slot = mSlots[idx];
+            var slot = _slots[idx];
             var goal = Goals.GetByType(slot.goals[0].goalType);
             if (!goal.PersistOnAreaTransition)
             {
@@ -1777,7 +1777,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         var objId = projectile;
         if (objId != null && IsRunningGoal(objId, AnimGoalType.projectile, out var runId))
         {
-            var v3 = mSlots[runId.slotIndex];
+            var v3 = _slots[runId.slotIndex];
             v3.goals[0].targetTile.location = returnTo;
             v3.goals[0].target.obj = v3.goals[0].parent.obj;
             v3.goals[0].scratch.obj = target;
@@ -1796,7 +1796,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         var idx = GetFirstRunSlotIdxForObj(obj);
         if (idx != -1)
         {
-            return mSlots[idx];
+            return _slots[idx];
         }
 
         return null;
@@ -2203,7 +2203,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     private const string DamageDefaultPrefix = "hit-UNSPECIFIED-";
 
     private static readonly Dictionary<DamageType, string> DamageParticleEffectPrefixes =
-        new Dictionary<DamageType, string>
+        new()
         {
             { DamageType.Acid, "hit-ACID-" },
             { DamageType.Cold, "hit-COLD-" },
@@ -2865,7 +2865,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
              slotIdx != -1;
              slotIdx = GetNextRunSlotIdxForObj(handle, slotIdx))
         {
-            var slot = mSlots[slotIdx];
+            var slot = _slots[slotIdx];
             var goal = Goals.GetByType(slot.goals[0].goalType);
 
             if (!goal.interruptAll)
@@ -2985,7 +2985,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x10016f40)]
     public void InterruptAllExceptFidgetOrIdle()
     {
-        foreach (var animSlot in mSlots)
+        foreach (var animSlot in _slots)
         {
             if (animSlot.IsActive)
             {
@@ -3023,7 +3023,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         }
 
         // Interrupt goals WILL modify the list.
-        var slotsCopy = mSlots.ToArray();
+        var slotsCopy = _slots.ToArray();
         foreach (var slot in slotsCopy)
         {
             if (slot == null || !slot.IsActive)
@@ -3093,14 +3093,14 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             var slotIndex = savedSlot.Id.slotIndex;
             EnsureSlotIndexValid(slotIndex);
 
-            if (mSlots[slotIndex] != null && mSlots[slotIndex].IsActive)
+            if (_slots[slotIndex] != null && _slots[slotIndex].IsActive)
             {
                 Logger.Info("Slot index {0} on area transition was already taken. Allocating new.", slotIndex);
                 slot.id = AllocSlot();
                 slotIndex = slot.id.slotIndex;
             }
 
-            mSlots[slotIndex] = slot;
+            _slots[slotIndex] = slot;
         }
 
         Logger.Info("Loaded {0} saved anims from {1}", savedAnims.Slots.Count, path);

@@ -430,7 +430,7 @@ public class D20CombatSystem
     // Used to record how many critters or other challenges have been defeated for a given CR
     // until XP awards can be given out
     [TempleDllLocation(0x10BCA850)]
-    public Dictionary<int, int> _challengeRatingsDefeated = new Dictionary<int, int>();
+    public Dictionary<int, int> _challengeRatingsDefeated = new();
 
     // Indicates whether last damage was from direct attack (true) or spell (false)
     [TempleDllLocation(0x10BCA8AC)]

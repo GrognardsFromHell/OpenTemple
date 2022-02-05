@@ -133,7 +133,7 @@ public class PathXRenderSystem : IDisposable
     private PointPacket uiIntgamePointPacket;
 
     [TempleDllLocation(0x10290C44)]
-    private static readonly Dictionary<PathPreviewMode, PackedLinearColorA> WaypointOutlineColors = new Dictionary<PathPreviewMode, PackedLinearColorA>
+    private static readonly Dictionary<PathPreviewMode, PackedLinearColorA> WaypointOutlineColors = new()
     {
         {PathPreviewMode.None, new PackedLinearColorA(0xFF0000FF)},
         {PathPreviewMode.One, new PackedLinearColorA(0xFF00FF00)},
@@ -142,7 +142,7 @@ public class PathXRenderSystem : IDisposable
     };
 
     [TempleDllLocation(0x10290C58)]
-    private static readonly Dictionary<PathPreviewMode, PackedLinearColorA> OccludedWaypointOutlineColors = new Dictionary<PathPreviewMode, PackedLinearColorA>
+    private static readonly Dictionary<PathPreviewMode, PackedLinearColorA> OccludedWaypointOutlineColors = new()
     {
         {PathPreviewMode.None, new PackedLinearColorA(0x3F0000FF)},
         {PathPreviewMode.One, new PackedLinearColorA(0x3F00FF00)},
@@ -152,7 +152,7 @@ public class PathXRenderSystem : IDisposable
 
     [TempleDllLocation(0x10290C6C)]
     private static readonly Dictionary<PathSegmentColor, PackedLinearColorA> WaypointFillColors =
-        new Dictionary<PathSegmentColor, PackedLinearColorA>
+        new()
         {
             {PathSegmentColor.Green, new PackedLinearColorA(0x8000FF00)},
             {PathSegmentColor.Yellow, new PackedLinearColorA(0x80FFFF00)},
@@ -161,7 +161,7 @@ public class PathXRenderSystem : IDisposable
 
     [TempleDllLocation(0x10290C78)]
     private static readonly Dictionary<PathSegmentColor, PackedLinearColorA> OccludedWaypointFillColors =
-        new Dictionary<PathSegmentColor, PackedLinearColorA>
+        new()
         {
             {PathSegmentColor.Green, new PackedLinearColorA(0x1F00FF00)},
             {PathSegmentColor.Yellow, new PackedLinearColorA(0x1FFFFF00)},
@@ -628,24 +628,24 @@ public class PathXRenderSystem : IDisposable
 
     private static readonly Vector4[] AooPosOffsets =
     {
-        new Vector4(0.0f, 0.0f, -5.0f, 0.0f),
-        new Vector4(0.66670001f, 0.0f, -5.0f, 0.0f),
-        new Vector4(0.66670001f, 0.0f, 5.0f, 0.0f),
-        new Vector4(0.0f, 0.0f, 5.0f, 0.0f),
-        new Vector4(0.66670001f, 0.0f, -10.0f, 0.0f),
-        new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
-        new Vector4(0.66670001f, 0.0f, 10.0f, 0.0f),
+        new(0.0f, 0.0f, -5.0f, 0.0f),
+        new(0.66670001f, 0.0f, -5.0f, 0.0f),
+        new(0.66670001f, 0.0f, 5.0f, 0.0f),
+        new(0.0f, 0.0f, 5.0f, 0.0f),
+        new(0.66670001f, 0.0f, -10.0f, 0.0f),
+        new(1.0f, 0.0f, 0.0f, 0.0f),
+        new(0.66670001f, 0.0f, 10.0f, 0.0f),
     };
 
     private static readonly Vector2[] AooUvs =
     {
-        new Vector2(0.0f, 1.0f),
-        new Vector2(1.0f, 1.0f),
-        new Vector2(1.0f, 0.0f),
-        new Vector2(0.0f, 0.0f),
-        new Vector2(0.0f, 1.0f),
-        new Vector2(1.0f, 0.5f),
-        new Vector2(0.0f, 0.0f)
+        new(0.0f, 1.0f),
+        new(1.0f, 1.0f),
+        new(1.0f, 0.0f),
+        new(0.0f, 0.0f),
+        new(0.0f, 1.0f),
+        new(1.0f, 0.5f),
+        new(0.0f, 0.0f)
     };
 
     private static readonly ushort[] AooIndices =

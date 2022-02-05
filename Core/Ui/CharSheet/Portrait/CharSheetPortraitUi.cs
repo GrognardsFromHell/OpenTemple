@@ -183,7 +183,7 @@ public class CharSheetPortraitUi : IDisposable
     /// <summary>
     /// IDs of the containers we'll put the slot widgets in. Found in char_paperdoll.json
     /// </summary>
-    private static readonly Dictionary<EquipSlot, string> SlotWidgetIds = new Dictionary<EquipSlot, string>
+    private static readonly Dictionary<EquipSlot, string> SlotWidgetIds = new()
     {
         {EquipSlot.Gloves, "slot_gloves"},
         {EquipSlot.WeaponPrimary, "slot_weapon_primary"},

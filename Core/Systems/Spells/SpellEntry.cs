@@ -133,7 +133,7 @@ public class SpellEntry {
     public int spellRange;
     public SpellSavingThrow savingThrowType;
     public SpellResistanceType spellResistanceCode;
-    public List<SpellEntryLevelSpec> spellLvls = new List<SpellEntryLevelSpec>();
+    public List<SpellEntryLevelSpec> spellLvls = new();
     // spellLvlsNum replaced by spellLvls.Count
     public bool projectileFlag; // TODO: Might be a bool
     public UiPickerFlagsTarget flagsTargetBitmask;

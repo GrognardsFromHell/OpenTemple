@@ -17,7 +17,7 @@ public class DayNightTransfer
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10ab7548)]
-    private readonly List<DayNightTransferRecord> _records = new List<DayNightTransferRecord>();
+    private readonly List<DayNightTransferRecord> _records = new();
 
     public int GetCurrentDayNightTransferMap(GameObject objHnd)
     {

@@ -19,7 +19,7 @@ public class DispIoCondStruct
     public int arg1 => (arg1Object is int intValue) ? intValue : 0;
     public int arg2 => (arg2Object is int intValue) ? intValue : 0;
 
-    public static DispIoCondStruct Default => new DispIoCondStruct();
+    public static DispIoCondStruct Default => new();
 }
 
 // DispIoType = 2  used for fetching ability scores (dispType 10, 66), and Cur/Max HP
@@ -30,7 +30,7 @@ public class DispIoBonusList
     // checked in 0x100C5C30 vs 2 for eagle's splendor spell (used to ignore the bonus from the spell)
     public uint flags;
 
-    public static DispIoBonusList Default => new DispIoBonusList
+    public static DispIoBonusList Default => new()
     {
         bonlist = BonusList.Default
     };
@@ -49,7 +49,7 @@ public class DispIoSavingThrow
     public int rollResult;
 
     [TempleDllLocation(0x1004DA80)]
-    public static DispIoSavingThrow Default => new DispIoSavingThrow
+    public static DispIoSavingThrow Default => new()
     {
         bonlist = BonusList.Default
     };
@@ -87,7 +87,7 @@ public class DispIoD20Signal // DispIoType 6
 
     public object obj; // Replaces data1+data2 in case a handle or disp io is sent
 
-    public static DispIoD20Signal Default => new DispIoD20Signal();
+    public static DispIoD20Signal Default => new();
 }
 
 public class DispIoD20Query // DispIoType 7
@@ -100,7 +100,7 @@ public class DispIoD20Query // DispIoType 7
 
     public object obj;
 
-    public static DispIoD20Query Default => new DispIoD20Query();
+    public static DispIoD20Query Default => new();
 }
 
 [Flags]
@@ -234,7 +234,7 @@ public class DispIoTooltip // DispIoType 9 ; tooltip additional text when hoveri
         }
     }
 
-    public static DispIoTooltip Default => new DispIoTooltip();
+    public static DispIoTooltip Default => new();
 }
 
 public class DispIoObjBonus // type 10
@@ -247,7 +247,7 @@ public class DispIoObjBonus // type 10
 
     public ref BonusList bonOut => ref bonlist;
 
-    public static DispIoObjBonus Default => new DispIoObjBonus()
+    public static DispIoObjBonus Default => new()
     {
         bonlist = BonusList.Default
     };
@@ -262,7 +262,7 @@ public class DispIoDispelCheck // type 11
 
     public uint returnVal;
 
-    public static DispIoDispelCheck Default => new DispIoDispelCheck();
+    public static DispIoDispelCheck Default => new();
 };
 
 public class DispIoD20ActionTurnBased
@@ -283,7 +283,7 @@ public class DispIoD20ActionTurnBased
         this.action = action;
     }
 
-    public static DispIoD20ActionTurnBased Default => new DispIoD20ActionTurnBased();
+    public static DispIoD20ActionTurnBased Default => new();
 
     public void DispatchPerform(D20DispatcherKey key)
     {
@@ -351,7 +351,7 @@ public class DispIoMoveSpeed // dispIoType = 13, matches dispTypes 40,41
     public BonusList bonlist;
     public float factor;
 
-    public static DispIoMoveSpeed Default => new DispIoMoveSpeed
+    public static DispIoMoveSpeed Default => new()
     {
         factor = 1.0f,
         bonlist = BonusList.Default
@@ -366,7 +366,7 @@ public class DispIoBonusAndSpellEntry
     public SpellEntry spellEntry;
     public uint field_C; // unused?
 
-    public static DispIoBonusAndSpellEntry Default => new DispIoBonusAndSpellEntry();
+    public static DispIoBonusAndSpellEntry Default => new();
 };
 
 public class DispIoReflexThrow
@@ -380,7 +380,7 @@ public class DispIoReflexThrow
     public bool throwResult;
     public D20SavingThrowFlag flags;
 
-    public static DispIoReflexThrow Default => new DispIoReflexThrow();
+    public static DispIoReflexThrow Default => new();
 };
 
 public class DispIoObjEvent // type 17
@@ -390,7 +390,7 @@ public class DispIoObjEvent // type 17
     public GameObject tgt;
     public int evtId;
 
-    public static DispIoObjEvent Default => new DispIoObjEvent();
+    public static DispIoObjEvent Default => new();
 }
 
 public class DispIoAbilityLoss //  type 19
@@ -404,7 +404,7 @@ public class DispIoAbilityLoss //  type 19
     // 8 - marked at the beginning of dispatch; 0x10 - checks against this in the Temp/Perm ability damage
     public int flags;
 
-    public static DispIoAbilityLoss Default => new DispIoAbilityLoss
+    public static DispIoAbilityLoss Default => new()
     {
         statDamaged = Stat.strength
     };
@@ -420,7 +420,7 @@ public class DispIoAttackDice // type 20
     public Dice dicePacked;
     public DamageType attackDamageType;
 
-    public static DispIoAttackDice Default => new DispIoAttackDice()
+    public static DispIoAttackDice Default => new()
     {
         flags = D20CAF.HIT
     };
@@ -439,7 +439,7 @@ public class DispIoTypeImmunityTrigger
     public ConditionAttachment condNode;
 
     [TempleDllLocation(0x1004DBA0)]
-    public static DispIoTypeImmunityTrigger Default => new DispIoTypeImmunityTrigger();
+    public static DispIoTypeImmunityTrigger Default => new();
 }
 
 public class DispIoImmunity // type 23
@@ -451,7 +451,7 @@ public class DispIoImmunity // type 23
     public SpellPacketBody spellPkt;
     public SpellEntry spellEntry;
 
-    public static DispIoImmunity Default => new DispIoImmunity();
+    public static DispIoImmunity Default => new();
 }
 
 public class DispIoEffectTooltip // type 24
@@ -463,7 +463,7 @@ public class DispIoEffectTooltip // type 24
     */
     // TODO void Append(int effectTypeId, int spellEnum, string text);
 
-    public static DispIoEffectTooltip Default => new DispIoEffectTooltip();
+    public static DispIoEffectTooltip Default => new();
 };
 
 
@@ -473,14 +473,14 @@ public class EvtObjSpellCaster // type 34 (NEW!)
     public Stat arg0;
     public int arg1;
 
-    public static EvtObjSpellCaster Default => new EvtObjSpellCaster();
+    public static EvtObjSpellCaster Default => new();
 }
 
 public class EvtObjMetaMagic // type 35 (NEW!)
 {
     public MetaMagicData mmData;
 
-    public static EvtObjMetaMagic Default => new EvtObjMetaMagic();
+    public static EvtObjMetaMagic Default => new();
 };
 
 public class EvtObjSpecialAttack // type 36 (NEW!)
@@ -494,7 +494,7 @@ public class EvtObjSpecialAttack // type 36 (NEW!)
     public int attack; //Uses the attack enum but unfortunately the enum can't be passed through to python
     public GameObject target;
 
-    public static EvtObjSpecialAttack Default => new EvtObjSpecialAttack();
+    public static EvtObjSpecialAttack Default => new();
 };
 
 public class EvtObjRangeIncrementBonus // type 37 (NEW!)
@@ -516,7 +516,7 @@ public class EvtObjSpellTargetBonus // type 38 (NEW!)
     public SpellPacketBody spellPkt;
     public GameObject target;
 
-    public static EvtObjSpellTargetBonus Default = new EvtObjSpellTargetBonus();
+    public static EvtObjSpellTargetBonus Default = new();
 }
 
 public class EvtObjActionCost

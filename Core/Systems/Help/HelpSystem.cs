@@ -34,13 +34,13 @@ public class D20HelpTopic
     // ids for topics which will list this topic when using the command [CMD_CHILDREN] inside the text body
     public List<string> VirtualParents;
 
-    public List<string> VirtualChildren = new List<string>();
+    public List<string> VirtualChildren = new();
 
     public string Title;
 
     public string Text { get; set; }
 
-    public readonly List<D20HelpLink> Links = new List<D20HelpLink>();
+    public readonly List<D20HelpLink> Links = new();
 
     public override string ToString()
     {
@@ -82,7 +82,7 @@ public class HelpSystem : IGameSystem
     // Used for topics that have no relationship to other topics and will not be regarded as siblings
     private const string DummyTag = "TAG_DUMMY";
 
-    private readonly Dictionary<string, D20HelpTopic> _helpTopics = new Dictionary<string, D20HelpTopic>();
+    private readonly Dictionary<string, D20HelpTopic> _helpTopics = new();
 
     private const string TemplePlusExtensionsFile = "tpmes/help_extensions.tab";
 

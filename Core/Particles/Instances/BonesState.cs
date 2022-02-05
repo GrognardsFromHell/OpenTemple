@@ -6,7 +6,7 @@ namespace OpenTemple.Core.Particles.Instances;
 
 public class BonesState
 {
-    private static readonly Random Random = new Random();
+    private static readonly Random Random = new();
     private readonly int _boneCount;
     private readonly int _childBoneCount;
     private readonly float[] _distFromParent;

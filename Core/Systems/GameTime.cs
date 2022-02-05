@@ -86,6 +86,6 @@ public struct GameTime : IComparable<GameTime>
         }
     }
 
-    public TimePoint ToTimePoint() => new TimePoint(TimePoint.TicksPerMillisecond * timeInMs
-                                                    + TimePoint.TicksPerSecond * timeInDays * SecondsPerDay);
+    public TimePoint ToTimePoint() => new(TimePoint.TicksPerMillisecond * timeInMs
+                                          + TimePoint.TicksPerSecond * timeInDays * SecondsPerDay);
 }

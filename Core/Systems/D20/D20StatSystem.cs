@@ -921,7 +921,7 @@ public class D20StatSystem : IGameSystem
     private string[] statRulesStrings = new string[(int) Stat._count];
 
     private string[] statShortNameStrings = new string[(int) Stat._count];
-    private Dictionary<int, string> cannotPickClassStr = new Dictionary<int, string>();
+    private Dictionary<int, string> cannotPickClassStr = new();
 
     private static StatType GetType(Stat stat)
     {

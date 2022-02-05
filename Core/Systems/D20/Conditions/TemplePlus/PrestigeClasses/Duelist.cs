@@ -28,7 +28,7 @@ public class Duelist
 {
     public static readonly Stat ClassId = Stat.level_duelist;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("duelist")
+    public static readonly D20ClassSpec ClassSpec = new("duelist")
     {
         classEnum = Stat.level_duelist,
         helpTopic = "TAG_DUELISTS",

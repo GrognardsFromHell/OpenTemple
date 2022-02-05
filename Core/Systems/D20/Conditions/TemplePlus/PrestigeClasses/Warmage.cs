@@ -38,7 +38,7 @@ public class Warmage
     public static readonly FeatId EdgeId = (FeatId) ElfHash.Hash(Edge);
 
     /*has advanced learning*/
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("warmage")
+    public static readonly D20ClassSpec ClassSpec = new("warmage")
     {
         classEnum = ClassId,
         helpTopic = "TAG_WARMAGES",

@@ -37,7 +37,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x10BEC348)]
     public bool IsConversationOngoing { get; private set; }
 
-    private static readonly WidgetButtonStyle HeadButtonStyle = new WidgetButtonStyle
+    private static readonly WidgetButtonStyle HeadButtonStyle = new()
     {
         NormalImagePath = "art/interface/dialog/head_normal.tga",
         HoverImagePath = "art/interface/dialog/head_hovered.tga",
@@ -623,7 +623,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     /// This includes both NPC and PC lines. The last line in this list is the current NPC line being shown.
     /// </summary>
     [TempleDllLocation(0x10bec1a4)]
-    private readonly List<DisplayedDialogLine> _lineHistory = new List<DisplayedDialogLine>();
+    private readonly List<DisplayedDialogLine> _lineHistory = new();
 
     [TempleDllLocation(0x1014c8f0)]
     public void UiDialogBegin()

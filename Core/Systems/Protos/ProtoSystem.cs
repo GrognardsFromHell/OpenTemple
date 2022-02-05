@@ -15,7 +15,7 @@ public class ProtoSystem : IGameSystem
 
     private readonly ObjectSystem _objectSystem;
 
-    private readonly Dictionary<int, GameObject> _prototypes = new Dictionary<int, GameObject>();
+    private readonly Dictionary<int, GameObject> _prototypes = new();
 
     public ProtoSystem(ObjectSystem objectSystem)
     {

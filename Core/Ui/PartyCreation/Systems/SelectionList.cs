@@ -8,7 +8,7 @@ public class SelectionList<T>
 {
     public WidgetContainer Container { get; }
 
-    private readonly List<Item> _items = new List<Item>();
+    private readonly List<Item> _items = new();
 
     private readonly int _itemsPerPage;
 

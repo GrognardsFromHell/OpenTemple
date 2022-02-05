@@ -12,7 +12,7 @@ public class Drow
 {
     public const RaceId Id = RaceId.aquatic_elf + (2 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.elf, Subrace.drow)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.elf, Subrace.drow)
     {
         effectiveLevel = 2,
         helpTopic = "TAG_DROW",

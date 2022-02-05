@@ -27,7 +27,7 @@ public delegate void CursorDrawCallback(int x, int y, object userArg);
 
 public class TigMouse
 {
-    private readonly Stack<string> _cursorStash = new Stack<string>();
+    private readonly Stack<string> _cursorStash = new();
 
     private TigMouseState mouseState;
 
@@ -302,7 +302,7 @@ public class TigMouse
         CursorDrawCallbackArg = arg;
     }
 
-    public Point GetPos() => new Point(mouseState.x, mouseState.y);
+    public Point GetPos() => new(mouseState.x, mouseState.y);
 
     public bool IsMouseOutsideWindow { get; set; } = true;
 

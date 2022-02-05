@@ -546,7 +546,7 @@ public static class DomainConditions
 
     [TempleDllLocation(0x102b17a4)]
     private static readonly Dictionary<TurnUndeadType, Predicate<GameObject>> TurnUndeadTargetChecks =
-        new Dictionary<TurnUndeadType, Predicate<GameObject>>
+        new()
         {
             {TurnUndeadType.TurnUndead, obj => GameSystems.Critter.IsUndead(obj)},
             {TurnUndeadType.RebukeFireTurnWater, obj => GameSystems.Critter.IsWaterSubtype(obj)},
@@ -558,7 +558,7 @@ public static class DomainConditions
 
     [TempleDllLocation(0x102B17C4)]
     private static readonly Dictionary<TurnUndeadType, Predicate<GameObject>> RebukeUndeadTargetChecks =
-        new Dictionary<TurnUndeadType, Predicate<GameObject>>
+        new()
         {
             {TurnUndeadType.RebukeUndead, obj => GameSystems.Critter.IsUndead(obj)},
             {TurnUndeadType.RebukeFireTurnWater, obj => GameSystems.Critter.IsFireSubtype(obj)},

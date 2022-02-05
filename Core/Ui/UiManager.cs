@@ -42,7 +42,7 @@ public class UiManager
     /// <summary>
     /// The size in "virtual pixels" of the UI canvas.
     /// </summary>
-    public Size CanvasSize => new Size(
+    public Size CanvasSize => new(
         (int) _mainWindow.UiCanvasSize.Width,
         (int) _mainWindow.UiCanvasSize.Height
     );

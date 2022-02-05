@@ -9,7 +9,7 @@ namespace OpenTemple.Core.Ui;
 
 public class HelpManagerUi : IResetAwareSystem, ISaveGameAwareUi
 {
-    private readonly Dictionary<TutorialTopic, string> _tutorialTopicNames = new Dictionary<TutorialTopic, string>
+    private readonly Dictionary<TutorialTopic, string> _tutorialTopicNames = new()
     {
         {TutorialTopic.RestCamp, "TAG_TUT_REST_CAMP"},
         {TutorialTopic.Portraits, "TAG_TUT_PORTRAITS"},

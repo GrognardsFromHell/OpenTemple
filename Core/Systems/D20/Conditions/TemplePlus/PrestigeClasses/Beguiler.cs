@@ -36,7 +36,7 @@ public class Beguiler
     private const Stat ClassId = Stat.level_beguilers;
 
     /*has advanced learning*/
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("beguiler")
+    public static readonly D20ClassSpec ClassSpec = new("beguiler")
     {
         classEnum = ClassId,
         helpTopic = "TAG_BEGUILERS",

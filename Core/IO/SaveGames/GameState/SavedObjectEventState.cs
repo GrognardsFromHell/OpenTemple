@@ -63,7 +63,7 @@ public class SavedObjectEvent
 
     public float ConeRadians { get; set; }
 
-    public List<ObjectId> PreviouslyAffected { get; set; } = new List<ObjectId>();
+    public List<ObjectId> PreviouslyAffected { get; set; } = new();
 
     [TempleDllLocation(0x10044ef0)]
     public static SavedObjectEvent Load(BinaryReader reader)

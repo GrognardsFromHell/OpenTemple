@@ -38,7 +38,7 @@ public class HotkeySystem : IDisposable
     }.ToImmutableHashSet();
 
     [TempleDllLocation(0x10BD0248)]
-    private readonly Dictionary<DIK, RadialMenuEntry> _hotkeyTable = new Dictionary<DIK, RadialMenuEntry>();
+    private readonly Dictionary<DIK, RadialMenuEntry> _hotkeyTable = new();
 
     [TempleDllLocation(0x10bd0d40)]
     private readonly Dictionary<int, string> _translations;

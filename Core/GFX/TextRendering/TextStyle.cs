@@ -13,7 +13,7 @@ public struct Brush
         secondaryColor = fillColor;
     }
 
-    public static Brush Default => new Brush
+    public static Brush Default => new()
     {
         primaryColor = PackedLinearColorA.White,
         secondaryColor = PackedLinearColorA.White

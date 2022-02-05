@@ -37,7 +37,7 @@ public class DwarvenDefender
     private static readonly D20DispatcherKey defensiveStanceEnum = (D20DispatcherKey) 2500;
     private static readonly D20DispatcherKey defensiveStanceWindedEnum = (D20DispatcherKey) 2501;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("dwarven_defender")
+    public static readonly D20ClassSpec ClassSpec = new("dwarven_defender")
     {
         classEnum = Stat.level_dwarven_defender,
         helpTopic = "TAG_DWARVEN_DEFENDERS",

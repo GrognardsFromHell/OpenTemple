@@ -47,7 +47,7 @@ public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareS
 
     private readonly ScriptAssembly _scriptAssembly;
 
-    private readonly Dictionary<Type, object> _hooks = new Dictionary<Type, object>();
+    private readonly Dictionary<Type, object> _hooks = new();
 
     public SpellScriptSystem Spells { get; }
 

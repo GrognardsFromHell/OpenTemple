@@ -43,7 +43,7 @@ public struct BonusList
 
     public static BonusList Create() => Default;
 
-    public static BonusList Default => new BonusList
+    public static BonusList Default => new()
     {
         bonCount = 0,
         bonCapperCount = 0,

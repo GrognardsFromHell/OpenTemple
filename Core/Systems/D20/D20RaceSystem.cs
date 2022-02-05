@@ -14,7 +14,7 @@ namespace OpenTemple.Core.Systems.D20;
 
 public static class D20RaceSystem
 {
-    private static readonly Dictionary<RaceId, RaceSpec> _races = new Dictionary<RaceId, RaceSpec>();
+    private static readonly Dictionary<RaceId, RaceSpec> _races = new();
 
     public static readonly RaceId[] VanillaRaceIds =
     {
@@ -324,14 +324,14 @@ public class RaceSpec
 {
     public RaceId Id { get; }
     // Pairs of the modified Stat, and the modifier
-    public List<(Stat, int)> statModifiers = new List<(Stat, int)>();
+    public List<(Stat, int)> statModifiers = new();
     public int effectiveLevel = 0; // modifier for Effective Character Level (determines XP requirement)
     public string helpTopic; // helpsystem id ("TAG_xxx")
     public RaceDefinitionFlags flags;
-    public Dice hitDice = new Dice(0, 0, 0);
+    public Dice hitDice = new(0, 0, 0);
     public int naturalArmor = 0;
-    public List<FeatId> feats = new List<FeatId>(); // feat enums; for entering new-style feats in python, use tpdp.hash
-    public Dictionary<SpellStoreData, int> spellLikeAbilities = new Dictionary<SpellStoreData, int>();
+    public List<FeatId> feats = new(); // feat enums; for entering new-style feats in python, use tpdp.hash
+    public Dictionary<SpellStoreData, int> spellLikeAbilities = new();
 
     public int ProtoId; // protos.tab entry (male; female is +1)
     public int materialOffset = 0; // offset for rules/materials.mes (or materials_ext.mes for non-vanilla races)

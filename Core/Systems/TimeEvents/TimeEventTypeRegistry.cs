@@ -16,7 +16,7 @@ internal static class TimeEventTypeRegistry
     private static readonly TimeEventTypeSpec[] TimeEventTypeSpecs =
     {
         // Debug
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireDebug,
             null,
@@ -26,7 +26,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Anim
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTimeAnims,
             ExpireAnimEvent,
             null,
@@ -35,7 +35,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Bkg Anim
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireBkgAnim,
             null,
@@ -46,7 +46,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Fidget Anim
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireFidgetAnim,
             null,
@@ -54,7 +54,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Script
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireScript,
             null,
@@ -66,7 +66,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // PythonScript
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpirePythonScript,
             null,
@@ -76,7 +76,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Poison
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpirePoison,
             null,
@@ -87,7 +87,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Normal Healing
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireNormalHealing,
             null,
@@ -97,7 +97,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Subdual Healing
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireSubdualHealing,
             null,
@@ -107,7 +107,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Aging
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireAging,
             null,
@@ -115,7 +115,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // AI
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireAI,
             null,
@@ -125,7 +125,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // AI Delay
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireAIDelay,
             null,
@@ -134,7 +134,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Combat
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireCombat,
             null,
@@ -142,7 +142,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // TB Combat
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireTBCombat,
             null,
@@ -150,7 +150,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Ambient Lighting
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireAmbientLighting,
             null,
@@ -158,7 +158,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // WorldMap
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireWorldMap,
             null,
@@ -166,7 +166,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Sleeping
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireSleeping,
             null,
@@ -175,7 +175,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Clock
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireClock,
             null,
@@ -183,7 +183,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // NPC Wait Here
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireNPCWaitHere,
             null,
@@ -192,7 +192,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // MainMenu
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireMainMenu,
             null,
@@ -201,7 +201,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Light
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTimeAnims,
             ExpireLight,
             null,
@@ -211,7 +211,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Lock
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireLock,
             null,
@@ -220,7 +220,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // NPC Respawn
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireNPCRespawn,
             null,
@@ -229,7 +229,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Decay Dead Bodies
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireDecayDeadBodies,
             null,
@@ -239,7 +239,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Item Decay
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireItemDecay,
             null,
@@ -249,7 +249,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Combat-Focus Wipe
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireCombatFocusWipe,
             null,
@@ -259,7 +259,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Fade
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireFade,
             null,
@@ -271,7 +271,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // GFadeControl
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireGFadeControl,
             null,
@@ -279,7 +279,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Teleported
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireTeleported,
             null,
@@ -288,7 +288,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Scenery Respawn
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireSceneryRespawn,
             null,
@@ -297,7 +297,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Random Encounters
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireRandomEncounters,
             null,
@@ -305,7 +305,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // objfade
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTimeAnims,
             GameSystems.ObjFade.TimeEventExpired,
             GameSystems.ObjFade.TimeEventRemoved,
@@ -315,7 +315,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Action Queue
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireActionQueue,
             null,
@@ -325,7 +325,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // Search
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireSearch,
             null,
@@ -334,7 +334,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // intgame_turnbased
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpireIntgameTurnbased,
             null,
@@ -344,7 +344,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // python_dialog
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpirePythonDialog,
             null,
@@ -355,7 +355,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // encumbered complain
-        new TimeEventTypeSpec(
+        new(
             GameClockType.GameTime,
             ExpireEncumberedComplain,
             null,
@@ -364,7 +364,7 @@ internal static class TimeEventTypeRegistry
         ),
 
         // PythonRealtime
-        new TimeEventTypeSpec(
+        new(
             GameClockType.RealTime,
             ExpirePythonRealtime,
             null,

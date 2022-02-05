@@ -11,7 +11,7 @@ namespace OpenTemple.Core.IO.SaveGames.MapState;
 /// </summary>
 public class MapAnimState
 {
-    public List<SavedAnimSlot> Slots { get; set; } = new List<SavedAnimSlot>();
+    public List<SavedAnimSlot> Slots { get; set; } = new();
 
     public static MapAnimState Load(string path)
     {

@@ -16,12 +16,12 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures;
 /// </summary>
 internal class ClericFeaturesUi : IChargenSystem
 {
-    private readonly List<WidgetButton> _availableDomainButtons = new List<WidgetButton>();
+    private readonly List<WidgetButton> _availableDomainButtons = new();
 
     private readonly WidgetText _draggedDomainLabel;
 
     [TempleDllLocation(0x10c3c4e0)]
-    private readonly List<DomainId> _selectableDomains = new List<DomainId>();
+    private readonly List<DomainId> _selectableDomains = new();
 
     private readonly WidgetButton _selectedDomain1;
 

@@ -23,7 +23,7 @@ public class ReputationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwa
     private readonly Dictionary<int, Reputation> _reputations;
 
     [TempleDllLocation(0x10aa36d8)]
-    private readonly Dictionary<int, EarnedReputation> _earnedReputations = new Dictionary<int, EarnedReputation>();
+    private readonly Dictionary<int, EarnedReputation> _earnedReputations = new();
 
     [TempleDllLocation(0x10aa3704)]
     private readonly Dictionary<int, string> _translations;

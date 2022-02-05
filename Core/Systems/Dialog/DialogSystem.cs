@@ -19,14 +19,14 @@ public class DialogSystem : IGameSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private readonly DialogScripts _scripts = new DialogScripts();
+    private readonly DialogScripts _scripts = new();
 
-    private readonly Dictionary<int, PlayerVoiceSet> _playerVoiceSetsByKey = new Dictionary<int, PlayerVoiceSet>();
+    private readonly Dictionary<int, PlayerVoiceSet> _playerVoiceSetsByKey = new();
 
     private GeneratedDialog _generatedDialog;
 
     [TempleDllLocation(0x108EC860)]
-    private readonly List<PlayerVoiceSet> _playerVoiceSets = new List<PlayerVoiceSet>();
+    private readonly List<PlayerVoiceSet> _playerVoiceSets = new();
 
     [TempleDllLocation(0x10036040)]
     public DialogSystem()
@@ -416,7 +416,7 @@ public class DialogSystem : IGameSystem
     }
 
     [TempleDllLocation(0x108ed0c0)] [TempleDllLocation(0x108ec878)]
-    private readonly List<ObjectId> _savedPartySelection = new List<ObjectId>();
+    private readonly List<ObjectId> _savedPartySelection = new();
 
     [TempleDllLocation(0x10038770)]
     public bool BeginDialog(DialogState state)

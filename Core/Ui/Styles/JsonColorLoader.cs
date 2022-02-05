@@ -11,9 +11,9 @@ namespace OpenTemple.Core.Ui.Styles;
 public static class JsonColorLoader
 {
     private static readonly Regex RgbaRegex =
-        new Regex(@"rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)");
+        new(@"rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)");
 
-    private static readonly Regex RgbRegex = new Regex(@"rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)");
+    private static readonly Regex RgbRegex = new(@"rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)");
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 

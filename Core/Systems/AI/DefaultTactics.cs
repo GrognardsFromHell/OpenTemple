@@ -16,7 +16,7 @@ namespace OpenTemple.Core.Systems.AI;
 
 public static class DefaultTactics
 {
-    private static readonly Dictionary<string, AiTacticDef> Tactics = new Dictionary<string, AiTacticDef>
+    private static readonly Dictionary<string, AiTacticDef> Tactics = new()
     {
         {"default", TacticDefault.Instance},
         {"defaultCast", TacticDefaultCast.Instance},
@@ -71,7 +71,7 @@ public static class DefaultTactics
 
 internal class TacticDefault : AiTacticDef
 {
-    public static readonly TacticDefault Instance = new TacticDefault();
+    public static readonly TacticDefault Instance = new();
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -115,7 +115,7 @@ internal class TacticDefault : AiTacticDef
 
 internal class TacticDefaultCast : AiTacticDef
 {
-    public static readonly TacticDefaultCast Instance = new TacticDefaultCast();
+    public static readonly TacticDefaultCast Instance = new();
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -162,7 +162,7 @@ internal class TacticDefaultCast : AiTacticDef
 
 internal class TacticSniper : AiTacticDef
 {
-    public static readonly TacticSniper Instance = new TacticSniper();
+    public static readonly TacticSniper Instance = new();
 
     public string name => "sniper";
 
@@ -191,7 +191,7 @@ internal class TacticSniper : AiTacticDef
 
 internal class TacticFlank : AiTacticDef
 {
-    public static readonly TacticFlank Instance = new TacticFlank();
+    public static readonly TacticFlank Instance = new();
 
     public string name => "flank";
 
@@ -279,7 +279,7 @@ internal class TacticFlank : AiTacticDef
 
 internal class TacticReadyVsSpell : AiTacticDef
 {
-    public static readonly TacticReadyVsSpell Instance = new TacticReadyVsSpell();
+    public static readonly TacticReadyVsSpell Instance = new();
 
     public string name => "ready vs spell";
 
@@ -329,7 +329,7 @@ internal class TacticReadyVsSpell : AiTacticDef
 
 internal class TacticPartialCharge : AiTacticDef
 {
-    public static readonly TacticPartialCharge Instance = new TacticPartialCharge();
+    public static readonly TacticPartialCharge Instance = new();
 
     public string name => "partial charge";
 
@@ -353,7 +353,7 @@ internal class TacticPartialCharge : AiTacticDef
 
 internal class TacticReadyVsApproach : AiTacticDef
 {
-    public static readonly TacticReadyVsApproach Instance = new TacticReadyVsApproach();
+    public static readonly TacticReadyVsApproach Instance = new();
 
     public string name => "ready vs approach";
 
@@ -411,7 +411,7 @@ internal class TacticReadyVsApproach : AiTacticDef
 
 internal class TacticTargetLowAc : AiTacticDef
 {
-    public static readonly TacticTargetLowAc Instance = new TacticTargetLowAc();
+    public static readonly TacticTargetLowAc Instance = new();
 
     public string name => "target low ac";
 
@@ -448,7 +448,7 @@ internal class TacticTargetLowAc : AiTacticDef
 
 internal class TacticTargetHighAc : AiTacticDef
 {
-    public static readonly TacticTargetHighAc Instance = new TacticTargetHighAc();
+    public static readonly TacticTargetHighAc Instance = new();
 
     public string name => "target high ac";
 
@@ -486,7 +486,7 @@ internal class TacticTargetHighAc : AiTacticDef
 
 internal class TacticTargetDamaged : AiTacticDef
 {
-    public static readonly TacticTargetDamaged Instance = new TacticTargetDamaged();
+    public static readonly TacticTargetDamaged Instance = new();
 
     public string name => "target damaged";
 
@@ -526,7 +526,7 @@ internal class TacticTargetDamaged : AiTacticDef
 
 internal class TacticTargetRanged : AiTacticDef
 {
-    public static readonly TacticTargetRanged Instance = new TacticTargetRanged();
+    public static readonly TacticTargetRanged Instance = new();
 
     public string name => "target ranged";
 
@@ -571,7 +571,7 @@ internal class TacticTargetRanged : AiTacticDef
 
 internal class TacticTargetClosest : AiTacticDef
 {
-    public static readonly TacticTargetClosest Instance = new TacticTargetClosest();
+    public static readonly TacticTargetClosest Instance = new();
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -637,7 +637,7 @@ internal class TacticTargetClosest : AiTacticDef
 
 internal class TacticTargetProne : AiTacticDef
 {
-    public static readonly TacticTargetProne Instance = new TacticTargetProne();
+    public static readonly TacticTargetProne Instance = new();
 
     public string name => "target prone";
 
@@ -682,7 +682,7 @@ internal class TacticTargetProne : AiTacticDef
 
 internal class TacticRage : AiTacticDef
 {
-    public static readonly TacticRage Instance = new TacticRage();
+    public static readonly TacticRage Instance = new();
 
     public string name => "rage";
 
@@ -713,7 +713,7 @@ internal class TacticRage : AiTacticDef
 
 internal class TacticPowerAttack : AiTacticDef
 {
-    public static readonly TacticPowerAttack Instance = new TacticPowerAttack();
+    public static readonly TacticPowerAttack Instance = new();
 
     public string name => "power attack";
 
@@ -751,7 +751,7 @@ internal class TacticPowerAttack : AiTacticDef
 
 internal class TacticExpertise : AiTacticDef
 {
-    public static readonly TacticExpertise Instance = new TacticExpertise();
+    public static readonly TacticExpertise Instance = new();
 
     public string name => "expertise";
 
@@ -771,7 +771,7 @@ internal class TacticExpertise : AiTacticDef
 
 internal class TacticTrip : AiTacticDef
 {
-    public static readonly TacticTrip Instance = new TacticTrip();
+    public static readonly TacticTrip Instance = new();
 
     public string name => "trip";
 
@@ -812,7 +812,7 @@ internal class TacticTrip : AiTacticDef
 
 internal class TacticGoRanged : AiTacticDef
 {
-    public static readonly TacticGoRanged Instance = new TacticGoRanged();
+    public static readonly TacticGoRanged Instance = new();
 
     public string name => "go ranged";
 
@@ -846,7 +846,7 @@ internal class TacticGoRanged : AiTacticDef
 
 internal class TacticReload : AiTacticDef
 {
-    public static readonly TacticReload Instance = new TacticReload();
+    public static readonly TacticReload Instance = new();
 
     public string name => "reload";
 
@@ -875,7 +875,7 @@ internal class TacticReload : AiTacticDef
 
 internal class TacticTargetSelf : AiTacticDef
 {
-    public static readonly TacticTargetSelf Instance = new TacticTargetSelf();
+    public static readonly TacticTargetSelf Instance = new();
 
     public string name => "target self";
 
@@ -889,7 +889,7 @@ internal class TacticTargetSelf : AiTacticDef
 
 internal class TacticTargetFriendHighAc : AiTacticDef
 {
-    public static readonly TacticTargetFriendHighAc Instance = new TacticTargetFriendHighAc();
+    public static readonly TacticTargetFriendHighAc Instance = new();
 
     public string name => "target friend high ac";
 
@@ -921,7 +921,7 @@ internal class TacticTargetFriendHighAc : AiTacticDef
 
 internal class TacticTargetFriendLowAc : AiTacticDef
 {
-    public static readonly TacticTargetFriendLowAc Instance = new TacticTargetFriendLowAc();
+    public static readonly TacticTargetFriendLowAc Instance = new();
 
     public string name => "target friend low ac";
 
@@ -952,7 +952,7 @@ internal class TacticTargetFriendLowAc : AiTacticDef
 
 internal class TacticTargetFriendHurt : AiTacticDef
 {
-    public static readonly TacticTargetFriendHurt Instance = new TacticTargetFriendHurt();
+    public static readonly TacticTargetFriendHurt Instance = new();
 
     public string name => "target friend hurt";
 
@@ -987,7 +987,7 @@ internal class TacticTargetFriendHurt : AiTacticDef
 /// </summary>
 internal class TacticTargetFriendNospell : AiTacticDef
 {
-    public static readonly TacticTargetFriendNospell Instance = new TacticTargetFriendNospell();
+    public static readonly TacticTargetFriendNospell Instance = new();
 
     public string name => "target friend nospell";
 
@@ -1026,7 +1026,7 @@ internal class TacticTargetFriendNospell : AiTacticDef
 
 internal class TacticCastSingle : AiTacticDef
 {
-    public static readonly TacticCastSingle Instance = new TacticCastSingle();
+    public static readonly TacticCastSingle Instance = new();
 
     public string name => "cast single";
 
@@ -1074,7 +1074,7 @@ internal class TacticCastSingle : AiTacticDef
 
 internal class TacticCastFireball : AiTacticDef
 {
-    public static readonly TacticCastFireball Instance = new TacticCastFireball();
+    public static readonly TacticCastFireball Instance = new();
 
     public string name => "cast fireball";
 
@@ -1341,7 +1341,7 @@ internal class TacticCastFireball : AiTacticDef
 
 internal class TacticCastArea : AiTacticDef
 {
-    public static readonly TacticCastArea Instance = new TacticCastArea();
+    public static readonly TacticCastArea Instance = new();
 
     public string name => "cast area";
 
@@ -1400,7 +1400,7 @@ internal class TacticCastArea : AiTacticDef
 
 internal class TacticCastParty : AiTacticDef
 {
-    public static readonly TacticCastParty Instance = new TacticCastParty();
+    public static readonly TacticCastParty Instance = new();
 
     public string name => "cast party";
 
@@ -1445,7 +1445,7 @@ internal class TacticCastParty : AiTacticDef
 
 internal class TacticApproach : AiTacticDef
 {
-    public static readonly TacticApproach Instance = new TacticApproach();
+    public static readonly TacticApproach Instance = new();
 
     public string name => "approach";
 
@@ -1494,7 +1494,7 @@ internal class TacticApproach : AiTacticDef
 
 internal class TacticClearTarget : AiTacticDef
 {
-    public static readonly TacticClearTarget Instance = new TacticClearTarget();
+    public static readonly TacticClearTarget Instance = new();
 
     public string name => "clear target";
 
@@ -1508,7 +1508,7 @@ internal class TacticClearTarget : AiTacticDef
 
 internal class TacticAttackThreatened : AiTacticDef
 {
-    public static readonly TacticAttackThreatened Instance = new TacticAttackThreatened();
+    public static readonly TacticAttackThreatened Instance = new();
 
     public string name => "attack threatened";
 
@@ -1526,7 +1526,7 @@ internal class TacticAttackThreatened : AiTacticDef
 
 internal class TacticAttack : AiTacticDef
 {
-    public static readonly TacticAttack Instance = new TacticAttack();
+    public static readonly TacticAttack Instance = new();
 
     public string name => "attack";
 
@@ -1539,7 +1539,7 @@ internal class TacticAttack : AiTacticDef
 
 internal class TacticTargetThreatened : AiTacticDef
 {
-    public static readonly TacticTargetThreatened Instance = new TacticTargetThreatened();
+    public static readonly TacticTargetThreatened Instance = new();
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -1615,7 +1615,7 @@ internal class TacticTargetThreatened : AiTacticDef
 
 internal class TacticTargetNospell : AiTacticDef
 {
-    public static readonly TacticTargetNospell Instance = new TacticTargetNospell();
+    public static readonly TacticTargetNospell Instance = new();
 
     public string name => "target nospell";
 
@@ -1656,7 +1656,7 @@ internal class TacticTargetNospell : AiTacticDef
 
 internal class TacticFiveFootStep : AiTacticDef
 {
-    public static readonly TacticFiveFootStep Instance = new TacticFiveFootStep();
+    public static readonly TacticFiveFootStep Instance = new();
 
     public string name => "five foot step";
 
@@ -1675,7 +1675,7 @@ internal class TacticFiveFootStep : AiTacticDef
 
 internal class TacticCoupDeGrace : AiTacticDef
 {
-    public static readonly TacticCoupDeGrace Instance = new TacticCoupDeGrace();
+    public static readonly TacticCoupDeGrace Instance = new();
 
     public string name => "coup de grace";
 
@@ -1735,7 +1735,7 @@ internal class TacticCoupDeGrace : AiTacticDef
 
 internal class TacticUsePotion : AiTacticDef
 {
-    public static readonly TacticUsePotion Instance = new TacticUsePotion();
+    public static readonly TacticUsePotion Instance = new();
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -1799,7 +1799,7 @@ internal class TacticUsePotion : AiTacticDef
 
 internal class TacticCharge : AiTacticDef
 {
-    public static readonly TacticCharge Instance = new TacticCharge();
+    public static readonly TacticCharge Instance = new();
 
     public string name => "charge";
 
@@ -1831,7 +1831,7 @@ internal class TacticGoMelee : AiTacticDef
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    public static readonly TacticGoMelee Instance = new TacticGoMelee();
+    public static readonly TacticGoMelee Instance = new();
 
     public string name => "go melee";
 
@@ -1871,7 +1871,7 @@ internal class TacticGoMelee : AiTacticDef
 
 internal class TacticTargetNearbyBuffed : AiTacticDef
 {
-    public static readonly TacticTargetNearbyBuffed Instance = new TacticTargetNearbyBuffed();
+    public static readonly TacticTargetNearbyBuffed Instance = new();
 
     public string name => "target nearby buffed";
 
@@ -1943,7 +1943,7 @@ internal abstract class TacticTargetBadSave : AiTacticDef
 
 internal class TacticTargetBadWill : TacticTargetBadSave
 {
-    public static readonly TacticTargetBadWill Instance = new TacticTargetBadWill();
+    public static readonly TacticTargetBadWill Instance = new();
 
     public override string name => "target bad will";
 
@@ -1976,7 +1976,7 @@ internal class TacticTargetBadWill : TacticTargetBadSave
 
 internal class TacticTargetBadFort : TacticTargetBadSave
 {
-    public static readonly TacticTargetBadFort Instance = new TacticTargetBadFort();
+    public static readonly TacticTargetBadFort Instance = new();
 
     public override string name => "target bad fort";
 
@@ -2008,7 +2008,7 @@ internal class TacticTargetBadFort : TacticTargetBadSave
 
 internal class TacticTargetBadReflex : TacticTargetBadSave
 {
-    public static readonly TacticTargetBadReflex Instance = new TacticTargetBadReflex();
+    public static readonly TacticTargetBadReflex Instance = new();
 
     public override string name => "target bad reflex";
 
@@ -2047,7 +2047,7 @@ internal class TacticTargetBadReflex : TacticTargetBadSave
 
 internal class TacticCastSingleAlone : AiTacticDef
 {
-    public static readonly TacticCastSingleAlone Instance = new TacticCastSingleAlone();
+    public static readonly TacticCastSingleAlone Instance = new();
 
     public string name => "cast single alone";
 

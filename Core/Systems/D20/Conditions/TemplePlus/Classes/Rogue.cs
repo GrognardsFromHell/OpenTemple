@@ -33,7 +33,7 @@ public class Rogue
         FeatId.SKILL_MASTERY, FeatId.SLIPPERY_MIND
     }.Select(f => new SelectableFeat(f)).ToImmutableList();
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("rogue")
+    public static readonly D20ClassSpec ClassSpec = new("rogue")
     {
         classEnum = ClassId,
         helpTopic = "TAG_ROGUES",

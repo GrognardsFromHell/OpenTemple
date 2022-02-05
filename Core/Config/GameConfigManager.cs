@@ -11,7 +11,7 @@ namespace OpenTemple.Core.Config;
 /// </summary>
 public class GameConfigManager
 {
-    private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
         Converters =

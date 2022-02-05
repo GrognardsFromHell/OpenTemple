@@ -77,7 +77,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
 
     private static WidgetText CreateQuantityLabel()
     {
-        return new ("", "inventory-slot-quantity");
+        return new WidgetText("", "inventory-slot-quantity");
     }
 
     public override void Render()

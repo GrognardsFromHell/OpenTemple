@@ -78,7 +78,7 @@ public enum PoisonEffectType
 
 public class PoisonSystem
 {
-    private readonly Dictionary<int, PoisonSpec> _poisons = new Dictionary<int, PoisonSpec>();
+    private readonly Dictionary<int, PoisonSpec> _poisons = new();
 
     public PoisonSystem()
     {

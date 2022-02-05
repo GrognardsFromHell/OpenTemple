@@ -19,7 +19,7 @@ public class LightSchemeSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleA
     [TempleDllLocation(0x10AA9514)]
     private SchemeEntry[] _schemesByHour = new SchemeEntry[24];
 
-    private Dictionary<int, string> _schemeIndex = new Dictionary<int, string>();
+    private Dictionary<int, string> _schemeIndex = new();
 
     [TempleDllLocation(0x10AA9518)]
     private int _currentHourOfDay;
@@ -214,13 +214,13 @@ public class LightSchemeSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleA
         public byte indoorGreen;
         public byte indoorBlue;
 
-        public PackedLinearColorA Indoor => new PackedLinearColorA(indoorRed, indoorGreen, indoorBlue, 255);
+        public PackedLinearColorA Indoor => new(indoorRed, indoorGreen, indoorBlue, 255);
 
         public byte outdoorRed;
         public byte outdoorGreen;
         public byte outdoorBlue;
 
-        public PackedLinearColorA Outdoor => new PackedLinearColorA(outdoorRed, outdoorGreen, outdoorBlue, 255);
+        public PackedLinearColorA Outdoor => new(outdoorRed, outdoorGreen, outdoorBlue, 255);
 
     }
 }

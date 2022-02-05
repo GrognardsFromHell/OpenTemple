@@ -9,10 +9,10 @@ namespace OpenTemple.Core.Systems.MapSector;
 
 public class SectorVisibilityRenderer : IDisposable
 {
-    private PackedLinearColorA colorExtendFlag = new PackedLinearColorA(128, 128, 128, 100);
-    private PackedLinearColorA colorEndFlag = new PackedLinearColorA(0, 255, 0, 100);
-    private PackedLinearColorA colorBaseFlag = new PackedLinearColorA(0, 0, 255, 100);
-    private PackedLinearColorA colorArchwayFlag = new PackedLinearColorA(255, 0, 0, 100);
+    private PackedLinearColorA colorExtendFlag = new(128, 128, 128, 100);
+    private PackedLinearColorA colorEndFlag = new(0, 255, 0, 100);
+    private PackedLinearColorA colorBaseFlag = new(0, 0, 255, 100);
+    private PackedLinearColorA colorArchwayFlag = new(255, 0, 0, 100);
 
     private readonly ResourceRef<Material> _material;
 

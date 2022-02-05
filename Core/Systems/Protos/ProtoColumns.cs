@@ -1190,7 +1190,7 @@ internal static class ProtoColumns
     [TempleDllLocation(0x1003a780)]
     private class ArmorTypeParser : IProtoColumnParser
     {
-        private static readonly Dictionary<string, ArmorFlag> Mapping = new Dictionary<string, ArmorFlag>
+        private static readonly Dictionary<string, ArmorFlag> Mapping = new()
         {
             {"ARMOR_TYPE_LIGHT", ArmorFlag.TYPE_LIGHT},
             {"ARMOR_TYPE_MEDIUM", ArmorFlag.TYPE_MEDIUM},
@@ -1229,7 +1229,7 @@ internal static class ProtoColumns
     private class HelmSizeParser : IProtoColumnParser
     {
 
-        private static readonly Dictionary<string, ArmorFlag> Mapping = new Dictionary<string, ArmorFlag>
+        private static readonly Dictionary<string, ArmorFlag> Mapping = new()
         {
             {"HELM_TYPE_SMALL", ArmorFlag.HELM_TYPE_SMALL},
             {"HELM_TYPE_MEDIUM", ArmorFlag.HELM_TYPE_MEDIUM},
@@ -1408,7 +1408,7 @@ internal static class ProtoColumns
     [TempleDllLocation(0x10039990)]
     private class HairColorParser : IProtoColumnParser
     {
-        private static readonly Dictionary<string, HairColor> Mapping = new Dictionary<string, HairColor>
+        private static readonly Dictionary<string, HairColor> Mapping = new()
         {
             {"Black", HairColor.Black},
             {"Blonde", HairColor.Blonde},
@@ -1448,7 +1448,7 @@ internal static class ProtoColumns
     [TempleDllLocation(0x10039a60)]
     private class HairStyleParser : IProtoColumnParser
     {
-        private static readonly Dictionary<string, HairStyle> Mapping = new Dictionary<string, HairStyle>
+        private static readonly Dictionary<string, HairStyle> Mapping = new()
         {
             {"Longhair (m/f)", HairStyle.Longhair},
             {"Ponytail (m/f)", HairStyle.Ponytail},
@@ -1572,7 +1572,7 @@ internal static class ProtoColumns
     private class MonsterCategoryParser : IProtoColumnParser
     {
         private static readonly Dictionary<string, MonsterCategory> Mapping =
-            new Dictionary<string, MonsterCategory>
+            new()
             {
                 {"mc_type_aberration", MonsterCategory.aberration},
                 {"mc_type_animal", MonsterCategory.animal},
@@ -1619,7 +1619,7 @@ internal static class ProtoColumns
         // obj_f.critter_monster_category
 
         private static readonly Dictionary<string, MonsterSubtype> Mapping =
-            new Dictionary<string, MonsterSubtype>
+            new()
             {
                 {"mc_subtype_air", MonsterSubtype.air},
                 {"mc_subtype_aquatic", MonsterSubtype.aquatic},
@@ -1756,7 +1756,7 @@ internal static class ProtoColumns
         private int _currentConditionArg2;
 
         private static readonly Dictionary<string, DamageType> DamageTypeMapping =
-            new Dictionary<string, DamageType>
+            new()
             {
                 {"Bludgeoning", DamageType.Bludgeoning},
                 {"Piercing", DamageType.Piercing},
@@ -1782,7 +1782,7 @@ internal static class ProtoColumns
         private static readonly EnumIntMapping DamageTypeIntMapping = EnumIntMapping.Create(DamageTypeMapping);
 
         private static readonly Dictionary<string, D20AttackPower> AttackPowerMapping =
-            new Dictionary<string, D20AttackPower>
+            new()
             {
                 {"Normal", D20AttackPower.NORMAL},
                 {"Unspecified", D20AttackPower.UNSPECIFIED},

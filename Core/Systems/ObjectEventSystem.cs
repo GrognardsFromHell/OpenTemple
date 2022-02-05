@@ -49,7 +49,7 @@ public class ObjectEvent
 
     public float ConeRadians { get; }
 
-    public List<GameObject> PreviouslyAffected { get; } = new List<GameObject>();
+    public List<GameObject> PreviouslyAffected { get; } = new();
 
     public ObjectEvent(SectorLoc sectorLoc, GameObject sourceObject, int enterCallbackId, int leaveCallbackId,
         ObjectListFilter objListFlags, float radiusInch, float coneAngleStart, float coneRadians)
@@ -156,10 +156,10 @@ public class ObjectEventSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAw
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private readonly Dictionary<int, ObjectEvent> _objectEvents = new Dictionary<int, ObjectEvent>();
+    private readonly Dictionary<int, ObjectEvent> _objectEvents = new();
 
     // Used to track all movement that happened until AdvanceTime processes it
-    private readonly List<PendingObjectMovement> _movementQueue = new List<PendingObjectMovement>();
+    private readonly List<PendingObjectMovement> _movementQueue = new();
 
     private bool _processingPendingMovement;
 

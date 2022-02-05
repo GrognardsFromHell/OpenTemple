@@ -47,7 +47,7 @@ public class ArcaneArcher
     public const string ArrowOfDeathName = "Arrow of Death";
     public static readonly FeatId ArrowOfDeathId = (FeatId) ElfHash.Hash(ArrowOfDeathName);
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("arcane_archer")
+    public static readonly D20ClassSpec ClassSpec = new("arcane_archer")
     {
         classEnum = ClassId,
         helpTopic = "TAG_ARCANE_ARCHERS",

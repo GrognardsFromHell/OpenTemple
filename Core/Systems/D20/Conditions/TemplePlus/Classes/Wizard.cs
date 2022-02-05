@@ -36,7 +36,7 @@ public class Wizard
         FeatId.SCRIBE_SCROLL, FeatId.SILENT_SPELL, FeatId.STILL_SPELL, FeatId.WIDEN_SPELL
     }.Select(f => new SelectableFeat(f)).ToImmutableList();
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("wizard")
+    public static readonly D20ClassSpec ClassSpec = new("wizard")
     {
         classEnum = ClassId,
         helpTopic = "TAG_WIZARDS",

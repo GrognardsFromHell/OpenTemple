@@ -30,7 +30,7 @@ public class ArcaneTrickster
 {
     public const Stat ClassId = Stat.level_arcane_trickster;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("arcane_trickster")
+    public static readonly D20ClassSpec ClassSpec = new("arcane_trickster")
     {
         classEnum = ClassId,
         helpTopic = "TAG_ARCANE_TRICKSTERS",
@@ -99,7 +99,7 @@ public class ArcaneTrickster
     }
 
     [PythonAction]
-    public static PythonActionSpec ImpromptuSneakAttackAction = new PythonActionSpec
+    public static PythonActionSpec ImpromptuSneakAttackAction = new()
     {
         flags = D20ADF.D20ADF_None,
         tgtClass = D20TargetClassification.Target0,

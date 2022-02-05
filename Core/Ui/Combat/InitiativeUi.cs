@@ -16,11 +16,11 @@ public class InitiativeUi
     /// </summary>
     private const int PortraitMargin = 5;
 
-    private static readonly Size PortraitSize = new Size(59, 56);
+    private static readonly Size PortraitSize = new(59, 56);
 
-    private static readonly Size SmallPortraitSize = new Size(47, 42);
+    private static readonly Size SmallPortraitSize = new(47, 42);
 
-    private List<PortraitRecord> _currentPortraits = new List<PortraitRecord>();
+    private List<PortraitRecord> _currentPortraits = new();
 
     private readonly WidgetContainer _portraitContainer;
 

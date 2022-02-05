@@ -18,7 +18,7 @@ public class CharSheetFeatsUi : IDisposable
 
     private readonly FeatButton[] _featButtons;
 
-    private readonly List<FeatId> _featsToDisplay = new List<FeatId>();
+    private readonly List<FeatId> _featsToDisplay = new();
 
     [TempleDllLocation(0x101bcbf0)]
     [TempleDllLocation(0x101bc910)]

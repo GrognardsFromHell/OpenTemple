@@ -11,7 +11,7 @@ public class DialogScripts
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private Dictionary<int, DialogScript> _scripts = new Dictionary<int, DialogScript>();
+    private Dictionary<int, DialogScript> _scripts = new();
 
     public bool TryGet(int scriptId, out DialogScript script)
     {

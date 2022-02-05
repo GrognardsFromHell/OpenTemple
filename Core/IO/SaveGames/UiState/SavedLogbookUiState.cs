@@ -50,11 +50,11 @@ public class SavedLogbookEgoUiState
 {
     public int ActiveTab { get; set; }
 
-    public SavedLogbookEgoCombatUiState Combat { get; set; } = new SavedLogbookEgoCombatUiState();
+    public SavedLogbookEgoCombatUiState Combat { get; set; } = new();
 
-    public SavedLogbookEgoDamageUiState Damage { get; set; } = new SavedLogbookEgoDamageUiState();
+    public SavedLogbookEgoDamageUiState Damage { get; set; } = new();
 
-    public SavedLogbookEgoMiscUiState Misc { get; set; } = new SavedLogbookEgoMiscUiState();
+    public SavedLogbookEgoMiscUiState Misc { get; set; } = new();
 
     public static SavedLogbookEgoUiState Read(BinaryReader reader)
     {
@@ -78,21 +78,21 @@ public class SavedLogbookEgoUiState
 
 public class SavedLogbookEgoCombatUiState
 {
-    public List<LogbookCombatEntry> A { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> B { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> C { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> D { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> E { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> F { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> G { get; set; } = new List<LogbookCombatEntry>();
+    public List<LogbookCombatEntry> A { get; set; } = new();
+    public List<LogbookCombatEntry> B { get; set; } = new();
+    public List<LogbookCombatEntry> C { get; set; } = new();
+    public List<LogbookCombatEntry> D { get; set; } = new();
+    public List<LogbookCombatEntry> E { get; set; } = new();
+    public List<LogbookCombatEntry> F { get; set; } = new();
+    public List<LogbookCombatEntry> G { get; set; } = new();
 
-    public List<SavedLogbookEgoKill> Kills { get; set; } = new List<SavedLogbookEgoKill>();
-    public List<SavedLogbookEgoKill> MostExperienceEncounterKilled { get; set; } = new List<SavedLogbookEgoKill>();
+    public List<SavedLogbookEgoKill> Kills { get; set; } = new();
+    public List<SavedLogbookEgoKill> MostExperienceEncounterKilled { get; set; } = new();
     public int MostExperienceEncounterMapId { get; set; }
     public int MostExperienceEncounterEnemies { get; set; }
     public int MostExperienceEncounterExperience { get; set; }
 
-    public List<SavedLogbookEgoKill> MostExperienceEncounterKilledTemp { get; set; } = new List<SavedLogbookEgoKill>();
+    public List<SavedLogbookEgoKill> MostExperienceEncounterKilledTemp { get; set; } = new();
 
     [TempleDllLocation(0x101d0650)]
     public static SavedLogbookEgoCombatUiState Read(BinaryReader reader)
@@ -279,10 +279,10 @@ public class SavedLogbookEgoKill
 
 public class SavedLogbookEgoDamageUiState
 {
-    public List<LogbookCombatEntry> A { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> B { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> C { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> D { get; set; } = new List<LogbookCombatEntry>();
+    public List<LogbookCombatEntry> A { get; set; } = new();
+    public List<LogbookCombatEntry> B { get; set; } = new();
+    public List<LogbookCombatEntry> C { get; set; } = new();
+    public List<LogbookCombatEntry> D { get; set; } = new();
 
     public static SavedLogbookEgoDamageUiState Read(BinaryReader reader)
     {
@@ -306,12 +306,12 @@ public class SavedLogbookEgoDamageUiState
 
 public class SavedLogbookEgoMiscUiState
 {
-    public List<LogbookCombatEntry> A { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> B { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> C { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> D { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> E { get; set; } = new List<LogbookCombatEntry>();
-    public List<LogbookCombatEntry> F { get; set; } = new List<LogbookCombatEntry>();
+    public List<LogbookCombatEntry> A { get; set; } = new();
+    public List<LogbookCombatEntry> B { get; set; } = new();
+    public List<LogbookCombatEntry> C { get; set; } = new();
+    public List<LogbookCombatEntry> D { get; set; } = new();
+    public List<LogbookCombatEntry> E { get; set; } = new();
+    public List<LogbookCombatEntry> F { get; set; } = new();
 
     [TempleDllLocation(0x101ccfc0)]
     public static SavedLogbookEgoMiscUiState Read(BinaryReader reader)
@@ -398,7 +398,7 @@ public struct LogbookCombatEntry
 
 public class SavedLogbookKeysUiState
 {
-    public Dictionary<int, SavedKeyState> Keys { get; } = new Dictionary<int, SavedKeyState>();
+    public Dictionary<int, SavedKeyState> Keys { get; } = new();
 
     // Notify the player if new keys are acquired
     public bool EnableKeyNotifications { get; set; }
@@ -481,7 +481,7 @@ public class SavedLogbookRumorsUiState
 {
     public int CurrentPage { get; set; }
 
-    public List<SavedRumorState> Rumors { get; set; } = new List<SavedRumorState>();
+    public List<SavedRumorState> Rumors { get; set; } = new();
 
     [TempleDllLocation(0x10190410)]
     public static SavedLogbookRumorsUiState Read(BinaryReader reader)

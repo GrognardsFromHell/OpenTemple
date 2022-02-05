@@ -6,7 +6,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState;
 
 public class SavedMonsterGenState
 {
-    public List<SavedSpawnerState> Spawners { get; set; } = new List<SavedSpawnerState>();
+    public List<SavedSpawnerState> Spawners { get; set; } = new();
 
     [TempleDllLocation(0x100501a0)]
     public static SavedMonsterGenState Read(BinaryReader reader)

@@ -10,7 +10,7 @@ public class SavedReputationState
 
     private const int ItemSize = 16;
 
-    public List<SavedReputation> SavedReputations { get; set; } = new List<SavedReputation>();
+    public List<SavedReputation> SavedReputations { get; set; } = new();
 
     [TempleDllLocation(0x100542f0)]
     public static SavedReputationState Read(BinaryReader reader)

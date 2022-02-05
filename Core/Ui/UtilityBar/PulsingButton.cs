@@ -8,7 +8,7 @@ public class PulsingButton : WidgetButton
 {
     private WidgetImage _pulseImage;
 
-    public PackedLinearColorA PulseColor { get; set; } = new PackedLinearColorA(0, 0, 0, 0);
+    public PackedLinearColorA PulseColor { get; set; } = new(0, 0, 0, 0);
 
     public PulsingButton(string pulseTexture, Rectangle rect) : base(rect)
     {

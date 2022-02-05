@@ -44,7 +44,7 @@ public class CharSheetLootingUi : IDisposable
         "art/interface/char_ui/char_looting_ui/Looting_ChestPortrait.tga";
 
     // Maps from the proto id of the container being looted to the path of the portrait
-    private static readonly Dictionary<int, string> LootingContainerIcons = new Dictionary<int, string>
+    private static readonly Dictionary<int, string> LootingContainerIcons = new()
     {
         {1030, "art/interface/char_ui/char_looting_ui/Anvil.tga"},
         {1052, "art/interface/char_ui/char_looting_ui/Anvil.tga"},

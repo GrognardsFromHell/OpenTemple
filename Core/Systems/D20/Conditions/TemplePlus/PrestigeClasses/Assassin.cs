@@ -34,7 +34,7 @@ public static class Assassin
 
     public const Stat ClassId = Stat.level_assassin;
 
-    public static D20ClassSpec ClassSpec = new D20ClassSpec("assassin")
+    public static D20ClassSpec ClassSpec = new("assassin")
     {
         classEnum = Stat.level_assassin,
         helpTopic = "TAG_ASSASSINS",

@@ -102,7 +102,7 @@ public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwa
     }
 
     [TempleDllLocation(0x102b1d98)]
-    private static readonly Dictionary<SpawnRate, TimeSpan> SpawnRateDelays = new Dictionary<SpawnRate, TimeSpan>
+    private static readonly Dictionary<SpawnRate, TimeSpan> SpawnRateDelays = new()
     {
         {SpawnRate.Second, TimeSpan.FromSeconds(1)},
         {SpawnRate.HalfMinute, TimeSpan.FromSeconds(30)},

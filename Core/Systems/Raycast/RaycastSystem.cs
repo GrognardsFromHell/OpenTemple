@@ -14,7 +14,7 @@ namespace OpenTemple.Core.Systems.Raycast;
 
 public class RaycastSystem : IDisposable
 {
-	private readonly List<GoalDestination> _goalDestinations = new List<GoalDestination>();
+	private readonly List<GoalDestination> _goalDestinations = new();
 
 	public IReadOnlyList<GoalDestination> GoalDestinations => _goalDestinations;
 

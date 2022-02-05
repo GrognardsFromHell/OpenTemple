@@ -4133,7 +4133,7 @@ public class D20ActionSystem : IDisposable
     [TempleDllLocation(0x10B3D5A8)] private CursorType _currentCursor;
 
     [TempleDllLocation(0x11869244)] [TempleDllLocation(0x11869294)] [TempleDllLocation(0x1186926c)]
-    private readonly List<string> _currentSequenceTooltips = new List<string>();
+    private readonly List<string> _currentSequenceTooltips = new();
 
     public void AddCurrentSequenceTooltip(string text)
     {
@@ -4155,7 +4155,7 @@ public class D20ActionSystem : IDisposable
     }
 
     [TempleDllLocation(0x10b3d598)]
-    private readonly List<AttackOfOpportunityIndicator> _aooIndicators = new List<AttackOfOpportunityIndicator>();
+    private readonly List<AttackOfOpportunityIndicator> _aooIndicators = new();
 
     [TempleDllLocation(0x1008b660)]
     [TempleDllLocation(0x10b3b948)]

@@ -9,7 +9,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState;
 
 public class SavedSectorState
 {
-    public List<SavedSectorTime> SectorTimes { get; set; } = new List<SavedSectorTime>();
+    public List<SavedSectorTime> SectorTimes { get; set; } = new();
 
     [TempleDllLocation(0x10081d20)]
     public static SavedSectorState Read(BinaryReader reader)

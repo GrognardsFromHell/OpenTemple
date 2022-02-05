@@ -22,12 +22,12 @@ public class ParticleSysSystem : IGameSystem, ITimeAwareSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private readonly Dictionary<int, PartSysSpec> _specsByNameHash = new Dictionary<int, PartSysSpec>();
-    private readonly Dictionary<string, PartSysSpec> _specsByName = new Dictionary<string, PartSysSpec>();
+    private readonly Dictionary<int, PartSysSpec> _specsByNameHash = new();
+    private readonly Dictionary<string, PartSysSpec> _specsByName = new();
 
     private TimePoint _lastSimTime;
     private int _nextId = 1;
-    private readonly Dictionary<int, PartSys> _activeSys = new Dictionary<int, PartSys>();
+    private readonly Dictionary<int, PartSys> _activeSys = new();
     private readonly PartSysExternal _external;
 
     public float Fidelity => Math.Clamp(Globals.Config.ParticleFidelity / 100.0f, 0, 1);

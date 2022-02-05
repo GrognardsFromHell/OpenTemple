@@ -14,7 +14,7 @@ public class UtilityBarTimeBar : WidgetContainer
 
     private ResourceRef<ITexture> _timeBarTexture;
 
-    private WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
+    private WidgetTooltipRenderer _tooltipRenderer = new();
 
     public UtilityBarTimeBar(Rectangle rect) : base(rect)
     {

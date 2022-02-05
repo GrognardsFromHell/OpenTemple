@@ -10,23 +10,23 @@ namespace OpenTemple.Core.Utils;
 
 public struct Dice
 {
-    public static readonly Dice D2 = new Dice(1, 2);
+    public static readonly Dice D2 = new(1, 2);
 
-    public static readonly Dice D3 = new Dice(1, 3);
+    public static readonly Dice D3 = new(1, 3);
 
-    public static readonly Dice D4 = new Dice(1, 4);
+    public static readonly Dice D4 = new(1, 4);
 
-    public static readonly Dice D6 = new Dice(1, 6);
+    public static readonly Dice D6 = new(1, 6);
 
-    public static readonly Dice D8 = new Dice(1, 8);
+    public static readonly Dice D8 = new(1, 8);
 
-    public static readonly Dice D10 = new Dice(1, 10);
+    public static readonly Dice D10 = new(1, 10);
 
-    public static readonly Dice D12 = new Dice(1, 12);
+    public static readonly Dice D12 = new(1, 12);
 
-    public static readonly Dice D20 = new Dice(1, 20);
+    public static readonly Dice D20 = new(1, 20);
 
-    public static readonly Dice D100 = new Dice(1, 100);
+    public static readonly Dice D100 = new(1, 100);
 
     public int Count { get; }
 
@@ -221,12 +221,12 @@ public struct Dice
         return dice;
     }
 
-    public static Dice Zero => new Dice(0, 0, 0);
+    public static Dice Zero => new(0, 0, 0);
 
     /// <summary>
     /// Creates a dice that will always return a constant value.
     /// </summary>
-    public static Dice Constant(int value) => new Dice(0, 0, value);
+    public static Dice Constant(int value) => new(0, 0, value);
 
     // Convert to a packed ToEE dice
     [TempleDllLocation(0x10038c50)]
@@ -270,18 +270,18 @@ public struct Dice
     public int MaximumValue => Count + Sides + Modifier;
 
     [Pure]
-    public Dice WithCount(int newCount) => new Dice(newCount, Sides, Modifier);
+    public Dice WithCount(int newCount) => new(newCount, Sides, Modifier);
 
     [Pure]
-    public Dice WithSides(int newSides) => new Dice(Count, newSides, Modifier);
+    public Dice WithSides(int newSides) => new(Count, newSides, Modifier);
 
     [Pure]
-    public Dice WithModifier(int newModifier) => new Dice(Count, Sides, newModifier);
+    public Dice WithModifier(int newModifier) => new(Count, Sides, newModifier);
 
     [Pure]
-    public Dice WithAdjustedModifer(int adjustment) => new Dice(Count, Sides, Modifier + adjustment);
+    public Dice WithAdjustedModifer(int adjustment) => new(Count, Sides, Modifier + adjustment);
 
-    public Dice Copy() => new Dice(Count, Sides, Modifier);
+    public Dice Copy() => new(Count, Sides, Modifier);
 
     public void Format(StringBuilder builder, bool omitZeroModifier)
     {

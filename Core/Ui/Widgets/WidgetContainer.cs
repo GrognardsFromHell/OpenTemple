@@ -245,7 +245,7 @@ public class WidgetContainer : WidgetBase
         return mScrollOffsetY;
     }
 
-    private List<WidgetBase> mChildren = new List<WidgetBase>();
+    private List<WidgetBase> mChildren = new();
 
     private int mScrollOffsetY = 0;
 

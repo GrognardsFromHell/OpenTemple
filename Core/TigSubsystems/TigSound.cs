@@ -468,7 +468,7 @@ public class TigSound : IDisposable
 
     [TempleDllLocation(0x10300bac)]
     private readonly Dictionary<tig_sound_type, int> tig_sound_type_stream_flags =
-        new Dictionary<tig_sound_type, int>
+        new()
         {
             { tig_sound_type.TIG_ST_EFFECTS, 0x80 },
             { tig_sound_type.TIG_ST_MUSIC, 0x100 },

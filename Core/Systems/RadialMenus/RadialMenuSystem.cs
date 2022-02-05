@@ -41,7 +41,7 @@ public partial class RadialMenuSystem
     private readonly int[] standardNodeIndices = new int[200]; // was 120 in Co8
 
     [TempleDllLocation(0x115B2060)]
-    private readonly List<RadialMenu> _radialMenus = new List<RadialMenu>();
+    private readonly List<RadialMenu> _radialMenus = new();
 
     [TempleDllLocation(0x10BD0234)]
     [TempleDllLocation(0x100f0100)]
@@ -73,7 +73,7 @@ public partial class RadialMenuSystem
     {
         return new List<D20RadialMenuDef>
         {
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Offense,
                 d20ActionType = D20ActionType.STANDARD_ATTACK,
@@ -82,7 +82,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_MELEE_ATTACKS",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Offense,
                 d20ActionType = D20ActionType.FULL_ATTACK,
@@ -91,7 +91,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_FULL_ATTACK",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Movement,
                 d20ActionType = D20ActionType.FIVEFOOTSTEP,
@@ -100,7 +100,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_5_FOOT_STEP",
                 callback = RadialCallbackMovementMaybe
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Movement,
                 d20ActionType = D20ActionType.MOVE,
@@ -109,7 +109,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_ADVENTURING_MOVE",
                 callback = RadialCallbackMovementMaybe
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Movement,
                 d20ActionType = D20ActionType.DOUBLE_MOVE,
@@ -118,7 +118,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_ADVENTURING_DOUBLE_MOVE",
                 callback = RadialCallbackMovementMaybe
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Movement,
                 d20ActionType = D20ActionType.RUN,
@@ -127,7 +127,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_RUN",
                 callback = RadialCallbackMovementMaybe
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Movement,
                 d20ActionType = D20ActionType.FLEE_COMBAT,
@@ -136,7 +136,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_FLEE_COMBAT",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Skills,
                 d20ActionType = D20ActionType.HEAL,
@@ -145,7 +145,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_HEAL",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Tactical,
                 d20ActionType = D20ActionType.TOTAL_DEFENSE,
@@ -154,7 +154,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_RADIAL_MENU_TOTAL_DEFENSE",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Offense,
                 d20ActionType = D20ActionType.CHARGE,
@@ -163,7 +163,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_CHARGE",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Offense,
                 d20ActionType = D20ActionType.TRIP,
@@ -172,7 +172,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_TRIP",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Offense,
                 d20ActionType = D20ActionType.COUP_DE_GRACE,
@@ -181,7 +181,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_RADIAL_MENU_COUP_DE_GRACE",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Items,
                 d20ActionType = D20ActionType.OPEN_INVENTORY,
@@ -190,7 +190,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_HMU_CHAR_INVENTORY_UI",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Class,
                 d20ActionType = D20ActionType.TALK,
@@ -199,7 +199,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_RADIAL_MENU_TALK",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Tactical,
                 d20ActionType = D20ActionType.FEINT,
@@ -208,7 +208,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_FEINT",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Tactical,
                 d20ActionType = D20ActionType.READY_SPELL,
@@ -217,7 +217,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_RADIAL_MENU_READY",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Tactical,
                 d20ActionType = D20ActionType.READY_ENTER,
@@ -226,7 +226,7 @@ public partial class RadialMenuSystem
                 helpSystemEntryName = "TAG_RADIAL_MENU_READY_APPROACH",
                 callback = RadialMenuCallbackDefault
             },
-            new D20RadialMenuDef
+            new()
             {
                 parent = RadialMenuStandardNode.Tactical,
                 d20ActionType = D20ActionType.READY_EXIT,

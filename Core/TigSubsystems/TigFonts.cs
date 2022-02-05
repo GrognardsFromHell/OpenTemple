@@ -27,9 +27,9 @@ public sealed class TigFonts : IDisposable
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private readonly Dictionary<string, TigFont> _fonts = new Dictionary<string, TigFont>();
+    private readonly Dictionary<string, TigFont> _fonts = new();
 
-    private readonly Stack<TigFont> _fontStack = new Stack<TigFont>(10);
+    private readonly Stack<TigFont> _fontStack = new(10);
 
     public bool FontIsEnglish { get; set; } = true;
 

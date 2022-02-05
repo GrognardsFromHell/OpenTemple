@@ -25,7 +25,7 @@ public class GoldDwarf
 {
     public const RaceId Id = RaceId.dwarf + (5 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.dwarf, Subrace.gold_dwarf)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.dwarf, Subrace.gold_dwarf)
     {
         effectiveLevel = 0,
         helpTopic = "TAG_GOLD_DWARF",

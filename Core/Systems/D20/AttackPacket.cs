@@ -80,7 +80,7 @@ public struct AttackPacket
         return false;
     }
 
-    public static readonly AttackPacket Default = new AttackPacket
+    public static readonly AttackPacket Default = new()
     {
         flags = D20CAF.NONE,
         d20ActnType = D20ActionType.STANDARD_ATTACK,

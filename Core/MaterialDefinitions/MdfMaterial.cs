@@ -28,5 +28,5 @@ public class MdfMaterial {
     public bool outline = false; // Ignored during rendering
     public bool wireframe = false; // Ignored during rendering
     public bool perVertexColor = false; // per-vertex color info (only used for lightning, more or less)
-    public List<MdfGeneralMaterialSampler> samplers = new List<MdfGeneralMaterialSampler>();
+    public List<MdfGeneralMaterialSampler> samplers = new();
 };

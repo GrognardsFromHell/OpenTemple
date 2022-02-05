@@ -32,7 +32,7 @@ public class FeatSystem : IGameSystem
 
     public List<FeatId> newFeats { get; set; }
 
-    private readonly Dictionary<FeatId, FeatSpec> _feats = new Dictionary<FeatId, FeatSpec>();
+    private readonly Dictionary<FeatId, FeatSpec> _feats = new();
 
     [TempleDllLocation(0x1007bfa0)]
     public FeatSystem()
@@ -383,7 +383,7 @@ public class FeatSystem : IGameSystem
     // vanilla was 649 (and Moebius hack increased this to 664 I think)
     public const int NUM_FEATS = 750;
 
-    private readonly Dictionary<FeatId, NewFeatSpec> mNewFeats = new Dictionary<FeatId, NewFeatSpec>();
+    private readonly Dictionary<FeatId, NewFeatSpec> mNewFeats = new();
 
     public IEnumerable<FeatId> NewFeats => mNewFeats.Keys;
 

@@ -15,7 +15,7 @@ public struct DamageDice
     public string typeDescription;
     public string causedBy; // e.g. item name
 
-    public DamageDice Default => new DamageDice
+    public DamageDice Default => new()
     {
         type = DamageType.Unspecified,
         rolledDamage = -1
@@ -63,12 +63,11 @@ public class DamagePacket
     public int
         critHitMultiplier; // 1 by default; gets set on an actual crit hit (and may be modified by various things)
 
-    public List<DamageDice> dice = new List<DamageDice>();
-    public List<DamageReduction> damageResistances = new List<DamageReduction>();
+    public List<DamageDice> dice = new();
+    public List<DamageReduction> damageResistances = new();
 
     public List<DamageReduction>
-        damageFactorModifiers =
-            new List<DamageReduction>(); // may also be used for vulnerabilities (e.g. Condition Monster Subtype Fire does this for Cold Damage)
+        damageFactorModifiers = new(); // may also be used for vulnerabilities (e.g. Condition Monster Subtype Fire does this for Cold Damage)
 
     public BonusList bonuses = BonusList.Create();
     public D20AttackPower attackPowerType; // see D20DAP
@@ -670,8 +669,8 @@ public class DamagePacket
 public class DispIoDamage
 {
     // Io type 4
-    public AttackPacket attackPacket = new AttackPacket();
-    public DamagePacket damage = new DamagePacket();
+    public AttackPacket attackPacket = new();
+    public DamagePacket damage = new();
 
     [TempleDllLocation(0x1004da00)]
     public DispIoDamage()

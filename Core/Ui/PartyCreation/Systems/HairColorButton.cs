@@ -8,10 +8,10 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems;
 
 public class HairColorButton : WidgetButtonBase
 {
-    private static readonly PackedLinearColorA OutlinePressed = new PackedLinearColorA(0xFFAAE9FF);
-    private static readonly PackedLinearColorA OutlineHovered = new PackedLinearColorA(0xFF376FAA);
-    private static readonly PackedLinearColorA OutlineSelected = new PackedLinearColorA(0xFF1AC3FF);
-    private static readonly PackedLinearColorA OutlineDefault = new PackedLinearColorA(0xFF43576E);
+    private static readonly PackedLinearColorA OutlinePressed = new(0xFFAAE9FF);
+    private static readonly PackedLinearColorA OutlineHovered = new(0xFF376FAA);
+    private static readonly PackedLinearColorA OutlineSelected = new(0xFF1AC3FF);
+    private static readonly PackedLinearColorA OutlineDefault = new(0xFF43576E);
 
     public bool Selected { get; set; }
 

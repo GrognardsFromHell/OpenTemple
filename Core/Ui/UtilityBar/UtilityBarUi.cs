@@ -13,7 +13,7 @@ namespace OpenTemple.Core.Ui.UtilityBar;
 
 public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
 {
-    private readonly UtilityBarHistoryUi _historyUi = new UtilityBarHistoryUi();
+    private readonly UtilityBarHistoryUi _historyUi = new();
 
     public UtilityBarHistoryUi HistoryUi => _historyUi;
 
@@ -21,7 +21,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
     private readonly WidgetContainer _container;
 
     [TempleDllLocation(0x10bd347c)]
-    private static readonly WidgetButtonStyle PassTimeButtonStyle = new WidgetButtonStyle
+    private static readonly WidgetButtonStyle PassTimeButtonStyle = new()
     {
         NormalImagePath = "art/interface/utility_bar_ui/camp.tga",
         HoverImagePath = "art/interface/utility_bar_ui/camp_hover.tga",
@@ -30,14 +30,14 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
     };
 
     [TempleDllLocation(0x10bd34d0)]
-    private static readonly WidgetButtonStyle RestForbiddenButtonStyle = new WidgetButtonStyle
+    private static readonly WidgetButtonStyle RestForbiddenButtonStyle = new()
     {
         NormalImagePath = "art/interface/utility_bar_ui/camp_red.tga",
         DisabledImagePath = "art/interface/utility_bar_ui/camp_grey.tga"
     };
 
     [TempleDllLocation(0x10bd33d0)]
-    private static readonly WidgetButtonStyle RestUnsafeButtonStyle = new WidgetButtonStyle
+    private static readonly WidgetButtonStyle RestUnsafeButtonStyle = new()
     {
         NormalImagePath = "art/interface/utility_bar_ui/camp_yellow.tga",
         HoverImagePath = "art/interface/utility_bar_ui/camp_yellow_hover.tga",
@@ -46,7 +46,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
     };
 
     [TempleDllLocation(0x10bd2de4)]
-    private static readonly WidgetButtonStyle RestSafeButtonStyle = new WidgetButtonStyle
+    private static readonly WidgetButtonStyle RestSafeButtonStyle = new()
     {
         NormalImagePath = "art/interface/utility_bar_ui/camp_green.tga",
         HoverImagePath = "art/interface/utility_bar_ui/camp_green_hover.tga",

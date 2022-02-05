@@ -1086,13 +1086,13 @@ TP Replaced @ ability_fixes.cpp:71
     private static readonly ElementalGemTarget[] ElementalGemTargets =
     {
         // Air Node
-        new ElementalGemTarget(5096, 5081, new locXY(477, 484)),
+        new(5096, 5081, new locXY(477, 484)),
         // Earth Node
-        new ElementalGemTarget(5097, 5082, new locXY(484, 473)),
+        new(5097, 5082, new locXY(484, 473)),
         // Fire Node
-        new ElementalGemTarget(5098, 5083, new locXY(505, 496)),
+        new(5098, 5083, new locXY(505, 496)),
         // Water Node
-        new ElementalGemTarget(5099, 5084, new locXY(453, 473)),
+        new(5099, 5084, new locXY(453, 473)),
     };
 
     [DispTypes(DispatcherType.D20ActionPerform)]

@@ -33,13 +33,12 @@ public class TeleportSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     private bool _isTeleportingPc = false;
 
     [TempleDllLocation(0x10ab74bc)]
-    private readonly List<Tuple<GameObject, locXY>> _teleportingObjects =
-        new List<Tuple<GameObject, locXY>>();
+    private readonly List<Tuple<GameObject, locXY>> _teleportingObjects = new();
 
     [TempleDllLocation(0x10084ae0)]
     public bool IsProcessing { get; private set; }
 
-    private readonly DayNightTransfer _dayNightTransfer = new DayNightTransfer();
+    private readonly DayNightTransfer _dayNightTransfer = new();
 
     [TempleDllLocation(0x10084fa0)]
     public void Dispose()

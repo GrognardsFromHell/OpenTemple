@@ -12,7 +12,7 @@ namespace OpenTemple.Core.GameObjects;
 internal class ArrayIndexBitmaps
 {
 
-    public static ArrayIndexBitmaps Instance { get; } = new ArrayIndexBitmaps();
+    public static ArrayIndexBitmaps Instance { get; } = new();
 
     public ArrayIndexBitmaps()
     {

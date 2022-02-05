@@ -36,7 +36,7 @@ public class OptionsUi
 
     private readonly WidgetContainer _optionsContainer;
 
-    private readonly List<OptionsPage> _pages = new List<OptionsPage>();
+    private readonly List<OptionsPage> _pages = new();
 
     [TempleDllLocation(0x1011b640)]
     public OptionsUi()

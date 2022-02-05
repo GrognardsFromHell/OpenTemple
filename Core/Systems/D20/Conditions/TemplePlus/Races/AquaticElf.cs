@@ -10,7 +10,7 @@ public class AquaticElf
 
     public const RaceId Id = RaceId.aquatic_elf + (1 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.elf, Subrace.aquatic_elf)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.elf, Subrace.aquatic_elf)
     {
         effectiveLevel  = 0,
         helpTopic      = "TAG_AQUATIC_ELF",

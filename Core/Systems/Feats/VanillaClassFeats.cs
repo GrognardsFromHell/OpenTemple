@@ -5,7 +5,7 @@ namespace OpenTemple.Core.Systems.Feats;
 
 public class VanillaClassFeats
 {
-    private static readonly Dictionary<Stat, FeatEntry[]> ClassEntries = new Dictionary<Stat, FeatEntry[]>();
+    private static readonly Dictionary<Stat, FeatEntry[]> ClassEntries = new();
 
     static VanillaClassFeats()
     {

@@ -24,17 +24,17 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    public LogbookQuestsUi Quests { get; } = new LogbookQuestsUi();
+    public LogbookQuestsUi Quests { get; } = new();
 
-    public LogbookReputationUi Reputation { get; } = new LogbookReputationUi();
+    public LogbookReputationUi Reputation { get; } = new();
 
-    public LogbookEgoUi Ego { get; } = new LogbookEgoUi();
+    public LogbookEgoUi Ego { get; } = new();
 
-    public LogbookKeysUi Keys { get; } = new LogbookKeysUi();
+    public LogbookKeysUi Keys { get; } = new();
 
-    public LogbookRumorsUi Rumors { get; } = new LogbookRumorsUi();
+    public LogbookRumorsUi Rumors { get; } = new();
 
-    public LogbookQuotesUi Quotes { get; } = new LogbookQuotesUi();
+    public LogbookQuotesUi Quotes { get; } = new();
 
     [TempleDllLocation(0x101260f0)]
     [TempleDllLocation(0x10be0c58)]

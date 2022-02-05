@@ -16,11 +16,11 @@ internal class RaceSystem : IChargenSystem
 
     public WidgetContainer Container { get; }
 
-    private readonly SelectionList<RaceId?> _raceList = new SelectionList<RaceId?>();
+    private readonly SelectionList<RaceId?> _raceList = new();
 
-    private readonly List<WidgetButton> _subraceButtons = new List<WidgetButton>();
+    private readonly List<WidgetButton> _subraceButtons = new();
 
-    private readonly List<RaceId> _subraces = new List<RaceId>();
+    private readonly List<RaceId> _subraces = new();
 
     private CharEditorSelectionPacket _pkt;
 

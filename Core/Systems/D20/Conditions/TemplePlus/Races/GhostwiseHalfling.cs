@@ -27,7 +27,7 @@ public class GhostwiseHalfling
 
     public const RaceId Id = RaceId.tallfellow + (4 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.halfling, Subrace.ghostwise_halfling)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.halfling, Subrace.ghostwise_halfling)
     {
         effectiveLevel = 0,
         helpTopic = "TAG_GHOSTWISE_HALFLING",

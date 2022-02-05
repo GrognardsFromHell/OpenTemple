@@ -42,9 +42,9 @@ public class CharSheetInventoryUi : IDisposable
         }
     }
 
-    private static readonly Size SlotSize = new Size(65, 65);
+    private static readonly Size SlotSize = new(65, 65);
 
-    private readonly List<InventorySlotWidget> _slots = new List<InventorySlotWidget>();
+    private readonly List<InventorySlotWidget> _slots = new();
 
     [TempleDllLocation(0x10159530)]
     public CharSheetInventoryUi()

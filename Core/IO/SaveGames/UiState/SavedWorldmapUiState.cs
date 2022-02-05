@@ -8,7 +8,7 @@ namespace OpenTemple.Core.IO.SaveGames.UiState;
 
 public class SavedWorldmapUiState
 {
-    public List<SavedWorldmapLocation> Locations { get; set; } = new List<SavedWorldmapLocation>();
+    public List<SavedWorldmapLocation> Locations { get; set; } = new();
 
     // The x,y Position on the Worldmap *image* where the random encounter ocurred
     public Point RandomEncounterPoint { get; set; }

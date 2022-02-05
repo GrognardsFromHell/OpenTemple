@@ -15,7 +15,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private AnimPathFinder _animPathFinder = new AnimPathFinder();
+    private AnimPathFinder _animPathFinder = new();
 
     #region Debug stuff for diagnostic render
 

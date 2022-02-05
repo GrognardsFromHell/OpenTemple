@@ -30,7 +30,7 @@ internal class SkillsSystem : IChargenSystem
 
     [TempleDllLocation(0x10c379b8)]
     [TempleDllLocation(0x10c37910)]
-    private readonly List<SkillId> chargenSkills = new List<SkillId>();
+    private readonly List<SkillId> chargenSkills = new();
 
     [TempleDllLocation(0x10181b70)]
     public SkillsSystem()

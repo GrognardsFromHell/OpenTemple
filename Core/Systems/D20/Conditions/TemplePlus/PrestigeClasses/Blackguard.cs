@@ -45,7 +45,7 @@ public class Blackguard
 
     public static readonly FeatId AuraOfDespairId = (FeatId) ElfHash.Hash(AuraOfDespairName);
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("blackguard")
+    public static readonly D20ClassSpec ClassSpec = new("blackguard")
     {
         classEnum = ClassId,
         helpTopic = "TAG_BLACKGUARDS",

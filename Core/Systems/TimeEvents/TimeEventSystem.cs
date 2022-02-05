@@ -38,17 +38,17 @@ public class TimeEventSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x10AA83E0)]
     private bool _isSpecialScheduling = false;
 
-    private List<TimeEventListEntry> _eventQueueRealTime = new List<TimeEventListEntry>();
+    private List<TimeEventListEntry> _eventQueueRealTime = new();
 
-    private List<TimeEventListEntry> _eventQueueGameTime = new List<TimeEventListEntry>();
+    private List<TimeEventListEntry> _eventQueueGameTime = new();
 
-    private List<TimeEventListEntry> _eventQueueAnimTime = new List<TimeEventListEntry>();
+    private List<TimeEventListEntry> _eventQueueAnimTime = new();
 
-    private List<TimeEventListEntry> _eventQueueRealTimeWhileAdvancing = new List<TimeEventListEntry>();
+    private List<TimeEventListEntry> _eventQueueRealTimeWhileAdvancing = new();
 
-    private List<TimeEventListEntry> _eventQueueGameTimeWhileAdvancing = new List<TimeEventListEntry>();
+    private List<TimeEventListEntry> _eventQueueGameTimeWhileAdvancing = new();
 
-    private List<TimeEventListEntry> _eventQueueAnimTimeWhileAdvancing = new List<TimeEventListEntry>();
+    private List<TimeEventListEntry> _eventQueueAnimTimeWhileAdvancing = new();
 
     private const int SecondsPerDay = 24 * 60 * 60;
 

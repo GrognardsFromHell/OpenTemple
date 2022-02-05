@@ -11,7 +11,7 @@ namespace OpenTemple.Core.Systems.Clipping;
 internal class ClippingMesh : IDisposable
 {
     private readonly string _filename;
-    private readonly List<ClippingMeshObj> _instances = new List<ClippingMeshObj>();
+    private readonly List<ClippingMeshObj> _instances = new();
     private readonly ResourceLifecycleCallbacks _lifecycleCallbacks;
     private ResourceRef<IndexBuffer> _indexBuffer;
     private ResourceRef<VertexBuffer> _vertexBuffer;

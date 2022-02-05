@@ -25,7 +25,7 @@ public class Tiefling
 {
     public const RaceId Id = RaceId.human + (3 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.human, Subrace.tiefling)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.human, Subrace.tiefling)
     {
         effectiveLevel = 1,
         helpTopic = "TAG_TIEFLING",

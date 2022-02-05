@@ -17,7 +17,7 @@ public class HeadlessMainWindow : IMainWindow
 
     public event Action Closed;
 
-    public Size OffScreenSize { get; set; } = new Size(1024, 768);
+    public Size OffScreenSize { get; set; } = new(1024, 768);
 
     public WindowConfig WindowConfig { get; set; }
 

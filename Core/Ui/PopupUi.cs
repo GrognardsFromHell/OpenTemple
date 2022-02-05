@@ -264,19 +264,19 @@ public class PopupUi : IDisposable, IResetAwareSystem
     #region vanilla_ui
 
     [TempleDllLocation(0x10c0c4f8)]
-    private Rectangle _vanillaWindow = new Rectangle(254, 195, 291, 210);
+    private Rectangle _vanillaWindow = new(254, 195, 291, 210);
 
     [TempleDllLocation(0x10c0c508)]
-    private Rectangle _vanillaOk = new Rectangle(28, 170, 112, 22);
+    private Rectangle _vanillaOk = new(28, 170, 112, 22);
 
     [TempleDllLocation(0x10c0c518)]
-    private Rectangle _vanillaCancel = new Rectangle(152, 170, 112, 22);
+    private Rectangle _vanillaCancel = new(152, 170, 112, 22);
 
     [TempleDllLocation(0x10c0c528)]
-    private Rectangle _vanillaText = new Rectangle(23, 42, 245, 121);
+    private Rectangle _vanillaText = new(23, 42, 245, 121);
 
     [TempleDllLocation(0x10c0c538)]
-    private Rectangle _vanillaTextEntry = new Rectangle(254, 195, 291, 210);
+    private Rectangle _vanillaTextEntry = new(254, 195, 291, 210);
 
     private int _vanillaTextEntryMaxWidth = 242;
 

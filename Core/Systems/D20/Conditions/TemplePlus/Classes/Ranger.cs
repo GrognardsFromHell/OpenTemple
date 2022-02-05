@@ -29,7 +29,7 @@ public class Ranger
 
     public static readonly Stat ClassId = Stat.level_ranger;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("ranger")
+    public static readonly D20ClassSpec ClassSpec = new("ranger")
     {
         classEnum = ClassId,
         helpTopic = "TAG_RANGERS",

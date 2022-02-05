@@ -4,7 +4,7 @@ public readonly struct AasHandle
 {
     public readonly uint Handle;
 
-    public static AasHandle Null => new AasHandle(0);
+    public static AasHandle Null => new(0);
 
     public AasHandle(uint handle)
     {

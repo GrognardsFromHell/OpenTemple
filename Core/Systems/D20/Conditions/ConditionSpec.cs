@@ -51,9 +51,9 @@ public class ConditionSpec
         IsExtension = extension;
     }
 
-    public static Builder Create(string name, int numArgs = 0) => new Builder(name, numArgs, false);
+    public static Builder Create(string name, int numArgs = 0) => new(name, numArgs, false);
 
-    public static Builder Extend(ConditionSpec baseCondition) => new Builder(baseCondition.condName, baseCondition.numArgs, true);
+    public static Builder Extend(ConditionSpec baseCondition) => new(baseCondition.condName, baseCondition.numArgs, true);
 
     public class Builder
     {
@@ -63,7 +63,7 @@ public class ConditionSpec
 
         private readonly Type[] _dataTypes;
 
-        private readonly List<SubDispatcherSpec> _subDisps = new List<SubDispatcherSpec>();
+        private readonly List<SubDispatcherSpec> _subDisps = new();
 
         private UniquenessType _uniqueness = UniquenessType.NotUnique;
 
@@ -392,7 +392,7 @@ public readonly ref struct DispatcherCallbackArgs
         dispIO = dispIo;
     }
 
-    public DispatcherCallbackArgs WithoutIO => new DispatcherCallbackArgs(
+    public DispatcherCallbackArgs WithoutIO => new(
         subDispNode,
         objHndCaller,
         dispType,

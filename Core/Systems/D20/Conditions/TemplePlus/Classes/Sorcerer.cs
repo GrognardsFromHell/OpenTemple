@@ -27,7 +27,7 @@ public class Sorcerer
 {
     public static readonly Stat ClassId = Stat.level_sorcerer;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("sorcerer")
+    public static readonly D20ClassSpec ClassSpec = new("sorcerer")
     {
         classEnum = ClassId,
         helpTopic = "TAG_SORCERERS",

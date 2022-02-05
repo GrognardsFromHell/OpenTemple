@@ -27,7 +27,7 @@ public class Druid
 {
     public static readonly Stat ClassId = Stat.level_druid;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("druid")
+    public static readonly D20ClassSpec ClassSpec = new("druid")
     {
         classEnum = ClassId,
         helpTopic = "TAG_DRUIDS",

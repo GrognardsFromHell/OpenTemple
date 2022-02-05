@@ -238,7 +238,7 @@ public class CharUiParams
     public int TooltipUiStyle;
 
     [TempleDllLocation(0x10BE8D3C)]
-    public Dictionary<CharUiTexture, string> TexturePaths { get; set; } = new Dictionary<CharUiTexture, string>();
+    public Dictionary<CharUiTexture, string> TexturePaths { get; set; } = new();
 }
 
 public enum CharUiTexture

@@ -30,7 +30,7 @@ public class SavedAnimState
 
     public int NextUniqueActionId { get; set; }
 
-    public Dictionary<int, SavedAnimSlot> Slots { get; set; } = new Dictionary<int, SavedAnimSlot>();
+    public Dictionary<int, SavedAnimSlot> Slots { get; set; } = new();
 
     [TempleDllLocation(0x1001d250)]
     public static SavedAnimState Read(BinaryReader reader)
@@ -157,7 +157,7 @@ public class SavedAnimSlot
 
     public FrozenObjRef AnimatedObject { get; set; }
 
-    public List<SavedAnimGoal> Goals { get; set; } = new List<SavedAnimGoal>();
+    public List<SavedAnimGoal> Goals { get; set; } = new();
 
     public SavedAnimPath AnimPath { get; set; }
 

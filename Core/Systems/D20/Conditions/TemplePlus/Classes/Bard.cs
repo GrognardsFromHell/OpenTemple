@@ -28,7 +28,7 @@ public static class Bard
 {
     public const Stat ClassId = Stat.level_bard;
 
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("bard")
+    public static readonly D20ClassSpec ClassSpec = new("bard")
     {
         classEnum = ClassId,
         helpTopic = "TAG_BARDS",

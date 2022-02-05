@@ -40,7 +40,7 @@ public struct AnimatedModelParams
     public bool rotation3d; // Enables use of rotationRoll/rotationPitch/rotationYaw
 
     public static AnimatedModelParams Default =>
-        new AnimatedModelParams
+        new()
         {
             scale = 1.0f
         };

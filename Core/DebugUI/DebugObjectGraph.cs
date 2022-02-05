@@ -70,8 +70,7 @@ public class DebugObjectGraph
     {
         private static long _counter = 1;
 
-        private static readonly ConditionalWeakTable<GameObject, IdAttachment> Table
-            = new ConditionalWeakTable<GameObject, IdAttachment>();
+        private static readonly ConditionalWeakTable<GameObject, IdAttachment> Table = new();
 
         public long Id { get; }
 

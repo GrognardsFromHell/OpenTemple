@@ -7,7 +7,7 @@ public class PartSysSpec
 {
     private readonly string _name;
     private readonly int _nameHash; // Cached ELF-hash of the name
-    private readonly List<PartSysEmitterSpec> _emitters = new List<PartSysEmitterSpec>();
+    private readonly List<PartSysEmitterSpec> _emitters = new();
 
     public PartSysSpec(string name)
     {

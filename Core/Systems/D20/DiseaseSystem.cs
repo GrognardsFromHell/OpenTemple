@@ -34,7 +34,7 @@ public class DiseaseSpec
 
 public class DiseaseSystem
 {
-    private readonly Dictionary<int, DiseaseSpec> _diseases = new Dictionary<int, DiseaseSpec>
+    private readonly Dictionary<int, DiseaseSpec> _diseases = new()
     {
         {0, new DiseaseSpec(0, 400, 16, 2, 3, Stat.strength, Dice.D4)}, // Blinding Sickness
         {1, new DiseaseSpec(1, 401, 16, 2, 0, Stat.wisdom, Dice.D6)}, // Cackle Fever

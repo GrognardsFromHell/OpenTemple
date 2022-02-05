@@ -21,10 +21,10 @@ public class SavedGameState
     public SavedDescriptionState DescriptionState { get; set; }
 
     // Initializing here so the game can be saved without setting it (it's unused)
-    public SavedSectorState SectorState { get; set; } = new SavedSectorState();
+    public SavedSectorState SectorState { get; set; } = new();
 
     // Initializing here so the game can be saved without setting it (it's unused)
-    public SavedSkillState SkillState { get; set; } = new SavedSkillState();
+    public SavedSkillState SkillState { get; set; } = new();
 
     public SavedScriptState ScriptState { get; set; }
 

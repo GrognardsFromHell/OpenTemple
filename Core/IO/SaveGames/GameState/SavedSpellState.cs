@@ -14,7 +14,7 @@ public class SavedSpellState
 {
     public int SpellIdSerial { get; set; }
 
-    public Dictionary<int, SavedActiveSpell> ActiveSpells { get; set; } = new Dictionary<int, SavedActiveSpell>();
+    public Dictionary<int, SavedActiveSpell> ActiveSpells { get; set; } = new();
 
     // This was previously embedded in MapLoad, for some reason...
     [TempleDllLocation(0x100792a0)]
@@ -82,15 +82,15 @@ public class SavedActiveSpell
     public ObjectId AoEObjectId { get; set; }
 
     // ObjectID and associated particle system id hash (ELF32)
-    public List<(ObjectId, int)> SpellObjects { get; set; } = new List<(ObjectId, int)>();
+    public List<(ObjectId, int)> SpellObjects { get; set; } = new();
 
     // ObjectID and associated particle system id hash (ELF32)
-    public List<(ObjectId, int)> Targets { get; set; } = new List<(ObjectId, int)>();
+    public List<(ObjectId, int)> Targets { get; set; } = new();
 
     // The initial targets when the spell was initially cast
-    public HashSet<ObjectId> InitialTargets { get; set; } = new HashSet<ObjectId>();
+    public HashSet<ObjectId> InitialTargets { get; set; } = new();
 
-    public List<ObjectId> Projectiles { get; set; } = new List<ObjectId>();
+    public List<ObjectId> Projectiles { get; set; } = new();
 
     public LocAndOffsets AoECenter { get; set; }
 

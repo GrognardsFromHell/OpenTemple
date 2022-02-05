@@ -186,6 +186,5 @@ public class UiAssets
         return (text[pos] == '#' && text[pos + 1] == '{');
     }
 
-    private readonly Dictionary<string, Dictionary<int, string>> mTranslationFiles
-        = new Dictionary<string, Dictionary<int, string>>();
+    private readonly Dictionary<string, Dictionary<int, string>> mTranslationFiles = new();
 };

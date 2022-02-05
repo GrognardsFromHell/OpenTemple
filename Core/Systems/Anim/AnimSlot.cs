@@ -70,7 +70,7 @@ public struct AnimPath
     public locXY objLoc;
     public locXY tgtLoc;
 
-    public static AnimPath Empty => new AnimPath
+    public static AnimPath Empty => new()
     {
         flags = AnimPathFlag.UNK_1,
         deltas = new sbyte[200],
@@ -88,11 +88,11 @@ public class AnimSlot
     public GameObject animObj;
     public int currentGoal;
     public int field_2C;
-    public List<AnimSlotGoalStackEntry> goals = new List<AnimSlotGoalStackEntry>();
+    public List<AnimSlotGoalStackEntry> goals = new();
     public AnimSlotGoalStackEntry pCurrentGoal;
     public uint unk1; // field_1134
     public AnimPath animPath = AnimPath.Empty;
-    public PathQueryResult path = new PathQueryResult();
+    public PathQueryResult path = new();
     public AnimParam param1; // Used as parameters for goal states
     public AnimParam param2; // Used as parameters for goal states
     public int stateFlagData;

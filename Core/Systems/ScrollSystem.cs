@@ -548,7 +548,7 @@ public struct MapLimits
     public int Right;
     public int Bottom;
 
-    public static MapLimits Default => new MapLimits
+    public static MapLimits Default => new()
     {
         Left = 9000,
         Top = 0,

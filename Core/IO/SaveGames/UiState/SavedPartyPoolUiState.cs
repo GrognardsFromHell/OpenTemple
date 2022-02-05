@@ -6,7 +6,7 @@ namespace OpenTemple.Core.IO.SaveGames.UiState;
 
 public class SavedPartyPoolUiState
 {
-    public HashSet<ObjectId> AlreadyBeenInParty { get; set; } = new HashSet<ObjectId>();
+    public HashSet<ObjectId> AlreadyBeenInParty { get; set; } = new();
 
     [TempleDllLocation(0x10165da0)]
     public static SavedPartyPoolUiState Read(BinaryReader reader)

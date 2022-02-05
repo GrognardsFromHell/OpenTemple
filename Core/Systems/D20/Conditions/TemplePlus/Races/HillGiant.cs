@@ -29,7 +29,7 @@ public class HillGiant
 
     // standard callbacks - BAB and Save values
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.hill_giant)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.hill_giant)
     {
         hitDice = new Dice(12, 8),
         effectiveLevel = 4,

@@ -44,7 +44,7 @@ public static class FeatConditionMapping
         }
     }
 
-    public static readonly Dictionary<FeatId, FeatCondition> Mapping = new Dictionary<FeatId, FeatCondition>
+    public static readonly Dictionary<FeatId, FeatCondition> Mapping = new()
     {
             // @formatter:off
             {FeatId.NATURE_SENSE, new FeatCondition(FeatConditions.NatureSense)},

@@ -148,7 +148,7 @@ public static class GameSystems
 
     private static List<(long, string)> _timing = new();
 
-    private static List<IGameSystem> _initializedSystems = new List<IGameSystem>();
+    private static List<IGameSystem> _initializedSystems = new();
 
     // All systems that want to listen to map events
     public static IEnumerable<IMapCloseAwareGameSystem> MapCloseAwareSystems
@@ -870,19 +870,19 @@ public class SectorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSy
 // TODO: This entire system may also be unused because old scripts are not used anymore
 public class ScriptNameSystem : IGameSystem, IModuleAwareSystem
 {
-    private readonly Dictionary<int, string> _scriptIndex = new Dictionary<int, string>();
+    private readonly Dictionary<int, string> _scriptIndex = new();
 
-    private readonly Dictionary<int, string> _scriptModuleIndex = new Dictionary<int, string>();
+    private readonly Dictionary<int, string> _scriptModuleIndex = new();
 
-    private readonly Dictionary<int, string> _pythonScriptIndex = new Dictionary<int, string>();
+    private readonly Dictionary<int, string> _pythonScriptIndex = new();
 
-    private readonly Dictionary<int, string> _dialogIndex = new Dictionary<int, string>();
+    private readonly Dictionary<int, string> _dialogIndex = new();
 
-    private static readonly Regex ScriptNamePattern = new Regex(@"^(\d+).*\.scr$");
+    private static readonly Regex ScriptNamePattern = new(@"^(\d+).*\.scr$");
 
-    private static readonly Regex PythonScriptNamePattern = new Regex(@"^py(\d+).*\.py$");
+    private static readonly Regex PythonScriptNamePattern = new(@"^py(\d+).*\.py$");
 
-    private static readonly Regex DialogNamePattern = new Regex(@"^(\d+).*\.dlg$");
+    private static readonly Regex DialogNamePattern = new(@"^(\d+).*\.dlg$");
 
     [TempleDllLocation(0x1007e000)]
     public ScriptNameSystem()
@@ -1062,12 +1062,12 @@ public class LevelupPacket
     public int flags;
     public Stat classCode;
     public Stat abilityScoreRaised = (Stat) (-1);
-    public List<FeatId> feats = new List<FeatId>();
+    public List<FeatId> feats = new();
 
     /// array keeping track of how many skill pts were added to each skill
-    public Dictionary<SkillId, int> skillPointsAdded = new Dictionary<SkillId, int>();
+    public Dictionary<SkillId, int> skillPointsAdded = new();
 
-    public List<int> spellEnums = new List<int>();
+    public List<int> spellEnums = new();
     public int spellEnumToRemove; // spell removed (for Sorcerers)
 };
 

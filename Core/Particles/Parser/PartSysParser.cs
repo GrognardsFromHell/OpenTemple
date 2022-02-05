@@ -54,20 +54,20 @@ public class PartSysParser
 
     public IReadOnlyDictionary<string, PartSysSpec> Specs => _specs;
 
-    private readonly Dictionary<string, PartSysSpec> _specs = new Dictionary<string, PartSysSpec>();
+    private readonly Dictionary<string, PartSysSpec> _specs = new();
 
     // To speed up loading
-    private readonly Dictionary<string, string> _textureNameCache = new Dictionary<string, string>();
+    private readonly Dictionary<string, string> _textureNameCache = new();
 
     private static readonly Dictionary<string, PartSysCoordSys> CoordSysMapping =
-        new Dictionary<string, PartSysCoordSys>
+        new()
         {
             {"Cartesian", PartSysCoordSys.Cartesian},
             {"Polar", PartSysCoordSys.Polar}
         };
 
     private static readonly Dictionary<string, PartSysEmitterSpace> EmitterSpaceMapping =
-        new Dictionary<string, PartSysEmitterSpace>
+        new()
         {
             {"World", PartSysEmitterSpace.World},
             {"Object Pos", PartSysEmitterSpace.ObjectPos},
@@ -78,7 +78,7 @@ public class PartSysParser
         };
 
     private static readonly Dictionary<string, PartSysParticleType> ParticleTypeMapping =
-        new Dictionary<string, PartSysParticleType>
+        new()
         {
             {"Point", PartSysParticleType.Point},
             {"Sprite", PartSysParticleType.Sprite},
@@ -88,7 +88,7 @@ public class PartSysParser
         };
 
     private static readonly Dictionary<string, PartSysBlendMode> BlendModeMapping =
-        new Dictionary<string, PartSysBlendMode>
+        new()
         {
             {"Add", PartSysBlendMode.Add},
             {"Blend", PartSysBlendMode.Blend},
@@ -97,7 +97,7 @@ public class PartSysParser
         };
 
     private static readonly Dictionary<string, PartSysParticleSpace> ParticleSpaceMapping =
-        new Dictionary<string, PartSysParticleSpace>
+        new()
         {
             {"World", PartSysParticleSpace.World},
             {"Emitter YPR", PartSysParticleSpace.EmitterYpr},

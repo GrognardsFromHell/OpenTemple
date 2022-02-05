@@ -47,7 +47,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     private MapListEntry mCurrentMap = null;
 
     // Visited maps, scope: game session
-    private HashSet<int> mVisitedMaps = new HashSet<int>();
+    private HashSet<int> mVisitedMaps = new();
 
     // Picked when opening the map
     private locXY mStartLoc;

@@ -14,7 +14,7 @@ public struct LinearColor
     public float G;
     public float B;
 
-    public static LinearColor White => new LinearColor(1, 1, 1);
+    public static LinearColor White => new(1, 1, 1);
 
     public LinearColor(float r, float g, float b)
     {
@@ -45,11 +45,11 @@ public struct LinearColorA
     public float B;
     public float A;
 
-    public static LinearColorA White => new LinearColorA(1, 1, 1, 1);
+    public static LinearColorA White => new(1, 1, 1, 1);
 
-    public static LinearColorA Black => new LinearColorA(0, 0, 0, 1);
+    public static LinearColorA Black => new(0, 0, 0, 1);
 
-    public static LinearColorA Transparent => new LinearColorA(0, 0, 0, 0);
+    public static LinearColorA Transparent => new(0, 0, 0, 0);
 
     public LinearColorA(float r, float g, float b, float a)
     {
@@ -134,14 +134,14 @@ public struct PackedLinearColorA
         );
     }
 
-    public static PackedLinearColorA White => new PackedLinearColorA(255, 255, 255, 255);
+    public static PackedLinearColorA White => new(255, 255, 255, 255);
 
-    public static PackedLinearColorA Black => new PackedLinearColorA(0, 0, 0, 255);
+    public static PackedLinearColorA Black => new(0, 0, 0, 255);
 
-    public static PackedLinearColorA Transparent => new PackedLinearColorA(0, 0, 0, 0);
+    public static PackedLinearColorA Transparent => new(0, 0, 0, 0);
 
     [Pure]
-    public Vector4 ToRGBA() => new Vector4(
+    public Vector4 ToRGBA() => new(
         R / 255.0f,
         G / 255.0f,
         B / 255.0f,

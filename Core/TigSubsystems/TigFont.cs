@@ -89,7 +89,7 @@ public class TigTextStyle
     public int field48 = 0;
     public int tabStop = 0; /* TODO tabstop */
 
-    public static TigTextStyle standardWhite => new TigTextStyle(new ColorRect(PackedLinearColorA.White));
+    public static TigTextStyle standardWhite => new(new ColorRect(PackedLinearColorA.White));
 
     public TigTextStyle()
     {

@@ -23,7 +23,7 @@ public struct FadeAndTeleportArgs
     public int callbackArg; // Activate via flag 0x800
     public int field74;
 
-    public static FadeAndTeleportArgs Default => new FadeAndTeleportArgs
+    public static FadeAndTeleportArgs Default => new()
     {
         FadeOutArgs = new FadeArgs
         {

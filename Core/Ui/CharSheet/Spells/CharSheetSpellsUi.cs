@@ -22,7 +22,7 @@ public class CharSheetSpellsUi : IDisposable
     // Contains the tabs for switching between classes
     private readonly WidgetContainer _classTabBar;
 
-    private readonly List<ClassSpellListData> _spellLists = new List<ClassSpellListData>();
+    private readonly List<ClassSpellListData> _spellLists = new();
 
     private readonly WidgetText _spellsKnownHeader;
     private readonly WidgetContainer _knownSpellsContainer;

@@ -453,7 +453,7 @@ public static class BardicMusic
     }
 
     private static readonly Dictionary<BardicMusicSongType, int> BardicSongBaseSoundId =
-        new Dictionary<BardicMusicSongType, int>
+        new()
         {
             {BardicMusicSongType.BM_INSPIRE_COURAGE, 20040},
             {BardicMusicSongType.BM_COUNTER_SONG, 20000},

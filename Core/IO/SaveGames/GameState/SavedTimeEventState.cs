@@ -192,20 +192,20 @@ public static class TimeEventSaveSpecs
 {
     private static readonly TimeEventTypeSaveSpec[] Specs =
     {
-        new TimeEventTypeSaveSpec(
+        new(
             0,
             TimeEventType.Debug,
             false,
             TimeEventArgType.Int,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             1,
             TimeEventType.Anim,
             true,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             2,
             TimeEventType.BkgAnim,
             false,
@@ -213,12 +213,12 @@ public static class TimeEventSaveSpecs
             TimeEventArgType.Int,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             3,
             TimeEventType.FidgetAnim,
             false
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             4,
             TimeEventType.Script,
             true,
@@ -227,14 +227,14 @@ public static class TimeEventSaveSpecs
             TimeEventArgType.Object,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             5,
             TimeEventType.PythonScript,
             true,
             TimeEventArgType.PythonObject,
             TimeEventArgType.PythonObject
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             6,
             TimeEventType.Poison,
             true,
@@ -242,122 +242,122 @@ public static class TimeEventSaveSpecs
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             7,
             TimeEventType.NormalHealing,
             true,
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             8,
             TimeEventType.SubdualHealing,
             true,
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             9,
             TimeEventType.Aging,
             true
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             10,
             TimeEventType.AI,
             false,
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             11,
             TimeEventType.AIDelay,
             true,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             12,
             TimeEventType.Combat,
             true
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             13,
             TimeEventType.TBCombat,
             true
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             14,
             TimeEventType.AmbientLighting,
             true
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             15,
             TimeEventType.WorldMap,
             true
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             16,
             TimeEventType.Sleeping,
             false,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             17,
             TimeEventType.Clock,
             true
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             18,
             TimeEventType.NPCWaitHere,
             true,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             19,
             TimeEventType.MainMenu,
             false,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             20,
             TimeEventType.Light,
             false,
             TimeEventArgType.Int,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             21,
             TimeEventType.Lock,
             true,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             22,
             TimeEventType.NPCRespawn,
             true,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             23,
             TimeEventType.DecayDeadBodies,
             true,
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             24,
             TimeEventType.ItemDecay,
             true,
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             25,
             TimeEventType.CombatFocusWipe,
             true,
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             26,
             TimeEventType.Fade,
             true,
@@ -366,56 +366,56 @@ public static class TimeEventSaveSpecs
             TimeEventArgType.Float,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             27,
             TimeEventType.GFadeControl,
             true
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             28,
             TimeEventType.Teleported,
             false,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             29,
             TimeEventType.SceneryRespawn,
             true,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             30,
             TimeEventType.RandomEncounters,
             true
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             31,
             TimeEventType.ObjFade,
             true,
             TimeEventArgType.Int,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             32,
             TimeEventType.ActionQueue,
             true,
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             33,
             TimeEventType.Search,
             true,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             34,
             TimeEventType.IntgameTurnbased,
             false,
             TimeEventArgType.Int,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             35,
             TimeEventType.PythonDialog,
             true,
@@ -423,13 +423,13 @@ public static class TimeEventSaveSpecs
             TimeEventArgType.Object,
             TimeEventArgType.Int
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             36,
             TimeEventType.EncumberedComplain,
             true,
             TimeEventArgType.Object
         ),
-        new TimeEventTypeSaveSpec(
+        new(
             37,
             TimeEventType.PythonRealtime,
             true,

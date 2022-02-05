@@ -225,8 +225,7 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
 
     // This is lazily populated
     [TempleDllLocation(0x108EC598)] [TempleDllLocation(0x108EC6B0)]
-    private readonly Dictionary<SectorLoc, SectorExploration> _explorationData
-        = new Dictionary<SectorLoc, SectorExploration>();
+    private readonly Dictionary<SectorLoc, SectorExploration> _explorationData = new();
 
     [TempleDllLocation(0x10031ef0)]
     private SectorExploration GetOrLoadExploredSectorData(SectorLoc loc)

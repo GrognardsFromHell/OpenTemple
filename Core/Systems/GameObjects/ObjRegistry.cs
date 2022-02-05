@@ -12,9 +12,9 @@ internal class ObjRegistry : IEnumerable<GameObject>
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private Dictionary<ObjectId, GameObject> _objectIndex = new Dictionary<ObjectId, GameObject>();
+    private Dictionary<ObjectId, GameObject> _objectIndex = new();
 
-    private readonly List<GameObject> _objects = new List<GameObject>();
+    private readonly List<GameObject> _objects = new();
 
     IEnumerator IEnumerable.GetEnumerator()
     {

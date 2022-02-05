@@ -17,13 +17,13 @@ internal class NewFeatSpec
     public string name;
     public string description;
     public string prereqDescr;
-    public List<FeatPrereq> prereqs = new List<FeatPrereq>();
+    public List<FeatPrereq> prereqs = new();
 
     /// for multiselect feats such as Weapon Focus
     public FeatId parentId = (FeatId) 0;
 
     /// for multiselect feats such as Weapon Focus
-    public List<FeatId> children = new List<FeatId>();
+    public List<FeatId> children = new();
 
     /// for weapon feats which are weapon specific (such as Weapon Focus - Shortsword)
     public WeaponType weapType = WeaponType.none;

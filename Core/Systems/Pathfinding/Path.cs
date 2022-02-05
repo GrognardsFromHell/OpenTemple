@@ -16,10 +16,10 @@ public class Path
     public CompassDirection[] directions = Array.Empty<CompassDirection>();
     public int nodeCount3; // TODO REMOVE, Replace with directions.Count
     public int initTo1;
-    public List<LocAndOffsets> tempNodes = new List<LocAndOffsets>();
+    public List<LocAndOffsets> tempNodes = new();
     public int nodeCount2; // TODO REMOVE, Replace with tempNodes.Count
     public int fieldd84;
-    public List<LocAndOffsets> nodes = new List<LocAndOffsets>();
+    public List<LocAndOffsets> nodes = new();
     public int nodeCount; // TODO REMOVE, Replace with nodes.Count
     public int currentNode;
     public int field_1a10;

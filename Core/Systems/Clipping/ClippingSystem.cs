@@ -16,7 +16,7 @@ namespace OpenTemple.Core.Systems.Clipping;
 public class ClippingSystem : IGameSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-    private List<ClippingMesh> _clippingMeshes = new List<ClippingMesh>();
+    private List<ClippingMesh> _clippingMeshes = new();
 
     private readonly RenderingDevice _device;
     private ResourceRef<Material> _material;

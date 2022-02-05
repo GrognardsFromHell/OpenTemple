@@ -5,7 +5,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState;
 
 public class SavedSecretDoorState
 {
-    public List<int> SeenSceneryNames { get; set; } = new List<int>();
+    public List<int> SeenSceneryNames { get; set; } = new();
 
     [TempleDllLocation(0x10046400)]
     public static SavedSecretDoorState Read(BinaryReader reader)

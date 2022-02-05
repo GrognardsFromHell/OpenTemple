@@ -14,7 +14,7 @@ public class SavedScriptState
 
     public int StoryState { get; set; }
 
-    public List<int> EncounterQueue { get; set; } = new List<int>();
+    public List<int> EncounterQueue { get; set; } = new();
 
     [TempleDllLocation(0x10006670)]
     public static SavedScriptState Read(BinaryReader reader)

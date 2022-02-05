@@ -15,7 +15,7 @@ public class SavedTownmapUiState
 
     public ISet<PredefinedMarkerId> RevealedMapMarkers { get; set; } = new HashSet<PredefinedMarkerId>();
 
-    public List<SavedUserMapMarker> UserMapMarkers { get; set; } = new List<SavedUserMapMarker>();
+    public List<SavedUserMapMarker> UserMapMarkers { get; set; } = new();
 
     [TempleDllLocation(0x101288f0)]
     public static SavedTownmapUiState Read(BinaryReader reader)
@@ -244,34 +244,34 @@ public class SavedTownmapUiState
     /// </summary>
     private static readonly SerializedMapMarker[] VanillaMarkers =
     {
-        new SerializedMapMarker(5050, 0, 416, 394, "This flag marks the spot of something uninteresting."),
-        new SerializedMapMarker(5078, 0, 628, 470, "Alrrem's presumed location of Falrinth"),
-        new SerializedMapMarker(5078, 1, 551, 489, "Hedrack's area of the disturbance"),
-        new SerializedMapMarker(5078, 2, 580, 599, "Room of fungi"),
-        new SerializedMapMarker(5078, 3, 520, 618, "Stairs to Greater Temple"),
-        new SerializedMapMarker(5066, 0, 419, 373, "Wonnilon's hideout"),
-        new SerializedMapMarker(5066, 1, 552, 392, "Spiral staircase to level 2"),
-        new SerializedMapMarker(5066, 2, 564, 489, "Banquet hall"),
-        new SerializedMapMarker(5066, 3, 553, 588, "Stairs up to Temple"),
-        new SerializedMapMarker(5066, 4, 414, 588, "Stairs up to Temple"),
-        new SerializedMapMarker(5067, 0, 416, 505, "Location of Alrrem's underpriests"),
-        new SerializedMapMarker(5067, 1, 539, 573, "Location of the Water Temple"),
-        new SerializedMapMarker(5067, 2, 578, 583, "Stairs to level 3"),
-        new SerializedMapMarker(5067, 3, 433, 569, "Location of the Fire Temple"),
-        new SerializedMapMarker(5067, 4, 487, 569, "Location of the Air Temple"),
-        new SerializedMapMarker(5080, 0, 581, 426, "Deggum says something fun is here."),
-        new SerializedMapMarker(5080, 1, 570, 612, "Kella said hill giants are here"),
-        new SerializedMapMarker(5080, 2, 580, 580, "Kella indicated this room is full of ettins"),
-        new SerializedMapMarker(5080, 3, 478, 446, "Kella marked this as the main temple"),
-        new SerializedMapMarker(5080, 4, 592, 529, "Kella said that Commander Hedrack slept here"),
-        new SerializedMapMarker(5080, 5, 387, 524, "Kella said a powerful wizard named Senshock was here"),
-        new SerializedMapMarker(5080, 6, 421, 534, "Kella said troop commanders Barkinar and Deggum were here"),
-        new SerializedMapMarker(5080, 7, 450, 554, "Kella indicated trolls in this room"),
-        new SerializedMapMarker(5080, 8, 508, 554, "Kella indicated trolls in this room"),
-        new SerializedMapMarker(5080, 9, 388, 576, "Kella indicated ogres in this room"),
-        new SerializedMapMarker(5080, 10, 424, 592, "Kella said this was a commons room for temple troops"),
-        new SerializedMapMarker(5005, 0, 475, 537, "Gnolls tell me the master is here."),
-        new SerializedMapMarker(5011, 0, 496, 493, "Terjon is here."),
+        new(5050, 0, 416, 394, "This flag marks the spot of something uninteresting."),
+        new(5078, 0, 628, 470, "Alrrem's presumed location of Falrinth"),
+        new(5078, 1, 551, 489, "Hedrack's area of the disturbance"),
+        new(5078, 2, 580, 599, "Room of fungi"),
+        new(5078, 3, 520, 618, "Stairs to Greater Temple"),
+        new(5066, 0, 419, 373, "Wonnilon's hideout"),
+        new(5066, 1, 552, 392, "Spiral staircase to level 2"),
+        new(5066, 2, 564, 489, "Banquet hall"),
+        new(5066, 3, 553, 588, "Stairs up to Temple"),
+        new(5066, 4, 414, 588, "Stairs up to Temple"),
+        new(5067, 0, 416, 505, "Location of Alrrem's underpriests"),
+        new(5067, 1, 539, 573, "Location of the Water Temple"),
+        new(5067, 2, 578, 583, "Stairs to level 3"),
+        new(5067, 3, 433, 569, "Location of the Fire Temple"),
+        new(5067, 4, 487, 569, "Location of the Air Temple"),
+        new(5080, 0, 581, 426, "Deggum says something fun is here."),
+        new(5080, 1, 570, 612, "Kella said hill giants are here"),
+        new(5080, 2, 580, 580, "Kella indicated this room is full of ettins"),
+        new(5080, 3, 478, 446, "Kella marked this as the main temple"),
+        new(5080, 4, 592, 529, "Kella said that Commander Hedrack slept here"),
+        new(5080, 5, 387, 524, "Kella said a powerful wizard named Senshock was here"),
+        new(5080, 6, 421, 534, "Kella said troop commanders Barkinar and Deggum were here"),
+        new(5080, 7, 450, 554, "Kella indicated trolls in this room"),
+        new(5080, 8, 508, 554, "Kella indicated trolls in this room"),
+        new(5080, 9, 388, 576, "Kella indicated ogres in this room"),
+        new(5080, 10, 424, 592, "Kella said this was a commons room for temple troops"),
+        new(5005, 0, 475, 537, "Gnolls tell me the master is here."),
+        new(5011, 0, 496, 493, "Terjon is here."),
     };
 
 }

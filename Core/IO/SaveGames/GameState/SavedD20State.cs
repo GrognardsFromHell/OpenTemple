@@ -36,7 +36,7 @@ public class SavedD20State
     /// Contains kills for which no experience has been awarded yet (because of ongoing combat, for example).
     /// The key is the challenge rating, but keep in mind the order is: CR 1/4, 1/3, 1/2, 1, 2, etc.
     /// </summary>
-    public Dictionary<int, int> PendingDefeatedEncounters { get; set; } = new Dictionary<int, int>(23);
+    public Dictionary<int, int> PendingDefeatedEncounters { get; set; } = new(23);
 
     public SavedBrawlState BrawlState { get; set; }
 
@@ -715,7 +715,7 @@ public class SavedHotkeys
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    public Dictionary<DIK, SavedHotkey> Hotkeys { get; set; } = new Dictionary<DIK, SavedHotkey>();
+    public Dictionary<DIK, SavedHotkey> Hotkeys { get; set; } = new();
 
     public static SavedHotkeys Load(BinaryReader reader)
     {

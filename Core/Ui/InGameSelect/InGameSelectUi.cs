@@ -53,7 +53,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     };
 
     [TempleDllLocation(0x10BD2CD8)]
-    private readonly Dictionary<GameObject, string> intgameselTexts = new Dictionary<GameObject, string>();
+    private readonly Dictionary<GameObject, string> intgameselTexts = new();
 
     [TempleDllLocation(0x102F920C)]
     private int _activePickerIndex = -1; // TODO: Just replace with _activePickers
@@ -73,7 +73,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
         }
     }
 
-    private readonly List<PickerState> _activePickers = new List<PickerState>();
+    private readonly List<PickerState> _activePickers = new();
 
     [TempleDllLocation(0x10135A80)]
     public bool IsCurrentPickerTargetInvalid
@@ -90,7 +90,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     }
 
     private static readonly Dictionary<UiPickerType, Func<PickerState, PickerBehavior>> PickerFactories =
-        new Dictionary<UiPickerType, Func<PickerState, PickerBehavior>>
+        new()
         {
             {UiPickerType.Single, state => new SingleTargetBehavior(state)},
             {UiPickerType.Multi, state => new MultiTargetBehavior(state)},
@@ -296,7 +296,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     }
 
     [TempleDllLocation(0x10BE60E0)]
-    private readonly List<GameObject> _selection = new List<GameObject>();
+    private readonly List<GameObject> _selection = new();
 
     private readonly PlayerSpellPointerRenderer _playerSpellPointerRenderer;
     private readonly SpellPointerRenderer _spellPointerRenderer;

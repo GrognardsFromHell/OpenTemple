@@ -31,23 +31,23 @@ public class ProtoFileParser
 
     private static readonly ProtoIdRange[] ProtoIdRanges =
     {
-        new ProtoIdRange(0, 999), // portal
-        new ProtoIdRange(1000, 1999), // container
-        new ProtoIdRange(2000, 2999), // scenery
-        new ProtoIdRange(3000, 3999), // projectile
-        new ProtoIdRange(4000, 4999), // weapon
-        new ProtoIdRange(5000, 5999), // ammo
-        new ProtoIdRange(6000, 6999), // armor
-        new ProtoIdRange(7000, 7999), // money
-        new ProtoIdRange(8000, 8999), // food
-        new ProtoIdRange(9000, 9999), // scroll
-        new ProtoIdRange(10000, 10999), // key
-        new ProtoIdRange(11000, 11999), // written
-        new ProtoIdRange(12000, 12999), // generic
-        new ProtoIdRange(13000, 13999), // pc
-        new ProtoIdRange(14000, 14999), // npc
-        new ProtoIdRange(15000, 15999), // trap
-        new ProtoIdRange(16000, 16999), // bag
+        new(0, 999), // portal
+        new(1000, 1999), // container
+        new(2000, 2999), // scenery
+        new(3000, 3999), // projectile
+        new(4000, 4999), // weapon
+        new(5000, 5999), // ammo
+        new(6000, 6999), // armor
+        new(7000, 7999), // money
+        new(8000, 8999), // food
+        new(9000, 9999), // scroll
+        new(10000, 10999), // key
+        new(11000, 11999), // written
+        new(12000, 12999), // generic
+        new(13000, 13999), // pc
+        new(14000, 14999), // npc
+        new(15000, 15999), // trap
+        new(16000, 16999), // bag
     };
 
     /// <summary>

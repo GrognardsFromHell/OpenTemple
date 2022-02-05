@@ -1989,7 +1989,7 @@ public class CritterSystem : IGameSystem
     }
 
     private static readonly Dictionary<NaturalAttackType, DamageType> _naturalAttackDamageTypes =
-        new Dictionary<NaturalAttackType, DamageType>
+        new()
         {
             {NaturalAttackType.Bite, DamageType.SlashingAndBludgeoningAndPiercing},
             {NaturalAttackType.Claw, DamageType.PiercingAndSlashing},

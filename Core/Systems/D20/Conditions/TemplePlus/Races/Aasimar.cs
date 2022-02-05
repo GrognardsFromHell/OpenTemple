@@ -8,7 +8,7 @@ public class Aasimar
 {
     public static readonly RaceId Id = RaceId.human + (2 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.human, Subrace.aasumar)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.human, Subrace.aasumar)
     {
         effectiveLevel  = 1,
         helpTopic      = "TAG_AASIMARS",

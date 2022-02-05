@@ -107,10 +107,10 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
     private readonly WidgetContainer _trailDotsContainer;
 
-    private readonly List<WidgetImage> _trailDots = new List<WidgetImage>();
+    private readonly List<WidgetImage> _trailDots = new();
 
     [TempleDllLocation(0x10beece8)]
-    private readonly List<TimePoint> _trailDotTimes = new List<TimePoint>();
+    private readonly List<TimePoint> _trailDotTimes = new();
 
     [TempleDllLocation(0x10bef804)]
     public int dword_10BEF804 { get; set; }

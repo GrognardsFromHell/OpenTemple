@@ -27,7 +27,7 @@ public struct AnimSlotId
 
     public bool IsNull => slotIndex == -1;
 
-    public static AnimSlotId Null => new AnimSlotId
+    public static AnimSlotId Null => new()
     {
         slotIndex = -1,
         uniqueId = -1,

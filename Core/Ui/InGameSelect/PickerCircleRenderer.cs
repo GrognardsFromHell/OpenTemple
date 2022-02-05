@@ -25,112 +25,112 @@ public class PickerCircleRenderer : IDisposable
 
     private static readonly IntgameVertex[] Vertices =
     {
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(1.0f, 0.0f, -1.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(0.0f, 0.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(1.0f, 0.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(0.0f, 0.0f, 0.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(1.0f, 1.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(0.0f, 1.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(0.0f, 0.0f, -1.0f, 0.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(0.0f, 1.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(-1.0f, 0.0f, -1.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(0.0f, 0.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(1.0f, 0.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(0.0f, 0.0f, 0.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(1.0f, 1.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(0.0f, 0.0f, 0.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(1.0f, 1.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(0.0f, 1.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(-1.0f, 0.0f, 1.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(0.0f, 0.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(0.0f, 0.0f, 1.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(1.0f, 0.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(1.0f, 0.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(0.0f, 0.0f, 0.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(1.0f, 1.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(0.0f, 0.0f, 1.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
             uv = new Vector2(0.0f, 1.0f),
             diffuse = PackedLinearColorA.White
         },
-        new IntgameVertex
+        new()
         {
             pos = new Vector4(1.0f, 0.0f, 1.0f, 1.0f),
             normal = new Vector4(0.0f, 1.0f, 0.0f, 0.0f),

@@ -15,16 +15,16 @@ public class ActionSequence
 
     public D20Action CurrentAction => d20ActArray[d20aCurIdx];
 
-    public List<D20Action> d20ActArray = new List<D20Action>();
+    public List<D20Action> d20ActArray = new();
     public int d20ActArrayNum => d20ActArray.Count;
     public int d20aCurIdx; // inited to -1
     public ActionSequence prevSeq;
     public ActionSequence interruptSeq;
-    public TurnBasedStatus tbStatus = new TurnBasedStatus();
+    public TurnBasedStatus tbStatus = new();
     public GameObject performer;
     public LocAndOffsets performerLoc;
     public GameObject targetObj;
-    public SpellPacketBody spellPktBody = new SpellPacketBody();
+    public SpellPacketBody spellPktBody = new();
     public D20Action castSpellAction;
     public bool ignoreLos;
 

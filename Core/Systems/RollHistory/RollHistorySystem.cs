@@ -18,7 +18,7 @@ namespace OpenTemple.Core.Systems.RollHistory;
 public class RollHistorySystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSystem
 {
     [TempleDllLocation(0x109DDA20)]
-    private readonly List<HistoryEntry> _historyArray = new List<HistoryEntry>();
+    private readonly List<HistoryEntry> _historyArray = new();
 
     [TempleDllLocation(0x102b016c)]
     private int rollSerialNumber;

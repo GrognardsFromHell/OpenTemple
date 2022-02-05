@@ -30,7 +30,7 @@ public class Svirfneblin
     }
     private const RaceId Id = RaceId.gnome + (1 << 5);
 
-    public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.gnome, Subrace.svirfneblin)
+    public static readonly RaceSpec RaceSpec = new(Id, RaceBase.gnome, Subrace.svirfneblin)
     {
         effectiveLevel = 3,
         helpTopic = "TAG_SVIRFNEBLIN",

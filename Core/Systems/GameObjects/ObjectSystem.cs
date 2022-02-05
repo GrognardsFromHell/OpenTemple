@@ -21,9 +21,9 @@ public class ObjectSystem : IGameSystem
 {
     private ILogger Logger = LoggingSystem.CreateLogger();
 
-    private ObjRegistry mObjRegistry = new ObjRegistry();
+    private ObjRegistry mObjRegistry = new();
 
-    public SpatialIndex SpatialIndex { get; } = new SpatialIndex();
+    public SpatialIndex SpatialIndex { get; } = new();
 
     [TempleDllLocation(0x1009dff0)]
     public ObjectSystem()

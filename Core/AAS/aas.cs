@@ -109,13 +109,13 @@ public interface IMaterialResolver
 internal class ActiveModel : IDisposable
 {
     public readonly AasHandle handle;
-    public EncodedAnimId animId = new EncodedAnimId(WeaponAnim.None);
+    public EncodedAnimId animId = new(WeaponAnim.None);
     public float floatconst = 6.3940001f;
     public TimePoint timeLoaded = TimePoint.Now;
     public AnimatedModel model;
     public Mesh mesh;
     public Skeleton skeleton;
-    public readonly List<Mesh> AdditionalMeshes = new List<Mesh>();
+    public readonly List<Mesh> AdditionalMeshes = new();
 
     public ActiveModel(AasHandle handle)
     {

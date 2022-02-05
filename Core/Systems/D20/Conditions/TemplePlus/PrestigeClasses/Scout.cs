@@ -66,7 +66,7 @@ public class Scout
         FeatId.SKILL_FOCUS_USE_ROPE, FeatId.SKILL_FOCUS_SURVIVAL
     }.Select(featId => new SelectableFeat(featId)).ToImmutableList();
         
-    public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("scout")
+    public static readonly D20ClassSpec ClassSpec = new("scout")
     {
         classEnum = Stat.level_scout,
         helpTopic = "TAG_SCOUTS",

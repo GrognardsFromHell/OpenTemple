@@ -22,9 +22,9 @@ internal class WidgetDocLoader
         _path = path;
     }
 
-    public Dictionary<string, WidgetBase> Registry { get; } = new Dictionary<string, WidgetBase>();
+    public Dictionary<string, WidgetBase> Registry { get; } = new();
 
-    public Dictionary<string, WidgetContent> ContentRegistry { get; } = new Dictionary<string, WidgetContent>();
+    public Dictionary<string, WidgetContent> ContentRegistry { get; } = new();
 
     public CustomWidgetFactory CustomFactory { get; set; } = DefaultCustomFactory;
 

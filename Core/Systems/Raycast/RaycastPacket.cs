@@ -131,7 +131,7 @@ public class RaycastPacket : IDisposable, IReadOnlyList<RaycastResultItem>
         results = new List<RaycastResultItem>();
     }
 
-    private static readonly Vector2 SearchExtentInches = new Vector2(150.0f, 150.0f);
+    private static readonly Vector2 SearchExtentInches = new(150.0f, 150.0f);
 
     internal static TileRect BuildSearchRectangle(Vector2 from, Vector2 to)
     {

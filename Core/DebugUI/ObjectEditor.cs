@@ -23,7 +23,7 @@ public class ObjectEditor
 
     public string Title;
 
-    private readonly List<EditablePropertyGroup> Groups = new List<EditablePropertyGroup>();
+    private readonly List<EditablePropertyGroup> Groups = new();
 
     public ObjectEditor(GameObject o)
     {
@@ -379,7 +379,7 @@ internal class EditablePropertyGroup
 {
     public readonly string Title;
 
-    public readonly List<IPropertyEditor> Properties = new List<IPropertyEditor>();
+    public readonly List<IPropertyEditor> Properties = new();
 
     public EditablePropertyGroup(string title)
     {
