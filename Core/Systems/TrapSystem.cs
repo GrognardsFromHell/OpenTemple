@@ -459,9 +459,9 @@ public class TrapFileParser
                 flags |= flagName.ToUpperInvariant() switch
                 {
                     "TRAP_F_IN_STONE" => TrapSpecFlag.TF_IN_STONE,
-                    "TRAP_F_PC" => TrapSpecFlag.TF_IN_STONE,
-                    "TRAP_F_SPOTTED" => TrapSpecFlag.TF_IN_STONE,
-                    "TRAP_F_MAGICAL" => TrapSpecFlag.TF_IN_STONE,
+                    "TRAP_F_PC" => TrapSpecFlag.TF_PC,
+                    "TRAP_F_SPOTTED" => TrapSpecFlag.TF_SPOTTED,
+                    "TRAP_F_MAGICAL" => TrapSpecFlag.TF_MAGICAL,
                     _ => throw new InvalidDataException($"Unknown Trap flag: {flagName}")
                 };
             }
