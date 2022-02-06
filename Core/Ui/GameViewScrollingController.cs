@@ -17,7 +17,8 @@ public class GameViewScrollingController
     private bool _grabMoving;
     private Point _grabMoveRef;
     private bool _mouseHasMoved;
-
+    public bool IsMouseScrolling { get; set; } = true;
+    
     public GameViewScrollingController(WidgetContainer widget, IGameViewport viewport)
     {
         _widget = widget;
@@ -197,6 +198,4 @@ public class GameViewScrollingController
             GameSystems.Scroll.SetScrollDirection(scrollDir.Value);
         }
     }
-
-    public bool IsMouseScrolling { get; set; } = true;
 }

@@ -104,6 +104,12 @@ public class DebugUiSystem : IDebugUI, IDisposable
             }
 
             RenderMainMenuBar(out var height);
+            
+            // Disable mouse scrolling when the mouse is on the debug UI
+            if (GameViews.Primary is GameView gameView)
+            {
+                gameView.IsMouseScrollingEnabled = height <= 0;
+            }
 
             ObjectEditors.Render();
 

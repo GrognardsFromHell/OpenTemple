@@ -30,6 +30,12 @@ public class GameView : WidgetContainer, IGameViewport
 
     private readonly GameRenderer _gameRenderer;
 
+    public bool IsMouseScrollingEnabled
+    {
+        get => _scrollingController.IsMouseScrolling;
+        set => _scrollingController.IsMouseScrolling = value;
+    }
+
     public WorldCamera Camera { get; } = new();
 
     [Obsolete]

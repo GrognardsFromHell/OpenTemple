@@ -19,10 +19,10 @@ namespace OpenTemple.Core.Systems;
 [Flags]
 public enum TrapSpecFlag
 {
-    TF_IN_STONE = 1,
-    TF_PC = 2,
-    TF_SPOTTED = 4,
-    TF_MAGICAL = 8
+    InStone = 1,
+    PlacedByParty = 2,
+    SpottedByParty = 4,
+    Magical = 8
 }
 
 public readonly record struct TrapDamage(
@@ -220,12 +220,12 @@ public class TrapSystem : IGameSystem
         if (triggerer.IsPC() || GameSystems.Critter.GetLeaderRecursive(triggerer) != null)
         {
             // PCs and members of the party know about traps set by the party, and traps they spotted 
-            return (trapFlags & (TrapSpecFlag.TF_SPOTTED|TrapSpecFlag.TF_PC)) != 0;
+            return (trapFlags & (TrapSpecFlag.SpottedByParty|TrapSpecFlag.PlacedByParty)) != 0;
         }
         else
         {
             // Non-PCs / Monsters always know about non-PC traps
-            return (trapFlags & TrapSpecFlag.TF_PC) == 0;
+            return (trapFlags & TrapSpecFlag.PlacedByParty) == 0;
         }
     }
 
@@ -329,7 +329,7 @@ public class TrapSystem : IGameSystem
         }
 
         var script = GetTrapScript(trappedObj);
-        script.unk1 |= (int) TrapSpecFlag.TF_SPOTTED;
+        script.unk1 |= (int) TrapSpecFlag.SpottedByParty;
         if (trappedObj.type == ObjectType.trap)
         {
             GameSystems.MapObject.ClearFlags(trappedObj, ObjectFlag.DONTDRAW);
@@ -458,10 +458,10 @@ public class TrapFileParser
             {
                 flags |= flagName.ToUpperInvariant() switch
                 {
-                    "TRAP_F_IN_STONE" => TrapSpecFlag.TF_IN_STONE,
-                    "TRAP_F_PC" => TrapSpecFlag.TF_PC,
-                    "TRAP_F_SPOTTED" => TrapSpecFlag.TF_SPOTTED,
-                    "TRAP_F_MAGICAL" => TrapSpecFlag.TF_MAGICAL,
+                    "TRAP_F_IN_STONE" => TrapSpecFlag.InStone,
+                    "TRAP_F_PC" => TrapSpecFlag.PlacedByParty,
+                    "TRAP_F_SPOTTED" => TrapSpecFlag.SpottedByParty,
+                    "TRAP_F_MAGICAL" => TrapSpecFlag.Magical,
                     _ => throw new InvalidDataException($"Unknown Trap flag: {flagName}")
                 };
             }
