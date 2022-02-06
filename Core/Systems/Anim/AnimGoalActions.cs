@@ -2171,7 +2171,7 @@ public static partial class AnimGoalActions
         var obj = slot.param1.obj;
         AssertAnimParam(obj != null);
         var anim = new EncodedAnimId(slot.pCurrentGoal.scratchVal2.number);
-        if (Globals.Config.ViolenceFilter)
+        if (Globals.Config.ReduceViolence)
         {
             anim = new EncodedAnimId(NormalAnimType.Death);
         }
@@ -3361,7 +3361,7 @@ public static partial class AnimGoalActions
 
         if (slot.param2.location.location != locXY.Zero)
         {
-            GameSystems.Anim.customDelayInMs = 0;
+            GameSystems.Anim.CustomDelayInMs = 0;
             return true;
         }
 
@@ -3411,7 +3411,7 @@ public static partial class AnimGoalActions
             if (adjacentTiles[i] != targetLoc && GameSystems.Anim.PushPleaseMove(sourceObj, handles[i]))
             {
                 slot.pCurrentGoal.targetTile.location = new LocAndOffsets(adjacentTiles[i]);
-                GameSystems.Anim.customDelayInMs = 1000;
+                GameSystems.Anim.CustomDelayInMs = 1000;
                 return true;
             }
         }
@@ -3422,7 +3422,7 @@ public static partial class AnimGoalActions
             if (adjacentTiles[i] != targetLoc && GameSystems.Anim.PushPleaseMove(sourceObj, handles[i]))
             {
                 slot.pCurrentGoal.targetTile.location = new LocAndOffsets(adjacentTiles[i]);
-                GameSystems.Anim.customDelayInMs = 1000;
+                GameSystems.Anim.CustomDelayInMs = 1000;
                 return true;
             }
         }
@@ -4379,11 +4379,11 @@ public static partial class AnimGoalActions
         AssertAnimParam(animHandle != null);
 
         var iterations = slot.pCurrentGoal.scratchVal6.number;
-        GameSystems.Anim.customDelayInMs = 35;
+        GameSystems.Anim.CustomDelayInMs = 35;
         if (iterations == 0)
         {
             iterations = 4;
-            GameSystems.Anim.customDelayInMs = 35;
+            GameSystems.Anim.CustomDelayInMs = 35;
         }
 
         for (var i = 0; i < iterations; i++)
@@ -4433,7 +4433,7 @@ public static partial class AnimGoalActions
     {
         var obj = slot.param1.obj;
         AssertAnimParam(obj != null);
-        GameSystems.Anim.customDelayInMs = 35;
+        GameSystems.Anim.CustomDelayInMs = 35;
         if (obj == null)
         {
             slot.flags &= ~AnimSlotFlag.UNK5;

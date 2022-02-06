@@ -90,7 +90,8 @@ public class GameConfig
 
     public bool AutoAttack { get; set; }
 
-    public bool ViolenceFilter { get; set; }
+    [TempleDllLocation(0x103074cc)]
+    public bool ReduceViolence { get; set; }
 
     public bool AlwaysRun { get; set; } = true;
 

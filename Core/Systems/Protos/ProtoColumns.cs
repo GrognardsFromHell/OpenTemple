@@ -1755,31 +1755,7 @@ internal static class ProtoColumns
         private int _currentConditionArg1;
         private int _currentConditionArg2;
 
-        private static readonly Dictionary<string, DamageType> DamageTypeMapping =
-            new()
-            {
-                {"Bludgeoning", DamageType.Bludgeoning},
-                {"Piercing", DamageType.Piercing},
-                {"Slashing", DamageType.Slashing},
-                {"Bludgeoning and Piercing", DamageType.BludgeoningAndPiercing},
-                {"Piercing and Slashing", DamageType.PiercingAndSlashing},
-                {"Slashing and Bludgeoning", DamageType.SlashingAndBludgeoning},
-                {"Slashing and Bludgeoning and Piercing", DamageType.SlashingAndBludgeoningAndPiercing},
-                {"Acid", DamageType.Acid},
-                {"Cold", DamageType.Cold},
-                {"Electricity", DamageType.Electricity},
-                {"Fire", DamageType.Fire},
-                {"Sonic", DamageType.Sonic},
-                {"Negative Energy", DamageType.NegativeEnergy},
-                {"Subdual", DamageType.Subdual},
-                {"Poison", DamageType.Poison},
-                {"Positive Energy", DamageType.PositiveEnergy},
-                {"Force", DamageType.Force},
-                {"Blood loss", DamageType.BloodLoss},
-                {"Magic", DamageType.Magic},
-            };
-
-        private static readonly EnumIntMapping DamageTypeIntMapping = EnumIntMapping.Create(DamageTypeMapping);
+        private static readonly EnumIntMapping DamageTypeIntMapping = EnumIntMapping.Create(DamageTypes.NameToDamageType);
 
         private static readonly Dictionary<string, D20AttackPower> AttackPowerMapping =
             new()

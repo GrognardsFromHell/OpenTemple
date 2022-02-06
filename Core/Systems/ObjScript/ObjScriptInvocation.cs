@@ -12,4 +12,8 @@ public struct ObjScriptInvocation
     public SpellPacketBody spell;
     public ObjScriptEvent eventId;
     public TrapSprungEvent trapEvent;
+    /// <summary>
+    /// Do not trigger traps with this invocation.
+    /// </summary>
+    public bool IgnoreTrap;
 }

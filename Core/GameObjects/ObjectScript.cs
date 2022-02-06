@@ -10,6 +10,29 @@ public struct ObjectScript
     public uint counters;
     public int scriptId;
 
+    public byte Counter1
+    {
+        get => (byte) (counters & 0xFF);
+        set => counters = (uint) ((counters & ~0xFF) | value);
+    }
+    public byte Counter2
+    {
+        get => (byte) ((counters >> 8) & 0xFF);
+        set => counters = (uint) ((counters & ~0xFF00) | ((uint) value << 8));
+    }
+
+    public byte Counter3
+    {
+        get => (byte) ((counters >> 16) & 0xFF);
+        set => counters = (uint) ((counters & ~0xFF0000) | ((uint) value << 16));
+    }
+    
+    public byte Counter4
+    {
+        get => (byte) ((counters >> 24) & 0xFF);
+        set => counters = (counters & ~0xFF000000) | ((uint) value << 24);
+    }
+
     public bool Equals(ObjectScript other)
     {
         return unk1 == other.unk1 && counters == other.counters && scriptId == other.scriptId;

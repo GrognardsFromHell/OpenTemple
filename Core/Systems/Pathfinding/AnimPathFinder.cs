@@ -261,7 +261,7 @@ public class AnimPathFinder
                 }
 
                 var trap = FindTrapAtLocation(nextLoc);
-                if (trap != null && GameSystems.Trap.WillTriggerForUser(boPkt.handle, trap))
+                if (trap != null && GameSystems.Trap.KnowsAboutDangerousTrap(boPkt.handle, trap))
                 {
                     break;
                 }

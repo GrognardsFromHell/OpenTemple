@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
 namespace OpenTemple.Core.Systems.D20;
 
 public enum DamageType
@@ -22,4 +26,47 @@ public enum DamageType
     Force = 16,
     BloodLoss = 17,
     Magic = 18
+}
+
+public static class DamageTypes
+{
+    /// <summary>
+    /// Used by both prototypes and trap definition files.
+    /// </summary>
+    [TempleDllLocation(0x102e3bc4)] public static readonly Dictionary<string, DamageType> NameToDamageType =
+        new()
+        {
+            {"Bludgeoning", DamageType.Bludgeoning},
+            {"Piercing", DamageType.Piercing},
+            {"Slashing", DamageType.Slashing},
+            {"Bludgeoning and Piercing", DamageType.BludgeoningAndPiercing},
+            {"Piercing and Slashing", DamageType.PiercingAndSlashing},
+            {"Slashing and Bludgeoning", DamageType.SlashingAndBludgeoning},
+            {"Slashing and Bludgeoning and Piercing", DamageType.SlashingAndBludgeoningAndPiercing},
+            {"Acid", DamageType.Acid},
+            {"Cold", DamageType.Cold},
+            {"Electricity", DamageType.Electricity},
+            {"Fire", DamageType.Fire},
+            {"Sonic", DamageType.Sonic},
+            {"Negative Energy", DamageType.NegativeEnergy},
+            {"Subdual", DamageType.Subdual},
+            {"Poison", DamageType.Poison},
+            {"Positive Energy", DamageType.PositiveEnergy},
+            {"Force", DamageType.Force},
+            {"Blood loss", DamageType.BloodLoss},
+            {"Magic", DamageType.Magic},
+        };
+
+    public static DamageType GetDamageTypeByName(string name)
+    {
+        foreach (var (key, value) in NameToDamageType)
+        {
+            if (key.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                return value;
+            }
+        }
+
+        throw new InvalidDataException($"Unknown damage type: '{name}");
+    }
 }

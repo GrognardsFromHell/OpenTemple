@@ -32,7 +32,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
     public void DebugLastPushedSlot()
     {
-        _verboseLoggingForSlot = lastSlotPushedTo_;
+        _verboseLoggingForSlot = _lastSlotPushedTo;
     }
 
     public void DebugSlot(AnimSlotId slotId)
@@ -51,21 +51,21 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     private List<AnimSlot> _slots = new();
 
     [TempleDllLocation(0x102AC880)]
-    private AnimSlotId animIdGlobal;
+    private AnimSlotId _animIdGlobal;
 
     [TempleDllLocation(0x10AA4BB8)]
-    private bool animSysIsLoading;
+    private bool _animSysIsLoading;
 
     // The last slot that a goal was pushed to
     [TempleDllLocation(0x102B2648)]
-    private AnimSlotId lastSlotPushedTo_;
+    private AnimSlotId _lastSlotPushedTo;
 
     /*
         While processing the timer event for a slot, this will contain the slots index.
         Otherwise -1.
     */
     [TempleDllLocation(0x102B2654)]
-    private int mCurrentlyProcessingSlotIdx = -1;
+    private int _currentlyProcessingSlotIdx = -1;
 
     /// <summary>
     /// Callbacks for animations that have reached their action trigger that should be dispatched
@@ -73,16 +73,16 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     /// </summary>
     private readonly List<AnimActionCallback> _actionCallbacks = new();
 
-    private Action mAllGoalsClearedCallback;
+    private Action _allGoalsClearedCallback;
 
     [TempleDllLocation(0x10AA4BC0)]
-    private int mActiveGoalCount;
+    private int _activeGoalCount;
 
     [TempleDllLocation(0x11E61520)]
-    private int nextUniqueId;
+    private int _nextUniqueId;
 
     [TempleDllLocation(0x10307534)]
-    public int customDelayInMs { get; set; }
+    public int CustomDelayInMs { get; set; }
 
     // The next id that'll be assigned to uniqueActionId if the action system requests one to be assigned
     [TempleDllLocation(0x10307540)]
@@ -90,19 +90,18 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
     public AnimationGoals Goals { get; } = new();
 
+    [TempleDllLocation(0x10054e10)]
+    public bool IsProcessing => _currentlyProcessingSlotIdx != -1;
+
     [TempleDllLocation(0x10016bb0)]
     public AnimSystem()
     {
-        Stub.TODO();
     }
 
     [TempleDllLocation(0x1000c110)]
     public void Dispose()
     {
     }
-
-    [TempleDllLocation(0x10054e10)]
-    public bool IsProcessing => mCurrentlyProcessingSlotIdx != -1;
 
     [TempleDllLocation(0x10056d20)]
     public bool PushGoal(AnimSlotGoalStackEntry stackEntry, out AnimSlotId slotId)
@@ -216,7 +215,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         slotIdOut = AnimSlotId.Null;
 
         // Don't push new goals while animations are loaded from the savegame
-        if (animSysIsLoading)
+        if (_animSysIsLoading)
         {
             return false;
         }
@@ -234,13 +233,13 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             var existingSlot = GetSlot(previousSlotId);
             if (existingSlot != null && existingSlot.pCurrentGoal.goalType == AnimGoalType.anim_idle)
             {
-                lastSlotPushedTo_ = previousSlotId;
+                _lastSlotPushedTo = previousSlotId;
 
                 if (existingSlot.IsStackFull)
                 {
                     Logger.Error(
                         "Anim: ERROR: Attempt to PushGoal: Goal Stack too LARGE!!! Killing the Animation Slot: AnimID: {0}",
-                        lastSlotPushedTo_);
+                        _lastSlotPushedTo);
                     Logger.Error("Anim: Current SubGoal Stack is:");
                     for (var i = 0; i <= existingSlot.currentGoal; i++)
                     {
@@ -258,7 +257,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                 existingSlot.currentGoal = existingSlot.goals.Count - 1;
 
                 IncreaseActiveGoalCount(existingSlot, Goals.GetByType(stackEntry.goalType));
-                slotIdOut = lastSlotPushedTo_;
+                slotIdOut = _lastSlotPushedTo;
 
                 existingSlot.pCurrentGoal.FreezeObjectRefs();
 
@@ -270,14 +269,14 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         var newSlotId = AllocSlot();
         if (newSlotId.IsNull)
         {
-            lastSlotPushedTo_.Clear();
+            _lastSlotPushedTo.Clear();
             return false;
         }
 
-        lastSlotPushedTo_ = newSlotId;
-        slotIdOut = lastSlotPushedTo_;
+        _lastSlotPushedTo = newSlotId;
+        slotIdOut = _lastSlotPushedTo;
 
-        var runInfo = _slots[lastSlotPushedTo_.slotIndex];
+        var runInfo = _slots[_lastSlotPushedTo.slotIndex];
         runInfo.currentState = 0;
         runInfo.field_14 = -1;
         runInfo.animObj = stackEntry.self.obj;
@@ -293,8 +292,8 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         // Schedule time events for this new slot
         var evt = new TimeEvent(TimeEventType.Anim);
-        evt.arg1.int32 = lastSlotPushedTo_.slotIndex;
-        evt.arg2.int32 = lastSlotPushedTo_.uniqueId;
+        evt.arg1.int32 = _lastSlotPushedTo.slotIndex;
+        evt.arg2.int32 = _lastSlotPushedTo.uniqueId;
         evt.arg3.int32 = 3333;
 
         return GameSystems.TimeEvent.Schedule(evt, 5, out _);
@@ -435,7 +434,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         }
 
         int delay = 0;
-        mCurrentlyProcessingSlotIdx = slot.id.slotIndex;
+        _currentlyProcessingSlotIdx = slot.id.slotIndex;
         // TODO: Clean up this terrible control flow
 
         // TODO: processing
@@ -453,7 +452,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                 Logger.Error("Goal {0} loops infinitely in animation {1}!",
                     slot.pCurrentGoal.goalType, slot.id);
                 GameSystems.Combat.AdvanceTurn(slot.animObj);
-                mCurrentlyProcessingSlotIdx = -1;
+                _currentlyProcessingSlotIdx = -1;
                 InterruptGoals(slot, AnimGoalPriority.AGP_HIGHEST);
                 ProcessActionCallbacks();
                 return true;
@@ -526,7 +525,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
             if (!slot.flags.HasFlag(AnimSlotFlag.ACTIVE))
             {
-                mCurrentlyProcessingSlotIdx = -1;
+                _currentlyProcessingSlotIdx = -1;
                 ProcessActionCallbacks();
                 return true;
             }
@@ -689,7 +688,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                         break;
                     case AnimStateTransition.DelayCustom:
                         // Used by some goal states to set their desired dynamic delay
-                        delay = customDelayInMs;
+                        delay = CustomDelayInMs;
                         break;
                     case AnimStateTransition.DelayRandom:
                         // Calculates the animation delay randomly in a range from 0 to 300
@@ -706,7 +705,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             // If no delay has been set, the next state is immediately processed
         }
 
-        mCurrentlyProcessingSlotIdx = -1;
+        _currentlyProcessingSlotIdx = -1;
 
         // Does Flag 2 mean "COMPLETED" ?
         if (!(slot.flags.HasFlag(AnimSlotFlag.STOP_PROCESSING)))
@@ -786,7 +785,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
             slot.flags |= AnimSlotFlag.UNK11 | AnimSlotFlag.STOP_PROCESSING;
 
-            if (mCurrentlyProcessingSlotIdx == slotIdx)
+            if (_currentlyProcessingSlotIdx == slotIdx)
             {
                 continue;
             }
@@ -910,7 +909,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         slot.flags |= AnimSlotFlag.STOP_PROCESSING;
 
-        if (mCurrentlyProcessingSlotIdx == slot.id.slotIndex)
+        if (_currentlyProcessingSlotIdx == slot.id.slotIndex)
         {
             return true;
         }
@@ -967,7 +966,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         var slot = _slots[freeSlot];
         slot.id.slotIndex = freeSlot;
-        slot.id.uniqueId = nextUniqueId++;
+        slot.id.uniqueId = _nextUniqueId++;
         slot.id.field_8 = 0;
         slot.flags = AnimSlotFlag.ACTIVE;
         slot.animPath.maxPathLength = 0;
@@ -1002,14 +1001,14 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             _verboseLoggingForSlot = AnimSlotId.Null;
         }
 
-        if (lastSlotPushedTo_ == slot.id)
+        if (_lastSlotPushedTo == slot.id)
         {
-            lastSlotPushedTo_ = AnimSlotId.Null;
+            _lastSlotPushedTo = AnimSlotId.Null;
         }
 
-        if (animIdGlobal == slot.id)
+        if (_animIdGlobal == slot.id)
         {
-            animIdGlobal = AnimSlotId.Null;
+            _animIdGlobal = AnimSlotId.Null;
         }
 
         if (!slot.IsActive)
@@ -1032,9 +1031,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             _slots.RemoveAt(_slots.Count - 1);
         }
 
-        if (mActiveGoalCount == 0)
+        if (_activeGoalCount == 0)
         {
-            mAllGoalsClearedCallback?.Invoke();
+            _allGoalsClearedCallback?.Invoke();
         }
     }
 
@@ -1209,8 +1208,8 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     {
         if (goal.priority >= AnimGoalPriority.AGP_2 && !goal.interruptAll && !CurrentGoalHasField10_1(slot))
         {
-            Trace.Assert(mActiveGoalCount >= 0);
-            ++mActiveGoalCount;
+            Trace.Assert(_activeGoalCount >= 0);
+            ++_activeGoalCount;
         }
     }
 
@@ -1218,9 +1217,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     private void DecreaseActiveGoalCount(AnimSlot slot, AnimGoal goal)
     {
         if (goal.priority >= AnimGoalPriority.AGP_2 && !goal.interruptAll && !CurrentGoalHasField10_1(slot) &&
-            mActiveGoalCount >= 1)
+            _activeGoalCount >= 1)
         {
-            --mActiveGoalCount;
+            --_activeGoalCount;
         }
     }
 
@@ -1317,7 +1316,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1000c750)]
     public void SetAllGoalsClearedCallback(Action callback)
     {
-        mAllGoalsClearedCallback = callback;
+        _allGoalsClearedCallback = callback;
     }
 
     [TempleDllLocation(0x1000c950)]
@@ -1354,7 +1353,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         savedGameState.AnimState = new SavedAnimState
         {
             NextUniqueId = _nextUniqueActionId,
-            ActiveGoalCount = mActiveGoalCount,
+            ActiveGoalCount = _activeGoalCount,
 // TODO: -animcatchup
             NextUniqueActionId = _nextUniqueActionId,
             Slots = SaveSlots()
@@ -1450,14 +1449,14 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1001d250)]
     public void LoadGame(SavedGameState savedGameState)
     {
-        animSysIsLoading = true;
+        _animSysIsLoading = true;
         try
         {
             LoadGame(savedGameState.AnimState);
         }
         finally
         {
-            animSysIsLoading = false;
+            _animSysIsLoading = false;
         }
     }
 
@@ -1467,8 +1466,8 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         // We assume anims have been cleared using Reset()
         Trace.Assert(_slots.Count == 0);
 
-        nextUniqueId = animState.NextUniqueId;
-        mActiveGoalCount = animState.ActiveGoalCount;
+        _nextUniqueId = animState.NextUniqueId;
+        _activeGoalCount = animState.ActiveGoalCount;
         // TODO: UseAbsoluteTime (functionality not implemented yet, see 0x10307538)
         _nextUniqueActionId = animState.NextUniqueActionId;
 
@@ -1586,7 +1585,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     public void Reset()
     {
         _slots.Clear();
-        mActiveGoalCount = 0;
+        _activeGoalCount = 0;
         _nextUniqueActionId = 1;
     }
 
@@ -1812,12 +1811,12 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             return false;
         }
 
-        if (IsRunningGoal(obj, AnimGoalType.run_to_tile, out animIdGlobal))
+        if (IsRunningGoal(obj, AnimGoalType.run_to_tile, out _animIdGlobal))
         {
             var newgoal = new AnimSlotGoalStackEntry(obj, AnimGoalType.run_to_tile);
             newgoal.targetTile.location = pos;
 
-            if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out animIdGlobal))
+            if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out _animIdGlobal))
             {
                 return true;
             }
@@ -1835,13 +1834,13 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                 newgoal.targetTile.location = pos;
             }
 
-            if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out animIdGlobal))
+            if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out _animIdGlobal))
             {
                 return false;
             }
         }
 
-        var slot = GetSlot(animIdGlobal);
+        var slot = GetSlot(_animIdGlobal);
         if (slot != null)
         {
             if (path != null)
@@ -1869,22 +1868,22 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             return false;
         }
 
-        if (!GameSystems.Anim.IsRunningGoal(actor, AnimGoalType.run_to_tile, out GameSystems.Anim.animIdGlobal))
+        if (!GameSystems.Anim.IsRunningGoal(actor, AnimGoalType.run_to_tile, out GameSystems.Anim._animIdGlobal))
         {
             var goalData = new AnimSlotGoalStackEntry(actor, AnimGoalType.run_near_tile, true);
             goalData.targetTile.location = target;
             goalData.animId.floatNum = radiusFeet;
-            if (!GameSystems.Anim.PushGoal(goalData, out animIdGlobal))
+            if (!GameSystems.Anim.PushGoal(goalData, out _animIdGlobal))
             {
                 return false;
             }
 
-            GameSystems.Anim.TurnOnRunning(animIdGlobal);
+            GameSystems.Anim.TurnOnRunning(_animIdGlobal);
             return true;
         }
 
         // If the critter was already running near a tile, adjust the target
-        var slot = GetSlot(GameSystems.Anim.animIdGlobal);
+        var slot = GetSlot(GameSystems.Anim._animIdGlobal);
         slot.flags |= AnimSlotFlag.RUNNING;
 
         if (!slot.goals[0].targetTile.location.AlmostEquals(target))
@@ -1957,7 +1956,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1001a930)]
     public void TurnOnRunning()
     {
-        TurnOnRunning(animIdGlobal);
+        TurnOnRunning(_animIdGlobal);
     }
 
     [TempleDllLocation(0x1001a8e0)]
@@ -2139,12 +2138,12 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1001ABB0)]
     public int GetActionAnimId(GameObject animObj)
     {
-        if (lastSlotPushedTo_.IsNull)
+        if (_lastSlotPushedTo.IsNull)
         {
             return 0;
         }
 
-        var slot = GetSlot(lastSlotPushedTo_);
+        var slot = GetSlot(_lastSlotPushedTo);
         if (slot == null || slot.animObj != animObj)
         {
             return 0;
@@ -2181,7 +2180,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     {
         var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.dying, true);
         goal.scratchVal2.number = deathAnim;
-        PushGoal(goal, out animIdGlobal);
+        PushGoal(goal, out _animIdGlobal);
     }
 
     [TempleDllLocation(0x100158e0)]
@@ -2195,7 +2194,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                 GameSystems.Combat.EnterCombat(target);
                 goalData.target.obj = attacker;
                 goalData.scratchVal6.number = 5;
-                PushGoal(goalData, out animIdGlobal);
+                PushGoal(goalData, out _animIdGlobal);
             }
         }
     }
@@ -2260,7 +2259,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             {
                 goal.scratchVal6.number = -1;
                 goal.animIdPrevious.number = -1;
-                return PushGoal(goal, out animIdGlobal);
+                return PushGoal(goal, out _animIdGlobal);
             }
         }
 
@@ -2287,22 +2286,22 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         newgoal.scratch.obj = scratch;
         newgoal.flagsData.number = (int)skillId;
 
-        if (!PushGoal(newgoal, out animIdGlobal))
+        if (!PushGoal(newgoal, out _animIdGlobal))
         {
             return false;
         }
 
-        TurnOn4000(animIdGlobal);
+        TurnOn4000(_animIdGlobal);
 
         if (critter.IsNPC())
         {
-            TurnOnRunning(animIdGlobal);
+            TurnOnRunning(_animIdGlobal);
         }
         else
         {
             if (ShouldRun(critter))
             {
-                TurnOnRunning(animIdGlobal);
+                TurnOnRunning(_animIdGlobal);
             }
         }
 
@@ -2368,7 +2367,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         var newGoal = new AnimSlotGoalStackEntry(obj, AnimGoalType.rotate, true);
         newGoal.scratchVal2.floatNum = rotation;
-        return PushGoal(newGoal, out animIdGlobal);
+        return PushGoal(newGoal, out _animIdGlobal);
     }
 
     [TempleDllLocation(0x10079790)]
@@ -2476,7 +2475,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                 goalStackEntry.animIdPrevious.number = (int)weaponAnim;
                 Logger.Info("Attack animation: {0}", weaponAnim);
 
-                if (PushGoal(goalStackEntry, out animIdGlobal))
+                if (PushGoal(goalStackEntry, out _animIdGlobal))
                 {
                     if (!attacker.IsNPC())
                     {
@@ -2486,7 +2485,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                         }
                     }
 
-                    TurnOnRunning(animIdGlobal);
+                    TurnOnRunning(_animIdGlobal);
                     return true;
                 }
             }
@@ -2527,14 +2526,14 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         goal.scratchVal6.number = scratchVal6;
         goal.animIdPrevious.number = (int)(secondary ? WeaponAnim.LeftThrow : WeaponAnim.RightThrow);
 
-        if (!PushGoal(goal, out animIdGlobal))
+        if (!PushGoal(goal, out _animIdGlobal))
         {
             return false;
         }
 
         if (attacker.IsNPC() || ShouldRun(attacker))
         {
-            TurnOnRunning(animIdGlobal);
+            TurnOnRunning(_animIdGlobal);
         }
 
         return true;
@@ -2561,14 +2560,14 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         goal.parent.obj = attacker;
         goal.scratch.obj = target;
         goal.scratchVal6.number = scratchVal6;
-        return PushGoal(goal, out animIdGlobal);
+        return PushGoal(goal, out _animIdGlobal);
     }
 
     [TempleDllLocation(0x10015760)]
     public bool PushGetUp(GameObject critter)
     {
         var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.anim_get_up, true);
-        return PushGoal(goal, out animIdGlobal);
+        return PushGoal(goal, out _animIdGlobal);
     }
 
     [TempleDllLocation(0x10010e80)]
@@ -2605,12 +2604,12 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.talk, true);
         goal.target.obj = target;
-        if (!PushGoal(goal, out animIdGlobal))
+        if (!PushGoal(goal, out _animIdGlobal))
         {
             return false;
         }
 
-        GameSystems.Anim.TurnOn4000(animIdGlobal);
+        GameSystems.Anim.TurnOn4000(_animIdGlobal);
         return true;
     }
 
@@ -2624,9 +2623,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             return false;
         }
 
-        if (GameSystems.Anim.IsRunningGoal(critter, AnimGoalType.run_to_tile, out animIdGlobal))
+        if (GameSystems.Anim.IsRunningGoal(critter, AnimGoalType.run_to_tile, out _animIdGlobal))
         {
-            var slot = GetSlot(animIdGlobal);
+            var slot = GetSlot(_animIdGlobal);
             if (slot.goals[0].targetTile.location.DistanceTo(target) <= 0.000001f)
             {
                 // The existing goal already has the right target
@@ -2644,7 +2643,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.move_near_tile, true);
         goal.targetTile.location = target;
         goal.animId.number = tileRadius;
-        return PushGoal(goal, out animIdGlobal);
+        return PushGoal(goal, out _animIdGlobal);
     }
 
     [TempleDllLocation(0x1001a560)]
@@ -2670,7 +2669,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         goalData.animId.number = radius;
         goalData.scratchVal2.number = tetherLoc.locx;
         goalData.scratchVal3.number = tetherLoc.locy;
-        return PushGoal(goalData, out animIdGlobal);
+        return PushGoal(goalData, out _animIdGlobal);
     }
 
     [TempleDllLocation(0x1001a720)]
@@ -2694,7 +2693,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                 goalData.animId.number = radius;
                 goalData.scratchVal2.number = tetherLoc.locx;
                 goalData.scratchVal3.number = tetherLoc.locy;
-                return PushGoal(goalData, out animIdGlobal);
+                return PushGoal(goalData, out _animIdGlobal);
             }
         }
 
@@ -2929,7 +2928,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         GameSystems.Combat.EnterCombat(victim);
         goalData.target.obj = attacker;
         goalData.scratchVal6.number = 5;
-        return PushGoal(goalData, out animIdGlobal);
+        return PushGoal(goalData, out _animIdGlobal);
     }
 
     [TempleDllLocation(0x10015e00)]
@@ -2942,7 +2941,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         var goalData = new AnimSlotGoalStackEntry(critter, AnimGoalType.unconceal, true);
 
-        return PushGoal(goalData, out animIdGlobal);
+        return PushGoal(goalData, out _animIdGlobal);
     }
 
     [TempleDllLocation(0x10056c10)]

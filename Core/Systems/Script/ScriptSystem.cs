@@ -136,6 +136,11 @@ public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareS
             throw new NullReferenceException("Cannot run a script without an attachee");
         }
 
+        if (!invocation.IgnoreTrap && GameSystems.Trap.OnBeforeScriptInvoked(ref invocation))
+        {
+            return false;
+        }
+        
         var script = attachee.GetScript(obj_f.scripts_idx, (int)invocation.eventId);
 
         if (script.scriptId == 0)
@@ -149,7 +154,14 @@ public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareS
             return true;
         }
 
-        return scriptObj.Invoke(ref invocation);
+        var result = scriptObj.Invoke(ref invocation);
+
+        if (!invocation.IgnoreTrap)
+        {
+            GameSystems.Trap.OnAfterScriptInvoked(ref invocation);
+        }
+
+        return result;
     }
 
     [TempleDllLocation(0x10025d60)]

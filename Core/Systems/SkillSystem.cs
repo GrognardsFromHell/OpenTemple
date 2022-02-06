@@ -246,23 +246,14 @@ public class SkillSystem : IGameSystem
         }
 
         var skillBonusList = BonusList.Create();
-        var skillLvl = DispatcherExtensions.dispatch1ESkillLevel(critter, skill, ref skillBonusList, null, flags);
+        var skillLvl = critter.dispatch1ESkillLevel(skill, ref skillBonusList, null, flags);
 
-        Dice dice;
-        if ((flags & SkillCheckFlags.TakeTwenty) != 0)
-        {
-            dice = Dice.Constant(20);
-        }
-        else
-        {
-            dice = Dice.D20;
-        }
+        var dice = (flags & SkillCheckFlags.TakeTwenty) != 0 ? Dice.Constant(20) : Dice.D20;
 
         var rollResult = dice.Roll();
         var effectiveResult = rollResult + skillLvl;
         var succeeded = effectiveResult >= dc;
         missedDcBy = effectiveResult - dc;
-
 
         bool showResultInHistory;
         if (skill == SkillId.search)
@@ -358,7 +349,7 @@ public class SkillSystem : IGameSystem
             {
                 if (GameSystems.Trap.WillTrigger(nearObj) || nearObj.type == ObjectType.trap)
                 {
-                    if (GameSystems.Trap.TryToDetect(seeker, nearObj, bonlist))
+                    if (GameSystems.Trap.TryToDetectWithBonus(seeker, nearObj, bonlist))
                     {
                         found = nearObj;
                         break;

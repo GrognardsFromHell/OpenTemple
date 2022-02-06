@@ -43,8 +43,6 @@ public class ReputationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwa
         _greetingsFemaleNpcFemalePc = Tig.FS.ReadMesFile("mes/game_rp_npc_f2f.mes");
 
         _reputations = LoadReputations();
-
-        Stub.TODO();
     }
 
     private static Dictionary<int, Reputation> LoadReputations()
