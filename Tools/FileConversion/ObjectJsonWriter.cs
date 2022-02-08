@@ -12,8 +12,8 @@ namespace ConvertMapToText;
 public static class ObjectSerializer
 {
     public static void WriteProperties(Utf8JsonWriter writer,
-        ObjectType type,
-        Dictionary<obj_f, object> properties)
+        Dictionary<obj_f, object> properties,
+        string debugName)
     {
         var sortedKeys = properties.Keys.ToList();
         sortedKeys.Sort();
@@ -25,36 +25,48 @@ public static class ObjectSerializer
                 continue;
             }
 
-            // Special handling that spans different fields
-            switch (field)
+            try
             {
-                case obj_f.permanent_mods:
-                    writer.WritePropertyName("permanent_mod_args");
-                    WriteConditions(writer, obj_f.permanent_mods, obj_f.permanent_mod_data, properties);
-                    break;
-                case obj_f.permanent_mod_data:
-                    // Handled by permanent_mods
-                    break;
-                case obj_f.item_pad_wielder_condition_array:
-                    writer.WritePropertyName("item_wielder_conditions");
-                    WriteConditions(writer,
-                        obj_f.item_pad_wielder_condition_array,
-                        obj_f.item_pad_wielder_argument_array,
-                        properties);
-                    break;
-                case obj_f.item_pad_wielder_argument_array:
-                    // Handled by item_pad_wielder_condition_array
-                    break;
-                case obj_f.npc_standpoints:
-                    WriteNpcStandpoints(writer, properties);
-                    break;
-                case obj_f.armor_flags:
-                    WriteArmorFlags(writer, (ArmorFlag) (int) properties[field]);
-                    break;
-                default:
-                    writer.WriteField(field, properties[field]);
-                    break;
+                WriteField(writer, properties, field);
             }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to write field {field} for {debugName}: {e}");
+            }
+        }
+    }
+
+    private static void WriteField(Utf8JsonWriter writer, Dictionary<obj_f, object> properties, obj_f field)
+    {
+        // Special handling that spans different fields
+        switch (field)
+        {
+            case obj_f.permanent_mods:
+                writer.WritePropertyName("permanent_mod_args");
+                WriteConditions(writer, obj_f.permanent_mods, obj_f.permanent_mod_data, properties);
+                break;
+            case obj_f.permanent_mod_data:
+                // Handled by permanent_mods
+                break;
+            case obj_f.item_pad_wielder_condition_array:
+                writer.WritePropertyName("item_wielder_conditions");
+                WriteConditions(writer,
+                    obj_f.item_pad_wielder_condition_array,
+                    obj_f.item_pad_wielder_argument_array,
+                    properties);
+                break;
+            case obj_f.item_pad_wielder_argument_array:
+                // Handled by item_pad_wielder_condition_array
+                break;
+            case obj_f.npc_standpoints:
+                WriteNpcStandpoints(writer, properties);
+                break;
+            case obj_f.armor_flags:
+                WriteArmorFlags(writer, (ArmorFlag) (int) properties[field]);
+                break;
+            default:
+                writer.WriteField(field, properties[field]);
+                break;
         }
     }
 
@@ -163,7 +175,9 @@ public static class ObjectSerializer
     {
         writer.WriteNumber("mapId", standPoint.mapId);
         writer.WritePropertyName("location");
-        writer.WriteTile(standPoint.location);
+        // While World-Ed generally supports setting off_x, off_z (in some cases)
+        // many objects just contain junk in the offset fields.
+        writer.WriteTile(standPoint.location.location);
         writer.WriteNumber("jumpPointId", standPoint.jumpPointId);
     }
 

@@ -54,7 +54,7 @@ internal class ProtosConverter
                 writer.WriteString("$comment", displayName);
                 writer.WriteString("type", proto.type.ToString());
                 writer.WriteNumber("id", proto.id.protoId);
-                ObjectSerializer.WriteProperties(writer, proto.type, properties);
+                ObjectSerializer.WriteProperties(writer, properties, $"Proto for '{displayName}' ({proto.type})");
                 writer.WriteEndObject();
             }
         }

@@ -14,6 +14,19 @@ public static class JsonWriterObjectExtensions
 {
     public static void WriteField(this Utf8JsonWriter writer, obj_f field, object value)
     {
+        // Drop broken-ass radius and render-height
+        if (field == obj_f.radius && ((float) value <= 0 || (float) value > 9999))
+        {
+            Console.WriteLine($"Dropping invalid radius: {value}");
+            return;
+        }
+
+        if (field == obj_f.render_height_3d && ((float) value <= 0 || (float) value > 9999))
+        {
+            Console.WriteLine($"Dropping invalid render-height: {value}");
+            return;
+        }
+
         ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
 
         writer.WritePropertyName(field.ToString());
@@ -301,14 +314,21 @@ public static class JsonWriterObjectExtensions
             case ObjectFieldType.AbilityArray:
             case ObjectFieldType.Int32Array:
             {
-                writer.WriteStartArray();
-                var sparseArray = (SparseArray<int>) value;
-                foreach (var t in sparseArray)
+                if (value == null)
                 {
-                    writer.WriteNumberValue(t);
+                    writer.WriteNullValue();
                 }
+                else
+                {
+                    writer.WriteStartArray();
+                    var sparseArray = (SparseArray<int>) value;
+                    foreach (var t in sparseArray)
+                    {
+                        writer.WriteNumberValue(t);
+                    }
 
-                writer.WriteEndArray();
+                    writer.WriteEndArray();
+                }
             }
                 break;
             case ObjectFieldType.Int64Array:
@@ -330,7 +350,15 @@ public static class JsonWriterObjectExtensions
                 writer.WriteStringValue((string) value);
                 break;
             case ObjectFieldType.Obj:
-                writer.WriteObjectIdValue((ObjectId) value);
+                if (value == null)
+                {
+                    writer.WriteNullValue();
+                }
+                else
+                {
+                    writer.WriteObjectIdValue((ObjectId) value);
+                }
+
                 break;
             case ObjectFieldType.ObjArray:
                 writer.WriteObjectIdArrayValue((List<ObjectId>) value);
@@ -370,6 +398,7 @@ public static class JsonWriterObjectExtensions
         {
             writer.WriteString("domain", ((DomainId) spell.classCode).ToString());
         }
+
         var metaMagic = spell.metaMagicData;
         if (metaMagic != default)
         {
@@ -378,14 +407,17 @@ public static class JsonWriterObjectExtensions
             {
                 writer.WriteBoolean("maximize", metaMagic.IsMaximize);
             }
+
             if (metaMagic.IsQuicken)
             {
                 writer.WriteBoolean("quicken", metaMagic.IsQuicken);
             }
+
             if (metaMagic.IsSilent)
             {
                 writer.WriteBoolean("silent", metaMagic.IsSilent);
             }
+
             if (metaMagic.IsStill)
             {
                 writer.WriteBoolean("still", metaMagic.IsStill);
@@ -395,24 +427,30 @@ public static class JsonWriterObjectExtensions
             {
                 writer.WriteNumber("empower", metaMagic.metaMagicEmpowerSpellCount);
             }
+
             if (metaMagic.metaMagicEnlargeSpellCount > 0)
             {
                 writer.WriteNumber("enlarge", metaMagic.metaMagicEnlargeSpellCount);
             }
+
             if (metaMagic.metaMagicExtendSpellCount > 0)
             {
                 writer.WriteNumber("extend", metaMagic.metaMagicExtendSpellCount);
             }
+
             if (metaMagic.metaMagicHeightenSpellCount > 0)
             {
                 writer.WriteNumber("heighten", metaMagic.metaMagicHeightenSpellCount);
             }
+
             if (metaMagic.metaMagicWidenSpellCount > 0)
             {
                 writer.WriteNumber("widen", metaMagic.metaMagicWidenSpellCount);
             }
+
             writer.WriteEndObject();
         }
+
         writer.WriteEndObject();
     }
 

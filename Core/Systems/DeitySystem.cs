@@ -6,6 +6,7 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.TigSubsystems;
 
@@ -16,6 +17,10 @@ public class DeitySystem : IGameSystem
     private readonly Dictionary<DeityId, string> _deityNames;
 
     private readonly Dictionary<DeityId, string> _deityPraise;
+
+    public IEnumerable<DeityId> PlayerSelectableDeities => Deities
+        .Where(deity => deity.IsSelectable)
+        .Select(deity => deity.Id);
 
     [TempleDllLocation(0x1004a760)]
     public DeitySystem()
@@ -29,13 +34,7 @@ public class DeitySystem : IGameSystem
             _deityNames[deityId] = deityMes[(int) deityId];
             _deityPraise[deityId] = deityMes[3000 + (int) deityId];
         }
-
-        Stub.TODO(); // Missing condition naming
     }
-
-    public IEnumerable<DeityId> PlayerSelectableDeities => Deities
-        .Where(deity => deity.IsSelectable)
-        .Select(deity => deity.Id);
 
     public void Dispose()
     {

@@ -176,6 +176,7 @@ public class D20StatusSystem
         }
     }
 
+    [TempleDllLocation(0x102b1690)]
     private static readonly Dictionary<DomainId, MappedDomainCondition> DomainConditionMapping =
         new()
         {

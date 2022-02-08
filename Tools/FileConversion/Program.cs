@@ -4,7 +4,7 @@ using System.IO;
 
 namespace ConvertMapToText;
 
-internal class Program
+internal static class Program
 {
     private static int Main(string[] args)
     {
@@ -20,6 +20,11 @@ internal class Program
         mapMobiles.Handler = CommandHandler.Create<DirectoryInfo, int>((toee, mapId) =>
             DumpMap(toee.FullName, mapId));
 
+        var campaignMobiles = new Command("campaign-map-mobiles",
+            "Acts same as map-mobiles but does it for all maps in the campaign");
+        campaignMobiles.Handler = CommandHandler.Create<DirectoryInfo>(toee =>
+            DumpAllMaps(toee.FullName));
+
         var protos = new Command("protos", "Converts all protos to a text-based format.");
         protos.Handler = CommandHandler.Create<DirectoryInfo>(toee => ConvertProtos(toee.FullName));
 
@@ -28,9 +33,11 @@ internal class Program
         {
             new Option<DirectoryInfo>("--toee", "Directory where ToEE is installed")
             {
-                Argument = new Argument<DirectoryInfo>()
+                Argument = new Argument<DirectoryInfo>(),
+                Required = true
             },
             mapMobiles,
+            campaignMobiles,
             protos
         };
 
@@ -44,6 +51,11 @@ internal class Program
 
     private static void DumpMap(string toeeDir, int mapId)
     {
-        MapMobileConverter.Convert(toeeDir, mapId);
+        MapMobileConverter.ConvertMap(toeeDir, mapId);
+    }
+    
+    private static void DumpAllMaps(string toeeDir)
+    {
+        MapMobileConverter.ConvertAllMaps(toeeDir);
     }
 }

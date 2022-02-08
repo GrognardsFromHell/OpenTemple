@@ -9,11 +9,13 @@ using OpenTemple.Core.Systems.Feats;
 
 namespace OpenTemple.Core.Startup.Discovery;
 
+/// <summary>
+/// Scans all types in an assembly for classes or fields annotated with AutoRegisterAttribute to
+/// automatically pick up certain types of content.
+/// </summary>
 public class DefaultContentProvider : IContentProvider
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
-    private readonly Assembly _assembly;
 
     // In debug mode we discover more fields to find mistakes
 #if DEBUG
@@ -41,8 +43,6 @@ public class DefaultContentProvider : IContentProvider
 
     public DefaultContentProvider(Assembly assembly)
     {
-        _assembly = assembly;
-
         var conditions = new List<ConditionSpec>();
         var featConditions = new List<(FeatId, ConditionSpec)>();
         var classes = new List<D20ClassSpec>();

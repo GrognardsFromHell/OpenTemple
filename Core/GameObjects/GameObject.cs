@@ -937,6 +937,10 @@ public class GameObject : IDisposable
     {
         var standpointArray = GetMutableInt64Array(obj_f.npc_standpoints);
         standPoint = DeserializeStandpoint(standpointArray, (int) type);
+        // While the structure itself seems to support offset x/y, earlier versions of worlded might not
+        // have set it correctly since many objects have just random garbage in the offx/offy fields
+        standPoint.location.off_x = 0;
+        standPoint.location.off_y = 0;
     }
 
     public static StandPoint DeserializeStandpoint(IReadOnlyList<long> serializedStandpoints, int typeIndex)
@@ -949,7 +953,9 @@ public class GameObject : IDisposable
             packedStandpoint[i] = serializedStandpoints[10 * typeIndex + i];
         }
 
-        return MemoryMarshal.Read<StandPoint>(MemoryMarshal.Cast<long, byte>(packedStandpoint));
+        var standpoint = MemoryMarshal.Read<StandPoint>(MemoryMarshal.Cast<long, byte>(packedStandpoint));
+
+        return standpoint;
     }
 
     [TempleDllLocation(0x100ba8f0)]

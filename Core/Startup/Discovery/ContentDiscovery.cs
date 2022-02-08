@@ -9,6 +9,10 @@ using OpenTemple.Core.Systems.Feats;
 
 namespace OpenTemple.Core.Startup.Discovery;
 
+/// <summary>
+/// Discovers content automatically provided by any loaded assemblies.
+/// </summary>
+/// <see cref="IContentProvider"/>
 public class ContentDiscovery
 {
     private static bool _initialized;
