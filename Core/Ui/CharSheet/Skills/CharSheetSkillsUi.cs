@@ -54,8 +54,6 @@ public class CharSheetSkillsUi : IDisposable
     [TempleDllLocation(0x101be3f0)]
     public CharSheetSkillsUi()
     {
-        Stub.TODO();
-
         var detailsDoc = WidgetDoc.Load("ui/char_skills.json");
 
         Container = detailsDoc.GetRootContainer();

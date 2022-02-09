@@ -102,8 +102,7 @@
     },
     {
       "id": "char-ui-skill-button-hover",
-      "$comment": "Applied to the buttons in the skill list, when they're being hovered.",
-      "color": "#0D6BE3"
+      "$comment": "Applied to the buttons in the skill list, when they're being hovered."
     },
     {
       "id": "char-ui-skill-value",

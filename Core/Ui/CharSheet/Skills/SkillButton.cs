@@ -4,6 +4,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Skills;
@@ -14,15 +15,13 @@ public class SkillButton : WidgetButtonBase
 
     private readonly WidgetText _skillBonusLabel;
 
-    private SkillId _skill;
-
-    public SkillId Skill => _skill;
+    public SkillId Skill { get; private set; }
 
     public SkillButton(Rectangle rect) : base(rect)
     {
         _skillNameLabel = new WidgetText("", "char-ui-skill-button");
         _skillNameLabel.X = 4;
-        _skillNameLabel.Y = 1;
+        _skillNameLabel.Y = -1;
         AddContent(_skillNameLabel);
 
         // Rectangle surrounding the bonus
@@ -35,7 +34,7 @@ public class SkillButton : WidgetButtonBase
 
         _skillBonusLabel = new WidgetText("", "char-ui-skill-button");
         _skillBonusLabel.X = bonusBox.X;
-        _skillBonusLabel.Y = bonusBox.Y;
+        _skillBonusLabel.Y = _skillNameLabel.Y;
         _skillBonusLabel.FixedSize = bonusBox.FixedSize;
         _skillBonusLabel.AddStyle("char-ui-skill-value");
         AddContent(_skillBonusLabel);
@@ -47,10 +46,10 @@ public class SkillButton : WidgetButtonBase
     private void ShowBonusDetails()
     {
         var critter = UiSystems.CharSheet.CurrentCritter;
-        var bonlist = BonusList.Create();
-        critter.dispatch1ESkillLevel(_skill, ref bonlist, null, 0);
+        var bonuses = BonusList.Create();
+        critter.dispatch1ESkillLevel(Skill, ref bonuses, null, 0);
 
-        var historyId = GameSystems.RollHistory.AddMiscBonus(critter, bonlist, 1000 + (int)_skill, 0);
+        var historyId = GameSystems.RollHistory.AddMiscBonus(critter, bonuses, 1000 + (int)Skill, 0);
         GameSystems.Help.ShowRoll(historyId);
     }
 
@@ -64,22 +63,35 @@ public class SkillButton : WidgetButtonBase
         var critter = UiSystems.CharSheet.CurrentCritter;
 
         var bonuses = BonusList.Default;
-        var totalBonus = (float)critter.dispatch1ESkillLevel(_skill, ref bonuses, null,
+        var totalBonus = (float)critter.dispatch1ESkillLevel(Skill, ref bonuses, null,
             SkillCheckFlags.UnderDuress);
-        // Include the .5 ranks that are not included in the overall total
-        var halfRanks = GameSystems.Skill.GetSkillHalfRanks(critter, _skill);
-        if (halfRanks % 2 != 0)
+        
+        // Include the .5 ranks that are not included in the ranks
+        var halfRanks = GameSystems.Skill.GetSkillHalfRanks(critter, Skill);
+        if (Skill == SkillId.heal)
         {
-            totalBonus += 0.5f;
+            halfRanks++;
+        }
+        
+        if (halfRanks == 1)
+        {
+            skillRanksText = "\u00BD";
+        }
+        else
+        {
+            skillRanksText = (halfRanks / 2).ToString();
+            if (halfRanks % 2 != 0)
+            {
+                skillRanksText += "\u00BD"; // Unicode symbol for 1/2
+            }
         }
 
-        skillRanksText = string.Format(CultureInfo.InvariantCulture, "{0:F1}", halfRanks / 2.0f);
-        totalBonusText = string.Format(CultureInfo.InvariantCulture, "{0:F1}", totalBonus);
+        totalBonusText = totalBonus.ToString("+0;-#;0");
 
-        // Split up the bonus list into the bonus confered by the skill's primary attribute,
+        // Split up the bonus list into the bonus conferred by the skill's primary attribute,
         // and group every other bonus
         var attributeBonusFound = false;
-        var attributeBonusStat = GameSystems.Skill.GetDecidingStat(_skill);
+        var attributeBonusStat = GameSystems.Skill.GetDecidingStat(Skill);
         var attributeBonusType = 2 + (int)attributeBonusStat;
         var attributeBonusValue = 0;
         var miscBonusValue = 0;
@@ -98,27 +110,33 @@ public class SkillButton : WidgetButtonBase
             }
         }
 
-        attributeBonusText = attributeBonusValue.ToString(CultureInfo.InvariantCulture);
+        attributeBonusText = attributeBonusValue.ToString("+0;-#;0"); 
         attributeBonusTypeText = GameSystems.Stat.GetStatShortName(attributeBonusStat);
-        miscBonusText = miscBonusValue.ToString(CultureInfo.InvariantCulture);
+        miscBonusText = miscBonusValue.ToString("+0;-#;0");
     }
 
     [TempleDllLocation(0x101bd850)]
     public override void Render()
     {
-        var hovered = ButtonState == LgcyButtonState.Hovered || ButtonState == LgcyButtonState.Down;
+        var hovered = ButtonState is LgcyButtonState.Hovered or LgcyButtonState.Down;
         _skillNameLabel.ToggleStyle("char-ui-skill-button-hover", hovered);
         _skillBonusLabel.ToggleStyle("char-ui-skill-button-hover", hovered);
 
         GetSkillBreakdown(out _, out _, out _, out _, out var totalBonus);
         _skillBonusLabel.Text = totalBonus;
 
+        if (hovered)
+        {
+            var bounds = GetContentArea();
+            Tig.ShapeRenderer2d.DrawRectangle(bounds, null, new PackedLinearColorA(255, 255, 255, 32));
+        }
+
         base.Render();
     }
 
     public void SetSkill(SkillId skill)
     {
-        _skill = skill;
+        Skill = skill;
         _skillNameLabel.Text = GameSystems.Skill.GetSkillName(skill);
     }
 }
