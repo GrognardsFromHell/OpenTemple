@@ -215,18 +215,32 @@ public class WidgetScrollBar : WidgetContainer
         {
             var contentArea = GetContentArea();
 
+            WidgetImage top, handle, bottom;
+            if (Globals.UiManager.GetMouseCaptureWidget() == this)
+            {
+                top = mTop;
+                handle = mHandle;
+                bottom = mBottom;
+            }
+            else
+            {
+                top = mTopClicked;
+                handle = mHandleClicked;
+                bottom = mBottomClicked;
+            }
+            
             var topArea = contentArea;
-            topArea.Width = mTop.GetPreferredSize().Width;
-            topArea.Height = mTop.GetPreferredSize().Height;
-            mTop.SetBounds(topArea);
-            mTop.Render();
+            topArea.Width = top.GetPreferredSize().Width;
+            topArea.Height = top.GetPreferredSize().Height;
+            top.SetBounds(topArea);
+            top.Render();
 
             var bottomArea = contentArea;
-            bottomArea.Width = mBottom.GetPreferredSize().Width;
-            bottomArea.Height = mBottom.GetPreferredSize().Height;
+            bottomArea.Width = bottom.GetPreferredSize().Width;
+            bottomArea.Height = bottom.GetPreferredSize().Height;
             bottomArea.Y = contentArea.Y + contentArea.Height - bottomArea.Height; // Align to bottom
-            mBottom.SetBounds(bottomArea);
-            mBottom.Render();
+            bottom.SetBounds(bottomArea);
+            bottom.Render();
 
             int inBetween = bottomArea.Y - topArea.Y - topArea.Height;
             if (inBetween > 0)
@@ -234,9 +248,9 @@ public class WidgetScrollBar : WidgetContainer
                 var centerArea = contentArea;
                 centerArea.Y = topArea.Y + topArea.Height;
                 centerArea.Height = inBetween;
-                centerArea.Width = mHandle.GetPreferredSize().Width;
-                mHandle.SetBounds(centerArea);
-                mHandle.Render();
+                centerArea.Width = handle.GetPreferredSize().Width;
+                handle.SetBounds(centerArea);
+                handle.Render();
             }
         }
 
@@ -271,7 +285,7 @@ public class WidgetScrollBar : WidgetContainer
             }
             else
             {
-                if (msg.flags.HasFlag(MouseEventFlag.LeftHeld))
+                if (msg.flags.HasFlag(MouseEventFlag.LeftClick))
                 {
                     Globals.UiManager.SetMouseCaptureWidget(this);
                     mDragGrabPoint = msg.Y;
