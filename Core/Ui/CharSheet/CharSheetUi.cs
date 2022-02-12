@@ -9,7 +9,6 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.CharSheet.Abilities;
 using OpenTemple.Core.Ui.CharSheet.Feats;
 using OpenTemple.Core.Ui.CharSheet.HelpInventory;
 using OpenTemple.Core.Ui.CharSheet.Inventory;
@@ -89,8 +88,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
     public CharSheetSkillsUi Skills { get; }
 
     public CharSheetFeatsUi Feats { get; }
-
-    public CharSheetAbilitiesUi Abilities { get; }
 
     public CharSheetSpellsUi Spells { get; }
 
@@ -191,7 +188,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         _mainWidget.Add(Inventory.Widget);
         Feats = new CharSheetFeatsUi();
         _mainWidget.Add(Feats.Container);
-        Abilities = new CharSheetAbilitiesUi();
         Spells = new CharSheetSpellsUi();
         _mainWidget.Add(Spells.Container);
         Looting = new CharSheetLootingUi();
@@ -303,7 +299,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             Skills.Hide();
             Feats.Hide();
             Spells.Hide();
-            Abilities.Hide();
             Inventory.BagIndex = inventoryIdx;
         }
         else
@@ -327,7 +322,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             Inventory.Hide();
             Feats.Hide();
             Spells.Hide();
-            Abilities.Hide();
         }
     }
 
@@ -346,7 +340,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             Inventory.Hide();
             Skills.Hide();
             Spells.Hide();
-            Abilities.Hide();
         }
     }
 
@@ -369,7 +362,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             Inventory.Hide();
             Skills.Hide();
             Feats.Hide();
-            Abilities.Hide();
         }
     }
 
@@ -501,9 +493,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
                     break;
                 case 7:
                     Spells.Show(CurrentCritter);
-                    break;
-                case 8:
-                    Abilities.Show();
                     break;
                 default:
                     Logger.Warn("Showing default character sheet page (inventory).");
@@ -658,7 +647,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         Skills.Hide();
         Feats.Hide();
         Spells.Hide();
-        Abilities.Hide();
         LevelUp.Hide();
 
         switch (_state)
@@ -751,7 +739,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
 
     public void Dispose()
     {
-        Abilities?.Dispose();
         Feats?.Dispose();
         Inventory?.Dispose();
         Looting?.Dispose();
@@ -775,7 +762,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
 
     private void ResetPages()
     {
-        Abilities.Reset();
         Feats.Reset();
         Inventory.Reset();
         Looting.Reset();

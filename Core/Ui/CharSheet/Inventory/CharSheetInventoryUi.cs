@@ -21,7 +21,7 @@ public class CharSheetInventoryUi : IDisposable
     [TempleDllLocation(0x10BEECB8)]
     public GameObject Container { get; set; }
 
-    public WidgetBase Widget { get; set; }
+    public WidgetBase Widget { get; }
 
     private WidgetButton _totalWeightLabel;
     private WidgetButton _totalWeightValue;
@@ -45,12 +45,20 @@ public class CharSheetInventoryUi : IDisposable
     private static readonly Size SlotSize = new(65, 65);
 
     private readonly List<InventorySlotWidget> _slots = new();
+    
+    [TempleDllLocation(0x10BEECD0)]
+    public bool IsVisible { get; private set; }
 
+    [TempleDllLocation(0x101551a0)]
+    public WidgetBase UseItemWidget { get; }
+
+    [TempleDllLocation(0x101551b0)]
+    [TempleDllLocation(0x102FB278)]
+    public WidgetBase DropItemWidget { get; }
+    
     [TempleDllLocation(0x10159530)]
     public CharSheetInventoryUi()
     {
-        Stub.TODO();
-
         var widgetDoc = WidgetDoc.Load("ui/char_inventory.json");
         Widget = widgetDoc.GetRootContainer();
 
@@ -169,7 +177,6 @@ public class CharSheetInventoryUi : IDisposable
     [TempleDllLocation(0x10156e60)]
     public void Dispose()
     {
-        Stub.TODO();
     }
 
     [TempleDllLocation(0x10155040)]
@@ -210,16 +217,6 @@ public class CharSheetInventoryUi : IDisposable
     {
         Stub.TODO();
     }
-
-    [TempleDllLocation(0x10BEECD0)]
-    public bool IsVisible { get; private set; }
-
-    [TempleDllLocation(0x101551a0)]
-    public WidgetBase UseItemWidget { get; } // TODO
-
-    [TempleDllLocation(0x101551b0)]
-    [TempleDllLocation(0x102FB278)]
-    public WidgetBase DropItemWidget { get; } // TODO
 
     [TempleDllLocation(0x10157030)]
     [TempleDllLocation(0x102FB27C)]
