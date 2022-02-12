@@ -218,15 +218,15 @@ public class WidgetScrollBar : WidgetContainer
             WidgetImage top, handle, bottom;
             if (Globals.UiManager.GetMouseCaptureWidget() == this)
             {
-                top = mTop;
-                handle = mHandle;
-                bottom = mBottom;
-            }
-            else
-            {
                 top = mTopClicked;
                 handle = mHandleClicked;
                 bottom = mBottomClicked;
+            }
+            else
+            {
+                top = mTop;
+                handle = mHandle;
+                bottom = mBottom;
             }
             
             var topArea = contentArea;
