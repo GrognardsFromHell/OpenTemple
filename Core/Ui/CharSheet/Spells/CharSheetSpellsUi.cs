@@ -169,7 +169,7 @@ public class CharSheetSpellsUi : IDisposable
                 spellList.Caster,
                 spellsPerDay
             );
-            _memorizedSpellsList.OnUnmemorizeSpell +=
+            _memorizedSpellsList.OnRemoveSpell +=
                 (level, slotIndex) => UnmemorizeSpell(spellList, level, slotIndex);
             _memorizedSpellsContainer.Add(_memorizedSpellsList);
             _memorizedSpellsContainer.Visible = true;
@@ -196,7 +196,7 @@ public class CharSheetSpellsUi : IDisposable
         {
             return;
         }
-
+        
         GameSystems.Spell.SpellRemoveFromStorage(caster, obj_f.critter_spells_memorized_idx, slot.MemorizedSpell,
             0);
 

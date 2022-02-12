@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
@@ -43,7 +44,7 @@ public class MemorizedSpellButton : WidgetButtonBase
                 var spellName = GameSystems.Spell.GetSpellName(value.SpellEnum);
 
                 var styleId = !value.HasBeenUsed ? "char-spell-grey" : "char-spell-body";
-                _spellName.AddStyle(styleId);
+                _spellName.StyleIds = ImmutableList.Create(styleId);
                 _spellName.Text = spellName;
                 _spellName.Visible = true;
 
@@ -55,6 +56,7 @@ public class MemorizedSpellButton : WidgetButtonBase
             else
             {
                 _spellName.Visible = false;
+                TooltipText = null;
             }
         }
     }

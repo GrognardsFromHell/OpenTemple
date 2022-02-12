@@ -19,7 +19,9 @@ public class MemorizedSpellsList : WidgetContainer
 
     private readonly SpellsPerDay _spellsPerDay;
 
-    public event Action<int, int> OnUnmemorizeSpell;
+    public event RemoveSpellDelegate OnRemoveSpell;
+
+    public delegate void RemoveSpellDelegate(int level, int index);
 
     public MemorizedSpellsList(Rectangle rectangle, GameObject caster, SpellsPerDay spellsPerDay) :
         base(rectangle)
@@ -51,7 +53,7 @@ public class MemorizedSpellsList : WidgetContainer
                 );
                 spellButton.Y = currentY;
                 spellButton.OnUnmemorizeSpell += () =>
-                    OnUnmemorizeSpell?.Invoke(spellButton.Level, spellButton.SlotIndex);
+                    OnRemoveSpell?.Invoke(spellButton.Level, spellButton.SlotIndex);
                 currentY += spellButton.Height;
                 Add(spellButton);
 
