@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using JetBrains.Annotations;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -12,7 +13,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells;
 
 public class MemorizedSpellsList : WidgetContainer
 {
-    private readonly WidgetScrollBar _scrollbar;
+    [CanBeNull] private readonly WidgetScrollBar _scrollbar;
 
     private readonly GameObject _caster;
 
@@ -107,6 +108,11 @@ public class MemorizedSpellsList : WidgetContainer
 
     public override void OnUpdateTime(TimePoint timeMs)
     {
+        if (_scrollbar == null)
+        {
+            return;
+        }
+        
         var pos = Tig.Mouse.GetPos();
         if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < timeMs)
         {

@@ -96,7 +96,9 @@ public class SpellSystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSys
     private string[] _descriptorsOfMagicNames;
 
     private SpellDescriptors _spells;
-
+    
+    public IEnumerable<SpellEntry> AllSpells => _spells;
+    
     [TempleDllLocation(0x1007b740)]
     public SpellSystem()
     {

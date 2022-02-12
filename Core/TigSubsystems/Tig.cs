@@ -50,8 +50,6 @@ public static class Tig
 
     public static TextLayouter TextLayouter { get; set; }
 
-    public static TigWftScrollbar WftScrollbar { get; set; }
-
     public static TigSound Sound { get; set; }
 
     public static TigFonts Fonts { get; set; }
@@ -140,7 +138,6 @@ public static class Tig
         // mStartedSystems.emplace_back(StartSystem("movie.c", 0x101F1090, TigShutdownNoop));
         // NOTE: WFT -> UiManager
         // TODO mStartedSystems.emplace_back(StartSystem("wft.c", 0x101F98A0, 0x101F9770));
-        WftScrollbar = new TigWftScrollbar();
 
         // TODO mStartedSystems.emplace_back(StartSystem("font.c", 0x101EAEC0, 0x101EA140));
         Fonts = new TigFonts();
@@ -218,7 +215,6 @@ public static class Tig
         ShapeRenderer2d?.Dispose();
         ShapeRenderer3d?.Dispose();
         TextLayouter?.Dispose();
-        WftScrollbar?.Dispose();
         Sound?.Dispose();
         Fonts?.Dispose();
 
@@ -235,7 +231,6 @@ public static class Tig
         ShapeRenderer2d = null;
         ShapeRenderer3d = null;
         TextLayouter = null;
-        WftScrollbar = null;
         Sound = null;
         Fonts = null;
         Console = null;

@@ -5,7 +5,6 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Ui.Widgets;
 
