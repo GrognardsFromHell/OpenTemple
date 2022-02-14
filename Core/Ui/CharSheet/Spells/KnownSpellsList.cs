@@ -28,8 +28,8 @@ public class KnownSpellsList : WidgetContainer
 
             foreach (var spell in spellsKnown)
             {
-                if (!domainSpells && GameSystems.Spell.IsDomainSpell(spell.classCode)
-                    || domainSpells && spell.classCode != classCode
+                if (domainSpells != GameSystems.Spell.IsDomainSpell(spell.classCode)
+                    || !domainSpells && spell.classCode != classCode
                     || spell.spellLevel != level)
                 {
                     continue;
