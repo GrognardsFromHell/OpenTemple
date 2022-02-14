@@ -10,34 +10,38 @@ using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Spells;
 
+/// <summary>
+/// Represents a slot in the memorized spell list. It can either contain an already memorized spell or
+/// represent an empty slot into which a spell can be memorized.
+/// </summary>
 public class MemorizedSpellButton : WidgetButtonBase
 {
+    private readonly GameObject _caster;
+    private readonly SpellsPerDay _spellsPerDay;
+    private readonly int _level;
+    private readonly int _slotIndex;   
     private readonly WidgetText _spellName;
 
+    // This outline is shown, when the slot is pending or free
     private readonly WidgetRectangle _slotRectangle;
 
-    private SpellSlot _spellSlot;
+    private static readonly PackedLinearColorA UnmemorizedBorder = new(0xff646464);
+    private static readonly PackedLinearColorA ValidDropTargetBorder = new(0xff007f00);
 
-    public int Level { get; }
-
-    public int SlotIndex { get; }
-
-    public event Action OnUnmemorizeSpell;
+    public event Action OnChange;
 
     public SpellSlot Slot
     {
-        get => _spellSlot;
+        get => _spellsPerDay.Levels[_level].Slots[_slotIndex];
         set
         {
-            _spellSlot = value;
-
+            _spellsPerDay.Levels[_level].Slots[_slotIndex] = value;
+            
             /* TODO if (GameSystems.Spell.IsDomainSpell(spell.classCode))
             {
                 var domainName = GameSystems.Spell.GetSpellDomainName(spell.classCode);
                 spellName += " (" + domainName + ")";
             }*/
-
-            _slotRectangle.Visible = value.HasBeenUsed || !value.HasSpell;
 
             if (value.HasSpell)
             {
@@ -47,27 +51,36 @@ public class MemorizedSpellButton : WidgetButtonBase
                 _spellName.StyleIds = ImmutableList.Create(styleId);
                 _spellName.Text = spellName;
                 _spellName.Visible = true;
+                _spellName.X = 2; // Left padding
 
-                OnMouseEnter += ShowSpellHelp;
-                OnMouseExit += HideSpellHelp;
-
-                TooltipText = GameSystems.Spell.GetSpellName(_spellSlot.SpellEnum);
+                TooltipText = GameSystems.Spell.GetSpellName(Slot.SpellEnum);
             }
             else
             {
                 _spellName.Visible = false;
                 TooltipText = null;
             }
+
+            UpdateSlotRectangle();
+            
+            OnChange?.Invoke();
         }
     }
 
-    public MemorizedSpellButton(Rectangle rect, int level, int slotIndex) : base(rect)
+    public MemorizedSpellButton(
+        GameObject caster, 
+        Rectangle rect,
+        SpellsPerDay spellsPerDay,
+        int level,
+        int slotIndex) : base(rect)
     {
-        Level = level;
-        SlotIndex = slotIndex;
+        _caster = caster;
+        _spellsPerDay = spellsPerDay;
+        _level = level;
+        _slotIndex = slotIndex;
 
         _slotRectangle = new WidgetRectangle();
-        _slotRectangle.Pen = new PackedLinearColorA(0xff646464);
+        _slotRectangle.Pen = UnmemorizedBorder;
         _slotRectangle.Visible = false;
         AddContent(_slotRectangle);
 
@@ -76,20 +89,39 @@ public class MemorizedSpellButton : WidgetButtonBase
         AddContent(_spellName);
 
         SetClickHandler(OnClicked);
+
+        OnBeforeRender += UpdateSlotRectangle;
+        OnMouseEnter += ShowSpellHelp;
+        OnMouseExit += HideSpellHelp;
+    }
+
+    private void UpdateSlotRectangle()
+    {
+        // Highlight valid drop targets for known spells
+        if (Globals.UiManager.DraggedObject is DraggedKnownSpell knownSpell && CanMemorize(knownSpell.Spell))
+        {
+            _slotRectangle.Visible = true;
+            _slotRectangle.Pen = ValidDropTargetBorder;
+        }
+        else
+        {
+            _slotRectangle.Visible = Slot.HasBeenUsed || !Slot.HasSpell;
+            _slotRectangle.Pen = UnmemorizedBorder;
+        }
     }
 
     private void OnClicked()
     {
-        if (_spellSlot.HasSpell)
+        if (Slot.HasSpell)
         {
             if (UiSystems.HelpManager.IsSelectingHelpTarget)
             {
-                var spellHelpTopic = GameSystems.Spell.GetSpellHelpTopic(_spellSlot.SpellEnum);
+                var spellHelpTopic = GameSystems.Spell.GetSpellHelpTopic(Slot.SpellEnum);
                 GameSystems.Help.ShowTopic(spellHelpTopic);
             }
             else
             {
-                OnUnmemorizeSpell?.Invoke();
+                Slot = default;
             }
         }
     }
@@ -101,15 +133,16 @@ public class MemorizedSpellButton : WidgetButtonBase
         {
             return _parent.HandleMouseMessage(msg);
         }
+
         return base.HandleMouseMessage(msg);
     }
 
     [TempleDllLocation(0x101b85a0)]
     private void ShowSpellHelp(MessageWidgetArgs obj)
     {
-        if (_spellSlot.HasSpell)
+        if (Slot.HasSpell)
         {
-            var helpText = GameSystems.Spell.GetSpellDescription(_spellSlot.SpellEnum);
+            var helpText = GameSystems.Spell.GetSpellDescription(Slot.SpellEnum);
             UiSystems.CharSheet.Help.SetHelpText(helpText);
         }
     }
@@ -117,5 +150,11 @@ public class MemorizedSpellButton : WidgetButtonBase
     private void HideSpellHelp(MessageWidgetArgs obj)
     {
         UiSystems.CharSheet.Help.ClearHelpText();
+    }
+
+    public bool CanMemorize(SpellStoreData knownSpell)
+    {
+        return _spellsPerDay.IncludesClassCode(knownSpell.classCode)
+            &&  _spellsPerDay.CanMemorizeInSlot(_caster, knownSpell, _level, Slot);
     }
 }

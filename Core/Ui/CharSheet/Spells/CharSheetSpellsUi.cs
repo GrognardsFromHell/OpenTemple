@@ -169,38 +169,13 @@ public class CharSheetSpellsUi : IDisposable
                 spellList.Caster,
                 spellsPerDay
             );
-            _memorizedSpellsList.OnRemoveSpell +=
-                (level, slotIndex) => UnmemorizeSpell(spellList, level, slotIndex);
+            _memorizedSpellsList.OnChange += () =>
+            {
+                GameSystems.Spell.SetMemorizedSpells(spellList.Caster, spellList.SpellsPerDay);
+            };
             _memorizedSpellsContainer.Add(_memorizedSpellsList);
             _memorizedSpellsContainer.Visible = true;
         }
-    }
-
-    private void UnmemorizeSpell(ClassSpellListData spellList, int level, int slotIndex)
-    {
-        var spellsPerDay = spellList.SpellsPerDay;
-        var caster = spellList.Caster;
-
-        if (spellsPerDay.Type != SpellsPerDayType.Vancian)
-        {
-            return; // Only makes sense to unmemorize spells when the caster needs to memorize in the first place
-        }
-
-        if (level >= spellsPerDay.Levels.Length || slotIndex >= spellsPerDay.Levels[level].Slots.Length)
-        {
-            return; // Button is out of range -> shouldn't happen
-        }
-
-        var slot = spellsPerDay.Levels[level].Slots[slotIndex];
-        if (!slot.HasSpell)
-        {
-            return;
-        }
-        
-        GameSystems.Spell.SpellRemoveFromStorage(caster, obj_f.critter_spells_memorized_idx, slot.MemorizedSpell,
-            0);
-
-        UpdateMemorizedSpells(spellList);
     }
 
     [TempleDllLocation(0x101b8f10)]
@@ -210,23 +185,18 @@ public class CharSheetSpellsUi : IDisposable
         var critter = spellList.Caster;
         var spellsPerDay = spellList.SpellsPerDay;
 
+        knownSpell.spellStoreState.usedUp = true;
+        knownSpell.spellStoreState.spellStoreType = SpellStoreType.spellStoreMemorized;
+        // TODO: set 0x80000000 in metamagic if used slot is a specialization slot
 
         // If the player chose a specific slot, we'll overwrite whatever is in it and if necessary also make it used
         if (desiredSlotButton != null)
         {
-            var desiredSlot = desiredSlotButton.Slot;
-            var desiredLevel = desiredSlotButton.Level;
-            var desiredSlotIndex = desiredSlotButton.SlotIndex;
-            if (CanMemorizeInSlot(critter, knownSpell, desiredLevel, desiredSlot))
+            if (desiredSlotButton.CanMemorize(knownSpell))
             {
-                // Remove the existing spell in the slot first
-                if (desiredSlot.HasSpell)
-                {
-                    UnmemorizeSpell(spellList, desiredLevel, desiredSlotIndex);
-                }
-
-                MemorizeInSlot(critter, knownSpell, desiredLevel, desiredSlotIndex);
-                UpdateMemorizedSpells(spellList);
+                var desiredSlot = desiredSlotButton.Slot;
+                desiredSlot.MemorizedSpell = knownSpell;
+                desiredSlotButton.Slot = desiredSlot;
             }
 
             return;
@@ -240,65 +210,18 @@ public class CharSheetSpellsUi : IDisposable
             return;
         }
 
-        var level = spellsPerDay.Levels[knownSpell.spellLevel];
-        for (var slotIndex = 0; slotIndex < level.Slots.Length; slotIndex++)
+        foreach (var slot in _memorizedSpellsList.SlotsByLevel(knownSpell.spellLevel))
         {
-            var slot = level.Slots[slotIndex];
-            if (!slot.HasSpell && CanMemorizeInSlot(critter, knownSpell, level.Level, slot))
+            var desiredSlot = slot.Slot;
+            if (!desiredSlot.HasSpell && slot.CanMemorize(knownSpell))
             {
-                MemorizeInSlot(critter, knownSpell, level.Level, slotIndex);
-                UpdateMemorizedSpells(spellList);
-                return;
+                desiredSlot.MemorizedSpell = knownSpell;
+                slot.Slot = desiredSlot;
+                return;                
             }
         }
 
         Logger.Debug("Cannot memorize spell of level {0}, because no suitable slots exist.", knownSpell.spellLevel);
-    }
-
-    private void UpdateMemorizedSpells(ClassSpellListData spellList)
-    {
-        GameSystems.Spell.UpdateMemorizedSpells(spellList.Caster, spellList.SpellsPerDay);
-        _memorizedSpellsList?.UpdateSpells();
-    }
-
-    [TempleDllLocation(0x101b5bc0)]
-    private void MemorizeInSlot(GameObject caster, SpellStoreData knownSpell, int slotLevel, int slotIndex)
-    {
-        var spellStoreState = new SpellStoreState();
-        spellStoreState.usedUp = true;
-        spellStoreState.spellStoreType = SpellStoreType.spellStoreMemorized;
-
-        // TODO: set 0x80000000 in metamagic if used slot is a specialization slot
-
-        GameSystems.Spell.SpellMemorizedAdd(
-            caster,
-            knownSpell.spellEnum,
-            knownSpell.classCode,
-            knownSpell.spellLevel,
-            spellStoreState,
-            knownSpell.metaMagicData
-        );
-    }
-
-    private bool CanMemorizeInSlot(GameObject caster, SpellStoreData knownSpell, int slotLevel, SpellSlot slot)
-    {
-        // Slot must be of appropriate level
-        if (slotLevel != knownSpell.spellLevel)
-        {
-            return false;
-        }
-
-        // Only appropriate spells can go into specialization slots
-        if (slot.Source == SpellSlotSource.WizardSpecialization)
-        {
-            GameSystems.Spell.GetSchoolSpecialization(caster, out var specializedSchool, out _, out _);
-            if (specializedSchool != GameSystems.Spell.GetSpellSchoolEnum(knownSpell.spellEnum))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     [TempleDllLocation(0x101b6a10)]

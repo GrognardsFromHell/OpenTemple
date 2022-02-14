@@ -70,7 +70,12 @@ public class UiManager
     [TempleDllLocation(0x10EF97C4)]
     [TempleDllLocation(0x101f97d0)]
     [TempleDllLocation(0x101f97e0)]
-    public bool IsDragging { get; set; }
+    public bool IsDragging => DraggedObject != null;
+    
+    /// <summary>
+    /// Represents an arbitrary object that is currently dragged by the user with their mouse.
+    /// </summary>
+    public object DraggedObject { get; set; }
 
     public WidgetContainer Modal { get; set; }
 

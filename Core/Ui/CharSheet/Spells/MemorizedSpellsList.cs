@@ -1,9 +1,11 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using JetBrains.Annotations;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -19,9 +21,12 @@ public class MemorizedSpellsList : WidgetContainer
 
     private readonly SpellsPerDay _spellsPerDay;
 
-    public event RemoveSpellDelegate OnRemoveSpell;
+    public event Action OnChange;
 
-    public delegate void RemoveSpellDelegate(int level, int index);
+    /// <summary>
+    /// Key is the spell-level, Value is the list of slots for that level.
+    /// </summary>
+    private readonly Dictionary<int, List<MemorizedSpellButton>> _slotsByLevel = new();
 
     public MemorizedSpellsList(Rectangle rectangle, GameObject caster, SpellsPerDay spellsPerDay) :
         base(rectangle)
@@ -38,30 +43,35 @@ public class MemorizedSpellsList : WidgetContainer
             {
                 continue;
             }
-
+            
             var levelHeader = new WidgetText($"#{{char_ui_spells:3}} {level.Level}", "char-spell-level");
             levelHeader.Y = currentY;
             currentY += levelHeader.GetPreferredSize().Height;
             AddContent(levelHeader);
 
+            var slots = new List<MemorizedSpellButton>(level.Slots.Length);
+            _slotsByLevel[level.Level] = slots;
+
             for (var index = 0; index < level.Slots.Length; index++)
             {
-                var spellButton = new MemorizedSpellButton(
-                    new Rectangle(8, currentY, Width - 8, 12),
+                var slotButton = new MemorizedSpellButton(
+                    _caster,
+                    new Rectangle(8, currentY, Width - 8, 14),
+                    _spellsPerDay,
                     level.Level,
                     index
                 );
-                spellButton.Y = currentY;
-                spellButton.OnUnmemorizeSpell += () =>
-                    OnRemoveSpell?.Invoke(spellButton.Level, spellButton.SlotIndex);
-                currentY += spellButton.Height;
-                Add(spellButton);
+                slotButton.Y = currentY;
+                slotButton.OnChange += InvokeOnChange;
+                currentY += slotButton.Height;
+                slots.Add(slotButton);
+                Add(slotButton);
 
-                buttonHeight = Math.Max(buttonHeight, spellButton.Height);
+                buttonHeight = Math.Max(buttonHeight, slotButton.Height);
+                
+                slotButton.Slot = level.Slots[index];
             }
         }
-
-        UpdateSpells();
 
         var overscroll = currentY - Height;
         if (overscroll > 0)
@@ -91,6 +101,12 @@ public class MemorizedSpellsList : WidgetContainer
             });
             Add(_scrollbar);
         }
+    }
+
+    public IEnumerable<MemorizedSpellButton> SlotsByLevel(int level)
+    {
+        return _slotsByLevel.TryGetValue(level, out var slots) 
+            ? slots : Enumerable.Empty<MemorizedSpellButton>();
     }
 
     public override bool HandleMouseMessage(MessageMouseArgs msg)
@@ -133,27 +149,8 @@ public class MemorizedSpellsList : WidgetContainer
         }
     }
 
-    public void UpdateSpells()
+    private void InvokeOnChange()
     {
-        foreach (var childWidget in GetChildren())
-        {
-            if (childWidget is MemorizedSpellButton spellButton)
-            {
-                if (spellButton.Level >= _spellsPerDay.Levels.Length)
-                {
-                    spellButton.Visible = false;
-                    continue;
-                }
-
-                ref var level = ref _spellsPerDay.Levels[spellButton.Level];
-                if (spellButton.SlotIndex >= level.Slots.Length)
-                {
-                    spellButton.Visible = false;
-                    continue;
-                }
-
-                spellButton.Slot = level.Slots[spellButton.SlotIndex];
-            }
-        }
+        OnChange?.Invoke();
     }
 }

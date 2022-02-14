@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
 
 namespace OpenTemple.Core.Systems.Spells;
@@ -58,6 +57,40 @@ public class SpellsPerDay
 
         index = -1;
         return false;
+    }
+    
+    /// <summary>
+    /// Test if a given spell-class-code part of this spell-list.
+    /// </summary>
+    public bool IncludesClassCode(int spellClassCode)
+    {
+        if (GameSystems.Spell.IsDomainSpell(ClassCode))
+        {
+            return GameSystems.Spell.IsDomainSpell(spellClassCode);
+        }
+
+        return ClassCode == spellClassCode;
+    }
+
+    public bool CanMemorizeInSlot(GameObject caster, SpellStoreData knownSpell, int slotLevel, SpellSlot slot)
+    {
+        // Slot must be of appropriate level
+        if (slotLevel != knownSpell.spellLevel)
+        {
+            return false;
+        }
+
+        // Only appropriate spells can go into specialization slots
+        if (slot.Source == SpellSlotSource.WizardSpecialization)
+        {
+            GameSystems.Spell.GetSchoolSpecialization(caster, out var specializedSchool, out _, out _);
+            if (specializedSchool != GameSystems.Spell.GetSpellSchoolEnum(knownSpell.spellEnum))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

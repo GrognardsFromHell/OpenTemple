@@ -291,6 +291,15 @@ public class GameObject : IDisposable
 
         return (List<SpellStoreData>?) GetFieldValue(field) ?? EmptySpellList;
     }
+    
+    public void SetSpellArray(obj_f field, IEnumerable<SpellStoreData> spells)
+    {
+        Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.SpellArray);
+
+        var storedSpells =  GetMutableSpellArray(field);
+        storedSpells.Clear();
+        storedSpells.AddRange(spells);
+    }
 
     // Convenience array accessors
     [TempleDllLocation(0x1009e5c0)]

@@ -2714,7 +2714,7 @@ return false;
         }
     }
 
-    public void SpellsPendingToMemorizedByClass(GameObject caster, Stat classEnum)
+    public void PendingSpellsToMemorizedByClass(GameObject caster, Stat classEnum)
     {
         var spellsMemo = caster.GetSpellArray(obj_f.critter_spells_memorized_idx);
         if (classEnum == (Stat) (-1))
@@ -2903,7 +2903,7 @@ return false;
             {
                 spellsPerDay.Type = SpellsPerDayType.Vancian;
 
-                UpdateMemorizedSpells(critter, spellsPerDay);
+                GetMemorizedSpells(critter, spellsPerDay);
             }
             else
             {
@@ -2929,10 +2929,9 @@ return false;
         return result;
     }
 
-    public void UpdateMemorizedSpells(GameObject critter, SpellsPerDay spellsPerDay)
+    private static void GetMemorizedSpells(GameObject critter, SpellsPerDay spellsPerDay)
     {
         var memorizedSpells = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
-        var domainSpells = IsDomainSpell(spellsPerDay.ClassCode);
 
         // Clear all memorized spells first
         for (var i = 0; i < spellsPerDay.Levels.Length; i++)
@@ -2949,19 +2948,35 @@ return false;
         {
             var spell = memorizedSpells[i];
 
-            // Skip memorized spells for other classes, but keep domain spells in mind
-            if (domainSpells && !IsDomainSpell(spell.classCode)
-                || !domainSpells && spell.classCode != spellsPerDay.ClassCode)
-            {
-                continue;
-            }
-
-            if (spellsPerDay.TryFindEmptyUnusedSlot(spell.spellLevel, out var slotIndex))
+            if (spellsPerDay.IncludesClassCode(spell.classCode) 
+                && spellsPerDay.TryFindEmptyUnusedSlot(spell.spellLevel, out var slotIndex))
             {
                 ref var slot = ref spellsPerDay.Levels[spell.spellLevel].Slots[slotIndex];
                 slot.MemorizedSpell = spell;
             }
         }
+    }
+
+    public void SetMemorizedSpells(GameObject critter, SpellsPerDay spellsPerDay)
+    {
+        Trace.Assert(spellsPerDay.Type == SpellsPerDayType.Vancian);
+        
+        var currentSpells = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
+        // Maintain all spells that are from another spell list
+        var newSpells = currentSpells
+            .Where(s => !spellsPerDay.IncludesClassCode(s.classCode))
+            .ToList();
+
+        // Add all spells from the spell-list
+        foreach (var level in spellsPerDay.Levels)
+        {
+            foreach (var slot in level.Slots)
+            {
+                newSpells.Add(slot.MemorizedSpell);
+            }
+        }
+
+        critter.SetSpellArray(obj_f.critter_spells_memorized_idx, newSpells);
     }
 
     public string GetSpellDomainName(int classCode)

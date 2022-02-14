@@ -28,18 +28,12 @@ public class CharSheetInventoryUi : IDisposable
     private string _totalWeightLabelDefaultStyle;
 
     [TempleDllLocation(0x10BEECC0)]
-    private GameObject _draggedObject;
-
     [TempleDllLocation(0x10155160)]
     [TempleDllLocation(0x10155170)]
     public GameObject DraggedObject
     {
-        get => _draggedObject;
-        set
-        {
-            _draggedObject = value;
-            Globals.UiManager.IsDragging = value != null;
-        }
+        get => Globals.UiManager.DraggedObject is DraggedItem draggedItem ? draggedItem.Item : null;
+        set => Globals.UiManager.DraggedObject = value != null ? new DraggedItem(value) : null;
     }
 
     private static readonly Size SlotSize = new(65, 65);
