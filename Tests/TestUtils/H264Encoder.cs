@@ -198,12 +198,12 @@ public sealed unsafe class H264Encoder : IDisposable
             throw new InvalidOperationException("Failed to create or update the SWS context.");
         }
 
-        if (!image.TryGetSinglePixelSpan(out var pixelData))
+        if (!image.DangerousTryGetSinglePixelMemory(out var pixelData))
         {
             throw new InvalidOperationException("Cannot get raw pixel data of frame");
         }
 
-        fixed (Bgra32* ptr = pixelData)
+        fixed (Bgra32* ptr = pixelData.Span)
         {
             var data = new byte*[4] { (byte*)ptr, null, null, null };
             var linesize = new int[4] { 4 * image.Width, 0, 0, 0 };

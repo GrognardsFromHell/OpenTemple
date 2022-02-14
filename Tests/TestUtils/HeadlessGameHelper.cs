@@ -10,6 +10,7 @@ using OpenTemple.Core.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using OpenTemple.Core.GFX;
+using SixLabors.ImageSharp.Advanced;
 using Point = System.Drawing.Point;
 using PointF = System.Drawing.PointF;
 
@@ -173,7 +174,7 @@ public class HeadlessGameHelper : IDisposable
                     result = new Image<Bgra32>(width, height);
                     for (var i = 0; i < height; i++)
                     {
-                        var destRow = MemoryMarshal.Cast<Bgra32, byte>(result.GetPixelRowSpan(i));
+                        var destRow = MemoryMarshal.Cast<Bgra32, byte>(result.DangerousGetPixelRowMemory(i).Span);
                         data.Slice(i + stride, width * 4).CopyTo(destRow);
                     }
                 }

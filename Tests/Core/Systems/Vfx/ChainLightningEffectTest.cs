@@ -31,7 +31,8 @@ public class ChainLightningEffectTest : RenderingTest
         _renderer.Render(Viewport.Camera, 0, 0, CameraCenter, CameraCenter + new Vector3(0, 0, 10000));
         Device.EndDraw();
 
-        ImageComparison.AssertImagesEqual(TakeScreenshot(), "Core/Systems/Vfx/ChainLightningVeryLong.png");
+        using var screenshot = TakeScreenshot();
+        ImageComparison.AssertImagesEqual(screenshot, "Core/Systems/Vfx/ChainLightningVeryLong.png");
     }
 
     [Test]
@@ -46,7 +47,7 @@ public class ChainLightningEffectTest : RenderingTest
         _renderer.Render(Viewport.Camera, 0, 250, b, c);
         Device.EndDraw();
 
-        var screenshot = TakeScreenshot();
+        using var screenshot = TakeScreenshot();
         MarkWorldPositions(screenshot, a, b, c);
         ImageComparison.AssertImagesEqual(screenshot, "Core/Systems/Vfx/ChainLightningHeightDifference.png");
     }
