@@ -1,6 +1,7 @@
 using System;
 using System.Dynamic;
 using System.Linq;
+using System.Threading.Tasks;
 using OpenTemple.Core;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObjects;
@@ -27,8 +28,7 @@ public class ReplGlobals
             .FirstOrDefault(o => o.ToString().Contains(namePart, StringComparison.InvariantCultureIgnoreCase));
     }
 
-    public void Print(object obj)
-    {
-        Tig.Console.Append(obj?.ToString() ?? "null");
-    }
+    public void Print(object obj) => Tig.Console.Append(obj?.ToString() ?? "null");
+
+    public Task<object> RunScript(string name) => Tig.Console.RunScript(name);
 }

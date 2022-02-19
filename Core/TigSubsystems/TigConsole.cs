@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 using ImGuiNET;
+using JetBrains.Annotations;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Scripting;
 
@@ -14,23 +16,32 @@ public class TigConsole
 {
     public bool IsVisible { get; set; }
 
-    public List<string> AvailableScripts
+    public ScriptFolder AvailableScripts => ListScripts("scripts", "");
+
+    private static ScriptFolder ListScripts(string path, string name)
     {
-        get
+        var scripts = new List<string>();
+        var folders = new List<ScriptFolder>();
+        
+        foreach (var entry in Tig.FS.ListDirectory(path))
         {
-            var files = Tig.FS.Search("scripts/*.csx");
-            return files.Select(f =>
+            if (Tig.FS.DirectoryExists(path + "/" + entry))
             {
-                var scriptName = Path.GetFileName(Path.ChangeExtension(f, null));
-                return scriptName;
-            }).ToList();
+                folders.Add(ListScripts(path + "/" + entry, entry));
+            }
+            else if (entry.EndsWith(".csx"))
+            {
+                scripts.Add(Path.GetFileName(Path.ChangeExtension(entry, null)));
+            }
         }
+
+        return new ScriptFolder(name, scripts, folders);
     }
 
-    public void RunScript(string name)
+    public Task<object> RunScript(string name)
     {
         var path = "scripts/" + name + ".csx";
-        _dynamicScripting.RunScriptAsync(path);
+        return _dynamicScripting.RunScriptAsync(path);
     }
 
     private readonly IDynamicScripting _dynamicScripting;
@@ -90,7 +101,8 @@ public class TigConsole
         }
 
         var consoleWidgeFlags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
-                                | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoScrollbar;
+                                | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings |
+                                ImGuiWindowFlags.NoScrollbar;
 
         var size = ImGui.GetIO().DisplaySize;
         var consPos = Vector2.Zero;
@@ -108,6 +120,7 @@ public class TigConsole
             ImGui.End();
             return;
         }
+
         ImGui.PopStyleVar();
         ImGui.BeginChild("ScrollingRegion", new Vector2(0, -ImGui.GetTextLineHeightWithSpacing() - 6), false,
             ImGuiWindowFlags.HorizontalScrollbar);
@@ -256,3 +269,9 @@ public class TigConsole
         return 0;
     }
 }
+
+public record ScriptFolder(
+    string Name,
+    List<string> Files,
+    List<ScriptFolder> SubFolders
+);

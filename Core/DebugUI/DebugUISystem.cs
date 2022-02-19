@@ -5,6 +5,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
@@ -104,7 +105,7 @@ public class DebugUiSystem : IDebugUI, IDisposable
             }
 
             RenderMainMenuBar(out var height);
-            
+
             // Disable mouse scrolling when the mouse is on the debug UI
             if (GameViews.Primary is GameView gameView)
             {
@@ -149,7 +150,7 @@ public class DebugUiSystem : IDebugUI, IDisposable
 
         if (ImGui.BeginMainMenuBar())
         {
-            height = (int)ImGui.GetWindowHeight();
+            height = (int) ImGui.GetWindowHeight();
 
             _forceMainMenu = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
@@ -268,13 +269,7 @@ public class DebugUiSystem : IDebugUI, IDisposable
             {
                 anyMenuOpen = true;
 
-                foreach (var availableScript in Tig.Console.AvailableScripts)
-                {
-                    if (ImGui.MenuItem(availableScript))
-                    {
-                        Tig.Console.RunScript(availableScript);
-                    }
-                }
+                RenderScriptsFolder(Tig.Console.AvailableScripts);
 
                 ImGui.EndMenu();
             }
@@ -294,6 +289,29 @@ public class DebugUiSystem : IDebugUI, IDisposable
 
             ImGui.End();
         }
+    }
+
+    private void RenderScriptsFolder(ScriptFolder scripts, string pathPrefix = "")
+    {
+        ImGui.PushID(scripts.Name);
+        foreach (var subFolder in scripts.SubFolders)
+        {
+            if (ImGui.BeginMenu(subFolder.Name))
+            {
+                RenderScriptsFolder(subFolder, pathPrefix + subFolder.Name + "/");
+                ImGui.EndMenu();
+            }
+        }
+
+        foreach (var file in scripts.Files)
+        {
+            if (ImGui.MenuItem(file))
+            {
+                Tig.Console.RunScript(pathPrefix + file);
+            }
+        }
+
+        ImGui.PopID();
     }
 
     private void RenderCheatsMenu()
@@ -347,24 +365,24 @@ public class DebugUiSystem : IDebugUI, IDisposable
                 io.MouseDown[2] = false;
                 return io.WantCaptureMouse;
             case WM_MOUSEWHEEL:
-                io.MouseWheel += ((short)(wParam >> 16)) > 0 ? +1.0f : -1.0f;
+                io.MouseWheel += ((short) (wParam >> 16)) > 0 ? +1.0f : -1.0f;
                 return io.WantCaptureMouse;
             case WM_MOUSEMOVE:
-                io.MousePos.X = (short)(lParam);
-                io.MousePos.Y = (short)(lParam >> 16);
+                io.MousePos.X = (short) (lParam);
+                io.MousePos.Y = (short) (lParam >> 16);
                 return false; // Always update, never take it
             case WM_KEYDOWN:
                 if (wParam < 256)
-                    io.KeysDown[(int)wParam] = true;
+                    io.KeysDown[(int) wParam] = true;
                 return io.WantCaptureKeyboard;
             case WM_KEYUP:
                 if (wParam < 256)
-                    io.KeysDown[(int)wParam] = false;
+                    io.KeysDown[(int) wParam] = false;
                 return io.WantCaptureKeyboard;
             case WM_CHAR:
                 // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
                 if (wParam > 0 && wParam < 0x10000)
-                    io.AddInputCharacter((ushort)wParam);
+                    io.AddInputCharacter((ushort) wParam);
                 return io.WantCaptureKeyboard;
             default:
                 return false;
