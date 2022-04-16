@@ -344,19 +344,19 @@ public class WidgetButton : WidgetButtonBase
                 var marginH = framePrefSize.Height - prefSize.Height;
                 if (marginW > 0)
                 {
-                    mMargins.Right = marginW / 2;
-                    mMargins.Left = marginW - mMargins.Right;
+                    _margins.Right = marginW / 2;
+                    _margins.Left = marginW - _margins.Right;
                 }
 
                 if (marginH > 0)
                 {
-                    mMargins.Bottom = marginH / 2;
-                    mMargins.Top = marginH - mMargins.Bottom;
+                    _margins.Bottom = marginH / 2;
+                    _margins.Top = marginH - _margins.Bottom;
                 }
             }
 
-            prefSize.Height += mMargins.Bottom + mMargins.Top;
-            prefSize.Width += mMargins.Left + mMargins.Right;
+            prefSize.Height += _margins.Bottom + _margins.Top;
+            prefSize.Width += _margins.Left + _margins.Right;
 
             if (mAutoSizeWidth && mAutoSizeHeight)
             {

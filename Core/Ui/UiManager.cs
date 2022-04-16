@@ -91,6 +91,9 @@ public class UiManager
         _mainWindow.OnInput += HandleInputEvent;
     }
 
+    /// <inheritdoc cref="IMainWindow.DragStartDistance"/>
+    public Size DragStartDistance => _mainWindow.DragStartDistance;
+
     /*
     Add something to the list of active windows on top of all existing windows.
     */
@@ -618,7 +621,7 @@ public class UiManager
             }
 
             // After checking with all children, dispatch the msg to the window itself
-            if (window.Visible && window.HandleMessage(msg))
+            if (window.Visible && window.HandleMouseMessage(mouseArgs))
             {
                 return true;
             }

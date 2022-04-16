@@ -1,3 +1,4 @@
+using System;
 using OpenTemple.Core.Platform;
 
 namespace OpenTemple.Core.Ui.Widgets;
@@ -83,16 +84,14 @@ public class WidgetScrollView : WidgetContainer
         int innerHeight = 0;
         foreach (var child in mContainer.GetChildren())
         {
-            var childY = child.Y;
-            var childH = child.Height;
-            var bottom = childY + childH;
+            var bottom = child.Y + child.Height;
             if (bottom > innerHeight)
             {
                 innerHeight = bottom;
             }
         }
 
-        mScrollBar.Max = innerHeight;
+        mScrollBar.Max = Math.Max(0, innerHeight - mContainer.Height);
     }
 
     private void UpdateInnerContainer()

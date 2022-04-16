@@ -30,6 +30,8 @@ public struct ScrollBoxSettings
     public int Indent { get; set; }
 
     public bool DontAutoScroll { get; set; }
+    
+    public bool AutoLayout { get; set; }
 }
 
 public class ScrollBox : WidgetContainer
@@ -116,6 +118,19 @@ public class ScrollBox : WidgetContainer
 
     protected void Relayout()
     {
+        if (_settings.AutoLayout)
+        {
+            _settings.TextArea = new Rectangle(
+                    0,
+                    0,
+                    Width - _scrollbar.Width,
+                    Height
+            );
+            _settings.ScrollBarHeight = Height;
+            _settings.ScrollBarPos = new Point(_settings.TextArea.Width, 0);
+            _scrollbar.X = _settings.ScrollBarPos.X;
+        }
+        
         _laidOutParagraphs.Clear();
         _contentHeight = 0;
         var lineCount = 0;

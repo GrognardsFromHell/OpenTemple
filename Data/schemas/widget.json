@@ -237,6 +237,24 @@
         }
       ]
     },
+    "scrollBox": {
+      "$id": "#scrollBox",
+      "allOf": [
+        {
+          "$ref": "#widgetContent"
+        },
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "scrollBox"
+            }
+          }
+        }
+      ]
+    },
     "container": {
       "$id": "#container",
       "allOf": [

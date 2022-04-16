@@ -119,8 +119,8 @@ public abstract class Styleable : IStyleable
 
     private ComputedStyles UpdateComputedStyles()
     {
-        // Reuse the parent's styles directly if this element has no local styles,
-        // and the paren't doesn't either.
+        // Reuse the parents styles directly if this element has no local styles,
+        // and the parent doesn't either.
         if (!HasLocalStyles && StyleParent is {HasLocalStyles: false})
         {
             return StyleParent.ComputedStyles;

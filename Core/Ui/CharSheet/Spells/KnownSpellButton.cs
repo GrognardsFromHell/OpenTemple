@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -38,7 +37,7 @@ public class KnownSpellButton : WidgetButtonBase
             var domainName = GameSystems.Spell.GetSpellDomainName(spell.classCode);
             spellName += " (" + domainName + ")";
         }
-
+    
         var style = spellOpposesAlignment ? "char-spell-grey" : "char-spell-body";
         _nameLabel = new WidgetText(spellName, style);
         AddContent(_nameLabel);

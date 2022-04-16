@@ -119,7 +119,17 @@ public class WidgetButtonBase : WidgetBase
             }
         }
 
-        base.HandleMouseMessage(msg);
+        if (base.HandleMouseMessage(msg))
+        {
+            return true;
+        }
+
+        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != default)
+        {
+            // Let mouse-wheel messages through to the closest scroll-view
+            return false;
+        }
+        
         return true; // Always swallow mouse messages by default to prevent buttons from being click-through
     }
 

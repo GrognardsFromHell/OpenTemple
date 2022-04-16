@@ -53,6 +53,20 @@ public class SpellSystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSys
     [TempleDllLocation(0x10BD0238)]
     private Dictionary<int, string> _spellsRadialMenuOptions;
 
+    // TODO: This needs to be centralized with all properties applying to Metamagic feats
+    [TempleDllLocation(0x1030011c)] public IReadOnlyList<FeatId> MetamagicFeats { get; }= new List<FeatId>
+    {
+        FeatId.EMPOWER_SPELL,
+        FeatId.ENLARGE_SPELL,
+        FeatId.EXTEND_SPELL,
+        FeatId.HEIGHTEN_SPELL,
+        FeatId.MAXIMIZE_SPELL,
+        FeatId.QUICKEN_SPELL,
+        FeatId.SILENT_SPELL,
+        FeatId.STILL_SPELL,
+        FeatId.WIDEN_SPELL
+    };
+    
     private struct ActiveSpell
     {
         public bool IsActive { get; set; }
@@ -3101,4 +3115,25 @@ return false;
         }
     }
 
+    public IEnumerable<FeatId> GetAvailableMetamagicFeats(GameObject caster, SpellStoreData spell)
+    {
+        return MetamagicFeats
+            .Where(feat => GameSystems.Feat.HasFeat(caster, feat))
+            .Where(feat => GameSystems.Spell.CanMetamagicApplyToSpell(feat, spell));
+    }
+
+    public IEnumerable<FeatId> GetAppliedMetamagicFeats(SpellStoreData spell)
+    {
+        Stub.TODO();
+        return Enumerable.Empty<FeatId>();
+    }
+
+    public bool CanMetamagicApplyToSpell(FeatId feat, SpellStoreData spell)
+    {
+        // Currently only check that silent spell isn't applied to bard spells, should otherwise
+        // also check for somatic components, etc.
+        return feat != FeatId.SILENT_SPELL
+               || GameSystems.Spell.IsDomainSpell(spell.classCode)
+               || GameSystems.Spell.GetCastingClass(spell.classCode) == Stat.level_bard;
+    }
 }

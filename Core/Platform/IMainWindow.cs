@@ -10,6 +10,7 @@ public enum WindowEventType
     /// Mouse has entered the window.
     /// </summary>
     MouseEnter,
+
     /// <summary>
     /// Mouse has left the window.
     /// </summary>
@@ -113,4 +114,10 @@ public interface IMainWindow : IDisposable
     void SetCursor(int hotspotX, int hotspotY, string imagePath);
 
     bool IsCursorVisible { set; }
+
+    /// <summary>
+    /// Distance in pixels the mouse has to be dragged after mouse-down to initiate dragging.
+    /// This is a system-wide setting.
+    /// </summary>
+    Size DragStartDistance { get; }
 }

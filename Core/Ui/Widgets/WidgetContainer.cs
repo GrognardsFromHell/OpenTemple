@@ -43,7 +43,8 @@ public class WidgetContainer : WidgetBase
         Globals.UiManager.AddWindow(this);
 
         // Containers are usually empty and should be click through where there is no content
-        PreciseHitTest = true;
+        // but this only applies to top-level windows, which is tricky to model here.
+        PreciseHitTest = GetType() == typeof(WidgetContainer);
     }
 
     public bool ClipChildren { get; set; } = true;
@@ -62,7 +63,7 @@ public class WidgetContainer : WidgetBase
             Globals.UiManager.RemoveWindow(otherContainer);
         }
 
-        mChildren.Add(childWidget);
+        _children.Add(childWidget);
         Globals.UiManager.RefreshMouseOverState();
     }
 
@@ -75,39 +76,39 @@ public class WidgetContainer : WidgetBase
         Trace.Assert(childWidget.GetParent() == this);
 
         childWidget.SetParent(null);
-        mChildren.Remove(childWidget);
+        _children.Remove(childWidget);
         Globals.UiManager.RefreshMouseOverState();
     }
 
     public virtual void Clear(bool disposeChildren = false)
     {
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
             if (disposeChildren)
             {
                 // This will auto remove from the list
-                mChildren[i].Dispose();
+                _children[i].Dispose();
             }
             else
             {
-                Remove(mChildren[i]);
+                Remove(_children[i]);
             }
         }
     }
 
     public override WidgetBase PickWidget(int x, int y)
     {
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
-            var child = mChildren[i];
+            var child = _children[i];
 
             if (!child.Visible)
             {
                 continue;
             }
 
-            int localX = x - child.X;
-            int localY = y - child.Y + mScrollOffsetY;
+            var localX = x - child.X;
+            var localY = y - child.Y + _scrollOffsetY;
             if (localY < 0 || localY >= child.Height)
             {
                 continue;
@@ -147,18 +148,18 @@ public class WidgetContainer : WidgetBase
 
     public List<WidgetBase> GetChildren()
     {
-        return mChildren;
+        return _children;
     }
 
     protected override void Dispose(bool disposing)
     {
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
-            mChildren[i].Dispose();
+            _children[i].Dispose();
         }
 
         // Child widgets should have removed themselves from this list
-        Trace.Assert(mChildren.Count == 0);
+        Trace.Assert(_children.Count == 0);
 
         base.Dispose(disposing);
     }
@@ -170,7 +171,7 @@ public class WidgetContainer : WidgetBase
             return;
         }
 
-        ContentOffset = new Point(0, mScrollOffsetY);
+        ContentOffset = new Point(0, _scrollOffsetY);
 
         base.Render();
 
@@ -178,7 +179,7 @@ public class WidgetContainer : WidgetBase
 
         var clipAreaSet = false;
 
-        foreach (var child in mChildren)
+        foreach (var child in _children)
         {
             if (child.Visible)
             {
@@ -203,9 +204,9 @@ public class WidgetContainer : WidgetBase
         var area = GetContentArea();
 
         // Iterate in reverse order since this list is ordered in ascending z-order
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
-            var child = mChildren[i];
+            var child = _children[i];
 
             int x = msg.X - area.X;
             int y = msg.Y - area.Y + GetScrollOffsetY();
@@ -227,7 +228,7 @@ public class WidgetContainer : WidgetBase
     {
         base.OnUpdateTime(timeMs);
 
-        foreach (var widget in mChildren)
+        foreach (var widget in _children)
         {
             widget.OnUpdateTime(timeMs);
         }
@@ -235,19 +236,19 @@ public class WidgetContainer : WidgetBase
 
     public void SetScrollOffsetY(int scrollY)
     {
-        mScrollOffsetY = scrollY;
+        _scrollOffsetY = scrollY;
         Globals.UiManager.RefreshMouseOverState();
     }
 
     [TempleDllLocation(0x101fa150)]
     public int GetScrollOffsetY()
     {
-        return mScrollOffsetY;
+        return _scrollOffsetY;
     }
 
-    private List<WidgetBase> mChildren = new();
+    private List<WidgetBase> _children = new();
 
-    private int mScrollOffsetY = 0;
+    private int _scrollOffsetY = 0;
 
     public void CenterOnScreen()
     {

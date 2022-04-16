@@ -16,11 +16,11 @@ public class MovieSystem : IGameSystem, IModuleAwareSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    [TempleDllLocation(0x102ad0a8)]
-    private readonly Dictionary<int, MovieDefinition> _movies = new();
+    [TempleDllLocation(0x102ad0a8)] private readonly Dictionary<int, MovieDefinition> _movies = new();
 
-    [TempleDllLocation(0x108ec6b8)]
-    private readonly List<int> _movieQueue = new();
+    [TempleDllLocation(0x108ec6b8)] private readonly List<int> _movieQueue = new();
+
+    public event Action<PlayMovieEvent>? OnPlayMovie;
 
     public void Dispose()
     {
@@ -112,6 +112,13 @@ public class MovieSystem : IGameSystem, IModuleAwareSystem
     [TempleDllLocation(0x100341f0)]
     public void PlayMovieId(int movieId, int soundtrackId)
     {
+        var evt = new PlayMovieEvent(movieId, soundtrackId);
+        OnPlayMovie?.Invoke(evt);
+        if (evt.IsCanceled)
+        {
+            return;
+        }
+
         if (!_movies.TryGetValue(movieId, out var movieDefinition))
         {
             Logger.Warn("Cannot play unknown movie: {0}", movieId);
@@ -151,5 +158,24 @@ public class MovieSystem : IGameSystem, IModuleAwareSystem
     {
         MovieQueuePlay();
         GameUiBridge.EndGame();
+    }
+}
+
+public class PlayMovieEvent
+{
+    public int MovieId { get; }
+    public int SoundtrackId { get; }
+
+    public PlayMovieEvent(int movieId, int soundtrackId)
+    {
+        MovieId = movieId;
+        SoundtrackId = soundtrackId;
+    }
+
+    public bool IsCanceled { get; set; }
+
+    public void Cancel()
+    {
+        IsCanceled = true;
     }
 }

@@ -51,6 +51,8 @@ public class MainWindow : IMainWindow
         RegisterWndClass();
         CreateHwnd();
         UpdateUiCanvasSize();
+
+        RetrieveUserProfileSettings();
     }
 
     public void Dispose()
@@ -182,6 +184,8 @@ public class MainWindow : IMainWindow
         }
     }
 
+    public Size DragStartDistance { get; private set; }
+
     /// <summary>
     /// Changes the currently used cursor to the given surface.
     /// </summary>
@@ -220,6 +224,14 @@ public class MainWindow : IMainWindow
             Debugger.Break();
         }
         UiCanvasSizeChanged?.Invoke();
+    }
+
+    private void RetrieveUserProfileSettings()
+    {
+        DragStartDistance = new Size(
+            Math.Abs(GetSystemMetrics(SystemMetric.SM_CXDRAG)),
+            Math.Abs(GetSystemMetrics(SystemMetric.SM_CYDRAG))
+        );
     }
 
     // Locks the mouse cursor to this window
@@ -609,6 +621,9 @@ public class MainWindow : IMainWindow
             case WM_MOUSELEAVE:
                 HandleMouseFocusEvent(false);
                 break;
+            case WM_SETTINGCHANGE:
+                RetrieveUserProfileSettings();
+                break;
         }
 
         // Previously, ToEE called a global window proc here but it did nothing useful.
@@ -771,6 +786,7 @@ public class MainWindow : IMainWindow
     private const uint WM_XBUTTONUP = 0x020C;
     private const uint WM_MOUSELEAVE = 0x02A3;
     private const uint WM_CAPTURECHANGED = 0x0215;
+    private const uint WM_SETTINGCHANGE = 0x001A;
 
     private const uint SC_KEYMENU = 0xF100;
     private const uint SC_SCREENSAVE = 0xF140;

@@ -273,6 +273,22 @@ internal class WidgetDocLoader
         return result;
     }
 
+    private WidgetBase LoadWidgetScrollBox(JsonElement jsonObj)
+    {
+        var width = jsonObj.GetInt32Prop("width", 0);
+        var height = jsonObj.GetInt32Prop("height", 0);
+
+        var settings = new ScrollBoxSettings()
+        {
+            AutoLayout = true
+        };
+        var result = new ScrollBox(new Rectangle(0, 0,width, height), settings);
+
+        LoadWidgetBaseWithContent(jsonObj, result);
+
+        return result;
+    }
+
     private WidgetBase LoadWidgetContainer(JsonElement jsonObj)
     {
         var width = jsonObj.GetInt32Prop("width", 0);
@@ -420,6 +436,9 @@ internal class WidgetDocLoader
                 break;
             case "scrollView":
                 widget = LoadWidgetScrollView(jsonObj);
+                break;
+            case "scrollBox":
+                widget = LoadWidgetScrollBox(jsonObj);
                 break;
             case "tabBar":
                 widget = LoadWidgetTabBar(jsonObj);
@@ -582,6 +601,17 @@ public class WidgetDoc
         }
 
         return (WidgetScrollView) widget;
+    }
+
+    public ScrollBox GetScrollBox(string id)
+    {
+        var widget = GetWidget(id);
+        if (widget is not ScrollBox scrollBox)
+        {
+            throw new Exception($"Expected widget with id '{id}' in doc '{_path}' to be a scroll box!");
+        }
+
+        return scrollBox;
     }
 
     public WidgetScrollBar GetScrollBar(string id)

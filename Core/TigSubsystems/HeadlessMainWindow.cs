@@ -37,6 +37,8 @@ public class HeadlessMainWindow : IMainWindow
     }
 
     public bool IsCursorVisible { get; set; }
+    
+    public Size DragStartDistance => new (1, 1);
 
     public void Dispose()
     {

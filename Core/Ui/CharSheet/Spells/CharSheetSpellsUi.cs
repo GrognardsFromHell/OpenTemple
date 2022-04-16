@@ -6,6 +6,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Ui.CharSheet.Spells.Metamagic;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Spells;
@@ -13,8 +14,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells;
 public class CharSheetSpellsUi : IDisposable
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
-    private const string TabLabelStyle = "char-spell-class-tab-label";
 
     public WidgetContainer Container { get; }
 
@@ -28,6 +27,8 @@ public class CharSheetSpellsUi : IDisposable
     private readonly WidgetText _memorizedSpellsHeader;
     private readonly WidgetContainer _memorizedSpellsContainer;
     private MemorizedSpellsList _memorizedSpellsList;
+
+    private readonly MetamagicUi _metamagicUi;
 
     [TempleDllLocation(0x101bbbc0)]
     public CharSheetSpellsUi()
@@ -45,21 +46,13 @@ public class CharSheetSpellsUi : IDisposable
         _memorizedSpellsHeader = doc.GetTextContent("memorized-spells-header");
         _memorizedSpellsContainer = doc.GetContainer("memorized-spells-container");
 
-//            // Created @ 0x101bb77c
-//            var char_spells_ui_nav_class_tab_button1 = new WidgetButton(new Rectangle(0, 0, 0, 19));
-//            // char_spells_ui_nav_class_tab_button1.OnHandleMessage += 0x101b8b60;
-//            // char_spells_ui_nav_class_tab_button1.OnBeforeRender += 0x101b6bf0;
-//            // char_spells_ui_nav_class_tab_button1.OnRenderTooltip += 0x101b8320;
-//            char_spells_ui_nav_class_tab_button1.Name = "char_spells_ui_nav_class_tab_button";
-//            char_spells_ui_nav_class_tab_window1.Add(char_spells_ui_nav_class_tab_button1);
-
-        Stub.TODO();
+        _metamagicUi = new MetamagicUi();
     }
 
     [TempleDllLocation(0x101b5d20)]
     public void Dispose()
     {
-        Stub.TODO();
+        _metamagicUi.Dispose();
     }
 
     [TempleDllLocation(0x101b5d80)]
@@ -151,12 +144,14 @@ public class CharSheetSpellsUi : IDisposable
         }
 
         var knownSpellsList = new KnownSpellsList(
-            new Rectangle(5, 3, 189, 222),
+            new Rectangle(0, 3, 194, 222),
             spellList.Caster,
             classCode
         );
         _knownSpellsContainer.Add(knownSpellsList);
         _knownSpellsContainer.Visible = true;
+        
+        knownSpellsList.OnEditMetamagic += spell => EditMetamagic(spellList, spell);
 
         if (spellsPerDay.Type == SpellsPerDayType.Vancian)
         {
@@ -176,6 +171,11 @@ public class CharSheetSpellsUi : IDisposable
             _memorizedSpellsContainer.Add(_memorizedSpellsList);
             _memorizedSpellsContainer.Visible = true;
         }
+    }
+
+    private void EditMetamagic(ClassSpellListData spellList, SpellStoreData spell)
+    {
+        _metamagicUi.Show(spellList.Caster, spell);
     }
 
     [TempleDllLocation(0x101b8f10)]

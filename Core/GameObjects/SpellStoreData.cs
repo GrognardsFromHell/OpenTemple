@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Feats;
 
 namespace OpenTemple.Core.GameObjects;
 
@@ -21,6 +24,34 @@ public enum MetaMagicFlags : byte
     MetaMagic_Quicken = 2,
     MetaMagic_Silent = 4,
     MetaMagic_Still = 8
+}
+
+public static class MetaMagicColors
+{
+    public static readonly PackedLinearColorA Empower = new(68, 0, 255, 255);
+    public static readonly PackedLinearColorA Enlarge = new(127, 255, 0, 255);
+    public static readonly PackedLinearColorA Extend = new(250, 211, 250, 255);
+    public static readonly PackedLinearColorA Heighten = new(255, 127, 0, 255);
+    public static readonly PackedLinearColorA Maximize = new(255, 0, 233, 255);
+    public static readonly PackedLinearColorA Quicken = new(255, 0, 0, 255);
+    public static readonly PackedLinearColorA Silent = new(0, 254, 255, 255);
+    public static readonly PackedLinearColorA Still = new(255, 246, 0, 255);
+    public static readonly PackedLinearColorA Widen = new(255, 255, 255, 255);
+
+    [TempleDllLocation(0x101b5620)]
+    public static readonly Dictionary<FeatId, PackedLinearColorA> FeatToColorMapping =
+        new()
+        {
+            {FeatId.EMPOWER_SPELL, Empower}, 
+            {FeatId.ENLARGE_SPELL, Enlarge}, 
+            {FeatId.EXTEND_SPELL, Extend}, 
+            {FeatId.HEIGHTEN_SPELL, Heighten}, 
+            {FeatId.MAXIMIZE_SPELL, Maximize}, 
+            {FeatId.QUICKEN_SPELL, Quicken}, 
+            {FeatId.SILENT_SPELL, Silent}, 
+            {FeatId.STILL_SPELL, Still}, 
+            {FeatId.WIDEN_SPELL, Widen}, 
+        };
 }
 
 public struct MetaMagicData

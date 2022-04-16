@@ -1,9 +1,9 @@
 using System;
 using System.Drawing;
+using System.Linq;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Spells;
@@ -14,9 +14,11 @@ public class KnownSpellsList : WidgetContainer
 
     public event Action<SpellStoreData, MemorizedSpellButton> OnMemorizeSpell;
 
-    public KnownSpellsList(Rectangle rectangle, GameObject critter, int classCode) : base(rectangle)
+    public event Action<SpellStoreData> OnEditMetamagic;
+    
+    public KnownSpellsList(Rectangle rectangle, GameObject caster, int classCode) : base(rectangle)
     {
-        var spellsKnown = critter.GetSpellArray(obj_f.critter_spells_known_idx);
+        var spellsKnown = caster.GetSpellArray(obj_f.critter_spells_known_idx);
         var domainSpells = GameSystems.Spell.IsDomainSpell(classCode);
 
         // Try scrolling one spell per scrollbar-tick
@@ -38,6 +40,7 @@ public class KnownSpellsList : WidgetContainer
                 if (!headerAdded)
                 {
                     var levelHeader = new WidgetText($"#{{char_ui_spells:3}} {level}", "char-spell-level");
+                    levelHeader.X = 5;
                     levelHeader.Y = currentY;
                     currentY += levelHeader.GetPreferredSize().Height;
                     AddContent(levelHeader);
@@ -45,17 +48,30 @@ public class KnownSpellsList : WidgetContainer
                 }
 
                 var spellOpposesAlignment =
-                    GameSystems.Spell.SpellOpposesAlignment(critter, spell.classCode, spell.spellEnum);
+                    GameSystems.Spell.SpellOpposesAlignment(caster, spell.classCode, spell.spellEnum);
                 var spellButton = new KnownSpellButton(
-                    new Rectangle(8, currentY, Width - 8, 12),
+                    new Rectangle(13, currentY, Width - 8, 12),
                     spellOpposesAlignment,
                     spell
                 );
                 spellButton.Y = currentY;
                 spellButton.OnMemorizeSpell += (spell, button) => OnMemorizeSpell?.Invoke(spell, button);
-                currentY += spellButton.Height;
                 Add(spellButton);
 
+                // Add a button that allows writing a copy of this spell with applied metamagic
+                if (GameSystems.Spell.GetAvailableMetamagicFeats(caster, spell).Any()
+                    || GameSystems.Spell.GetAppliedMetamagicFeats(spell).Any())
+                {
+                    var metamagicButton = new WidgetButton();
+                    metamagicButton.X = 1;
+                    metamagicButton.Y = currentY + 1;
+                    metamagicButton.SetSize(new Size(12, 12));
+                    metamagicButton.SetStyle("metamagic-button");
+                    metamagicButton.SetClickHandler(() => OnEditMetamagic?.Invoke(spell));
+                    Add(metamagicButton);
+                }
+
+                currentY += spellButton.Height;
                 buttonHeight = Math.Max(buttonHeight, spellButton.Height);
             }
         }

@@ -1,0 +1,119 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "width": 404,
+  "height": 363,
+  "__styles": [
+    {
+      "id": "metamagic-dialog-caption",
+      "inherit": "default-text",
+      "dropShadowColor": "#000000",
+      "textAlignment": "center"
+    },
+    {
+      "id": "metamagic-dialog-box-label",
+      "inherit": "default-text",
+      "color": "#868787",
+      "dropShadowColor": "#000000"
+    },
+    {
+      "__comment": "Used for the feat buttons in the list boxes",
+      "id": "metamagic-feat-button"
+    },
+    {
+      "id": "metamagic-feat-label"
+    },
+    {
+      "id": "metamagic-feat-label:hover",
+      "backgroundColor": "#333333"
+    }
+  ],
+  "__buttonStyles": [
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/CHAR_UI/CHAR_SPELLS_UI/Metamagic_Background.img"
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "text": "#{char_ui_spells:5}",
+      "style": "dialog-title",
+      "y": 12,
+      "height": 16
+    },
+    {
+      "id": "spell_name",
+      "type": "text",
+      "y": 38,
+      "height": 14,
+      "style": "metamagic-dialog-caption"
+    },
+    {
+      "id": "new_spell_level",
+      "type": "text",
+      "y": 53,
+      "height": 14,
+      "style": "metamagic-dialog-caption"
+    },
+    {
+      "id": "available_feats",
+      "type": "text",
+      "text": "#{char_ui_spells:7} #{char_ui_spells:6}",
+      "x": 30,
+      "y": 70,
+      "style": "metamagic-dialog-box-label"
+    },
+    {
+      "id": "applied_feats",
+      "type": "text",
+      "text": "#{char_ui_spells:8} #{char_ui_spells:6}",
+      "x": 207,
+      "y": 70,
+      "style": "metamagic-dialog-box-label"
+    }
+  ],
+  "children": [
+    {
+      "id": "accept",
+      "type": "button",
+      "text": "#{options:4}",
+      "x": 83,
+      "y": 320,
+      "style": "accept-button"
+    },
+    {
+      "id": "cancel",
+      "type": "button",
+      "text": "#{options:5}",
+      "x": 207,
+      "y": 320,
+      "style": "cancel-button"
+    },
+    {
+      "id": "available_container",
+      "type": "scrollView",
+      "x": 30,
+      "y": 85,
+      "width": 166,
+      "height": 115
+    },
+    {
+      "id": "applied_container",
+      "type": "scrollView",
+      "x": 207,
+      "y": 85,
+      "width": 166,
+      "height": 115
+    },
+    {
+      "id": "help_box",
+      "type": "scrollBox",
+      "x": 26,
+      "y": 219,
+      "width": 351,
+      "height": 89
+    }
+  ]
+}

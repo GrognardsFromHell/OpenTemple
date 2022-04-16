@@ -1,7 +1,6 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -40,6 +39,8 @@ public class WidgetBase : Styleable, IDisposable
         }
     }
 
+    public UiManager UiManager => Globals.UiManager;
+
     /// <summary>
     /// Content is shifted by this offset within the viewport of the widget.
     /// </summary>
@@ -47,8 +48,8 @@ public class WidgetBase : Styleable, IDisposable
 
     public Margins Margins
     {
-        get => mMargins;
-        set => mMargins = value;
+        get => _margins;
+        set => _margins = value;
     }
 
     public WidgetBase([CallerFilePath]
@@ -88,8 +89,8 @@ public class WidgetBase : Styleable, IDisposable
     public virtual bool HitTest(int x, int y)
     {
         var contentArea = GetContentArea();
-        x += contentArea.X - mMargins.Left;
-        y += contentArea.Y - mMargins.Top;
+        x += contentArea.X - _margins.Left;
+        y += contentArea.Y - _margins.Top;
 
         if (!PreciseHitTest)
         {
@@ -161,8 +162,8 @@ public class WidgetBase : Styleable, IDisposable
             // set widget size (adding up the margins in addition to the content dimensions, since the overall size should include the margins)
             if (contentArea.Width != 0 && contentArea.Height != 0)
             {
-                Width = contentArea.Width + mMargins.Left + mMargins.Right;
-                Height = contentArea.Height + mMargins.Top + mMargins.Bottom;
+                Width = contentArea.Width + _margins.Left + _margins.Right;
+                Height = contentArea.Height + _margins.Top + _margins.Bottom;
 
                 ApplyAutomaticSizing();
                 contentArea = GetContentArea();
@@ -315,17 +316,17 @@ public class WidgetBase : Styleable, IDisposable
          * Null if the coordinates are outside of this widget. If no
          * other widget inside is at the given coordinate, will just return this.
          */
-    public virtual WidgetBase PickWidget(int x, int y)
+    public virtual WidgetBase? PickWidget(int x, int y)
     {
         if (!Visible)
         {
             return null;
         }
 
-        if (x >= mMargins.Left &
-            y >= mMargins.Bottom &&
-            x < Width - mMargins.Right
-            && y < Height - mMargins.Top
+        if (x >= _margins.Left &
+            y >= _margins.Bottom &&
+            x < Width - _margins.Right
+            && y < Height - _margins.Top
             && HitTest(x, y))
         {
             return this;
@@ -383,10 +384,39 @@ public class WidgetBase : Styleable, IDisposable
         Trace.Assert(_parent == null || _parent == parent || parent == null);
         _parent = parent;
     }
-
-    public WidgetContainer GetParent()
+    
+    public WidgetContainer? GetParent()
     {
         return _parent;
+    }
+    
+    public T? Closest<T>() where T : WidgetBase
+    {
+        if (this is T t)
+        {
+            return t;
+        }
+
+        return _parent?.Closest<T>();
+    }
+
+    /// <summary>
+    /// Returns true if this widget is either the given widget, or is one of its descendants.
+    /// </summary>
+    public bool IsOrIsDescendantOf(WidgetBase widget)
+    {
+        if (this == widget)
+        {
+            return true;
+        }
+        else if (_parent != null)
+        {
+            return _parent.IsOrIsDescendantOf(widget);
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public Rectangle Rectangle
@@ -537,10 +567,10 @@ public class WidgetBase : Styleable, IDisposable
         {
             if (res.Width != 0 & res.Height != 0)
             {
-                res.X += mMargins.Left;
-                res.Width -= mMargins.Left + mMargins.Right;
-                res.Y += mMargins.Top;
-                res.Height -= mMargins.Bottom + mMargins.Top;
+                res.X += _margins.Left;
+                res.Width -= _margins.Left + _margins.Right;
+                res.Y += _margins.Top;
+                res.Height -= _margins.Bottom + _margins.Top;
                 if (res.Width < 0) res.Width = 0;
                 if (res.Height < 0) res.Height = 0;
             }
@@ -650,7 +680,7 @@ public class WidgetBase : Styleable, IDisposable
     protected bool mSizeToParent = false;
     protected bool mAutoSizeWidth = true;
     protected bool mAutoSizeHeight = true;
-    protected Margins mMargins;
+    protected Margins _margins;
     protected Func<MessageMouseArgs, bool> mMouseMsgHandler;
     protected Func<MessageWidgetArgs, bool> mWidgetMsgHandler;
     protected Func<MessageKeyStateChangeArgs, bool> mKeyStateChangeHandler;
@@ -658,7 +688,6 @@ public class WidgetBase : Styleable, IDisposable
 
     protected List<WidgetContent> _content = new();
     private bool _visible = true;
-
 
     public virtual void RenderTooltip(int x, int y)
     {
