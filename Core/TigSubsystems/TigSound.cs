@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using SoLoud;
 using OpenTemple.Core.Logging;
@@ -169,11 +170,19 @@ public class TigSound : IDisposable
 
         stream.wav = new Wav();
 
-        using var sampleData = Tig.FS.ReadFile(path);
-        var err = stream.wav.loadMem(sampleData.Memory.Span);
-        if (err != 0)
+        try
         {
-            Logger.Warn("Failed to load sound: {0}: {1}", path, err);
+            using var sampleData = Tig.FS.ReadFile(path);
+            var err = stream.wav.loadMem(sampleData.Memory.Span);
+            if (err != 0)
+            {
+                Logger.Warn("Failed to load sound: {0}: {1}", path, err);
+                return false;
+            }
+        }
+        catch (FileNotFoundException)
+        {
+            Logger.Warn("Failed to find sound: {0}", path);
             return false;
         }
 
