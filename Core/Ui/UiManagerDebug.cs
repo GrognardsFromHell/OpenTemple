@@ -62,11 +62,11 @@ public class UiManagerDebug
 
             var currentMouseOver = _uiManager.CurrentMouseOverWidget;
             var uiMousePos = _uiManager.Mouse.GetPos();
-            ImGui.Text($"Widget Under Cursor ({uiMousePos})");
+            ImGui.Text($"Widget Under Cursor ({uiMousePos.X},{uiMousePos.Y})");
             ImGui.Text("Source URI: " + (currentMouseOver?.GetSourceURI() ?? "-"));
             ImGui.Text("ID: " + (currentMouseOver?.GetId() ?? "-"));
 
-            if (ImGui.CollapsingHeader("Widgets"))
+            if (ImGui.CollapsingHeader("Widget Tree"))
             {
                 foreach (var window in _uiManager.ActiveWindows)
                 {
@@ -87,8 +87,14 @@ public class UiManagerDebug
             zIndex = $" Z:{window.ZIndex}";
         }
 
-        if (ImGui.TreeNode(
-                $"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
+        var nodeLabel = $"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}";
+        var nodeFlags = ImGuiTreeNodeFlags.Leaf;
+        if (widget is WidgetContainer c && c.GetChildren().Count > 0)
+        {
+            nodeFlags &= ~ImGuiTreeNodeFlags.Leaf;
+        }
+        
+        if (ImGui.TreeNodeEx(nodeLabel, nodeFlags))
         {
             if (ImGui.IsItemHovered())
             {
