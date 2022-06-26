@@ -85,7 +85,7 @@ public class ParticleSystemsRenderer : IDisposable
                 renderer.Render(viewport, emitter);
             }
 
-            if (Globals.Config.DebugPartSys)
+            if (Globals.Config.Debug.ParticleSystems)
             {
                 RenderDebugInfo(viewport, partSys);
             }

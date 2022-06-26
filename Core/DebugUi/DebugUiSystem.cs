@@ -1,20 +1,21 @@
 using System;
 using System.IO;
 using ImGuiNET;
+using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
-namespace OpenTemple.Core.DebugUI;
+namespace OpenTemple.Core.DebugUi;
 
-public class DebugUiSystem : IDebugUI, IDisposable
+public class DebugUiSystem : IDebugUi, IDisposable
 {
     private readonly ImGuiRenderer _renderer;
 
@@ -29,8 +30,10 @@ public class DebugUiSystem : IDebugUI, IDisposable
     private ImFontPtr _smallFont;
 
     private ImFontPtr _normalFont;
+    
+    private ImFontPtr _boldFont;
 
-    public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device)
+    public DebugUiSystem(IFileSystem fs, DebugConfig config, IMainWindow mainWindow, RenderingDevice device)
     {
         _device = device;
 
@@ -47,7 +50,7 @@ public class DebugUiSystem : IDebugUI, IDisposable
         ImGui.SetCurrentContext(guiContext);
 
         ImGui.GetIO().Fonts.AddFontDefault();
-        AddRobotoFonts();
+        AddFonts(fs, config);
 
         _renderer = new ImGuiRenderer();
         if (!_renderer.ImGui_ImplDX11_Init(hwnd, device.Device, context))
@@ -63,14 +66,25 @@ public class DebugUiSystem : IDebugUI, IDisposable
         ImGui.PushFont(_smallFont);
     }
 
-    private void AddRobotoFonts()
+    public void PushBoldFont()
     {
-        var fontPath = Path.Join(
-            Path.GetDirectoryName(typeof(DebugUiSystem).Assembly.Location),
-            "DebugUI/Roboto-Medium.ttf"
-        );
-        _smallFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPath, 10);
-        _normalFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPath, 12);
+        ImGui.PushFont(_boldFont);
+    }
+
+    private void AddFonts(IFileSystem fs, DebugConfig config)
+    {
+        _smallFont = LoadFont(fs, config.DebugUiFontRegular, 10);
+        _normalFont = LoadFont(fs, config.DebugUiFontRegular, 12);
+        _boldFont = LoadFont(fs, config.DebugUiFontBold, 12);
+    }
+
+    private unsafe ImFontPtr LoadFont(IFileSystem fs, string path, int pixelSize)
+    {
+        using var memoryOwner = fs.ReadFile(path);
+        var memory = memoryOwner.Memory;
+        using var pinnedMemory = memory.Pin();
+        var pinnedMemoryPtr = new IntPtr(pinnedMemory.Pointer);
+        return ImGui.GetIO().Fonts.AddFontFromMemoryTTF(pinnedMemoryPtr, memory.Length, pixelSize);
     }
 
     public void Dispose()
@@ -235,10 +249,10 @@ public class DebugUiSystem : IDebugUI, IDisposable
                     ImGui.EndMenu();
                 }
 
-                var particleSystems = Globals.Config.DebugPartSys;
+                var particleSystems = Globals.Config.Debug.ParticleSystems;
                 if (ImGui.MenuItem("Particle Systems", null, ref particleSystems))
                 {
-                    Globals.Config.DebugPartSys = particleSystems;
+                    Globals.Config.Debug.ParticleSystems = particleSystems;
                 }
 
                 var clipping = GameSystems.Clipping.Debug;

@@ -104,7 +104,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
         TimePoint refTime;
 
         PathInit(out pqr, pq);
-        if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+        if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
         {
             pdbgUsingNodes = false;
             pdbgAbortedSansNodes = false;
@@ -133,7 +133,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
         var toSubtile = new Subtile(pqr.to);
         if (new Subtile(pqr.from) == toSubtile || !GetAlternativeTargetLocation(pqr, pq))
         {
-            if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+            if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
             {
                 if (new Subtile(pqr.from) == toSubtile)
                     Logger.Info("Pathfinding: Aborting because from = to.");
@@ -156,7 +156,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
         if (PathCacheGet(pq, pqr))
         {
             // has this query been done before? if so copies it and returns the result
-            if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+            if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
             {
                 Logger.Info("Query found in cache, fetching result.");
             }
@@ -174,21 +174,21 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
         refTime = TimePoint.Now;
         if (ShouldUsePathnodes(pqr, pq))
         {
-            if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+            if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
             {
                 Logger.Info("Attempting using nodes...");
             }
 
             triedPathNodes = true;
             gotPath = FindPathUsingNodes(pq, pqr);
-            if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+            if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
             {
                 Logger.Info("Nodes attempt result: {0}...", gotPath);
             }
         }
         else
         {
-            if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+            if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
             {
                 Logger.Info("Attempting sans nodes...");
             }
@@ -200,7 +200,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
         {
             if (!pq.flags.HasFlag(PathQueryFlags.PQF_DONT_USE_PATHNODES) && !triedPathNodes)
             {
-                if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+                if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
                 {
                     pdbgAbortedSansNodes = true;
                     Logger.Info("Failed Sans Nodes attempt... trying nodes.");
@@ -216,7 +216,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
 
         if (gotPath)
         {
-            if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+            if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
             {
                 if (pq.critter != null)
                 {
@@ -229,7 +229,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
         }
         else
         {
-            if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+            if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
             {
                 Logger.Info("PF to {0} failed!", pqr.to);
             }
@@ -237,7 +237,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
 
         PathCachePush(pq, pqr);
         PathRecordTimeElapsed(refTime);
-        if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
+        if (Globals.Config.Debug.Pathfinding || !GameSystems.Combat.IsCombatActive())
         {
             pdbgGotPath = gotPath;
             pdbgTo = pqr.to;
@@ -251,7 +251,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
     [TempleDllLocation(0x10042B50)]
     private bool FindPathUsingNodes(PathQuery pq, PathQueryResult path)
     {
-        if (Globals.Config.pathfindingDebugMode)
+        if (Globals.Config.Debug.Pathfinding)
         {
             Logger.Debug("Attempting PF using nodes");
         }
@@ -296,7 +296,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
             return false;
         }
 
-        if (Globals.Config.pathfindingDebugMode)
+        if (Globals.Config.Debug.Pathfinding)
         {
             pdbgUsingNodes = true;
             pdbgNodeNum = chainLength;
@@ -506,7 +506,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
             pqr.nodeCount3 = 0;
             if (straightLineOk)
             {
-                if (Globals.Config.pathfindingDebugMode)
+                if (Globals.Config.Debug.Pathfinding)
                 {
                     Logger.Info("Straight line succeeded.");
                 }
@@ -620,7 +620,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
                 var maxAttempts = GameSystems.PathNode.HasClearanceData ? 50 : 10;
                 if (npcPathFindAttemptCount > maxAttempts || npcPathTimeCumulative > TimeSpan.FromMilliseconds(250))
                 {
-                    if (Globals.Config.pathfindingDebugMode)
+                    if (Globals.Config.Debug.Pathfinding)
                     {
                         pdbgDirectionsCount = 0;
                         if (npcPathFindAttemptCount > maxAttempts)
@@ -709,7 +709,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
                 npcPathTimeCumulative += TimePoint.Now - referenceTime;
             }
 
-            if (Globals.Config.pathfindingDebugMode)
+            if (Globals.Config.Debug.Pathfinding)
             {
                 pdbgDirectionsCount = 0;
                 pdbgShortRangeError = -1;
@@ -724,7 +724,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
 
         #endregion
 
-        if (Globals.Config.pathfindingDebugMode)
+        if (Globals.Config.Debug.Pathfinding)
         {
             Logger.Info("*** START OF PF ATTEMPT SANS TARGET - DESTINATION {0} ***", pqr.to);
             pdbgDirectionsCount = 0;
@@ -777,7 +777,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
             {
                 if (referenceTime != default)
                     npcPathTimeCumulative += TimePoint.Now - referenceTime;
-                if (Globals.Config.pathfindingDebugMode)
+                if (Globals.Config.Debug.Pathfinding)
                 {
                     pdbgShortRangeError = -999;
                     Logger.Info("*** END OF PF ATTEMPT SANS TARGET - OPEN SET EMPTY; from {0} to {1} ***", pqr.from,
@@ -913,7 +913,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
             {
                 if (referenceTime != default)
                     npcPathTimeCumulative += TimePoint.Now - referenceTime;
-                if (Globals.Config.pathfindingDebugMode)
+                if (Globals.Config.Debug.Pathfinding)
                 {
                     Logger.Info("*** END OF PF ATTEMPT SANS TARGET - A* OPTIONS EXHAUSTED; from {0} to {1} ***",
                         pqr.from, pqr.to);
@@ -965,7 +965,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
         { // modify the destination to the found location
             pqr.to = subPathFrom;
         }
-        if (Globals.Config.pathfindingDebugMode)
+        if (Globals.Config.Debug.Pathfinding)
         {
             Logger.Info("*** END OF PF ATTEMPT SANS TARGET - {0} DIRECTIONS USED ***", directionsCount);
             pdbgDirectionsCount = directionsCount;
@@ -1840,7 +1840,7 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
         var reach = obj.GetReach();
         pathQ.tolRadius = reach * 12.0f - 8.0f;
         pathQ.targetObj = target;
-        if (Globals.Config.pathfindingDebugMode)
+        if (Globals.Config.Debug.Pathfinding)
             Logger.Info("PF attempt to party member: {0}", target);
         pathQ.critter = obj;
         pathQ.distanceToTargetMin = reach;

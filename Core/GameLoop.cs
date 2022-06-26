@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using OpenTemple.Core.DebugUI;
+using OpenTemple.Core.DebugUi;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
@@ -19,7 +19,7 @@ public sealed class GameLoop
 
     private readonly RenderingDevice _device;
 
-    private readonly IDebugUI _debugUiSystem;
+    private readonly IDebugUi _debugUiSystem;
 
     private volatile bool _quit;
 
@@ -38,7 +38,7 @@ public sealed class GameLoop
     public GameLoop(
         MessageQueue messageQueue,
         RenderingDevice device,
-        IDebugUI debugUiSystem)
+        IDebugUi debugUiSystem)
     {
         _messageQueue = messageQueue;
         _device = device;

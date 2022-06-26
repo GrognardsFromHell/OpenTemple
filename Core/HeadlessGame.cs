@@ -22,7 +22,10 @@ public sealed class HeadlessGame : IDisposable
             SkipIntro = true,
             SkipLegal = true,
             // Debug UI makes no sense in the headless client
-            EnableDebugUI = false,
+            Debug =
+            {
+                EnableDebugUi = false
+            },
             Rendering =
             {
                 DebugDevice = options.UseDebugRenderer

@@ -1,11 +1,12 @@
 using System.Numerics;
 using ImGuiNET;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
 
-namespace OpenTemple.Core.DebugUI;
+namespace OpenTemple.Core.DebugUi;
 
 public static class DebugUiUtils
 {
-
     public static void RenderNameLabelPairs(params (string, string)[] pairs)
     {
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
@@ -37,4 +38,10 @@ public static class DebugUiUtils
         ImGui.PopStyleVar();
     }
 
+    public static void RenderTitle(string text)
+    {
+        Tig.DebugUI.PushBoldFont();
+        ImGui.Text(text);
+        ImGui.PopFont();
+    }
 }

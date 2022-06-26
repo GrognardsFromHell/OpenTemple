@@ -23,7 +23,7 @@ public class GameConfig
 
     public WindowConfig Window { get; set; } = new();
 
-    public bool EnableDebugUI { get; set; } = true;
+    public DebugConfig Debug { get; set; } = new();
 
     public bool SkipLegal { get; set; } = true;
     public bool laxRules { get; set; }
@@ -35,7 +35,6 @@ public class GameConfig
 
     public bool nonCoreMaterials { get; set; }
 
-    public bool drawObjCylinders { get; set; }
 
     // 0 = Blob
     // 1 = Geometry
@@ -95,15 +94,11 @@ public class GameConfig
 
     public bool AlwaysRun { get; set; } = true;
 
-    public bool pathfindingDebugMode { get; set; }
-
     public TimeSpan AStarMaxWindow { get; set; } = TimeSpan.FromSeconds(5);
 
     public TimeSpan AStarMaxTime { get; set; } = TimeSpan.FromSeconds(4);
 
     public int ParticleFidelity { get; set; } = 100;
-
-    public bool DebugPartSys { get; set; }
 
     public bool ConcurrentTurnsEnabled { get; set; } = true;
 
@@ -200,4 +195,19 @@ public class GameConfig
 
     public string DefaultUiFont { get; set; } = "Arial";
 
+}
+
+public class DebugConfig
+{
+    public bool EnableDebugUi { get; set; } = true;
+
+    public string DebugUiFontRegular { get; set; } = "fonts/OpenSans-Regular.ttf";
+
+    public string DebugUiFontBold { get; set; } = "fonts/OpenSans-Bold.ttf";
+
+    public bool DrawObjCylinders { get; set; }
+    
+    public bool ParticleSystems { get; set; }
+    
+    public bool Pathfinding { get; set; }
 }

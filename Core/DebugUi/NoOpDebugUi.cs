@@ -1,6 +1,6 @@
-namespace OpenTemple.Core.DebugUI;
+namespace OpenTemple.Core.DebugUi;
 
-public class NoOpDebugUI : IDebugUI
+public class NoOpDebugUi : IDebugUi
 {
     public void NewFrame()
     {
@@ -11,6 +11,10 @@ public class NoOpDebugUI : IDebugUI
     }
 
     public void PushSmallFont()
+    {
+    }
+
+    public void PushBoldFont()
     {
     }
 }

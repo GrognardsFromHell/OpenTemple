@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Numerics;
 using ImGuiNET;
-using OpenTemple.Core.DebugUI;
+using OpenTemple.Core.DebugUi;
 using OpenTemple.Core.Location;
 
 namespace OpenTemple.Core.Systems.D20.Actions;

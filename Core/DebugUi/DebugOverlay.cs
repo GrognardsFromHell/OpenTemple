@@ -5,7 +5,7 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui;
 
-namespace OpenTemple.Core.DebugUI;
+namespace OpenTemple.Core.DebugUi;
 
 public static class DebugOverlay
 {

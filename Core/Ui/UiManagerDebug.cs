@@ -1,23 +1,25 @@
 using System.Numerics;
 using ImGuiNET;
+using OpenTemple.Core.DebugUi;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui;
 
+// Debug UI for the user interface
 public class UiManagerDebug
 {
     private readonly UiManager _uiManager;
 
     public bool DebugMenuVisible { get; set; }
 
+    public bool RenderHoveredWidgetOutline { get; set; }
+
     public UiManagerDebug(UiManager uiManager)
     {
         _uiManager = uiManager;
     }
-
-    public bool RenderHoveredWidgetOutline { get; set; } = false;
 
     public void AfterRenderWidgets()
     {
@@ -59,11 +61,9 @@ public class UiManagerDebug
             }
 
             var currentMouseOver = _uiManager.CurrentMouseOverWidget;
-            if (currentMouseOver != null)
-            {
-                ImGui.Text("Source URI: " + currentMouseOver.GetSourceURI());
-                ImGui.Text("ID: " + currentMouseOver.GetId());
-            }
+            ImGui.Text("Widget Under Cursor");
+            ImGui.Text("Source URI: " + (currentMouseOver?.GetSourceURI() ?? "-"));
+            ImGui.Text("ID: " + (currentMouseOver?.GetId() ?? "-"));
 
             if (ImGui.CollapsingHeader("Widgets"))
             {
@@ -85,7 +85,9 @@ public class UiManagerDebug
         {
             zIndex = $" Z:{window.ZIndex}";
         }
-        if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
+
+        if (ImGui.TreeNode(
+                $"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
         {
             if (ImGui.IsItemHovered())
             {

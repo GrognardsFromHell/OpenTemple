@@ -171,7 +171,7 @@ public class MapObjectRenderer : IDisposable
             return;
         }
 
-        if (Globals.Config.drawObjCylinders)
+        if (Globals.Config.Debug.DrawObjCylinders)
         {
             Tig.ShapeRenderer3d.DrawCylinder(
                 viewport,

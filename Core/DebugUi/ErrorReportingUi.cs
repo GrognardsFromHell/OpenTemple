@@ -6,7 +6,7 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
 using OpenTemple.Interop;
 
-namespace OpenTemple.Core.DebugUI;
+namespace OpenTemple.Core.DebugUi;
 
 public static class ErrorReportingUi
 {

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.DebugUI;
+using OpenTemple.Core.DebugUi;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.IO;
@@ -40,7 +40,7 @@ public static class Tig
 
     public static Textures Textures => RenderingDevice.GetTextures();
 
-    public static IDebugUI DebugUI { get; private set; }
+    public static IDebugUi DebugUI { get; private set; }
 
     public static MdfMaterialFactory MdfFactory { get; set; }
 
@@ -88,13 +88,13 @@ public static class Tig
             configRendering.AdapterIndex,
             configRendering.DebugDevice);
 
-        if (config.EnableDebugUI)
+        if (config.Debug.EnableDebugUi)
         {
-            DebugUI = new DebugUiSystem(MainWindow, RenderingDevice);
+            DebugUI = new DebugUiSystem(FS, config.Debug, MainWindow, RenderingDevice);
         }
         else
         {
-            DebugUI = new NoOpDebugUI();
+            DebugUI = new NoOpDebugUi();
         }
 
         MdfFactory = new MdfMaterialFactory(FS, RenderingDevice);

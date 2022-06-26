@@ -13,7 +13,7 @@ using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.TigSubsystems;
 
-namespace OpenTemple.Core.DebugUI;
+namespace OpenTemple.Core.DebugUi;
 
 public class ObjectEditor
 {
