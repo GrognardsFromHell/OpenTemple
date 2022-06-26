@@ -61,7 +61,8 @@ public class UiManagerDebug
             }
 
             var currentMouseOver = _uiManager.CurrentMouseOverWidget;
-            ImGui.Text("Widget Under Cursor");
+            var uiMousePos = _uiManager.Mouse.GetPos();
+            ImGui.Text($"Widget Under Cursor ({uiMousePos})");
             ImGui.Text("Source URI: " + (currentMouseOver?.GetSourceURI() ?? "-"));
             ImGui.Text("ID: " + (currentMouseOver?.GetId() ?? "-"));
 

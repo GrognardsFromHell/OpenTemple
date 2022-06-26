@@ -37,7 +37,6 @@ internal class ImGuiRenderer
     private long g_Time = 0;
     private long g_TicksPerSecond = 0;
 
-    private IntPtr g_hWnd;
     private Device g_pd3dDevice;
     private DeviceContext g_pd3dDeviceContext;
     private Buffer g_pVB;
@@ -354,7 +353,7 @@ internal class ImGuiRenderer
         var io = ImGui.GetIO();
         unsafe
         {
-            io.Fonts.GetTexDataAsRGBA32(out var pixels, out var width, out var height);
+            io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height);
 
             // Upload texture to graphics system
             var desc = new Texture2DDescription();
@@ -369,7 +368,7 @@ internal class ImGuiRenderer
             desc.CpuAccessFlags = 0;
 
             var subResource = new DataBox();
-            subResource.DataPointer = (IntPtr) pixels;
+            subResource.DataPointer = pixels;
             subResource.RowPitch = desc.Width * 4;
             subResource.SlicePitch = 0;
             using var pTexture = new Texture2D(g_pd3dDevice, desc, new[] {subResource});
@@ -619,7 +618,6 @@ internal class ImGuiRenderer
 
     public bool ImGui_ImplDX11_Init(IntPtr hwnd, Device device, DeviceContext device_context)
     {
-        g_hWnd = hwnd;
         g_pd3dDevice = device;
         g_pd3dDeviceContext = device_context;
 
@@ -648,7 +646,8 @@ internal class ImGuiRenderer
         io.KeyMap[(int) ImGuiKey.Y] = 'Y';
         io.KeyMap[(int) ImGuiKey.Z] = 'Z';
 
-        io.ImeWindowHandle = g_hWnd;
+        var mainViewport = ImGui.GetMainViewport();
+        mainViewport.PlatformHandleRaw = hwnd;
 
         return true;
     }
@@ -658,7 +657,6 @@ internal class ImGuiRenderer
         ImGui_ImplDX11_InvalidateDeviceObjects();
         g_pd3dDevice = null;
         g_pd3dDeviceContext = null;
-        g_hWnd = IntPtr.Zero;
     }
 
     public void ImGui_ImplDX11_NewFrame(int width, int height)

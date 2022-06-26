@@ -30,7 +30,7 @@ public class DebugUiSystem : IDebugUi, IDisposable
     private ImFontPtr _smallFont;
 
     private ImFontPtr _normalFont;
-    
+
     private ImFontPtr _boldFont;
 
     public DebugUiSystem(IFileSystem fs, DebugConfig config, IMainWindow mainWindow, RenderingDevice device)
@@ -48,9 +48,11 @@ public class DebugUiSystem : IDebugUi, IDisposable
 
         var guiContext = ImGui.CreateContext();
         ImGui.SetCurrentContext(guiContext);
+        var style = ImGui.GetStyle();
+        style.ScaleAllSizes(mainWindow.UiScale);
 
         ImGui.GetIO().Fonts.AddFontDefault();
-        AddFonts(fs, config);
+        AddFonts(fs, config, mainWindow.UiScale);
 
         _renderer = new ImGuiRenderer();
         if (!_renderer.ImGui_ImplDX11_Init(hwnd, device.Device, context))
@@ -71,20 +73,25 @@ public class DebugUiSystem : IDebugUi, IDisposable
         ImGui.PushFont(_boldFont);
     }
 
-    private void AddFonts(IFileSystem fs, DebugConfig config)
+    private void AddFonts(IFileSystem fs, DebugConfig config, float uiScale)
     {
-        _smallFont = LoadFont(fs, config.DebugUiFontRegular, 10);
-        _normalFont = LoadFont(fs, config.DebugUiFontRegular, 12);
-        _boldFont = LoadFont(fs, config.DebugUiFontBold, 12);
+        _smallFont = LoadFont(fs, config.DebugUiFontRegular, 10 * uiScale);
+        _normalFont = LoadFont(fs, config.DebugUiFontRegular, 12 * uiScale);
+        _boldFont = LoadFont(fs, config.DebugUiFontBold, 12 * uiScale);
     }
 
-    private unsafe ImFontPtr LoadFont(IFileSystem fs, string path, int pixelSize)
+    private unsafe ImFontPtr LoadFont(IFileSystem fs, string path, float pixelSize)
     {
         using var memoryOwner = fs.ReadFile(path);
-        var memory = memoryOwner.Memory;
-        using var pinnedMemory = memory.Pin();
-        var pinnedMemoryPtr = new IntPtr(pinnedMemory.Pointer);
-        return ImGui.GetIO().Fonts.AddFontFromMemoryTTF(pinnedMemoryPtr, memory.Length, pixelSize);
+        var memory = memoryOwner.Memory.Span;
+
+        // ImGui takes ownership of the pointer and will free it using its own allocator
+        // We need to pass it memory that comes from that allocator, otherwise we risk crashes,
+        // even if we'd use C#'s allocator to make a copy of the font.
+        var nativeMem = ImGuiNative.igMemAlloc((uint) memory.Length);
+        var nativeSpan = new Span<byte>(nativeMem, memory.Length);
+        memory.CopyTo(nativeSpan);
+        return ImGui.GetIO().Fonts.AddFontFromMemoryTTF(new IntPtr(nativeMem), memory.Length, pixelSize);
     }
 
     public void Dispose()
@@ -103,7 +110,7 @@ public class DebugUiSystem : IDebugUi, IDisposable
     {
         try
         {
-            if (_renderDebugOverlay)
+            if (_renderDebugOverlay && GameViews.Primary != null)
             {
                 DebugOverlay.Render(GameViews.Primary);
             }
