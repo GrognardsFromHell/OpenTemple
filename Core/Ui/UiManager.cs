@@ -1,13 +1,15 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Styles;
+using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui;
@@ -37,53 +39,57 @@ public class UiManager
 
     private List<WidgetContainer> _topLevelWidgets = new();
 
-    private int maxZIndex = 0;
+    private int _maxZIndex = 0;
 
     /// <summary>
     /// The size in "virtual pixels" of the UI canvas.
     /// </summary>
     public Size CanvasSize => new(
-        (int) _mainWindow.UiCanvasSize.Width,
-        (int) _mainWindow.UiCanvasSize.Height
+        (int)_mainWindow.UiCanvasSize.Width,
+        (int)_mainWindow.UiCanvasSize.Height
     );
 
-    public event Action<Size> OnCanvasSizeChanged;
+    public event Action<Size>? OnCanvasSizeChanged;
 
     public IEnumerable<WidgetContainer> ActiveWindows => _topLevelWidgets;
 
     public UiManagerDebug Debug { get; }
 
-    [TempleDllLocation(0x11E74384)]
-    private WidgetBase _mouseCaptureWidget;
+    [TempleDllLocation(0x11E74384)] private WidgetBase? _mouseCaptureWidget;
 
-    [TempleDllLocation(0x10301324)]
-    private WidgetBase _currentMouseOverWidget;
+    [TempleDllLocation(0x10301324)] private WidgetBase? _currentMouseOverWidget;
 
-    public WidgetBase CurrentMouseOverWidget => _currentMouseOverWidget;
+    public WidgetBase? CurrentMouseOverWidget => _currentMouseOverWidget;
 
-    [TempleDllLocation(0x10301328)]
-    private WidgetBase mMouseButtonId; // TODO = temple.GetRef<int>(0x10301328);
+    [TempleDllLocation(0x10301328)] private WidgetBase? mMouseButtonId; // TODO = temple.GetRef<int>(0x10301328);
 
     // Hang on to the delegate
-    private readonly CursorDrawCallback _renderTooltipCallback;
+    private readonly CursorDrawCallback? _renderTooltipCallback;
 
     [TempleDllLocation(0x10EF97C4)]
     [TempleDllLocation(0x101f97d0)]
     [TempleDllLocation(0x101f97e0)]
     public bool IsDragging => DraggedObject != null;
-    
+
     /// <summary>
     /// Represents an arbitrary object that is currently dragged by the user with their mouse.
     /// </summary>
-    public object DraggedObject { get; set; }
+    public object? DraggedObject { get; set; }
 
-    public WidgetContainer Modal { get; set; }
+    public WidgetContainer? Modal { get; set; }
 
     private readonly IMainWindow _mainWindow;
+
+    private readonly MouseController _mouse = new();
+
+    public MouseController Mouse => _mouse;
+
+    public CursorController Cursor { get; }
 
     public UiManager(IMainWindow mainWindow)
     {
         _mainWindow = mainWindow;
+        Cursor = new CursorController(_mouse, _mainWindow);
         _renderTooltipCallback = RenderTooltip;
         Debug = new UiManagerDebug(this);
         mainWindow.UiCanvasSizeChanged += () => OnCanvasSizeChanged?.Invoke(CanvasSize);
@@ -147,10 +153,11 @@ public class UiManager
                 RemoveWindow(container);
             }
         }
+
         RefreshMouseOverState();
     }
 
-    private static bool IsAncestor(WidgetBase widget, WidgetBase parent)
+    private static bool IsAncestor(WidgetBase? widget, WidgetBase parent)
     {
         while (widget != null)
         {
@@ -158,6 +165,7 @@ public class UiManager
             {
                 return true;
             }
+
             widget = widget.GetParent();
         }
 
@@ -178,9 +186,10 @@ public class UiManager
             RefreshMouseOverState();
         }
 
+        // Release mouse capture if the widget is becoming unavailable
         if (IsAncestor(_mouseCaptureWidget, widget))
         {
-            _mouseCaptureWidget = null;
+            ReleaseMouseCapture();
             RefreshMouseOverState();
         }
 
@@ -190,8 +199,20 @@ public class UiManager
             {
                 button.ButtonState = LgcyButtonState.Normal;
             }
+
             _currentMouseOverWidget = null;
             RefreshMouseOverState();
+        }
+    }
+
+    private void ReleaseMouseCapture()
+    {
+        var currentCaptor = _mouseCaptureWidget;
+        if (currentCaptor != null)
+        {
+            _mouseCaptureWidget = null;
+            // Notify the current captor that it has lost the capture
+            currentCaptor.NotifyMouseCaptureLost();
         }
     }
 
@@ -258,25 +279,35 @@ public class UiManager
         */
     public void RefreshMouseOverState()
     {
-        Tig.Mouse.GetState(out var state);
-
+        var pos = _mouse.GetPos();
         var args = new MessageMouseArgs
         {
-            X = state.x,
-            Y = state.y,
-            flags = MouseEventFlag.PosChange|MouseEventFlag.PosChangeSlow
+            X = pos.X,
+            Y = pos.Y,
+            flags = MouseEventFlag.PosChange | MouseEventFlag.PosChangeSlow
         };
         TranslateMouseMessage(args);
     }
 
-    public WidgetBase GetMouseCaptureWidget()
+    public WidgetBase? GetMouseCaptureWidget()
     {
         return _mouseCaptureWidget;
     }
 
+    /// <summary>
+    /// Tries to capture mouse input for the given widget. Only succeeds if no other widget currently has
+    /// captured the mouse.
+    /// </summary>
     [TempleDllLocation(0x101f9830)]
-    public bool SetMouseCaptureWidget(WidgetBase widget)
+    public bool TryCaptureMouse(WidgetBase? widget)
     {
+        // Only widgets that are part of the UI tree can capture the mouse
+        var topMostParent = widget.TopMostParent;
+        if (topMostParent == null || !_topLevelWidgets.Contains(topMostParent))
+        {
+            return false;
+        }
+
         if (_mouseCaptureWidget == null)
         {
             _mouseCaptureWidget = widget;
@@ -286,12 +317,16 @@ public class UiManager
         return false;
     }
 
+    /// <summary>
+    /// Releases mouse capture for a given widget, if the mouse is currently captured by that widget.
+    /// Otherwise does nothing.
+    /// </summary>
     [TempleDllLocation(0x101f9850)]
-    public void UnsetMouseCaptureWidget(WidgetBase widget)
+    public void ReleaseMouseCapture(WidgetBase? widget)
     {
         if (_mouseCaptureWidget == widget)
         {
-            _mouseCaptureWidget = null;
+            ReleaseMouseCapture();
         }
     }
 
@@ -302,10 +337,7 @@ public class UiManager
     private void SortWindows()
     {
         // Sort Windows by Z-Index
-        _topLevelWidgets.Sort((windowA, windowB) =>
-        {
-            return windowA.ZIndex.CompareTo(windowB.ZIndex);
-        });
+        _topLevelWidgets.Sort((windowA, windowB) => { return windowA.ZIndex.CompareTo(windowB.ZIndex); });
 
         // Reassign a zindex in monotonous order to those windows that dont have one
         for (var i = 0; i < _topLevelWidgets.Count; ++i)
@@ -344,9 +376,9 @@ public class UiManager
         // moused widget changed
         if ((flags & MouseEventFlag.PosChange) != 0 && widAtCursor != globalWid)
         {
-            if (widAtCursor != null && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
+            if (widAtCursor != null && CursorDrawCallback == _renderTooltipCallback)
             {
-                Tig.Mouse.SetCursorDrawCallback(null, 0);
+                SetCursorDrawCallback(null, 0);
             }
 
             if (globalWid != null)
@@ -428,9 +460,9 @@ public class UiManager
 
         if ((mouseMsg.flags & MouseEventFlag.PosChangeSlow) != 0
             && globalWid != null
-            && Tig.Mouse.CursorDrawCallback == null)
+            && CursorDrawCallback == null)
         {
-            Tig.Mouse.SetCursorDrawCallback(_renderTooltipCallback);
+            SetCursorDrawCallback(_renderTooltipCallback);
         }
 
         if ((mouseMsg.flags & MouseEventFlag.LeftClick) != 0)
@@ -518,9 +550,11 @@ public class UiManager
     [TempleDllLocation(0x101f8a80)]
     public bool ProcessMessage(Message msg)
     {
-        // Dispatch time update messages continuously to all advanced widgets
         if (msg.type == MessageType.UPDATE_TIME)
         {
+            Mouse.AdvanceTime();
+
+            // Dispatch time update messages continuously to all advanced widgets
             foreach (var entry in _topLevelWidgets)
             {
                 entry.OnUpdateTime(msg.created);
@@ -580,7 +614,6 @@ public class UiManager
 
     private bool ProcessMouseMessage(Message msg)
     {
-
         // Handle if a widget requested mouse capture
         if (_mouseCaptureWidget != null)
         {
@@ -600,7 +633,7 @@ public class UiManager
                 continue;
             }
 
-            if (window == null || !window.Visible || !DoesWidgetContain(window, mouseArgs.X, mouseArgs.Y))
+            if (!window.Visible || !DoesWidgetContain(window, mouseArgs.X, mouseArgs.Y))
             {
                 continue;
             }
@@ -641,20 +674,20 @@ public class UiManager
         switch (e.Type)
         {
             case WindowEventType.MouseEnter:
-                Tig.Mouse.IsMouseOutsideWindow = false;
+                _mouse.IsMouseOutsideWindow = false;
                 break;
             case WindowEventType.MouseLeave:
-                Tig.Mouse.IsMouseOutsideWindow = true;
+                _mouse.IsMouseOutsideWindow = true;
                 break;
             case WindowEventType.MouseMove:
-                HandleMouseMoveEvent((MouseWindowEvent) e);
+                HandleMouseMoveEvent((MouseWindowEvent)e);
                 break;
             case WindowEventType.MouseDown:
             case WindowEventType.MouseUp:
-                HandleMouseButtonEvent((MouseWindowEvent) e);
+                HandleMouseButtonEvent((MouseWindowEvent)e);
                 break;
             case WindowEventType.Wheel:
-                HandleMouseWheelEvent((MouseWheelWindowEvent) e);
+                HandleMouseWheelEvent((MouseWheelWindowEvent)e);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -663,7 +696,7 @@ public class UiManager
 
     private void HandleMouseMoveEvent(MouseWindowEvent evt)
     {
-        Tig.Mouse.SetPos((int) evt.UiPos.X, (int) evt.UiPos.Y, 0);
+        _mouse.SetPos((int)evt.UiPos.X, (int)evt.UiPos.Y, 0);
     }
 
     private void HandleMouseButtonEvent(MouseWindowEvent evt)
@@ -674,12 +707,12 @@ public class UiManager
             HandleMouseMoveEvent(evt);
         }
 
-        Tig.Mouse.SetButtonState(evt.Button, evt.Type == WindowEventType.MouseDown);
+        _mouse.SetButtonState(evt.Button, evt.Type == WindowEventType.MouseDown);
     }
 
     private void HandleMouseWheelEvent(MouseWheelWindowEvent evt)
     {
-        Tig.Mouse.SetPos((int) evt.UiPos.X, (int) evt.UiPos.Y, (int) (evt.Delta * 120));
+        _mouse.SetPos((int)evt.UiPos.X, (int)evt.UiPos.Y, (int)(evt.Delta * 120));
     }
 
     private void OnMouseMove(PointF pos, int wheelDelta)
@@ -704,14 +737,14 @@ public class UiManager
                         y = 0;
                     else if (y > height)
                         y = height;
-                    Tig.Mouse.IsMouseOutsideWindow = false;
+                    _mouse.IsMouseOutsideWindow = false;
                     // TODO: Switch all mouse positioning to floats
-                    Tig.Mouse.SetPos((int) x, (int) y, wheelDelta);
+                    _mouse.SetPos((int)x, (int)y, wheelDelta);
                     return;
                 }
                 else
                 {
-                    Tig.Mouse.IsMouseOutsideWindow = true;
+                    _mouse.IsMouseOutsideWindow = true;
                 }
             }
             else
@@ -722,9 +755,475 @@ public class UiManager
             return;
         }
 
-        Tig.Mouse.IsMouseOutsideWindow = false;
+        _mouse.IsMouseOutsideWindow = false;
         // TODO: Switch all mouse positioning to floats
-        Tig.Mouse.SetPos((int) pos.X, (int) pos.Y, wheelDelta);
+        _mouse.SetPos((int)pos.X, (int)pos.Y, wheelDelta);
     }
 
+    // This is sometimes queried by ToEE to check which callback is active
+    // It contains the callback function's address
+    [TempleDllLocation(0x101dd5e0)] public CursorDrawCallback? CursorDrawCallback { get; private set; }
+
+    // Extra argument passed to cursor draw callback.
+    public object? CursorDrawCallbackArg { get; private set; }
+
+    [TempleDllLocation(0x101DD5C0)]
+    public void SetCursorDrawCallback(CursorDrawCallback? callback, object? arg = null)
+    {
+        CursorDrawCallback = callback;
+        CursorDrawCallbackArg = arg;
+    }
+
+    [TempleDllLocation(0x101dd330, true)]
+    public void DrawTooltip()
+    {
+        var pos = _mouse.GetPos();
+        CursorDrawCallback?.Invoke(pos.X, pos.Y, CursorDrawCallbackArg);
+    }
+}
+
+// This was previously known as "Tig Mouse", but since we are now moving all mouse input to be under
+// the UI subsystem, we made it a private implementation detail of UiManager
+public class MouseController
+{
+    /// <summary>
+    /// The time span in which the mouse must not move after being last moved until we send
+    /// a message with the <see cref="MouseEventFlag.PosChangeSlow"/> flag.
+    /// </summary>
+    private static readonly TimeSpan DelayUntilMousePosStable = TimeSpan.FromMilliseconds(35);
+
+    // Millisecond interval in which mouse button held messages are sent
+    private static readonly TimeSpan HeldMessageInterval = TimeSpan.FromMilliseconds(250);
+
+    private static readonly int[] buttonStatePressed1 =
+    {
+        0x02, // Left button
+        0x10, // Right button
+        0x80 // Middle button
+    };
+
+    private static readonly int[] buttonStatePressed2 =
+    {
+        0x004, // Left button
+        0x020, // Right button
+        0x100 // Middle button
+    };
+
+    private static readonly int[] buttonStateReleased =
+    {
+        0x008, // Left button
+        0x040, // Right button
+        0x200 // Middle button
+    };
+
+    private enum MouseEventAction
+    {
+        Released,
+        Pressed,
+        Held
+    }
+
+    private int _flags;
+    private int _x;
+    private int _y;
+
+    private readonly TimePoint[] _mouseButtonTime = new TimePoint[3];
+
+    private bool _mouseStoppedMoving;
+
+    private TimePoint _lastMousePosChange = TimePoint.Now;
+
+    /// <summary>
+    /// The cursor can be locked in place to enable relative movement (i.e. when dragging around maps).
+    /// The mouse will automatically be captured as long as a mouse button is held.
+    /// </summary>
+    public bool IsRelative { get; private set; }
+
+    /// <summary>
+    /// The mouse position where relative mode was entered. The mouse will be held in place here.
+    /// </summary>
+    [TempleDllLocation(0x10d251c0), TempleDllLocation(0x10d25580)]
+    private Point _relativeModeEnteredPos;
+
+    public event Action OnIsRelativeChanged;
+
+    public MouseController()
+    {
+        // Move the mouse so it's initially outside the window
+        _x = -1;
+        _y = -1;
+    }
+
+    public void SetButtonState(MouseButton button, bool pressed)
+    {
+        var buttonIndex = (int)button;
+        var newFlags = 0;
+        var now = TimePoint.Now;
+
+        if (pressed)
+        {
+            if (!IsPressed(button))
+            {
+                newFlags = buttonStatePressed1[buttonIndex];
+                _mouseButtonTime[buttonIndex] = now;
+                QueueMouseButtonMessage(button, MouseEventAction.Pressed);
+            }
+        }
+        else
+        {
+            if (IsPressed(button))
+            {
+                newFlags = buttonStateReleased[buttonIndex];
+                _mouseButtonTime[buttonIndex] = TimePoint.Now;
+
+                QueueMouseButtonMessage(button, MouseEventAction.Released);
+            }
+        }
+
+        _flags = newFlags;
+    }
+
+    private bool IsPressed(MouseButton button)
+    {
+        var buttonIndex = (int)button;
+        return (_flags & (buttonStatePressed1[buttonIndex] | buttonStatePressed2[buttonIndex])) != 0;
+    }
+
+    private void QueueMouseButtonMessage(MouseButton button, MouseEventAction action)
+    {
+        Tig.MessageQueue.Enqueue(new Message(
+            new MessageMouseArgs(_x, _y, 0, GetMouseEventFlag(button, action)))
+        );
+    }
+
+    private static MouseEventFlag GetMouseEventFlag(MouseButton button, MouseEventAction action)
+    {
+        switch (button)
+        {
+            case MouseButton.LEFT:
+                switch (action)
+                {
+                    case MouseEventAction.Released:
+                        return MouseEventFlag.LeftReleased;
+                    case MouseEventAction.Pressed:
+                        return MouseEventFlag.LeftClick;
+                    case MouseEventAction.Held:
+                        return MouseEventFlag.LeftHeld;
+                }
+
+                break;
+            case MouseButton.RIGHT:
+                switch (action)
+                {
+                    case MouseEventAction.Released:
+                        return MouseEventFlag.RightReleased;
+                    case MouseEventAction.Pressed:
+                        return MouseEventFlag.RightClick;
+                    case MouseEventAction.Held:
+                        return MouseEventFlag.RightHeld;
+                }
+
+                break;
+            case MouseButton.MIDDLE:
+                switch (action)
+                {
+                    case MouseEventAction.Released:
+                        return MouseEventFlag.MiddleReleased;
+                    case MouseEventAction.Pressed:
+                        return MouseEventFlag.MiddleClick;
+                    case MouseEventAction.Held:
+                        return MouseEventFlag.MiddleHeld;
+                }
+
+                break;
+        }
+
+        throw new ArgumentOutOfRangeException();
+    }
+
+    public Point GetPos() => new(_x, _y);
+
+    public bool IsMouseOutsideWindow { get; set; } = true;
+
+    /// <summary>
+    /// we no longer call SetPos if nothing has changed, so we need this function to trigger the PosChangeSlow
+    /// event.
+    /// </summary>
+    [TempleDllLocation(0x101dd7c0)]
+    public void AdvanceTime()
+    {
+        var now = TimePoint.Now;
+
+        if (!_mouseStoppedMoving && now - _lastMousePosChange > DelayUntilMousePosStable)
+        {
+            var eventFlags = MouseEventFlag.PosChangeSlow | GetEventFlagsFromButtonState();
+            _mouseStoppedMoving = true;
+            var args = new MessageMouseArgs(
+                _x, _y, 0, eventFlags
+            );
+            Tig.MessageQueue.Enqueue(new Message(args));
+        }
+
+        // This sends messages if buttons are held for 250ms or longer.
+        // This was previously handled by the DirectInput polling code in 0x101dd7c0
+        void TrySendHeldMessage(MouseButton button)
+        {
+            if (IsPressed(button))
+            {
+                var buttonIndex = (int)button;
+                _flags = buttonStatePressed2[buttonIndex];
+                // Send a mouse button held message every 250ms after it was initially pressed
+                if (now - _mouseButtonTime[buttonIndex] > HeldMessageInterval)
+                {
+                    _flags |= buttonStatePressed1[buttonIndex];
+                    _mouseButtonTime[buttonIndex] = now;
+
+                    QueueMouseButtonMessage(button, MouseEventAction.Held);
+                }
+            }
+        }
+
+        TrySendHeldMessage(MouseButton.LEFT);
+        TrySendHeldMessage(MouseButton.RIGHT);
+        TrySendHeldMessage(MouseButton.MIDDLE);
+    }
+
+    [TempleDllLocation(0x101DD070)]
+    public void SetPos(int x, int y, int wheelDelta)
+    {
+        MouseEventFlag eventFlags = 0;
+
+        if (x != _x || y != _y)
+        {
+            _mouseStoppedMoving = false;
+            _lastMousePosChange = TimePoint.Now;
+            eventFlags = MouseEventFlag.PosChange;
+        }
+        else if (!_mouseStoppedMoving && TimePoint.Now - _lastMousePosChange > DelayUntilMousePosStable)
+        {
+            _mouseStoppedMoving = true;
+            eventFlags |= MouseEventFlag.PosChangeSlow;
+        }
+
+        if (wheelDelta != 0)
+        {
+            eventFlags |= MouseEventFlag.ScrollWheelChange;
+        }
+
+        _x = x;
+        _y = y;
+
+        eventFlags |= GetEventFlagsFromButtonState();
+
+        if (eventFlags != 0)
+        {
+            var args = new MessageMouseArgs(
+                x, y, wheelDelta, eventFlags
+            );
+            Tig.MessageQueue.Enqueue(new Message(args));
+        }
+
+        // Return the cursor to the lock position such that the next mouse movement message is
+        // likely to be relative to this position again.
+        if (IsRelative)
+        {
+            SetCursorPos(_relativeModeEnteredPos.X, _relativeModeEnteredPos.Y);
+        }
+    }
+
+    private MouseEventFlag GetEventFlagsFromButtonState()
+    {
+        MouseEventFlag eventFlags = default;
+
+        if (((buttonStatePressed1[0] | buttonStatePressed2[0]) & _flags) != 0)
+        {
+            eventFlags |= GetMouseEventFlag(MouseButton.LEFT, MouseEventAction.Held);
+        }
+
+        if (((buttonStatePressed1[1] | buttonStatePressed2[1]) & _flags) != 0)
+        {
+            eventFlags |= GetMouseEventFlag(MouseButton.RIGHT, MouseEventAction.Held);
+        }
+
+        if (((buttonStatePressed1[2] | buttonStatePressed2[2]) & _flags) != 0)
+        {
+            eventFlags |= GetMouseEventFlag(MouseButton.MIDDLE, MouseEventAction.Held);
+        }
+
+        return eventFlags;
+    }
+
+    [TempleDllLocation(0x101ddee0)]
+    public void PushCursorLock()
+    {
+        GetCursorPos(out _relativeModeEnteredPos);
+        IsRelative = true;
+        OnIsRelativeChanged?.Invoke();
+    }
+
+    [TempleDllLocation(0x101dd470)]
+    public void PopCursorLock()
+    {
+        if (IsRelative)
+        {
+            IsRelative = false;
+            SetCursorPos(_relativeModeEnteredPos.X, _relativeModeEnteredPos.Y);
+            OnIsRelativeChanged?.Invoke();
+        }
+    }
+
+    [DllImport("user32.dll")]
+    private static extern bool SetCursorPos(int x, int y);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out Point point);
+}
+
+public class CursorController
+{
+    private readonly MouseController _mouse;
+
+    private readonly IMainWindow _mainWindow;
+
+    // whether the mouse cursor should currently be hidden (i.e. for cutscenes, while dragging, etc.)
+    private bool _hidden;
+
+    [TempleDllLocation(0x10D2558C)] private ResourceRef<ITexture> _iconUnderCursor;
+
+    private Point _iconUnderCursorCenter;
+
+    private Size _iconUnderCursorSize;
+
+    private readonly Stack<string> _cursorStash = new();
+
+    public CursorController(MouseController mouse, IMainWindow mainWindow)
+    {
+        _mouse = mouse;
+        _mainWindow = mainWindow;
+        _mouse.OnIsRelativeChanged += UpdateCursorVisibility;
+    }
+
+    public void Show()
+    {
+        _hidden = false;
+        UpdateCursorVisibility();
+    }
+
+    public void Hide()
+    {
+        _hidden = true;
+        UpdateCursorVisibility();
+    }
+
+    public void SetCursor(string cursorPath)
+    {
+        _cursorStash.Push(cursorPath);
+        SetCursorInternal(cursorPath);
+    }
+
+    private void SetCursorInternal(string cursorPath)
+    {
+        int hotspotX = 0;
+        int hotspotY = 0;
+
+        // TODO: Introduce special "cursor" file type that includes hotspot info to remove these hardcoded values
+        // Special handling for cursors that don't have their hotspot on 0,0
+        if (cursorPath.Contains("Map_GrabHand_Closed.tga")
+            || cursorPath.Contains("Map_GrabHand_Open.tga")
+            || cursorPath.Contains("SlidePortraits.tga"))
+        {
+            var data = Tig.FS.ReadBinaryFile(cursorPath);
+            var info = IO.Images.ImageIO.DetectImageFormat(data);
+
+            hotspotX = info.width / 2;
+            hotspotY = info.height / 2;
+        }
+        else if (cursorPath.Contains("ZoomCursor.tga"))
+        {
+            // This was previously set from the townmap UI via function @ 0x101dd4a0
+            hotspotX = 10;
+            hotspotY = 11;
+        }
+
+        Tig.MainWindow.SetCursor(hotspotX, hotspotY, cursorPath);
+    }
+
+    [TempleDllLocation(0x101DD770)]
+    [TemplePlusLocation("tig_mouse.cpp:180")]
+    public void Reset()
+    {
+        // The back is the one on screen
+        if (_cursorStash.Count > 0)
+        {
+            _cursorStash.Pop();
+        }
+
+        // The back is the one on screen
+        if (_cursorStash.TryPeek(out var texturePath))
+        {
+            SetCursorInternal(texturePath);
+        }
+    }
+
+    [TempleDllLocation(0x101dd500)]
+    public void SetDraggedIcon(string texturePath, Point center, Size size = default)
+    {
+        using var texture = Tig.Textures.Resolve(texturePath, false);
+        SetDraggedIcon(texture.Resource, center, size);
+    }
+
+    public void SetDraggedIcon(ITexture texture, Point center, Size size = default)
+    {
+        if (texture != null)
+        {
+            if (size.IsEmpty)
+            {
+                _iconUnderCursorSize = texture.GetSize();
+            }
+            else
+            {
+                _iconUnderCursorSize = size;
+            }
+
+            _iconUnderCursorCenter = center;
+            _iconUnderCursor.Dispose();
+            _iconUnderCursor = texture.Ref();
+        }
+        else
+        {
+            _iconUnderCursor.Dispose();
+        }
+    }
+
+    [TempleDllLocation(0x101dd500, true)]
+    public void ClearDraggedIcon()
+    {
+        _iconUnderCursor.Dispose();
+        _iconUnderCursorCenter = Point.Empty;
+        _iconUnderCursorSize = Size.Empty;
+    }
+
+    [TempleDllLocation(0x101dd330, true)]
+    public void DrawItemUnderCursor()
+    {
+        if (!_iconUnderCursor.IsValid)
+        {
+            return;
+        }
+
+        var mousePos = _mouse.GetPos();
+
+        Tig.ShapeRenderer2d.DrawRectangle(
+            mousePos.X + _iconUnderCursorCenter.X,
+            mousePos.Y + _iconUnderCursorCenter.Y,
+            _iconUnderCursorSize.Width,
+            _iconUnderCursorSize.Height,
+            _iconUnderCursor.Resource
+        );
+    }
+
+    private void UpdateCursorVisibility()
+    {
+        _mainWindow.IsCursorVisible = !_hidden && !_mouse.IsRelative;
+    }
 }

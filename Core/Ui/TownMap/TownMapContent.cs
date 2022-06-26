@@ -251,7 +251,7 @@ public class TownMapContent : WidgetButtonBase
                 else
                 {
                     _zooming = true;
-                    Tig.Mouse.PushCursorLock();
+                    _parent?.UiManager.Mouse.PushCursorLock();
                     _zoomStartX = msg.X;
                     _zoomStartY = msg.Y;
                 }
@@ -267,7 +267,7 @@ public class TownMapContent : WidgetButtonBase
         switch (msg.widgetEventType)
         {
             case TigMsgWidgetEvent.Clicked:
-                if (!_hasMouseCapture && Globals.UiManager.SetMouseCaptureWidget(this))
+                if (!_hasMouseCapture && Globals.UiManager.TryCaptureMouse(this))
                 {
                     Logger.Info("Drag Start");
                     _hasMouseCapture = true;
@@ -304,13 +304,13 @@ public class TownMapContent : WidgetButtonBase
                 {
                     _grabbingMap = false;
                     Logger.Info("Drag Stop - Aborted");
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
+                    Globals.UiManager.ReleaseMouseCapture(this);
                     _hasMouseCapture = false;
                 }
 
                 if (_zooming)
                 {
-                    Tig.Mouse.PopCursorLock();
+                    _parent?.UiManager.Mouse.PopCursorLock();
                     _zooming = false;
                 }
 
@@ -321,7 +321,7 @@ public class TownMapContent : WidgetButtonBase
                     OnCursorChanged?.Invoke(CursorZoom);
                     if (_zooming)
                     {
-                        Tig.Mouse.PopCursorLock();
+                        _parent?.UiManager.Mouse.PopCursorLock();
                         _zooming = false;
                     }
                 }
@@ -383,7 +383,7 @@ public class TownMapContent : WidgetButtonBase
                 Logger.Info("Drag Stop - Released");
                 if (_hasMouseCapture)
                 {
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
+                    Globals.UiManager.ReleaseMouseCapture(this);
                     _hasMouseCapture = false;
                 }
 
@@ -623,12 +623,12 @@ public class TownMapContent : WidgetButtonBase
         if (_hasMouseCapture)
         {
             _hasMouseCapture = false;
-            Globals.UiManager.UnsetMouseCaptureWidget(this);
+            Globals.UiManager.ReleaseMouseCapture(this);
         }
 
         if (_zooming)
         {
-            Tig.Mouse.PopCursorLock();
+            _parent?.UiManager.Mouse.PopCursorLock();
             _zooming = false;
         }
     }

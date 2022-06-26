@@ -95,7 +95,7 @@ public class ItemSlotBehavior
                 var iconSize = _slotWidget.GetSize();
                 iconSize.Height -= 4;
                 iconSize.Width -= 4;
-                Tig.Mouse.SetDraggedIcon(texturePath, new Point(-relPos.X + 4, -relPos.Y + 4), iconSize);
+                _slotWidget.UiManager.Cursor.SetDraggedIcon(texturePath, new Point(-relPos.X + 4, -relPos.Y + 4), iconSize);
                 return false;
             }
 
@@ -123,7 +123,7 @@ public class ItemSlotBehavior
                     }
 
                     UiSystems.CharSheet.Inventory.DraggedObject = null;
-                    Tig.Mouse.ClearDraggedIcon();
+                    _slotWidget.UiManager.Cursor.ClearDraggedIcon();
                 }
 
                 return false;
@@ -136,7 +136,7 @@ public class ItemSlotBehavior
                 }
 
                 UiSystems.CharSheet.Inventory.DraggedObject = null;
-                Tig.Mouse.ClearDraggedIcon();
+                _slotWidget.UiManager.Cursor.ClearDraggedIcon();
                 break;
         }
 
@@ -192,7 +192,7 @@ public class ItemSlotBehavior
             }
 
             UiSystems.CharSheet.Inventory.DraggedObject = null;
-            Tig.Mouse.ClearDraggedIcon();
+            _slotWidget.UiManager.Cursor.ClearDraggedIcon();
         }
         else if (msg.flags.HasFlag(MouseEventFlag.RightReleased))
         {

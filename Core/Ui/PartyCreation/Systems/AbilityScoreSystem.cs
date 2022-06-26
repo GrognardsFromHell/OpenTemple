@@ -130,11 +130,11 @@ class AbilityScoreSystem : IChargenSystem
         {
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
-                Tig.Mouse.SetCursorDrawCallback(null);
-                Globals.UiManager.UnsetMouseCaptureWidget(widget);
+                widget.UiManager.SetCursorDrawCallback(null);
+                widget.UiManager.ReleaseMouseCapture(widget);
                 widget.IsDragging = false;
 
-                var widgetUnderCursor = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
+                var widgetUnderCursor = widget.UiManager.GetWidgetAt(msg.X, msg.Y);
                 if (widgetUnderCursor is AbilityScoreValueWidget otherAbilityScoreValue)
                 {
                     // Swap the two values
@@ -173,7 +173,7 @@ class AbilityScoreSystem : IChargenSystem
         }
         else if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
         {
-            if (!Globals.UiManager.SetMouseCaptureWidget(widget))
+            if (!Globals.UiManager.TryCaptureMouse(widget))
             {
                 // Something else has the mouse capture right now (how are we getting this message then...?)
                 return true;
@@ -187,7 +187,7 @@ class AbilityScoreSystem : IChargenSystem
             widget.IsDragging = true;
 
             // This will draw the ability score being dragged under the mouse cursor
-            Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
+            Globals.UiManager.SetCursorDrawCallback((x, y, arg) =>
             {
                 var point = new Point(x, y);
                 point.Offset(-localX, -localY);

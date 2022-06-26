@@ -540,12 +540,12 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         {
             if (_currentCursor != null)
             {
-                Tig.Mouse.ResetCursor();
+                _mainWindow.UiManager.Cursor.Reset();
             }
 
             if (path != null)
             {
-                Tig.Mouse.SetCursor(path);
+                _mainWindow.UiManager.Cursor.SetCursor(path);
             }
 
             _currentCursor = path;

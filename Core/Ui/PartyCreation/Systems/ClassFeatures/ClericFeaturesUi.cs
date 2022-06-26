@@ -4,7 +4,6 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures;
@@ -131,9 +130,9 @@ internal class ClericFeaturesUi : IChargenSystem
         {
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
-                Tig.Mouse.SetCursorDrawCallback(null);
-                Globals.UiManager.UnsetMouseCaptureWidget(widget);
                 widget.Visible = true;
+                widget.UiManager.SetCursorDrawCallback(null);
+                widget.UiManager.ReleaseMouseCapture(widget);
 
                 var widgetUnderCursor = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
                 if (widgetUnderCursor == _selectedDomain1)
@@ -179,7 +178,7 @@ internal class ClericFeaturesUi : IChargenSystem
         }
         else if ((msg.flags & MouseEventFlag.LeftClick) != 0)
         {
-            if (!Globals.UiManager.SetMouseCaptureWidget(widget))
+            if (!Globals.UiManager.TryCaptureMouse(widget))
             {
                 // Something else has the mouse capture right now (how are we getting this message then...?)
                 return true;
@@ -193,7 +192,7 @@ internal class ClericFeaturesUi : IChargenSystem
             widget.Visible = false;
 
             // This will draw the ability score being dragged under the mouse cursor
-            Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
+            Globals.UiManager.SetCursorDrawCallback((x, y, arg) =>
             {
                 var point = new Point(x, y);
                 point.Offset(-localX, -localY);

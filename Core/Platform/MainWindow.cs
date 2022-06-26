@@ -185,7 +185,7 @@ public class MainWindow : IMainWindow
     }
 
     public Size DragStartDistance { get; private set; }
-
+    
     /// <summary>
     /// Changes the currently used cursor to the given surface.
     /// </summary>

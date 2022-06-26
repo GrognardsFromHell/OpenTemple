@@ -202,7 +202,7 @@ public class CharSheetInventoryUi : IDisposable
         if (DraggedObject != null)
         {
             DraggedObject = null;
-            Tig.Mouse.ClearDraggedIcon();
+            Widget.UiManager.Cursor.ClearDraggedIcon();
         }
     }
 

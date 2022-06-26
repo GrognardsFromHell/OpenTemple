@@ -4,20 +4,19 @@ using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.CharSheet.Spells.Metamagic;
+namespace OpenTemple.Core.Ui.Widgets;
 
 public static class DragDrop
 {
-    public static DragController MakeDraggable(WidgetBase widget)
+    public static DragController MakeDraggable(WidgetBase? widget)
     {
         var controller = new DragController(widget);
         widget.SetMouseMsgHandler(controller.HandleMouseMessage);
         return controller;
     }
 
-    public record DragController(WidgetBase Widget)
+    public record DragController(WidgetBase? Widget)
     {
         private bool IsDragging => Widget.UiManager.GetMouseCaptureWidget() == Widget;
 
@@ -148,8 +147,8 @@ public static class DragDrop
 
         private void EndDrag()
         {
-            Tig.Mouse.SetCursorDrawCallback(null);
-            Widget.UiManager.UnsetMouseCaptureWidget(Widget);
+            Widget.UiManager.SetCursorDrawCallback(null);
+            Widget.UiManager.ReleaseMouseCapture(Widget);
             
             foreach (var (widget, styleId) in _activeHighlights)
             {
@@ -161,13 +160,13 @@ public static class DragDrop
         private void BeginDrag()
         {
             // Something else can have the mouse capture right now (how are we getting this message then...?)
-            if (!Widget.UiManager.SetMouseCaptureWidget(Widget))
+            if (!Widget.UiManager.TryCaptureMouse(Widget))
             {
                 return;
             }
 
             // This will allow the drag controller to draw a representation of the dragged widget
-            Tig.Mouse.SetCursorDrawCallback(DrawDraggedWidget);
+            Widget.UiManager.SetCursorDrawCallback(DrawDraggedWidget);
         }
 
         private void DrawDraggedWidget(int x, int y, object _)

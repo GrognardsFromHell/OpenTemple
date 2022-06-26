@@ -637,7 +637,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         if (Inventory.DraggedObject != null)
         {
             Inventory.DraggedObject = null;
-            Tig.Mouse.ClearDraggedIcon();
+            _mainWidget.UiManager.Cursor.ClearDraggedIcon();
         }
 
         _mainWidget.Hide();

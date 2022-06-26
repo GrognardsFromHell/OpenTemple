@@ -109,14 +109,14 @@ public class KnownSpellButton : WidgetButtonBase
         void StartDragging()
         {
             _nameLabel.Visible = false;
-            Tig.Mouse.SetCursorDrawCallback(DrawSpellNameUnderMouse);
+            UiManager.SetCursorDrawCallback(DrawSpellNameUnderMouse);
             Globals.UiManager.DraggedObject = new DraggedKnownSpell(_spell);
         }
 
         void StopDragging()
         {
             _nameLabel.Visible = true;
-            Tig.Mouse.SetCursorDrawCallback(null);
+            UiManager.SetCursorDrawCallback(null);
             Globals.UiManager.DraggedObject = null;
         }
 

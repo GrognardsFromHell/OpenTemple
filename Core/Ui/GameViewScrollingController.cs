@@ -27,7 +27,7 @@ public class GameViewScrollingController
 
     public bool MiddleMouseDown(Point pos)
     {
-        _grabMoving = Globals.UiManager.SetMouseCaptureWidget(_widget);
+        _grabMoving = Globals.UiManager.TryCaptureMouse(_widget);
         _grabMoveRef = pos;
         return true;
     }
@@ -36,7 +36,7 @@ public class GameViewScrollingController
     {
         if (_grabMoving)
         {
-            Globals.UiManager.UnsetMouseCaptureWidget(_widget);
+            Globals.UiManager.ReleaseMouseCapture(_widget);
             _grabMoving = false;
             _grabMoveRef = Point.Empty;
             return true;
@@ -138,7 +138,7 @@ public class GameViewScrollingController
         }
 
         var config = Globals.Config.Window;
-        if (config.Windowed && Tig.Mouse.IsMouseOutsideWindow)
+        if (config.Windowed && _widget.UiManager.Mouse.IsMouseOutsideWindow)
         {
             return;
         }

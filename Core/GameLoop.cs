@@ -176,8 +176,8 @@ public sealed class GameLoop
 
         try
         {
-            Tig.Mouse.DrawTooltip();
-            Tig.Mouse.DrawItemUnderCursor();
+            Globals.UiManager.DrawTooltip();
+            Globals.UiManager.Cursor.DrawItemUnderCursor();
         }
         catch (Exception e)
         {

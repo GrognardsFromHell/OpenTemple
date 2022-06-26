@@ -20,6 +20,8 @@ public interface IGameViewport
     event Action OnResize;
 
     Size Size { get; }
+    
+    Point MousePosition { get; }
 
     [TempleDllLocation(0x10029300)]
     [TempleDllLocation(0x1002A1E0)]

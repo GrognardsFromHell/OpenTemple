@@ -51,6 +51,8 @@ public class GameView : WidgetContainer, IGameViewport
 
     public Size Size => GetSize();
 
+    public Point MousePosition => UiManager.Mouse.GetPos();
+
     event Action IGameViewport.OnResize
     {
         add => _onResize += value;
@@ -274,7 +276,7 @@ public class GameView : WidgetContainer, IGameViewport
     public override void OnUpdateTime(TimePoint timeMs)
     {
         base.OnUpdateTime(timeMs);
-        _scrollingController.UpdateTime(timeMs, GetRelativeMousePos(Tig.Mouse.GetPos()));
+        _scrollingController.UpdateTime(timeMs, GetRelativeMousePos(UiManager.Mouse.GetPos()));
     }
 
     private Point GetRelativeMousePos(Point mousePos)

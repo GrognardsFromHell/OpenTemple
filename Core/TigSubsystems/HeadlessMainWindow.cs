@@ -48,4 +48,38 @@ public class HeadlessMainWindow : IMainWindow
     {
         OnInput?.Invoke(obj);
     }
+    
+    public PointF ToUiCanvas(Point screenPoint) => new Point(
+        (int)(screenPoint.X / UiScale),
+        (int)(screenPoint.Y / UiScale)
+    );
+
+    public Point FromUiCanvas(PointF uiPoint) => new Point(
+        (int)(uiPoint.X * UiScale),
+        (int)(uiPoint.Y * UiScale)
+    );
+    
+    public void SendMouseEvent(WindowEventType type, Point screenPoint, MouseButton button)
+    {
+        SendInput(new MouseWindowEvent(
+            type,
+            this,
+            screenPoint,
+            ToUiCanvas(screenPoint)
+        )
+        {
+            Button = button
+        });
+    }
+
+    public void Click(Point screenPoint, MouseButton button = MouseButton.LEFT)
+    {
+        SendMouseEvent(WindowEventType.MouseDown, screenPoint, button);
+        SendMouseEvent(WindowEventType.MouseUp, screenPoint, button);
+    }
+
+    public void ClickUi(float x, float y, MouseButton button = MouseButton.LEFT)
+    {
+        Click(FromUiCanvas(new PointF(x, y)), button);
+    }
 }

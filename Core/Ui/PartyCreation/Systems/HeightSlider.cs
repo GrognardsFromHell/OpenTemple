@@ -79,7 +79,7 @@ public class HeightSlider : WidgetButtonBase
 
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
-                Globals.UiManager.UnsetMouseCaptureWidget(this);
+                Globals.UiManager.ReleaseMouseCapture(this);
             }
 
             return true;
@@ -99,7 +99,7 @@ public class HeightSlider : WidgetButtonBase
 
         if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
         {
-            Globals.UiManager.SetMouseCaptureWidget(this);
+            Globals.UiManager.TryCaptureMouse(this);
         }
 
         return true;

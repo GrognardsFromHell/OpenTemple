@@ -67,7 +67,7 @@ public class GameStartup : IDisposable
 
         GameSystems.Init();
 
-        Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga");
+        Globals.UiManager.Cursor.SetCursor("art/interface/cursors/MainCursor.tga");
 
         Globals.UiAssets = new UiAssets();
         Globals.UiStyles = new UiStyles();
@@ -157,7 +157,7 @@ public class GameStartup : IDisposable
             MovieSystem.PlayMovie("movies/introcinematic.bik", null);
         }
 
-        Tig.Mouse.ShowCursor();
+        Globals.UiManager.Cursor.Show();
         UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
     }
 }

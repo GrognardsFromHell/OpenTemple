@@ -280,14 +280,14 @@ public class WidgetScrollBar : WidgetContainer
 
                 if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
                 {
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
+                    Globals.UiManager.ReleaseMouseCapture(this);
                 }
             }
             else
             {
                 if (msg.flags.HasFlag(MouseEventFlag.LeftClick))
                 {
-                    Globals.UiManager.SetMouseCaptureWidget(this);
+                    Globals.UiManager.TryCaptureMouse(this);
                     mDragGrabPoint = msg.Y;
                     mDragY = Y;
                 }

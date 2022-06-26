@@ -183,38 +183,4 @@ public class HeadlessGameHelper : IDisposable
 
         return result;
     }
-
-    public PointF ToUiCanvas(Point screenPoint) => new Point(
-        (int)(screenPoint.X / Window.UiScale),
-        (int)(screenPoint.Y / Window.UiScale)
-    );
-
-    public Point FromUiCanvas(PointF uiPoint) => new Point(
-        (int)(uiPoint.X * Window.UiScale),
-        (int)(uiPoint.Y * Window.UiScale)
-    );
-
-    public void SendMouseEvent(WindowEventType type, Point screenPoint, MouseButton button)
-    {
-        Window.SendInput(new MouseWindowEvent(
-            type,
-            Window,
-            screenPoint,
-            ToUiCanvas(screenPoint)
-        )
-        {
-            Button = button
-        });
-    }
-
-    public void Click(Point screenPoint, MouseButton button = MouseButton.LEFT)
-    {
-        SendMouseEvent(WindowEventType.MouseDown, screenPoint, button);
-        SendMouseEvent(WindowEventType.MouseUp, screenPoint, button);
-    }
-
-    public void ClickUi(float x, float y, MouseButton button = MouseButton.LEFT)
-    {
-        Click(FromUiCanvas(new PointF(x, y)), button);
-    }
 }

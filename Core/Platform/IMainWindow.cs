@@ -112,7 +112,7 @@ public interface IMainWindow : IDisposable
     float UiScale { get; }
 
     void SetCursor(int hotspotX, int hotspotY, string imagePath);
-
+    
     bool IsCursorVisible { set; }
 
     /// <summary>

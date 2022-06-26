@@ -31,18 +31,6 @@ public class SystemEventPump
 
         try
         {
-            Tig.Mouse.AdvanceTime();
-        }
-        catch (Exception e)
-        {
-            if (!ErrorReporting.ReportException(e))
-            {
-                throw;
-            }
-        }
-
-        try
-        {
             ProcessWindowMessages();
         }
         catch (Exception e)

@@ -193,7 +193,7 @@ public class WidgetButtonBase : WidgetBase
     {
         if (mRepeat && ButtonState == LgcyButtonState.Down)
         {
-            var pos = Tig.Mouse.GetPos();
+            var pos = UiManager.Mouse.GetPos();
             if (mClickHandler != null && !mDisabled && mLastClickTriggered + mRepeatInterval < timeMs)
             {
                 var contentArea = GetContentArea();

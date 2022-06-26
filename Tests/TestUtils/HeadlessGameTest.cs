@@ -122,6 +122,6 @@ public abstract class HeadlessGameTest
     protected void ClickOn(GameObject obj)
     {
         var pos = GameSystems.MapObject.GetScreenPosOfObject(GameViews.Primary, obj);
-        Game.ClickUi(pos.X, pos.Y);
+        Game.Window.ClickUi(pos.X, pos.Y);
     }
 }

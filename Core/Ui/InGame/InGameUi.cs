@@ -518,7 +518,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         // Release previous mouse capture if applicable
         ReleaseMouseCapture();
 
-        if (viewport is WidgetBase widget && Globals.UiManager.SetMouseCaptureWidget(widget))
+        if (viewport is WidgetBase widget && Globals.UiManager.TryCaptureMouse(widget))
         {
             _capturedInputWidget = widget;
         }
@@ -528,7 +528,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     {
         if (_capturedInputWidget != null)
         {
-            Globals.UiManager.UnsetMouseCaptureWidget(_capturedInputWidget);
+            Globals.UiManager.ReleaseMouseCapture(_capturedInputWidget);
             _capturedInputWidget = null;
         }
     }

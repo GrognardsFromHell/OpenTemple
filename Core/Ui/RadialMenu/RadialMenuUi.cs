@@ -198,9 +198,9 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             if (clickedNodeIdx == -1)
             {
                 _assigningHotkey = false;
-                if (Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
+                if (Globals.UiManager.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
                 {
-                    Tig.Mouse.SetCursorDrawCallback(null);
+                    Globals.UiManager.SetCursorDrawCallback(null);
                 }
 
                 RadialMenus.ClearActiveRadialMenu();
@@ -213,9 +213,9 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             {
                 _assigningHotkey = false;
                 RadialMenus.ClearActiveRadialMenu();
-                if (Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
+                if (Globals.UiManager.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
                 {
-                    Tig.Mouse.SetCursorDrawCallback(null);
+                    Globals.UiManager.SetCursorDrawCallback(null);
                 }
 
                 return true;
@@ -314,9 +314,9 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             if (_assigningHotkey)
             {
                 _assigningHotkey = false;
-                if (Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
+                if (Globals.UiManager.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
                 {
-                    Tig.Mouse.SetCursorDrawCallback(null);
+                    Globals.UiManager.SetCursorDrawCallback(null);
                 }
             }
 

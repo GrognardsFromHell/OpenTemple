@@ -131,8 +131,8 @@ public class MemorizedSpellsList : WidgetContainer
             return;
         }
         
-        var pos = Tig.Mouse.GetPos();
-        if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < timeMs)
+        var pos = UiManager.Mouse.GetPos();
+        if (UiManager.IsDragging && _lastScrollTick + ScrollInterval < timeMs)
         {
             var contentArea = GetContentArea();
             // Scroll if the cursor is within the scroll-sensitive band

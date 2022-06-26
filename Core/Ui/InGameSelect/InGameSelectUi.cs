@@ -476,12 +476,12 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
             }
         }
 
-        Tig.Mouse.GetState(out var mouseState);
+        var pos = Globals.UiManager.Mouse.GetPos();
         var activePicker = new PickerState
         {
             Picker = picker,
-            MouseX = mouseState.x,
-            MouseY = mouseState.y,
+            MouseX = pos.X,
+            MouseY = pos.Y,
             CallbackArgs = callbackArgs
         };
         _activePickers.Add(activePicker);
@@ -491,7 +491,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
 
         activePicker.Behavior = PickerFactories[pickerType](activePicker);
 
-        Tig.Mouse.SetCursorDrawCallback((x, y, _) => activePicker.Behavior.DrawTextAtCursor(x, y));
+        Globals.UiManager.SetCursorDrawCallback((x, y, _) => activePicker.Behavior.DrawTextAtCursor(x, y));
 
         return true;
     }
@@ -745,7 +745,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
 
         HideConfirmSelectionButton();
 
-        Tig.Mouse.SetCursorDrawCallback(null);
+        Globals.UiManager.SetCursorDrawCallback(null);
     }
 
     /// <summary>

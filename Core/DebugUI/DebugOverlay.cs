@@ -17,7 +17,7 @@ public static class DebugOverlay
             
         if (ImGui.Begin( "Debug Overlay", ref isActive)){
 
-            var mousePt = TigSubsystems.Tig.Mouse.GetPos();
+            var mousePt = Globals.UiManager.Mouse.GetPos();
 
             var worldCoord = viewport.ScreenToTile(mousePt.X, mousePt.Y);
             ImGui.Text($"{worldCoord}");

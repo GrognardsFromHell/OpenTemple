@@ -29,4 +29,5 @@ public class MockViewport : IGameViewport
     public float Zoom { get; } = 1.0f;
     public event Action OnResize;
     public Size Size => _window.OffScreenSize;
+    public Point MousePosition { get; set; }
 }

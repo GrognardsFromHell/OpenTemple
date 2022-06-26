@@ -4502,7 +4502,7 @@ public class D20ActionSystem : IDisposable
     }
 
     [TempleDllLocation(0x1008A240)]
-    private readonly CursorDrawCallback DrawAttacksRemainingDelegate = DrawAttacksRemaining;
+    private readonly CursorDrawCallback? DrawAttacksRemainingDelegate = DrawAttacksRemaining;
 
     private static void DrawAttacksRemaining(int x, int y, object userarg)
     {
@@ -4613,20 +4613,20 @@ public class D20ActionSystem : IDisposable
             Logger.Debug("Changing cursor from {0} to {1}", cursorState, _currentCursor);
             if (_currentCursor != 0)
             {
-                Tig.Mouse.ResetCursor();
+                Globals.UiManager.Cursor.Reset();
             }
 
             if (CursorPaths.TryGetValue(cursorState, out var cursorPath))
             {
-                Tig.Mouse.SetCursor(cursorPath);
+                Globals.UiManager.Cursor.SetCursor(cursorPath);
             }
 
             _currentCursor = cursorState;
         }
 
-        if (Tig.Mouse.CursorDrawCallback == DrawAttacksRemainingDelegate)
+        if (Globals.UiManager.CursorDrawCallback == DrawAttacksRemainingDelegate)
         {
-            Tig.Mouse.SetCursorDrawCallback(null);
+            Globals.UiManager.SetCursorDrawCallback(null);
         }
 
         if ((widgetEnteredGameplay || widgetEnteredRender || intgameTarget != null)
@@ -4640,7 +4640,7 @@ public class D20ActionSystem : IDisposable
             && (curSeq.tbStatus.attackModeCode <
                 curSeq.tbStatus.baseAttackNumCode + curSeq.tbStatus.numBonusAttacks))
         {
-            Tig.Mouse.SetCursorDrawCallback(DrawAttacksRemainingDelegate);
+            Globals.UiManager.SetCursorDrawCallback(DrawAttacksRemainingDelegate);
         }
         else if ((seqPickerD20ActnType == D20ActionType.UNSPECIFIED_ATTACK)
                  && intgameTarget != null
@@ -4649,7 +4649,7 @@ public class D20ActionSystem : IDisposable
                  && (curSeq.tbStatus.attackModeCode <
                      curSeq.tbStatus.baseAttackNumCode + curSeq.tbStatus.numBonusAttacks))
         {
-            Tig.Mouse.SetCursorDrawCallback(DrawAttacksRemainingDelegate);
+            Globals.UiManager.SetCursorDrawCallback(DrawAttacksRemainingDelegate);
         }
     }
 

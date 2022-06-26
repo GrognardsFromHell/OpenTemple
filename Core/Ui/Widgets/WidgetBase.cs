@@ -77,9 +77,9 @@ public class WidgetBase : Styleable, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public event Action OnBeforeRender;
+    public event Action? OnBeforeRender;
 
-    public event Func<Message, bool> OnHandleMessage;
+    public event Func<Message, bool>? OnHandleMessage;
 
     /// <summary>
     /// Hit test the content of this widget instead of just checking against the content rectangle.
@@ -671,6 +671,22 @@ public class WidgetBase : Styleable, IDisposable
     {
         mAutoSizeHeight = enable;
     }
+    
+    /// <summary>
+    /// Returns the top-most parent of this widget. That is the parent that has no further
+    /// parents.
+    /// </summary>
+    public WidgetContainer? TopMostParent {
+        get
+        {
+            if (_parent == null)
+            {
+                return null;
+            }
+
+            return _parent._parent == null ? _parent : _parent.TopMostParent;
+        } 
+    }
 
     protected WidgetContainer? _parent = null;
     protected string mSourceURI;
@@ -699,7 +715,7 @@ public class WidgetBase : Styleable, IDisposable
     }
 
     public override IStyleable? StyleParent => _parent;
-
+    
     public virtual bool HasPseudoClass(StylingState stylingState) => false;
 
     protected override void OnStylesInvalidated()
@@ -710,5 +726,12 @@ public class WidgetBase : Styleable, IDisposable
         {
             content.InvalidateStyles();
         }
+    }
+
+    public event Action? OnMouseCaptureLost;
+
+    public void NotifyMouseCaptureLost()
+    {
+        OnMouseCaptureLost?.Invoke();
     }
 };
