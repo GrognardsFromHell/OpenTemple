@@ -266,7 +266,10 @@ public static class D20ActionVanillaCallbacks
             targetLoc,
             action.d20APerformer,
             target);
-        projectile.OffsetZ = 60.0f;
+        if (projectile != null)
+        {
+            projectile.OffsetZ = 60.0f;            
+        }
 
         if (action.d20Caf.HasFlag(D20CAF.THROWN) && weapon != null)
         {

@@ -1571,7 +1571,7 @@ public class D20CombatSystem
     }
 
     [TempleDllLocation(0x100b4d00)]
-    public GameObject CreateProjectileAndThrow(LocAndOffsets sourceLoc, int protoId, int missX, int missY,
+    public GameObject? CreateProjectileAndThrow(LocAndOffsets sourceLoc, int protoId, int missX, int missY,
         LocAndOffsets targetLoc, GameObject attacker, GameObject target)
     {
         if (sourceLoc.location == targetLoc.location)
@@ -1580,11 +1580,6 @@ public class D20CombatSystem
         }
 
         var projectile = GameSystems.MapObject.CreateObject((ushort) protoId, sourceLoc.location);
-        if (projectile == null)
-        {
-            return null;
-        }
-
         projectile.SetInt32(obj_f.projectile_flags_combat_damage, 0);
         projectile.SetInt32(obj_f.projectile_flags_combat, 0);
         projectile.SetObject(obj_f.projectile_parent_weapon, null);

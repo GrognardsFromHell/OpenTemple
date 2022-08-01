@@ -703,6 +703,11 @@ public class MapObjectSystem : IGameSystem
     public GameObject CreateObject(int protoId, LocAndOffsets location)
     {
         var protoObj = GameSystems.Proto.GetProtoById(protoId);
+        if (protoObj == null)
+        {
+            throw new ArgumentException($"Cannot create object with unknown proto id: {protoId}");
+        }
+        
         return CreateObject(protoObj, location);
     }
 

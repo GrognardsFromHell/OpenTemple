@@ -21,7 +21,7 @@ internal class ObjRegistry : IEnumerable<GameObject>
         return _objects.GetEnumerator();
     }
 
-    public GameObject GetById(ObjectId id)
+    public GameObject? GetById(ObjectId id)
     {
         return _objectIndex.GetValueOrDefault(id, null);
     }

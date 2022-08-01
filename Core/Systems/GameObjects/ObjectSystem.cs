@@ -58,7 +58,7 @@ public class ObjectSystem : IGameSystem
     }
 
     // Get the handle for an object by its object id
-    public GameObject GetObject(ObjectId id)
+    public GameObject? GetObject(ObjectId id)
     {
         // It may already be part of the registries index
         var handle = mObjRegistry.GetById(id);

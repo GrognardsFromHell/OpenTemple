@@ -194,7 +194,7 @@ public class ProtoSystem : IGameSystem
     }
 
     [TempleDllLocation(0x1003ad70)]
-    public GameObject GetProtoById(int protoId)
+    public GameObject? GetProtoById(int protoId)
     {
         Trace.Assert(protoId <= ushort.MaxValue);
         var id = ObjectId.CreatePrototype((ushort) protoId);
