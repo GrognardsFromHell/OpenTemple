@@ -26,6 +26,8 @@ public class WidgetBase : Styleable, IDisposable
 
     public int Height { get; set; }
 
+    public int ZIndex { get; set; }
+    
     public bool Visible
     {
         get => _visible;
@@ -676,15 +678,19 @@ public class WidgetBase : Styleable, IDisposable
     /// Returns the top-most parent of this widget. That is the parent that has no further
     /// parents.
     /// </summary>
-    public WidgetContainer? TopMostParent {
+    public WidgetContainer? TopMostContainer {
         get
         {
             if (_parent == null)
             {
+                if (this is WidgetContainer container)
+                {
+                    return container;
+                }
                 return null;
             }
 
-            return _parent._parent == null ? _parent : _parent.TopMostParent;
+            return _parent._parent == null ? _parent : _parent.TopMostContainer;
         } 
     }
 

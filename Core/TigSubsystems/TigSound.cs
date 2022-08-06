@@ -344,14 +344,14 @@ public class TigSound : IDisposable
             return;
         }
 
-        if (Tig.SystemEventPump.system_events_processed_time < _nextAudioTick - OneSecond)
+        if (Tig.SystemEventPump.SystemEventsProcessedTime < _nextAudioTick - OneSecond)
         {
-            _nextAudioTick = Tig.SystemEventPump.system_events_processed_time;
+            _nextAudioTick = Tig.SystemEventPump.SystemEventsProcessedTime;
         }
 
-        if (Tig.SystemEventPump.system_events_processed_time <= _nextAudioTick + OneSecond)
+        if (Tig.SystemEventPump.SystemEventsProcessedTime <= _nextAudioTick + OneSecond)
         {
-            if (Tig.SystemEventPump.system_events_processed_time < _nextAudioTick)
+            if (Tig.SystemEventPump.SystemEventsProcessedTime < _nextAudioTick)
             {
                 return;
             }
@@ -360,7 +360,7 @@ public class TigSound : IDisposable
         }
         else
         {
-            _nextAudioTick = Tig.SystemEventPump.system_events_processed_time + HundredMs;
+            _nextAudioTick = Tig.SystemEventPump.SystemEventsProcessedTime + HundredMs;
         }
 
         UpdateSoundStreams();

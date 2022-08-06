@@ -68,7 +68,7 @@ public class UiManagerDebug
 
             if (ImGui.CollapsingHeader("Widget Tree"))
             {
-                foreach (var window in _uiManager.ActiveWindows)
+                foreach (var window in _uiManager.TopLevelWidgets)
                 {
                     RenderWidgetTreeNode(window);
                 }

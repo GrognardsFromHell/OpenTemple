@@ -69,8 +69,6 @@ public class WidgetContainer : WidgetBase
 
     public LgcyWindowMouseState MouseState { get; internal set; }
 
-    public int ZIndex { get; set; }
-
     public void Remove(WidgetBase childWidget)
     {
         Trace.Assert(childWidget.GetParent() == this);

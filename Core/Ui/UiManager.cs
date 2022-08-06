@@ -37,7 +37,7 @@ public class UiManager
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private List<WidgetContainer> _topLevelWidgets = new();
+    private readonly List<WidgetBase> _topLevelWidgets = new();
 
     private int _maxZIndex = 0;
 
@@ -51,7 +51,7 @@ public class UiManager
 
     public event Action<Size>? OnCanvasSizeChanged;
 
-    public IEnumerable<WidgetContainer> ActiveWindows => _topLevelWidgets;
+    public IEnumerable<WidgetBase> TopLevelWidgets => _topLevelWidgets;
 
     public UiManagerDebug Debug { get; }
 
@@ -126,7 +126,7 @@ public class UiManager
         SortWindows();
     }
 
-    public void BringToFront(WidgetContainer window)
+    public void BringToFront(WidgetBase window)
     {
         window.ZIndex = _topLevelWidgets
             .Where(otherWindow => otherWindow != window)
@@ -299,16 +299,16 @@ public class UiManager
     /// captured the mouse.
     /// </summary>
     [TempleDllLocation(0x101f9830)]
-    public bool TryCaptureMouse(WidgetBase? widget)
+    public bool TryCaptureMouse(WidgetBase widget)
     {
         // Only widgets that are part of the UI tree can capture the mouse
-        var topMostParent = widget.TopMostParent;
+        var topMostParent = widget.TopMostContainer;
         if (topMostParent == null || !_topLevelWidgets.Contains(topMostParent))
         {
             return false;
         }
 
-        if (_mouseCaptureWidget == null)
+        if (_mouseCaptureWidget == null || _mouseCaptureWidget == widget)
         {
             _mouseCaptureWidget = widget;
             return true;
@@ -538,7 +538,7 @@ public class UiManager
             if (widget.GetParent() == null)
             {
                 // It must be a top-level window to be visible
-                return ActiveWindows.Contains(widget);
+                return TopLevelWidgets.Contains(widget);
             }
             else
             {
@@ -625,36 +625,20 @@ public class UiManager
 
         for (var i = _topLevelWidgets.Count - 1; i >= 0; i--)
         {
-            var window = _topLevelWidgets[i];
+            var widget = _topLevelWidgets[i];
 
-            // Skip the top-level window if there's a modal and the modal is a different window
-            if (Modal != null && Modal != window)
+            // Skip the top-level widgets if there's a modal and the modal is a different window
+            if (Modal != null && Modal != widget)
             {
                 continue;
             }
 
-            if (!window.Visible || !DoesWidgetContain(window, mouseArgs.X, mouseArgs.Y))
+            if (!widget.Visible || !DoesWidgetContain(widget, mouseArgs.X, mouseArgs.Y))
             {
                 continue;
             }
 
-            // Try dispatching the msg to all children of the window that are also under the mouse cursor, in reverse order of their
-            // own insertion into the children list
-            for (var j = window.GetChildren().Count - 1; j >= 0; j--)
-            {
-                var childWidget = window.GetChildren()[j];
-
-                if (DoesWidgetContain(childWidget, mouseArgs.X, mouseArgs.Y))
-                {
-                    if (childWidget.Visible && childWidget.HandleMouseMessage(mouseArgs))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            // After checking with all children, dispatch the msg to the window itself
-            if (window.Visible && window.HandleMouseMessage(mouseArgs))
+            if (widget.HandleMouseMessage(mouseArgs))
             {
                 return true;
             }

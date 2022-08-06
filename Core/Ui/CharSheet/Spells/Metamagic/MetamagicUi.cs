@@ -2,8 +2,6 @@
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Ui.FlowModel;
@@ -16,7 +14,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells.Metamagic;
 /// </summary>
 public class MetamagicUi : IDisposable
 {
-    private GameObject _caster;
+    private GameObject? _caster;
 
     private SpellStoreData _spell;
 

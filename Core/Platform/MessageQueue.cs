@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Platform;

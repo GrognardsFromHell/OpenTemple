@@ -8,12 +8,12 @@ namespace OpenTemple.Core.TigSubsystems;
 
 public class SystemEventPump
 {
-    [TempleDllLocation(0x11E74578)] public TimePoint system_events_processed_time { get; private set; }
+    [TempleDllLocation(0x11E74578)] public TimePoint SystemEventsProcessedTime { get; private set; }
 
     [TempleDllLocation(0x101DF440)]
     public void PumpSystemEvents()
     {
-        system_events_processed_time = TimePoint.Now;
+        SystemEventsProcessedTime = TimePoint.Now;
 
         Tig.MessageQueue.Enqueue(new Message(MessageType.UPDATE_TIME));
 

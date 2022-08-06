@@ -238,6 +238,13 @@ public class GameView : WidgetContainer, IGameViewport
             }
         }
 
+        if (UiSystems.TurnBased.HandleMessage(this, new Message(msg)))
+        {
+            return true;
+        }
+
+        UiSystems.InGame.HandleMessage(this, new Message(msg));
+
         return base.HandleMouseMessage(msg);
     }
 
