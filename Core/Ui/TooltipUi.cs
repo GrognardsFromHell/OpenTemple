@@ -484,7 +484,7 @@ public class TooltipUi : IDisposable
         }
     }
 
-    public void RenderObjectTooltip(IGameViewport viewport, GameObject obj, GameObject observer = null)
+    public void RenderObjectTooltip(IGameViewport viewport, GameObject obj, GameObject? observer = null)
     {
         var content = UiSystems.Tooltip.GetObjectDescriptionContent(obj, observer);
         if (content != null)

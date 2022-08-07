@@ -86,7 +86,7 @@ internal class ClassSystem : IChargenSystem
         UpdateActiveClass();
     }
 
-    private bool AreRequirementsMet(GameObject playerObj, Stat classId, StringBuilder reasonList = null)
+    private bool AreRequirementsMet(GameObject playerObj, Stat classId, StringBuilder? reasonList = null)
     {
         var isValid = true;
         var classSpec = D20ClassSystem.Classes[classId];

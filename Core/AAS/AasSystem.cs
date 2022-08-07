@@ -57,15 +57,12 @@ public class AasSystem : IDisposable
     {
         var animHandle = FindFreeHandle();
 
-        var activeModel = new ActiveModel(animHandle);
+        var activeModel = new ActiveModel(
+            animHandle,
+            LoadMeshFile(meshFilename),
+            LoadSkeletonFile(skeletonFilename)
+        );
 
-        activeModel.skeleton = LoadSkeletonFile(skeletonFilename);
-
-        // Get SKM data
-        activeModel.mesh = LoadMeshFile(meshFilename);
-
-        activeModel.model = new AnimatedModel();
-        activeModel.model.SetSkeleton(activeModel.skeleton);
         activeModel.model.AddMesh(activeModel.mesh, materialResolver_);
 
         activeModels_[animHandle] = activeModel;

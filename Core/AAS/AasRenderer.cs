@@ -201,7 +201,7 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
     }
 
     public void Render(IGameViewport viewport, IAnimatedModel model, AnimatedModelParams animParams, IList<Light3d> lights,
-        MdfRenderOverrides materialOverrides = null)
+        MdfRenderOverrides? materialOverrides = null)
     {
         var renderData = GetOrCreateState(model);
 
@@ -452,5 +452,5 @@ public interface IAnimatedModelRenderer
     void Render(IGameViewport viewport, IAnimatedModel model,
         AnimatedModelParams animParams,
         IList<Light3d> lights,
-        MdfRenderOverrides materialOverrides = null);
+        MdfRenderOverrides? materialOverrides = null);
 }

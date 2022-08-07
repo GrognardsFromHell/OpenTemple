@@ -816,7 +816,7 @@ return false;
 
     [TempleDllLocation(0x10076820)]
     public void FloatSpellLine(GameObject obj, int lineId, TextFloaterColor color,
-        string prefix = null, string suffix = null)
+        string? prefix = null, string? suffix = null)
     {
         var line = _spellMes[lineId];
         if (prefix != null)

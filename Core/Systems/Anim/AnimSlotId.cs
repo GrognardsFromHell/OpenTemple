@@ -39,7 +39,7 @@ public struct AnimSlotId
         return slotIndex == other.slotIndex && uniqueId == other.uniqueId;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is AnimSlotId other && Equals(other);
     }

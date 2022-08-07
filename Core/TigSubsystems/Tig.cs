@@ -62,7 +62,7 @@ public static class Tig
         MainWindow.WindowConfig = windowConfig;
     }
 
-    public static void Startup(GameConfig config, TigSettings tigSettings = null)
+    public static void Startup(GameConfig config, TigSettings? tigSettings = null)
     {
         tigSettings ??= new TigSettings();
 

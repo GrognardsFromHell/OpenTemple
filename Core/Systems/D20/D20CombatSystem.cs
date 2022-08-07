@@ -457,12 +457,12 @@ public class D20CombatSystem
 
     public string GetCombatMesLine(D20CombatMessage message) => GetCombatMesLine((int) message);
 
-    public void FloatCombatLine(GameObject obj, D20CombatMessage message, string prefix = null,
-        string suffix = null)
+    public void FloatCombatLine(GameObject obj, D20CombatMessage message, string? prefix = null,
+        string? suffix = null)
         => FloatCombatLine(obj, (int) message, prefix, suffix);
 
     [TempleDllLocation(0x100b4b60)]
-    public void FloatCombatLine(GameObject obj, int line, string prefix = null, string suffix = null,
+    public void FloatCombatLine(GameObject obj, int line, string? prefix = null, string? suffix = null,
         TextFloaterColor? forcedColor = null)
     {
         TextFloaterColor floatColor;

@@ -223,7 +223,7 @@ public static class GameUiBridge
     }
 
     [TempleDllLocation(0x1009a6d0)]
-    public static bool ShowPicker(PickerArgs picker, object callbackArgs = null)
+    public static bool ShowPicker(PickerArgs picker, object? callbackArgs = null)
     {
         return UiSystems.InGameSelect.ShowPicker(picker, callbackArgs);
     }

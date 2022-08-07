@@ -19,7 +19,7 @@ public struct KeyFrameBoneState
         return Scale.Equals(other.Scale) && Rotation.Equals(other.Rotation) && Translation.Equals(other.Translation);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj))
         {

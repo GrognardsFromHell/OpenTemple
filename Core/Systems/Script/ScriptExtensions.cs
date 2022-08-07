@@ -136,7 +136,7 @@ public static class ScriptObjectExtensions
 
     [TempleDllLocation(0x100af9a0)]
     [PythonName("cast_spell")]
-    public static void CastSpell(this GameObject caster, int spellEnum, GameObject targetObj = null)
+    public static void CastSpell(this GameObject caster, int spellEnum, GameObject? targetObj = null)
     {
         var spellClasses = new List<int>();
         var spellLevels = new List<int>();
@@ -773,7 +773,7 @@ public static class ScriptObjectExtensions
     [PythonName("saving_throw")]
     public static bool SavingThrow(this GameObject obj, int dc, SavingThrowType saveType,
         D20SavingThrowFlag flags,
-        GameObject opponent = null)
+        GameObject? opponent = null)
     {
         return GameSystems.D20.Combat.SavingThrow(obj, opponent, dc, saveType, flags);
     }
@@ -836,7 +836,7 @@ public static class ScriptObjectExtensions
 
     [TempleDllLocation(0x100b2b20)]
     [PythonName("critter_kill_by_effect")]
-    public static void KillWithDeathEffect(this GameObject obj, GameObject killer = null)
+    public static void KillWithDeathEffect(this GameObject obj, GameObject? killer = null)
     {
         GameSystems.D20.Combat.KillWithDeathEffect(obj, killer);
     }
@@ -1163,7 +1163,7 @@ public static class ScriptObjectExtensions
 
     [TempleDllLocation(0x100b3920)]
     [PythonName("item_wield_best_all")]
-    public static void WieldBestInAllSlots(this GameObject obj, GameObject target = null)
+    public static void WieldBestInAllSlots(this GameObject obj, GameObject? target = null)
     {
         GameSystems.Item.WieldBestAll(obj, target);
     }

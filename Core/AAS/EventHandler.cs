@@ -11,13 +11,13 @@ public enum AnimEventType
 
 internal class EventHandler
 {
-    private readonly Action<AasEvent> _animEventHandler;
+    private readonly Action<AasEvent>? _animEventHandler;
 
     private readonly LegacyScriptConverter _scriptConverter = new();
 
-    private AnimEvents _flagsOut;
+    private AnimEvents? _flagsOut;
 
-    public EventHandler(Action<AasEvent> animEventHandler)
+    public EventHandler(Action<AasEvent>? animEventHandler = null)
     {
         _animEventHandler = animEventHandler;
     }

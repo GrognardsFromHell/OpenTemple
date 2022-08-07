@@ -36,7 +36,7 @@ public struct PositionalId
         return X == other.X && Y == other.Y && TempId == other.TempId && MapId == other.MapId;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is PositionalId other && Equals(other);
     }
@@ -166,7 +166,7 @@ public struct ObjectId : IComparable<ObjectId>
         }
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is ObjectId other && Equals(other);
     }

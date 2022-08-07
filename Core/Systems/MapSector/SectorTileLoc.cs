@@ -28,7 +28,7 @@ public readonly struct SectorTileLoc
         return X == other.X && Y == other.Y;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is SectorTileLoc other && Equals(other);
     }

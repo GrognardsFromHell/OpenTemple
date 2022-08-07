@@ -50,7 +50,7 @@ public class MdfMaterialFactory : IDisposable
 		return null;
 	}
 
-	public ResourceRef<IMdfRenderMaterial> LoadMaterial(string name, Action<MdfMaterial> customizer = null)
+	public ResourceRef<IMdfRenderMaterial> LoadMaterial(string name, Action<MdfMaterial>? customizer = null)
 	{
 		var nameLower = name.ToLowerInvariant();
 
@@ -316,7 +316,7 @@ internal class InvalidMdfRenderMaterial : IMdfRenderMaterial
 
 	public MdfMaterial GetSpec() => _spec;
 
-	public void Bind([MaybeNull] WorldCamera camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null)
+	public void Bind([MaybeNull] WorldCamera camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides? overrides = null)
 	{
 		// Simply do nothing
 	}

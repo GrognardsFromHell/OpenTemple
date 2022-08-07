@@ -478,7 +478,7 @@ public class WidgetDoc
         _contentById = contentRegistry;
     }
 
-    public static WidgetDoc Load(string path, CustomWidgetFactory customFactory = null)
+    public static WidgetDoc Load(string path, CustomWidgetFactory? customFactory = null)
     {
         var json = Tig.FS.ReadBinaryFile(path);
         using var root = JsonDocument.Parse(json);

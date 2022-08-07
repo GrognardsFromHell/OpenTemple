@@ -252,7 +252,7 @@ public struct BonusList
     /// </summary>
     [TempleDllLocation(0x100e6260)]
     [TempleDllLocation(0x100e6110)]
-    public bool AddBonus(int bonValue, int bonType, int bonusDescriptionId, string description = null)
+    public bool AddBonus(int bonValue, int bonType, int bonusDescriptionId, string? description = null)
     {
         if (bonCount >= bonusEntries.Length)
         {
@@ -268,7 +268,7 @@ public struct BonusList
         return true;
     }
 
-    public bool AddBonus(int bonValue, int bonType, string description = null)
+    public bool AddBonus(int bonValue, int bonType, string? description = null)
     {
         if (bonCount >= bonusEntries.Length)
         {
@@ -285,7 +285,7 @@ public struct BonusList
     }
 
     [TempleDllLocation(0x100e6520)]
-    public bool ReplaceBonus(int bonType, int bonValue, int bonusDescriptionId, string description = null)
+    public bool ReplaceBonus(int bonType, int bonValue, int bonusDescriptionId, string? description = null)
     {
         for (var i = 0; i < bonCount; i++)
         {
@@ -307,7 +307,7 @@ public struct BonusList
     [TempleDllLocation(0x100e61a0)]
     [TemplePlusLocation("bonus.cpp:29")]
     public bool SetOverallCap(int newBonFlags, int newCap, int newCapType, int newCapMesLineNum,
-        string capDescr = null)
+        string? capDescr = null)
     {
         if (newBonFlags == 0)
             return false;
@@ -336,7 +336,7 @@ public struct BonusList
 
     [TempleDllLocation(0x100e62a0)]
     [TempleDllLocation(0x100e6340)]
-    public void AddCap(int capType, int capValue, int bonusDescriptionId, string descriptionText = null)
+    public void AddCap(int capType, int capValue, int bonusDescriptionId, string? descriptionText = null)
     {
         if (bonCapperCount >= bonCaps.Length)
         {

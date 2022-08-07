@@ -57,7 +57,7 @@ public readonly struct SectorLoc
         return X == other.X && Y == other.Y;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is SectorLoc other && Equals(other);
     }

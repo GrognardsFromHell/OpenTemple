@@ -142,7 +142,7 @@ public struct MetaMagicData
                metaMagicWidenSpellCount == other.metaMagicWidenSpellCount;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is MetaMagicData other && Equals(other);
     }
@@ -195,7 +195,7 @@ public struct SpellStoreState
         return spellStoreType == other.spellStoreType && usedUp == other.usedUp;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is SpellStoreState other && Equals(other);
     }

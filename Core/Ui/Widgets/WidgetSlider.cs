@@ -14,7 +14,7 @@ public class WidgetSlider : WidgetContainer
     private const int TrackStart = 24;
 
     public WidgetSlider(int x, int y, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : base(x, y, filePath, lineNumber)
     {
         // Size of the slider itself

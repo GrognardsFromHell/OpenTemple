@@ -134,7 +134,7 @@ public class BuffDebuffPacket
     private readonly List<BuffDebuffEntry> _debuffs = new();
     private readonly List<BuffDebuffEntry> _conditions = new();
 
-    public void AddEntry(BuffDebuffType type, int effectType, string extraText = null, int spellEnum = -1)
+    public void AddEntry(BuffDebuffType type, int effectType, string? extraText = null, int spellEnum = -1)
     {
         var entries = GetEntries(type);
         entries.Add(new BuffDebuffEntry(effectType, extraText, spellEnum));
@@ -156,7 +156,7 @@ public class BuffDebuffPacket
         }
     }
 
-    public void AddEntry(int effectType, string extraText = null, int spellEnum = -1)
+    public void AddEntry(int effectType, string? extraText = null, int spellEnum = -1)
     {
         AddEntry(GuessTypeFromId(effectType), effectType, extraText, spellEnum);
     }

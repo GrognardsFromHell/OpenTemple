@@ -733,7 +733,7 @@ public class HelpRequest
         return Type == other.Type && Equals(Topic, other.Topic) && Equals(RollHistoryEntry, other.RollHistoryEntry);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj))
         {

@@ -28,8 +28,8 @@ public class PoisonSpec
     public PoisonSpec(int id,
         int nameId,
         int dc,
-        IEnumerable<PoisonEffect> immediateEffects = null,
-        IEnumerable<PoisonEffect> delayedEffects = null)
+        IEnumerable<PoisonEffect>? immediateEffects = null,
+        IEnumerable<PoisonEffect>? delayedEffects = null)
     {
         Id = id;
         NameId = nameId;

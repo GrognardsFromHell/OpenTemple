@@ -89,7 +89,7 @@ internal struct Matrix3x4
                m20.Equals(other.m20) && m21.Equals(other.m21) && m22.Equals(other.m22) && m23.Equals(other.m23);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj))
         {

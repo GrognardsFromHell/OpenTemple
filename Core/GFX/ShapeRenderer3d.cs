@@ -295,7 +295,7 @@ public class ShapeRenderer3d : IDisposable
         _discVertexBuffer.Resource.Update(corners);
         _discBufferBinding.Resource.Bind();
 
-        MdfRenderOverrides overrides = new MdfRenderOverrides();
+        MdfRenderOverrides? overrides = new MdfRenderOverrides();
         overrides.overrideDiffuse = true;
         overrides.overrideColor = color;
         material.Bind(viewport, _device, null, overrides);

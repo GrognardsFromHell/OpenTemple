@@ -674,7 +674,7 @@ public class RenderingDevice : IDisposable
     }
 
     public ResourceRef<IndexBuffer> CreateEmptyIndexBuffer(int count, Format format = Format.R16_UInt,
-        string debugName = null)
+        string? debugName = null)
     {
         var bufferDesc = new BufferDescription(
             count * sizeof(ushort),
@@ -695,7 +695,7 @@ public class RenderingDevice : IDisposable
     }
 
     public ResourceRef<VertexBuffer> CreateEmptyVertexBuffer(int size, bool forPoints = false,
-        string debugName = null)
+        string? debugName = null)
     {
         // Create a dynamic vertex buffer since it'll be updated (probably a lot)
         var bufferDesc = new BufferDescription(
@@ -807,7 +807,7 @@ public class RenderingDevice : IDisposable
     }
 
     public ResourceRef<RenderTargetTexture> CreateRenderTargetTexture(BufferFormat format, int width, int height,
-        MultiSampleSettings multiSample = default, string debugName = null)
+        MultiSampleSettings multiSample = default, string? debugName = null)
     {
         var size = new Size(width, height);
 
@@ -925,14 +925,14 @@ public class RenderingDevice : IDisposable
     }
 
     public ResourceRef<VertexBuffer> CreateVertexBuffer<T>(ReadOnlySpan<T> data, bool immutable = true,
-        string debugName = null)
+        string? debugName = null)
         where T : struct
     {
         return CreateVertexBufferRaw(MemoryMarshal.Cast<T, byte>(data), immutable, debugName);
     }
 
     public unsafe ResourceRef<VertexBuffer> CreateVertexBufferRaw(ReadOnlySpan<byte> data, bool immutable = true,
-        string debugName = null)
+        string? debugName = null)
     {
         // Create a dynamic or immutable vertex buffer depending on the immutable flag
         var bufferDesc = new BufferDescription(data.Length,
@@ -959,7 +959,7 @@ public class RenderingDevice : IDisposable
     }
 
     public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<ushort> data, bool immutable = true,
-        string debugName = null)
+        string? debugName = null)
     {
         var bufferDesc = new BufferDescription(
             data.Length * sizeof(ushort),
@@ -985,7 +985,7 @@ public class RenderingDevice : IDisposable
     }
 
     public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<int> data, bool immutable = true,
-        string debugName = null)
+        string? debugName = null)
     {
         var bufferDesc = new BufferDescription(
             data.Length * sizeof(int),

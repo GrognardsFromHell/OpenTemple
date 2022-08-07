@@ -153,7 +153,7 @@ public struct PackedLinearColorA
         return B == other.B && G == other.G && R == other.R && A == other.A;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is PackedLinearColorA other && Equals(other);
     }

@@ -1803,7 +1803,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
     [TempleDllLocation(0x1001c170)]
     [TempleDllLocation(0x1001a2e0)]
-    public bool PushRunToTile(GameObject obj, LocAndOffsets pos, PathQueryResult path = null)
+    public bool PushRunToTile(GameObject obj, LocAndOffsets pos, PathQueryResult? path = null)
     {
         if (obj == null || GameSystems.Critter.IsDeadOrUnconscious(obj) ||
             !obj.IsPC() && GameSystems.Reaction.GetLastReactionPlayer(obj) != null)

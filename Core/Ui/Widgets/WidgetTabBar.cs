@@ -87,25 +87,25 @@ public class WidgetTabBar : WidgetContainer
     public event Action<int> OnActiveTabIndexChanged;
 
     public WidgetTabBar(Size size, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : base(size, filePath, lineNumber)
     {
     }
 
     public WidgetTabBar(Rectangle rectangle, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : base(rectangle, filePath, lineNumber)
     {
     }
 
     public WidgetTabBar(int width, int height, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : base(width, height, filePath, lineNumber)
     {
     }
 
     public WidgetTabBar(int x, int y, int width, int height, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : base(x, y, width, height, filePath, lineNumber)
     {
     }

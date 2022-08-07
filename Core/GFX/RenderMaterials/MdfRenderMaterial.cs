@@ -56,7 +56,7 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
     public MdfMaterial GetSpec() => mSpec;
 
     public void Bind([MaybeNull] WorldCamera camera, RenderingDevice device, IList<Light3d> lights,
-        MdfRenderOverrides overrides = null)
+        MdfRenderOverrides? overrides = null)
     {
         device.SetMaterial(mDeviceMaterial);
 
@@ -66,7 +66,7 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
     private void BindShader([MaybeNull] WorldCamera camera,
         RenderingDevice device,
         IList<Light3d> lights,
-        MdfRenderOverrides overrides)
+        MdfRenderOverrides? overrides)
     {
         // Fill out the globals for the shader
         var globals = new MdfGlobalConstants();

@@ -20,7 +20,7 @@ public readonly struct AasHandle
         return Handle == other.Handle;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj))
         {

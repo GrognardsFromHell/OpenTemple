@@ -50,7 +50,7 @@ internal class AnimPlayer : IDisposable
 	public void GetDistPerSec(ref float distPerSec)
 	{
 		if (animation.DriveType == SkelAnimDriver.Distance && fadingSpeed > 0.0) {
-			distPerSec = ownerAnim.scale * distancePerSecond;
+			distPerSec = ownerAnim.Scale * distancePerSecond;
 		}
 	}
 
@@ -76,7 +76,7 @@ internal class AnimPlayer : IDisposable
 				effectiveAdvancement = timeChanged;
 				break;
 			case SkelAnimDriver.Distance:
-				effectiveAdvancement = ownerAnim.scaleInv * distanceChanged;
+				effectiveAdvancement = ownerAnim.ScaleInv * distanceChanged;
 				break;
 			case SkelAnimDriver.Rotation:
 				// TODO: Weirdly enough, in the other function it's using the absolute value of it
@@ -159,7 +159,7 @@ internal class AnimPlayer : IDisposable
 					effectiveAdvancement = timeChanged;
 					break;
 				case SkelAnimDriver.Distance:
-					effectiveAdvancement = ownerAnim.scaleInv * distanceChanged;
+					effectiveAdvancement = ownerAnim.ScaleInv * distanceChanged;
 					break;
 				case SkelAnimDriver.Rotation:
 					// TODO: Weirdly enough, in the other function it's using the absolute value of it
@@ -196,7 +196,7 @@ internal class AnimPlayer : IDisposable
 
 		}
 
-		if (streamCount != 1 || ownerAnim.variationCount != 1 || weight != 1.0f) {
+		if (streamCount != 1 || ownerAnim.VariationCount != 1 || weight != 1.0f) {
 
 			// Get the bone data for each stream
 			Span<SkelBoneState> boneData = stackalloc SkelBoneState[4 * 1024]; // 4 streams with at most 1024 bones each
@@ -204,7 +204,7 @@ internal class AnimPlayer : IDisposable
 				streams[i].GetBoneState(boneData.Slice(i * 1024, 1024));
 			}
 
-			var boneCount = ownerAnim.skeleton.Bones.Count;
+			var boneCount = ownerAnim.Skeleton.Bones.Count;
 			Trace.Assert(boneCount <= 1024);
 
 			Span<SkelBoneState> boneDataTemp = stackalloc SkelBoneState[1024];
@@ -217,9 +217,9 @@ internal class AnimPlayer : IDisposable
 			boneData.Slice(1024 * streamVariationIndices[0], boneDataBuf.Length).CopyTo(boneDataBuf);
 
 			// LERP the rest
-			for (var i = 1; i < ownerAnim.variationCount; i++) {
+			for (var i = 1; i < ownerAnim.VariationCount; i++) {
 				if (streamVariationIndices[i] < 4) {
-					var factor = ownerAnim.variations[i].factor;
+					var factor = ownerAnim.Variations[i].Factor;
 					SkelBoneState.Lerp(boneDataBuf, boneDataBuf, boneData.Slice(1024 * streamVariationIndices[i], 1024), boneCount, factor);
 				}
 			}
@@ -284,7 +284,7 @@ internal class AnimPlayer : IDisposable
 	{
 
 		Trace.Assert(streamCount == 0 && owner != null && ownerAnim == null);
-		var skeleton = owner.skeleton;
+		var skeleton = owner.Skeleton;
 		Trace.Assert(skeleton != null);
 
 		var anims = skeleton.Animations;
@@ -298,14 +298,14 @@ internal class AnimPlayer : IDisposable
 
 		// TODO: The entire variation stuff is unused I think
 		Span<int> skaStreamIdxMap = stackalloc int[4]; // Maps this player's streams to their respective idx in the SKA anim
-		for (int i = 0; i < owner.variationCount; i++) {
-			var variation = owner.variations[i];
+		for (int i = 0; i < owner.VariationCount; i++) {
+			var variation = owner.Variations[i];
 
 			// Find a stream in the animation suitable for the variation that is requested
 			int skaStreamIdx = -1;
 			for (int j = 0; j < animation.Streams.Length; j++) {
 				int streamVariation = animation.Streams[j].VariationId;
-				if (streamVariation == variation.variationId || skaStreamIdx == -1 && streamVariation == -1) {
+				if (streamVariation == variation.VariationId || skaStreamIdx == -1 && streamVariation == -1) {
 					skaStreamIdx = j;
 				}
 			}
@@ -342,8 +342,8 @@ internal class AnimPlayer : IDisposable
 		// NOTE: I don't think this makes a terrible amount of sense since as far as I understand
 		// the variation factor it only affects bone blending, not length
 		duration = 0;
-		for (int i = 0; i < owner.variationCount; i++) {
-			var factor = owner.variations[i].factor;
+		for (int i = 0; i < owner.VariationCount; i++) {
+			var factor = owner.Variations[i].Factor;
 
 			var streamIdx = streamVariationIndices[i];
 			if (streamIdx < 4) {
@@ -407,7 +407,7 @@ internal class AnimPlayer : IDisposable
 			var type = GetEventType(skelEvent.Type);
 			if (!type.HasValue)
 			{
-				Debug.Print("Unknown animation type '{0}' in {1}", anim.Name, owner.skeleton.Path);
+				Debug.Print("Unknown animation type '{0}' in {1}", anim.Name, owner.Skeleton.Path);
 				continue;
 			}
 

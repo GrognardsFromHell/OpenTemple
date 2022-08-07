@@ -16,7 +16,7 @@ public class SamplerSpec
 
     private sealed class SamplerSpecEqualityComparer : IEqualityComparer<SamplerSpec>
     {
-        public bool Equals(SamplerSpec x, SamplerSpec y)
+        public bool Equals(SamplerSpec? x, SamplerSpec? y)
         {
             if (ReferenceEquals(x, y))
             {

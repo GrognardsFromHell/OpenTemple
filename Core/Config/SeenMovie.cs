@@ -19,7 +19,7 @@ public struct SeenMovie
         return MovieId == other.MovieId && SoundtrackId == other.SoundtrackId;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is SeenMovie other && Equals(other);
     }

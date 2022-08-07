@@ -18,7 +18,7 @@ public class RasterizerSpec
         return wireframe == other.wireframe && cullMode == other.cullMode && scissor == other.scissor;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj))
         {

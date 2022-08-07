@@ -96,7 +96,7 @@ public class SelectionList<T>
 
     private T GetValueForIndexOnPage(int index) => _items[PageStart + index].Value;
 
-    public void AddItem(string label, T value, bool disabled = false, string tooltip = null)
+    public void AddItem(string label, T value, bool disabled = false, string? tooltip = null)
     {
         _items.Add(new Item
         {

@@ -242,7 +242,7 @@ public sealed class ShapeRenderer2d : IDisposable
 
     public void DrawRectangle(Span<Vertex2d> corners,
         ITexture texture,
-        ITexture mask = null,
+        ITexture? mask = null,
         SamplerType2d samplerType = SamplerType2d.CLAMP,
         bool blending = true)
     {
@@ -291,7 +291,7 @@ public sealed class ShapeRenderer2d : IDisposable
 
     public void DrawRectangleWithMaterial(Span<Vertex2d> corners, IMdfRenderMaterial material)
     {
-        MdfRenderOverrides overrides = new MdfRenderOverrides();
+        MdfRenderOverrides? overrides = new MdfRenderOverrides();
         overrides.ignoreLighting = true;
         overrides.uiProjection = true;
         material?.Bind((WorldCamera) null, _device, Array.Empty<Light3d>(), overrides);

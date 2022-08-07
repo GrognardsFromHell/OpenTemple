@@ -23,7 +23,7 @@ public readonly struct PredefinedMarkerId
         return MapId == other.MapId && MarkerId == other.MarkerId;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is PredefinedMarkerId other && Equals(other);
     }

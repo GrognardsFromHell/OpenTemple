@@ -38,7 +38,7 @@ public struct ObjectScript
         return unk1 == other.unk1 && counters == other.counters && scriptId == other.scriptId;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is ObjectScript other && Equals(other);
     }

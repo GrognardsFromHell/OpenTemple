@@ -122,7 +122,7 @@ public struct locXY
         return locx == other.locx && locy == other.locy;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is locXY other && Equals(other);
     }
@@ -364,7 +364,7 @@ public struct LocAndOffsets
         return location.Equals(other.location) && off_x.Equals(other.off_x) && off_y.Equals(other.off_y);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is LocAndOffsets other && Equals(other);
     }
@@ -570,7 +570,7 @@ public readonly struct Subtile // every tile is subdivided into 3x3 subtiles
         return X == other.X && Y == other.Y;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is Subtile other && Equals(other);
     }

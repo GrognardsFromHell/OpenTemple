@@ -186,7 +186,7 @@ public struct RadialMenuEntry
         return result;
     }
 
-    public static RadialMenuEntry CreatePythonAction(SpellStoreData spellData, D20ActionType actionType, D20DispatcherKey actionKey, int actionData, string helpId = null)
+    public static RadialMenuEntry CreatePythonAction(SpellStoreData spellData, D20ActionType actionType, D20DispatcherKey actionKey, int actionData, string? helpId = null)
     {
         var result = CreateSpellAction(new D20SpellData(spellData), actionType);
         if (helpId != null)
@@ -200,7 +200,7 @@ public struct RadialMenuEntry
         return result;
     }
 
-    public static RadialMenuEntry CreatePythonAction(string text, D20ActionType actionType, D20DispatcherKey actionKey, int actionData, string helpId = null)
+    public static RadialMenuEntry CreatePythonAction(string text, D20ActionType actionType, D20DispatcherKey actionKey, int actionData, string? helpId = null)
     {
         var result = CreateAction(text, actionType, actionData, helpId);
         result.dispKey = (D20DispatcherKey) actionKey; // TODO: This is fishy, why not use data1 ?!
@@ -208,7 +208,7 @@ public struct RadialMenuEntry
         return result;
     }
 
-    public static RadialMenuEntry CreatePythonAction(D20DispatcherKey actionKey, int actionData, string helpId = null)
+    public static RadialMenuEntry CreatePythonAction(D20DispatcherKey actionKey, int actionData, string? helpId = null)
     {
         var text = GameSystems.D20.Actions.GetPythonAction((int) actionKey).name;
             

@@ -16,7 +16,7 @@ public class WidgetCheckbox : WidgetButtonBase
 
     public WidgetCheckbox(int x, int y,
         [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1)
         : base(new Rectangle(x, y, 0, 0), filePath, lineNumber)
     {

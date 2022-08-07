@@ -12,27 +12,27 @@ namespace OpenTemple.Core.Ui.Widgets;
 public class WidgetContainer : WidgetBase
 {
     public WidgetContainer(Size size, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1)
         : this(0, 0, size.Width, size.Height, filePath, lineNumber)
     {
     }
 
     public WidgetContainer(Rectangle rectangle, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : this(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, filePath,
         lineNumber)
     {
     }
 
     public WidgetContainer(int width, int height, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : this(0, 0, width, height, filePath, lineNumber)
     {
     }
 
     public WidgetContainer(int x, int y, int width, int height, [CallerFilePath]
-        string filePath = null, [CallerLineNumber]
+        string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : base(filePath, lineNumber)
     {
         X = x;

@@ -113,7 +113,7 @@ public class DamagePacket
 
     [TempleDllLocation(0x100e03f0)]
     [TempleDllLocation(0x100e04e0)]
-    public void AddDamageDice(Dice dicePacked, DamageType damType, int damageMesLine, string description = null)
+    public void AddDamageDice(Dice dicePacked, DamageType damType, int damageMesLine, string? description = null)
     {
         var line = GameSystems.D20.Damage.GetTranslation(damageMesLine);
 
@@ -133,7 +133,7 @@ public class DamagePacket
 
     [TempleDllLocation(0x100e05b0)]
     [TempleDllLocation(0x100e05e0)]
-    public bool AddDamageBonus(int damBonus, int bonType, int bonMesline, string causeDesc = null)
+    public bool AddDamageBonus(int damBonus, int bonType, int bonMesline, string? causeDesc = null)
     {
         return bonuses.AddBonus(damBonus, bonType, bonMesline, causeDesc);
     }
@@ -156,7 +156,7 @@ public class DamagePacket
 
     [TempleDllLocation(0x100e08f0)]
     [TempleDllLocation(0x100e0830)]
-    public void AddDR(int amount, DamageType damType, int damageMesLine, string causedBy = null)
+    public void AddDR(int amount, DamageType damType, int damageMesLine, string? causedBy = null)
     {
         var translation = GameSystems.D20.Damage.GetTranslation(damageMesLine);
         damageResistances.Add(new DamageReduction

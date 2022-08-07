@@ -43,7 +43,7 @@ public readonly struct PartialSector
                other.TileRectangle.Equals(TileRectangle);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is PartialSector other && Equals(other);
     }

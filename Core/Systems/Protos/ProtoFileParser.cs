@@ -72,7 +72,7 @@ public class ProtoFileParser
 
     public delegate void ProtoCallback(GameObject protoObj, int protoId);
 
-    public static List<GameObject> Parse(string path, ProtoCallback objectPreprocessor = null)
+    public static List<GameObject> Parse(string path, ProtoCallback? objectPreprocessor = null)
     {
         var result = new List<GameObject>();
 

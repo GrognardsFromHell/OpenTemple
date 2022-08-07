@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using OpenTemple.Core.Logging;
 
 namespace OpenTemple.Core.Config;
 
@@ -21,11 +20,11 @@ public class GameConfigManager
         }
     };
 
-    private readonly string _configPath;
+    private readonly string? _configPath;
 
     public GameConfig Config { get; }
 
-    public event Action OnConfigChanged;
+    public event Action? OnConfigChanged;
 
     public void NotifyConfigChanged()
     {
@@ -36,7 +35,7 @@ public class GameConfigManager
     {
     }
 
-    public GameConfigManager(string configPath)
+    public GameConfigManager(string? configPath)
     {
         _configPath = configPath;
 
@@ -44,7 +43,8 @@ public class GameConfigManager
         {
             var configJson = File.ReadAllBytes(_configPath);
 
-            Config = JsonSerializer.Deserialize<GameConfig>(configJson, JsonOptions);
+            Config = JsonSerializer.Deserialize<GameConfig>(configJson, JsonOptions)
+                     ?? throw new JsonException("Game config JSON is invalid");
         }
         else
         {

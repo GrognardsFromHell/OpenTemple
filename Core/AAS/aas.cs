@@ -68,7 +68,7 @@ public struct AasMaterial
         return Equals(_material, other._material) && Slot == other.Slot;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj))
         {
@@ -112,14 +112,17 @@ internal class ActiveModel : IDisposable
     public EncodedAnimId animId = new(WeaponAnim.None);
     public float floatconst = 6.3940001f;
     public TimePoint timeLoaded = TimePoint.Now;
-    public AnimatedModel model;
-    public Mesh mesh;
-    public Skeleton skeleton;
+    public readonly AnimatedModel model;
+    public readonly Mesh mesh;
+    public readonly Skeleton skeleton;
     public readonly List<Mesh> AdditionalMeshes = new();
 
-    public ActiveModel(AasHandle handle)
+    public ActiveModel(AasHandle handle, Mesh mesh, Skeleton skeleton)
     {
         this.handle = handle;
+        this.mesh = mesh;
+        this.skeleton = skeleton;
+        this.model = new AnimatedModel(skeleton);
     }
 
     public void Dispose()

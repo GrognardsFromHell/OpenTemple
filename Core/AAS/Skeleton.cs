@@ -91,12 +91,11 @@ public class Skeleton
                     var events = new SkelAnimEvent[eventCount];
                     for (var j = 0; j < events.Length; j++)
                     {
-                        events[j] = new SkelAnimEvent
-                        {
-                            Frame = reader.ReadUInt16(),
-                            Type = reader.ReadFixedString(48),
-                            Action = reader.ReadFixedString(128)
-                        };
+                        events[j] = new SkelAnimEvent(
+                            reader.ReadUInt16(),
+                            reader.ReadFixedString(48),
+                            reader.ReadFixedString(128)
+                        );
                     }
 
                     stream.Position = posAfterEvents;
@@ -318,6 +317,13 @@ public struct SkelBoneState
 
 public class SkelAnimEvent
 {
+    public SkelAnimEvent(int frame, string type, string action)
+    {
+        Frame = frame;
+        Type = type;
+        Action = action;
+    }
+
     public int Frame { get; set; }
     public string Type { get; set; }
     public string Action { get; set; }

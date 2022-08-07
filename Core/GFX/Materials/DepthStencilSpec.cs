@@ -16,7 +16,7 @@ public class DepthStencilSpec
 
     private sealed class DepthEnableDepthWriteDepthFuncEqualityComparer : IEqualityComparer<DepthStencilSpec>
     {
-        public bool Equals(DepthStencilSpec x, DepthStencilSpec y)
+        public bool Equals(DepthStencilSpec? x, DepthStencilSpec? y)
         {
             if (ReferenceEquals(x, y))
             {

@@ -9,98 +9,94 @@ namespace OpenTemple.Core.AAS;
 
 internal struct VariationSelector
 {
-    public int variationId;
-    public float factor;
+    public int VariationId;
+    public float Factor;
 }
 
 internal class AnimatedModel : IDisposable
 {
-    public AnimPlayer runningAnimsHead = null;
-    public AnimPlayer newestRunningAnim = null;
-    public bool submeshesValid = false;
-    public float scale;
-    public float scaleInv;
-    public Skeleton skeleton;
-    public int variationCount = 0;
-    public readonly VariationSelector[] variations = new VariationSelector[8];
-    public bool hasClothBones = false;
-    public int clothBoneId = 0;
-    public List<AasClothStuff1> cloth_stuff1 = new();
-    public CollisionSphere collisionSpheresHead;
-    public CollisionCylinder collisionCylindersHead;
-    public EventHandler EventHandler { get; set; } = new(null);
-    public List<AasSubmeshWithMaterial> submeshes = new();
-    public float drivenTime = 0.0f;
-    public float timeForClothSim = 0.0f;
-    public float drivenDistance = 0.0f;
-    public float drivenRotation = 0.0f;
-    public Matrix3x4 currentWorldMatrix; // Current world matrix
-    public Matrix3x4 worldMatrix = Matrix3x4.Identity;
-    public Matrix3x4[] boneMatrices;
-    public uint field_F8;
-    public uint field_FC;
-
-    public void SetSkeleton(Skeleton skeleton)
+    public readonly Skeleton Skeleton;
+    public readonly int VariationCount;
+    public readonly VariationSelector[] Variations = new VariationSelector[8];
+    public readonly bool HasClothBones;
+    public readonly int ClothBoneId;
+    public readonly List<AasClothStuff1> ClothStuff1 = new();
+    public readonly CollisionSphere? CollisionSpheresHead;
+    public readonly CollisionCylinder? CollisionCylindersHead;
+    public readonly List<AasSubmeshWithMaterial> Submeshes = new();
+    public readonly Matrix3x4[] BoneMatrices;
+    public EventHandler EventHandler { get; set; } = new();   
+    public AnimPlayer? RunningAnimsHead;
+    public AnimPlayer? NewestRunningAnim;
+    public Matrix3x4 CurrentWorldMatrix; // Current world matrix
+    public Matrix3x4 WorldMatrix = Matrix3x4.Identity;    
+    public bool SubmeshesValid;
+    public float Scale;
+    public float ScaleInv;
+    public float DrivenTime;
+    public float TimeForClothSim;
+    public float DrivenDistance;
+    public float DrivenRotation;     
+    public uint FieldF8;
+    public uint FieldFc;
+    private IRenderState? _renderState;
+    
+    public AnimatedModel(Skeleton skeleton)
     {
-        Debug.Assert(this.skeleton == null);
-
-        this.skeleton = skeleton;
-        scale = 1.0f;
-        scaleInv = 1.0f;
-        variationCount = 1;
-        variations[0].variationId = -1;
-        variations[0].factor = 1.0f;
+        Skeleton = skeleton;
+        Scale = 1.0f;
+        ScaleInv = 1.0f;
+        VariationCount = 1;
+        Variations[0].VariationId = -1;
+        Variations[0].Factor = 1.0f;
 
         var bones = skeleton.Bones;
-        boneMatrices = new Matrix3x4[bones.Count + 1];
+        BoneMatrices = new Matrix3x4[bones.Count + 1];
 
         // count normal bones
-        clothBoneId = skeleton.FindBoneIdxByName("#ClothBone");
-        if (clothBoneId == -1)
+        ClothBoneId = skeleton.FindBoneIdxByName("#ClothBone");
+        if (ClothBoneId == -1)
         {
-            clothBoneId = bones.Count;
-            hasClothBones = false;
+            ClothBoneId = bones.Count;
+            HasClothBones = false;
         }
         else
         {
-            hasClothBones = true;
+            HasClothBones = true;
+            
+            // Discover the collision geometry used for cloth simulation
+            var collisionGeom = CollisionGeometry.Find(bones);
+            CollisionSpheresHead = collisionGeom.firstSphere;
+            CollisionCylindersHead = collisionGeom.firstCylinder;
         }
-
-        if (!hasClothBones)
-            return;
-
-        // Discover the collision geometry used for cloth simulation
-        var collisionGeom = CollisionGeometry.Find(bones);
-        collisionSpheresHead = collisionGeom.firstSphere;
-        collisionCylindersHead = collisionGeom.firstCylinder;
     }
 
     public void SetScale(float scale)
     {
-        this.scale = scale;
+        this.Scale = scale;
         if (scale <= 0.0f)
         {
-            scaleInv = 0.0f;
+            ScaleInv = 0.0f;
         }
         else
         {
-            scaleInv = 1.0f / scale;
+            ScaleInv = 1.0f / scale;
         }
     }
 
     public int GetBoneCount()
     {
-        return skeleton.Bones.Count;
+        return Skeleton.Bones.Count;
     }
 
     public string GetBoneName(int boneIdx)
     {
-        return skeleton.Bones[boneIdx].Name;
+        return Skeleton.Bones[boneIdx].Name;
     }
 
     public int GetBoneParentId(int boneIdx)
     {
-        return skeleton.Bones[boneIdx].ParentId;
+        return Skeleton.Bones[boneIdx].ParentId;
     }
 
     public void AddMesh(Mesh mesh, IMaterialResolver matResolver)
@@ -108,9 +104,9 @@ internal class AnimatedModel : IDisposable
         ResetSubmeshes();
 
         // If the skeleton has cloth bones, normalize the vertex bone weights
-        if (hasClothBones)
+        if (HasClothBones)
         {
-            mesh.RenormalizeClothVertices(clothBoneId);
+            mesh.RenormalizeClothVertices(ClothBoneId);
         }
 
         // Create a material group for every material in the SKM file and attach the SKM file to the group (in case a
@@ -130,40 +126,40 @@ internal class AnimatedModel : IDisposable
             }
         }
 
-        if (!hasClothBones)
+        if (!HasClothBones)
         {
             return;
         }
 
-        var cs1 = new AasClothStuff1(mesh, clothBoneId, collisionSpheresHead, collisionCylindersHead);
-        cloth_stuff1.Add(cs1);
+        var cs1 = new AasClothStuff1(mesh, ClothBoneId, CollisionSpheresHead, CollisionCylindersHead);
+        ClothStuff1.Add(cs1);
     }
 
     public void RemoveMesh(Mesh mesh)
     {
         ResetSubmeshes();
 
-        for (var i = submeshes.Count - 1; i >= 0; i--)
+        for (var i = Submeshes.Count - 1; i >= 0; i--)
         {
-            var submesh = submeshes[i];
+            var submesh = Submeshes[i];
             submesh.DetachMesh(mesh);
 
             // Remove the submesh if it has no attachments left
             if (!submesh.HasAttachedMeshes())
             {
-                submeshes.RemoveAt(i);
+                Submeshes.RemoveAt(i);
             }
         }
 
-        if (hasClothBones)
+        if (HasClothBones)
         {
-            for (int i = 0; i < cloth_stuff1.Count; i++)
+            for (int i = 0; i < ClothStuff1.Count; i++)
             {
-                var clothStuff = cloth_stuff1[i];
+                var clothStuff = ClothStuff1[i];
                 if (clothStuff.mesh == mesh)
                 {
                     clothStuff.Dispose();
-                    cloth_stuff1.RemoveAt(i);
+                    ClothStuff1.RemoveAt(i);
                     break;
                 }
             }
@@ -172,52 +168,52 @@ internal class AnimatedModel : IDisposable
 
     public void ResetSubmeshes()
     {
-        if (submeshesValid)
+        if (SubmeshesValid)
         {
-            foreach (var submesh in submeshes)
+            foreach (var submesh in Submeshes)
             {
                 submesh.ResetState();
             }
 
-            submeshesValid = false;
+            SubmeshesValid = false;
         }
     }
 
-    private static AasVertexState[] vertex_state = new AasVertexState[0x7FFF];
-    private static AasWorkSet[] workset = new AasWorkSet[0x47FF7];
+    private static AasVertexState[] _vertexState = new AasVertexState[0x7FFF];
+    private static AasWorkSet[] _workset = new AasWorkSet[0x47FF7];
 
-    private static SubmeshVertexClothStateWithFlag[] cloth_vertices_with_flag =
+    private static SubmeshVertexClothStateWithFlag[] _clothVerticesWithFlag =
         new SubmeshVertexClothStateWithFlag[0x7FFF];
 
-    private static SubmeshVertexClothStateWithoutFlag[] cloth_vertices_without_flag =
+    private static SubmeshVertexClothStateWithoutFlag[] _clothVerticesWithoutFlag =
         new SubmeshVertexClothStateWithoutFlag[0x7FFF];
 
-    private short[] vertex_idx_mapping = new short[0x7FFF];
-    private short[] prim_vert_idx = new short[0xFFFF * 3];
+    private short[] _vertexIdxMapping = new short[0x7FFF];
+    private short[] _primVertIdx = new short[0xFFFF * 3];
 
     public unsafe void Method11()
     {
         // Cached bone mappings for SKM file
-        Mesh bone_mapping_mesh = null;
-        Span<BoneMapping> bone_mapping = stackalloc BoneMapping[1024];
-        int used_ska_bone_count = 0; // Built by bone_mapping, may include gaps
-        Span<PosPair> pos_pairs = stackalloc PosPair[1024];
-        Span<SkaBoneAffectedCount> ska_bone_affected_count = stackalloc SkaBoneAffectedCount[1024];
+        Mesh boneMappingMesh = null;
+        Span<BoneMapping> boneMapping = stackalloc BoneMapping[1024];
+        int usedSkaBoneCount = 0; // Built by bone_mapping, may include gaps
+        Span<PosPair> posPairs = stackalloc PosPair[1024];
+        Span<SkaBoneAffectedCount> skaBoneAffectedCount = stackalloc SkaBoneAffectedCount[1024];
 
         // Mapping between index of vertex in SKM file, and index of vertex in submesh vertex array
-        Span<short> vertex_idx_mapping = this.vertex_idx_mapping;
-        Span<short> prim_vert_idx = this.prim_vert_idx; // 3 vertex indices per face
+        Span<short> vertexIdxMapping = this._vertexIdxMapping;
+        Span<short> primVertIdx = this._primVertIdx; // 3 vertex indices per face
 
-        int cloth_vertices_with_flag_count = 0;
-        int cloth_vertices_without_flag_count = 0;
+        int clothVerticesWithFlagCount = 0;
+        int clothVerticesWithoutFlagCount = 0;
 
-        foreach (var submesh in submeshes)
+        foreach (var submesh in Submeshes)
         {
-            int workset_count = 0;
+            int worksetCount = 0;
 
-            int primitive_count = 0; // Primarily used for indexing into prim_vert_idx
-            int vertex_count = 0;
-            int total_vertex_attachment_count = 0;
+            int primitiveCount = 0; // Primarily used for indexing into prim_vert_idx
+            int vertexCount = 0;
+            int totalVertexAttachmentCount = 0;
 
             foreach (var attachment in submesh.GetAttachedMeshes())
             {
@@ -226,33 +222,33 @@ internal class AnimatedModel : IDisposable
                 // Rebuild the bone maping if we're working on a new SKM file
                 // TODO: This is expensive and stupid since pairs of SKM/SKA files are reused all the time
                 // and the mapping between their bones is static
-                if (mesh != bone_mapping_mesh)
+                if (mesh != boneMappingMesh)
                 {
-                    used_ska_bone_count = BoneMapping.build_bone_mapping(bone_mapping, skeleton, mesh) + 1;
-                    bone_mapping_mesh = mesh;
+                    usedSkaBoneCount = BoneMapping.build_bone_mapping(boneMapping, Skeleton, mesh) + 1;
+                    boneMappingMesh = mesh;
                 }
 
                 // Find the cloth state (?) for the mesh
-                var matchingclothstuff1idx = cloth_stuff1.Count;
-                if (hasClothBones)
+                var matchingclothstuff1Idx = ClothStuff1.Count;
+                if (HasClothBones)
                 {
-                    for (int i = 0; i < cloth_stuff1.Count; i++)
+                    for (int i = 0; i < ClothStuff1.Count; i++)
                     {
-                        if (cloth_stuff1[i].mesh == mesh)
+                        if (ClothStuff1[i].mesh == mesh)
                         {
-                            matchingclothstuff1idx = i;
+                            matchingclothstuff1Idx = i;
                             break;
                         }
                     }
                 }
 
                 // Clear bone state
-                PosPair pos_pair = new PosPair(-1, -1);
-                pos_pairs.Slice(0, used_ska_bone_count).Fill(pos_pair);
-                ska_bone_affected_count.Fill(new SkaBoneAffectedCount());
+                PosPair posPair = new PosPair(-1, -1);
+                posPairs.Slice(0, usedSkaBoneCount).Fill(posPair);
+                skaBoneAffectedCount.Fill(new SkaBoneAffectedCount());
 
                 // Clear vertex idx mapping state
-                vertex_idx_mapping.Slice(0, mesh.Vertices.Length).Fill(-1);
+                vertexIdxMapping.Slice(0, mesh.Vertices.Length).Fill(-1);
 
                 Span<MeshVertex> vertices = mesh.Vertices;
 
@@ -264,89 +260,89 @@ internal class AnimatedModel : IDisposable
                         continue;
                     }
 
-                    var prim_vert_idx_out = primitive_count++ * 3;
+                    var primVertIdxOut = primitiveCount++ * 3;
 
                     Span<short> faceVertices = stackalloc short[3];
                     faceVertices[0] = face.Vertex1;
                     faceVertices[1] = face.Vertex2;
                     faceVertices[2] = face.Vertex3;
 
-                    foreach (var skm_vertex_idx in faceVertices)
+                    foreach (var skmVertexIdx in faceVertices)
                     {
-                        ref var vertex = ref vertices[skm_vertex_idx];
+                        ref var vertex = ref vertices[skmVertexIdx];
 
                         // Is it mapped for the submesh already, then reuse the existing vertex
-                        var mapped_idx = vertex_idx_mapping[skm_vertex_idx];
-                        if (mapped_idx != -1)
+                        var mappedIdx = vertexIdxMapping[skmVertexIdx];
+                        if (mappedIdx != -1)
                         {
-                            prim_vert_idx[prim_vert_idx_out++] = mapped_idx;
+                            primVertIdx[primVertIdxOut++] = mappedIdx;
                             continue;
                         }
 
                         // If it's not mapped already, we'll need to create the vertex
-                        mapped_idx = (short) vertex_count++;
-                        vertex_idx_mapping[skm_vertex_idx] = mapped_idx;
-                        prim_vert_idx[prim_vert_idx_out++] = mapped_idx;
-                        ref var cur_vertex_state = ref vertex_state[mapped_idx];
+                        mappedIdx = (short) vertexCount++;
+                        vertexIdxMapping[skmVertexIdx] = mappedIdx;
+                        primVertIdx[primVertIdxOut++] = mappedIdx;
+                        ref var curVertexState = ref _vertexState[mappedIdx];
 
                         // Handle the cloth state
-                        if (matchingclothstuff1idx < cloth_stuff1.Count)
+                        if (matchingclothstuff1Idx < ClothStuff1.Count)
                         {
-                            var cloth_state = cloth_stuff1[matchingclothstuff1idx];
+                            var clothState = ClothStuff1[matchingclothstuff1Idx];
 
                             // Find the current vertex in the cloth vertex list (slow...)
-                            for (short i = 0; i < cloth_state.clothVertexCount; i++)
+                            for (short i = 0; i < clothState.clothVertexCount; i++)
                             {
-                                if (cloth_state.vertexIdxForClothVertexIdx[i] == skm_vertex_idx)
+                                if (clothState.vertexIdxForClothVertexIdx[i] == skmVertexIdx)
                                 {
-                                    if (cloth_state.bytePerClothVertex[i] == 1)
+                                    if (clothState.bytePerClothVertex[i] == 1)
                                     {
-                                        cloth_vertices_with_flag[cloth_vertices_with_flag_count].cloth_stuff1 =
-                                            cloth_state;
-                                        cloth_vertices_with_flag[cloth_vertices_with_flag_count]
-                                            .submesh_vertex_idx = mapped_idx;
-                                        cloth_vertices_with_flag[cloth_vertices_with_flag_count]
+                                        _clothVerticesWithFlag[clothVerticesWithFlagCount].cloth_stuff1 =
+                                            clothState;
+                                        _clothVerticesWithFlag[clothVerticesWithFlagCount]
+                                            .submesh_vertex_idx = mappedIdx;
+                                        _clothVerticesWithFlag[clothVerticesWithFlagCount]
                                             .cloth_stuff_vertex_idx = i;
-                                        cloth_vertices_with_flag_count++;
+                                        clothVerticesWithFlagCount++;
                                     }
                                     else
                                     {
-                                        cloth_vertices_without_flag[cloth_vertices_without_flag_count]
-                                            .cloth_stuff1 = cloth_state;
-                                        cloth_vertices_without_flag[cloth_vertices_without_flag_count]
-                                            .submesh_vertex_idx = mapped_idx;
-                                        cloth_vertices_without_flag[cloth_vertices_without_flag_count]
+                                        _clothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
+                                            .cloth_stuff1 = clothState;
+                                        _clothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
+                                            .submesh_vertex_idx = mappedIdx;
+                                        _clothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
                                             .cloth_stuff_vertex_idx = i;
-                                        cloth_vertices_without_flag_count++;
+                                        clothVerticesWithoutFlagCount++;
                                     }
                                 }
                             }
                         }
 
                         // Deduplicate bone attachment ids and weights
-                        int vertex_bone_attach_count = 0;
-                        Span<float> vertex_bone_attach_weights = stackalloc float[6];
+                        int vertexBoneAttachCount = 0;
+                        Span<float> vertexBoneAttachWeights = stackalloc float[6];
                         Span<short>
-                            vertex_bone_attach_ska_ids =
+                            vertexBoneAttachSkaIds =
                                 stackalloc short[6]; // Attached bones mapped to SKA bone ids
-                        Span<Vector4> attachment_positions = stackalloc Vector4[6];
-                        Span<Vector4> attachment_normals = stackalloc Vector4[6];
+                        Span<Vector4> attachmentPositions = stackalloc Vector4[6];
+                        Span<Vector4> attachmentNormals = stackalloc Vector4[6];
 
-                        for (int attachment_idx = 0; attachment_idx < vertex.AttachmentCount; attachment_idx++)
+                        for (int attachmentIdx = 0; attachmentIdx < vertex.AttachmentCount; attachmentIdx++)
                         {
-                            var attachment_bone_mapping = bone_mapping[vertex.GetAttachmentBone(attachment_idx)];
-                            var attachment_skm_bone_idx =
-                                attachment_bone_mapping.skm_bone_idx; // even the SKM bone can be remapped...
-                            var attachment_ska_bone_idx = attachment_bone_mapping.ska_bone_idx;
-                            var attachment_weight = vertex.GetAttachmentWeight(attachment_idx);
+                            var attachmentBoneMapping = boneMapping[vertex.GetAttachmentBone(attachmentIdx)];
+                            var attachmentSkmBoneIdx =
+                                attachmentBoneMapping.skm_bone_idx; // even the SKM bone can be remapped...
+                            var attachmentSkaBoneIdx = attachmentBoneMapping.ska_bone_idx;
+                            var attachmentWeight = vertex.GetAttachmentWeight(attachmentIdx);
 
                             // Check if for this particular vertex, the same SKA bone has already been used for an attachment
                             bool found = false;
-                            for (int i = 0; i < vertex_bone_attach_count; i++)
+                            for (int i = 0; i < vertexBoneAttachCount; i++)
                             {
-                                if (vertex_bone_attach_ska_ids[i] == attachment_ska_bone_idx)
+                                if (vertexBoneAttachSkaIds[i] == attachmentSkaBoneIdx)
                                 {
-                                    vertex_bone_attach_weights[i] += attachment_weight;
+                                    vertexBoneAttachWeights[i] += attachmentWeight;
                                     found = true;
                                     break;
                                 }
@@ -358,235 +354,235 @@ internal class AnimatedModel : IDisposable
                                 continue;
                             }
 
-                            var attachment_idx_out = vertex_bone_attach_count++;
-                            ref var attachment_position = ref attachment_positions[attachment_idx_out];
-                            ref var attachment_normal = ref attachment_normals[attachment_idx_out];
+                            var attachmentIdxOut = vertexBoneAttachCount++;
+                            ref var attachmentPosition = ref attachmentPositions[attachmentIdxOut];
+                            ref var attachmentNormal = ref attachmentNormals[attachmentIdxOut];
 
-                            vertex_bone_attach_ska_ids[attachment_idx_out] = attachment_ska_bone_idx;
-                            vertex_bone_attach_weights[attachment_idx_out] = attachment_weight;
+                            vertexBoneAttachSkaIds[attachmentIdxOut] = attachmentSkaBoneIdx;
+                            vertexBoneAttachWeights[attachmentIdxOut] = attachmentWeight;
 
                             // Start out with the actual vertex position in model world space
-                            attachment_position = vertex.Pos;
-                            attachment_position.W = 1; // W component for mesh vertices is wrong
-                            attachment_normal = vertex.Normal;
+                            attachmentPosition = vertex.Pos;
+                            attachmentPosition.W = 1; // W component for mesh vertices is wrong
+                            attachmentNormal = vertex.Normal;
 
                             // It's possible that the vertex has an assignment, but the assignment's bone is not present in the SKA file,
                             // so the SKM bone also get's mapped to -1 in case no parent bone can be used
-                            if (attachment_skm_bone_idx >= 0)
+                            if (attachmentSkmBoneIdx >= 0)
                             {
-                                var skm_bone = mesh.Bones[attachment_skm_bone_idx];
+                                var skmBone = mesh.Bones[attachmentSkmBoneIdx];
 
                                 // Transform the vertex position into the bone's local vector space
-                                attachment_position =
-                                    Vector4.Transform(attachment_position, skm_bone.FullWorldInverse);
-                                attachment_normal = Vector4.Transform(attachment_normal, skm_bone.FullWorldInverse);
+                                attachmentPosition =
+                                    Vector4.Transform(attachmentPosition, skmBone.FullWorldInverse);
+                                attachmentNormal = Vector4.Transform(attachmentNormal, skmBone.FullWorldInverse);
                             }
 
                             // NOTE: ToEE computed bounding boxes for each bone here, but it didn't seem to be used
                         }
 
                         // If the vertex has no bone attachments, simply use the vertex position with a weight of 1.0
-                        if (vertex_bone_attach_count == 0)
+                        if (vertexBoneAttachCount == 0)
                         {
-                            vertex_bone_attach_weights[0] = 1.0f;
-                            vertex_bone_attach_ska_ids[0] = -1;
-                            attachment_positions[0] = vertex.Pos;
-                            attachment_normals[0] = vertex.Normal;
-                            vertex_bone_attach_count = 1;
+                            vertexBoneAttachWeights[0] = 1.0f;
+                            vertexBoneAttachSkaIds[0] = -1;
+                            attachmentPositions[0] = vertex.Pos;
+                            attachmentNormals[0] = vertex.Normal;
+                            vertexBoneAttachCount = 1;
                         }
 
                         // Now convert from the temporary state to the linearized list of vertex positions
-                        cur_vertex_state.count = (short) vertex_bone_attach_count;
-                        cur_vertex_state.uv = vertex.UV;
-                        total_vertex_attachment_count += vertex_bone_attach_count;
-                        for (int i = 0; i < vertex_bone_attach_count; i++)
+                        curVertexState.count = (short) vertexBoneAttachCount;
+                        curVertexState.uv = vertex.UV;
+                        totalVertexAttachmentCount += vertexBoneAttachCount;
+                        for (int i = 0; i < vertexBoneAttachCount; i++)
                         {
-                            var weight = vertex_bone_attach_weights[i];
-                            var ska_bone_idx = vertex_bone_attach_ska_ids[i];
-                            var bone_matrix_idx = ska_bone_idx + 1;
-                            cur_vertex_state.array1[i] = (short) bone_matrix_idx;
+                            var weight = vertexBoneAttachWeights[i];
+                            var skaBoneIdx = vertexBoneAttachSkaIds[i];
+                            var boneMatrixIdx = skaBoneIdx + 1;
+                            curVertexState.array1[i] = (short) boneMatrixIdx;
 
-                            Vector4 weighted_pos = new Vector4(
-                                weight * attachment_positions[i].X,
-                                weight * attachment_positions[i].Y,
-                                weight * attachment_positions[i].Z,
+                            Vector4 weightedPos = new Vector4(
+                                weight * attachmentPositions[i].X,
+                                weight * attachmentPositions[i].Y,
+                                weight * attachmentPositions[i].Z,
                                 1
                             );
-                            cur_vertex_state.array2[i] = (short) AasWorkSet.workset_add(workset,
-                                ref workset_count,
-                                weighted_pos,
+                            curVertexState.array2[i] = (short) AasWorkSet.workset_add(_workset,
+                                ref worksetCount,
+                                weightedPos,
                                 weight,
-                                ref pos_pairs[bone_matrix_idx].first_position_idx,
-                                ref ska_bone_affected_count[bone_matrix_idx].pos_count
+                                ref posPairs[boneMatrixIdx].first_position_idx,
+                                ref skaBoneAffectedCount[boneMatrixIdx].pos_count
                             );
 
-                            Vector4 weighted_normal = new Vector4(
-                                weight * attachment_normals[i].X,
-                                weight * attachment_normals[i].Y,
-                                weight * attachment_normals[i].Z,
+                            Vector4 weightedNormal = new Vector4(
+                                weight * attachmentNormals[i].X,
+                                weight * attachmentNormals[i].Y,
+                                weight * attachmentNormals[i].Z,
                                 0
                             );
-                            cur_vertex_state.array3[i] = (short) AasWorkSet.workset_add(workset,
-                                ref workset_count,
-                                weighted_normal,
+                            curVertexState.array3[i] = (short) AasWorkSet.workset_add(_workset,
+                                ref worksetCount,
+                                weightedNormal,
                                 0.0f,
-                                ref pos_pairs[bone_matrix_idx].first_normal_idx,
-                                ref ska_bone_affected_count[bone_matrix_idx].normals_count
+                                ref posPairs[boneMatrixIdx].first_normal_idx,
+                                ref skaBoneAffectedCount[boneMatrixIdx].normals_count
                             );
                         }
                     }
                 }
             }
 
-            if (hasClothBones)
+            if (HasClothBones)
             {
-                submesh.cloth_vertices_without_flag = cloth_vertices_without_flag
-                    .AsSpan(0, cloth_vertices_without_flag_count)
+                submesh.cloth_vertices_without_flag = _clothVerticesWithoutFlag
+                    .AsSpan(0, clothVerticesWithoutFlagCount)
                     .ToArray();
-                cloth_vertices_without_flag_count = 0;
+                clothVerticesWithoutFlagCount = 0;
 
-                submesh.cloth_vertices_with_flag = cloth_vertices_with_flag
-                    .AsSpan(0, cloth_vertices_with_flag_count)
+                submesh.cloth_vertices_with_flag = _clothVerticesWithFlag
+                    .AsSpan(0, clothVerticesWithFlagCount)
                     .ToArray();
-                cloth_vertices_with_flag_count = 0;
+                clothVerticesWithFlagCount = 0;
             }
 
-            submesh.vertexCount = (ushort) vertex_count;
-            submesh.primCount = (ushort) primitive_count;
-            submesh.bone_elem_counts = new BoneElementCount[used_ska_bone_count];
+            submesh.vertexCount = (ushort) vertexCount;
+            submesh.primCount = (ushort) primitiveCount;
+            submesh.bone_elem_counts = new BoneElementCount[usedSkaBoneCount];
 
-            int cur_float_offset = 0;
-            int cur_vec_offset = 0;
-            for (int i = 0; i < used_ska_bone_count; i++)
+            int curFloatOffset = 0;
+            int curVecOffset = 0;
+            for (int i = 0; i < usedSkaBoneCount; i++)
             {
-                ref var affected_count = ref ska_bone_affected_count[i];
-                var pos_count = affected_count.pos_count;
-                var normals_count = affected_count.normals_count;
-                submesh.bone_elem_counts[i].position_count = (short) pos_count;
-                submesh.bone_elem_counts[i].normal_count = (short) normals_count;
+                ref var affectedCount = ref skaBoneAffectedCount[i];
+                var posCount = affectedCount.pos_count;
+                var normalsCount = affectedCount.normals_count;
+                submesh.bone_elem_counts[i].position_count = (short) posCount;
+                submesh.bone_elem_counts[i].normal_count = (short) normalsCount;
 
-                affected_count.pos_float_start = cur_float_offset;
-                affected_count.pos_vec_start = cur_vec_offset;
-                cur_float_offset += 4 * pos_count;
-                cur_vec_offset += pos_count;
+                affectedCount.pos_float_start = curFloatOffset;
+                affectedCount.pos_vec_start = curVecOffset;
+                curFloatOffset += 4 * posCount;
+                curVecOffset += posCount;
 
-                affected_count.normals_float_start = cur_float_offset;
-                affected_count.normals_vec_start = cur_vec_offset;
-                cur_float_offset += 3 * normals_count;
-                cur_vec_offset += normals_count;
+                affectedCount.normals_float_start = curFloatOffset;
+                affectedCount.normals_vec_start = curVecOffset;
+                curFloatOffset += 3 * normalsCount;
+                curVecOffset += normalsCount;
             }
 
-            submesh.bone_floats_count = (ushort) cur_float_offset;
-            submesh.bone_floats = new float[cur_float_offset];
+            submesh.bone_floats_count = (ushort) curFloatOffset;
+            submesh.bone_floats = new float[curFloatOffset];
 
-            for (int i = 0; i < used_ska_bone_count; i++)
+            for (int i = 0; i < usedSkaBoneCount; i++)
             {
-                ref var affected_count = ref ska_bone_affected_count[i];
+                ref var affectedCount = ref skaBoneAffectedCount[i];
 
                 // Copy over all positions to the float buffer
-                var scratch_idx = pos_pairs[i].first_position_idx;
-                var float_out = submesh.bone_floats.AsSpan(affected_count.pos_float_start);
+                var scratchIdx = posPairs[i].first_position_idx;
+                var floatOut = submesh.bone_floats.AsSpan(affectedCount.pos_float_start);
                 var offset = 0;
-                while (scratch_idx != -1)
+                while (scratchIdx != -1)
                 {
-                    float_out[offset++] = workset[scratch_idx].vector.X;
-                    float_out[offset++] = workset[scratch_idx].vector.Y;
-                    float_out[offset++] = workset[scratch_idx].vector.Z;
-                    float_out[offset++] = workset[scratch_idx].weight;
+                    floatOut[offset++] = _workset[scratchIdx].vector.X;
+                    floatOut[offset++] = _workset[scratchIdx].vector.Y;
+                    floatOut[offset++] = _workset[scratchIdx].vector.Z;
+                    floatOut[offset++] = _workset[scratchIdx].weight;
 
-                    scratch_idx = workset[scratch_idx].next;
+                    scratchIdx = _workset[scratchIdx].next;
                 }
 
                 // Copy over all normals to the float buffer
-                scratch_idx = pos_pairs[i].first_normal_idx;
-                float_out = submesh.bone_floats.AsSpan(affected_count.normals_float_start);
+                scratchIdx = posPairs[i].first_normal_idx;
+                floatOut = submesh.bone_floats.AsSpan(affectedCount.normals_float_start);
 
                 offset = 0;
-                while (scratch_idx != -1)
+                while (scratchIdx != -1)
                 {
-                    float_out[offset++] = workset[scratch_idx].vector.X;
-                    float_out[offset++] = workset[scratch_idx].vector.Y;
-                    float_out[offset++] = workset[scratch_idx].vector.Z;
+                    floatOut[offset++] = _workset[scratchIdx].vector.X;
+                    floatOut[offset++] = _workset[scratchIdx].vector.Y;
+                    floatOut[offset++] = _workset[scratchIdx].vector.Z;
 
-                    scratch_idx = workset[scratch_idx].next;
+                    scratchIdx = _workset[scratchIdx].next;
                 }
             }
 
-            submesh.positions = new Vector4[vertex_count];
-            submesh.normals = new Vector4[vertex_count];
-            submesh.vertex_copy_positions = new short[2 * total_vertex_attachment_count + 1];
-            submesh.uv = new Vector2[vertex_count];
+            submesh.positions = new Vector4[vertexCount];
+            submesh.normals = new Vector4[vertexCount];
+            submesh.vertex_copy_positions = new short[2 * totalVertexAttachmentCount + 1];
+            submesh.uv = new Vector2[vertexCount];
 
-            Span<short> cur_vertex_copy_pos_out = submesh.vertex_copy_positions;
+            Span<short> curVertexCopyPosOut = submesh.vertex_copy_positions;
             var idxOffset = 0;
-            for (int i = 0; i < vertex_count; i++)
+            for (int i = 0; i < vertexCount; i++)
             {
-                ref var cur_vertex_state = ref vertex_state[i];
-                submesh.uv[i].X = cur_vertex_state.uv.X;
-                submesh.uv[i].Y = 1.0f - cur_vertex_state.uv.Y;
+                ref var curVertexState = ref _vertexState[i];
+                submesh.uv[i].X = curVertexState.uv.X;
+                submesh.uv[i].Y = 1.0f - curVertexState.uv.Y;
 
-                for (int j = 0; j < cur_vertex_state.count; j++)
+                for (int j = 0; j < curVertexState.count; j++)
                 {
                     // TODO: Is this the "target" position in the positions array?
-                    var x = ska_bone_affected_count[cur_vertex_state.array1[j]].pos_vec_start +
-                            cur_vertex_state.array2[j];
+                    var x = skaBoneAffectedCount[curVertexState.array1[j]].pos_vec_start +
+                            curVertexState.array2[j];
                     if (j == 0)
                     {
                         x = -1 - x;
                     }
 
-                    cur_vertex_copy_pos_out[idxOffset++] = (short) x;
+                    curVertexCopyPosOut[idxOffset++] = (short) x;
                 }
 
-                for (int j = 0; j < cur_vertex_state.count; j++)
+                for (int j = 0; j < curVertexState.count; j++)
                 {
                     // TODO: Is this the "target" position in the positions array?
-                    var x = ska_bone_affected_count[cur_vertex_state.array1[j]].normals_vec_start +
-                            cur_vertex_state.array3[j];
+                    var x = skaBoneAffectedCount[curVertexState.array1[j]].normals_vec_start +
+                            curVertexState.array3[j];
                     if (j == 0)
                     {
                         x = -1 - x;
                     }
 
-                    cur_vertex_copy_pos_out[idxOffset++] = (short) x;
+                    curVertexCopyPosOut[idxOffset++] = (short) x;
                 }
             }
 
-            cur_vertex_copy_pos_out[idxOffset] = short.MinValue;
+            curVertexCopyPosOut[idxOffset] = short.MinValue;
 
             // This will actually flip the indices. Weird.
-            submesh.indices = new ushort[3 * primitive_count];
-            int indices_idx = 0;
-            for (int i = 0; i < primitive_count; i++)
+            submesh.indices = new ushort[3 * primitiveCount];
+            int indicesIdx = 0;
+            for (int i = 0; i < primitiveCount; i++)
             {
-                submesh.indices[indices_idx] = (ushort) prim_vert_idx[indices_idx + 2];
-                submesh.indices[indices_idx + 1] = (ushort) prim_vert_idx[indices_idx + 1];
-                submesh.indices[indices_idx + 2] = (ushort) prim_vert_idx[indices_idx];
-                indices_idx += 3;
+                submesh.indices[indicesIdx] = (ushort) primVertIdx[indicesIdx + 2];
+                submesh.indices[indicesIdx + 1] = (ushort) primVertIdx[indicesIdx + 1];
+                submesh.indices[indicesIdx + 2] = (ushort) primVertIdx[indicesIdx];
+                indicesIdx += 3;
             }
 
             submesh.fullyInitialized = true;
         }
 
-        submeshesValid = true;
+        SubmeshesValid = true;
     }
 
     public void SetClothFlagSth()
     {
-        if (hasClothBones)
+        if (HasClothBones)
         {
-            if (!submeshesValid)
+            if (!SubmeshesValid)
             {
                 Method11();
             }
 
-            foreach (var submesh in submeshes)
+            foreach (var submesh in Submeshes)
             {
                 for (int i = 0; i < submesh.cloth_vertices_without_flag.Length; i++)
                 {
-                    ref var vertex_cloth_state = ref submesh.cloth_vertices_without_flag[i];
-                    var vertex_idx = vertex_cloth_state.cloth_stuff_vertex_idx;
-                    vertex_cloth_state.cloth_stuff1.bytePerClothVertex2[vertex_idx] = 1;
+                    ref var vertexClothState = ref submesh.cloth_vertices_without_flag[i];
+                    var vertexIdx = vertexClothState.cloth_stuff_vertex_idx;
+                    vertexClothState.cloth_stuff1.bytePerClothVertex2[vertexIdx] = 1;
                 }
             }
         }
@@ -594,9 +590,9 @@ internal class AnimatedModel : IDisposable
 
     public List<AasMaterial> GetSubmeshes()
     {
-        List<AasMaterial> result = new List<AasMaterial>(submeshes.Count);
+        List<AasMaterial> result = new List<AasMaterial>(Submeshes.Count);
 
-        foreach (var submesh in submeshes)
+        foreach (var submesh in Submeshes)
         {
             result.Add(submesh.materialId);
         }
@@ -611,7 +607,7 @@ internal class AnimatedModel : IDisposable
 
     public bool HasAnimation(ReadOnlySpan<char> animName)
     {
-        return skeleton?.FindAnimByName(new string(animName)) != null;
+        return Skeleton?.FindAnimByName(new string(animName)) != null;
     }
 
     public void PlayAnim(int animIdx)
@@ -624,21 +620,21 @@ internal class AnimatedModel : IDisposable
 
     public void Advance(in Matrix3x4 worldMatrix, float deltaTime, float deltaDistance, float deltaRotation)
     {
-        drivenTime += deltaTime;
-        timeForClothSim += deltaTime;
-        drivenDistance += deltaDistance;
-        drivenRotation += deltaRotation;
-        this.worldMatrix = worldMatrix;
+        DrivenTime += deltaTime;
+        TimeForClothSim += deltaTime;
+        DrivenDistance += deltaDistance;
+        DrivenRotation += deltaRotation;
+        this.WorldMatrix = worldMatrix;
 
-        var anim_player = runningAnimsHead;
-        while (anim_player != null)
+        var animPlayer = RunningAnimsHead;
+        while (animPlayer != null)
         {
-            var next = anim_player.nextRunningAnim;
-            anim_player.FadeInOrOut(deltaTime);
-            anim_player = next;
+            var next = animPlayer.nextRunningAnim;
+            animPlayer.FadeInOrOut(deltaTime);
+            animPlayer = next;
         }
 
-        var anim = newestRunningAnim;
+        var anim = NewestRunningAnim;
         if (anim != null)
         {
             anim.EnterEventHandling();
@@ -651,24 +647,24 @@ internal class AnimatedModel : IDisposable
 
     public void SetWorldMatrix(in Matrix3x4 worldMatrix)
     {
-        this.worldMatrix = worldMatrix;
+        this.WorldMatrix = worldMatrix;
     }
 
     // Originally @ 0x102682a0 (maybe "SetBoneMatrices")
     public void Method19()
     {
-        if (drivenTime <= 0.0f && drivenDistance <= 0.0f && drivenRotation <= 0.0f &&
-            currentWorldMatrix == worldMatrix)
+        if (DrivenTime <= 0.0f && DrivenDistance <= 0.0f && DrivenRotation <= 0.0f &&
+            CurrentWorldMatrix == WorldMatrix)
         {
             return;
         }
 
         // Build the effective translation/scale/rotation for each bone of the animated skeleton
         Span<SkelBoneState> boneState = stackalloc SkelBoneState[1024];
-        var bones = skeleton.Bones;
+        var bones = Skeleton.Bones;
 
-        var running_anim = runningAnimsHead;
-        if (running_anim == null || running_anim.weight != 1.0f || running_anim.fadingSpeed < 0.0)
+        var runningAnim = RunningAnimsHead;
+        if (runningAnim == null || runningAnim.weight != 1.0f || runningAnim.fadingSpeed < 0.0)
         {
             for (int i = 0; i < bones.Count; i++)
             {
@@ -676,26 +672,26 @@ internal class AnimatedModel : IDisposable
             }
         }
 
-        while (running_anim != null)
+        while (runningAnim != null)
         {
-            var next_running_anim = running_anim.nextRunningAnim;
+            var nextRunningAnim = runningAnim.nextRunningAnim;
 
-            running_anim.method6(boneState, drivenTime, drivenDistance, drivenRotation);
+            runningAnim.method6(boneState, DrivenTime, DrivenDistance, DrivenRotation);
 
-            CleanupAnimations(running_anim);
+            CleanupAnimations(runningAnim);
 
-            running_anim = next_running_anim;
+            runningAnim = nextRunningAnim;
         }
 
-        var scaleMat = Matrix3x4.scaleMatrix(scale, scale, scale);
-        boneMatrices[0] = Matrix3x4.multiplyMatrix3x3_3x4(scaleMat, worldMatrix);
+        var scaleMat = Matrix3x4.scaleMatrix(Scale, Scale, Scale);
+        BoneMatrices[0] = Matrix3x4.multiplyMatrix3x3_3x4(scaleMat, WorldMatrix);
 
         for (int i = 0; i < bones.Count; i++)
         {
             var rotation = Matrix3x4.rotationMatrix(boneState[i].Rotation);
             var scale = Matrix3x4.scaleMatrix(boneState[i].Scale.X, boneState[i].Scale.Y, boneState[i].Scale.Z);
 
-            ref var boneMatrix = ref boneMatrices[1 + i];
+            ref var boneMatrix = ref BoneMatrices[1 + i];
             boneMatrix = Matrix3x4.multiplyMatrix3x3(scale, rotation);
             boneMatrix.m03 = 0;
             boneMatrix.m13 = 0;
@@ -704,25 +700,25 @@ internal class AnimatedModel : IDisposable
             var parentId = bones[i].ParentId;
             if (parentId >= 0)
             {
-                var parent_scale = boneState[parentId].Scale;
-                var parent_scale_mat = Matrix3x4.scaleMatrix(1.0f / parent_scale.X, 1.0f / parent_scale.Y,
-                    1.0f / parent_scale.Z);
-                boneMatrix = Matrix3x4.multiplyMatrix3x4_3x3(boneMatrix, parent_scale_mat);
+                var parentScale = boneState[parentId].Scale;
+                var parentScaleMat = Matrix3x4.scaleMatrix(1.0f / parentScale.X, 1.0f / parentScale.Y,
+                    1.0f / parentScale.Z);
+                boneMatrix = Matrix3x4.multiplyMatrix3x4_3x3(boneMatrix, parentScaleMat);
             }
 
             var translation = Matrix3x4.translationMatrix(boneState[i].Translation.X,
                 boneState[i].Translation.Y,
                 boneState[i].Translation.Z);
             boneMatrix = Matrix3x4.multiplyMatrix3x4(boneMatrix,
-                Matrix3x4.multiplyMatrix3x4(translation, boneMatrices[1 + parentId]));
+                Matrix3x4.multiplyMatrix3x4(translation, BoneMatrices[1 + parentId]));
         }
 
-        drivenTime = 0;
-        drivenDistance = 0;
-        drivenRotation = 0;
-        currentWorldMatrix = worldMatrix;
+        DrivenTime = 0;
+        DrivenDistance = 0;
+        DrivenRotation = 0;
+        CurrentWorldMatrix = WorldMatrix;
 
-        foreach (var submesh in submeshes)
+        foreach (var submesh in Submeshes)
         {
             submesh.fullyInitialized = true;
         }
@@ -730,7 +726,7 @@ internal class AnimatedModel : IDisposable
 
     public void SetTime(float time, in Matrix3x4 worldMatrix)
     {
-        var player = runningAnimsHead;
+        var player = RunningAnimsHead;
         while (player != null)
         {
             var next = player.nextRunningAnim;
@@ -754,7 +750,7 @@ internal class AnimatedModel : IDisposable
 
     public float GetCurrentFrame()
     {
-        var player = runningAnimsHead;
+        var player = RunningAnimsHead;
         if (player != null)
         {
             while (player.nextRunningAnim != null)
@@ -767,11 +763,11 @@ internal class AnimatedModel : IDisposable
         }
     }
 
-    private static readonly Vector4[] vectors = new Vector4[0x5FFF6];
+    private static readonly Vector4[] Vectors = new Vector4[0x5FFF6];
 
     public ISubmesh GetSubmesh(int submeshIdx)
     {
-        if (submeshIdx < 0 || submeshIdx >= (int) submeshes.Count)
+        if (submeshIdx < 0 || submeshIdx >= (int) Submeshes.Count)
         {
             return new SubmeshAdapter(
                 0,
@@ -783,88 +779,88 @@ internal class AnimatedModel : IDisposable
             );
         }
 
-        if (!submeshesValid)
+        if (!SubmeshesValid)
         {
             Method11();
         }
 
-        var submesh = submeshes[submeshIdx];
+        var submesh = Submeshes[submeshIdx];
 
         Method19();
 
         if (submesh.fullyInitialized)
         {
-            var vec_out = 0;
+            var vecOut = 0;
 
             // The cur_pos "w" component is (in reality) the attachment weight
-            ReadOnlySpan<float> bone_floats = submesh.bone_floats;
-            var cur_float_in = 0;
-            var bones = skeleton.Bones;
+            ReadOnlySpan<float> boneFloats = submesh.bone_floats;
+            var curFloatIn = 0;
+            var bones = Skeleton.Bones;
 
-            for (short bone_idx = 0; bone_idx <= bones.Count; bone_idx++)
+            for (short boneIdx = 0; boneIdx <= bones.Count; boneIdx++)
             {
-                Matrix3x4 bone_matrix = boneMatrices[bone_idx];
+                Matrix3x4 boneMatrix = BoneMatrices[boneIdx];
 
-                var elem_counts = submesh.bone_elem_counts[bone_idx];
+                var elemCounts = submesh.bone_elem_counts[boneIdx];
 
-                for (int i = 0; i < elem_counts.position_count; i++)
+                for (int i = 0; i < elemCounts.position_count; i++)
                 {
-                    var x = bone_floats[cur_float_in++];
-                    var y = bone_floats[cur_float_in++];
-                    var z = bone_floats[cur_float_in++];
-                    var weight = bone_floats[cur_float_in++];
-                    vectors[vec_out].X = x * bone_matrix.m00 + y * bone_matrix.m01 + z * bone_matrix.m02 +
-                                         weight * bone_matrix.m03;
-                    vectors[vec_out].Y = x * bone_matrix.m10 + y * bone_matrix.m11 + z * bone_matrix.m12 +
-                                         weight * bone_matrix.m13;
-                    vectors[vec_out].Z = x * bone_matrix.m20 + y * bone_matrix.m21 + z * bone_matrix.m22 +
-                                         weight * bone_matrix.m23;
-                    vec_out++;
+                    var x = boneFloats[curFloatIn++];
+                    var y = boneFloats[curFloatIn++];
+                    var z = boneFloats[curFloatIn++];
+                    var weight = boneFloats[curFloatIn++];
+                    Vectors[vecOut].X = x * boneMatrix.m00 + y * boneMatrix.m01 + z * boneMatrix.m02 +
+                                         weight * boneMatrix.m03;
+                    Vectors[vecOut].Y = x * boneMatrix.m10 + y * boneMatrix.m11 + z * boneMatrix.m12 +
+                                         weight * boneMatrix.m13;
+                    Vectors[vecOut].Z = x * boneMatrix.m20 + y * boneMatrix.m21 + z * boneMatrix.m22 +
+                                         weight * boneMatrix.m23;
+                    vecOut++;
                 }
 
-                for (int i = 0; i < elem_counts.normal_count; i++)
+                for (int i = 0; i < elemCounts.normal_count; i++)
                 {
-                    var x = bone_floats[cur_float_in++];
-                    var y = bone_floats[cur_float_in++];
-                    var z = bone_floats[cur_float_in++];
-                    vectors[vec_out].X = x * bone_matrix.m00 + y * bone_matrix.m01 + z * bone_matrix.m02;
-                    vectors[vec_out].Y = x * bone_matrix.m10 + y * bone_matrix.m11 + z * bone_matrix.m12;
-                    vectors[vec_out].Z = x * bone_matrix.m20 + y * bone_matrix.m21 + z * bone_matrix.m22;
-                    vec_out++;
+                    var x = boneFloats[curFloatIn++];
+                    var y = boneFloats[curFloatIn++];
+                    var z = boneFloats[curFloatIn++];
+                    Vectors[vecOut].X = x * boneMatrix.m00 + y * boneMatrix.m01 + z * boneMatrix.m02;
+                    Vectors[vecOut].Y = x * boneMatrix.m10 + y * boneMatrix.m11 + z * boneMatrix.m12;
+                    Vectors[vecOut].Z = x * boneMatrix.m20 + y * boneMatrix.m21 + z * boneMatrix.m22;
+                    vecOut++;
                 }
             }
 
             if (submesh.vertexCount > 0)
             {
-                Span<Vector4> positions_out = submesh.positions;
-                Span<Vector4> normals_out = submesh.normals;
-                var position_out = 0;
-                var normal_out = 0;
-                ReadOnlySpan<short> vertex_copy_positions = submesh.vertex_copy_positions;
+                Span<Vector4> positionsOut = submesh.positions;
+                Span<Vector4> normalsOut = submesh.normals;
+                var positionOut = 0;
+                var normalOut = 0;
+                ReadOnlySpan<short> vertexCopyPositions = submesh.vertex_copy_positions;
                 var j = 0;
-                var v49 = vectors[-(vertex_copy_positions[j] + 1)];
+                var v49 = Vectors[-(vertexCopyPositions[j] + 1)];
                 j++;
                 while (true)
                 {
-                    positions_out[position_out] = v49;
-                    var v51 = vertex_copy_positions[j];
-                    for (j = j + 1; v51 >= 0; v51 = vertex_copy_positions[j - 1])
+                    positionsOut[positionOut] = v49;
+                    var v51 = vertexCopyPositions[j];
+                    for (j = j + 1; v51 >= 0; v51 = vertexCopyPositions[j - 1])
                     {
-                        ref var v53 = ref vectors[v51];
+                        ref var v53 = ref Vectors[v51];
                         ++j;
-                        ref var position = ref positions_out[position_out];
+                        ref var position = ref positionsOut[positionOut];
                         position.X += v53.X;
                         position.Y += v53.Y;
                         position.Z += v53.Z;
                     }
 
-                    normals_out[normal_out] = vectors[-(v51 + 1)];
-                    var v55 = vertex_copy_positions[j];
-                    for (j = j + 1; v55 >= 0; v55 = vertex_copy_positions[j - 1])
+                    normalsOut[normalOut] = Vectors[-(v51 + 1)];
+                    var v55 = vertexCopyPositions[j];
+                    for (j = j + 1; v55 >= 0; v55 = vertexCopyPositions[j - 1])
                     {
-                        ref var v56 = ref vectors[v55];
+                        ref var v56 = ref Vectors[v55];
                         ++j;
-                        ref var normal = ref normals_out[normal_out];
+                        ref var normal = ref normalsOut[normalOut];
                         normal.X += v56.X;
                         normal.Y += v56.Y;
                         normal.Z += v56.Z;
@@ -872,14 +868,14 @@ internal class AnimatedModel : IDisposable
 
                     if (v55 == -32768)
                         break;
-                    ++position_out;
-                    ++normal_out;
-                    v49 = vectors[-(v55 + 1)];
+                    ++positionOut;
+                    ++normalOut;
+                    v49 = Vectors[-(v55 + 1)];
                 }
             }
 
             // Renormalize the normals if necessary
-            if (scale != 1.0f)
+            if (Scale != 1.0f)
             {
                 Span<Vector4> normals = submesh.normals;
                 for (int i = 0; i < submesh.vertexCount; i++)
@@ -888,14 +884,14 @@ internal class AnimatedModel : IDisposable
                 }
             }
 
-            if (hasClothBones)
+            if (HasClothBones)
             {
-                var inverseSomeMatrix = Matrix3x4.invertOrthogonalAffineTransform(currentWorldMatrix);
+                var inverseSomeMatrix = Matrix3x4.invertOrthogonalAffineTransform(CurrentWorldMatrix);
 
-                for (var sphere = collisionSpheresHead; sphere != null; sphere = sphere.next)
+                for (var sphere = CollisionSpheresHead; sphere != null; sphere = sphere.next)
                 {
                     Method19();
-                    var boneMatrix = boneMatrices[sphere.boneId + 1];
+                    var boneMatrix = BoneMatrices[sphere.boneId + 1];
                     Matrix3x4.makeMatrixOrthogonal(ref boneMatrix);
 
                     var boneMult = Matrix3x4.multiplyMatrix3x4(boneMatrix, inverseSomeMatrix);
@@ -903,10 +899,10 @@ internal class AnimatedModel : IDisposable
                     sphere.worldMatrixInverse = Matrix3x4.invertOrthogonalAffineTransform(boneMult);
                 }
 
-                for (var cylinder = collisionCylindersHead; cylinder != null; cylinder = cylinder.next)
+                for (var cylinder = CollisionCylindersHead; cylinder != null; cylinder = cylinder.next)
                 {
                     Method19();
-                    var boneMatrix = boneMatrices[cylinder.boneId + 1];
+                    var boneMatrix = BoneMatrices[cylinder.boneId + 1];
                     Matrix3x4.makeMatrixOrthogonal(ref boneMatrix);
 
                     var boneMult = Matrix3x4.multiplyMatrix3x4(boneMatrix, inverseSomeMatrix);
@@ -922,7 +918,7 @@ internal class AnimatedModel : IDisposable
                     positions[state.cloth_stuff_vertex_idx] = Matrix3x4.transformPosition(inverseSomeMatrix, pos);
                 }
 
-                foreach (var stuff1 in cloth_stuff1)
+                foreach (var stuff1 in ClothStuff1)
                 {
                     if (stuff1.field_18 != 0)
                     {
@@ -931,42 +927,42 @@ internal class AnimatedModel : IDisposable
                     }
                 }
 
-                if (timeForClothSim > 0.0)
+                if (TimeForClothSim > 0.0)
                 {
-                    foreach (var stuff1 in cloth_stuff1)
+                    foreach (var stuff1 in ClothStuff1)
                     {
-                        stuff1.clothStuff.Simulate(timeForClothSim);
+                        stuff1.clothStuff.Simulate(TimeForClothSim);
                         //static var aas_cloth_stuff_sim_maybe = temple::GetPointer<void __fastcall(AasClothStuff*, void*, float)>(0x10269d50);
                         //aas_cloth_stuff_sim_maybe(cloth_stuff1[i].clothStuff, 0, timeForClothSim);
                     }
 
-                    timeForClothSim = 0.0f;
+                    TimeForClothSim = 0.0f;
                 }
 
-                Matrix4x4.Invert(currentWorldMatrix, out var inverseWorldMatrix);
+                Matrix4x4.Invert(CurrentWorldMatrix, out var inverseWorldMatrix);
 
                 Span<SubmeshVertexClothStateWithoutFlag> withoutFlag = submesh.cloth_vertices_without_flag;
-                foreach (ref var cloth_vertex in withoutFlag)
+                foreach (ref var clothVertex in withoutFlag)
                 {
-                    var cloth_stuff_vertex_idx = cloth_vertex.cloth_stuff_vertex_idx;
-                    var submesh_vertex_idx = cloth_vertex.submesh_vertex_idx;
-                    var cloth_stuff1 = cloth_vertex.cloth_stuff1;
+                    var clothStuffVertexIdx = clothVertex.cloth_stuff_vertex_idx;
+                    var submeshVertexIdx = clothVertex.submesh_vertex_idx;
+                    var clothStuff1 = clothVertex.cloth_stuff1;
 
-                    ref var mesh_pos = ref submesh.positions[submesh_vertex_idx];
-                    var positions = cloth_stuff1.clothStuff.clothVertexPos2.Span;
-                    ref var cloth_pos = ref positions[cloth_stuff_vertex_idx];
+                    ref var meshPos = ref submesh.positions[submeshVertexIdx];
+                    var positions = clothStuff1.clothStuff.clothVertexPos2.Span;
+                    ref var clothPos = ref positions[clothStuffVertexIdx];
 
-                    if (cloth_stuff1.bytePerClothVertex2[cloth_stuff_vertex_idx] == 1)
+                    if (clothStuff1.bytePerClothVertex2[clothStuffVertexIdx] == 1)
                     {
-                        var pos = new Vector3(mesh_pos.X, mesh_pos.Y, mesh_pos.Z);
-                        cloth_pos = new Vector4(Vector3.Transform(pos, inverseWorldMatrix), 1.0f);
+                        var pos = new Vector3(meshPos.X, meshPos.Y, meshPos.Z);
+                        clothPos = new Vector4(Vector3.Transform(pos, inverseWorldMatrix), 1.0f);
 
-                        cloth_stuff1.bytePerClothVertex2[cloth_stuff_vertex_idx] = 0;
-                        cloth_stuff1.field_18 = 1;
+                        clothStuff1.bytePerClothVertex2[clothStuffVertexIdx] = 0;
+                        clothStuff1.field_18 = 1;
                     }
                     else
                     {
-                        mesh_pos = Matrix3x4.transformPosition(currentWorldMatrix, cloth_pos);
+                        meshPos = Matrix3x4.transformPosition(CurrentWorldMatrix, clothPos);
                     }
                 }
             }
@@ -986,41 +982,41 @@ internal class AnimatedModel : IDisposable
 
     public void AddRunningAnim(AnimPlayer player)
     {
-        Trace.Assert(skeleton != null);
+        Trace.Assert(Skeleton != null);
         Trace.Assert(player.ownerAnim == null);
 
         player.ownerAnim = this;
 
-        if (runningAnimsHead == null)
+        if (RunningAnimsHead == null)
         {
-            player.nextRunningAnim = runningAnimsHead;
+            player.nextRunningAnim = RunningAnimsHead;
             player.prevRunningAnim = null;
-            if (runningAnimsHead != null)
-                runningAnimsHead.prevRunningAnim = player;
-            runningAnimsHead = player;
-            newestRunningAnim = player;
+            if (RunningAnimsHead != null)
+                RunningAnimsHead.prevRunningAnim = player;
+            RunningAnimsHead = player;
+            NewestRunningAnim = player;
             return;
         }
 
-        var cur_anim = runningAnimsHead;
-        for (var i = cur_anim.nextRunningAnim; i != null; i = i.nextRunningAnim)
+        var curAnim = RunningAnimsHead;
+        for (var i = curAnim.nextRunningAnim; i != null; i = i.nextRunningAnim)
         {
-            cur_anim = i;
+            curAnim = i;
         }
 
-        var v9 = cur_anim.nextRunningAnim;
+        var v9 = curAnim.nextRunningAnim;
         player.nextRunningAnim = v9;
-        player.prevRunningAnim = cur_anim;
+        player.prevRunningAnim = curAnim;
         if (v9  != null)
             v9.prevRunningAnim = player;
 
-        cur_anim.nextRunningAnim = player;
+        curAnim.nextRunningAnim = player;
 
-        var v11 = runningAnimsHead.nextRunningAnim;
+        var v11 = RunningAnimsHead.nextRunningAnim;
         var runningAnimCount = 1;
         if (v11 == null)
         {
-            newestRunningAnim = player;
+            NewestRunningAnim = player;
             return;
         }
 
@@ -1032,21 +1028,21 @@ internal class AnimatedModel : IDisposable
 
         if (runningAnimCount <= 10)
         {
-            newestRunningAnim = player;
+            NewestRunningAnim = player;
             return;
         }
 
-        cur_anim = runningAnimsHead;
+        curAnim = RunningAnimsHead;
         while (runningAnimCount > 1)
         {
-            var next = runningAnimsHead.nextRunningAnim;
-            RemoveRunningAnim(cur_anim);
-            cur_anim.Dispose();
-            cur_anim = next;
+            var next = RunningAnimsHead.nextRunningAnim;
+            RemoveRunningAnim(curAnim);
+            curAnim.Dispose();
+            curAnim = next;
             runningAnimCount--;
         }
 
-        newestRunningAnim = player;
+        NewestRunningAnim = player;
     }
 
     public void RemoveRunningAnim(AnimPlayer player)
@@ -1060,7 +1056,7 @@ internal class AnimatedModel : IDisposable
             }
             else
             {
-                runningAnimsHead = player.nextRunningAnim;
+                RunningAnimsHead = player.nextRunningAnim;
             }
 
             var next = player.nextRunningAnim;
@@ -1077,17 +1073,17 @@ internal class AnimatedModel : IDisposable
 
     public int GetAnimCount()
     {
-        return skeleton?.Animations.Count ?? 0;
+        return Skeleton?.Animations.Count ?? 0;
     }
 
     public ReadOnlySpan<char> GetAnimName(int animIdx)
     {
-        if (skeleton == null)
+        if (Skeleton == null)
         {
             return ReadOnlySpan<char>.Empty;
         }
 
-        var anims = skeleton.Animations;
+        var anims = Skeleton.Animations;
         if (animIdx < 0 || animIdx >= anims.Count)
         {
             return ReadOnlySpan<char>.Empty;
@@ -1098,12 +1094,12 @@ internal class AnimatedModel : IDisposable
 
     public bool HasBone(ReadOnlySpan<char> boneName)
     {
-        return skeleton.FindBoneIdxByName(boneName) != -1;
+        return Skeleton.FindBoneIdxByName(boneName) != -1;
     }
 
     public void ReplaceMaterial(AasMaterial oldMaterial, AasMaterial newMaterial)
     {
-        foreach (var submesh in submeshes)
+        foreach (var submesh in Submeshes)
         {
             if (submesh.materialId == oldMaterial)
             {
@@ -1118,7 +1114,7 @@ internal class AnimatedModel : IDisposable
     {
         var result = 0.0f;
 
-        var cur = runningAnimsHead;
+        var cur = RunningAnimsHead;
         while (cur != null)
         {
             var next = cur.nextRunningAnim;
@@ -1133,7 +1129,7 @@ internal class AnimatedModel : IDisposable
     {
         var result = 0.0f;
 
-        var cur = runningAnimsHead;
+        var cur = RunningAnimsHead;
         while (cur != null)
         {
             var next = cur.nextRunningAnim;
@@ -1146,12 +1142,12 @@ internal class AnimatedModel : IDisposable
 
     public void GetBoneMatrix(ReadOnlySpan<char> boneName, out Matrix3x4 matrixOut)
     {
-        var boneIdx = skeleton.FindBoneIdxByName(boneName);
+        var boneIdx = Skeleton.FindBoneIdxByName(boneName);
 
         if (boneIdx != -1)
         {
             Method19();
-            matrixOut = boneMatrices[boneIdx + 1];
+            matrixOut = BoneMatrices[boneIdx + 1];
         }
         else
         {
@@ -1160,17 +1156,17 @@ internal class AnimatedModel : IDisposable
     }
 
     // No idea how they arrived at this value
-    private const float defaultHeight = 28.8f;
+    private const float DefaultHeight = 28.8f;
 
     public float GetHeight()
     {
         SetClothFlagSth();
-        Advance(currentWorldMatrix, 0.0f, 0.0f, 0.0f);
+        Advance(CurrentWorldMatrix, 0.0f, 0.0f, 0.0f);
 
         var maxHeight = -10000.0f;
         var minHeight = 10000.0f;
 
-        for (var i = 0; i < submeshes.Count; i++)
+        for (var i = 0; i < Submeshes.Count; i++)
         {
             var submesh = GetSubmesh(i);
             var positions = submesh.Positions;
@@ -1192,14 +1188,14 @@ internal class AnimatedModel : IDisposable
 
         if (maxHeight == -10000.0f)
         {
-            maxHeight = defaultHeight;
+            maxHeight = DefaultHeight;
         }
         else if (maxHeight <= 0)
         {
             maxHeight = maxHeight - minHeight;
             if (maxHeight <= 0.01f)
             {
-                maxHeight = defaultHeight;
+                maxHeight = DefaultHeight;
             }
         }
 
@@ -1209,11 +1205,11 @@ internal class AnimatedModel : IDisposable
     public float GetRadius()
     {
         SetClothFlagSth();
-        Advance(currentWorldMatrix, 0.0f, 0.0f, 0.0f);
+        Advance(CurrentWorldMatrix, 0.0f, 0.0f, 0.0f);
 
         var maxRadiusSquared = -10000.0f;
 
-        for (var i = 0; i < submeshes.Count; i++)
+        for (var i = 0; i < Submeshes.Count; i++)
         {
             var submesh = GetSubmesh(i);
             var positions = submesh.Positions;
@@ -1245,18 +1241,18 @@ internal class AnimatedModel : IDisposable
 
     public void DeleteSubmesh(int submeshIdx)
     {
-        submeshes[submeshIdx].Dispose();
-        submeshes.RemoveAt(submeshIdx);
+        Submeshes[submeshIdx].Dispose();
+        Submeshes.RemoveAt(submeshIdx);
     }
 
     public bool SetAnimByName(ReadOnlySpan<char> name)
     {
-        if (skeleton == null)
+        if (Skeleton == null)
         {
             return false;
         }
 
-        var animIdx = skeleton.FindAnimIdxByName(name);
+        var animIdx = Skeleton.FindAnimIdxByName(name);
         if (animIdx != -1)
         {
             PlayAnim(animIdx);
@@ -1268,7 +1264,7 @@ internal class AnimatedModel : IDisposable
 
     public void SetSpecialMaterial(MaterialPlaceholderSlot slot, IMdfRenderMaterial material)
     {
-        foreach (var submesh in submeshes)
+        foreach (var submesh in Submeshes)
         {
             if (submesh.materialId.Slot == slot)
             {
@@ -1279,11 +1275,11 @@ internal class AnimatedModel : IDisposable
 
     public IRenderState RenderState
     {
-        get => renderState_;
+        get => _renderState;
         set
         {
-            renderState_?.Dispose();
-            renderState_ = value;
+            _renderState?.Dispose();
+            _renderState = value;
         }
     }
 
@@ -1291,7 +1287,7 @@ internal class AnimatedModel : IDisposable
     private AasSubmeshWithMaterial GetOrAddSubmesh(AasMaterial material, IMaterialResolver materialResolver)
     {
         // Check if there's an existing submesh for the material+resolver it came from
-        foreach (var submesh in submeshes)
+        foreach (var submesh in Submeshes)
         {
             if (submesh.materialId == material && submesh.materialResolver == materialResolver)
             {
@@ -1300,11 +1296,9 @@ internal class AnimatedModel : IDisposable
         }
 
         var newSubmesh = new AasSubmeshWithMaterial(material, materialResolver);
-        submeshes.Add(newSubmesh);
+        Submeshes.Add(newSubmesh);
         return newSubmesh;
     }
-
-    private IRenderState renderState_;
 
     private void CleanupAnimations(AnimPlayer player)
     {
@@ -1339,35 +1333,35 @@ internal class AnimatedModel : IDisposable
 
     public void Dispose()
     {
-        renderState_?.Dispose();
+        _renderState?.Dispose();
 
-        while (runningAnimsHead != null)
+        while (RunningAnimsHead != null)
         {
-            var running_anim = runningAnimsHead;
-            if (running_anim.ownerAnim == this)
+            var runningAnim = RunningAnimsHead;
+            if (runningAnim.ownerAnim == this)
             {
-                var prev_anim = running_anim.prevRunningAnim;
-                if (prev_anim != null)
+                var prevAnim = runningAnim.prevRunningAnim;
+                if (prevAnim != null)
                 {
-                    prev_anim.nextRunningAnim = running_anim.nextRunningAnim;
+                    prevAnim.nextRunningAnim = runningAnim.nextRunningAnim;
                 }
                 else
                 {
-                    runningAnimsHead = running_anim.nextRunningAnim;
+                    RunningAnimsHead = runningAnim.nextRunningAnim;
                 }
 
-                var next_anim = running_anim.nextRunningAnim;
-                if (next_anim != null)
+                var nextAnim = runningAnim.nextRunningAnim;
+                if (nextAnim != null)
                 {
-                    next_anim.prevRunningAnim = running_anim.prevRunningAnim;
+                    nextAnim.prevRunningAnim = runningAnim.prevRunningAnim;
                 }
 
-                running_anim.prevRunningAnim = null;
-                running_anim.nextRunningAnim = null;
-                running_anim.ownerAnim = null;
+                runningAnim.prevRunningAnim = null;
+                runningAnim.nextRunningAnim = null;
+                runningAnim.ownerAnim = null;
             }
 
-            running_anim.Dispose();
+            runningAnim.Dispose();
         }
     }
 }
@@ -1466,16 +1460,16 @@ class AasSubmeshWithMaterial : IDisposable
     public ushort vertexCount;
     public ushort primCount;
     public ushort field_E;
-    public BoneElementCount[] bone_elem_counts;
-    public float[] bone_floats;
-    public short[] vertex_copy_positions;
-    public Vector2[] uv;
-    public Vector4[] positions;
-    public Vector4[] normals;
+    public BoneElementCount[]? bone_elem_counts;
+    public float[]? bone_floats;
+    public short[]? vertex_copy_positions;
+    public Vector2[]? uv;
+    public Vector4[]? positions;
+    public Vector4[]? normals;
     public bool fullyInitialized; // This could actually be: NEEDS UPDATE! (TODO)
-    public SubmeshVertexClothStateWithoutFlag[] cloth_vertices_without_flag;
-    public SubmeshVertexClothStateWithFlag[] cloth_vertices_with_flag;
-    public ushort[] indices;
+    public SubmeshVertexClothStateWithoutFlag[]? cloth_vertices_without_flag;
+    public SubmeshVertexClothStateWithFlag[]? cloth_vertices_with_flag;
+    public ushort[]? indices;
 
     public AasSubmeshWithMaterial(AasMaterial materialId, IMaterialResolver materialResolver)
     {
@@ -1520,7 +1514,6 @@ class AasSubmeshWithMaterial : IDisposable
         bone_floats = null;
         vertex_copy_positions = null;
         positions = null;
-        normals = null;
         normals = null;
         uv = null;
         indices = null;

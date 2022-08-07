@@ -39,7 +39,7 @@ public struct SpellEntryLevelSpec
         return spellClass == other.spellClass && slotLevel == other.slotLevel;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is SpellEntryLevelSpec other && Equals(other);
     }

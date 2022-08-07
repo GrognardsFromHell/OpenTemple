@@ -20,7 +20,7 @@ public readonly struct MultiSampleSettings : IEquatable<MultiSampleSettings>
         return IsEnabled == other.IsEnabled && Samples == other.Samples && Quality == other.Quality;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is MultiSampleSettings other && Equals(other);
     }

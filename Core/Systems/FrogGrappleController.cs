@@ -331,7 +331,7 @@ internal class FrogGrappleController
         mVertexBuffer.Resource.Update<TongueVertex>(vertices);
 
         mBufferBinding.Bind();
-        MdfRenderOverrides overrides = new MdfRenderOverrides();
+        MdfRenderOverrides? overrides = new MdfRenderOverrides();
         overrides.alpha = alpha;
         mTongueMaterial.Resource.Bind(viewport, mDevice, lights, overrides);
         mDevice.SetIndexBuffer(mIndexBuffer);

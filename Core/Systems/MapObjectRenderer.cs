@@ -234,7 +234,7 @@ public class MapObjectRenderer : IDisposable
         }
 
         mRenderedLastFrame++;
-        MdfRenderOverrides overrides = new MdfRenderOverrides();
+        MdfRenderOverrides? overrides = new MdfRenderOverrides();
         overrides.alpha = alpha / 255.0f;
         mAasRenderer.Render(viewport, animatedModel, animParams, lights, overrides);
 
@@ -525,7 +525,7 @@ public class MapObjectRenderer : IDisposable
         var lights = FindLights(locAndOffsets, lightSearchRadius);
 
         mRenderedLastFrame++;
-        MdfRenderOverrides overrides = new MdfRenderOverrides();
+        MdfRenderOverrides? overrides = new MdfRenderOverrides();
         overrides.alpha = alpha / 255.0f;
 
         if (type != ObjectType.portal)
@@ -670,7 +670,7 @@ public class MapObjectRenderer : IDisposable
 
         mRenderedLastFrame++;
 
-        MdfRenderOverrides overrides = new MdfRenderOverrides();
+        MdfRenderOverrides? overrides = new MdfRenderOverrides();
         overrides.alpha = alpha / 255.0f;
         material.Resource.Bind(viewport, mDevice, lights, overrides);
         mAasRenderer.RenderWithoutMaterial(animatedModel, animParams);
@@ -959,7 +959,7 @@ public class MapObjectRenderer : IDisposable
             }
 
             // Generate a world matrix that applies the translation
-            MdfRenderOverrides overrides = new MdfRenderOverrides();
+            MdfRenderOverrides? overrides = new MdfRenderOverrides();
             overrides.useWorldMatrix = true;
             var xTrans = MathF.Cos(_mirrorImagesRotation) * pos * radius;
             var yTrans = MathF.Sin(_mirrorImagesRotation) * pos * radius;

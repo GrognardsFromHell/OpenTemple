@@ -71,7 +71,7 @@ public readonly struct TimePoint : IComparable<TimePoint>
         return Time == other.Time;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj))
         {

@@ -67,10 +67,10 @@ public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSys
             _party = party;
         }
 
-        public int Compare(GameObject x, GameObject y)
+        public int Compare(GameObject? x, GameObject? y)
         {
-            var xIdx = _party.IndexOf(x);
-            var yIdx = _party.IndexOf(y);
+            var xIdx = x != null ? _party.IndexOf(x) : -1;
+            var yIdx = y != null ? _party.IndexOf(y) : -1;
             return xIdx.CompareTo(yIdx);
         }
     }
@@ -90,13 +90,23 @@ public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSys
             _party = party;
         }
 
-        public int Compare(GameObject x, GameObject y)
+        public int Compare(GameObject? x, GameObject? y)
         {
             if (x == y)
             {
                 return 0;
             }
 
+            if (x == null)
+            {
+                return -1;
+            }
+
+            if (y == null)
+            {
+                return 1;
+            }
+            
             var xIsFollower = _aiFollowers.Contains(x);
             var yIsFollower = _aiFollowers.Contains(y);
             if (!xIsFollower && yIsFollower)

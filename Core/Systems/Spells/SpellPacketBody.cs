@@ -306,7 +306,7 @@ public class SpellPacketBody
         }
     }
 
-    public bool AddSpellObject(GameObject spellObj, object partSys = null, bool replaceExisting = false)
+    public bool AddSpellObject(GameObject spellObj, object? partSys = null, bool replaceExisting = false)
     {
         // Check if it's already there
         var idx = IndexOfTarget(spellObj);
@@ -349,7 +349,7 @@ public class SpellPacketBody
     }
 
     [TempleDllLocation(0x100c3cc0)]
-    public bool AddTarget(GameObject target, object partSys = null, bool replaceExisting = false)
+    public bool AddTarget(GameObject target, object? partSys = null, bool replaceExisting = false)
     {
         // Check if it's already there
         var idx = IndexOfTarget(target);

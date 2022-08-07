@@ -1105,7 +1105,7 @@ public class ItemSystem : IGameSystem
     }
 
     [TempleDllLocation(0x1006d100)]
-    public void WieldBestAll(GameObject critter, GameObject target = null)
+    public void WieldBestAll(GameObject critter, GameObject? target = null)
     {
         for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
         {
