@@ -51,8 +51,8 @@ public class PowerCritical
         }
     }
 
-    // TODO: Register
-    public IEnumerable<ConditionSpec> CreateConditions()
+    [AutoRegisterAll]
+    public static IEnumerable<ConditionSpec> CreateConditions()
     {
         for (var weapon = WeaponType.gauntlet; weapon < WeaponType.mindblade; weapon++)
         {

@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using OpenTemple.Core.Logging;
@@ -19,11 +21,11 @@ public class DefaultContentProvider : IContentProvider
 
     // In debug mode we discover more fields to find mistakes
 #if DEBUG
-    private const BindingFlags FieldFilter =
+    private const BindingFlags MemberFilter =
         BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static
         | BindingFlags.Instance | BindingFlags.NonPublic;
 #else
-        private const BindingFlags FieldFilter =
+        private const BindingFlags MemberFilter =
             BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static;
 #endif
 
@@ -34,6 +36,8 @@ public class DefaultContentProvider : IContentProvider
         typeof(ConditionSpec)
     };
 
+    private static readonly ISet<Type> AutoRegisteringCollectionTypes = AutoRegisteringTypes.Select(t => typeof(IEnumerable<>).MakeGenericType(t)).ToHashSet();
+
     private static Exception Error(MemberInfo fieldInfo, string extraMessage)
     {
         return new InvalidOperationException(
@@ -43,10 +47,10 @@ public class DefaultContentProvider : IContentProvider
 
     public DefaultContentProvider(Assembly assembly)
     {
-        var conditions = new List<ConditionSpec>();
-        var featConditions = new List<(FeatId, ConditionSpec)>();
-        var classes = new List<D20ClassSpec>();
-        var races = new List<RaceSpec>();
+        var conditions = new HashSet<ConditionSpec>();
+        var featConditions = new HashSet<(FeatId, ConditionSpec)>();
+        var classes = new HashSet<D20ClassSpec>();
+        var races = new HashSet<RaceSpec>();
 
         foreach (var typeInfo in assembly.GetTypes())
         {
@@ -54,19 +58,23 @@ public class DefaultContentProvider : IContentProvider
             // as well, but it disables errors if a field's type is unrecognized.
             var registerAll = typeInfo.GetCustomAttribute<AutoRegisterAttribute>() != null;
 
-            foreach (var fieldInfo in typeInfo.GetFields(FieldFilter))
+            foreach (var fieldInfo in typeInfo.GetFields(MemberFilter))
             {
                 var featCondition = fieldInfo.GetCustomAttribute<FeatConditionAttribute>();
                 if (featCondition != null)
                 {
                     var condition = (ConditionSpec) GetFieldValue(fieldInfo, featCondition);
+                    if (condition == null)
+                    {
+                        throw Error(fieldInfo, "is null.");
+                    }
                     featConditions.Add((featCondition.FeatId, condition));
                 }
 
                 var registerAttribute = fieldInfo.GetCustomAttribute<AutoRegisterAttribute>();
                 if (registerAll || registerAttribute != null)
                 {
-                    object fieldValue;
+                    object? fieldValue;
                     if (registerAttribute == null)
                     {
                         if (!AutoRegisteringTypes.Contains(fieldInfo.FieldType))
@@ -85,22 +93,60 @@ public class DefaultContentProvider : IContentProvider
                     {
                         fieldValue = GetFieldValue(fieldInfo, registerAttribute);
                     }
+                    
+                    switch (fieldValue)
+                    {
+                        case null:
+                            throw Error(fieldInfo, "is null.");
+                        case D20ClassSpec classSpec:
+                            classes.Add(classSpec);
+                            break;
+                        case RaceSpec raceSpec:
+                            races.Add(raceSpec);
+                            break;
+                        case ConditionSpec conditionSpec:
+                            conditions.Add(conditionSpec);
+                            break;
+                        default:
+                            throw Error(fieldInfo, $"unsupported value: {fieldValue}");
+                    }
+                }
+            }
 
-                    if (fieldValue is D20ClassSpec classSpec)
+            foreach (var methodInfo in typeInfo.GetMethods(MemberFilter))
+            {
+                var registerAttribute = methodInfo.GetCustomAttribute<AutoRegisterAllAttribute>();
+                if (registerAttribute != null)
+                {
+                    if (!methodInfo.IsPublic || !methodInfo.IsStatic)
                     {
-                        classes.Add(classSpec);
+                        throw Error(methodInfo, "it's not public or not static.");
                     }
-                    else if (fieldValue is RaceSpec raceSpec)
+
+                    var value = methodInfo.Invoke(null, null);
+
+                    switch (value)
                     {
-                        races.Add(raceSpec);
-                    }
-                    else if (fieldValue is ConditionSpec conditionSpec)
-                    {
-                        conditions.Add(conditionSpec);
-                    }
-                    else
-                    {
-                        throw Error(fieldInfo, $"unsupported value: {fieldValue}");
+                        case IEnumerable<D20ClassSpec> classSpecs:
+                            foreach (var classSpec in classSpecs)
+                            {
+                                classes.Add(classSpec);
+                            }
+                            break;
+                        case IEnumerable<RaceSpec> raceSpecs:
+                            foreach (var raceSpec in raceSpecs)
+                            {
+                                races.Add(raceSpec);
+                            }
+                            break;
+                        case IEnumerable<ConditionSpec> conditionSpecs:
+                            foreach (var conditionSpec in conditionSpecs)
+                            {
+                                conditions.Add(conditionSpec);                               
+                            }
+                            break;
+                        default:
+                            throw Error(methodInfo, $"unsupported value: {value}");
                     }
                 }
             }
@@ -118,7 +164,7 @@ public class DefaultContentProvider : IContentProvider
         FeatConditions = featConditions;
     }
 
-    private static object GetFieldValue(FieldInfo fieldInfo, Attribute attribute)
+    private static object? GetFieldValue(FieldInfo fieldInfo, Attribute attribute)
     {
         var attributeName = attribute.GetType().Name;
         if (!fieldInfo.IsStatic)
