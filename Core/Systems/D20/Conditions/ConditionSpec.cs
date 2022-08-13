@@ -85,7 +85,7 @@ public class ConditionSpec
     {
         if (_initialized)
         {
-            throw new InvalidOperationException($"Condition {condName} is already initialized.");
+            return;
         }
 
         var handlers = new List<SubDispatcherSpec>();
@@ -121,7 +121,7 @@ public class ConditionSpec
         _initializers = null;
         _initialized = true;
     }
-
+    
     private void CheckInitialized()
     {
         if (!_initialized)
