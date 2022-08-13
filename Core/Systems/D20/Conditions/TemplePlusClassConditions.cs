@@ -1,3 +1,4 @@
+using System;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 
@@ -6,13 +7,20 @@ namespace OpenTemple.Core.Systems.D20.Conditions;
 [AutoRegister]
 public static class TemplePlusClassConditions
 {
-    public static ConditionSpec.Builder Create(D20ClassSpec classSpec)
+    public static ConditionSpec Create(D20ClassSpec classSpec, Action<ConditionSpec.Builder>? customizer = null)
     {
-        return ConditionSpec.Create(classSpec.conditionName)
-            .SetUnique()
-            .AddHandler(DispatcherType.ToHitBonusBase, AddClassBaseAttackBonus, classSpec.classEnum)
-            .AddHandler(DispatcherType.SaveThrowLevel, AddClassSavingThrowBonus, classSpec.classEnum)
-            .AddHandler(DispatcherType.GetBaseCasterLevel, AddBaseCasterLevel, classSpec.classEnum);
+        var spec = ConditionSpec.Create(classSpec.conditionName, 0, UniquenessType.Unique)
+            .Configure(builder => builder
+                .AddHandler(DispatcherType.ToHitBonusBase, AddClassBaseAttackBonus, classSpec.classEnum)
+                .AddHandler(DispatcherType.SaveThrowLevel, AddClassSavingThrowBonus, classSpec.classEnum)
+                .AddHandler(DispatcherType.GetBaseCasterLevel, AddBaseCasterLevel, classSpec.classEnum)
+            );
+        if (customizer != null)
+        {
+            spec.Configure(customizer);
+        }
+
+        return spec;
     }
 
     [TempleDllLocation(0x100fe020)]

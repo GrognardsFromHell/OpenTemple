@@ -84,7 +84,7 @@ public class Sorcerer
     };
 
     [TempleDllLocation(0x102f0420)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, ClassConditions.GrantClassLevelAsCasterLevel,
             Stat.level_sorcerer)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate,
@@ -94,7 +94,7 @@ public class Sorcerer
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
             OnLevelupSpellsCheckComplete)
         .AddQueryHandler(D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, ArcaneSpellFailure)
-        .Build();
+    );
 
     public static void OnInitLevelupSpellSelection(in DispatcherCallbackArgs evt)
     {

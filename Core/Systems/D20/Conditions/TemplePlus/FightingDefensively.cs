@@ -44,9 +44,8 @@ public class FightingDefensively
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec FightingDefensivelyExtension = ConditionSpec
-        .Extend(FeatConditions.FightingDefensively)
+    public static readonly ConditionSpec FightingDefensivelyExtension = FeatConditions.FightingDefensively.Extend(builder => builder
         .AddQueryHandler(D20DispatcherKey.QUE_FightingDefensively, IsFightingDefensively)
         .AddQueryHandler("Fighting Defensively Checked", IsFightingDefensivelyChecked)
-        .Build();
+    );
 }

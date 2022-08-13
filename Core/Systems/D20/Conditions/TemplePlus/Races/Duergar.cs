@@ -50,29 +50,30 @@ public class Duergar
     };
 
     // note: dwarven move speed with heavy armor or when medium/heavy encumbered is already handled in Encumbered Medium, Encumbered Heavy condition callbacks
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSaveBonusVsEffectType(D20SavingThrowFlag.SPELL_LIKE_EFFECT, 2)
-        .AddSkillBonuses(
-            (SkillId.listen, 1),
-            (SkillId.spot, 1),
-            (SkillId.move_silently, 4)
-        )
-        .AddBaseMoveSpeed(20)
-        .AddPoisonImmunity()
-        .AddFavoredClassHook(Stat.level_fighter)
-        .AddHandler(DispatcherType.SkillLevel, D20DispatcherKey.SKILL_APPRAISE, OnGetAppraiseSkill)
-        .AddHandler(DispatcherType.GetMoveSpeed,
-            OnGetMoveSpeedSetLowerLimit) // paralysis immunity (affects normal Paralysis condition)
-        .AddHandler(DispatcherType.ConditionAddPre,
-            ConditionImmunityOnPreAdd) // paralysis immunity query - used in spell paralysis effects such as Hold Person/Monster
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Paralysis, true) // phantasm immunity
-        .AddHandler(DispatcherType.SpellImmunityCheck, PhantasmImmunity)
-        .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusVsOrcsAndGoblins)
-        .AddHandler(DispatcherType.GetAC, OnGetArmorClassBonusVsGiants)
-        .AddHandler(DispatcherType.AbilityCheckModifier, OnAbilityModCheckStabilityBonus)
-        .AddHandler(DispatcherType.BaseCasterLevelMod, CasterLevelRacialSpell)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSaveBonusVsEffectType(D20SavingThrowFlag.SPELL_LIKE_EFFECT, 2)
+            .AddSkillBonuses(
+                (SkillId.listen, 1),
+                (SkillId.spot, 1),
+                (SkillId.move_silently, 4)
+            )
+            .AddBaseMoveSpeed(20)
+            .AddPoisonImmunity()
+            .AddFavoredClassHook(Stat.level_fighter)
+            .AddHandler(DispatcherType.SkillLevel, D20DispatcherKey.SKILL_APPRAISE, OnGetAppraiseSkill)
+            .AddHandler(DispatcherType.GetMoveSpeed,
+                OnGetMoveSpeedSetLowerLimit) // paralysis immunity (affects normal Paralysis condition)
+            .AddHandler(DispatcherType.ConditionAddPre,
+                ConditionImmunityOnPreAdd) // paralysis immunity query - used in spell paralysis effects such as Hold Person/Monster
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Paralysis, true) // phantasm immunity
+            .AddHandler(DispatcherType.SpellImmunityCheck, PhantasmImmunity)
+            .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusVsOrcsAndGoblins)
+            .AddHandler(DispatcherType.GetAC, OnGetArmorClassBonusVsGiants)
+            .AddHandler(DispatcherType.AbilityCheckModifier, OnAbilityModCheckStabilityBonus)
+            .AddHandler(DispatcherType.BaseCasterLevelMod, CasterLevelRacialSpell)
+        );
 
     private static readonly int BONUS_MES_RACIAL_BONUS = 139;
     private static readonly int BONUS_MES_STABILITY = 317;

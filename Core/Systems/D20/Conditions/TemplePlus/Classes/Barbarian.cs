@@ -56,12 +56,12 @@ public static class Barbarian
     };
 
     [TempleDllLocation(0x102eff08)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetAC, ClassConditions.TrapSenseDodgeBonus, Stat.level_barbarian)
         .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassConditions.TrapSenseRefSaveBonus,
             Stat.level_barbarian)
         .AddHandler(DispatcherType.TakingDamage2, BarbarianDRDamageCallback)
-        .Build();
+    );
 
     [DispTypes(DispatcherType.TakingDamage2)]
     [TempleDllLocation(0x100feba0)]

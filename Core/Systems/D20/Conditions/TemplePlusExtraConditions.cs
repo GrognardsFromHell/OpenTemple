@@ -12,34 +12,33 @@ namespace OpenTemple.Core.Systems.D20.Conditions;
 [AutoRegister]
 public static class TemplePlusExtraConditions
 {
-    public static readonly ConditionSpec SpecialEquipmentSkillBonus = ConditionSpec
-        .Create("Special Equipment Skill Bonus", 3)
-        .AddSkillLevelHandler(SkillId.appraise, ItemEffects.SkillBonusCallback, 99)
-        .Build();
+    public static readonly ConditionSpec SpecialEquipmentSkillBonus = ConditionSpec.Create("Special Equipment Skill Bonus", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.appraise, ItemEffects.SkillBonusCallback, 99)
+        );
 
-    public static readonly ConditionSpec Ethereal = ConditionSpec
-        .Create("Ethereal", 3)
-        .SetUnique()
-        .SetQueryResult(D20DispatcherKey.QUE_Is_Ethereal, true)
-        .AddHandler(DispatcherType.BeginRound, CountDownEthereal)
-        .AddHandler(DispatcherType.TakingDamage2, AddEtherealDamageImmunity)
-        .AddHandler(DispatcherType.DealingDamage2, NullifyEtherealDamageDealt)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOWillTake, false)
-        .AddHandler(DispatcherType.EffectTooltip, EtherealTooltip)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Invisible, true)
-        .AddHandler(DispatcherType.ConditionAdd, InitEthereal)
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit, InitEtherealFromD20Status)
-        .AddHandler(DispatcherType.ConditionRemove, EtherealOnRemove)
-        .AddUniqueTooltip(210)
-        .SetQueryResult(D20DispatcherKey.QUE_IsActionInvalid_CheckAction, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOIncurs, false)
-        .SetQueryResult(D20DispatcherKey.QUE_ActionTriggersAOO, false)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CanBeAffected_PerformAction, false)
-        .SetQueryResult(D20DispatcherKey.QUE_CanBeAffected_ActionFrame, false)
-        .Build();
+    public static readonly ConditionSpec Ethereal = ConditionSpec.Create("Ethereal", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .SetQueryResult(D20DispatcherKey.QUE_Is_Ethereal, true)
+            .AddHandler(DispatcherType.BeginRound, CountDownEthereal)
+            .AddHandler(DispatcherType.TakingDamage2, AddEtherealDamageImmunity)
+            .AddHandler(DispatcherType.DealingDamage2, NullifyEtherealDamageDealt)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOWillTake, false)
+            .AddHandler(DispatcherType.EffectTooltip, EtherealTooltip)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Invisible, true)
+            .AddHandler(DispatcherType.ConditionAdd, InitEthereal)
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit, InitEtherealFromD20Status)
+            .AddHandler(DispatcherType.ConditionRemove, EtherealOnRemove)
+            .AddUniqueTooltip(210)
+            .SetQueryResult(D20DispatcherKey.QUE_IsActionInvalid_CheckAction, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOIncurs, false)
+            .SetQueryResult(D20DispatcherKey.QUE_ActionTriggersAOO, false)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CanBeAffected_PerformAction, false)
+            .SetQueryResult(D20DispatcherKey.QUE_CanBeAffected_ActionFrame, false)
+        );
 
     [TemplePlusLocation("GenericCallbacks::EtherealOnAdd")]
     private static void InitEthereal(in DispatcherCallbackArgs evt)
@@ -101,5 +100,4 @@ public static class TemplePlusExtraConditions
         var text = $"{etherealText}\n{durationText}: {numRounds}";
         dispIo.bdb.AddEntry(82, text);
     }
-
 }

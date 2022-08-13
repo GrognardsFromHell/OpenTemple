@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -24,6 +23,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 public class ImprovedFavoredEnemy
 {
     private static readonly int bon_val = 3;
+
     public static void impFavoredEnemyDamageBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoDamage();
@@ -36,8 +36,9 @@ public class ImprovedFavoredEnemy
 
     // args are just-in-case placeholders
     [FeatCondition("Improved Favored Enemy")]
-    [AutoRegister] public static readonly ConditionSpec impFavoredEnemy = ConditionSpec.Create("Improved Favored Enemy", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, impFavoredEnemyDamageBonus)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec impFavoredEnemy = ConditionSpec.Create("Improved Favored Enemy", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, impFavoredEnemyDamageBonus)
+        );
 }

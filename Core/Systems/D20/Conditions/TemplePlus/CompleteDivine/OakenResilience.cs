@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -67,6 +66,7 @@ public class OakenResilience
         evt.SetConditionArg2(100);
         return;
     }
+
     public static void OakenResilienceEffectBeginRound(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20Signal();
@@ -90,6 +90,7 @@ public class OakenResilience
 
         return;
     }
+
     public static void OakenResilienceEffectTooltip(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoTooltip();
@@ -102,6 +103,7 @@ public class OakenResilience
         dispIo.Append("Oaken Resilience");
         return;
     }
+
     public static void OakenResilienceEffectTooltipEffect(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoEffectTooltip();
@@ -199,24 +201,26 @@ public class OakenResilience
     // Setup the feat
     // spare, spare
     [FeatCondition("Oaken Resilience")]
-    [AutoRegister] public static readonly ConditionSpec OakenResilienceFeat = ConditionSpec.Create("Oaken Resilience Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, OakenResilienceRadial)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec OakenResilienceFeat = ConditionSpec.Create("Oaken Resilience Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, OakenResilienceRadial)
+        );
 
     // Setup the effect
     // active, rounds left, spare, spare
-    [AutoRegister] public static readonly ConditionSpec OakenResilienceEffect = ConditionSpec.Create("Oaken Resilience Effect", 4)
-        .SetUnique()
-        .AddHandler(DispatcherType.BeginRound, OakenResilienceEffectBeginRound)
-        .AddHandler(DispatcherType.PythonActionCheck, OakenResilienceEnum, OnOakenResilienceEffectCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, OakenResilienceEnum, OnOakenResilienceEffectPerform)
-        .AddHandler(DispatcherType.Tooltip, OakenResilienceEffectTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, OakenResilienceEffectTooltipEffect)
-        .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, OakenResilienceCriticalImmunity)
-        .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Critter_Is_Immune_Poison, OakenResiliencePoisonImmunity)
-        .AddHandler(DispatcherType.ConditionAddPre, OakenResilienceAddPre)
-        .AddHandler(DispatcherType.AbilityCheckModifier, D20DispatcherKey.STAT_DEXTERITY, OakenResilienceTripDefenseBonus)
-        .AddHandler(DispatcherType.AbilityCheckModifier, D20DispatcherKey.STAT_STRENGTH, OakenResilienceTripDefenseBonus)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec OakenResilienceEffect = ConditionSpec.Create("Oaken Resilience Effect", 4, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, OakenResilienceEffectBeginRound)
+            .AddHandler(DispatcherType.PythonActionCheck, OakenResilienceEnum, OnOakenResilienceEffectCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, OakenResilienceEnum, OnOakenResilienceEffectPerform)
+            .AddHandler(DispatcherType.Tooltip, OakenResilienceEffectTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, OakenResilienceEffectTooltipEffect)
+            .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, OakenResilienceCriticalImmunity)
+            .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Critter_Is_Immune_Poison, OakenResiliencePoisonImmunity)
+            .AddHandler(DispatcherType.ConditionAddPre, OakenResilienceAddPre)
+            .AddHandler(DispatcherType.AbilityCheckModifier, D20DispatcherKey.STAT_DEXTERITY, OakenResilienceTripDefenseBonus)
+            .AddHandler(DispatcherType.AbilityCheckModifier, D20DispatcherKey.STAT_STRENGTH, OakenResilienceTripDefenseBonus)
+        );
 }

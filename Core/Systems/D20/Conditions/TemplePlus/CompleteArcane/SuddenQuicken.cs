@@ -32,6 +32,5 @@ public class SuddenQuicken
 
     [AutoRegister, FeatCondition("Sudden Quicken")]
     public static readonly ConditionSpec Condition = SuddenMetamagic
-        .Create("Sudden Quicken Feat", "Sudden Quicken", ApplyQuicken)
-        .Build();
+        .Create("Sudden Quicken Feat", "Sudden Quicken", ApplyQuicken);
 }

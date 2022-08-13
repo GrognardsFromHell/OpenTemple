@@ -33,13 +33,12 @@ public class ExtraSmiting
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec DestructionDomainExtension = ConditionSpec
-        .Extend(DomainConditions.DestructionDomain)
+    public static readonly ConditionSpec DestructionDomainExtension = DomainConditions.DestructionDomain.Extend(builder => builder
         .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, ExtraSmitingNewDay)
-        .Build();
+    );
 
     [AutoRegister]
-    public static readonly ConditionSpec SmiteEvilExtension = ConditionSpec.Extend(FeatConditions.SmiteEvil)
+    public static readonly ConditionSpec SmiteEvilExtension = FeatConditions.SmiteEvil.Extend(builder => builder
         .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, ExtraSmitingNewDay)
-        .Build();
+    );
 }

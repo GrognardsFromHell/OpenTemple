@@ -19,7 +19,7 @@ public class Dispatcher : IDispatcher
 
     private static int _dispCounter = 0;
 
-    private readonly SubDispatcherAttachment[][] subDispNodes_ =
+    private readonly SubDispatcherAttachment[]?[] _subDispNodes =
         new SubDispatcherAttachment[(int) DispatcherType.Count][];
 
     private readonly GameObject _owner;
@@ -86,10 +86,10 @@ public class Dispatcher : IDispatcher
     [TempleDllLocation(0x100e1dd0)]
     public void Attach(ConditionAttachment attachment)
     {
-        foreach (var subDispDef in attachment.condStruct.subDispDefs)
+        foreach (var subDispDef in attachment.condStruct.Handlers)
         {
             var type = subDispDef.dispType;
-            ref var currentList = ref subDispNodes_[(int) type];
+            ref var currentList = ref _subDispNodes[(int) type];
             if (currentList == null)
             {
                 currentList = new SubDispatcherAttachment[1];
@@ -221,7 +221,7 @@ public class Dispatcher : IDispatcher
     [TempleDllLocation(0x100e2500)]
     public bool _ConditionAddToAttribs_NumArgs2(ConditionSpec condStruct, int arg1, int arg2)
     {
-        return _ConditionAddDispatch(ref permanentMods, condStruct, new object[]{arg1, arg2});
+        return _ConditionAddDispatch(ref permanentMods, condStruct, new object[] {arg1, arg2});
     }
 
     public bool _ConditionAdd(ConditionSpec condStruct, object[] args)
@@ -237,30 +237,30 @@ public class Dispatcher : IDispatcher
 
     public bool _ConditionAdd_NumArgs1(ConditionSpec condStruct, int arg1)
     {
-        return _ConditionAddDispatch(ref conditions, condStruct, new object[]{arg1});
+        return _ConditionAddDispatch(ref conditions, condStruct, new object[] {arg1});
     }
 
     [TempleDllLocation(0x100e2530)]
     public bool _ConditionAdd_NumArgs2(ConditionSpec condStruct, int arg1, int arg2)
     {
-        return _ConditionAddDispatch(ref conditions, condStruct, new object[]{arg1,arg2});
+        return _ConditionAddDispatch(ref conditions, condStruct, new object[] {arg1, arg2});
     }
 
     [TempleDllLocation(0x100e2560)]
     public bool _ConditionAdd_NumArgs3(ConditionSpec condStruct, int arg1, int arg2, int arg3)
     {
-        return _ConditionAddDispatch(ref conditions, condStruct, new object[]{arg1, arg2, arg3});
+        return _ConditionAddDispatch(ref conditions, condStruct, new object[] {arg1, arg2, arg3});
     }
 
     [TempleDllLocation(0x100e2590)]
     public bool _ConditionAdd_NumArgs4(ConditionSpec condStruct, int arg1, int arg2, int arg3, int arg4)
     {
-        return _ConditionAddDispatch(ref conditions, condStruct, new object[]{arg1, arg2, arg3, arg4});
+        return _ConditionAddDispatch(ref conditions, condStruct, new object[] {arg1, arg2, arg3, arg4});
     }
 
     private SubDispatcherAttachment[] GetSubDispatcher(DispatcherType type)
     {
-        return subDispNodes_[(int) type] ?? Array.Empty<SubDispatcherAttachment>();
+        return _subDispNodes[(int) type] ?? Array.Empty<SubDispatcherAttachment>();
     }
 
     [TempleDllLocation(0x100e2720)]
@@ -378,9 +378,9 @@ public class Dispatcher : IDispatcher
     [TempleDllLocation(0x100e1e30)]
     private void Detach(ConditionAttachment attachment)
     {
-        for (var i = 0; i < subDispNodes_.Length; i++)
+        for (var i = 0; i < _subDispNodes.Length; i++)
         {
-            ref var subAttachment = ref subDispNodes_[i];
+            ref var subAttachment = ref _subDispNodes[i];
             if (subAttachment == null)
             {
                 continue; // Nothing to remove
@@ -449,10 +449,11 @@ public class Dispatcher : IDispatcher
         {
             attachment.args[i] = args[i];
         }
+
         Attach(attachment);
 
         // Call the init for the newly added condition (we could also just check the cond struct to be honest)
-        var currentList = subDispNodes_[(int) DispatcherType.ConditionAddFromD20StatusInit];
+        var currentList = _subDispNodes[(int) DispatcherType.ConditionAddFromD20StatusInit];
         if (currentList != null)
         {
             foreach (var subdispatcher in currentList)
@@ -536,6 +537,7 @@ public class Dispatcher : IDispatcher
         {
             attachment.ArgsFromField = false;
         }
+
         foreach (var attachment in itemConds)
         {
             attachment.ArgsFromField = false;
@@ -583,6 +585,7 @@ public class Dispatcher : IDispatcher
         {
             SaveCondition(condition, obj_f.permanent_mods, obj_f.permanent_mod_data);
         }
+
         foreach (var condition in itemConds)
         {
             SaveCondition(condition, obj_f.permanent_mods, obj_f.permanent_mod_data);

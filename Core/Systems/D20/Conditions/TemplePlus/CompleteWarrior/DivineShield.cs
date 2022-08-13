@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -109,7 +108,6 @@ public class DivineShield
             {
                 return;
             }
-
         }
 
         // Add the charisma modifier to the shield's bonus
@@ -159,6 +157,7 @@ public class DivineShield
 
         return;
     }
+
     public static void DivineShieldTooltip(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoTooltip();
@@ -188,21 +187,23 @@ public class DivineShield
 
     // Setup the feat
     [FeatCondition("Divine Shield")]
-    [AutoRegister] public static readonly ConditionSpec divineShieldFeat = ConditionSpec.Create("Divine Shield Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, DivineShieldRadial)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec divineShieldFeat = ConditionSpec.Create("Divine Shield Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, DivineShieldRadial)
+        );
 
     // Setup the condition added by the feat
-    [AutoRegister] public static readonly ConditionSpec divineShieldEffect = ConditionSpec.Create("Divine Shield Effect", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.PythonActionCheck, divineShieldEnum, OnDivineShieldCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, divineShieldEnum, OnDivineShieldPerform)
-        .AddHandler(DispatcherType.GetAC, DivineShieldAcBonus)
-        .AddHandler(DispatcherType.BeginRound, DivineShieldBeginRound)
-        .AddHandler(DispatcherType.Tooltip, DivineShieldTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, DivineShieldEffectTooltip)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Inventory_Update,
-            DivineShieldInventoryUpdate)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec divineShieldEffect = ConditionSpec.Create("Divine Shield Effect", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.PythonActionCheck, divineShieldEnum, OnDivineShieldCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, divineShieldEnum, OnDivineShieldPerform)
+            .AddHandler(DispatcherType.GetAC, DivineShieldAcBonus)
+            .AddHandler(DispatcherType.BeginRound, DivineShieldBeginRound)
+            .AddHandler(DispatcherType.Tooltip, DivineShieldTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, DivineShieldEffectTooltip)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Inventory_Update,
+                DivineShieldInventoryUpdate)
+        );
 }

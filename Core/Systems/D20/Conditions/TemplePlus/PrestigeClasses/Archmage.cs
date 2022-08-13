@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +28,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public class Archmage
 {
-
     private const Stat ClassId = Stat.level_archmage;
 
     public static readonly D20ClassSpec ClassSpec = new("archmage")
@@ -68,8 +66,7 @@ public class Archmage
         }
     };
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
-        .Build();
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec);
 
     public static void OnGetBaseCasterLevel(in DispatcherCallbackArgs evt)
     {
@@ -82,12 +79,12 @@ public class Archmage
             {
                 return;
             }
-
         }
 
         var classLvl = evt.objHndCaller.GetStat(ClassId);
         dispIo.bonlist.AddBonus(classLvl, 0, 137);
     }
+
     public static void OnSpellListExtensionGet(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetEvtObjSpellCaster();
@@ -99,16 +96,17 @@ public class Archmage
             {
                 return;
             }
-
         }
 
         var classLvl = evt.objHndCaller.GetStat(ClassId);
         dispIo.bonlist.AddBonus(classLvl, 0, 137);
     }
-    public static readonly ConditionSpec spellCasterSpecObj = ConditionSpec.Create(ClassSpec.spellCastingConditionName, 8)
-        .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
-        .AddHandler(DispatcherType.SpellListExtension, OnSpellListExtensionGet)
-        .Build();
+
+    public static readonly ConditionSpec spellCasterSpecObj = ConditionSpec.Create(ClassSpec.spellCastingConditionName, 8, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
+            .AddHandler(DispatcherType.SpellListExtension, OnSpellListExtensionGet)
+        );
 }
 
 // A requirement that checks the critter has two DIFFERENT spell focus feats

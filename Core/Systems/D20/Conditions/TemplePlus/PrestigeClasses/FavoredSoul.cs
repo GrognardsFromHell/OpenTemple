@@ -191,7 +191,7 @@ public class FavoredSoul
         return Enumerable.Empty<SelectableFeat>();
     }
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate,
             OnInitLevelupSpellSelection)
@@ -200,7 +200,7 @@ public class FavoredSoul
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
             OnLevelupSpellsCheckComplete)
         .AddHandler(DispatcherType.TakingDamage2, FavoredSoulDR)
-        .Build();
+    );
 
     // Spell casting
     public static void OnGetBaseCasterLevel(in DispatcherCallbackArgs evt)
@@ -290,39 +290,34 @@ public class FavoredSoul
     }
 
     [FeatCondition(AcidResistance)]
-    public static readonly ConditionSpec EnergyResistanceAcidCondition = ConditionSpec
-        .Create("Favored Soul Acid Resistance", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Acid)
-        .Build();
+    public static readonly ConditionSpec EnergyResistanceAcidCondition = ConditionSpec.Create("Favored Soul Acid Resistance", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Acid)
+        );
 
     [FeatCondition(ColdResistance)]
-    public static readonly ConditionSpec EnergyResistanceColdCondition = ConditionSpec
-        .Create("Favored Soul Cold Resistance", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Cold)
-        .Build();
+    public static readonly ConditionSpec EnergyResistanceColdCondition = ConditionSpec.Create("Favored Soul Cold Resistance", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Cold)
+        );
 
     [FeatCondition(ElectricityResistance)]
-    public static readonly ConditionSpec EnergyResistanceElectricityCondition = ConditionSpec
-        .Create("Favored Soul Electricity Resistance", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Electricity)
-        .Build();
+    public static readonly ConditionSpec EnergyResistanceElectricityCondition = ConditionSpec.Create("Favored Soul Electricity Resistance", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Electricity)
+        );
 
     [FeatCondition(FireResistance)]
-    public static readonly ConditionSpec EnergyResistanceFireCondition = ConditionSpec
-        .Create("Favored Soul Fire Resistance", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Fire)
-        .Build();
+    public static readonly ConditionSpec EnergyResistanceFireCondition = ConditionSpec.Create("Favored Soul Fire Resistance", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Fire)
+        );
 
     [FeatCondition(SonicResistance)]
-    public static readonly ConditionSpec EnergyResistanceSonicCondition = ConditionSpec
-        .Create("Favored Soul Sonic Resistance", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Sonic)
-        .Build();
+    public static readonly ConditionSpec EnergyResistanceSonicCondition = ConditionSpec.Create("Favored Soul Sonic Resistance", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage, FavSoulEnergyRes, DamageType.Sonic)
+        );
 
     #endregion
 }

@@ -52,8 +52,8 @@ public class AugmentHealing
 
     // Extra, Extra
     [AutoRegister, FeatCondition("Augment Healing")]
-    public static readonly ConditionSpec Condition = ConditionSpec.Create("Augment Healing", 2)
-        .SetUnique()
-        .AddQueryHandler("Healing Bonus", QueryHealingBonus)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Augment Healing", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Healing Bonus", QueryHealingBonus)
+        );
 }

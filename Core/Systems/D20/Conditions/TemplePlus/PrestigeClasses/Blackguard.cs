@@ -160,7 +160,7 @@ public class Blackguard
         }
     }
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddQueryHandler("Sneak Attack Dice", BlackguardSneakAttackDice)
         .AddQueryHandler("Turn Undead Level", BlackguardRebukeUndeadLevel)
         // forces "Fallen Paladin" status no matter what. There's no atoning for this one!
@@ -169,7 +169,7 @@ public class Blackguard
         .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
             OnLevelupSpellsFinalize)
-        .Build();
+    );
 
     // Spell casting
     public static void OnGetBaseCasterLevel(in DispatcherCallbackArgs evt)
@@ -210,10 +210,10 @@ public class Blackguard
     }
 
     [FeatCondition(DarkBlessingName)]
-    public static readonly ConditionSpec darkBless = ConditionSpec.Create("Dark Blessing Feat", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.SaveThrowLevel, BlackguardDarkBlessing)
-        .Build();
+    public static readonly ConditionSpec darkBless = ConditionSpec.Create("Dark Blessing Feat", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SaveThrowLevel, BlackguardDarkBlessing)
+        );
 
     #endregion
 
@@ -313,14 +313,14 @@ public class Blackguard
     }
 
     [FeatCondition("Smite Good")]
-    public static readonly ConditionSpec smiteGood = ConditionSpec.Create("Smite Good Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, SmiteGoodReset)
-        .AddHandler(DispatcherType.ConditionAdd, SmiteGoodReset)
-        .AddHandler(DispatcherType.RadialMenuEntry, SmiteGoodRadial)
-        .AddHandler(DispatcherType.PythonActionPerform, smiteGoodEnum, SmiteGoodPerform)
-        .AddHandler(DispatcherType.PythonActionCheck, smiteGoodEnum, SmiteGoodCheck)
-        .Build();
+    public static readonly ConditionSpec smiteGood = ConditionSpec.Create("Smite Good Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, SmiteGoodReset)
+            .AddHandler(DispatcherType.ConditionAdd, SmiteGoodReset)
+            .AddHandler(DispatcherType.RadialMenuEntry, SmiteGoodRadial)
+            .AddHandler(DispatcherType.PythonActionPerform, smiteGoodEnum, SmiteGoodPerform)
+            .AddHandler(DispatcherType.PythonActionCheck, smiteGoodEnum, SmiteGoodCheck)
+        );
 
     // Smiting Good effect
 
@@ -404,13 +404,14 @@ public class Blackguard
         dispIo.bdb.AddEntry(BuffDebuffType.Buff, 7, "Smiting Good", -2);
     }
 
-    public static readonly ConditionSpec smitingGoodEffect = ConditionSpec.Create("Smiting Good")
-        .AddHandler(DispatcherType.DealingDamage, SmitingGoodDamage)
-        .AddHandler(DispatcherType.ToHitBonus2, SmitingGoodToHit)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Killed, SmitingGoodRemove)
-        .AddHandler(DispatcherType.BeginRound, SmitingGoodRemove)
-        .AddHandler(DispatcherType.EffectTooltip, SmitingGoodEffectTooltip)
-        .Build();
+    public static readonly ConditionSpec smitingGoodEffect = ConditionSpec.Create("Smiting Good", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, SmitingGoodDamage)
+            .AddHandler(DispatcherType.ToHitBonus2, SmitingGoodToHit)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Killed, SmitingGoodRemove)
+            .AddHandler(DispatcherType.BeginRound, SmitingGoodRemove)
+            .AddHandler(DispatcherType.EffectTooltip, SmitingGoodEffectTooltip)
+        );
 
     #endregion
 
@@ -470,12 +471,12 @@ public class Blackguard
     }
 
     [FeatCondition(AuraOfDespairName)]
-    public static readonly ConditionSpec auraDesp = ConditionSpec.Create("Feat Aura of Despair", 4)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, AuraOfDespairBegin)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Teleport_Reconnect, AuraOfDespairBegin)
-        .AddHandler(DispatcherType.ObjectEvent, D20DispatcherKey.OnEnterAoE, AuraOfDespairAoEEntered)
-        .Build();
+    public static readonly ConditionSpec auraDesp = ConditionSpec.Create("Feat Aura of Despair", 4, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, AuraOfDespairBegin)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Teleport_Reconnect, AuraOfDespairBegin)
+            .AddHandler(DispatcherType.ObjectEvent, D20DispatcherKey.OnEnterAoE, AuraOfDespairAoEEntered)
+        );
     // auraDesp.AddHook(ET_OnBeginRound, EK_NONE, AuraOfDespairBeginRound, ())
 
     public static void AuraDespairEffSavingThrow(in DispatcherCallbackArgs evt)
@@ -509,14 +510,14 @@ public class Blackguard
         evt.RemoveThisCondition();
     }
 
-    public static readonly ConditionSpec auraDespEffect = ConditionSpec.Create("Despaired_Aura", 4)
-        .SetUnique()
-        .AddHandler(DispatcherType.SaveThrowLevel, AuraDespairEffSavingThrow)
-        .AddHandler(DispatcherType.ObjectEvent, D20DispatcherKey.OnLeaveAoE, AuraOfDespairAoEExited)
-        .AddHandler(DispatcherType.Tooltip, AuraDespTooltip)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, AuraOfDespairRemove)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Teleport_Prepare, AuraOfDespairRemove)
-        .Build();
+    public static readonly ConditionSpec auraDespEffect = ConditionSpec.Create("Despaired_Aura", 4, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SaveThrowLevel, AuraDespairEffSavingThrow)
+            .AddHandler(DispatcherType.ObjectEvent, D20DispatcherKey.OnLeaveAoE, AuraOfDespairAoEExited)
+            .AddHandler(DispatcherType.Tooltip, AuraDespTooltip)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, AuraOfDespairRemove)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Teleport_Prepare, AuraOfDespairRemove)
+        );
 
     #endregion
 }

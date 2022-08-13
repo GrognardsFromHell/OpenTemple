@@ -32,8 +32,7 @@ public class ExtraStunning
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec ExtraStunningExtension = ConditionSpec
-        .Extend(FeatConditions.featstunningfist)
+    public static readonly ConditionSpec ExtraStunningExtension = FeatConditions.featstunningfist.Extend(builder => builder
         .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, ExtraStunningNewDay)
-        .Build();
+    );
 }

@@ -71,10 +71,11 @@ public class RecklessCharge
 
     // Enabled, Place Holder
     [FeatCondition("Reckless Charge")]
-    [AutoRegister] public static readonly ConditionSpec recklessCharge = ConditionSpec.Create("Reckless Charge", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, RecklessChargeHitBonus)
-        .AddHandler(DispatcherType.RadialMenuEntry, RecklessChargeRadial)
-        .AddHandler(DispatcherType.GetAC, RecklessChargeACPenalty)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec recklessCharge = ConditionSpec.Create("Reckless Charge", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, RecklessChargeHitBonus)
+            .AddHandler(DispatcherType.RadialMenuEntry, RecklessChargeRadial)
+            .AddHandler(DispatcherType.GetAC, RecklessChargeACPenalty)
+        );
 }

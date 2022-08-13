@@ -59,9 +59,11 @@ public class PowerCritical
             if (GameSystems.Feat.TryGetFeatForWeaponType("Power Critical", weapon, out var featEnum))
             {
                 var featName = GameSystems.Feat.GetFeatName(featEnum);
-                yield return ConditionSpec.Create(featName, 3)
-                    .AddHandler(DispatcherType.ConfirmCriticalBonus, PowerCriticalBonus, weapon)
-                    .Build();
+                var featWeapon = weapon;
+                yield return ConditionSpec.Create(featName, 3, UniquenessType.NotUnique)
+                    .Configure(builder => builder
+                        .AddHandler(DispatcherType.ConfirmCriticalBonus, PowerCriticalBonus, featWeapon)
+                    );
             }
         }
     }

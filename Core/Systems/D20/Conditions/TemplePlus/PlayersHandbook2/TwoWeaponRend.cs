@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -29,6 +28,7 @@ public class TwoWeaponRend
 
     private static readonly List<GameObject> primaryList = new();
     private static readonly List<GameObject> secondaryList = new();
+
     public static void TwoWeaponRendBeginRound(in DispatcherCallbackArgs evt)
     {
         // Clear out the list of enemies hit with the primary and secondary weapon
@@ -67,13 +67,11 @@ public class TwoWeaponRend
                     primaryList.Add(target);
                     bRend = true;
                 }
-
             }
             else
             {
                 primaryList.Add(target);
             }
-
         }
         else if (weaponUsed == weaponSecondary)
         {
@@ -86,13 +84,11 @@ public class TwoWeaponRend
                     secondaryList.Add(target);
                     bRend = true;
                 }
-
             }
             else
             {
                 secondaryList.Add(target);
             }
-
         }
 
         // Note:  Damge can be applied to the primary or secondary weapon depending on the order attacks hit.
@@ -115,9 +111,10 @@ public class TwoWeaponRend
 
     // spare, spare
     [FeatCondition("Two-Weapon Rend")]
-    [AutoRegister] public static readonly ConditionSpec twoWeaponRend = ConditionSpec.Create("Two-Weapon Rend", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, TwoWeaponRendDamageBonus)
-        .AddHandler(DispatcherType.BeginRound, TwoWeaponRendBeginRound)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec twoWeaponRend = ConditionSpec.Create("Two-Weapon Rend", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, TwoWeaponRendDamageBonus)
+            .AddHandler(DispatcherType.BeginRound, TwoWeaponRendBeginRound)
+        );
 }

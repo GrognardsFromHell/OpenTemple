@@ -19,8 +19,6 @@ public class ConditionRegistry
 
     private readonly List<ConditionAttachment> _globalAttachments;
 
-    private readonly List<ConditionSpec> _pendingExtensions = new();
-
     [TempleDllLocation(0x100e19a0)]
     public ConditionRegistry()
     {
@@ -40,12 +38,6 @@ public class ConditionRegistry
     [TempleDllLocation(0x100e19c0)]
     public void Register(ConditionSpec spec, bool allowOverwrite = false)
     {
-        if (spec.IsExtension)
-        {
-            RegisterExtension(spec);
-            return;
-        }
-
         if (!allowOverwrite && _conditionsByName.ContainsKey(spec.condName.ToUpperInvariant()))
         {
             throw new ArgumentException($"Condition {spec.condName} is already registered.");
@@ -56,30 +48,7 @@ public class ConditionRegistry
         var nameHash = ElfHash.Hash(spec.condName);
         _conditionsByHash[nameHash] = spec;
 
-        // Process pending extensions to this spec
-        for (var i = _pendingExtensions.Count - 1; i >= 0; i--)
-        {
-            var pendingExtension = _pendingExtensions[i];
-            if (string.Equals(pendingExtension.condName, spec.condName, StringComparison.InvariantCultureIgnoreCase))
-            {
-                spec.subDispDefs = _pendingExtensions[i].subDispDefs.Concat(spec.subDispDefs).ToImmutableArray();
-                _pendingExtensions.RemoveAt(i);
-            }
-        }
-    }
-
-    private void RegisterExtension(ConditionSpec spec)
-    {
-        if (_conditionsByName.TryGetValue(spec.condName.ToUpperInvariant(), out var baseSpec))
-        {
-            // Extend with the callbacks from the extension
-            baseSpec.subDispDefs = baseSpec.subDispDefs.Concat(spec.subDispDefs).ToImmutableArray();
-        }
-        else
-        {
-            // Extension came before the base spec, so register it later, when the base spec is registered
-            _pendingExtensions.Add(spec);
-        }
+        spec.Initialize();
     }
 
     public ConditionSpec this[string name] => _conditionsByName.GetValueOrDefault(name.ToUpperInvariant(), null);
@@ -100,12 +69,4 @@ public class ConditionRegistry
     }
 
     public IEnumerable<ConditionAttachment> GlobalAttachments => _globalAttachments;
-
-    public void WarnAboutPendingExtensions()
-    {
-        foreach (var pendingExtension in _pendingExtensions)
-        {
-            Logger.Info(" Base condition {0} for extension was not found.", pendingExtension.condName);
-        }
-    }
 }

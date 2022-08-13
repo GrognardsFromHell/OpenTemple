@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -34,8 +33,8 @@ public class LingeringSong
     // Extra, Extra
     [FeatCondition("Lingering Song")]
     [AutoRegister]
-    public static readonly ConditionSpec Condition = ConditionSpec.Create("Lingering Song", 2)
-        .SetUnique()
-        .AddQueryHandler("Bardic Ability Duration Bonus", QueryMaxBardicMusicExtraRounds)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Lingering Song", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Bardic Ability Duration Bonus", QueryMaxBardicMusicExtraRounds)
+        );
 }

@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,7 +25,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public class Ranger
 {
-
     public static readonly Stat ClassId = Stat.level_ranger;
 
     public static readonly D20ClassSpec ClassSpec = new("ranger")
@@ -103,10 +101,10 @@ public class Ranger
     };
 
     [TempleDllLocation(0x102f02e0)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, ClassConditions.GetRangerOrPaladinCasterLevel, Stat.level_ranger)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize, OnLevelupSpellsFinalize)
-        .Build();
+    );
 
     public static void OnLevelupSpellsFinalize(in DispatcherCallbackArgs evt)
     {
@@ -119,5 +117,4 @@ public class Ranger
         throw new NotImplementedException();
         // classSpecModule.LevelupSpellsFinalize(evt.objHndCaller);
     }
-
 }

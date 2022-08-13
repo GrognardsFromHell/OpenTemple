@@ -42,20 +42,21 @@ public class StrongheartHalfling
         useBaseRaceForDeity = true
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSkillBonuses(
-            (SkillId.listen, 2),
-            (SkillId.move_silently, 2),
-            (SkillId.climb, 2),
-            (SkillId.jump, 2),
-            (SkillId.hide, 4)
-        )
-        .AddBaseMoveSpeed(20)
-        .AddFavoredClassHook(Stat.level_rogue)
-        .AddHandler(DispatcherType.SaveThrowLevel, HalflingFearSaveBonus)
-        .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusSlingsThrownWeapons)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSkillBonuses(
+                (SkillId.listen, 2),
+                (SkillId.move_silently, 2),
+                (SkillId.climb, 2),
+                (SkillId.jump, 2),
+                (SkillId.hide, 4)
+            )
+            .AddBaseMoveSpeed(20)
+            .AddFavoredClassHook(Stat.level_rogue)
+            .AddHandler(DispatcherType.SaveThrowLevel, HalflingFearSaveBonus)
+            .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusSlingsThrownWeapons)
+        );
 
     public static void HalflingFearSaveBonus(in DispatcherCallbackArgs evt)
     {
@@ -88,7 +89,6 @@ public class StrongheartHalfling
         {
             dispIo.bonlist.AddBonus(1, 0, 139);
         }
-
     }
 
     // Note:  Adding the size +4 bonus to hide as a racial bonus since setting size to small does not grant the bonus

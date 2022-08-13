@@ -22,924 +22,966 @@ public static class StatusEffects
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x102e4cb0)]
-    public static readonly ConditionSpec Unconscious = ConditionSpec.Create("Unconscious", 0)
-        .SetUnique()
-        .RemovedBy(Dying)
-        .RemovedBy(Disabled)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, BonusCap0Add)
-        .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CoupDeGrace, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Unconscious, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, UnconsciousHpChanged)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 38, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Combat_End, DyingOnCombatEnd)
-        .AddHandler(DispatcherType.ConditionRemove2, UnconsciousConditionRemoved2_StandUp)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 168)
-        .Build();
+    public static readonly ConditionSpec Unconscious = ConditionSpec.Create("Unconscious", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(Dying)
+            .RemovedBy(Disabled)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, BonusCap0Add)
+            .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CoupDeGrace, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Unconscious, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, UnconsciousHpChanged)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 38, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Combat_End, DyingOnCombatEnd)
+            .AddHandler(DispatcherType.ConditionRemove2, UnconsciousConditionRemoved2_StandUp)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 168)
+        );
 
 
     [TempleDllLocation(0x102e4b40)]
-    public static readonly ConditionSpec Dying = ConditionSpec.Create("Dying", 0)
-        .SetUnique()
-        .Prevents(Disabled)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
-        .AddHandler(DispatcherType.Initiative, DyingBleedingOut)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, BonusCap0Add)
-        .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CoupDeGrace, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Unconscious, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, DyingHpChange)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddSignalHandler(D20DispatcherKey.SIG_HealSkill, DyingHealSkillUsed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 27, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Combat_End, DyingOnCombatEnd)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 169)
-        .Build();
+    public static readonly ConditionSpec Dying = ConditionSpec.Create("Dying", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .Prevents(Disabled)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
+            .AddHandler(DispatcherType.Initiative, DyingBleedingOut)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, BonusCap0Add)
+            .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CoupDeGrace, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Unconscious, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, DyingHpChange)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddSignalHandler(D20DispatcherKey.SIG_HealSkill, DyingHealSkillUsed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 27, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Combat_End, DyingOnCombatEnd)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 169)
+        );
 
 
     [TempleDllLocation(0x102e4a70)]
-    public static readonly ConditionSpec Disabled = ConditionSpec.Create("Disabled", 0)
-        .SetUnique()
-        .RemovedBy(Dying)
-        .AddHandler(DispatcherType.TurnBasedStatusInit,
-            CommonConditionCallbacks.turnBasedStatusInitSingleActionOnly)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, ConditionDisabledHpChange)
-        .AddSignalHandler(D20DispatcherKey.SIG_Sequence, DisabledSequence)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 39, 0)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 170)
-        .Build();
+    public static readonly ConditionSpec Disabled = ConditionSpec.Create("Disabled", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(Dying)
+            .AddHandler(DispatcherType.TurnBasedStatusInit,
+                CommonConditionCallbacks.turnBasedStatusInitSingleActionOnly)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, ConditionDisabledHpChange)
+            .AddSignalHandler(D20DispatcherKey.SIG_Sequence, DisabledSequence)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 39, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 170)
+        );
 
 
     [TempleDllLocation(0x102e4e20)]
-    public static readonly ConditionSpec Dead = ConditionSpec.Create("Dead", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .SetQueryResult(D20DispatcherKey.QUE_Dead, true)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Resurrection)
-        .Build();
+    public static readonly ConditionSpec Dead = ConditionSpec.Create("Dead", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .SetQueryResult(D20DispatcherKey.QUE_Dead, true)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Resurrection)
+        );
 
 
     [TempleDllLocation(0x102e4e90)]
-    public static readonly ConditionSpec StunningFistAttacking = ConditionSpec.Create("StunningFist_Attacking", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, StunningFistDamage)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 5047, 0)
-        .Build();
+    public static readonly ConditionSpec StunningFistAttacking = ConditionSpec.Create("StunningFist_Attacking", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, StunningFistDamage)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 5047, 0)
+        );
 
 
     [TempleDllLocation(0x102e4f10)]
-    public static readonly ConditionSpec AIControlled = ConditionSpec.Create("AI Controlled", 4)
-        .SupportHasConditionQuery()
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_AIControlled, QueryIsAiControlled)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Critter_Killed, AiControlledKilled)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Remove_AI_Controlled)
-        .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 190)
-        .Build();
+    public static readonly ConditionSpec AIControlled = ConditionSpec.Create("AI Controlled", 4, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .SupportHasConditionQuery()
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_AIControlled, QueryIsAiControlled)
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Critter_Killed, AiControlledKilled)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Remove_AI_Controlled)
+            .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 190)
+        );
 
 
     [TempleDllLocation(0x102e4ff8)]
-    public static readonly ConditionSpec Dominate = ConditionSpec.Create("Dominate", 5)
-        .SupportHasConditionQuery()
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Charmed, DominateIsCharmed)
-        .AddHandler(DispatcherType.ConditionAdd, DominateConditionAdd)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 1)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 1)
-        .AddSignalHandler(D20DispatcherKey.SIG_Critter_Killed, DominateCritterKilled)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 189)
-        .Build();
+    public static readonly ConditionSpec Dominate = ConditionSpec.Create("Dominate", 5, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .SupportHasConditionQuery()
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Charmed, DominateIsCharmed)
+            .AddHandler(DispatcherType.ConditionAdd, DominateConditionAdd)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 1)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 1)
+            .AddSignalHandler(D20DispatcherKey.SIG_Critter_Killed, DominateCritterKilled)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 189)
+        );
 
 
     [TempleDllLocation(0x102e50c8)]
-    public static readonly ConditionSpec Held = ConditionSpec.Create("Held", 3)
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 5, 1)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, ParalyzedTurnBasedStatusInit)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 5, SpellEffects.SpellHoldPerson)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .AddQueryHandler(D20DispatcherKey.QUE_Helpless, QueryRetTrueIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, QueryRetTrueIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, QueryRetFalseIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_CoupDeGrace, QueryRetTrueIfNoFreedomOfMovement)
-        .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 40)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 124)
-        .Build();
+    public static readonly ConditionSpec Held = ConditionSpec.Create("Held", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 5, 1)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, ParalyzedTurnBasedStatusInit)
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 5, SpellEffects.SpellHoldPerson)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .AddQueryHandler(D20DispatcherKey.QUE_Helpless, QueryRetTrueIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, QueryRetTrueIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, QueryRetFalseIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_CoupDeGrace, QueryRetTrueIfNoFreedomOfMovement)
+            .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 40)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 124)
+        );
 
 
     [TempleDllLocation(0x102e52e8)]
-    public static readonly ConditionSpec Invisible = ConditionSpec.Create("Invisible", 3)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 6, 1)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 6, SpellEffects.SpellInvisibility)
-        .AddHandler(DispatcherType.ConditionAdd, InvisibleOnAdd_SetFade128)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Invisible, true)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOIncurs, InvisibilityAooIncurs)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOWillTake, InvisibilityAooWilltake)
-        .AddHandler(DispatcherType.ToHitBonus2, InvisibleToHitBonus)
-        .AddHandler(DispatcherType.AcModifyByAttacker, InvisibilityAcBonus2Cap)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 41, 0)
-        .AddHandler(DispatcherType.GetDefenderConcealmentMissChance, InvisibleDefenderConcealmentMissChance, 50)
-        .AddSignalHandler(D20DispatcherKey.SIG_Magical_Item_Deactivate, InvisibleOnDeactivate)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .Build();
+    public static readonly ConditionSpec Invisible = ConditionSpec.Create("Invisible", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 6, 1)
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 6, SpellEffects.SpellInvisibility)
+            .AddHandler(DispatcherType.ConditionAdd, InvisibleOnAdd_SetFade128)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Invisible, true)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOIncurs, InvisibilityAooIncurs)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOWillTake, InvisibilityAooWilltake)
+            .AddHandler(DispatcherType.ToHitBonus2, InvisibleToHitBonus)
+            .AddHandler(DispatcherType.AcModifyByAttacker, InvisibilityAcBonus2Cap)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 41, 0)
+            .AddHandler(DispatcherType.GetDefenderConcealmentMissChance, InvisibleDefenderConcealmentMissChance, 50)
+            .AddSignalHandler(D20DispatcherKey.SIG_Magical_Item_Deactivate, InvisibleOnDeactivate)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+        );
 
 
     [TempleDllLocation(0x102e53f8)]
-    public static readonly ConditionSpec Sleeping = ConditionSpec.Create("Sleeping", 3)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 7, 1)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 7, SpellEffects.SpellSleep)
-        .AddSignalHandler(D20DispatcherKey.SIG_Aid_Another, D20ModCountdownEndHandler, 0)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .SetQueryResult(D20DispatcherKey.QUE_CoupDeGrace, true)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 47, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 135)
-        .Build();
+    public static readonly ConditionSpec Sleeping = ConditionSpec.Create("Sleeping", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 7, 1)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 7, SpellEffects.SpellSleep)
+            .AddSignalHandler(D20DispatcherKey.SIG_Aid_Another, D20ModCountdownEndHandler, 0)
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .SetQueryResult(D20DispatcherKey.QUE_CoupDeGrace, true)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 47, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 135)
+        );
 
 
     [TempleDllLocation(0x102e5518)]
-    public static readonly ConditionSpec HoldingCharge = ConditionSpec.Create("HoldingCharge", 0)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Sequence, HoldingChargeSequence)
-        .SetQueryResult(D20DispatcherKey.QUE_HoldingCharge, true)
-        .AddSignalHandler(D20DispatcherKey.SIG_TouchAttack, sub_100E9AC0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 2)
-        .Build();
+    public static readonly ConditionSpec HoldingCharge = ConditionSpec.Create("HoldingCharge", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Sequence, HoldingChargeSequence)
+            .SetQueryResult(D20DispatcherKey.QUE_HoldingCharge, true)
+            .AddSignalHandler(D20DispatcherKey.SIG_TouchAttack, sub_100E9AC0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 2)
+        );
 
 
     [TempleDllLocation(0x102e5698)]
-    public static readonly ConditionSpec Surprised = ConditionSpec.Create("Surprised", 0)
-        .RemovedBy(SurpriseRound)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 49, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 171)
-        .Build();
+    public static readonly ConditionSpec Surprised = ConditionSpec.Create("Surprised", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .RemovedBy(SurpriseRound)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 49, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 171)
+        );
 
 
     [TempleDllLocation(0x102e5718)]
-    public static readonly ConditionSpec SurpriseRound = ConditionSpec.Create("SurpriseRound", 0)
-        .Prevents(Surprised)
-        .AddHandler(DispatcherType.TurnBasedStatusInit,
-            CommonConditionCallbacks.turnBasedStatusInitSingleActionOnly)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .Build();
+    public static readonly ConditionSpec SurpriseRound = ConditionSpec.Create("SurpriseRound", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(Surprised)
+            .AddHandler(DispatcherType.TurnBasedStatusInit,
+                CommonConditionCallbacks.turnBasedStatusInitSingleActionOnly)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+        );
 
 
     [TempleDllLocation(0x102e55b0)]
-    public static readonly ConditionSpec Flatfooted = ConditionSpec.Create("Flatfooted", 0)
-        .SetUnique()
-        .RemoveOnSignal(D20DispatcherKey.SIG_BeginTurn)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Combat_End)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, FlatfootedAooPossible)
-        .AddHandler(DispatcherType.GetAC, FlatfootedAcBonus)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Flatfooted, true)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 48, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 173)
-        .Build();
+    public static readonly ConditionSpec Flatfooted = ConditionSpec.Create("Flatfooted", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemoveOnSignal(D20DispatcherKey.SIG_BeginTurn)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Combat_End)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, FlatfootedAooPossible)
+            .AddHandler(DispatcherType.GetAC, FlatfootedAcBonus)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Flatfooted, true)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 48, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 173)
+        );
 
 
     [TempleDllLocation(0x102e57b8)]
-    public static readonly ConditionSpec TemporaryHitPoints = ConditionSpec.Create("Temporary_Hit_Points", 3)
-        .SetQueryResult(D20DispatcherKey.QUE_Has_Temporary_Hit_Points, true)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 12, 1)
-        .AddHandler(DispatcherType.TakingDamage2, Temporary_Hit_Points_Disp15h_Taking_Damage, 12)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 12, SpellEffects.SpellAid)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TempHPTooltipCallback, 74)
-        .Build();
+    public static readonly ConditionSpec TemporaryHitPoints = ConditionSpec.Create("Temporary_Hit_Points", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .SetQueryResult(D20DispatcherKey.QUE_Has_Temporary_Hit_Points, true)
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 12, 1)
+            .AddHandler(DispatcherType.TakingDamage2, Temporary_Hit_Points_Disp15h_Taking_Damage, 12)
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 12, SpellEffects.SpellAid)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TempHPTooltipCallback, 74)
+        );
 
 
     [TempleDllLocation(0x102e5770)]
-    public static readonly ConditionSpec SpellInterrupted = ConditionSpec.Create("Spell Interrupted", 3)
-        .AddSignalHandler(D20DispatcherKey.SIG_Anim_CastConjureEnd, SpellInterruptedAnimCastConjureEnd)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .Build();
+    public static readonly ConditionSpec SpellInterrupted = ConditionSpec.Create("Spell Interrupted", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddSignalHandler(D20DispatcherKey.SIG_Anim_CastConjureEnd, SpellInterruptedAnimCastConjureEnd)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+        );
 
 
     [TempleDllLocation(0x102e5860)]
-    public static readonly ConditionSpec Damaged = ConditionSpec.Create("Damaged", 1)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .AddHandler(DispatcherType.ConditionAddPre, CondPreventIncArg, Damaged)
-        .AddQueryHandler(D20DispatcherKey.QUE_SpellInterrupted, DamagedSpellInterrupted)
-        .AddQueryHandler(D20DispatcherKey.QUE_SpellInterrupted, CommonConditionCallbacks.conditionRemoveCallback)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Combat_Critter_Moved)
-        .Build();
+    public static readonly ConditionSpec Damaged = ConditionSpec.Create("Damaged", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.ConditionAddPre, CondPreventIncArg, Damaged)
+            .AddQueryHandler(D20DispatcherKey.QUE_SpellInterrupted, DamagedSpellInterrupted)
+            .AddQueryHandler(D20DispatcherKey.QUE_SpellInterrupted, CommonConditionCallbacks.conditionRemoveCallback)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Combat_Critter_Moved)
+        );
 
 
     [TempleDllLocation(0x102e58e0)]
-    public static readonly ConditionSpec Cursed = ConditionSpec.Create("Cursed", 3)
-        .AddHandler(DispatcherType.ConditionAddPre, AfflictedPreadd_100E9A70, SpellEffects.SpellRemoveCurse)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 13, 1)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Cursed, true)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 51, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 106)
-        .Build();
+    public static readonly ConditionSpec Cursed = ConditionSpec.Create("Cursed", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, AfflictedPreadd_100E9A70, SpellEffects.SpellRemoveCurse)
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 13, 1)
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Cursed, true)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 51, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 106)
+        );
 
 
     [TempleDllLocation(0x102e5988)]
-    public static readonly ConditionSpec Afraid = ConditionSpec.Create("Afraid", 3)
-        .AddHandler(DispatcherType.ConditionAddPre, AfflictedPreadd_100E9A70, SpellEffects.SpellRemoveFear)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 14, 1)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 14, SpellEffects.SpellFear)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Afraid, true)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 52, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 116)
-        .Build();
+    public static readonly ConditionSpec Afraid = ConditionSpec.Create("Afraid", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, AfflictedPreadd_100E9A70, SpellEffects.SpellRemoveFear)
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 14, 1)
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 14, SpellEffects.SpellFear)
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Afraid, true)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 52, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 116)
+        );
 
 
     [TempleDllLocation(0x102e5a70)]
-    public static readonly ConditionSpec Diseased = ConditionSpec.Create("Diseased", 3)
-        .AddHandler(DispatcherType.ConditionAddPre, AfflictedPreadd_100E9A70, SpellEffects.SpellRemoveDisease)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 15, 1)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Diseased, true)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Diseased, DummyCallbacks.EmptyFunction)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 53, 0)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, DiseasedApplyStrengthMalus,
-            53)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, EffectTooltipDiseased, 110)
-        .Build();
+    public static readonly ConditionSpec Diseased = ConditionSpec.Create("Diseased", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, AfflictedPreadd_100E9A70, SpellEffects.SpellRemoveDisease)
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 15, 1)
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Diseased, true)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Diseased, DummyCallbacks.EmptyFunction)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 53, 0)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, DiseasedApplyStrengthMalus,
+                53)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, EffectTooltipDiseased, 110)
+        );
 
 
     [TempleDllLocation(0x102e5b40)]
-    public static readonly ConditionSpec SpellPoisoned = ConditionSpec.Create("Spell-Poisoned", 3)
-        .RemovedBy(SpellEffects.SpellHeal)
-        .AddHandler(DispatcherType.ConditionAddPre, AfflictedPreadd_100E9A70, SpellEffects.SpellNeutralizePoison)
-        .AddHandler(DispatcherType.ConditionAddPre, sub_100EA020)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 16, 1)
-        .AddHandler(DispatcherType.ConditionAdd, RemoveIfImmunePoison)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Poisoned, true)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 55, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 130)
-        .AddHandler(DispatcherType.EffectTooltip, EffectTooltipPoison, 130)
-        .Build();
+    public static readonly ConditionSpec SpellPoisoned = ConditionSpec.Create("Spell-Poisoned", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .RemovedBy(SpellEffects.SpellHeal)
+            .AddHandler(DispatcherType.ConditionAddPre, AfflictedPreadd_100E9A70, SpellEffects.SpellNeutralizePoison)
+            .AddHandler(DispatcherType.ConditionAddPre, sub_100EA020)
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 16, 1)
+            .AddHandler(DispatcherType.ConditionAdd, RemoveIfImmunePoison)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Poisoned, true)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 55, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 130)
+            .AddHandler(DispatcherType.EffectTooltip, EffectTooltipPoison, 130)
+        );
 
 
     [TempleDllLocation(0x102e5cf8)]
-    public static readonly ConditionSpec TotalDefense = ConditionSpec.Create("Total Defense", 0)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetAC, TotalDefenseCallback)
-        .SetQueryResult(D20DispatcherKey.QUE_FightingDefensively, true)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 77)
-        .Build();
+    public static readonly ConditionSpec TotalDefense = ConditionSpec.Create("Total Defense", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.GetAC, TotalDefenseCallback)
+            .SetQueryResult(D20DispatcherKey.QUE_FightingDefensively, true)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 77)
+        );
 
 
     [TempleDllLocation(0x102e5d78)]
-    public static readonly ConditionSpec Charging = ConditionSpec.Create("Charging", 1)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.GetAC, ChargingAcPenalty)
-        .AddHandler(DispatcherType.ToHitBonus2, sub_100E9D30)
-        .Build();
+    public static readonly ConditionSpec Charging = ConditionSpec.Create("Charging", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.GetAC, ChargingAcPenalty)
+            .AddHandler(DispatcherType.ToHitBonus2, sub_100E9D30)
+        );
 
 
     [TempleDllLocation(0x102e5df8)]
-    public static readonly ConditionSpec Prone = ConditionSpec.Create("Prone", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .AddHandler(DispatcherType.GetAC, ProneApplyACModifier)
-        .AddHandler(DispatcherType.ToHitBonus2, sub_100E9DB0)
-        .AddQueryHandler(D20DispatcherKey.QUE_ActionAllowed, ProneActionAllowed)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Standing_Up)
-        .SetQueryResult(D20DispatcherKey.QUE_Prone, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 63, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 176)
-        .Build();
+    public static readonly ConditionSpec Prone = ConditionSpec.Create("Prone", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .AddHandler(DispatcherType.GetAC, ProneApplyACModifier)
+            .AddHandler(DispatcherType.ToHitBonus2, sub_100E9DB0)
+            .AddQueryHandler(D20DispatcherKey.QUE_ActionAllowed, ProneActionAllowed)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Standing_Up)
+            .SetQueryResult(D20DispatcherKey.QUE_Prone, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 63, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 176)
+        );
 
 
     [TempleDllLocation(0x102e5ee0)]
-    public static readonly ConditionSpec TimedDisappear = ConditionSpec.Create("Timed-Disappear", 3)
-        .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 20, 1)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .Build();
+    public static readonly ConditionSpec TimedDisappear = ConditionSpec.Create("Timed-Disappear", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, D20ModCountdownHandler, 20, 1)
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+        );
 
 
     [TempleDllLocation(0x102e5c28)]
-    public static readonly ConditionSpec Poisoned = ConditionSpec.Create("Poisoned", 3)
-        .RemovedBy(SpellEffects.SpellHeal)
-        .RemovedBy(SpellEffects.SpellNeutralizePoison)
-        .AddHandler(DispatcherType.ConditionAddPre, sub_100EA020)
-        .AddHandler(DispatcherType.BeginRound, PoisonedBeginRound, 16)
-        .AddHandler(DispatcherType.ConditionAdd, PoisonedOnAdd)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Poisoned, true)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 55, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, EffectTooltipPoison, 130)
-        .Build();
+    public static readonly ConditionSpec Poisoned = ConditionSpec.Create("Poisoned", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .RemovedBy(SpellEffects.SpellHeal)
+            .RemovedBy(SpellEffects.SpellNeutralizePoison)
+            .AddHandler(DispatcherType.ConditionAddPre, sub_100EA020)
+            .AddHandler(DispatcherType.BeginRound, PoisonedBeginRound, 16)
+            .AddHandler(DispatcherType.ConditionAdd, PoisonedOnAdd)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Poisoned, true)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 55, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, EffectTooltipPoison, 130)
+        );
 
 
     [TempleDllLocation(0x102e5f28)]
-    public static readonly ConditionSpec TempAbilityLoss = ConditionSpec.Create("Temp_Ability_Loss", 2)
-        .AddHandler(DispatcherType.ConditionAddPre, ApplyTempAbilityLoss, TempAbilityLoss)
-        .AddHandler(DispatcherType.ConditionAdd, TempAbilityLoss2)
-        .AddHandler(DispatcherType.AbilityScoreLevel, AbilityDamageStatLevel)
-        .AddHandler(DispatcherType.GetAbilityLoss, Dispatch59Ability_Damage)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TempAbilityLossHeal)
-        .AddSignalHandler(D20DispatcherKey.SIG_Killed, KilledWithAbilityLoss)
-        .AddHandler(DispatcherType.EffectTooltip, EffectTooltipAbilityDamage, 144)
-        .Build();
+    public static readonly ConditionSpec TempAbilityLoss = ConditionSpec.Create("Temp_Ability_Loss", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, ApplyTempAbilityLoss, TempAbilityLoss)
+            .AddHandler(DispatcherType.ConditionAdd, TempAbilityLoss2)
+            .AddHandler(DispatcherType.AbilityScoreLevel, AbilityDamageStatLevel)
+            .AddHandler(DispatcherType.GetAbilityLoss, Dispatch59Ability_Damage)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TempAbilityLossHeal)
+            .AddSignalHandler(D20DispatcherKey.SIG_Killed, KilledWithAbilityLoss)
+            .AddHandler(DispatcherType.EffectTooltip, EffectTooltipAbilityDamage, 144)
+        );
 
 
     [TempleDllLocation(0x102e5fd0)]
-    public static readonly ConditionSpec DamageAbilityLoss = ConditionSpec.Create("Damage_Ability_Loss", 2)
-        .RemovedBy(SpellEffects.SpellHeal)
-        .AddHandler(DispatcherType.ConditionAddPre, ApplyTempAbilityLoss, DamageAbilityLoss)
-        .AddHandler(DispatcherType.ConditionAdd, TempAbilityLoss2)
-        .AddHandler(DispatcherType.AbilityScoreLevel, AbilityDamageStatLevel)
-        .AddHandler(DispatcherType.GetAbilityLoss, Dispatch59Ability_Damage)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, DamageAbilityLossHealing)
-        .AddSignalHandler(D20DispatcherKey.SIG_Killed, KilledWithAbilityLoss)
-        .AddHandler(DispatcherType.EffectTooltip, EffectTooltipAbilityDamage, 144)
-        .Build();
+    public static readonly ConditionSpec DamageAbilityLoss = ConditionSpec.Create("Damage_Ability_Loss", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .RemovedBy(SpellEffects.SpellHeal)
+            .AddHandler(DispatcherType.ConditionAddPre, ApplyTempAbilityLoss, DamageAbilityLoss)
+            .AddHandler(DispatcherType.ConditionAdd, TempAbilityLoss2)
+            .AddHandler(DispatcherType.AbilityScoreLevel, AbilityDamageStatLevel)
+            .AddHandler(DispatcherType.GetAbilityLoss, Dispatch59Ability_Damage)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, DamageAbilityLossHealing)
+            .AddSignalHandler(D20DispatcherKey.SIG_Killed, KilledWithAbilityLoss)
+            .AddHandler(DispatcherType.EffectTooltip, EffectTooltipAbilityDamage, 144)
+        );
 
 
     [TempleDllLocation(0x102e6260)]
-    public static readonly ConditionSpec InspiredCourage = ConditionSpec.Create("Inspired_Courage", 4)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 2,
-            "Bardic-Inspire Courage-hit")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 2, "Bardic-Inspire Courage-hit")
-        .AddHandler(DispatcherType.ConditionAddPre, BardicMusicInspireRefresh, InspiredCourage)
-        .AddHandler(DispatcherType.BeginRound, BardicMusicInspireBeginRound, 0, 1)
-        .AddHandler(DispatcherType.ConditionAdd, InspiredCourageInit)
-        .AddHandler(DispatcherType.ToHitBonus2, InspiredCourageToHitBon)
-        .AddHandler(DispatcherType.DealingDamage, InspiredCourageDamBon)
-        .AddHandler(DispatcherType.SaveThrowLevel, SavingThrow_InspiredCourage_Callback)
-        .AddHandler(DispatcherType.Tooltip, BardicMusicTooltipCallback, 80)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 4)
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 2)
-        .Build();
+    public static readonly ConditionSpec InspiredCourage = ConditionSpec.Create("Inspired_Courage", 4, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 2,
+                "Bardic-Inspire Courage-hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 2, "Bardic-Inspire Courage-hit")
+            .AddHandler(DispatcherType.ConditionAddPre, BardicMusicInspireRefresh, InspiredCourage)
+            .AddHandler(DispatcherType.BeginRound, BardicMusicInspireBeginRound, 0, 1)
+            .AddHandler(DispatcherType.ConditionAdd, InspiredCourageInit)
+            .AddHandler(DispatcherType.ToHitBonus2, InspiredCourageToHitBon)
+            .AddHandler(DispatcherType.DealingDamage, InspiredCourageDamBon)
+            .AddHandler(DispatcherType.SaveThrowLevel, SavingThrow_InspiredCourage_Callback)
+            .AddHandler(DispatcherType.Tooltip, BardicMusicTooltipCallback, 80)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 4)
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 2)
+        );
 
 
     [TempleDllLocation(0x102e6090)]
-    public static readonly ConditionSpec Charmed = ConditionSpec.Create("Charmed", 3)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 25, SpellEffects.SpellCharmPerson)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Charmed, IsCharmedQueryHandler)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 73, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 98)
-        .Build();
+    public static readonly ConditionSpec Charmed = ConditionSpec.Create("Charmed", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 25, SpellEffects.SpellCharmPerson)
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Charmed, IsCharmedQueryHandler)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 73, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 98)
+        );
 
 
     [TempleDllLocation(0x102e6358)]
-    public static readonly ConditionSpec Countersong = ConditionSpec.Create("Countersong", 3)
-        .AddHandler(DispatcherType.ConditionAddPre, BardicEffectPreAdd, Countersong)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Bardic_Music_Completed)
-        .AddHandler(DispatcherType.CountersongSaveThrow, SavingThrow_CounterSong_Callback)
-        .AddHandler(DispatcherType.Tooltip, BardicMusicTooltipCallback, 5043)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 78)
-        .Build();
+    public static readonly ConditionSpec Countersong = ConditionSpec.Create("Countersong", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, BardicEffectPreAdd, Countersong)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Bardic_Music_Completed)
+            .AddHandler(DispatcherType.CountersongSaveThrow, SavingThrow_CounterSong_Callback)
+            .AddHandler(DispatcherType.Tooltip, BardicMusicTooltipCallback, 5043)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 78)
+        );
 
 
     [TempleDllLocation(0x102e6400)]
-    public static readonly ConditionSpec Fascinate = ConditionSpec.Create("Fascinate", 2)
-        .AddHandler(DispatcherType.ConditionAddPre, BardicEffectPreAdd, Fascinate)
-        .AddHandler(DispatcherType.ConditionAdd, FascinateOnAdd, 1)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 2)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Action_Recipient)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 81, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Bardic_Music_Completed)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "Bardic-Fascinate-hit")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "Bardic-Fascinate-hit")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-        .Build();
+    public static readonly ConditionSpec Fascinate = ConditionSpec.Create("Fascinate", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, BardicEffectPreAdd, Fascinate)
+            .AddHandler(DispatcherType.ConditionAdd, FascinateOnAdd, 1)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 2)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Action_Recipient)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 81, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Bardic_Music_Completed)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "Bardic-Fascinate-hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "Bardic-Fascinate-hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+        );
 
 
     [TempleDllLocation(0x102e6560)]
-    public static readonly ConditionSpec Competence = ConditionSpec.Create("Competence", 2)
-        .AddHandler(DispatcherType.ConditionAddPre, BardicEffectPreAdd, Competence)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.CompetenceBonus, 2, 193)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 83, 0)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "Bardic-Inspire Competence-hit")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "Bardic-Inspire Competence-hit")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 4)
-        .Build();
+    public static readonly ConditionSpec Competence = ConditionSpec.Create("Competence", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, BardicEffectPreAdd, Competence)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.CompetenceBonus, 2, 193)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 83, 0)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "Bardic-Inspire Competence-hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "Bardic-Inspire Competence-hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 4)
+        );
 
 
     [TempleDllLocation(0x102e6630)]
-    public static readonly ConditionSpec Suggestion = ConditionSpec.Create("Suggestion", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, BardicSuggestionAdd, 1)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 84, 0)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Afraid, true)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 52, 0)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "Bardic-Suggestion-hit")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "Bardic-Suggestion-hit")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-        .Build();
+    public static readonly ConditionSpec Suggestion = ConditionSpec.Create("Suggestion", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, BardicSuggestionAdd, 1)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 84, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Afraid, true)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 52, 0)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "Bardic-Suggestion-hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "Bardic-Suggestion-hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+        );
 
 
     [TempleDllLocation(0x102e6728)]
-    public static readonly ConditionSpec Greatness = ConditionSpec.Create("Greatness", 4)
-        .AddHandler(DispatcherType.ConditionAddPre, BardicMusicInspireRefresh, InspiredCourage)
-        .AddHandler(DispatcherType.BeginRound, BardicMusicInspireBeginRound, 0, 1)
-        .AddHandler(DispatcherType.ConditionAdd, BardicGreatnessOnAdd)
-        .AddHandler(DispatcherType.ToHitBonus2, BardicGreatnessToHitBonus)
-        .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, BardicGreatnessSaveBonus)
-        .AddHandler(DispatcherType.Tooltip, BardicMusicTooltipCallback, 82)
-        .AddHandler(DispatcherType.TakingDamage2, BardicGreatnessTakingDamage2, 12)
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 2)
-        .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 2,
-            "Bardic-Inspire Greatness-hit")
-        .SetQueryResult(D20DispatcherKey.QUE_Has_Temporary_Hit_Points, true)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 5)
-        .Build();
+    public static readonly ConditionSpec Greatness = ConditionSpec.Create("Greatness", 4, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, BardicMusicInspireRefresh, InspiredCourage)
+            .AddHandler(DispatcherType.BeginRound, BardicMusicInspireBeginRound, 0, 1)
+            .AddHandler(DispatcherType.ConditionAdd, BardicGreatnessOnAdd)
+            .AddHandler(DispatcherType.ToHitBonus2, BardicGreatnessToHitBonus)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, BardicGreatnessSaveBonus)
+            .AddHandler(DispatcherType.Tooltip, BardicMusicTooltipCallback, 82)
+            .AddHandler(DispatcherType.TakingDamage2, BardicGreatnessTakingDamage2, 12)
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 2)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 2,
+                "Bardic-Inspire Greatness-hit")
+            .SetQueryResult(D20DispatcherKey.QUE_Has_Temporary_Hit_Points, true)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 5)
+        );
 
 
     [TempleDllLocation(0x102e6128)]
-    public static readonly ConditionSpec Grappled = ConditionSpec.Create("Grappled", 3)
-        .AddHandler(DispatcherType.BeginRound, GrappledOnBeginRound, 26)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_Grapple_Removed, D20ModCountdownEndHandler, 26)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Grappling, true)
-        .AddHandler(DispatcherType.GetMoveSpeedBase, CommonConditionCallbacks.GrappledMoveSpeed, 0, 232)
-        .AddHandler(DispatcherType.GetMoveSpeed, CommonConditionCallbacks.GrappledMoveSpeed, 0, 232)
-        .AddSignalHandler(D20DispatcherKey.SIG_BreakFree, DummyCallbacks.EmptyFunction)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 88, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, CommonConditionCallbacks.BreakFreeRadial, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 174)
-        .Build();
+    public static readonly ConditionSpec Grappled = ConditionSpec.Create("Grappled", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, GrappledOnBeginRound, 26)
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_Grapple_Removed, D20ModCountdownEndHandler, 26)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Grappling, true)
+            .AddHandler(DispatcherType.GetMoveSpeedBase, CommonConditionCallbacks.GrappledMoveSpeed, 0, 232)
+            .AddHandler(DispatcherType.GetMoveSpeed, CommonConditionCallbacks.GrappledMoveSpeed, 0, 232)
+            .AddSignalHandler(D20DispatcherKey.SIG_BreakFree, DummyCallbacks.EmptyFunction)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 88, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, CommonConditionCallbacks.BreakFreeRadial, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 174)
+        );
 
 
     [TempleDllLocation(0x102e6820)]
-    public static readonly ConditionSpec Stunned = ConditionSpec.Create("Stunned", 2)
-        .AddHandler(DispatcherType.ConditionAddPre, StunnedPreAdd, Stunned)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Stunned, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
-        .AddSignalHandler(D20DispatcherKey.SIG_Initiative_Update, StunnedInitiativeUpdate)
-        .AddHandler(DispatcherType.GetAC, CommonConditionCallbacks.AcBonusCapper, 0)
-        .AddHandler(DispatcherType.ToHitBonusFromDefenderCondition, StunnedToHitBonus, 2)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 89, 0)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 172)
-        .Build();
+    public static readonly ConditionSpec Stunned = ConditionSpec.Create("Stunned", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, StunnedPreAdd, Stunned)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Stunned, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Helpless, true)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
+            .AddSignalHandler(D20DispatcherKey.SIG_Initiative_Update, StunnedInitiativeUpdate)
+            .AddHandler(DispatcherType.GetAC, CommonConditionCallbacks.AcBonusCapper, 0)
+            .AddHandler(DispatcherType.ToHitBonusFromDefenderCondition, StunnedToHitBonus, 2)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 89, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 172)
+        );
 
 
     [TempleDllLocation(0x102e6930)]
-    public static readonly ConditionSpec Dismiss = ConditionSpec.Create("Dismiss", 3)
-        .AddSignalHandler(D20DispatcherKey.SIG_Dismiss_Spells, DismissSignalHandler)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 28, (ConditionSpec) null)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Can_Dismiss_Spells,
-            CommonConditionCallbacks.QueryReturnSpellId)
-        .Build();
+    public static readonly ConditionSpec Dismiss = ConditionSpec.Create("Dismiss", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddSignalHandler(D20DispatcherKey.SIG_Dismiss_Spells, DismissSignalHandler)
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 28, (ConditionSpec) null)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Can_Dismiss_Spells,
+                CommonConditionCallbacks.QueryReturnSpellId)
+        );
 
 
     [TempleDllLocation(0x102e69a0)]
-    public static readonly ConditionSpec BarbarianRaged = ConditionSpec.Create("Barbarian_Raged", 2)
-        .SetUnique()
-        .RemovedBy(Unconscious)
-        .RemovedBy(Dead)
-        .AddHandler(DispatcherType.ConditionAdd, BarbarianRageOnAdd)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "Barbarian Rage")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "Barbarian Rage")
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, BarbarianRageStatBonus)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, BarbarianRageStatBonus)
-        .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, BarbarianRageSaveBonus)
-        .AddHandler(DispatcherType.GetAC, BarbarianRageACMalus)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 5045, 0)
-        .AddHandler(DispatcherType.BeginRound, BarbarianRageBeginRound)
-        .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Barbarian_Raged, true)
-        .AddHandler(DispatcherType.ConditionRemove2, BarbarianRageAfterRemove, 1)
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, Barbarian_RagedHpChanged)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .Build();
+    public static readonly ConditionSpec BarbarianRaged = ConditionSpec.Create("Barbarian_Raged", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(Unconscious)
+            .RemovedBy(Dead)
+            .AddHandler(DispatcherType.ConditionAdd, BarbarianRageOnAdd)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "Barbarian Rage")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "Barbarian Rage")
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, BarbarianRageStatBonus)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, BarbarianRageStatBonus)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, BarbarianRageSaveBonus)
+            .AddHandler(DispatcherType.GetAC, BarbarianRageACMalus)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 5045, 0)
+            .AddHandler(DispatcherType.BeginRound, BarbarianRageBeginRound)
+            .SetQueryResult(D20DispatcherKey.QUE_CannotCast, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Barbarian_Raged, true)
+            .AddHandler(DispatcherType.ConditionRemove2, BarbarianRageAfterRemove, 1)
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, Barbarian_RagedHpChanged)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+        );
 
 
     [TempleDllLocation(0x102e6b38)]
-    public static readonly ConditionSpec BarbarianFatigued = ConditionSpec.Create("Barbarian_Fatigued", 2)
-        .RemovedBy(SpellEffects.SpellHeal)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "barbarian fatigue")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "barbarian fatigue")
-        .AddHandler(DispatcherType.ConditionAdd, BarbarianFatigueInit)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, ApplyBarbarianRageFatigue)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, ApplyBarbarianRageFatigue)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 5046, 0)
-        .AddHandler(DispatcherType.BeginRound, BarbarianFatigueCountdown)
-        .SetQueryResult(D20DispatcherKey.QUE_Barbarian_Fatigued, true)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-        .AddHandler(DispatcherType.ConditionRemove2, sub_100EAE60)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 146)
-        .Build();
+    public static readonly ConditionSpec BarbarianFatigued = ConditionSpec.Create("Barbarian_Fatigued", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(SpellEffects.SpellHeal)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "barbarian fatigue")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "barbarian fatigue")
+            .AddHandler(DispatcherType.ConditionAdd, BarbarianFatigueInit)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, ApplyBarbarianRageFatigue)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, ApplyBarbarianRageFatigue)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 5046, 0)
+            .AddHandler(DispatcherType.BeginRound, BarbarianFatigueCountdown)
+            .SetQueryResult(D20DispatcherKey.QUE_Barbarian_Fatigued, true)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+            .AddHandler(DispatcherType.ConditionRemove2, sub_100EAE60)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 146)
+        );
 
 
     [TempleDllLocation(0x102e6c70)]
-    public static readonly ConditionSpec SmitingEvil = ConditionSpec.Create("Smiting_Evil", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, SmiteEvilOnDamage)
-        .AddHandler(DispatcherType.ToHitBonus2, SmiteEvilToHitBonus)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 5049, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 7)
-        .Build();
+    public static readonly ConditionSpec SmitingEvil = ConditionSpec.Create("Smiting_Evil", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, SmiteEvilOnDamage)
+            .AddHandler(DispatcherType.ToHitBonus2, SmiteEvilToHitBonus)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 5049, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 7)
+        );
 
 
     [TempleDllLocation(0x102e6d18)]
-    public static readonly ConditionSpec Test = ConditionSpec.Create("Test", 1)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "Fizzle")
-        .Build();
+    public static readonly ConditionSpec Test = ConditionSpec.Create("Test", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "Fizzle")
+        );
 
 
     [TempleDllLocation(0x102e6d48)]
     // There was a second Spell resistance Condition that was overwritten by this one (The Feat-related one)
     [TempleDllLocation(0x102aae80)]
-    public static readonly ConditionSpec SpellResistance = ConditionSpec.Create("Spell Resistance", 3)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.SpellResistanceDebug)
-        .AddHandler(DispatcherType.SpellResistanceMod, CommonConditionCallbacks.SpellResistanceMod_Callback, 5048)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Spell_Resistance,
-            CommonConditionCallbacks.SpellResistanceQuery)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipSpellResistanceCallback, 5048)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 60)
-        .Build();
+    public static readonly ConditionSpec SpellResistance = ConditionSpec.Create("Spell Resistance", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.SpellResistanceDebug)
+            .AddHandler(DispatcherType.SpellResistanceMod, CommonConditionCallbacks.SpellResistanceMod_Callback, 5048)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Spell_Resistance,
+                CommonConditionCallbacks.SpellResistanceQuery)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipSpellResistanceCallback, 5048)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 60)
+        );
 
 
     [TempleDllLocation(0x102e6dc8)]
-    public static readonly ConditionSpec CouragedAura = ConditionSpec.Create("Couraged_Aura", 5)
-        .AddHandler(DispatcherType.ConditionAddPre, CouragedAuraOnPreAdd, CouragedAura)
-        .AddHandler(DispatcherType.ConditionAdd, CouragedAuraOnAdd)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 4)
-        .AddHandler(DispatcherType.SaveThrowLevel, CouragedAuraSavingThrow, 0, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 1)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .Build();
+    public static readonly ConditionSpec CouragedAura = ConditionSpec.Create("Couraged_Aura", 5, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, CouragedAuraOnPreAdd, CouragedAura)
+            .AddHandler(DispatcherType.ConditionAdd, CouragedAuraOnAdd)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 4)
+            .AddHandler(DispatcherType.SaveThrowLevel, CouragedAuraSavingThrow, 0, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 1)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+        );
 
 
     [TempleDllLocation(0x102e6e88)]
-    public static readonly ConditionSpec NewRoundThisTurn = ConditionSpec.Create("NewRound_This_Turn", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.Initiative, CommonConditionCallbacks.conditionRemoveCallback)
-        .SetQueryResult(D20DispatcherKey.QUE_NewRound_This_Turn, true)
-        .Build();
+    public static readonly ConditionSpec NewRoundThisTurn = ConditionSpec.Create("NewRound_This_Turn", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.Initiative, CommonConditionCallbacks.conditionRemoveCallback)
+            .SetQueryResult(D20DispatcherKey.QUE_NewRound_This_Turn, true)
+        );
 
 
     [TempleDllLocation(0x102e6ee0)]
-    public static readonly ConditionSpec IncubatingDisease = ConditionSpec.Create("Incubating_Disease", 3)
-        .RemovedBy(SpellEffects.SpellHeal)
-        .AddHandler(DispatcherType.ConditionAdd, IncubatingDiseaseOnAdd)
-        .AddHandler(DispatcherType.ConditionAddPre, DiseasedPreAdd, IncubatingDisease)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_CALENDARICAL, IncubatingDiseaseNewday, 1)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Remove_Disease)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Diseased, true)
-        .Build();
+    public static readonly ConditionSpec IncubatingDisease = ConditionSpec.Create("Incubating_Disease", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .RemovedBy(SpellEffects.SpellHeal)
+            .AddHandler(DispatcherType.ConditionAdd, IncubatingDiseaseOnAdd)
+            .AddHandler(DispatcherType.ConditionAddPre, DiseasedPreAdd, IncubatingDisease)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_CALENDARICAL, IncubatingDiseaseNewday, 1)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Remove_Disease)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Diseased, true)
+        );
 
 
     [TempleDllLocation(0x102e6f78)]
-    public static readonly ConditionSpec NSDiseased = ConditionSpec.Create("NSDiseased", 3)
-        .RemovedBy(SpellEffects.SpellHeal)
-        .AddHandler(DispatcherType.ConditionAdd, sub_100EB500)
-        .AddHandler(DispatcherType.ConditionAddPre, DiseasedPreAdd, NSDiseased)
-        .AddHandler(DispatcherType.BeginRound, DiseaseBeginRound)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_CALENDARICAL, DiseasedNewDay)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 53, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Remove_Disease)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Diseased, true)
-        .AddHandler(DispatcherType.EffectTooltip, EffectTooltipDiseased, 110)
-        .Build();
+    public static readonly ConditionSpec NSDiseased = ConditionSpec.Create("NSDiseased", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .RemovedBy(SpellEffects.SpellHeal)
+            .AddHandler(DispatcherType.ConditionAdd, sub_100EB500)
+            .AddHandler(DispatcherType.ConditionAddPre, DiseasedPreAdd, NSDiseased)
+            .AddHandler(DispatcherType.BeginRound, DiseaseBeginRound)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_CALENDARICAL, DiseasedNewDay)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 53, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Remove_Disease)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Diseased, true)
+            .AddHandler(DispatcherType.EffectTooltip, EffectTooltipDiseased, 110)
+        );
 
 
     [TempleDllLocation(0x102e7048)]
-    public static readonly ConditionSpec DetectingEvil = ConditionSpec.Create("Detecting Evil", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 3)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Can_Detect_Evil, true)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .AddHandler(DispatcherType.BeginRound, DetectingEvilBeginRound)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Concentration_Broken)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "sp-Detect Alignment")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Detect Alignment")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 21)
-        .Build();
+    public static readonly ConditionSpec DetectingEvil = ConditionSpec.Create("Detecting Evil", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 3)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Can_Detect_Evil, true)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.BeginRound, DetectingEvilBeginRound)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Concentration_Broken)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "sp-Detect Alignment")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Detect Alignment")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 21)
+        );
 
 
     [TempleDllLocation(0x102e7140)]
-    public static readonly ConditionSpec DetectedEvil = ConditionSpec.Create("Detected Evil", 2)
-        .AddHandler(DispatcherType.ConditionAddPre, CondPreventIncArg, DetectedEvil)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "sp-Detect Alignment Evil")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Detect Alignment Evil")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-        .Build();
+    public static readonly ConditionSpec DetectedEvil = ConditionSpec.Create("Detected Evil", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, CondPreventIncArg, DetectedEvil)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "sp-Detect Alignment Evil")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Detect Alignment Evil")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+        );
 
 
     [TempleDllLocation(0x102e71c0)]
-    public static readonly ConditionSpec KilledByDeathEffect = ConditionSpec.Create("Killed By Death Effect", 2)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Condition, KilledByDeathEffectHasCond,
-            KilledByDeathEffect, 0)
-        .Build();
+    public static readonly ConditionSpec KilledByDeathEffect = ConditionSpec.Create("Killed By Death Effect", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Condition, KilledByDeathEffectHasCond,
+                KilledByDeathEffect, 0)
+        );
 
 
     [TempleDllLocation(0x102e71f0)]
-    public static readonly ConditionSpec TempNegativeLevel = ConditionSpec.Create("Temp Negative Level", 3)
-        .RemovedBy(SpellEffects.SpellRestoration)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.TempNegativeLvlOnAdd, 0, 0)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_CALENDARICAL, TempNegativeLevelNewday)
-        .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.NegativeLevelSkillPenalty, 266, 0)
-        .AddHandler(DispatcherType.ToHitBonus2, CommonConditionCallbacks.NegativeLevelToHitBonus, 266, 0)
-        .AddHandler(DispatcherType.SaveThrowLevel, CommonConditionCallbacks.sub_100EF6E0, 266, 0)
-        .AddHandler(DispatcherType.MaxHP, CommonConditionCallbacks.NegativeLevelMaxHp, 266, 0)
-        .AddHandler(DispatcherType.GetLevel, CommonConditionCallbacks.NegativeLevel, 266, 0)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 147)
-        .Build();
+    public static readonly ConditionSpec TempNegativeLevel = ConditionSpec.Create("Temp Negative Level", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .RemovedBy(SpellEffects.SpellRestoration)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.TempNegativeLvlOnAdd, 0, 0)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_CALENDARICAL, TempNegativeLevelNewday)
+            .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.NegativeLevelSkillPenalty, 266, 0)
+            .AddHandler(DispatcherType.ToHitBonus2, CommonConditionCallbacks.NegativeLevelToHitBonus, 266, 0)
+            .AddHandler(DispatcherType.SaveThrowLevel, CommonConditionCallbacks.sub_100EF6E0, 266, 0)
+            .AddHandler(DispatcherType.MaxHP, CommonConditionCallbacks.NegativeLevelMaxHp, 266, 0)
+            .AddHandler(DispatcherType.GetLevel, CommonConditionCallbacks.NegativeLevel, 266, 0)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 147)
+        );
 
 
     [TempleDllLocation(0x102e72d8)]
-    public static readonly ConditionSpec PermNegativeLevel = ConditionSpec.Create("Perm Negative Level", 3)
-        .AddHandler(DispatcherType.ConditionAdd, PermanentNegativeLevelOnAdd)
-        .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.NegativeLevelSkillPenalty, 267, 0)
-        .AddHandler(DispatcherType.ToHitBonus2, CommonConditionCallbacks.NegativeLevelToHitBonus, 267, 0)
-        .AddHandler(DispatcherType.SaveThrowLevel, CommonConditionCallbacks.sub_100EF6E0, 267, 0)
-        .AddHandler(DispatcherType.MaxHP, CommonConditionCallbacks.NegativeLevelMaxHp, 267, 0)
-        .AddHandler(DispatcherType.GetLevel, CommonConditionCallbacks.NegativeLevel, 267, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Experience_Awarded, PermNegLevelExpGained)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 148)
-        .Build();
+    public static readonly ConditionSpec PermNegativeLevel = ConditionSpec.Create("Perm Negative Level", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, PermanentNegativeLevelOnAdd)
+            .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.NegativeLevelSkillPenalty, 267, 0)
+            .AddHandler(DispatcherType.ToHitBonus2, CommonConditionCallbacks.NegativeLevelToHitBonus, 267, 0)
+            .AddHandler(DispatcherType.SaveThrowLevel, CommonConditionCallbacks.sub_100EF6E0, 267, 0)
+            .AddHandler(DispatcherType.MaxHP, CommonConditionCallbacks.NegativeLevelMaxHp, 267, 0)
+            .AddHandler(DispatcherType.GetLevel, CommonConditionCallbacks.NegativeLevel, 267, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Experience_Awarded, PermNegLevelExpGained)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 148)
+        );
 
 
     [TempleDllLocation(0x102e73a8)]
-    public static readonly ConditionSpec FallenPaladin = ConditionSpec.Create("Fallen_Paladin", 0)
-        .AddHandler(DispatcherType.ConditionAdd, sub_100EB7C0)
-        .SetUnique()
-        .SetQueryResult(D20DispatcherKey.QUE_IsFallenPaladin, true)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Atone_Fallen_Paladin)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 175)
-        .Build();
+    public static readonly ConditionSpec FallenPaladin = ConditionSpec.Create("Fallen_Paladin", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100EB7C0)
+            .SetQueryResult(D20DispatcherKey.QUE_IsFallenPaladin, true)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Atone_Fallen_Paladin)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 175)
+        );
 
 
     [TempleDllLocation(0x102e51d8)]
-    public static readonly ConditionSpec Paralyzed = ConditionSpec.Create("Paralyzed", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.BeginRound, ParalyzedOnBeginRound, 5)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, ParalyzedTurnBasedStatusInit)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 5, SpellEffects.SpellHoldPerson)
-        .AddQueryHandler(D20DispatcherKey.QUE_Helpless, QueryRetTrueIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, QueryRetTrueIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, QueryRetFalseIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_CoupDeGrace, QueryRetTrueIfNoFreedomOfMovement)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 149)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 120)
-        .Build();
+    public static readonly ConditionSpec Paralyzed = ConditionSpec.Create("Paralyzed", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, ParalyzedOnBeginRound, 5)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, ParalyzedTurnBasedStatusInit)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 5, SpellEffects.SpellHoldPerson)
+            .AddQueryHandler(D20DispatcherKey.QUE_Helpless, QueryRetTrueIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, QueryRetTrueIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, QueryRetFalseIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_CoupDeGrace, QueryRetTrueIfNoFreedomOfMovement)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 149)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 120)
+        );
 
 
     [TempleDllLocation(0x102e74c0)]
-    public static readonly ConditionSpec Feinting = ConditionSpec.Create("Feinting", 5)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, sub_100EB860)
-        .AddHandler(DispatcherType.AcModifyByAttacker, FeintAcBonus2Cap)
-        .AddSignalHandler(D20DispatcherKey.SIG_EndTurn, FeintingEndTurn)
-        .AddQueryHandler(D20DispatcherKey.QUE_OpponentSneakAttack, FeintingOpponentSneakAttack)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .Build();
+    public static readonly ConditionSpec Feinting = ConditionSpec.Create("Feinting", 5, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100EB860)
+            .AddHandler(DispatcherType.AcModifyByAttacker, FeintAcBonus2Cap)
+            .AddSignalHandler(D20DispatcherKey.SIG_EndTurn, FeintingEndTurn)
+            .AddQueryHandler(D20DispatcherKey.QUE_OpponentSneakAttack, FeintingOpponentSneakAttack)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+        );
 
 
     [TempleDllLocation(0x102e7568)]
-    public static readonly ConditionSpec AugmentSummoningEnhancement = ConditionSpec
-        .Create("Augment Summoning Enhancement", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, AugmentSummoningStatBonus)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, AugmentSummoningStatBonus)
-        .Build();
+    public static readonly ConditionSpec AugmentSummoningEnhancement = ConditionSpec.Create("Augment Summoning Enhancement", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, AugmentSummoningStatBonus)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, AugmentSummoningStatBonus)
+        );
 
 
     [TempleDllLocation(0x102e75c0)]
-    public static readonly ConditionSpec FailedDecipherScript = ConditionSpec.Create("Failed Decipher Script", 6)
-        .SetUnique()
-        .AddQueryHandler(D20DispatcherKey.QUE_FailedDecipherToday, FailedDecipherScriptTodayQuery)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.conditionRemoveCallback)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .Build();
+    public static readonly ConditionSpec FailedDecipherScript = ConditionSpec.Create("Failed Decipher Script", 6, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler(D20DispatcherKey.QUE_FailedDecipherToday, FailedDecipherScriptTodayQuery)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.conditionRemoveCallback)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+        );
 
 
     [TempleDllLocation(0x102e7640)]
-    public static readonly ConditionSpec EncumberedMedium = ConditionSpec.Create("Encumbered Medium", 3)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Encumbered_Medium, EncumbranceQuery, 0, 320)
-        .AddSignalHandler(D20DispatcherKey.SIG_Inventory_Update, UpdateEncumbrance)
-        .AddSignalHandler(D20DispatcherKey.SIG_Update_Encumbrance, UpdateEncumbrance)
-        .AddHandler(DispatcherType.MaxDexAcBonus, MaxDexAcBonusCallback, 3, 320)
-        .AddHandler(DispatcherType.GetMoveSpeed, EncumberedMoveSpeedCallback, 0, 320)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 172, 0)
-        .AddSkillLevelHandler(SkillId.balance, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
-        .AddSkillLevelHandler(SkillId.climb, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
-        .AddSkillLevelHandler(SkillId.escape_artist, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
-        .AddSkillLevelHandler(SkillId.hide, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
-        .AddSkillLevelHandler(SkillId.jump, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
-        .AddSkillLevelHandler(SkillId.move_silently, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
-        .AddSkillLevelHandler(SkillId.pick_pocket, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
-        .AddSkillLevelHandler(SkillId.tumble, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 177)
-        .Build();
+    public static readonly ConditionSpec EncumberedMedium = ConditionSpec.Create("Encumbered Medium", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Encumbered_Medium, EncumbranceQuery, 0, 320)
+            .AddSignalHandler(D20DispatcherKey.SIG_Inventory_Update, UpdateEncumbrance)
+            .AddSignalHandler(D20DispatcherKey.SIG_Update_Encumbrance, UpdateEncumbrance)
+            .AddHandler(DispatcherType.MaxDexAcBonus, MaxDexAcBonusCallback, 3, 320)
+            .AddHandler(DispatcherType.GetMoveSpeed, EncumberedMoveSpeedCallback, 0, 320)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 172, 0)
+            .AddSkillLevelHandler(SkillId.balance, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
+            .AddSkillLevelHandler(SkillId.climb, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
+            .AddSkillLevelHandler(SkillId.escape_artist, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
+            .AddSkillLevelHandler(SkillId.hide, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
+            .AddSkillLevelHandler(SkillId.jump, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
+            .AddSkillLevelHandler(SkillId.move_silently, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
+            .AddSkillLevelHandler(SkillId.pick_pocket, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
+            .AddSkillLevelHandler(SkillId.tumble, CommonConditionCallbacks.EncumbranceSkillLevel, 3, 320)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 177)
+        );
 
 
     [TempleDllLocation(0x102e7788)]
-    public static readonly ConditionSpec EncumberedHeavy = ConditionSpec.Create("Encumbered Heavy", 3)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Encumbered_Heavy, EncumbranceQuery, 0, 321)
-        .AddSignalHandler(D20DispatcherKey.SIG_Inventory_Update, UpdateEncumbrance)
-        .AddSignalHandler(D20DispatcherKey.SIG_Update_Encumbrance, UpdateEncumbrance)
-        .AddHandler(DispatcherType.MaxDexAcBonus, MaxDexAcBonusCallback, 3, 321)
-        .AddHandler(DispatcherType.GetMoveSpeed, EncumberedMoveSpeedCallback, 0, 321)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 173, 0)
-        .AddSkillLevelHandler(SkillId.balance, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
-        .AddSkillLevelHandler(SkillId.climb, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
-        .AddSkillLevelHandler(SkillId.escape_artist, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
-        .AddSkillLevelHandler(SkillId.hide, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
-        .AddSkillLevelHandler(SkillId.jump, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
-        .AddSkillLevelHandler(SkillId.move_silently, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
-        .AddSkillLevelHandler(SkillId.pick_pocket, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
-        .AddSkillLevelHandler(SkillId.tumble, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 178)
-        .Build();
+    public static readonly ConditionSpec EncumberedHeavy = ConditionSpec.Create("Encumbered Heavy", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Encumbered_Heavy, EncumbranceQuery, 0, 321)
+            .AddSignalHandler(D20DispatcherKey.SIG_Inventory_Update, UpdateEncumbrance)
+            .AddSignalHandler(D20DispatcherKey.SIG_Update_Encumbrance, UpdateEncumbrance)
+            .AddHandler(DispatcherType.MaxDexAcBonus, MaxDexAcBonusCallback, 3, 321)
+            .AddHandler(DispatcherType.GetMoveSpeed, EncumberedMoveSpeedCallback, 0, 321)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 173, 0)
+            .AddSkillLevelHandler(SkillId.balance, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
+            .AddSkillLevelHandler(SkillId.climb, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
+            .AddSkillLevelHandler(SkillId.escape_artist, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
+            .AddSkillLevelHandler(SkillId.hide, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
+            .AddSkillLevelHandler(SkillId.jump, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
+            .AddSkillLevelHandler(SkillId.move_silently, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
+            .AddSkillLevelHandler(SkillId.pick_pocket, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
+            .AddSkillLevelHandler(SkillId.tumble, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 321)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 178)
+        );
 
 
     [TempleDllLocation(0x102e78d0)]
-    public static readonly ConditionSpec EncumberedOverburdened = ConditionSpec.Create("Encumbered Overburdened", 3)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Encumbered_Overburdened, EncumbranceQuery, 0, 324)
-        .AddSignalHandler(D20DispatcherKey.SIG_Inventory_Update, UpdateEncumbrance)
-        .AddSignalHandler(D20DispatcherKey.SIG_Update_Encumbrance, UpdateEncumbrance)
-        .AddHandler(DispatcherType.MaxDexAcBonus, MaxDexAcBonusCallback, 3, 324)
-        .AddHandler(DispatcherType.GetMoveSpeed, EncumberedMoveSpeedCallback, 0, 324)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 186, 0)
-        .AddSkillLevelHandler(SkillId.balance, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
-        .AddSkillLevelHandler(SkillId.climb, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
-        .AddSkillLevelHandler(SkillId.escape_artist, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
-        .AddSkillLevelHandler(SkillId.hide, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
-        .AddSkillLevelHandler(SkillId.jump, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
-        .AddSkillLevelHandler(SkillId.move_silently, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
-        .AddSkillLevelHandler(SkillId.pick_pocket, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
-        .AddSkillLevelHandler(SkillId.tumble, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 179)
-        .Build();
+    public static readonly ConditionSpec EncumberedOverburdened = ConditionSpec.Create("Encumbered Overburdened", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Encumbered_Overburdened, EncumbranceQuery, 0, 324)
+            .AddSignalHandler(D20DispatcherKey.SIG_Inventory_Update, UpdateEncumbrance)
+            .AddSignalHandler(D20DispatcherKey.SIG_Update_Encumbrance, UpdateEncumbrance)
+            .AddHandler(DispatcherType.MaxDexAcBonus, MaxDexAcBonusCallback, 3, 324)
+            .AddHandler(DispatcherType.GetMoveSpeed, EncumberedMoveSpeedCallback, 0, 324)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 186, 0)
+            .AddSkillLevelHandler(SkillId.balance, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
+            .AddSkillLevelHandler(SkillId.climb, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
+            .AddSkillLevelHandler(SkillId.escape_artist, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
+            .AddSkillLevelHandler(SkillId.hide, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
+            .AddSkillLevelHandler(SkillId.jump, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
+            .AddSkillLevelHandler(SkillId.move_silently, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
+            .AddSkillLevelHandler(SkillId.pick_pocket, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
+            .AddSkillLevelHandler(SkillId.tumble, CommonConditionCallbacks.EncumbranceSkillLevel, 6, 324)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 179)
+        );
 
 
     [TempleDllLocation(0x102e7a18)]
-    public static readonly ConditionSpec BrawlPlayer = ConditionSpec.Create("Brawl Player", 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Broadcast_Action, BrawlPlayerBroadcastAction)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, BrawlHpChanged)
-        .AddSignalHandler(D20DispatcherKey.SIG_EndTurn, BrawlOnEndTurn)
-        .AddSignalHandler(D20DispatcherKey.SIG_Combat_End, BrawlPlayerCombatEnd)
-        .Build();
+    public static readonly ConditionSpec BrawlPlayer = ConditionSpec.Create("Brawl Player", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddSignalHandler(D20DispatcherKey.SIG_Broadcast_Action, BrawlPlayerBroadcastAction)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, BrawlHpChanged)
+            .AddSignalHandler(D20DispatcherKey.SIG_EndTurn, BrawlOnEndTurn)
+            .AddSignalHandler(D20DispatcherKey.SIG_Combat_End, BrawlPlayerCombatEnd)
+        );
 
 
     [TempleDllLocation(0x102e7a88)]
-    public static readonly ConditionSpec BrawlSpectator = ConditionSpec.Create("Brawl Spectator", 0)
-        .SetQueryResult(D20DispatcherKey.QUE_EnterCombat, false)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Combat_End)
-        .Build();
+    public static readonly ConditionSpec BrawlSpectator = ConditionSpec.Create("Brawl Spectator", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .SetQueryResult(D20DispatcherKey.QUE_EnterCombat, false)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Combat_End)
+        );
 
 
     [TempleDllLocation(0x102e7ad0)]
-    public static readonly ConditionSpec BrawlOpponent = ConditionSpec.Create("Brawl Opponent", 0)
-        .AddHandler(DispatcherType.TakingDamage2, BrawlTakingDamage)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, BrawlHpChanged)
-        .AddSignalHandler(D20DispatcherKey.SIG_EndTurn, BrawlOnEndTurn)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Combat_End)
-        .Build();
+    public static readonly ConditionSpec BrawlOpponent = ConditionSpec.Create("Brawl Opponent", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, BrawlTakingDamage)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, BrawlHpChanged)
+            .AddSignalHandler(D20DispatcherKey.SIG_EndTurn, BrawlOnEndTurn)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Combat_End)
+        );
 
 
     [TempleDllLocation(0x102e7b40)]
-    public static readonly ConditionSpec Blindness = ConditionSpec.Create("Blindness", 2)
-        .RemovedBy(SpellEffects.SpellHeal)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAddPre, sub_100EC220, SpellEffects.SpellRemoveBlindness)
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Blinded, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.SightImpairmentSkillPenalty, 0, 4)
-        .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.SightImpairmentSkillPenalty, 1, 4)
-        .AddHandler(DispatcherType.GetMoveSpeed, CommonConditionCallbacks.sub_100EFD60)
-        .AddHandler(DispatcherType.GetAttackerConcealmentMissChance,
-            CommonConditionCallbacks.AddAttackerInvisibleBonusWithCustomMessage, 50, 189)
-        .AddHandler(DispatcherType.ToHitBonusFromDefenderCondition,
-            CommonConditionCallbacks.AddAttackerInvisibleBonus, 2)
-        .AddHandler(DispatcherType.GetAC, CommonConditionCallbacks.AcBonusCapper, 189)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 76, 0)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 93)
-        .Build();
+    public static readonly ConditionSpec Blindness = ConditionSpec.Create("Blindness", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(SpellEffects.SpellHeal)
+            .AddHandler(DispatcherType.ConditionAddPre, sub_100EC220, SpellEffects.SpellRemoveBlindness)
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Blinded, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.SightImpairmentSkillPenalty, 0, 4)
+            .AddHandler(DispatcherType.SkillLevel, CommonConditionCallbacks.SightImpairmentSkillPenalty, 1, 4)
+            .AddHandler(DispatcherType.GetMoveSpeed, CommonConditionCallbacks.sub_100EFD60)
+            .AddHandler(DispatcherType.GetAttackerConcealmentMissChance,
+                CommonConditionCallbacks.AddAttackerInvisibleBonusWithCustomMessage, 50, 189)
+            .AddHandler(DispatcherType.ToHitBonusFromDefenderCondition,
+                CommonConditionCallbacks.AddAttackerInvisibleBonus, 2)
+            .AddHandler(DispatcherType.GetAC, CommonConditionCallbacks.AcBonusCapper, 189)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 76, 0)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 93)
+        );
 
 
     [TempleDllLocation(0x102e7ca0)]
-    public static readonly ConditionSpec ElixerTimedSkillBonus = ConditionSpec.Create("Elixer Timed Skill Bonus", 3)
-        .AddHandler(DispatcherType.ConditionAddPre, ElixerTimedSkillBonusGuard)
-        .AddHandler(DispatcherType.ConditionAdd, ElixerTimedBonusInit)
-        .AddHandler(DispatcherType.BeginRound, ElixerTimedSkillBonusBeginRound)
-        .AddHandler(DispatcherType.SkillLevel, SkillModifier_ElixerTimedSkillBonus_Callback, 323)
-        .AddHandler(DispatcherType.Tooltip, ElixerTimeSkillBonusTooltipCallback)
-        .AddHandler(DispatcherType.EffectTooltip, ExlixirTimedBonusEffectTooltip)
-        .Build();
+    public static readonly ConditionSpec ElixerTimedSkillBonus = ConditionSpec.Create("Elixer Timed Skill Bonus", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, ElixerTimedSkillBonusGuard)
+            .AddHandler(DispatcherType.ConditionAdd, ElixerTimedBonusInit)
+            .AddHandler(DispatcherType.BeginRound, ElixerTimedSkillBonusBeginRound)
+            .AddHandler(DispatcherType.SkillLevel, SkillModifier_ElixerTimedSkillBonus_Callback, 323)
+            .AddHandler(DispatcherType.Tooltip, ElixerTimeSkillBonusTooltipCallback)
+            .AddHandler(DispatcherType.EffectTooltip, ExlixirTimedBonusEffectTooltip)
+        );
 
 
     [TempleDllLocation(0x102e7d38)]
-    public static readonly ConditionSpec ParalyzedAbilityScore = ConditionSpec
-        .Create("Paralyzed - Ability Score", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.TurnBasedStatusInit, ParalyzedTurnBasedStatusInit)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .AddQueryHandler(D20DispatcherKey.QUE_Helpless, QueryRetTrueIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, QueryRetTrueIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, QueryRetFalseIfNoFreedomOfMovement)
-        .AddQueryHandler(D20DispatcherKey.QUE_CoupDeGrace, QueryRetTrueIfNoFreedomOfMovement)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 149)
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 167)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, Condition_Paralyzed_Ability_Score__HP_Changed)
-        .Build();
+    public static readonly ConditionSpec ParalyzedAbilityScore = ConditionSpec.Create("Paralyzed - Ability Score", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TurnBasedStatusInit, ParalyzedTurnBasedStatusInit)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .AddQueryHandler(D20DispatcherKey.QUE_Helpless, QueryRetTrueIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, QueryRetTrueIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, QueryRetFalseIfNoFreedomOfMovement)
+            .AddQueryHandler(D20DispatcherKey.QUE_CoupDeGrace, QueryRetTrueIfNoFreedomOfMovement)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.Tooltip, TooltipSimpleCallback, 149)
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 167)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, Condition_Paralyzed_Ability_Score__HP_Changed)
+        );
 
     [DispTypes(DispatcherType.CountersongSaveThrow)]
     [TempleDllLocation(0x100ea760)]

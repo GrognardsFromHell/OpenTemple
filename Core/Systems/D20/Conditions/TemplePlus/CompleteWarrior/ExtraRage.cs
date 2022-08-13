@@ -31,8 +31,8 @@ public class ExtraRage
         evt.SetConditionArg1(evt.GetConditionArg1() + 2 * extraRageCount);
     }
 
-    [AutoRegister] public static readonly ConditionSpec BarbarianRageExtension = ConditionSpec
-        .Extend(FeatConditions.BarbarianRage)
+    [AutoRegister]
+    public static readonly ConditionSpec BarbarianRageExtension = FeatConditions.BarbarianRage.Extend(builder => builder
         .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, ExtraRageNewDay)
-        .Build();
+    );
 }

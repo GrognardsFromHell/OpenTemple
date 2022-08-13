@@ -35,6 +35,5 @@ public static class SuddenMaximize
 
     [AutoRegister, FeatCondition("Sudden Maximize")]
     public static readonly ConditionSpec Condition = SuddenMetamagic
-        .Create("Sudden Maximize Feat", "Sudden Maximize", ApplyMaximize)
-        .Build();
+        .Create("Sudden Maximize Feat", "Sudden Maximize", ApplyMaximize);
 }

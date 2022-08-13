@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -24,7 +23,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public class HillGiant
 {
-        
     public const RaceId Id = RaceId.hill_giant;
 
     // standard callbacks - BAB and Save values
@@ -40,8 +38,11 @@ public class HillGiant
         heightFemale = (110, 130),
         weightMale = (1700, 2210),
         weightFemale = (1600, 2200),
-        statModifiers = {(Stat.strength, 14), (Stat.dexterity, -2), (Stat.constitution, 8),
-            (Stat.intelligence, -4), (Stat.charisma, -4)},
+        statModifiers =
+        {
+            (Stat.strength, 14), (Stat.dexterity, -2), (Stat.constitution, 8),
+            (Stat.intelligence, -4), (Stat.charisma, -4)
+        },
         naturalArmor = 9,
         ProtoId = 13018,
         materialOffset = 0, // offset into rules/material_ext.mes file,
@@ -53,13 +54,13 @@ public class HillGiant
         },
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddFavoredClassHook(Stat.level_barbarian)
-        .AddSaveThrowBonusHook(SavingThrowType.Fortitude, 8)
-        .AddSaveThrowBonusHook(SavingThrowType.Will, 4)
-        .AddSaveThrowBonusHook(SavingThrowType.Reflex, 4)
-        .AddBaseMoveSpeed(30)
-        .Build();
-
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddFavoredClassHook(Stat.level_barbarian)
+            .AddSaveThrowBonusHook(SavingThrowType.Fortitude, 8)
+            .AddSaveThrowBonusHook(SavingThrowType.Will, 4)
+            .AddSaveThrowBonusHook(SavingThrowType.Reflex, 4)
+            .AddBaseMoveSpeed(30)
+        );
 }

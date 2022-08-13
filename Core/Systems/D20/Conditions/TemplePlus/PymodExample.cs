@@ -98,12 +98,14 @@ public class PymodExample
     }
     // creates and registers a condition with 0 args; prevents duplicates!
 
-    [AutoRegister] public static readonly ConditionSpec pmEx = ConditionSpec.Create("PyMod Example", 0)
-        .AddHandler(DispatcherType.ConditionAdd, OnInit, 1)
-        .AddHandler(DispatcherType.RadialMenuEntry, CreateRadialMenuEntry)
-        .AddHandler(DispatcherType.BeginRound, BeginRound)
-        .AddHandler(DispatcherType.EffectTooltip, EffectTooltip)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, TurnBasedStatusInit)
-        .AddHandler(DispatcherType.GetAC, GetArmorClass)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec pmEx = ConditionSpec.Create("PyMod Example", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, OnInit, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, CreateRadialMenuEntry)
+            .AddHandler(DispatcherType.BeginRound, BeginRound)
+            .AddHandler(DispatcherType.EffectTooltip, EffectTooltip)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, TurnBasedStatusInit)
+            .AddHandler(DispatcherType.GetAC, GetArmorClass)
+        );
 }

@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -28,6 +27,7 @@ public class Svirfneblin
     {
         return "Svirfneblin";
     }
+
     private const RaceId Id = RaceId.gnome + (1 << 5);
 
     public static readonly RaceSpec RaceSpec = new(Id, RaceBase.gnome, Subrace.svirfneblin)
@@ -40,8 +40,11 @@ public class Svirfneblin
         heightFemale = (34, 42),
         weightMale = (42, 44),
         weightFemale = (37, 39),
-        statModifiers = {(Stat.strength, -2), (Stat.dexterity, 2), (Stat.wisdom, 2),
-            (Stat.charisma, -4)},
+        statModifiers =
+        {
+            (Stat.strength, -2), (Stat.dexterity, 2), (Stat.wisdom, 2),
+            (Stat.charisma, -4)
+        },
         ProtoId = 13034,
         materialOffset = 8, // offset into rules/material_ext.mes file
         spellLikeAbilities =
@@ -51,21 +54,22 @@ public class Svirfneblin
         }
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSaveThrowBonusHook(SavingThrowType.Will, 2)
-        .AddSkillBonuses(
-            (SkillId.hide,6),
-            (SkillId.listen,2)
-        )
-        .AddBaseMoveSpeed(20)
-        .AddHandler(DispatcherType.SpellResistanceMod, OnGetSpellResistance)
-        .AddHandler(DispatcherType.Tooltip, OnGetSpellResistanceTooltip)
-        .AddFavoredClassHook(Stat.level_rogue)
-        .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusVsOrcsAndKobolds)
-        .AddHandler(DispatcherType.GetAC, OnGetDodgeBonus)
-        .AddHandler(DispatcherType.SpellDcMod, OnIllusionDCBonus)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSaveThrowBonusHook(SavingThrowType.Will, 2)
+            .AddSkillBonuses(
+                (SkillId.hide, 6),
+                (SkillId.listen, 2)
+            )
+            .AddBaseMoveSpeed(20)
+            .AddHandler(DispatcherType.SpellResistanceMod, OnGetSpellResistance)
+            .AddHandler(DispatcherType.Tooltip, OnGetSpellResistanceTooltip)
+            .AddFavoredClassHook(Stat.level_rogue)
+            .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusVsOrcsAndKobolds)
+            .AddHandler(DispatcherType.GetAC, OnGetDodgeBonus)
+            .AddHandler(DispatcherType.SpellDcMod, OnIllusionDCBonus)
+        );
 
     public static void OnGetSpellResistance(in DispatcherCallbackArgs evt)
     {
@@ -73,6 +77,7 @@ public class Svirfneblin
         var classLvl = evt.objHndCaller.GetStat(Stat.level);
         dispIo.bonList.AddBonus(11 + classLvl, 36, "Racial Bonus (Svirfneblin)");
     }
+
     public static void OnGetSpellResistanceTooltip(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoTooltip();
@@ -111,5 +116,4 @@ public class Svirfneblin
         }
     }
     // Note:  Adding the size +4 bonus to hide as a racial bonus since setting size to small does not grant the bonus
-
 }

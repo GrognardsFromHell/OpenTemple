@@ -38,8 +38,9 @@ public class VexingFlanker
     }
 
     [FeatCondition("Vexing Flanker")]
-    [AutoRegister] public static readonly ConditionSpec eVF = ConditionSpec.Create("Vexing Flanker Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, VFing)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec eVF = ConditionSpec.Create("Vexing Flanker Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, VFing)
+        );
 }

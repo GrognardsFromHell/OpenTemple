@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +28,8 @@ public class Wizard
 {
     public static readonly Stat ClassId = Stat.level_wizard;
 
-    private static readonly ImmutableList<SelectableFeat> BonusFeats = new [] {
+    private static readonly ImmutableList<SelectableFeat> BonusFeats = new[]
+    {
         FeatId.BREW_POTION, FeatId.CRAFT_MAGIC_ARMS_AND_ARMOR, FeatId.CRAFT_ROD, FeatId.CRAFT_STAFF,
         FeatId.CRAFT_WAND, FeatId.CRAFT_WONDROUS_ITEM, FeatId.EMPOWER_SPELL, FeatId.ENLARGE_SPELL,
         FeatId.EXTEND_SPELL, FeatId.FORGE_RING, FeatId.HEIGHTEN_SPELL, FeatId.MAXIMIZE_SPELL, FeatId.QUICKEN_SPELL,
@@ -104,13 +104,13 @@ public class Wizard
     };
 
     [TempleDllLocation(0x102f04a0)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, ClassConditions.GrantClassLevelAsCasterLevel, Stat.level_wizard)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate, OnInitLevelupSpellSelection)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize, OnLevelupSpellsFinalize)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete, OnLevelupSpellsCheckComplete)
         .AddQueryHandler(D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, ArcaneSpellFailure)
-        .Build();
+    );
 
     public static void OnLevelupSpellsCheckComplete(in DispatcherCallbackArgs evt)
     {
@@ -138,6 +138,7 @@ public class Wizard
         throw new NotImplementedException();
         // classSpecModule.InitSpellSelection(evt.objHndCaller);
     }
+
     public static void OnLevelupSpellsFinalize(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetEvtObjSpellCaster();

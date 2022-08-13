@@ -17,273 +17,273 @@ namespace OpenTemple.Core.Systems.D20.Conditions;
 public static class DomainConditions
 {
     [TempleDllLocation(0x102b1620)]
-    public static readonly ConditionSpec AnimalDomain = ConditionSpec.Create("Animal Domain", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, AnimalDomainRadial)
-        .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 122, AnimalDomainPerformAction)
-        .Build();
+    public static readonly ConditionSpec AnimalDomain = ConditionSpec.Create("Animal Domain", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, AnimalDomainRadial)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 122, AnimalDomainPerformAction)
+        );
 
 
     [TempleDllLocation(0x102b0ec0)]
-    public static readonly ConditionSpec DeathDomain = ConditionSpec.Create("Death Domain", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.RadialMenuEntry, DeathTouchRadial)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_COUNTERSPELL,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_COUNTERSPELL,
-            DeathDomainD20ACheck)
-        .Build();
+    public static readonly ConditionSpec DeathDomain = ConditionSpec.Create("Death Domain", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, DeathTouchRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_COUNTERSPELL,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_COUNTERSPELL,
+                DeathDomainD20ACheck)
+        );
 
 
     [TempleDllLocation(0x102b0d48)]
-    public static readonly ConditionSpec TurnUndead = ConditionSpec.Create("Turn Undead", 2)
-        .SetUniqueWithKeyArg1()
-        .AddHandler(DispatcherType.ConditionAdd, TurnUndeadInitNumPerDay)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TurnUndeadInitNumPerDay)
-        .AddHandler(DispatcherType.RadialMenuEntry, TurnUndeadRadialMenuEntry)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_SPELL, TurnUndead_Check)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_SPELL, TurnUndeadPerform)
-        .Build();
+    public static readonly ConditionSpec TurnUndead = ConditionSpec.Create("Turn Undead", 2, UniquenessType.UniqueArg1)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, TurnUndeadInitNumPerDay)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TurnUndeadInitNumPerDay)
+            .AddHandler(DispatcherType.RadialMenuEntry, TurnUndeadRadialMenuEntry)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_SPELL, TurnUndead_Check)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_SPELL, TurnUndeadPerform)
+        );
 
 
     [TempleDllLocation(0x102b0e78)]
-    public static readonly ConditionSpec ChaosDomain = ConditionSpec.Create("Chaos Domain", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
-            SpellDescriptor.CHAOTIC, 1)
-        .Build();
+    public static readonly ConditionSpec ChaosDomain = ConditionSpec.Create("Chaos Domain", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
+                SpellDescriptor.CHAOTIC, 1)
+        );
 
 
     [TempleDllLocation(0x102b12b8)]
-    public static readonly ConditionSpec ProtectionDomain = ConditionSpec.Create("Protection Domain", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.RadialMenuEntry, ProtectiveWardRadial)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_ENTER,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_ENTER, GrantWardCondition)
-        .Build();
+    public static readonly ConditionSpec ProtectionDomain = ConditionSpec.Create("Protection Domain", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, ProtectiveWardRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_ENTER,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_ENTER, GrantWardCondition)
+        );
 
 
     [TempleDllLocation(0x102b10f0)]
-    public static readonly ConditionSpec GoodDomain = ConditionSpec.Create("Good Domain", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
-            SpellDescriptor.GOOD, 1)
-        .Build();
+    public static readonly ConditionSpec GoodDomain = ConditionSpec.Create("Good Domain", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
+                SpellDescriptor.GOOD, 1)
+        );
 
 
     [TempleDllLocation(0x102b10a8)]
-    public static readonly ConditionSpec EvilDomain = ConditionSpec.Create("Evil Domain", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
-            SpellDescriptor.EVIL, 1)
-        .Build();
+    public static readonly ConditionSpec EvilDomain = ConditionSpec.Create("Evil Domain", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
+                SpellDescriptor.EVIL, 1)
+        );
 
 
     [TempleDllLocation(0x102b1180)]
-    public static readonly ConditionSpec LawDomain = ConditionSpec.Create("Law Domain", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
-            SpellDescriptor.LAWFUL, 1)
-        .Build();
+    public static readonly ConditionSpec LawDomain = ConditionSpec.Create("Law Domain", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
+                SpellDescriptor.LAWFUL, 1)
+        );
 
 
     [TempleDllLocation(0x102b15a0)]
-    public static readonly ConditionSpec TravelDomain = ConditionSpec.Create("Travel Domain", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, TravelDomainResetUses)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TravelDomainResetUses)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, LuckDomainFreedomOfMovement)
-        .AddHandler(DispatcherType.BeginRound, TravelClearParticles, 1)
-        .Build();
+    public static readonly ConditionSpec TravelDomain = ConditionSpec.Create("Travel Domain", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, TravelDomainResetUses)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TravelDomainResetUses)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, LuckDomainFreedomOfMovement)
+            .AddHandler(DispatcherType.BeginRound, TravelClearParticles, 1)
+        );
 
 
     [TempleDllLocation(0x102b0de0)]
-    public static readonly ConditionSpec GreaterTurning = ConditionSpec.Create("Greater Turning", 2)
-        .PreventsWithSameArg1(TurnUndead)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg1FromSubDispDef, 1)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TurnUndeadInitNumPerDay)
-        .AddHandler(DispatcherType.RadialMenuEntry, TurnUndeadRadialMenuEntry)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_SPELL, TurnUndead_Check)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_SPELL, TurnUndeadPerform)
-        .Build();
+    public static readonly ConditionSpec GreaterTurning = ConditionSpec.Create("Greater Turning", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .PreventsWithSameArg1(TurnUndead)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg1FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TurnUndeadInitNumPerDay)
+            .AddHandler(DispatcherType.RadialMenuEntry, TurnUndeadRadialMenuEntry)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_SPELL, TurnUndead_Check)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_SPELL, TurnUndeadPerform)
+        );
 
 
     [TempleDllLocation(0x102b1210)]
-    public static readonly ConditionSpec LuckDomain = ConditionSpec.Create("Luck Domain", 4)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.RadialMenuEntry, GoodFortune_RadialMenuEntry_Callback)
-        .AddQueryHandler(D20DispatcherKey.QUE_RerollAttack, Luck_RerollQuery)
-        .AddQueryHandler(D20DispatcherKey.QUE_RerollSavingThrow, Luck_RerollQuery)
-        .AddQueryHandler(D20DispatcherKey.QUE_RerollCritical, Luck_RerollQuery)
-        .Build();
+    public static readonly ConditionSpec LuckDomain = ConditionSpec.Create("Luck Domain", 4, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, GoodFortune_RadialMenuEntry_Callback)
+            .AddQueryHandler(D20DispatcherKey.QUE_RerollAttack, Luck_RerollQuery)
+            .AddQueryHandler(D20DispatcherKey.QUE_RerollSavingThrow, Luck_RerollQuery)
+            .AddQueryHandler(D20DispatcherKey.QUE_RerollCritical, Luck_RerollQuery)
+        );
 
 
     [TempleDllLocation(0x102b1438)]
-    public static readonly ConditionSpec StrengthDomain = ConditionSpec.Create("Strength Domain", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.RadialMenuEntry, FeatOfStrengthRadial)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_EXIT,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_EXIT,
-            StrengthDomainFeatOfStrengthActivate)
-        .Build();
+    public static readonly ConditionSpec StrengthDomain = ConditionSpec.Create("Strength Domain", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, FeatOfStrengthRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_EXIT,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_EXIT,
+                StrengthDomainFeatOfStrengthActivate)
+        );
 
 
     [TempleDllLocation(0x102b0f58)]
-    public static readonly ConditionSpec DestructionDomain = ConditionSpec.Create("Destruction Domain", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.NewDay, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.RadialMenuEntry, DestructionDomainRadialMenu)
-        .AddHandler(DispatcherType.DestructionDomain, (D20DispatcherKey) 322, DestructionDomainAddSmite)
-        .Build();
+    public static readonly ConditionSpec DestructionDomain = ConditionSpec.Create("Destruction Domain", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, DestructionDomainRadialMenu)
+            .AddHandler(DispatcherType.DestructionDomain, (D20DispatcherKey) 322, DestructionDomainAddSmite)
+        );
 
 
     [TempleDllLocation(0x102b1138)]
-    public static readonly ConditionSpec HealingDomain = ConditionSpec.Create("Healing Domain", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.BaseCasterLevelMod, HealingDomainCasterLvlBonus, SubschoolOfMagic.Healing, 1)
-        .Build();
+    public static readonly ConditionSpec HealingDomain = ConditionSpec.Create("Healing Domain", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BaseCasterLevelMod, HealingDomainCasterLvlBonus, SubschoolOfMagic.Healing, 1)
+        );
 
 
     [TempleDllLocation(0x102b0fd8)]
-    public static readonly ConditionSpec DestructionDomainSmite = ConditionSpec
-        .Create("Destruction Domain Smite", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, DestructionDomainAddToHitBonus)
-        .AddHandler(DispatcherType.DealingDamage, DestructionDomainAddDamage)
-        .AddHandler(DispatcherType.DealingDamage, CommonConditionCallbacks.conditionRemoveCallback)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-smite")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-smite")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
-        .Build();
+    public static readonly ConditionSpec DestructionDomainSmite = ConditionSpec.Create("Destruction Domain Smite", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, DestructionDomainAddToHitBonus)
+            .AddHandler(DispatcherType.DealingDamage, DestructionDomainAddDamage)
+            .AddHandler(DispatcherType.DealingDamage, CommonConditionCallbacks.conditionRemoveCallback)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-smite")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-smite")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
+        );
 
 
     [TempleDllLocation(0x102b1350)]
-    public static readonly ConditionSpec ProtectionDomainWard = ConditionSpec.Create("Protection Domain Ward", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, CommonConditionCallbacks.conditionRemoveCallback)
-        .AddHandler(DispatcherType.SaveThrowLevel, ProtectionDomainWard_SavingThrowCallback)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.conditionRemoveCallback)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
-            "sp-Protective Ward")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Protective Ward")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
-        .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
-            "sp-Protective Ward-END")
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 79)
-        .Build();
+    public static readonly ConditionSpec ProtectionDomainWard = ConditionSpec.Create("Protection Domain Ward", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.SaveThrowLevel, ProtectionDomainWard_SavingThrowCallback)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Protective Ward")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Protective Ward")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Protective Ward-END")
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 79)
+        );
 
 
     [TempleDllLocation(0x102b14d0)]
-    public static readonly ConditionSpec StrengthDomainFeat = ConditionSpec.Create("Strength Domain Feat", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, FeatOfStrengthStatBonus)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
-            "sp-Feat of Strength")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Feat of Strength")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
-        .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
-            "sp-Feat of Strength-END")
-        .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 80)
-        .Build();
+    public static readonly ConditionSpec StrengthDomainFeat = ConditionSpec.Create("Strength Domain Feat", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, FeatOfStrengthStatBonus)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Feat of Strength")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Feat of Strength")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Feat of Strength-END")
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 80)
+        );
 
 
     [TempleDllLocation(0x102b0bc0)]
-    public static readonly ConditionSpec Turned = ConditionSpec.Create("Turned", 4)
-        .SetUnique()
-        .RemovedBy(Cowering)
-        .RemovedBy(Commanded)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 10)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.conditionRemoveCallback)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Afraid, TurnedUndeadIsAfraid)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .SetQueryResult(D20DispatcherKey.QUE_Turned, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 85, 0)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3,
-            "sp-Turn Undead-Hit")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 3, "sp-Turn Undead-Hit")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 3)
-        .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3,
-            "sp-Turn Undead-END")
-        .AddHandler(DispatcherType.ConditionRemove2, CoweringUndeadRemoved)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .Build();
+    public static readonly ConditionSpec Turned = ConditionSpec.Create("Turned", 4, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(Cowering)
+            .RemovedBy(Commanded)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 10)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.conditionRemoveCallback)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Afraid, TurnedUndeadIsAfraid)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_Turned, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 85, 0)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3,
+                "sp-Turn Undead-Hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 3, "sp-Turn Undead-Hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 3)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3,
+                "sp-Turn Undead-END")
+            .AddHandler(DispatcherType.ConditionRemove2, CoweringUndeadRemoved)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+        );
 
 
     [TempleDllLocation(0x102b0a28)]
-    public static readonly ConditionSpec Cowering = ConditionSpec.Create("Cowering", 2)
-        .SetUnique()
-        .RemovedBy(Turned)
-        .RemovedBy(Commanded)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 10)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.conditionRemoveCallback)
-        .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-        .AddHandler(DispatcherType.GetAC, CommonConditionCallbacks.AcBonusCapper, 187)
-        .AddHandler(DispatcherType.GetAC, CoweringArmorMalus, -2, 187)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 86, 0)
-        .SetQueryResult(D20DispatcherKey.QUE_Rebuked, true)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "sp-Rebuke Undead-Hit")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Rebuke Undead-Hit")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-        .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
-            "sp-Rebuke Undead-END")
-        .AddHandler(DispatcherType.ConditionRemove2, CoweringUndeadRemoved)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .Build();
+    public static readonly ConditionSpec Cowering = ConditionSpec.Create("Cowering", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(Turned)
+            .RemovedBy(Commanded)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 10)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.conditionRemoveCallback)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddHandler(DispatcherType.GetAC, CommonConditionCallbacks.AcBonusCapper, 187)
+            .AddHandler(DispatcherType.GetAC, CoweringArmorMalus, -2, 187)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 86, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_Rebuked, true)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "sp-Rebuke Undead-Hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Rebuke Undead-Hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "sp-Rebuke Undead-END")
+            .AddHandler(DispatcherType.ConditionRemove2, CoweringUndeadRemoved)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+        );
 
 
     [TempleDllLocation(0x102b0940)]
-    public static readonly ConditionSpec Commanded = ConditionSpec.Create("Commanded", 1)
-        .SetUnique()
-        .RemovedBy(Cowering)
-        .RemovedBy(Turned)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 87, 0)
-        .SetQueryResult(D20DispatcherKey.QUE_Commanded, true)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
-            "sp-Commnad Undead-Hit")
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Commnad Undead-Hit")
-        .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
-        .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
-            "sp-Commnad Undead-END")
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .Build();
+    public static readonly ConditionSpec Commanded = ConditionSpec.Create("Commanded", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(Cowering)
+            .RemovedBy(Turned)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 87, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_Commanded, true)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Commnad Undead-Hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Commnad Undead-Hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Commnad Undead-END")
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+        );
 
     [DispTypes(DispatcherType.SaveThrowLevel)]
     [TempleDllLocation(0x1004bb40)]

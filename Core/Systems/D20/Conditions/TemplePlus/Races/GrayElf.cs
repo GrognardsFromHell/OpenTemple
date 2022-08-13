@@ -42,18 +42,19 @@ public class GrayElf
         useBaseRaceForDeity = true
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSkillBonuses(
-            (SkillId.listen, 2),
-            (SkillId.search, 2),
-            (SkillId.spot, 2)
-        )
-        .AddBaseMoveSpeed(30)
-        .AddHandler(DispatcherType.SaveThrowLevel, ElvenSaveBonusEnchantment)
-        .AddFavoredClassHook(Stat.level_wizard)
-        .AddHandler(DispatcherType.ConditionAddPre, ConditionImmunityOnPreAdd)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSkillBonuses(
+                (SkillId.listen, 2),
+                (SkillId.search, 2),
+                (SkillId.spot, 2)
+            )
+            .AddBaseMoveSpeed(30)
+            .AddHandler(DispatcherType.SaveThrowLevel, ElvenSaveBonusEnchantment)
+            .AddFavoredClassHook(Stat.level_wizard)
+            .AddHandler(DispatcherType.ConditionAddPre, ConditionImmunityOnPreAdd)
+        );
 
     public static void ElvenSaveBonusEnchantment(in DispatcherCallbackArgs evt)
     {

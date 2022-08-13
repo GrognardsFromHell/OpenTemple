@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -100,7 +99,6 @@ public class Duelist
             {
                 return;
             }
-
         }
 
         var duelistLvl = evt.objHndCaller.GetStat(ClassId);
@@ -137,6 +135,7 @@ public class Duelist
         dispIo.bonlist.AddBonus(bonVal, 0, 137); // adds untyped bonus to initiative
         return;
     }
+
     public static void EnhancedMobility(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoAttackBonus();
@@ -158,6 +157,7 @@ public class Duelist
 
         return;
     }
+
     public static void GraceReflexBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoSavingThrow();
@@ -197,6 +197,7 @@ public class Duelist
     // return 0
 
     private static readonly string preciseStrikeString = "Precise Strike";
+
     public static void PreciseStrikeDamageBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoDamage();
@@ -283,7 +284,6 @@ public class Duelist
             {
                 return true;
             }
-
         }
 
         return false;
@@ -348,7 +348,7 @@ public class Duelist
         }
 
         // check if attacker visible
-        var attacker = dispIo.attackPacket.attacker/*AttackPacket*/;
+        var attacker = dispIo.attackPacket.attacker /*AttackPacket*/;
         if (attacker == null)
         {
             return;
@@ -383,7 +383,7 @@ public class Duelist
         dispIo.attackPacket.flags = atkflags;
     }
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetAC, CannyDefenseAcBonus)
         .AddHandler(DispatcherType.GetAC, EnhancedMobility)
         .AddHandler(DispatcherType.GetAC, ElaborateParry)
@@ -391,5 +391,5 @@ public class Duelist
         .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, GraceReflexBonus)
         .AddHandler(DispatcherType.DealingDamage, PreciseStrikeDamageBonus)
         .AddHandler(DispatcherType.DeflectArrows, DuelistDeflectArrows)
-        .Build();
+    );
 }

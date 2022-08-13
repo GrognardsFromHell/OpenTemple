@@ -133,19 +133,21 @@ public class DivineArmor
 
     // Setup the feat
     [FeatCondition("Divine Armor")]
-    [AutoRegister] public static readonly ConditionSpec divineArmorFeat = ConditionSpec.Create("Divine Armor Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, DivineArmorRadial)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec divineArmorFeat = ConditionSpec.Create("Divine Armor Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, DivineArmorRadial)
+        );
 
     // Setup the effect
-    [AutoRegister] public static readonly ConditionSpec divineArmorEffect = ConditionSpec.Create("Divine Armor Effect", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.PythonActionCheck, divineArmorEnum, OnDivineArmorCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, divineArmorEnum, OnDivineArmorPerform)
-        .AddHandler(DispatcherType.BeginRound, DivineArmorBeginRound)
-        .AddHandler(DispatcherType.Tooltip, DivineArmorTooltip)
-        .AddHandler(DispatcherType.TakingDamage2, DivineArmorDamageReduction)
-        .AddHandler(DispatcherType.EffectTooltip, DivineArmorEffectTooltip)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec divineArmorEffect = ConditionSpec.Create("Divine Armor Effect", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.PythonActionCheck, divineArmorEnum, OnDivineArmorCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, divineArmorEnum, OnDivineArmorPerform)
+            .AddHandler(DispatcherType.BeginRound, DivineArmorBeginRound)
+            .AddHandler(DispatcherType.Tooltip, DivineArmorTooltip)
+            .AddHandler(DispatcherType.TakingDamage2, DivineArmorDamageReduction)
+            .AddHandler(DispatcherType.EffectTooltip, DivineArmorEffectTooltip)
+        );
 }

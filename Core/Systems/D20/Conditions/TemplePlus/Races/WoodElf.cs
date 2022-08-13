@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -67,18 +66,17 @@ public class WoodElf
         }
     }
 
-    public static readonly ConditionSpec raceSpecObj = ConditionSpec.Create(RaceSpec.conditionName)
-        .SetUnique()
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSkillBonuses(
-            (SkillId.listen, 2),
-            (SkillId.search, 2),
-            (SkillId.spot, 2)
-        )
-        .AddBaseMoveSpeed(30)
-        .AddHandler(DispatcherType.SaveThrowLevel, ElvenSaveBonusEnchantment)
-        .AddFavoredClassHook(Stat.level_ranger)
-        .AddHandler(DispatcherType.ConditionAddPre, ConditionImmunityOnPreAdd)
-        .Build();
-
+    public static readonly ConditionSpec raceSpecObj = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSkillBonuses(
+                (SkillId.listen, 2),
+                (SkillId.search, 2),
+                (SkillId.spot, 2)
+            )
+            .AddBaseMoveSpeed(30)
+            .AddHandler(DispatcherType.SaveThrowLevel, ElvenSaveBonusEnchantment)
+            .AddFavoredClassHook(Stat.level_ranger)
+            .AddHandler(DispatcherType.ConditionAddPre, ConditionImmunityOnPreAdd)
+        );
 }

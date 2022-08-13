@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -25,7 +24,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 // Sudden Extend:  Complete Arcane, p. 83
 public static class SuddenExtend
 {
-
     private static void ApplyExtend(ref MetaMagicData metaMagicData)
     {
         // Don't Extend more than once
@@ -39,7 +37,5 @@ public static class SuddenExtend
 
     [AutoRegister, FeatCondition("Sudden Extend")]
     public static readonly ConditionSpec Condition = SuddenMetamagic
-        .Create("Sudden Extend Feat", "Sudden Extend", ApplyExtend)
-        .Build();
-
+        .Create("Sudden Extend Feat", "Sudden Extend", ApplyExtend);
 }

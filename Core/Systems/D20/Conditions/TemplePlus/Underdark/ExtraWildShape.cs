@@ -46,9 +46,9 @@ public class ExtraWildShape
     }
 
     [FeatCondition("Extra Wild Shape")]
-    public static readonly ConditionSpec extraWildShapeFeat = ConditionSpec.Create("Extra Wild Shape Feat", 2)
-        .SetUnique()
-        .AddQueryHandler("Extra Wildshape Uses", ExtraWildShapeQuery)
-        .AddQueryHandler("Extra Wildshape Elemental Uses", ExtraWildShapeElementalQuery)
-        .Build();
+    public static readonly ConditionSpec extraWildShapeFeat = ConditionSpec.Create("Extra Wild Shape Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Extra Wildshape Uses", ExtraWildShapeQuery)
+            .AddQueryHandler("Extra Wildshape Elemental Uses", ExtraWildShapeElementalQuery)
+        );
 }

@@ -166,21 +166,23 @@ public class DivineSpellPower
 
     // Setup the feat
     [FeatCondition("Divine Spell Power")]
-    [AutoRegister] public static readonly ConditionSpec DivineSpellPowerFeat = ConditionSpec.Create("Divine Spell Power Feat", 4)
-        .AddHandler(DispatcherType.RadialMenuEntry, DivineSpellPowerRadial)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec DivineSpellPowerFeat = ConditionSpec.Create("Divine Spell Power Feat", 4, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, DivineSpellPowerRadial)
+        );
 
     // Setup the effect
     // Enabled, Bonus, Extra, Extra
-    [AutoRegister] public static readonly ConditionSpec DivineSpellPowerEffect = ConditionSpec
-        .Create("Divine Spell Power Effect", 4)
-        .SetUnique()
-        .AddHandler(DispatcherType.PythonActionCheck, divineSpellPowerEnum, OnDivineSpellPowerCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, divineSpellPowerEnum, OnDivineSpellPowerPerform)
-        .AddHandler(DispatcherType.BeginRound, DivineSpellPowerBeginRound)
-        .AddHandler(DispatcherType.Tooltip, DivineSpellPowerTooltip)
-        .AddHandler(DispatcherType.BaseCasterLevelMod, DivineSpellPowerCasterLevelBonus)
-        .AddHandler(DispatcherType.EffectTooltip, DivineSpellPowerEffectTooltip)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Spell_Cast, DivineSpellPowerCastSpell)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec DivineSpellPowerEffect = ConditionSpec.Create("Divine Spell Power Effect", 4, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.PythonActionCheck, divineSpellPowerEnum, OnDivineSpellPowerCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, divineSpellPowerEnum, OnDivineSpellPowerPerform)
+            .AddHandler(DispatcherType.BeginRound, DivineSpellPowerBeginRound)
+            .AddHandler(DispatcherType.Tooltip, DivineSpellPowerTooltip)
+            .AddHandler(DispatcherType.BaseCasterLevelMod, DivineSpellPowerCasterLevelBonus)
+            .AddHandler(DispatcherType.EffectTooltip, DivineSpellPowerEffectTooltip)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Spell_Cast, DivineSpellPowerCastSpell)
+        );
 }

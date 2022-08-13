@@ -24,768 +24,783 @@ public static class FeatConditions
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x102aad48)]
-    public static readonly ConditionSpec NatureSense = ConditionSpec.Create("Nature Sense", 1)
-        .Prevents(NimbleFingers)
-        .AddSkillLevelHandler(SkillId.wilderness_lore, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.knowledge_nature, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec NatureSense = ConditionSpec.Create("Nature Sense", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(NimbleFingers)
+            .AddSkillLevelHandler(SkillId.wilderness_lore, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.knowledge_nature, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102aae18)]
-    public static readonly ConditionSpec CraftStaff = ConditionSpec.Create("Craft Staff", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, CraftStaffRadialMenu)
-        .Build();
+    public static readonly ConditionSpec CraftStaff = ConditionSpec.Create("Craft Staff", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, CraftStaffRadialMenu)
+        );
 
 
     [TempleDllLocation(0x102aade8)]
-    public static readonly ConditionSpec ForgeRing = ConditionSpec.Create("Forge Ring", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, ForgeRingRadialMenu)
-        .Build();
+    public static readonly ConditionSpec ForgeRing = ConditionSpec.Create("Forge Ring", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, ForgeRingRadialMenu)
+        );
 
     [TempleDllLocation(0x102ed418)]
-    public static readonly ConditionSpec VenomImmunityDruid = ConditionSpec.Create("Venom_Immunity_Druid", 1)
-        .Prevents(VenomImmunityDruid)
-        .AddHandler(DispatcherType.ConditionAddPre, sub_100F9150, StatusEffects.Poisoned)
-        .Build();
+    public static readonly ConditionSpec VenomImmunityDruid = ConditionSpec.Create("Venom_Immunity_Druid", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(VenomImmunityDruid)
+            .AddHandler(DispatcherType.ConditionAddPre, sub_100F9150, StatusEffects.Poisoned)
+        );
 
 
     [TempleDllLocation(0x102ec918)]
-    public static readonly ConditionSpec Alertness = ConditionSpec.Create("Alertness", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.listen, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.spot, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec Alertness = ConditionSpec.Create("Alertness", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.listen, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.spot, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102eca28)]
-    public static readonly ConditionSpec Cleave = ConditionSpec.Create("Cleave", 2)
-        .SetUnique()
-        .RemovedBy(GreatCleave)
-        .AddSignalHandler(D20DispatcherKey.SIG_Dropped_Enemy, CleaveDroppedEnemy)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .Build();
+    public static readonly ConditionSpec Cleave = ConditionSpec.Create("Cleave", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(GreatCleave)
+            .AddSignalHandler(D20DispatcherKey.SIG_Dropped_Enemy, CleaveDroppedEnemy)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+        );
 
 
     [TempleDllLocation(0x102eca98)]
-    public static readonly ConditionSpec DeflectArrows = ConditionSpec.Create("Deflect_Arrows", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.DeflectArrows, DeflectArrowsCallback)
-        .Build();
+    public static readonly ConditionSpec DeflectArrows = ConditionSpec.Create("Deflect_Arrows", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.DeflectArrows, DeflectArrowsCallback)
+        );
 
 
     [TempleDllLocation(0x102ecb08)]
-    public static readonly ConditionSpec Dodge = ConditionSpec.Create("Dodge", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, sub_100F7C90)
-        .AddHandler(DispatcherType.BeginRound, sub_100F7C90)
-        .AddHandler(DispatcherType.GetAC, Dodge_ACBonus_Callback)
-        .Build();
+    public static readonly ConditionSpec Dodge = ConditionSpec.Create("Dodge", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100F7C90)
+            .AddHandler(DispatcherType.BeginRound, sub_100F7C90)
+            .AddHandler(DispatcherType.GetAC, Dodge_ACBonus_Callback)
+        );
 
 
     [TempleDllLocation(0x102ecb78)]
-    public static readonly ConditionSpec FeatExpertise = ConditionSpec.Create("Feat Expertise", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg1FromSubDispDef, 0)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, CombatExpertise_RadialMenuEntry_Callback)
-        .AddHandler(DispatcherType.ToHitBonus2, CombatExpertiseToHitPenalty)
-        .AddHandler(DispatcherType.GetAC, CombatExpertiseAcBonus)
-        .AddSignalHandler(D20DispatcherKey.SIG_Attack_Made, TacticalOptionAbusePrevention)
-        .AddSignalHandler(D20DispatcherKey.SIG_SetExpertise, CombatExpertiseSet)
-        .Build();
+    public static readonly ConditionSpec FeatExpertise = ConditionSpec.Create("Feat Expertise", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg1FromSubDispDef, 0)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, CombatExpertise_RadialMenuEntry_Callback)
+            .AddHandler(DispatcherType.ToHitBonus2, CombatExpertiseToHitPenalty)
+            .AddHandler(DispatcherType.GetAC, CombatExpertiseAcBonus)
+            .AddSignalHandler(D20DispatcherKey.SIG_Attack_Made, TacticalOptionAbusePrevention)
+            .AddSignalHandler(D20DispatcherKey.SIG_SetExpertise, CombatExpertiseSet)
+        );
 
 
     [TempleDllLocation(0x102ec9b8)]
-    public static readonly ConditionSpec GreatCleave = ConditionSpec.Create("Great_Cleave", 2)
-        .Prevents(Cleave)
-        .SetUnique()
-        .AddSignalHandler(D20DispatcherKey.SIG_Dropped_Enemy, GreatCleaveDroppedEnemy)
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .Build();
+    public static readonly ConditionSpec GreatCleave = ConditionSpec.Create("Great_Cleave", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .Prevents(Cleave)
+            .AddSignalHandler(D20DispatcherKey.SIG_Dropped_Enemy, GreatCleaveDroppedEnemy)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+        );
 
 
     [TempleDllLocation(0x102ecce0)]
-    public static readonly ConditionSpec GreatFortitude = ConditionSpec.Create("Great_Fortitude", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, FeatSaveBonus, 2)
-        .Build();
+    public static readonly ConditionSpec GreatFortitude = ConditionSpec.Create("Great_Fortitude", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, FeatSaveBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ecd28)]
-    public static readonly ConditionSpec ImprovedCritical = ConditionSpec.Create("Improved_Critical", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetCriticalHitRange, ImprovedCriticalGetCritThreatRange)
-        .Build();
+    public static readonly ConditionSpec ImprovedCritical = ConditionSpec.Create("Improved_Critical", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetCriticalHitRange, ImprovedCriticalGetCritThreatRange)
+        );
 
 
     [TempleDllLocation(0x102ecd70)]
-    public static readonly ConditionSpec ImprovedInitiative = ConditionSpec.Create("Improved_Initiative", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.InitiativeMod, ImprovedInitiativeCallback)
-        .Build();
+    public static readonly ConditionSpec ImprovedInitiative = ConditionSpec.Create("Improved_Initiative", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.InitiativeMod, ImprovedInitiativeCallback)
+        );
 
 
     [TempleDllLocation(0x102ece10)]
-    public static readonly ConditionSpec ImprovedTwoWeapon = ConditionSpec.Create("Improved_Two_Weapon", 2)
-        .SetUnique()
-        .Prevents(ImprovedTwoWeaponRanger)
-        .AddHandler(DispatcherType.GetNumAttacksBase, ImprovedTWF)
-        .Build();
+    public static readonly ConditionSpec ImprovedTwoWeapon = ConditionSpec.Create("Improved_Two_Weapon", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .Prevents(ImprovedTwoWeaponRanger)
+            .AddHandler(DispatcherType.GetNumAttacksBase, ImprovedTWF)
+        );
 
 
     [TempleDllLocation(0x102ecdb8)]
-    public static readonly ConditionSpec ImprovedTwoWeaponRanger = ConditionSpec
-        .Create("Improved_Two_Weapon_Ranger", 2)
-        .Prevents(ImprovedTwoWeapon)
-        .RemovedBy(ImprovedTwoWeaponRanger)
-        .AddHandler<SubDispatcherCallback>(DispatcherType.GetNumAttacksBase, ArmorLightOnly,
-            ImprovedTWF /*0x100fd1c0*/)
-        .Build();
+    public static readonly ConditionSpec ImprovedTwoWeaponRanger = ConditionSpec.Create("Improved_Two_Weapon_Ranger", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(ImprovedTwoWeapon)
+            .RemovedBy(ImprovedTwoWeaponRanger)
+            .AddHandler<SubDispatcherCallback>(DispatcherType.GetNumAttacksBase, ArmorLightOnly,
+                ImprovedTWF /*0x100fd1c0*/)
+        );
 
 
     [TempleDllLocation(0x102eceb0)]
-    public static readonly ConditionSpec IronWill = ConditionSpec.Create("Iron_Will", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, FeatSaveBonus, 2)
-        .Build();
+    public static readonly ConditionSpec IronWill = ConditionSpec.Create("Iron_Will", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, FeatSaveBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ecef8)]
-    public static readonly ConditionSpec LightingReflexes = ConditionSpec.Create("Lighting_Reflexes", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, FeatSaveBonus, 2)
-        .Build();
+    public static readonly ConditionSpec LightingReflexes = ConditionSpec.Create("Lighting_Reflexes", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, FeatSaveBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ecf40)]
-    public static readonly ConditionSpec FeatMobility = ConditionSpec.Create("Feat_Mobility", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetAC, MobilityAcBonus)
-        .Build();
+    public static readonly ConditionSpec FeatMobility = ConditionSpec.Create("Feat_Mobility", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetAC, MobilityAcBonus)
+        );
 
 
     [TempleDllLocation(0x102ecf88)]
-    public static readonly ConditionSpec PointBlankShot = ConditionSpec.Create("Point_Blank_Shot", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, PointBlankShotToHitBonus)
-        .AddHandler(DispatcherType.DealingDamage, PointBlankShotDamage)
-        .Build();
+    public static readonly ConditionSpec PointBlankShot = ConditionSpec.Create("Point_Blank_Shot", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, PointBlankShotToHitBonus)
+            .AddHandler(DispatcherType.DealingDamage, PointBlankShotDamage)
+        );
 
 
     [TempleDllLocation(0x102ecfe0)]
-    public static readonly ConditionSpec PowerAttack = ConditionSpec.Create("Power Attack", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, PowerAttackRadialMenu)
-        .AddHandler(DispatcherType.ToHitBonus2, PowerAttackToHitPenalty)
-        .AddHandler(DispatcherType.DealingDamage, PowerAttackDamageBonus)
-        .AddSignalHandler(D20DispatcherKey.SIG_SetPowerAttack, PowerAttackSetViaSignal)
-        .Build();
+    public static readonly ConditionSpec PowerAttack = ConditionSpec.Create("Power Attack", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, PowerAttackRadialMenu)
+            .AddHandler(DispatcherType.ToHitBonus2, PowerAttackToHitPenalty)
+            .AddHandler(DispatcherType.DealingDamage, PowerAttackDamageBonus)
+            .AddSignalHandler(D20DispatcherKey.SIG_SetPowerAttack, PowerAttackSetViaSignal)
+        );
 
 
     [TempleDllLocation(0x102ed074)]
-    public static readonly ConditionSpec QuickDraw = ConditionSpec.Create("Quick_Draw", 1)
-        .SetUnique()
-        .Build();
-
+    public static readonly ConditionSpec QuickDraw = ConditionSpec.Create("Quick_Draw", 1, UniquenessType.Unique);
 
     [TempleDllLocation(0x102ed0a8)]
-    public static readonly ConditionSpec RapidShot = ConditionSpec.Create("Rapid_Shot", 1)
-        .SetUnique()
-        .Prevents(RapidShotRanger)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, RapidShotRadialMenu)
-        .AddHandler(DispatcherType.ToHitBonus2, RapidShotMallus)
-        .AddHandler(DispatcherType.GetBonusAttacks, RapidShotNumAttacksPerTurn)
-        .Build();
+    public static readonly ConditionSpec RapidShot = ConditionSpec.Create("Rapid_Shot", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .Prevents(RapidShotRanger)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, RapidShotRadialMenu)
+            .AddHandler(DispatcherType.ToHitBonus2, RapidShotMallus)
+            .AddHandler(DispatcherType.GetBonusAttacks, RapidShotNumAttacksPerTurn)
+        );
 
 
     [TempleDllLocation(0x102ed140)]
-    public static readonly ConditionSpec RapidShotRanger = ConditionSpec.Create("Rapid_Shot_Ranger", 1)
-        .SetUnique()
-        .RemovedBy(RapidShot)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, RapidShotRadialMenu)
-        .AddHandler<SubDispatcherCallback>(DispatcherType.ToHitBonus2, ArmorLightOnly,
-            RapidShotMallus /*0x100fa8d0*/)
-        .AddHandler<SubDispatcherCallback>(DispatcherType.GetBonusAttacks, ArmorLightOnly,
-            RapidShotNumAttacksPerTurn /*0x100fa920*/)
-        .Build();
+    public static readonly ConditionSpec RapidShotRanger = ConditionSpec.Create("Rapid_Shot_Ranger", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(RapidShot)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, RapidShotRadialMenu)
+            .AddHandler<SubDispatcherCallback>(DispatcherType.ToHitBonus2, ArmorLightOnly,
+                RapidShotMallus /*0x100fa8d0*/)
+            .AddHandler<SubDispatcherCallback>(DispatcherType.GetBonusAttacks, ArmorLightOnly,
+                RapidShotNumAttacksPerTurn /*0x100fa920*/)
+        );
 
 
     [TempleDllLocation(0x102ed1d4)]
-    public static readonly ConditionSpec Run = ConditionSpec.Create("Run", 1)
-        .SetUnique()
-        .Build();
+    public static readonly ConditionSpec Run = ConditionSpec.Create("Run", 1, UniquenessType.Unique);
 
 
     [TempleDllLocation(0x102ed208)]
-    public static readonly ConditionSpec SkillFocus = ConditionSpec.Create("Skill_Focus", 1)
-        .AddHandler(DispatcherType.ConditionAddPre, CommonConditionCallbacks.CondPreventSameArg,
-            (ConditionSpec) null)
-        .AddHandler(DispatcherType.ConditionAddPre, sub_100FAC30, SkillFocus)
-        .AddHandler(DispatcherType.ConditionAdd, sub_100FAC80)
-        .AddHandler(DispatcherType.SkillLevel, SkillFocusSkillLevelCallback)
-        .Build();
+    public static readonly ConditionSpec SkillFocus = ConditionSpec.Create("Skill_Focus", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, CommonConditionCallbacks.CondPreventSameArg,
+                (ConditionSpec) null)
+            .AddHandler(DispatcherType.ConditionAddPre, sub_100FAC30, SkillFocus)
+            .AddHandler(DispatcherType.ConditionAdd, sub_100FAC80)
+            .AddHandler(DispatcherType.SkillLevel, SkillFocusSkillLevelCallback)
+        );
 
 
     [TempleDllLocation(0x102ee4b4)]
-    public static readonly ConditionSpec SpellFocus = ConditionSpec.Create("Spell Focus", 1)
-        .AddHandler(DispatcherType.SpellDcMod, SpellDcMod_SpellFocus_Callback)
-        .Build();
+    public static readonly ConditionSpec SpellFocus = ConditionSpec.Create("Spell Focus", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SpellDcMod, SpellDcMod_SpellFocus_Callback)
+        );
 
 
     [TempleDllLocation(0x102ed2c0)]
-    public static readonly ConditionSpec featstunningfist = ConditionSpec.Create("feat_stunning_fist", 2)
-        .Prevents(featstunningfist)
-        .AddHandler(DispatcherType.ConditionAdd, StunningFistResetArg)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, StunningFistResetArg)
-        .AddHandler(DispatcherType.RadialMenuEntry, StunningFistRadialMenu)
-        .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_LAY_ON_HANDS_USE, sub_100F9910)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_LAY_ON_HANDS_USE,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_LAY_ON_HANDS_USE, sub_100F99B0)
-        .Build();
+    public static readonly ConditionSpec featstunningfist = ConditionSpec.Create("feat_stunning_fist", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(featstunningfist)
+            .AddHandler(DispatcherType.ConditionAdd, StunningFistResetArg)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, StunningFistResetArg)
+            .AddHandler(DispatcherType.RadialMenuEntry, StunningFistRadialMenu)
+            .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_LAY_ON_HANDS_USE, sub_100F9910)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_LAY_ON_HANDS_USE,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_LAY_ON_HANDS_USE, sub_100F99B0)
+        );
 
 
     [TempleDllLocation(0x102ed3c0)]
-    public static readonly ConditionSpec TwoWeapon = ConditionSpec.Create("Two_Weapon", 1)
-        .SetUnique()
-        .Prevents(TwoWeaponRanger)
-        .AddHandler(DispatcherType.ToHitBonus2, TwoWeaponFightingBonus)
-        .Build();
+    public static readonly ConditionSpec TwoWeapon = ConditionSpec.Create("Two_Weapon", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .Prevents(TwoWeaponRanger)
+            .AddHandler(DispatcherType.ToHitBonus2, TwoWeaponFightingBonus)
+        );
 
 
     [TempleDllLocation(0x102ed490)]
-    public static readonly ConditionSpec WeaponFinesse = ConditionSpec.Create("Weapon_Finesse", 2)
-        .SetUniqueWithKeyArg1()
-        .AddHandler(DispatcherType.ToHitBonus2, WeaponFinesseToHitBonus)
-        .Build();
+    public static readonly ConditionSpec WeaponFinesse = ConditionSpec.Create("Weapon_Finesse", 2, UniquenessType.UniqueArg1)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, WeaponFinesseToHitBonus)
+        );
 
 
     [TempleDllLocation(0x102ed4d8)]
-    public static readonly ConditionSpec WeaponFocus = ConditionSpec.Create("Weapon_Focus", 2)
-        .SetUniqueWithKeyArg1()
-        .AddHandler(DispatcherType.ToHitBonus2, WeaponFocusToHitBonus)
-        .Build();
+    public static readonly ConditionSpec WeaponFocus = ConditionSpec.Create("Weapon_Focus", 2, UniquenessType.UniqueArg1)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, WeaponFocusToHitBonus)
+        );
 
 
     [TempleDllLocation(0x102ed520)]
-    public static readonly ConditionSpec WeaponSpecialization = ConditionSpec.Create("Weapon_Specialization", 2)
-        .SetUniqueWithKeyArg1()
-        .AddHandler(DispatcherType.DealingDamage, WeaponSpecializationDamageBonus)
-        .Build();
+    public static readonly ConditionSpec WeaponSpecialization = ConditionSpec.Create("Weapon_Specialization", 2, UniquenessType.UniqueArg1)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, WeaponSpecializationDamageBonus)
+        );
 
 
     [TempleDllLocation(0x102ed568)]
-    public static readonly ConditionSpec WhirlwindAttack = ConditionSpec.Create("Whirlwind_Attack", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, WhirlwindAttackRadial)
-        .Build();
+    public static readonly ConditionSpec WhirlwindAttack = ConditionSpec.Create("Whirlwind_Attack", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, WhirlwindAttackRadial)
+        );
 
 
     [TempleDllLocation(0x102ed368)]
-    public static readonly ConditionSpec TwoWeaponRanger = ConditionSpec.Create("Two_Weapon_Ranger", 1)
-        .SetUnique()
-        .RemovedBy(TwoWeapon)
-        .AddHandler(DispatcherType.ToHitBonus2, TwoWeaponFightingBonusRanger)
-        .Build();
+    public static readonly ConditionSpec TwoWeaponRanger = ConditionSpec.Create("Two_Weapon_Ranger", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(TwoWeapon)
+            .AddHandler(DispatcherType.ToHitBonus2, TwoWeaponFightingBonusRanger)
+        );
 
 
     [TempleDllLocation(0x102ed8c0)]
-    public static readonly ConditionSpec UncannyDodge = ConditionSpec.Create("Uncanny Dodge", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetAC, UncannyDodgeAcBonus)
-        .AddHandler(DispatcherType.SaveThrowLevel, UncannyDodgeSaveThrowBonus)
-        .Build();
+    public static readonly ConditionSpec UncannyDodge = ConditionSpec.Create("Uncanny Dodge", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetAC, UncannyDodgeAcBonus)
+            .AddHandler(DispatcherType.SaveThrowLevel, UncannyDodgeSaveThrowBonus)
+        );
 
 
     [TempleDllLocation(0x102ed918)]
-    public static readonly ConditionSpec ImprovedUncannyDodge = ConditionSpec.Create("Improved Uncanny Dodge", 2)
-        .SetUnique()
-        .AddQueryHandler(D20DispatcherKey.QUE_CanBeFlanked, sub_100F9180)
-        .Build();
+    public static readonly ConditionSpec ImprovedUncannyDodge = ConditionSpec.Create("Improved Uncanny Dodge", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler(D20DispatcherKey.QUE_CanBeFlanked, sub_100F9180)
+        );
 
 
     [TempleDllLocation(0x102ed960)]
-    public static readonly ConditionSpec FlurryOfBlows = ConditionSpec.Create("Flurry Of Blows", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.ToHitBonus2, MonkFlurryToHitPenalty)
-        .AddHandler(DispatcherType.GetBonusAttacks, FlurryOfBlowsBonusAttacks)
-        .AddHandler(DispatcherType.RadialMenuEntry, FlurryOfBlowsRadial)
-        .AddQueryHandler(D20DispatcherKey.QUE_WieldedTwoHanded, sub_100F94F0)
-        .Build();
+    public static readonly ConditionSpec FlurryOfBlows = ConditionSpec.Create("Flurry Of Blows", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.ToHitBonus2, MonkFlurryToHitPenalty)
+            .AddHandler(DispatcherType.GetBonusAttacks, FlurryOfBlowsBonusAttacks)
+            .AddHandler(DispatcherType.RadialMenuEntry, FlurryOfBlowsRadial)
+            .AddQueryHandler(D20DispatcherKey.QUE_WieldedTwoHanded, sub_100F94F0)
+        );
 
 
     [TempleDllLocation(0x102ed9f8)]
-    public static readonly ConditionSpec BarbarianRage = ConditionSpec.Create("Barbarian_Rage", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, sub_100F9540)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, sub_100F9540)
-        .AddHandler(DispatcherType.RadialMenuEntry, BarbarianRageRadialMenu)
-        .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_READIED_INTERRUPT, BarbarianRagePerform)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READIED_INTERRUPT, sub_100F96B0, 0)
-        .Build();
+    public static readonly ConditionSpec BarbarianRage = ConditionSpec.Create("Barbarian_Rage", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100F9540)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, sub_100F9540)
+            .AddHandler(DispatcherType.RadialMenuEntry, BarbarianRageRadialMenu)
+            .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_READIED_INTERRUPT, BarbarianRagePerform)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READIED_INTERRUPT, sub_100F96B0, 0)
+        );
 
 
     [TempleDllLocation(0x102ed278)]
-    public static readonly ConditionSpec SneakAttack = ConditionSpec.Create("Sneak_Attack", 1)
-        .SetUniqueWithKeyArg1()
-        .AddHandler(DispatcherType.DealingDamage, SneakAttackDamageBonus)
-        .Build();
+    public static readonly ConditionSpec SneakAttack = ConditionSpec.Create("Sneak_Attack", 1, UniquenessType.UniqueArg1)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, SneakAttackDamageBonus)
+        );
 
 
     [TempleDllLocation(0x102edaa0)]
-    public static readonly ConditionSpec DivineGrace = ConditionSpec.Create("Divine Grace", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.SaveThrowLevel, DivineGraceSave)
-        .Build();
+    public static readonly ConditionSpec DivineGrace = ConditionSpec.Create("Divine Grace", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SaveThrowLevel, DivineGraceSave)
+        );
 
 
     [TempleDllLocation(0x102edae8)]
-    public static readonly ConditionSpec SmiteEvil = ConditionSpec.Create("Smite Evil", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, SmiteEvilRefresh)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, SmiteEvilRefresh)
-        .AddHandler(DispatcherType.RadialMenuEntry, SmiteEvilRadialMenu)
-        .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_WHOLENESS_OF_BODY_USE, SmiteEvilD20A)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_WHOLENESS_OF_BODY_USE,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .Build();
+    public static readonly ConditionSpec SmiteEvil = ConditionSpec.Create("Smite Evil", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, SmiteEvilRefresh)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, SmiteEvilRefresh)
+            .AddHandler(DispatcherType.RadialMenuEntry, SmiteEvilRadialMenu)
+            .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_WHOLENESS_OF_BODY_USE, SmiteEvilD20A)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_WHOLENESS_OF_BODY_USE,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+        );
 
 
     [TempleDllLocation(0x102edb80)]
-    public static readonly ConditionSpec AuraofCourage = ConditionSpec.Create("Aura of Courage", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_COURAGE,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_COURAGE)
-        .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 0, 568)
-        .AddHandler(DispatcherType.BeginRound, AuraOfCourageBeginRound)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.conditionRemoveCallback)
-        .Build();
+    public static readonly ConditionSpec AuraofCourage = ConditionSpec.Create("Aura of Courage", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_COURAGE,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_COURAGE)
+            .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 0, 568)
+            .AddHandler(DispatcherType.BeginRound, AuraOfCourageBeginRound)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.conditionRemoveCallback)
+        );
 
 
     [TempleDllLocation(0x102edc00)]
-    public static readonly ConditionSpec LayonHands = ConditionSpec.Create("Lay on Hands", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, LayOnHandsRefresher)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, LayOnHandsRefresher)
-        .AddHandler(DispatcherType.RadialMenuEntry, LayOnHandsRadialMenu)
-        .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 139, LayOnHandsPerform)
-        .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 139,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_DISMISS_SPELLS,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, (D20DispatcherKey) 139, LayOnHandsPerformOnActionFrame)
-        .Build();
+    public static readonly ConditionSpec LayonHands = ConditionSpec.Create("Lay on Hands", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, LayOnHandsRefresher)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, LayOnHandsRefresher)
+            .AddHandler(DispatcherType.RadialMenuEntry, LayOnHandsRadialMenu)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 139, LayOnHandsPerform)
+            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 139,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_DISMISS_SPELLS,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, (D20DispatcherKey) 139, LayOnHandsPerformOnActionFrame)
+        );
 
 
     [TempleDllLocation(0x102edcc0)]
-    public static readonly ConditionSpec Evasion = ConditionSpec.Create("Evasion", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ReflexThrow, EvasionReflexThrow)
-        .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
-        .Build();
+    public static readonly ConditionSpec Evasion = ConditionSpec.Create("Evasion", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ReflexThrow, EvasionReflexThrow)
+            .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
+        );
 
 
     [TempleDllLocation(0x102edd18)]
-    public static readonly ConditionSpec ImprovedEvasion = ConditionSpec.Create("Improved_Evasion", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ReflexThrow, ImprovedEvasionReflexThrow)
-        .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
-        .Build();
+    public static readonly ConditionSpec ImprovedEvasion = ConditionSpec.Create("Improved_Evasion", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ReflexThrow, ImprovedEvasionReflexThrow)
+            .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
+        );
 
 
     [TempleDllLocation(0x102edd70)]
-    public static readonly ConditionSpec FastMovement = ConditionSpec.Create("Fast_Movement", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetMoveSpeedBase, sub_100FA510)
-        .Build();
+    public static readonly ConditionSpec FastMovement = ConditionSpec.Create("Fast_Movement", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetMoveSpeedBase, sub_100FA510)
+        );
 
 
     [TempleDllLocation(0x102eddb8)]
-    public static readonly ConditionSpec DivineHealth = ConditionSpec.Create("Divine_Health", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAddPre, DivineHealthDiseaseGuard)
-        .Build();
+    public static readonly ConditionSpec DivineHealth = ConditionSpec.Create("Divine_Health", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, DivineHealthDiseaseGuard)
+        );
 
 
     [TempleDllLocation(0x102ede00)]
-    public static readonly ConditionSpec FavoredEnemy = ConditionSpec.Create("Favored_Enemy", 2)
-        .AddHandler(DispatcherType.ConditionAdd, sub_100FA660)
-        .SetUnique()
-        .AddHandler(DispatcherType.SkillLevel, FavoredEnemySkillBonus)
-        .AddHandler(DispatcherType.DealingDamage, FavoredEnemyDamageBonus)
-        .Build();
+    public static readonly ConditionSpec FavoredEnemy = ConditionSpec.Create("Favored_Enemy", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100FA660)
+            .AddHandler(DispatcherType.SkillLevel, FavoredEnemySkillBonus)
+            .AddHandler(DispatcherType.DealingDamage, FavoredEnemyDamageBonus)
+        );
 
 
     [TempleDllLocation(0x102ede70)]
-    public static readonly ConditionSpec DetectEvil = ConditionSpec.Create("Detect Evil", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, PaladinDetectEvilRadial)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_FLEE_COMBAT, DetectEvilActionFrame)
-        .Build();
+    public static readonly ConditionSpec DetectEvil = ConditionSpec.Create("Detect Evil", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, PaladinDetectEvilRadial)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_FLEE_COMBAT, DetectEvilActionFrame)
+        );
 
 
     [TempleDllLocation(0x102edec8)]
-    public static readonly ConditionSpec KiStrike = ConditionSpec.Create("Ki Strike", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, KiStrikeOnDamage)
-        .Build();
+    public static readonly ConditionSpec KiStrike = ConditionSpec.Create("Ki Strike", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, KiStrikeOnDamage)
+        );
 
 
     [TempleDllLocation(0x102edf10)]
-    public static readonly ConditionSpec DefensiveRoll = ConditionSpec.Create("Defensive Roll", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddHandler(DispatcherType.TakingDamage2, DefensiveRollOnDamage)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .Build();
+    public static readonly ConditionSpec DefensiveRoll = ConditionSpec.Create("Defensive Roll", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.TakingDamage2, DefensiveRollOnDamage)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+        );
 
 
     [TempleDllLocation(0x102edf80)]
-    public static readonly ConditionSpec Opportunist = ConditionSpec.Create("Opportunist", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddSignalHandler(D20DispatcherKey.SIG_Broadcast_Action, OpportunistBroadcastAction)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .Build();
+    public static readonly ConditionSpec Opportunist = ConditionSpec.Create("Opportunist", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddSignalHandler(D20DispatcherKey.SIG_Broadcast_Action, OpportunistBroadcastAction)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+        );
 
 
     [TempleDllLocation(0x102edff0)]
-    public static readonly ConditionSpec StillMind = ConditionSpec.Create("Still Mind", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.SaveThrowLevel, sub_100FAF60)
-        .Build();
+    public static readonly ConditionSpec StillMind = ConditionSpec.Create("Still Mind", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SaveThrowLevel, sub_100FAF60)
+        );
 
 
     [TempleDllLocation(0x102ee038)]
-    public static readonly ConditionSpec PurityOfBody = ConditionSpec.Create("Purity Of Body", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAddPre, sub_100FAFB0, StatusEffects.IncubatingDisease)
-        .Build();
+    public static readonly ConditionSpec PurityOfBody = ConditionSpec.Create("Purity Of Body", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, sub_100FAFB0, StatusEffects.IncubatingDisease)
+        );
 
 
     [TempleDllLocation(0x102ee080)]
-    public static readonly ConditionSpec RemoveDisease = ConditionSpec.Create("Remove Disease", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, sub_100FAFE0)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, RemoveDiseaseResetCharges)
-        .AddHandler(DispatcherType.RadialMenuEntry, PaladinRemoveDiseaseRadial)
-        .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 111, RemoveDiseaseActionPerform)
-        .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 111, RemoveDiseaseActionCheck)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, (D20DispatcherKey) 111, sub_100FB1F0)
-        .Build();
+    public static readonly ConditionSpec RemoveDisease = ConditionSpec.Create("Remove Disease", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100FAFE0)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, RemoveDiseaseResetCharges)
+            .AddHandler(DispatcherType.RadialMenuEntry, PaladinRemoveDiseaseRadial)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 111, RemoveDiseaseActionPerform)
+            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 111, RemoveDiseaseActionCheck)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, (D20DispatcherKey) 111, sub_100FB1F0)
+        );
 
 
     [TempleDllLocation(0x102ee128)]
-    public static readonly ConditionSpec WholenessofBody = ConditionSpec.Create("Wholeness of Body", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, sub_100FB290)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, sub_100FB290)
-        .AddHandler(DispatcherType.RadialMenuEntry, MonkWholenessOfBodyRadial)
-        .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 140, RemoveDiseaseActionPerform)
-        .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 140,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 113,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, (D20DispatcherKey) 140, WholenessOfBodyActionFrame)
-        .Build();
+    public static readonly ConditionSpec WholenessofBody = ConditionSpec.Create("Wholeness of Body", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100FB290)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, sub_100FB290)
+            .AddHandler(DispatcherType.RadialMenuEntry, MonkWholenessOfBodyRadial)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 140, RemoveDiseaseActionPerform)
+            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 140,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 113,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, (D20DispatcherKey) 140, WholenessOfBodyActionFrame)
+        );
 
 
     [TempleDllLocation(0x102ee240)]
-    public static readonly ConditionSpec BrewPotion = ConditionSpec.Create("Brew Potion", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, BrewPotionRadialMenu)
-        .Build();
+    public static readonly ConditionSpec BrewPotion = ConditionSpec.Create("Brew Potion", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, BrewPotionRadialMenu)
+        );
 
 
     [TempleDllLocation(0x102ee1e8)]
-    public static readonly ConditionSpec SkillMastery = ConditionSpec.Create("Skill Mastery", 2)
-        .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
-        .AddHandler(DispatcherType.SkillLevel, SkillMasterySkillLevel)
-        .AddSignalHandler(D20DispatcherKey.SIG_Rogue_Skill_Mastery_Init, RogueSkillMasteryInit)
-        .Build();
+    public static readonly ConditionSpec SkillMastery = ConditionSpec.Create("Skill Mastery", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
+            .AddHandler(DispatcherType.SkillLevel, SkillMasterySkillLevel)
+            .AddSignalHandler(D20DispatcherKey.SIG_Rogue_Skill_Mastery_Init, RogueSkillMasteryInit)
+        );
 
 
     [TempleDllLocation(0x102ee270)]
-    public static readonly ConditionSpec ScribeScroll = ConditionSpec.Create("Scribe Scroll", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, ScribeScrollRadialMenu)
-        .Build();
+    public static readonly ConditionSpec ScribeScroll = ConditionSpec.Create("Scribe Scroll", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, ScribeScrollRadialMenu)
+        );
 
 
     [TempleDllLocation(0x102ee2a0)]
-    public static readonly ConditionSpec CraftWand = ConditionSpec.Create("Craft Wand", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, CraftWandRadialMenu)
-        .Build();
+    public static readonly ConditionSpec CraftWand = ConditionSpec.Create("Craft Wand", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, CraftWandRadialMenu)
+        );
 
 
     [TempleDllLocation(0x102ee2d0)]
-    public static readonly ConditionSpec CraftRod = ConditionSpec.Create("Craft Rod", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, CraftRodRadialMenu)
-        .Build();
+    public static readonly ConditionSpec CraftRod = ConditionSpec.Create("Craft Rod", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, CraftRodRadialMenu)
+        );
 
 
     [TempleDllLocation(0x102ee300)]
-    public static readonly ConditionSpec CraftWonderousItem = ConditionSpec.Create("Craft Wonderous Item", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, CraftWonderousItemRadialMenu)
-        .Build();
+    public static readonly ConditionSpec CraftWonderousItem = ConditionSpec.Create("Craft Wonderous Item", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, CraftWonderousItemRadialMenu)
+        );
 
 
     [TempleDllLocation(0x102ee330)]
-    public static readonly ConditionSpec CraftMagicArmsandArmor = ConditionSpec
-        .Create("Craft Magic Arms and Armor", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, CraftMagicArmsAndArmorRadialMenu)
-        .Build();
+    public static readonly ConditionSpec CraftMagicArmsandArmor = ConditionSpec.Create("Craft Magic Arms and Armor", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, CraftMagicArmsAndArmorRadialMenu)
+        );
 
 
     [TempleDllLocation(0x102ee360)]
-    public static readonly ConditionSpec Track = ConditionSpec.Create("Track", 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, TrackRadialMenu)
-        .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 115, TrackActivate)
-        .Build();
+    public static readonly ConditionSpec Track = ConditionSpec.Create("Track", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, TrackRadialMenu)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 115, TrackActivate)
+        );
 
     [TempleDllLocation(0x102ed45c)]
-    public static readonly ConditionSpec Toughness = ConditionSpec.Create("Toughness", 1)
-        .AddHandler(DispatcherType.MaxHP, sub_100FC0B0)
-        .Build();
+    public static readonly ConditionSpec Toughness = ConditionSpec.Create("Toughness", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.MaxHP, sub_100FC0B0)
+        );
 
     [TempleDllLocation(0x102ee4e8)]
-    public static readonly ConditionSpec AnimalCompanion = ConditionSpec.Create("Animal Companion", 5)
-        .AddHandler(DispatcherType.ConditionAdd, sub_100FCA90)
-        .AddHandler(DispatcherType.RadialMenuEntry, AnimalCompanionRadialMenu)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, sub_100FC150)
-        .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, AnimalCompanionCheck)
-        .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, AnimalCompanionSummonDismiss)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .Build();
+    public static readonly ConditionSpec AnimalCompanion = ConditionSpec.Create("Animal Companion", 5, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100FCA90)
+            .AddHandler(DispatcherType.RadialMenuEntry, AnimalCompanionRadialMenu)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, sub_100FC150)
+            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, AnimalCompanionCheck)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, AnimalCompanionSummonDismiss)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+        );
 
 
     [TempleDllLocation(0x102ee6b0)]
-    public static readonly ConditionSpec CallFamiliar = ConditionSpec.Create("Call Familiar", 5)
-        .AddHandler(DispatcherType.ConditionAdd, sub_100FCA90)
-        .AddHandler(DispatcherType.RadialMenuEntry, CallFamiliarRadial)
-        .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, FamiliarSummonCheck)
-        .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, FamiliarSummonDismiss)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-        .Build();
+    public static readonly ConditionSpec CallFamiliar = ConditionSpec.Create("Call Familiar", 5, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, sub_100FCA90)
+            .AddHandler(DispatcherType.RadialMenuEntry, CallFamiliarRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, FamiliarSummonCheck)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, FamiliarSummonDismiss)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+        );
 
 
     [TempleDllLocation(0x102ee748)]
-    public static readonly ConditionSpec Acrobatic = ConditionSpec.Create("Acrobatic", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.pick_pocket, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.tumble, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec Acrobatic = ConditionSpec.Create("Acrobatic", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.pick_pocket, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.tumble, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ee7a0)]
-    public static readonly ConditionSpec Investigator = ConditionSpec.Create("Investigator", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.gather_information, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.search, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec Investigator = ConditionSpec.Create("Investigator", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.gather_information, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.search, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ee7f8)]
-    public static readonly ConditionSpec MagicalAffinity = ConditionSpec.Create("Magical Affinity", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.spellcraft, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.use_magic_device, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec MagicalAffinity = ConditionSpec.Create("Magical Affinity", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.spellcraft, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.use_magic_device, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ee850)]
-    public static readonly ConditionSpec Negotiator = ConditionSpec.Create("Negotiator", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.diplomacy, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.sense_motive, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec Negotiator = ConditionSpec.Create("Negotiator", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.diplomacy, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.sense_motive, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ee8a8)]
-    public static readonly ConditionSpec NimbleFingers = ConditionSpec.Create("Nimble Fingers", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.open_lock, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.disable_device, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec NimbleFingers = ConditionSpec.Create("Nimble Fingers", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.open_lock, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.disable_device, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ee900)]
-    public static readonly ConditionSpec Persuasive = ConditionSpec.Create("Persuasive", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.bluff, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.intimidate, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec Persuasive = ConditionSpec.Create("Persuasive", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.bluff, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.intimidate, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ee958)]
-    public static readonly ConditionSpec SelfSufficient = ConditionSpec.Create("Self Sufficient", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.heal, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.wilderness_lore, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec SelfSufficient = ConditionSpec.Create("Self Sufficient", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.heal, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.wilderness_lore, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102ee9b0)]
-    public static readonly ConditionSpec Stealthy = ConditionSpec.Create("Stealthy", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.hide, FeatSkillBonus, 2)
-        .AddSkillLevelHandler(SkillId.move_silently, FeatSkillBonus, 2)
-        .Build();
+    public static readonly ConditionSpec Stealthy = ConditionSpec.Create("Stealthy", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.hide, FeatSkillBonus, 2)
+            .AddSkillLevelHandler(SkillId.move_silently, FeatSkillBonus, 2)
+        );
 
 
     [TempleDllLocation(0x102eea50)]
-    public static readonly ConditionSpec ManyShot = ConditionSpec.Create("Many Shot", 1)
-        .SetUnique()
-        .Prevents(ManyShotRanger)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, ManyshotRadial)
-        .AddHandler(DispatcherType.ToHitBonus2, ManyshotPenalty)
-        .AddSignalHandler(D20DispatcherKey.SIG_Attack_Made, ManyshotAttackMadeHandler)
-        .Build();
+    public static readonly ConditionSpec ManyShot = ConditionSpec.Create("Many Shot", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .Prevents(ManyShotRanger)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, ManyshotRadial)
+            .AddHandler(DispatcherType.ToHitBonus2, ManyshotPenalty)
+            .AddSignalHandler(D20DispatcherKey.SIG_Attack_Made, ManyshotAttackMadeHandler)
+        );
 
 
     [TempleDllLocation(0x102eeae8)]
-    public static readonly ConditionSpec ManyShotRanger = ConditionSpec.Create("Many Shot Ranger", 1)
-        .SetUnique()
-        .RemovedBy(ManyShot)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, ManyshotRadial)
-        .AddHandler<SubDispatcherCallback>(DispatcherType.ToHitBonus2, ArmorLightOnly,
-            ManyshotPenalty /*0x100fcf50*/)
-        .AddSignalHandler<SubDispatcherCallback>(D20DispatcherKey.SIG_Attack_Made, ArmorLightOnly,
-            ManyshotAttackMadeHandler /*0x100fd030*/)
-        .Build();
+    public static readonly ConditionSpec ManyShotRanger = ConditionSpec.Create("Many Shot Ranger", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .RemovedBy(ManyShot)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, ManyshotRadial)
+            .AddHandler<SubDispatcherCallback>(DispatcherType.ToHitBonus2, ArmorLightOnly,
+                ManyshotPenalty /*0x100fcf50*/)
+            .AddSignalHandler<SubDispatcherCallback>(D20DispatcherKey.SIG_Attack_Made, ArmorLightOnly,
+                ManyshotAttackMadeHandler /*0x100fd030*/)
+        );
 
 
     [TempleDllLocation(0x102eeb7c)]
-    public static readonly ConditionSpec GreaterSpellFocus = ConditionSpec.Create("Greater Spell Focus", 1)
-        .AddHandler(DispatcherType.SpellDcMod, SpellDcMod_SpellFocus_Callback)
-        .Build();
+    public static readonly ConditionSpec GreaterSpellFocus = ConditionSpec.Create("Greater Spell Focus", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SpellDcMod, SpellDcMod_SpellFocus_Callback)
+        );
 
 
     [TempleDllLocation(0x102aada0)]
-    public static readonly ConditionSpec TwoWeaponDefense = ConditionSpec.Create("Two Weapon Defense", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetAC, TwoWeaponDefenseAcBonus)
-        .Build();
+    public static readonly ConditionSpec TwoWeaponDefense = ConditionSpec.Create("Two Weapon Defense", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetAC, TwoWeaponDefenseAcBonus)
+        );
 
 
     [TempleDllLocation(0x102aaf58)]
-    public static readonly ConditionSpec GreaterWeaponFocus = ConditionSpec.Create("Greater_Weapon_Focus", 2)
-        .SetUniqueWithKeyArg1()
-        .AddHandler(DispatcherType.ToHitBonus2, WeaponFocusToHitBonus)
-        .Build();
+    public static readonly ConditionSpec GreaterWeaponFocus = ConditionSpec.Create("Greater_Weapon_Focus", 2, UniquenessType.UniqueArg1)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, WeaponFocusToHitBonus)
+        );
 
 
     [TempleDllLocation(0x102ece68)]
-    public static readonly ConditionSpec ImprovedTrip = ConditionSpec.Create("Improved_Trip", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.AbilityCheckModifier, ImprovedTripAbilityCheckBonus)
-        .Build();
+    public static readonly ConditionSpec ImprovedTrip = ConditionSpec.Create("Improved_Trip", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.AbilityCheckModifier, ImprovedTripAbilityCheckBonus)
+        );
 
 
     /// <arg index="0">The number of attacks of opportunity remaining this round.</arg>
     /// <arg index="1">The target that was the last target of an attack of opportunity this round.
     /// Reset to null at the beginning of the round.</arg>
     [TempleDllLocation(0x102ed5b0)]
-    public static readonly ConditionSpec AOO = ConditionSpec.Create("AOO", 3)
-        .AddHandler(DispatcherType.ConditionAdd, AooReset)
-        .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, true)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOWillTake, AoOWillTake_Callback)
-        .AddHandler(DispatcherType.BeginRound, AooReset)
-        .AddSignalHandler(D20DispatcherKey.SIG_AOOPerformed, AoOPerformed)
-        .Build();
+    public static readonly ConditionSpec AOO = ConditionSpec.Create("AOO", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, AooReset)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, true)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOWillTake, AoOWillTake_Callback)
+            .AddHandler(DispatcherType.BeginRound, AooReset)
+            .AddSignalHandler(D20DispatcherKey.SIG_AOOPerformed, AoOPerformed)
+        );
 
 
     [TempleDllLocation(0x102ed630)]
-    public static readonly ConditionSpec CastDefensively = ConditionSpec.Create("Cast_Defensively", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddQueryHandler(D20DispatcherKey.QUE_ActionTriggersAOO, CastDefensivelyActionTriggersAooQuery)
-        .AddHandler(DispatcherType.RadialMenuEntry, CastDefensivelyRadial)
-        .AddQueryHandler(D20DispatcherKey.QUE_SpellInterrupted, CastDefensivelySpellInterrupted)
-        .AddSignalHandler(D20DispatcherKey.SIG_SetCastDefensively, SetCastDefensively)
-        .Build();
+    public static readonly ConditionSpec CastDefensively = ConditionSpec.Create("Cast_Defensively", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddQueryHandler(D20DispatcherKey.QUE_ActionTriggersAOO, CastDefensivelyActionTriggersAooQuery)
+            .AddHandler(DispatcherType.RadialMenuEntry, CastDefensivelyRadial)
+            .AddQueryHandler(D20DispatcherKey.QUE_SpellInterrupted, CastDefensivelySpellInterrupted)
+            .AddSignalHandler(D20DispatcherKey.SIG_SetCastDefensively, SetCastDefensively)
+        );
 
 
     [TempleDllLocation(0x102ed738)]
-    public static readonly ConditionSpec CombatCasting = ConditionSpec.Create("Combat_Casting", 1)
-        .SetUnique()
-        .AddSkillLevelHandler(SkillId.concentration, CommonConditionCallbacks.CompetenceBonus, 4, 155)
-        .AddSkillLevelHandler(SkillId.concentration, CommonConditionCallbacks.conditionRemoveCallback)
-        .Build();
+    public static readonly ConditionSpec CombatCasting = ConditionSpec.Create("Combat_Casting", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.concentration, CommonConditionCallbacks.CompetenceBonus, 4, 155)
+            .AddSkillLevelHandler(SkillId.concentration, CommonConditionCallbacks.conditionRemoveCallback)
+        );
 
 
     [TempleDllLocation(0x102ed790)]
-    public static readonly ConditionSpec DealSubdualDamage = ConditionSpec.Create("Deal_Subdual_Damage", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, NonlethalDamageRadial)
-        .AddHandler(DispatcherType.ToHitBonus2, sub_100F8E70)
-        .AddHandler(DispatcherType.DealingDamage, NonlethalDamageSetSubdual)
-        .AddSignalHandler(D20DispatcherKey.SIG_DealNormalDamage, sub_100F8F40)
-        .Build();
+    public static readonly ConditionSpec DealSubdualDamage = ConditionSpec.Create("Deal_Subdual_Damage", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, NonlethalDamageRadial)
+            .AddHandler(DispatcherType.ToHitBonus2, sub_100F8E70)
+            .AddHandler(DispatcherType.DealingDamage, NonlethalDamageSetSubdual)
+            .AddSignalHandler(D20DispatcherKey.SIG_DealNormalDamage, sub_100F8F40)
+        );
 
 
     [TempleDllLocation(0x102ecc38)]
-    public static readonly ConditionSpec FightingDefensively = ConditionSpec.Create("Fighting Defensively", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg1FromSubDispDef, 0)
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, FightDefensivelyRadialMenu)
-        .AddHandler(DispatcherType.ToHitBonus2, FightDefensivelyToHitPenalty)
-        .AddHandler(DispatcherType.GetAC, FightDefensivelyAcBonus)
-        .AddSignalHandler(D20DispatcherKey.SIG_Attack_Made, TacticalOptionAbusePrevention)
-        .Build();
+    public static readonly ConditionSpec FightingDefensively = ConditionSpec.Create("Fighting Defensively", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.CondNodeSetArg1FromSubDispDef, 0)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, FightDefensivelyRadialMenu)
+            .AddHandler(DispatcherType.ToHitBonus2, FightDefensivelyToHitPenalty)
+            .AddHandler(DispatcherType.GetAC, FightDefensivelyAcBonus)
+            .AddSignalHandler(D20DispatcherKey.SIG_Attack_Made, TacticalOptionAbusePrevention)
+        );
 
 
     [TempleDllLocation(0x102ed828)]
-    public static readonly ConditionSpec DealNormalDamage = ConditionSpec.Create("Deal_Normal_Damage", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-        .AddHandler(DispatcherType.RadialMenuEntry, DealNormalDamageCallback)
-        .AddHandler(DispatcherType.ToHitBonus2, sub_100F9040)
-        .AddHandler(DispatcherType.DealingDamage, sub_100F90C0)
-        .AddSignalHandler(D20DispatcherKey.SIG_DealNormalDamage, sub_100F9120)
-        .Build();
+    public static readonly ConditionSpec DealNormalDamage = ConditionSpec.Create("Deal_Normal_Damage", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, DealNormalDamageCallback)
+            .AddHandler(DispatcherType.ToHitBonus2, sub_100F9040)
+            .AddHandler(DispatcherType.DealingDamage, sub_100F90C0)
+            .AddSignalHandler(D20DispatcherKey.SIG_DealNormalDamage, sub_100F9120)
+        );
 
 
     [TempleDllLocation(0x102ee590)]
-    public static readonly ConditionSpec AnimalCompanionAnimal = ConditionSpec.Create("Animal Companion Animal", 6)
-        .AddHandler(DispatcherType.ConditionAdd, AnimalCompanionOnAdd)
-        .AddHandler(DispatcherType.BeginRound, AnimalCompanionBeginRound)
-        .AddHandler(DispatcherType.ToHitBonus2, AnimalCompanionToHitBonus)
-        .AddHandler(DispatcherType.GetBonusAttacks, AnimalCompanionNumAttacksBonus)
-        .AddHandler(DispatcherType.SaveThrowLevel, AnimalCompanionSaveThrowBonus)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, AnimalCompanionStatBonus)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, AnimalCompanionStatBonus)
-        .AddHandler(DispatcherType.ReflexThrow, AnimalCompanionReflexBonus)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 1)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 1)
-        .SetQueryResult(D20DispatcherKey.QUE_ExperienceExempt, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Cannot_Loot, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Cannot_Wield_Items, true)
-        .Build();
+    public static readonly ConditionSpec AnimalCompanionAnimal = ConditionSpec.Create("Animal Companion Animal", 6, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, AnimalCompanionOnAdd)
+            .AddHandler(DispatcherType.BeginRound, AnimalCompanionBeginRound)
+            .AddHandler(DispatcherType.ToHitBonus2, AnimalCompanionToHitBonus)
+            .AddHandler(DispatcherType.GetBonusAttacks, AnimalCompanionNumAttacksBonus)
+            .AddHandler(DispatcherType.SaveThrowLevel, AnimalCompanionSaveThrowBonus)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, AnimalCompanionStatBonus)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, AnimalCompanionStatBonus)
+            .AddHandler(DispatcherType.ReflexThrow, AnimalCompanionReflexBonus)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 1)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 1)
+            .SetQueryResult(D20DispatcherKey.QUE_ExperienceExempt, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Cannot_Loot, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Cannot_Wield_Items, true)
+        );
 
 
     [TempleDllLocation(0x102ed6c8)]
-    public static readonly ConditionSpec AutoendTurn = ConditionSpec.Create("Autoend_Turn", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-        .AddQueryHandler(D20DispatcherKey.QUE_Autoend_Turn, CommonConditionCallbacks.D20Query_Callback_GetSDDKey1,
-            0)
-        .AddHandler(DispatcherType.RadialMenuEntry, AutoendTurnRadial)
-        .Build();
+    public static readonly ConditionSpec AutoendTurn = ConditionSpec.Create("Autoend_Turn", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddQueryHandler(D20DispatcherKey.QUE_Autoend_Turn, CommonConditionCallbacks.D20Query_Callback_GetSDDKey1,
+                0)
+            .AddHandler(DispatcherType.RadialMenuEntry, AutoendTurnRadial)
+        );
 
     [DispTypes(DispatcherType.D20Signal)]
     [TempleDllLocation(0x100fb660)]
@@ -2293,7 +2308,7 @@ public static class FeatConditions
                 if (!isRayAttack)
                     return;
             }
-            else if (featWeaponType == WeaponType.unarmed_strike_medium_sized_being || featWeaponType == WeaponType.unarmed_strike_small_being )
+            else if (featWeaponType == WeaponType.unarmed_strike_medium_sized_being || featWeaponType == WeaponType.unarmed_strike_small_being)
             {
                 if (isRayAttack)
                     return;
@@ -2302,10 +2317,8 @@ public static class FeatConditions
             {
                 return;
             }
-                
         }
 
-            
 
         var featName = GameSystems.Feat.GetFeatName(feat);
         dispIo.bonlist.AddBonus(1, 0, 114, featName);

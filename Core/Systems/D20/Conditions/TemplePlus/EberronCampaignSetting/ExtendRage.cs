@@ -31,7 +31,8 @@ public class ExtendRage
         }
     }
 
-    [AutoRegister] public static readonly ConditionSpec ExtendRageExtension = ConditionSpec.Extend(StatusEffects.BarbarianRaged)
+    [AutoRegister]
+    public static readonly ConditionSpec ExtendRageExtension = StatusEffects.BarbarianRaged.Extend(builder => builder
         .AddHandler(DispatcherType.ConditionAdd, AddCondition)
-        .Build();
+    );
 }

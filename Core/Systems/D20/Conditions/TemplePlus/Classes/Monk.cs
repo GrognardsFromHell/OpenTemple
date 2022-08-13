@@ -78,10 +78,12 @@ public class Monk
             {
                 return !critter.HasFeat(FeatId.COMBAT_REFLEXES) || !critter.HasFeat(FeatId.DEFLECT_ARROWS);
             }
+
             if (newLvl == 6)
             {
                 return !critter.HasFeat(FeatId.IMPROVED_TRIP) || !critter.HasFeat(FeatId.IMPROVED_DISARM);
             }
+
             return false;
         },
         LevelupGetBonusFeats = GetBonusFeats
@@ -103,9 +105,9 @@ public class Monk
     }
 
     [TempleDllLocation(0x102f01c8)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetAC, MonkAcBonus, Stat.level_monk)
-        .Build();
+    );
 
     [DispTypes(DispatcherType.GetAC)]
     [TempleDllLocation(0x100fedd0)]

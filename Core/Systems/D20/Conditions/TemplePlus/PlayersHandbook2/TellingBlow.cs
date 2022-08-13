@@ -32,8 +32,9 @@ public class TellingBlow
 
     // args are just-in-case placeholders
     [FeatCondition("Telling Blow")]
-    [AutoRegister] public static readonly ConditionSpec tellingBlow = ConditionSpec.Create("Telling Blow", 2)
-        .SetUnique()
-        .AddQueryHandler("Sneak Attack Critical", SneakAttackOnCritical)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec tellingBlow = ConditionSpec.Create("Telling Blow", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Sneak Attack Critical", SneakAttackOnCritical)
+        );
 }

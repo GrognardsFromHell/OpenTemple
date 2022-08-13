@@ -43,8 +43,9 @@ public class FastWildShape
 
     // First argument is the wildshape, second is extra
     [FeatCondition("Fast Wild Shape")]
-    [AutoRegister] public static readonly ConditionSpec Condition = ConditionSpec.Create("Fast Wild Shape Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ActionCostMod, FastWildShapeCostMod)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Fast Wild Shape Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ActionCostMod, FastWildShapeCostMod)
+        );
 }

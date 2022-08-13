@@ -33,7 +33,7 @@ public class TotalDefense
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec TotalDefenseExtension = ConditionSpec.Extend(StatusEffects.TotalDefense)
+    public static readonly ConditionSpec TotalDefenseExtension = StatusEffects.TotalDefense.Extend(builder => builder
         .AddQueryHandler(D20DispatcherKey.QUE_FightingDefensively, FightingDefensivelyQuery)
-        .Build();
+    );
 }

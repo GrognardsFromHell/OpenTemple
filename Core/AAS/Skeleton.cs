@@ -197,7 +197,7 @@ public class Skeleton
         return new KeyFrameStreamReader(CreateStream(streamData));
     }
 
-    public SkeletonAnimation FindAnimByName(string name)
+    public SkeletonAnimation? FindAnimByName(string name)
     {
         return _animationsByName.GetValueOrDefault(name.ToLowerInvariant(), null);
     }
@@ -282,25 +282,32 @@ public struct SkelBoneState
         int boneCount,
         float fraction)
     {
-        Trace.Assert(boneCount<= from.Length);
-        Trace.Assert(boneCount<= to.Length);
-        Trace.Assert(boneCount<= result.Length);
+        Trace.Assert(boneCount <= from.Length);
+        Trace.Assert(boneCount <= to.Length);
+        Trace.Assert(boneCount <= result.Length);
 
         // Handle simple cases where no interpolation needs to be performed
-        if (fraction < 0.001) {
-            if (result != from) {
+        if (fraction < 0.001)
+        {
+            if (result != from)
+            {
                 from.Slice(0, boneCount).CopyTo(result);
             }
+
             return;
         }
-        else if (fraction > 0.999) {
-            if (result != to) {
+        else if (fraction > 0.999)
+        {
+            if (result != to)
+            {
                 to.Slice(0, boneCount).CopyTo(result);
             }
+
             return;
         }
 
-        for (int i = 0; i < boneCount; i++) {
+        for (int i = 0; i < boneCount; i++)
+        {
             result[i].Scale = Vector3.Lerp(from[i].Scale, to[i].Scale, fraction);
             result[i].Translation = Vector3.Lerp(from[i].Translation, to[i].Translation, fraction);
             result[i].Rotation = Quaternion.Slerp(from[i].Rotation, to[i].Rotation, fraction);

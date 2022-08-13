@@ -66,14 +66,15 @@ public class PrayerBeads
     }
 
     // arg2 is the inventory index (automatically set by the game), arg3 is times used this day, arg4 is reserved
-    [AutoRegister] public static readonly ConditionSpec prbd = ConditionSpec.Create("Prayer Beads", 5)
-        .SetUnique()
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, PrBeadsNewday)
-        .AddHandler(DispatcherType.RadialMenuEntry, PrBeadsRadial)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_ACTIVATE_DEVICE_FREE, PrBeadsCheck)
-        .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_ACTIVATE_DEVICE_FREE, PrBeadsPerform)
-        .AddItemForceRemoveHandler()
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec prbd = ConditionSpec.Create("Prayer Beads", 5, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, PrBeadsNewday)
+            .AddHandler(DispatcherType.RadialMenuEntry, PrBeadsRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_ACTIVATE_DEVICE_FREE, PrBeadsCheck)
+            .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_ACTIVATE_DEVICE_FREE, PrBeadsPerform)
+            .AddItemForceRemoveHandler()
+        );
 
     public static void PrBeadsAdded(in DispatcherCallbackArgs evt)
     {
@@ -111,11 +112,12 @@ public class PrayerBeads
         dispIo.bdb.AddEntry(52, "Karmic Prayer (" + evt.GetConditionArg3().ToString() + " rounds)", -2);
     }
 
-    [AutoRegister] public static readonly ConditionSpec prayerKarma = ConditionSpec.Create("Prayer Beads Karma Effect", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.BaseCasterLevelMod, PrBeadsCasterLevelBonus)
-        .AddHandler(DispatcherType.BeginRound, PrBeadsTickdown)
-        .AddHandler(DispatcherType.ConditionAdd, PrBeadsAdded)
-        .AddHandler(DispatcherType.EffectTooltip, PrayerEffectTooltip)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec prayerKarma = ConditionSpec.Create("Prayer Beads Karma Effect", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BaseCasterLevelMod, PrBeadsCasterLevelBonus)
+            .AddHandler(DispatcherType.BeginRound, PrBeadsTickdown)
+            .AddHandler(DispatcherType.ConditionAdd, PrBeadsAdded)
+            .AddHandler(DispatcherType.EffectTooltip, PrayerEffectTooltip)
+        );
 }

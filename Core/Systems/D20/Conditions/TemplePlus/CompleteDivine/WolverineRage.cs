@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -51,9 +50,9 @@ public class WolverineRage
             {
                 evt.SetConditionArg1(1);
             }
-
         }
     }
+
     public static void OnWolverineRageEffectCheck(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20ActionTurnBased();
@@ -90,6 +89,7 @@ public class WolverineRage
         // Lasts 5 rounds
         evt.SetConditionArg4(5);
     }
+
     public static void WolverineRageEffectBeginRound(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20Signal();
@@ -115,6 +115,7 @@ public class WolverineRage
             evt.SetConditionArg3(0); // set effect to inactive
         }
     }
+
     public static void WolverineRageEffectTooltip(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoTooltip();
@@ -126,6 +127,7 @@ public class WolverineRage
 
         dispIo.Append("Wolverine's Rage");
     }
+
     public static void WolverineRageEffectTooltipEffect(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoEffectTooltip();
@@ -138,6 +140,7 @@ public class WolverineRage
         // Set the tooltip
         dispIo.bdb.AddEntry(BuffDebuffType.Condition, ElfHash.Hash("WOLVERINE_RAGE"), "", -2);
     }
+
     public static void WolverineRageEffectConMod(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoBonusList();
@@ -149,6 +152,7 @@ public class WolverineRage
 
         dispIo.bonlist.AddBonus(2, 0, "Wolverine's Rage"); // Unnamed bonus
     }
+
     public static void WolverineRageEffectStrMod(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoBonusList();
@@ -160,6 +164,7 @@ public class WolverineRage
 
         dispIo.bonlist.AddBonus(2, 0, "Wolverine's Rage"); // Unnamed bonus
     }
+
     public static void WolverineRageEffectACPenalty(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoAttackBonus();
@@ -175,23 +180,26 @@ public class WolverineRage
     // Setup the feat
     // spare, spare
     [FeatCondition("Wolverine's Rage")]
-    [AutoRegister] public static readonly ConditionSpec WolverineRageFeat = ConditionSpec.Create("Wolverine Rage Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, WolverineRageRadial)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec WolverineRageFeat = ConditionSpec.Create("Wolverine Rage Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, WolverineRageRadial)
+        );
 
     // Setup the effect
     // damage taken this round flag, feat enabled flag, effect active, rounds left, spare
 
-    [AutoRegister] public static readonly ConditionSpec WolverineRageEffect = ConditionSpec.Create("Wolverine Rage Effect", 5)
-        .AddHandler(DispatcherType.TakingDamage2, WolverineRageEffectTakingDamage2)
-        .AddHandler(DispatcherType.BeginRound, WolverineRageEffectBeginRound)
-        .AddHandler(DispatcherType.PythonActionCheck, WolverineRageEnum, OnWolverineRageEffectCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, WolverineRageEnum, OnWolverineRageEffectPerform)
-        .AddHandler(DispatcherType.Tooltip, WolverineRageEffectTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, WolverineRageEffectTooltipEffect)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, WolverineRageEffectConMod)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, WolverineRageEffectStrMod)
-        .AddHandler(DispatcherType.GetAC, WolverineRageEffectACPenalty)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec WolverineRageEffect = ConditionSpec.Create("Wolverine Rage Effect", 5, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, WolverineRageEffectTakingDamage2)
+            .AddHandler(DispatcherType.BeginRound, WolverineRageEffectBeginRound)
+            .AddHandler(DispatcherType.PythonActionCheck, WolverineRageEnum, OnWolverineRageEffectCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, WolverineRageEnum, OnWolverineRageEffectPerform)
+            .AddHandler(DispatcherType.Tooltip, WolverineRageEffectTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, WolverineRageEffectTooltipEffect)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, WolverineRageEffectConMod)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, WolverineRageEffectStrMod)
+            .AddHandler(DispatcherType.GetAC, WolverineRageEffectACPenalty)
+        );
 }

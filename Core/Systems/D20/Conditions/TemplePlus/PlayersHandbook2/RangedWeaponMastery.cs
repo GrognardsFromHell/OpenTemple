@@ -158,26 +158,29 @@ public class RangedWeaponMastery
     }
 
     [FeatCondition("Ranged Weapon Mastery - Bludgeoning")]
-    [AutoRegister] public static readonly ConditionSpec rwmBludg = ConditionSpec.Create("Ranged Weapon Mastery - Bludgeoning", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, rwmToHit, DamageType.Bludgeoning)
-        .AddHandler(DispatcherType.DealingDamage, rwmToDam, DamageType.Bludgeoning)
-        .AddHandler(DispatcherType.RangeIncrementBonus, rwmRangeIncrementBonus, DamageType.Bludgeoning)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec rwmBludg = ConditionSpec.Create("Ranged Weapon Mastery - Bludgeoning", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, rwmToHit, DamageType.Bludgeoning)
+            .AddHandler(DispatcherType.DealingDamage, rwmToDam, DamageType.Bludgeoning)
+            .AddHandler(DispatcherType.RangeIncrementBonus, rwmRangeIncrementBonus, DamageType.Bludgeoning)
+        );
 
     [FeatCondition("Ranged Weapon Mastery - Slashing")]
-    [AutoRegister] public static readonly ConditionSpec rwmSlash = ConditionSpec.Create("Ranged Weapon Mastery - Slashing", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, rwmToHit, DamageType.Slashing)
-        .AddHandler(DispatcherType.DealingDamage, rwmToDam, DamageType.Slashing)
-        .AddHandler(DispatcherType.RangeIncrementBonus, rwmRangeIncrementBonus, DamageType.Slashing)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec rwmSlash = ConditionSpec.Create("Ranged Weapon Mastery - Slashing", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, rwmToHit, DamageType.Slashing)
+            .AddHandler(DispatcherType.DealingDamage, rwmToDam, DamageType.Slashing)
+            .AddHandler(DispatcherType.RangeIncrementBonus, rwmRangeIncrementBonus, DamageType.Slashing)
+        );
 
     [FeatCondition("Ranged Weapon Mastery - Piercing")]
-    [AutoRegister] public static readonly ConditionSpec rwmPierc = ConditionSpec.Create("Ranged Weapon Mastery - Piercing", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, rwmToHit, DamageType.Piercing)
-        .AddHandler(DispatcherType.DealingDamage, rwmToDam, DamageType.Piercing)
-        .AddHandler(DispatcherType.RangeIncrementBonus, rwmRangeIncrementBonus, DamageType.Piercing)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec rwmPierc = ConditionSpec.Create("Ranged Weapon Mastery - Piercing", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, rwmToHit, DamageType.Piercing)
+            .AddHandler(DispatcherType.DealingDamage, rwmToDam, DamageType.Piercing)
+            .AddHandler(DispatcherType.RangeIncrementBonus, rwmRangeIncrementBonus, DamageType.Piercing)
+        );
 }

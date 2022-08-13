@@ -18,172 +18,173 @@ public static class RaceConditions
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x102ef310)]
-    public static readonly ConditionSpec Human = ConditionSpec.Create("Human", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
-        .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, HighestClassIsFavoredClass)
-        .Build();
+    public static readonly ConditionSpec Human = ConditionSpec.Create("Human", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
+            .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, HighestClassIsFavoredClass)
+        );
 
 
     [TempleDllLocation(0x102ef368)]
-    public static readonly ConditionSpec Dwarf = ConditionSpec.Create("Dwarf", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
-            RacialStatModifier_callback, 2)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback,
-            -2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CONSTITUTION, RacialStatModifier_callback, 2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback, -2)
-        .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE,
-            ApplyDwarvenSaveBonusAgainstPoison)
-        .AddHandler(DispatcherType.SaveThrowLevel, DwarfSaveBonusVsSpells)
-        .AddHandler(DispatcherType.ToHitBonus2, DwarfBonusToHitOrcsAndGoblins)
-        .AddHandler(DispatcherType.GetAC, ArmorBonusVsGiants)
-        .AddSkillLevelHandler(SkillId.appraise, DwarfAppraiseBonus, 2)
-        .AddHandler(DispatcherType.GetMoveSpeedBase, BaseMoveSpeed20)
-        .AddHandler(DispatcherType.GetMoveSpeed, DwarfMoveSpeed, 20, 139)
-        .AddHandler(DispatcherType.AbilityCheckModifier, CommonConditionCallbacks.AbilityModCheckStabilityBonus)
-        .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler,
-            11)
-        .Build();
+    public static readonly ConditionSpec Dwarf = ConditionSpec.Create("Dwarf", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
+                RacialStatModifier_callback, 2)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback,
+                -2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CONSTITUTION, RacialStatModifier_callback, 2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback, -2)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE,
+                ApplyDwarvenSaveBonusAgainstPoison)
+            .AddHandler(DispatcherType.SaveThrowLevel, DwarfSaveBonusVsSpells)
+            .AddHandler(DispatcherType.ToHitBonus2, DwarfBonusToHitOrcsAndGoblins)
+            .AddHandler(DispatcherType.GetAC, ArmorBonusVsGiants)
+            .AddSkillLevelHandler(SkillId.appraise, DwarfAppraiseBonus, 2)
+            .AddHandler(DispatcherType.GetMoveSpeedBase, BaseMoveSpeed20)
+            .AddHandler(DispatcherType.GetMoveSpeed, DwarfMoveSpeed, 20, 139)
+            .AddHandler(DispatcherType.AbilityCheckModifier, CommonConditionCallbacks.AbilityModCheckStabilityBonus)
+            .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler,
+                11)
+        );
 
 
     [TempleDllLocation(0x102ef4a0)]
-    public static readonly ConditionSpec Elf = ConditionSpec.Create("Elf", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAddPre, ElvenConditionImmunity, SpellEffects.SpellSleep)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback,
-            2)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
-            RacialStatModifier_callback, -2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback, 2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CONSTITUTION, RacialStatModifier_callback, -2)
-        .AddHandler(DispatcherType.SaveThrowLevel, ElfSavingThrowBonus)
-        .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 2)
-        .AddSkillLevelHandler(SkillId.search, SkillBonusRacial, 2)
-        .AddSkillLevelHandler(SkillId.spot, SkillBonusRacial, 2)
-        .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
-        .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler,
-            17)
-        .Build();
+    public static readonly ConditionSpec Elf = ConditionSpec.Create("Elf", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, ElvenConditionImmunity, SpellEffects.SpellSleep)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback,
+                2)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
+                RacialStatModifier_callback, -2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback, 2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CONSTITUTION, RacialStatModifier_callback, -2)
+            .AddHandler(DispatcherType.SaveThrowLevel, ElfSavingThrowBonus)
+            .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 2)
+            .AddSkillLevelHandler(SkillId.search, SkillBonusRacial, 2)
+            .AddSkillLevelHandler(SkillId.spot, SkillBonusRacial, 2)
+            .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
+            .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler,
+                17)
+        );
 
 
     [TempleDllLocation(0x102ef5b0)]
-    public static readonly ConditionSpec Gnome = ConditionSpec.Create("Gnome", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
-            RacialStatModifier_callback, 2)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
-            -2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CONSTITUTION, RacialStatModifier_callback, 2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback, -2)
-        .AddHandler(DispatcherType.SaveThrowLevel, GnomeIllusionSaveBonus)
-        .AddHandler(DispatcherType.SpellDcMod, SpellDcMod_GnomeIllusionBonus_Callback)
-        .AddHandler(DispatcherType.GetAC, ArmorBonusVsGiants)
-        .AddSkillLevelHandler(SkillId.hide, RacialHideBonus)
-        .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 2)
-        .AddHandler(DispatcherType.ToHitBonus2, GnomeToHitBonusAgainstGoblins)
-        .AddHandler(DispatcherType.GetMoveSpeedBase, BaseMoveSpeed20)
-        .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler, 8)
-        .Build();
+    public static readonly ConditionSpec Gnome = ConditionSpec.Create("Gnome", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
+                RacialStatModifier_callback, 2)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
+                -2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CONSTITUTION, RacialStatModifier_callback, 2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback, -2)
+            .AddHandler(DispatcherType.SaveThrowLevel, GnomeIllusionSaveBonus)
+            .AddHandler(DispatcherType.SpellDcMod, SpellDcMod_GnomeIllusionBonus_Callback)
+            .AddHandler(DispatcherType.GetAC, ArmorBonusVsGiants)
+            .AddSkillLevelHandler(SkillId.hide, RacialHideBonus)
+            .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 2)
+            .AddHandler(DispatcherType.ToHitBonus2, GnomeToHitBonusAgainstGoblins)
+            .AddHandler(DispatcherType.GetMoveSpeedBase, BaseMoveSpeed20)
+            .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler, 8)
+        );
 
 
     [TempleDllLocation(0x102ef6d0)]
-    public static readonly ConditionSpec Halfelf = ConditionSpec.Create("Halfelf", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAddPre, ElvenConditionImmunity, SpellEffects.SpellSleep)
-        .AddHandler(DispatcherType.SaveThrowLevel, ElfSavingThrowBonus)
-        .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 1)
-        .AddSkillLevelHandler(SkillId.search, SkillBonusRacial, 1)
-        .AddSkillLevelHandler(SkillId.spot, SkillBonusRacial, 1)
-        .AddSkillLevelHandler(SkillId.diplomacy, SkillBonusRacial, 2)
-        .AddSkillLevelHandler(SkillId.gather_information, SkillBonusRacial, 2)
-        .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
-        .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, HighestClassIsFavoredClass)
-        .Build();
+    public static readonly ConditionSpec Halfelf = ConditionSpec.Create("Halfelf", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAddPre, ElvenConditionImmunity, SpellEffects.SpellSleep)
+            .AddHandler(DispatcherType.SaveThrowLevel, ElfSavingThrowBonus)
+            .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 1)
+            .AddSkillLevelHandler(SkillId.search, SkillBonusRacial, 1)
+            .AddSkillLevelHandler(SkillId.spot, SkillBonusRacial, 1)
+            .AddSkillLevelHandler(SkillId.diplomacy, SkillBonusRacial, 2)
+            .AddSkillLevelHandler(SkillId.gather_information, SkillBonusRacial, 2)
+            .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
+            .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, HighestClassIsFavoredClass)
+        );
 
 
     [TempleDllLocation(0x102ef7b8)]
-    public static readonly ConditionSpec Halforc = ConditionSpec.Create("Halforc", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
-            2)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_INTELLIGENCE,
-            RacialStatModifier_callback, -2)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback,
-            -2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback, 2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_INTELLIGENCE, RacialStatModifier_callback, -2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback, -2)
-        .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
-        .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler, 7)
-        .Build();
+    public static readonly ConditionSpec Halforc = ConditionSpec.Create("Halforc", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
+                2)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_INTELLIGENCE,
+                RacialStatModifier_callback, -2)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback,
+                -2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback, 2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_INTELLIGENCE, RacialStatModifier_callback, -2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback, -2)
+            .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
+            .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler, 7)
+        );
 
 
     [TempleDllLocation(0x102ef888)]
-    public static readonly ConditionSpec Halfling = ConditionSpec.Create("Halfling", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback,
-            2)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
-            -2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback, 2)
-        .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback, -2)
-        .AddSkillLevelHandler(SkillId.hide, RacialHideBonus)
-        .AddHandler(DispatcherType.SaveThrowLevel, HalflingSaveBonus)
-        .AddHandler(DispatcherType.SaveThrowLevel, HalflingWillSaveFear)
-        .AddSkillLevelHandler(SkillId.move_silently, SkillBonusRacial, 2)
-        .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 2)
-        .AddHandler(DispatcherType.GetMoveSpeedBase, BaseMoveSpeed20)
-        .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler,
-            15)
-        .AddHandler(DispatcherType.ToHitBonus2, HalflingThrownWeaponBonus)
-        .Build();
+    public static readonly ConditionSpec Halfling = ConditionSpec.Create("Halfling", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback,
+                2)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
+                -2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback, 2)
+            .AddHandler(DispatcherType.StatBaseGet, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback, -2)
+            .AddSkillLevelHandler(SkillId.hide, RacialHideBonus)
+            .AddHandler(DispatcherType.SaveThrowLevel, HalflingSaveBonus)
+            .AddHandler(DispatcherType.SaveThrowLevel, HalflingWillSaveFear)
+            .AddSkillLevelHandler(SkillId.move_silently, SkillBonusRacial, 2)
+            .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 2)
+            .AddHandler(DispatcherType.GetMoveSpeedBase, BaseMoveSpeed20)
+            .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, CommonConditionCallbacks.D20QueryConditionHasHandler,
+                15)
+            .AddHandler(DispatcherType.ToHitBonus2, HalflingThrownWeaponBonus)
+        );
 
 
     [TempleDllLocation(0x102ef9a8)]
-    public static readonly ConditionSpec MonsterUndead = ConditionSpec.Create("Monster Undead", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_RACIAL,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_RACIAL)
-        .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 0, 0)
-        .Prevents(StatusEffects.Poisoned)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
-        .Prevents(StatusEffects.Paralyzed)
-        .Prevents(StatusEffects.Stunned)
-        .Prevents(StatusEffects.IncubatingDisease)
-        .Prevents(StatusEffects.NSDiseased)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
-        .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
-        .Prevents(StatusEffects.TempAbilityLoss)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Energy_Drain, true)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, UndeadHpChange)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Has_No_Con_Score, true)
-        .Build();
+    public static readonly ConditionSpec MonsterUndead = ConditionSpec.Create("Monster Undead", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_RACIAL,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_RACIAL)
+            .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 0, 0)
+            .Prevents(StatusEffects.Poisoned)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
+            .Prevents(StatusEffects.Paralyzed)
+            .Prevents(StatusEffects.Stunned)
+            .Prevents(StatusEffects.IncubatingDisease)
+            .Prevents(StatusEffects.NSDiseased)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
+            .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
+            .Prevents(StatusEffects.TempAbilityLoss)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Energy_Drain, true)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, UndeadHpChange)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Has_No_Con_Score, true)
+        );
 
 
     [TempleDllLocation(0x102efbe8)]
-    public static readonly ConditionSpec MonsterSubtypeFire = ConditionSpec.Create("Monster Subtype Fire", 0)
-        .AddHandler(DispatcherType.TakingDamage2, SubtypeFireReductionAndVulnerability, DamageType.Fire,
-            DamageType.Cold)
-        .Build();
+    public static readonly ConditionSpec MonsterSubtypeFire = ConditionSpec.Create("Monster Subtype Fire", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, SubtypeFireReductionAndVulnerability, DamageType.Fire,
+                DamageType.Cold)
+        );
 
 
     [TempleDllLocation(0x102efaf0)]
-    public static readonly ConditionSpec MonsterOoze = ConditionSpec.Create("Monster Ooze", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_RACIAL,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_RACIAL)
-        .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 1, 0)
-        .Prevents(StatusEffects.Poisoned)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
-        .Prevents(StatusEffects.Paralyzed)
-        .Prevents(StatusEffects.Stunned)
-        .Prevents(StatusEffects.IncubatingDisease)
-        .Prevents(StatusEffects.NSDiseased)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
-        .SetQueryResult(D20DispatcherKey.QUE_CanBeFlanked, false)
-        .Build();
+    public static readonly ConditionSpec MonsterOoze = ConditionSpec.Create("Monster Ooze", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_RACIAL,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_RACIAL)
+            .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 1, 0)
+            .Prevents(StatusEffects.Poisoned)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
+            .Prevents(StatusEffects.Paralyzed)
+            .Prevents(StatusEffects.Stunned)
+            .Prevents(StatusEffects.IncubatingDisease)
+            .Prevents(StatusEffects.NSDiseased)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
+            .SetQueryResult(D20DispatcherKey.QUE_CanBeFlanked, false)
+        );
 
     [DispTypes(DispatcherType.GetMoveSpeed)]
     [TempleDllLocation(0x100efec0)]

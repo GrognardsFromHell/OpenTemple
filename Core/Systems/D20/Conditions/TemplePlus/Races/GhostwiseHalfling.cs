@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -24,7 +23,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public class GhostwiseHalfling
 {
-
     public const RaceId Id = RaceId.tallfellow + (4 << 5);
 
     public static readonly RaceSpec RaceSpec = new(Id, RaceBase.halfling, Subrace.ghostwise_halfling)
@@ -45,21 +43,22 @@ public class GhostwiseHalfling
 
     // Note:  No general +1 save bonus for ghostwise halfling
     // Note:  Adding the size +4 bonus to hide as a racial bonus since setting size to small does not grant the bonus
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSkillBonuses(
-            (SkillId.listen, 2),
-            (SkillId.move_silently, 2),
-            (SkillId.climb, 2),
-            (SkillId.jump, 2),
-            (SkillId.hide, 4)
-        )
-        .AddBaseMoveSpeed(20)
-        .AddFavoredClassHook(Stat.level_barbarian)
-        .AddHandler(DispatcherType.SaveThrowLevel, HalflingFearSaveBonus)
-        .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusSlingsThrownWeapons)
-        .Build();
-        
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSkillBonuses(
+                (SkillId.listen, 2),
+                (SkillId.move_silently, 2),
+                (SkillId.climb, 2),
+                (SkillId.jump, 2),
+                (SkillId.hide, 4)
+            )
+            .AddBaseMoveSpeed(20)
+            .AddFavoredClassHook(Stat.level_barbarian)
+            .AddHandler(DispatcherType.SaveThrowLevel, HalflingFearSaveBonus)
+            .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusSlingsThrownWeapons)
+        );
+
     public static void HalflingFearSaveBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoSavingThrow();
@@ -92,5 +91,4 @@ public class GhostwiseHalfling
             dispIo.bonlist.AddBonus(1, 0, 139);
         }
     }
-
 }

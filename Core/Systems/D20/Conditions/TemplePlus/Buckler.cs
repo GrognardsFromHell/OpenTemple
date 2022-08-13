@@ -29,7 +29,7 @@ public class Buckler
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec BucklerExtension = ConditionSpec.Extend(ItemEffects.Buckler)
+    public static readonly ConditionSpec BucklerExtension = ItemEffects.Buckler.Extend(builder => builder
         .AddQueryHandler("Buckler Bonus Disabled", BucklerACBonus)
-        .Build();
+    );
 }

@@ -22,7 +22,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
 public static class TurnUndead
 {
-
     // Called when a turn undead is performed:  The data is the turn undead type
     public static void TurnUndeadPerform(in DispatcherCallbackArgs evt)
     {
@@ -77,11 +76,11 @@ public static class TurnUndead
 
     // Note:  Arg 0 = turn undead type, Arg 1 =  is the number of chrages
     [AutoRegister]
-    public static readonly ConditionSpec TurnUndeadExtension = ConditionSpec.Extend(DomainConditions.TurnUndead)
+    public static readonly ConditionSpec TurnUndeadExtension = DomainConditions.TurnUndead.Extend(builder => builder
         .AddSignalHandler("Turn Undead Perform", TurnUndeadPerform)
         .AddSignalHandler("Deduct Turn Undead Charge", DeductTurnUndeadCharge)
         .AddQueryHandler("Turn Undead Charges", GetTurnUndeadCharges)
-        .Build();
+    );
 
     public static int GetTurnUndeadCharges(this GameObject critter)
     {

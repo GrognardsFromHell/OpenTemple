@@ -43,8 +43,9 @@ public class ImprovedBucklerDefense
 
     // args are just-in-case placeholders
     [FeatCondition("Improved Buckler Defense")]
-    [AutoRegister] public static readonly ConditionSpec improvedBucklerDefense = ConditionSpec
-        .Create("Improved Buckler Defense", 2)
-        .AddQueryHandler("Disable Buckler Penalty", DisableBucklerPenalty)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec improvedBucklerDefense = ConditionSpec.Create("Improved Buckler Defense", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddQueryHandler("Disable Buckler Penalty", DisableBucklerPenalty)
+        );
 }

@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -24,7 +23,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public class WildElf
 {
-
     private static readonly RaceId Id = RaceId.elf + (4 << 5);
 
     public static readonly RaceSpec RaceSpec = new(Id, RaceBase.elf, Subrace.wild_elf)
@@ -35,22 +33,23 @@ public class WildElf
         heightFemale = (53, 65),
         weightMale = (87, 121),
         weightFemale = (82, 116),
-        statModifiers = { (Stat.dexterity, 2), (Stat.intelligence, -2) },
+        statModifiers = {(Stat.dexterity, 2), (Stat.intelligence, -2)},
         ProtoId = 13028,
         materialOffset = 2, // offset into rules/material_ext.mes file,
         feats = {FeatId.SIMPLE_WEAPON_PROFICIENCY_ELF},
         useBaseRaceForDeity = true
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSkillBonuses((SkillId.listen, 2), (SkillId.search, 2), (SkillId.spot, 2))
-        .AddBaseMoveSpeed(30)
-        .AddHandler(DispatcherType.SaveThrowLevel, ElvenSaveBonusEnchantment)
-        .AddFavoredClassHook(Stat.level_sorcerer)
-        .AddHandler(DispatcherType.ConditionAddPre, ConditionImmunityOnPreAdd)
-        .Build();
-        
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSkillBonuses((SkillId.listen, 2), (SkillId.search, 2), (SkillId.spot, 2))
+            .AddBaseMoveSpeed(30)
+            .AddHandler(DispatcherType.SaveThrowLevel, ElvenSaveBonusEnchantment)
+            .AddFavoredClassHook(Stat.level_sorcerer)
+            .AddHandler(DispatcherType.ConditionAddPre, ConditionImmunityOnPreAdd)
+        );
+
     public static void ElvenSaveBonusEnchantment(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoSavingThrow();

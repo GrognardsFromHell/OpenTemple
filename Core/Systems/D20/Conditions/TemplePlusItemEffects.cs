@@ -8,16 +8,16 @@ namespace OpenTemple.Core.Systems.D20.Conditions;
 [AutoRegister]
 public static class TemplePlusItemEffects
 {
-
     public static ConditionSpec.Builder AddItemForceRemoveHandler(this ConditionSpec.Builder builder)
     {
         return builder.AddHandler(DispatcherType.ItemForceRemove, ItemEffects.ItemForceRemoveCallback_SetItemPadWielderArgs);
     }
 
-    public static readonly ConditionSpec WeaponSeeking = ConditionSpec.Create("Weapon Seeking", 3)
-        .AddHandler(DispatcherType.GetAttackerConcealmentMissChance, WeaponSeekingAttackerConcealmentMissChance)
-        .SupportHasConditionQuery()
-        .Build();
+    public static readonly ConditionSpec WeaponSeeking = ConditionSpec.Create("Weapon Seeking", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetAttackerConcealmentMissChance, WeaponSeekingAttackerConcealmentMissChance)
+            .SupportHasConditionQuery()
+        );
 
     [TemplePlusLocation("ItemCallbacks::WeaponSeekingAttackerConcealmentMissChance")]
     private static void WeaponSeekingAttackerConcealmentMissChance(in DispatcherCallbackArgs evt)
@@ -26,9 +26,10 @@ public static class TemplePlusItemEffects
         dispIo.bonOut.AddCap(0, 0, 347);
     }
 
-    public static readonly ConditionSpec WeaponSpeed = ConditionSpec.Create("Weapon Speed", 3)
-        .AddHandler(DispatcherType.GetBonusAttacks, WeaponSpeedBonusAttacks)
-        .Build();
+    public static readonly ConditionSpec WeaponSpeed = ConditionSpec.Create("Weapon Speed", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetBonusAttacks, WeaponSpeedBonusAttacks)
+        );
 
     [TemplePlusLocation("ItemCallbacks::WeaponSpeed")]
     private static void WeaponSpeedBonusAttacks(in DispatcherCallbackArgs evt)
@@ -37,9 +38,10 @@ public static class TemplePlusItemEffects
         dispIo.bonlist.AddBonus(1, 34, 346); // Weapon of Speed
     }
 
-    public static readonly ConditionSpec WeaponThundering = ConditionSpec.Create("Weapon Thundering", 4)
-        .AddHandler(DispatcherType.DealingDamage, WeaponThunderingDealingDamage)
-        .Build();
+    public static readonly ConditionSpec WeaponThundering = ConditionSpec.Create("Weapon Thundering", 4, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, WeaponThunderingDealingDamage)
+        );
 
     [TemplePlusLocation("ItemCallbacks::WeaponThundering")]
     private static void WeaponThunderingDealingDamage(in DispatcherCallbackArgs evt)
@@ -73,10 +75,11 @@ public static class TemplePlusItemEffects
         }
     }
 
-    public static readonly ConditionSpec WeaponVicious = ConditionSpec.Create("Weapon Vicious", 3)
-        .AddHandler(DispatcherType.DealingDamage, WeaponViciousDealingDamage)
-        .AddHandler(DispatcherType.DealingDamage2, WeaponViciousBlowback)
-        .Build();
+    public static readonly ConditionSpec WeaponVicious = ConditionSpec.Create("Weapon Vicious", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, WeaponViciousDealingDamage)
+            .AddHandler(DispatcherType.DealingDamage2, WeaponViciousBlowback)
+        );
 
     [TemplePlusLocation("ItemCallbacks::WeaponVicious")]
     private static void WeaponViciousDealingDamage(in DispatcherCallbackArgs evt)
@@ -127,9 +130,10 @@ public static class TemplePlusItemEffects
         }
     }
 
-    public static readonly ConditionSpec WeaponWounding = ConditionSpec.Create("Weapon Wounding", 3)
-        .AddHandler(DispatcherType.DealingDamage2, WeaponWoundingDealingDamage)
-        .Build();
+    public static readonly ConditionSpec WeaponWounding = ConditionSpec.Create("Weapon Wounding", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, WeaponWoundingDealingDamage)
+        );
 
     [TemplePlusLocation("ItemCallbacks::WeaponWounding")]
     private static void WeaponWoundingDealingDamage(in DispatcherCallbackArgs evt)
@@ -161,9 +165,10 @@ public static class TemplePlusItemEffects
         }
     }
 
-    public static readonly ConditionSpec WeaponMerciful = ConditionSpec.Create("Weapon Merciful", 4)
-        .AddHandler(DispatcherType.DealingDamage, WeaponMercifulDealingDamage)
-        .Build();
+    public static readonly ConditionSpec WeaponMerciful = ConditionSpec.Create("Weapon Merciful", 4, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, WeaponMercifulDealingDamage)
+        );
 
     [TemplePlusLocation("ItemCallbacks::WeaponMerciful")]
     private static void WeaponMercifulDealingDamage(in DispatcherCallbackArgs evt)

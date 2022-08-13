@@ -1,3 +1,4 @@
+using System;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems.RadialMenus;
 
@@ -8,7 +9,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 /// </summary>
 internal static class SuddenMetamagic
 {
-
     private static void RadialEntryToggle(in DispatcherCallbackArgs evt, string name)
     {
         // Add a checkbox to turn on and off the feat if there is a charge available, otherwise just don't show it
@@ -64,17 +64,22 @@ internal static class SuddenMetamagic
         evt.SetConditionArg1(charges);
     }
 
-    public static ConditionSpec.Builder Create(string conditionId, string displayName, ModifyMetamagicCallback callback)
+    public static ConditionSpec Create(string conditionId, string displayName, ModifyMetamagicCallback callback, Action<ConditionSpec.Builder>? customizer = null)
     {
         // Charges, Toggeled On, Spare, Spare
-        return ConditionSpec.Create(conditionId, 4)
-            .SetUnique()
-            .AddHandler(DispatcherType.RadialMenuEntry, RadialEntryToggle, displayName)
-            .AddHandler(DispatcherType.ConditionAdd, NewDay)
-            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, NewDay)
-            .AddHandler(DispatcherType.MetaMagicMod, ModifyMetamagic, callback)
-            .AddSignalHandler("Sudden Metamagic Deduct Charge", DeductCharge);
+        var spec = ConditionSpec.Create(conditionId, 4, UniquenessType.Unique)
+            .Configure(builder => builder
+                .AddHandler(DispatcherType.RadialMenuEntry, RadialEntryToggle, displayName)
+                .AddHandler(DispatcherType.ConditionAdd, NewDay)
+                .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, NewDay)
+                .AddHandler(DispatcherType.MetaMagicMod, ModifyMetamagic, callback)
+                .AddSignalHandler("Sudden Metamagic Deduct Charge", DeductCharge)
+            );
+        if (customizer != null)
+        {
+            spec.Configure(customizer);
+        }
 
+        return spec;
     }
-
 }

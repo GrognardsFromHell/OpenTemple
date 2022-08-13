@@ -124,7 +124,7 @@ public class Beguiler
         deityClass = Stat.level_rogue
     };
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
             OnLevelupSpellsFinalize)
@@ -132,7 +132,7 @@ public class Beguiler
             OnInitLevelupSpellSelection)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
             OnLevelupSpellsCheckComplete)
-        .Build();
+    );
 
     // Spell casting
     public static void OnGetBaseCasterLevel(in DispatcherCallbackArgs evt)
@@ -227,10 +227,10 @@ public class Beguiler
 
     // Spare, Spare
     [FeatCondition(ArmoredMage)]
-    public static readonly ConditionSpec ArmoredMageCondition = ConditionSpec.Create("Beguiler Armored Mage", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, BeguilerSpellFailure)
-        .Build();
+    public static readonly ConditionSpec ArmoredMageCondition = ConditionSpec.Create("Beguiler Armored Mage", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, BeguilerSpellFailure)
+        );
 
     #endregion
 
@@ -282,11 +282,11 @@ public class Beguiler
 
     // Spare, Spare
     [FeatCondition(CloakedCasting)]
-    public static readonly ConditionSpec CloakedCastingCondition = ConditionSpec.Create("Cloaked Casting", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.TargetSpellDCBonus, CloakedCastingDCMod)
-        .AddHandler(DispatcherType.SpellResistanceCasterLevelCheck, CloakedCastingResistanceMod)
-        .Build();
+    public static readonly ConditionSpec CloakedCastingCondition = ConditionSpec.Create("Cloaked Casting", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TargetSpellDCBonus, CloakedCastingDCMod)
+            .AddHandler(DispatcherType.SpellResistanceCasterLevelCheck, CloakedCastingResistanceMod)
+        );
 
     #endregion
 
@@ -318,10 +318,10 @@ public class Beguiler
 
     // Spare, Spare
     [FeatCondition(SurpriseCasting)]
-    public static readonly ConditionSpec SurpriseCastingCondition = ConditionSpec.Create("Surprise Casting", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ActionCostMod, QuickenFeintCostMod)
-        .Build();
+    public static readonly ConditionSpec SurpriseCastingCondition = ConditionSpec.Create("Surprise Casting", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ActionCostMod, QuickenFeintCostMod)
+        );
 
     #endregion
 }

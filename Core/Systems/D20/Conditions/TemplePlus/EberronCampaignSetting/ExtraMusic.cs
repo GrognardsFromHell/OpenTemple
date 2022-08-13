@@ -40,8 +40,8 @@ public class ExtraMusic
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec eSF = ConditionSpec.Extend(BardicMusic.Condition)
+    public static readonly ConditionSpec eSF = BardicMusic.Condition.Extend(builder => builder
         .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, EMNewDay)
         .AddQueryHandler("Max Bardic Music", QueryMaxBardicMusic)
-        .Build();
+    );
 }

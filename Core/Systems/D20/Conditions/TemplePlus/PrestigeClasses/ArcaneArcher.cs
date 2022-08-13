@@ -98,10 +98,10 @@ public class ArcaneArcher
         }
     };
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.DealingDamage, EnhanceArrowDamage)
         .AddHandler(DispatcherType.ToHitBonus2, EnhanceArrowToHit)
-        .Build();
+    );
 
     private static readonly D20DispatcherKey imbueArrowEnum = (D20DispatcherKey) 2000;
     private static readonly D20DispatcherKey seekerArrowEnum = (D20DispatcherKey) 2001;
@@ -295,12 +295,12 @@ public class ArcaneArcher
     }
 
     [FeatCondition(ImbueArrowName)]
-    public static readonly ConditionSpec ImbueArrowFeat = ConditionSpec.Create("Imbue Arrow Feat", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, ImbueArrowRadial)
-        .AddHandler(DispatcherType.PythonActionPerform, imbueArrowEnum, ImbueArrowPerform)
-        .AddHandler(DispatcherType.PythonActionFrame, imbueArrowEnum, ImbueArrowActionFrame) // Seeker Arrow feat
-        .Build();
+    public static readonly ConditionSpec ImbueArrowFeat = ConditionSpec.Create("Imbue Arrow Feat", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+                .AddHandler(DispatcherType.RadialMenuEntry, ImbueArrowRadial)
+                .AddHandler(DispatcherType.PythonActionPerform, imbueArrowEnum, ImbueArrowPerform)
+                .AddHandler(DispatcherType.PythonActionFrame, imbueArrowEnum, ImbueArrowActionFrame) // Seeker Arrow feat
+        );
 
     #endregion
 
@@ -401,14 +401,14 @@ public class ArcaneArcher
 
     // arg0 - used this day
     [FeatCondition(SeekerArrowName)]
-    public static readonly ConditionSpec SeekerArrowFeat = ConditionSpec.Create("Seeker Arrow Feat", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, SeekerArrowReset)
-        .AddHandler(DispatcherType.RadialMenuEntry, SeekerArrowRadial)
-        .AddHandler(DispatcherType.PythonActionPerform, seekerArrowEnum, SeekerArrowPerform)
-        .AddHandler(DispatcherType.PythonActionFrame, seekerArrowEnum, SeekerArrowActionFrame)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, SeekerArrowReset) // Phase Arrow feat
-        .Build();
+    public static readonly ConditionSpec SeekerArrowFeat = ConditionSpec.Create("Seeker Arrow Feat", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+                .AddHandler(DispatcherType.ConditionAdd, SeekerArrowReset)
+                .AddHandler(DispatcherType.RadialMenuEntry, SeekerArrowRadial)
+                .AddHandler(DispatcherType.PythonActionPerform, seekerArrowEnum, SeekerArrowPerform)
+                .AddHandler(DispatcherType.PythonActionFrame, seekerArrowEnum, SeekerArrowActionFrame)
+                .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, SeekerArrowReset) // Phase Arrow feat
+        );
 
     #endregion
 
@@ -493,17 +493,18 @@ public class ArcaneArcher
 
     // arg0 - used this day
     [FeatCondition(PhaseArrowName)]
-    public static readonly ConditionSpec PhaseArrowFeat = ConditionSpec.Create("Phase Arrow Feat", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, PhaseArrowReset)
-        .AddHandler(DispatcherType.RadialMenuEntry, PhaseArrowRadial)
-        .AddHandler(DispatcherType.PythonActionPerform, phaseArrowEnum, PhaseArrowPerform)
-        .AddHandler(DispatcherType.PythonActionFrame, phaseArrowEnum, PhaseArrowActionFrame)
-        .AddHandler(DispatcherType.AcModifyByAttacker, PhaseArrowArmorNullifier)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, PhaseArrowReset)
-        .Build(); // Hail of Arrows feat
+    public static readonly ConditionSpec PhaseArrowFeat = ConditionSpec.Create("Phase Arrow Feat", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, PhaseArrowReset)
+            .AddHandler(DispatcherType.RadialMenuEntry, PhaseArrowRadial)
+            .AddHandler(DispatcherType.PythonActionPerform, phaseArrowEnum, PhaseArrowPerform)
+            .AddHandler(DispatcherType.PythonActionFrame, phaseArrowEnum, PhaseArrowActionFrame)
+            .AddHandler(DispatcherType.AcModifyByAttacker, PhaseArrowArmorNullifier)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, PhaseArrowReset)
+        ); // Hail of Arrows feat
 
     #region Hail of Arrows
+
     public static void HailOfArrowsRadial(in DispatcherCallbackArgs evt)
     {
         if (!GameSystems.Critter.IsWieldingRangedWeapon(evt.objHndCaller))
@@ -530,17 +531,20 @@ public class ArcaneArcher
     {
         evt.SetConditionArg1(0);
     }
+
     // arg0 - used this day
     [FeatCondition(HailOfArrowsName)]
-    public static readonly ConditionSpec HailOfArrowsFeat = ConditionSpec.Create("Hail of Arrows Feat", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, HailOfArrowsReset)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, HailOfArrowsReset)
-        .AddHandler(DispatcherType.RadialMenuEntry, HailOfArrowsRadial) // Death Arrow feat
-        .Build();
+    public static readonly ConditionSpec HailOfArrowsFeat = ConditionSpec.Create("Hail of Arrows Feat", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+                .AddHandler(DispatcherType.ConditionAdd, HailOfArrowsReset)
+                .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, HailOfArrowsReset)
+                .AddHandler(DispatcherType.RadialMenuEntry, HailOfArrowsRadial) // Death Arrow feat
+        );
+
     #endregion
 
     #region Death Arrow
+
     public static void DeathArrowRadial(in DispatcherCallbackArgs evt)
     {
         if (!GameSystems.Critter.IsWieldingRangedWeapon(evt.objHndCaller))
@@ -659,18 +663,18 @@ public class ArcaneArcher
     // arg0 - is active; arg1 - times spent; arg2 - anticipate death attack
 
     [FeatCondition(ArrowOfDeathName)]
-    public static readonly ConditionSpec DeathArrowFeat = ConditionSpec.Create("Death Arrow Feat", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, DeathArrowRadial)
-        .AddHandler(DispatcherType.ConditionAdd, DeathArrowReset)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, DeathArrowReset)
-        .AddHandler(DispatcherType.DealingDamage2, DeathArrowDamage) // signifies that a to hit roll was made
-        .AddHandler(DispatcherType.AcModifyByAttacker, DeathArrowAttackRollMade)
-        .AddHandler(DispatcherType.PythonActionCheck, deathArrowEnum, DeathArrowCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, deathArrowEnum,
-            ODeathArrowPerform) // gets triggered at the end of the damage calculation
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Attack_Made, DeathAttackDisable)
-        .Build();
+    public static readonly ConditionSpec DeathArrowFeat = ConditionSpec.Create("Death Arrow Feat", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, DeathArrowRadial)
+            .AddHandler(DispatcherType.ConditionAdd, DeathArrowReset)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, DeathArrowReset)
+            .AddHandler(DispatcherType.DealingDamage2, DeathArrowDamage) // signifies that a to hit roll was made
+            .AddHandler(DispatcherType.AcModifyByAttacker, DeathArrowAttackRollMade)
+            .AddHandler(DispatcherType.PythonActionCheck, deathArrowEnum, DeathArrowCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, deathArrowEnum,
+                ODeathArrowPerform) // gets triggered at the end of the damage calculation
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Attack_Made, DeathAttackDisable)
+        );
 
     #endregion
 }

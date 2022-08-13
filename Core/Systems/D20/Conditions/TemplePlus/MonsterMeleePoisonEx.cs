@@ -48,7 +48,8 @@ public class MonsterMeleePoisonEx
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec Condition = ConditionSpec.Create("Monster Melee Poison Ex", 2)
-        .AddHandler(DispatcherType.DealingDamage2, OnDamage)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Monster Melee Poison Ex", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, OnDamage)
+        );
 }

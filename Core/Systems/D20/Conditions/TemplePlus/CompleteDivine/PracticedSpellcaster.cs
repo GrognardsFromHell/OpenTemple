@@ -68,19 +68,19 @@ public class PracticedSpellcaster
 
     // args are just-in-case placeholders
     [FeatCondition("Practiced Spellcaster - Arcane")]
-    [AutoRegister] public static readonly ConditionSpec ConditionArcane = ConditionSpec
-        .Create("Practiced Spellcaster Feat - Arcane", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.BaseCasterLevelMod, PracticedSpellcasterLevelMod, false)
-        .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCastingArcane)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec ConditionArcane = ConditionSpec.Create("Practiced Spellcaster Feat - Arcane", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BaseCasterLevelMod, PracticedSpellcasterLevelMod, false)
+            .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCastingArcane)
+        );
 
     // args are just-in-case placeholders
     [FeatCondition("Practiced Spellcaster - Divine")]
-    [AutoRegister] public static readonly ConditionSpec ConditionDivine = ConditionSpec
-        .Create("Practiced Spellcaster Feat - Divine", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.BaseCasterLevelMod, PracticedSpellcasterLevelMod, true)
-        .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCastingDivine)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec ConditionDivine = ConditionSpec.Create("Practiced Spellcaster Feat - Divine", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BaseCasterLevelMod, PracticedSpellcasterLevelMod, true)
+            .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCastingDivine)
+        );
 }

@@ -126,10 +126,10 @@ public class ArcaneTrickster
         radialAction.AddAsChild(evt.objHndCaller, RadialMenuStandardNode.Class);
     }
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddQueryHandler("Sneak Attack Dice", ArcTrkSneakAttackDice)
         .AddHandler(DispatcherType.RadialMenuEntry, ImpromptuSneakAttackRadial)
-        .Build();
+    );
 
     private static Stat GetExtendedClass(in DispatcherCallbackArgs evt)
     {
@@ -223,18 +223,18 @@ public class ArcaneTrickster
         }
     }
 
-    public static readonly ConditionSpec spellCasterSpecObj = ConditionSpec
-        .Create(ClassSpec.spellCastingConditionName, 8)
-        .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCasting)
-        .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
-        .AddHandler(DispatcherType.SpellListExtension, OnSpellListExtensionGet)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate,
-            OnInitLevelupSpellSelection)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
-            OnLevelupSpellsCheckComplete)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
-            OnLevelupSpellsFinalize)
-        .Build();
+    public static readonly ConditionSpec spellCasterSpecObj = ConditionSpec.Create(ClassSpec.spellCastingConditionName, 8, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCasting)
+            .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
+            .AddHandler(DispatcherType.SpellListExtension, OnSpellListExtensionGet)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate,
+                OnInitLevelupSpellSelection)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
+                OnLevelupSpellsCheckComplete)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
+                OnLevelupSpellsFinalize)
+        );
 
     #region Impromptu Sneak Attack
 
@@ -312,18 +312,20 @@ public class ArcaneTrickster
         evt.SetConditionArg3(0); // reset expecting damage state
         evt.objHndCaller.FloatLine("Sneak Attacking", TextFloaterColor.Red);
     }
+
     // arg0 - is active; arg1 - times spent; arg2 - anticipate damage roll with sneak attack
-    public static readonly ConditionSpec ImpromptuSneakAttack = ConditionSpec.Create("Impromptu Sneak Attack", 3)
-        .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_OpponentSneakAttack,
-            ImpSneakDamageIsActive) // gets triggered at the end of the damage calculation
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Attack_Made,
-            ImpSneakDamagedApplied) // signifies that a to hit roll was made
-        .AddHandler(DispatcherType.AcModifyByAttacker, ImpSneakAttackRollMade)
-        .AddHandler(DispatcherType.AcModifyByAttacker, ImpSneakDexterityNullifier)
-        .AddHandler(DispatcherType.PythonActionCheck, impromptuSneakEnum, OnImpSneakCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, impromptuSneakEnum, OnImpSneakPerform)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, ImpSneakNewday)
-        .Build();
+    public static readonly ConditionSpec ImpromptuSneakAttack = ConditionSpec.Create("Impromptu Sneak Attack", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_OpponentSneakAttack,
+                ImpSneakDamageIsActive) // gets triggered at the end of the damage calculation
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Attack_Made,
+                ImpSneakDamagedApplied) // signifies that a to hit roll was made
+            .AddHandler(DispatcherType.AcModifyByAttacker, ImpSneakAttackRollMade)
+            .AddHandler(DispatcherType.AcModifyByAttacker, ImpSneakDexterityNullifier)
+            .AddHandler(DispatcherType.PythonActionCheck, impromptuSneakEnum, OnImpSneakCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, impromptuSneakEnum, OnImpSneakPerform)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, ImpSneakNewday)
+        );
 
     #endregion
 }

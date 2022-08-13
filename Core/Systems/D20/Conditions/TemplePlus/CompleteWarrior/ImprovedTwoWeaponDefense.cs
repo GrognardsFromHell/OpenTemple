@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -51,9 +50,9 @@ public class ImprovedTwoWeaponDefense
     // args are just-in-case placeholders
 
     [FeatCondition("Improved Two-Weapon Defense")]
-    [AutoRegister] public static readonly ConditionSpec improvedTwoWeaponDefense = ConditionSpec
-        .Create("Improved Two-Weapon Defense", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetAC, TwoWeaponDefenseAcBonus)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec improvedTwoWeaponDefense = ConditionSpec.Create("Improved Two-Weapon Defense", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetAC, TwoWeaponDefenseAcBonus)
+        );
 }

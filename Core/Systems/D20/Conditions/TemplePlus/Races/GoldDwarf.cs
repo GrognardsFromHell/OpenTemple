@@ -41,18 +41,19 @@ public class GoldDwarf
         useBaseRaceForDeity = true
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        // note: dwarven move speed with heavy armor or when medium/heavy encumbered is already handled in Encumbered Medium, Encumbered Heavy condition callbacks
-        .AddBaseMoveSpeed(20)
-        .AddFavoredClassHook(Stat.level_fighter)
-        .AddHandler(DispatcherType.GetMoveSpeed, OnGetMoveSpeedSetLowerLimit)
-        .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusVsAberration)
-        .AddHandler(DispatcherType.GetAC, OnGetArmorClassBonusVsGiants)
-        .AddHandler(DispatcherType.AbilityCheckModifier, OnAbilityModCheckStabilityBonus)
-        .AddHandler(DispatcherType.SkillLevel, D20DispatcherKey.SKILL_APPRAISE, OnGetAppraiseSkill)
-        .AddHandler(DispatcherType.SaveThrowLevel, DwarfSaveBonus)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            // note: dwarven move speed with heavy armor or when medium/heavy encumbered is already handled in Encumbered Medium, Encumbered Heavy condition callbacks
+            .AddBaseMoveSpeed(20)
+            .AddFavoredClassHook(Stat.level_fighter)
+            .AddHandler(DispatcherType.GetMoveSpeed, OnGetMoveSpeedSetLowerLimit)
+            .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusVsAberration)
+            .AddHandler(DispatcherType.GetAC, OnGetArmorClassBonusVsGiants)
+            .AddHandler(DispatcherType.AbilityCheckModifier, OnAbilityModCheckStabilityBonus)
+            .AddHandler(DispatcherType.SkillLevel, D20DispatcherKey.SKILL_APPRAISE, OnGetAppraiseSkill)
+            .AddHandler(DispatcherType.SaveThrowLevel, DwarfSaveBonus)
+        );
 
     private static readonly int BONUS_MES_RACIAL_BONUS = 139;
     private static readonly int BONUS_MES_STABILITY = 317;

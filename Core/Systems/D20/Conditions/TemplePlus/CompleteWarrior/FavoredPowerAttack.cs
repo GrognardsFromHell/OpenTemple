@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -23,7 +22,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
 public class FavoredPowerAttack
 {
-
     public static void favoredPowerAttackDamageBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoDamage();
@@ -43,16 +41,15 @@ public class FavoredPowerAttack
                     // Add 1x more power attack for one or two handed for a total of x2 or x3 damage
                     dispIo.damage.bonuses.AddBonusFromFeat(PowerAttackValue, 0, 114, (FeatId) ElfHash.Hash("Favored Power Attack"));
                 }
-
             }
-
         }
     }
 
     // args are just-in-case placeholders
     [FeatCondition("Favored Power Attack")]
-    [AutoRegister] public static readonly ConditionSpec favoredPowerAttack = ConditionSpec.Create("Favored Power Attack", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, favoredPowerAttackDamageBonus)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec favoredPowerAttack = ConditionSpec.Create("Favored Power Attack", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, favoredPowerAttackDamageBonus)
+        );
 }

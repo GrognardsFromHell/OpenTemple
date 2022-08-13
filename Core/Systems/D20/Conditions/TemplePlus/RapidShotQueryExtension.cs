@@ -28,14 +28,13 @@ public class RapidShotQueryExtension
         dispIo.return_val = evt.GetConditionArg1();
     }
 
-    [AutoRegister] public static readonly ConditionSpec RapidShotExtension = ConditionSpec
-        .Extend(FeatConditions.RapidShot)
+    [AutoRegister]
+    public static readonly ConditionSpec RapidShotExtension = FeatConditions.RapidShot.Extend(builder => builder
         .AddQueryHandler("Rapid Shot Enabled", RapidShotEnabled)
-        .Build();
+    );
 
     [AutoRegister]
-    public static readonly ConditionSpec RapidShotRangerExtension = ConditionSpec
-        .Extend(FeatConditions.RapidShotRanger)
+    public static readonly ConditionSpec RapidShotRangerExtension = FeatConditions.RapidShotRanger.Extend(builder => builder
         .AddQueryHandler("Rapid Shot Ranger Enabled", RapidShotEnabled)
-        .Build();
+    );
 }

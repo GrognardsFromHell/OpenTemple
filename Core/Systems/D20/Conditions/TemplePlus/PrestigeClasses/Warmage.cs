@@ -147,7 +147,7 @@ public class Warmage
     }
 
     // Spell casting
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
             OnLevelupSpellsFinalize)
@@ -155,7 +155,7 @@ public class Warmage
             OnInitLevelupSpellSelection)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
             OnLevelupSpellsCheckComplete)
-        .Build();
+    );
 
     public static void OnGetBaseCasterLevel(in DispatcherCallbackArgs evt)
     {
@@ -219,11 +219,10 @@ public class Warmage
 
     // Spare, Spare
     [FeatCondition(LightShieldProficiency)]
-    public static readonly ConditionSpec lightShieldProficiency = ConditionSpec
-        .Create("Light Shield Proficiency", 2)
-        .SetUnique()
-        .AddQueryHandler("Has Light Shield Proficency", HasLightShieldProficency)
-        .Build();
+    public static readonly ConditionSpec lightShieldProficiency = ConditionSpec.Create("Light Shield Proficiency", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Has Light Shield Proficency", HasLightShieldProficency)
+        );
 
     // Warmage Edge
     // Here is how this complicated ability is implimented.  First it is increated by a critical but not empower
@@ -286,11 +285,11 @@ public class Warmage
 
     // Previous Spell ID, Spare
     [FeatCondition(Edge)]
-    public static readonly ConditionSpec warmageEdge = ConditionSpec.Create("Warmage Edge", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamageSpell, WarmageEdgeOnSpellDamage)
-        .AddHandler(DispatcherType.BeginRound, WarmageBeginRound)
-        .Build();
+    public static readonly ConditionSpec warmageEdge = ConditionSpec.Create("Warmage Edge", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamageSpell, WarmageEdgeOnSpellDamage)
+            .AddHandler(DispatcherType.BeginRound, WarmageBeginRound)
+        );
 
     // Warmage edge damage effect
     public static void WarmageDamageBeginRound(in DispatcherCallbackArgs evt)
@@ -315,10 +314,11 @@ public class Warmage
     }
 
     // Previous Spell ID, Spare
-    public static readonly ConditionSpec warmageEdgeDamage = ConditionSpec.Create("Warmage Edge Damage", 2)
-        .AddHandler(DispatcherType.BeginRound, WarmageDamageBeginRound)
-        .AddQueryHandler("Warmage Edge Damage Taken", TakenWarmageEdgeDamageFromSpellQuery)
-        .Build();
+    public static readonly ConditionSpec warmageEdgeDamage = ConditionSpec.Create("Warmage Edge Damage", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, WarmageDamageBeginRound)
+            .AddQueryHandler("Warmage Edge Damage Taken", TakenWarmageEdgeDamageFromSpellQuery)
+        );
 
     // Armored Mage
 
@@ -379,8 +379,8 @@ public class Warmage
 
     // Spare, Spare
     [FeatCondition(ArmoredMage)]
-    public static readonly ConditionSpec armoredMage = ConditionSpec.Create("Warmage Armored Mage", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, WarmageSpellFailure)
-        .Build();
+    public static readonly ConditionSpec armoredMage = ConditionSpec.Create("Warmage Armored Mage", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, WarmageSpellFailure)
+        );
 }

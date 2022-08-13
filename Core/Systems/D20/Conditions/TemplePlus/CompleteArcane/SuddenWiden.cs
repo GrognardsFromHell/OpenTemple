@@ -22,7 +22,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
 public class SuddenWiden
 {
-
     public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Widen");
 
     // Sudden Widen:  Complete Arcane, p. 83
@@ -39,6 +38,5 @@ public class SuddenWiden
 
     [AutoRegister, FeatCondition("Sudden Widen")]
     public static readonly ConditionSpec Condition = SuddenMetamagic
-        .Create("Sudden Widen Feat", "Sudden Widen", ApplyWiden)
-        .Build();
+        .Create("Sudden Widen Feat", "Sudden Widen", ApplyWiden);
 }

@@ -103,12 +103,12 @@ public class Druid
 
 
     [TempleDllLocation(0x102f00c8)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, ClassConditions.GrantClassLevelAsCasterLevel,
             Stat.level_druid)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
             OnLevelupSpellsFinalize)
-        .Build();
+    );
 
     public static void OnLevelupSpellsFinalize(in DispatcherCallbackArgs evt)
     {

@@ -52,11 +52,12 @@ public class QuickenTurning
 
     // First argument is whether or not turn undead is used, second is extra
     [FeatCondition("Quicken Turning")]
-    [AutoRegister] public static readonly ConditionSpec Condition = ConditionSpec.Create("Quicken Turning Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.BeginRound, QuickenTurningBeginRound)
-        .AddQueryHandler("Turn Undead Disabled", TurnUndeadDisabled)
-        .AddSignalHandler("Turn Undead Perform", TurnUndeadPerform)
-        .AddHandler(DispatcherType.ActionCostMod, QuickenTurningCostMod)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Quicken Turning Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, QuickenTurningBeginRound)
+            .AddQueryHandler("Turn Undead Disabled", TurnUndeadDisabled)
+            .AddSignalHandler("Turn Undead Perform", TurnUndeadPerform)
+            .AddHandler(DispatcherType.ActionCostMod, QuickenTurningCostMod)
+        );
 }

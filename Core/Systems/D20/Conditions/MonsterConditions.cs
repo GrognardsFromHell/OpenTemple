@@ -18,390 +18,405 @@ public static class MonsterConditions
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x102eb620)]
-    public static readonly ConditionSpec MonsterBansheeCharismaDrain = ConditionSpec
-        .Create("Monster Banshee Charisma Drain", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, BansheeCharismaDrainOnDamage)
-        .Build();
+    public static readonly ConditionSpec MonsterBansheeCharismaDrain = ConditionSpec.Create("Monster Banshee Charisma Drain", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, BansheeCharismaDrainOnDamage)
+        );
 
 
     [TempleDllLocation(0x102eb668)]
-    public static readonly ConditionSpec MonsterDamageType = ConditionSpec.Create("Monster Damage Type", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, SetMonsterDamageType)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDamageType = ConditionSpec.Create("Monster Damage Type", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, SetMonsterDamageType)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102eb6c0)]
-    public static readonly ConditionSpec MonsterBonusDamage = ConditionSpec.Create("Monster Bonus Damage", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, MonsterDamageBonus)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
-        .Build();
+    public static readonly ConditionSpec MonsterBonusDamage = ConditionSpec.Create("Monster Bonus Damage", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, MonsterDamageBonus)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
+        );
 
 
     [TempleDllLocation(0x102eb730)]
-    public static readonly ConditionSpec MonsterStirge = ConditionSpec.Create("Monster Stirge", 6)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, StirgeDealingDamage)
-        .AddHandler(DispatcherType.BeginRound, StirgeAttach_callback)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 2)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 2)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, BatsNoActionsWhenAttached)
-        .AddHandler(DispatcherType.GetAC, MonsterStigeAcBonusCap, 2)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, BatsNoAooWhenAttached)
-        .Build();
+    public static readonly ConditionSpec MonsterStirge = ConditionSpec.Create("Monster Stirge", 6, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, StirgeDealingDamage)
+            .AddHandler(DispatcherType.BeginRound, StirgeAttach_callback)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 2)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 2)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, BatsNoActionsWhenAttached)
+            .AddHandler(DispatcherType.GetAC, MonsterStigeAcBonusCap, 2)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, BatsNoAooWhenAttached)
+        );
 
 
     [TempleDllLocation(0x102eb7f0)]
-    public static readonly ConditionSpec MonsterFireBats = ConditionSpec.Create("Monster Fire Bats", 6)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, sub_100F6A70)
-        .AddHandler(DispatcherType.BeginRound, FireBats_callback)
-        .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 2)
-        .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 2)
-        .AddHandler(DispatcherType.TurnBasedStatusInit, BatsNoActionsWhenAttached)
-        .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, BatsNoAooWhenAttached)
-        .AddHandler(DispatcherType.Tooltip, FirebatsTooltip, 5045)
-        .Build();
+    public static readonly ConditionSpec MonsterFireBats = ConditionSpec.Create("Monster Fire Bats", 6, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, sub_100F6A70)
+            .AddHandler(DispatcherType.BeginRound, FireBats_callback)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 2)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 2)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, BatsNoActionsWhenAttached)
+            .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, BatsNoAooWhenAttached)
+            .AddHandler(DispatcherType.Tooltip, FirebatsTooltip, 5045)
+        );
 
 
     [TempleDllLocation(0x102eb8b0)]
-    public static readonly ConditionSpec MonsterMeleeDisease = ConditionSpec.Create("Monster Melee Disease", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, ConditionAddOnDamage, StatusEffects.IncubatingDisease)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyObjConditionsCallback, 0, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterMeleeDisease = ConditionSpec.Create("Monster Melee Disease", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, ConditionAddOnDamage, StatusEffects.IncubatingDisease)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyObjConditionsCallback, 0, 0)
+        );
 
 
     [TempleDllLocation(0x102eb908)]
-    public static readonly ConditionSpec MonsterMeleePoison = ConditionSpec.Create("Monster Melee Poison", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, ConditionAddOnDamage, StatusEffects.Poisoned)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyObjConditionsCallback, 0, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterMeleePoison = ConditionSpec.Create("Monster Melee Poison", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, ConditionAddOnDamage, StatusEffects.Poisoned)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyObjConditionsCallback, 0, 0)
+        );
 
 
     [TempleDllLocation(0x102eb960)]
-    public static readonly ConditionSpec MonsterCarrionCrawler = ConditionSpec.Create("Monster Carrion Crawler", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, CarrionCrawlerParalysisOnDamage)
-        .Build();
+    public static readonly ConditionSpec MonsterCarrionCrawler = ConditionSpec.Create("Monster Carrion Crawler", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, CarrionCrawlerParalysisOnDamage)
+        );
 
 
     [TempleDllLocation(0x102eb9a8)]
-    public static readonly ConditionSpec MonsterMeleeParalysis = ConditionSpec.Create("Monster Melee Paralysis", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, MonsterMeleeParalysisOnDamage)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
-        .Build();
+    public static readonly ConditionSpec MonsterMeleeParalysis = ConditionSpec.Create("Monster Melee Paralysis", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, MonsterMeleeParalysisOnDamage)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
+        );
 
 
     [TempleDllLocation(0x102eba18)]
-    public static readonly ConditionSpec MonsterMeleeParalysisNoElf = ConditionSpec
-        .Create("Monster Melee Paralysis No Elf", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage2, MonsterMeleeParalysisNoElfPreAdd)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
-        .Build();
+    public static readonly ConditionSpec MonsterMeleeParalysisNoElf = ConditionSpec.Create("Monster Melee Paralysis No Elf", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, MonsterMeleeParalysisNoElfPreAdd)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
+        );
 
 
     [TempleDllLocation(0x102eba88)]
-    public static readonly ConditionSpec MonsterEnergyImmunity = ConditionSpec.Create("Monster Energy Immunity", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage2, MonsterEnergyImmunityOnDamage)
-        .AddQueryHandler(D20DispatcherKey.QUE_AI_Fireball_OK, AllowAiToPlaceInFireAoe)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterEnergyImmunity = ConditionSpec.Create("Monster Energy Immunity", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterEnergyImmunityOnDamage)
+            .AddQueryHandler(D20DispatcherKey.QUE_AI_Fireball_OK, AllowAiToPlaceInFireAoe)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ebaf8)]
-    public static readonly ConditionSpec MonsterEnergyResistance = ConditionSpec
-        .Create("Monster Energy Resistance", 2)
-        .Prevents(MonsterEnergyImmunity)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterEnergyResistanceOnDamage)
-        .AddQueryHandler(D20DispatcherKey.QUE_AI_Fireball_OK, AllowAiToPlaceInFireAoe)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
-        .Build();
+    public static readonly ConditionSpec MonsterEnergyResistance = ConditionSpec.Create("Monster Energy Resistance", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(MonsterEnergyImmunity)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterEnergyResistanceOnDamage)
+            .AddQueryHandler(D20DispatcherKey.QUE_AI_Fireball_OK, AllowAiToPlaceInFireAoe)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
+        );
 
 
     [TempleDllLocation(0x102ebb78)]
-    public static readonly ConditionSpec MonsterRegeneration5 = ConditionSpec.Create("Monster Regeneration 5", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage2, MonsterRegenerationOnDamage)
-        .AddHandler(DispatcherType.BeginRound, RegenerationBeginRound, 5)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
-        .Build();
+    public static readonly ConditionSpec MonsterRegeneration5 = ConditionSpec.Create("Monster Regeneration 5", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterRegenerationOnDamage)
+            .AddHandler(DispatcherType.BeginRound, RegenerationBeginRound, 5)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
+        );
 
 
     [TempleDllLocation(0x102ebbf8)]
-    public static readonly ConditionSpec MonsterRegeneration2 = ConditionSpec.Create("Monster Regeneration 2", 2)
-        .Prevents(MonsterRegeneration5)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterRegenerationOnDamage)
-        .AddHandler(DispatcherType.BeginRound, RegenerationBeginRound, 2)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
-        .Build();
+    public static readonly ConditionSpec MonsterRegeneration2 = ConditionSpec.Create("Monster Regeneration 2", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(MonsterRegeneration5)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterRegenerationOnDamage)
+            .AddHandler(DispatcherType.BeginRound, RegenerationBeginRound, 2)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
+        );
 
 
     [TempleDllLocation(0x102ebc78)]
-    public static readonly ConditionSpec MonsterRegeneration1 = ConditionSpec.Create("Monster Regeneration 1", 2)
-        .Prevents(MonsterRegeneration5)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterRegenerationOnDamage)
-        .AddHandler(DispatcherType.BeginRound, RegenerationBeginRound, 1)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
-        .Build();
+    public static readonly ConditionSpec MonsterRegeneration1 = ConditionSpec.Create("Monster Regeneration 1", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(MonsterRegeneration5)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterRegenerationOnDamage)
+            .AddHandler(DispatcherType.BeginRound, RegenerationBeginRound, 1)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
+        );
 
 
     [TempleDllLocation(0x102ebcf8)]
-    public static readonly ConditionSpec MonsterSalamander = ConditionSpec.Create("Monster Salamander", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage2, SalamanderTakingDamageReactionDamage)
-        .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
-        .Build();
+    public static readonly ConditionSpec MonsterSalamander = ConditionSpec.Create("Monster Salamander", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, SalamanderTakingDamageReactionDamage)
+            .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
+        );
 
 
     [TempleDllLocation(0x102ebd50)]
-    public static readonly ConditionSpec MonsterOozeSplit = ConditionSpec.Create("Monster Ooze Split", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage2, MonsterOozeSplittingOnDamage)
-        .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
-        .Build();
+    public static readonly ConditionSpec MonsterOozeSplit = ConditionSpec.Create("Monster Ooze Split", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterOozeSplittingOnDamage)
+            .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
+        );
 
 
     [TempleDllLocation(0x102ebda8)]
-    public static readonly ConditionSpec MonsterSplitting = ConditionSpec.Create("Monster Splitting", 0)
-        .SetUnique()
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, MonsterSplittingHpChange)
-        .Build();
+    public static readonly ConditionSpec MonsterSplitting = ConditionSpec.Create("Monster Splitting", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, MonsterSplittingHpChange)
+        );
 
 
     [TempleDllLocation(0x102ebdf0)]
-    public static readonly ConditionSpec MonsterJuggernaut = ConditionSpec.Create("Monster Juggernaut", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
-        .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 0, 0)
-        .Prevents(StatusEffects.Poisoned)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
-        .Prevents(StatusEffects.Paralyzed)
-        .Prevents(StatusEffects.Stunned)
-        .Prevents(StatusEffects.IncubatingDisease)
-        .Prevents(StatusEffects.NSDiseased)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Death_Touch, true)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
-        .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
-        .Prevents(StatusEffects.TempAbilityLoss)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Energy_Drain, true)
-        .AddHandler(DispatcherType.TakingDamage2, ImmunityToAcidElectricityFireDamageCallback)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Has_No_Con_Score, true)
-        .Build();
+    public static readonly ConditionSpec MonsterJuggernaut = ConditionSpec.Create("Monster Juggernaut", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
+            .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 0, 0)
+            .Prevents(StatusEffects.Poisoned)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
+            .Prevents(StatusEffects.Paralyzed)
+            .Prevents(StatusEffects.Stunned)
+            .Prevents(StatusEffects.IncubatingDisease)
+            .Prevents(StatusEffects.NSDiseased)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Death_Touch, true)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
+            .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
+            .Prevents(StatusEffects.TempAbilityLoss)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Energy_Drain, true)
+            .AddHandler(DispatcherType.TakingDamage2, ImmunityToAcidElectricityFireDamageCallback)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Has_No_Con_Score, true)
+        );
 
 
     [TempleDllLocation(0x102ebf50)]
-    public static readonly ConditionSpec MonsterSpellResistance = ConditionSpec
-        .Create("Monster Spell Resistance", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.SpellResistanceDebug)
-        .AddHandler(DispatcherType.SpellResistanceMod, CommonConditionCallbacks.SpellResistanceMod_Callback, 5048)
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Spell_Resistance,
-            CommonConditionCallbacks.SpellResistanceQuery)
-        .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipSpellResistanceCallback, 5048)
-        .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterSpellResistance = ConditionSpec.Create("Monster Spell Resistance", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.SpellResistanceDebug)
+            .AddHandler(DispatcherType.SpellResistanceMod, CommonConditionCallbacks.SpellResistanceMod_Callback, 5048)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Spell_Resistance,
+                CommonConditionCallbacks.SpellResistanceQuery)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipSpellResistanceCallback, 5048)
+            .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ebff8)]
-    public static readonly ConditionSpec MonsterSmiting = ConditionSpec.Create("Monster Smiting", 1)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, MonsterSmitingDealingDamage)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
-            CommonConditionCallbacks.CondNodeSetArgToZero)
-        .Build();
+    public static readonly ConditionSpec MonsterSmiting = ConditionSpec.Create("Monster Smiting", 1, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, MonsterSmitingDealingDamage)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArgToZero)
+        );
 
 
     [TempleDllLocation(0x102ec050)]
-    public static readonly ConditionSpec MonsterZombie = ConditionSpec.Create("Monster Zombie", 0)
-        .AddHandler(DispatcherType.TurnBasedStatusInit,
-            CommonConditionCallbacks.turnBasedStatusInitSingleActionOnly)
-        .Build();
+    public static readonly ConditionSpec MonsterZombie = ConditionSpec.Create("Monster Zombie", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TurnBasedStatusInit,
+                CommonConditionCallbacks.turnBasedStatusInitSingleActionOnly)
+        );
 
 
     [TempleDllLocation(0x102ec080)]
-    public static readonly ConditionSpec MonsterLamia = ConditionSpec.Create("Monster Lamia", 0)
-        .AddHandler(DispatcherType.DealingDamage2, LamiaDealingDamage)
-        .Build();
+    public static readonly ConditionSpec MonsterLamia = ConditionSpec.Create("Monster Lamia", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, LamiaDealingDamage)
+        );
 
 
     [TempleDllLocation(0x102ec0b0)]
-    public static readonly ConditionSpec MonsterDRCold = ConditionSpec.Create("Monster DR Cold", 1)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.COLD)
-        .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.COLD)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDRCold = ConditionSpec.Create("Monster DR Cold", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.COLD)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.COLD)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec108)]
-    public static readonly ConditionSpec MonsterDRColdHoly = ConditionSpec.Create("Monster DR Cold-Holy", 1)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback,
-            D20AttackPower.COLD | D20AttackPower.HOLY)
-        .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.COLD | D20AttackPower.HOLY)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDRColdHoly = ConditionSpec.Create("Monster DR Cold-Holy", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback,
+                D20AttackPower.COLD | D20AttackPower.HOLY)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.COLD | D20AttackPower.HOLY)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec160)]
-    public static readonly ConditionSpec MonsterDRMagic = ConditionSpec.Create("Monster DR Magic", 1)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.MAGIC)
-        .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.MAGIC)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDRMagic = ConditionSpec.Create("Monster DR Magic", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.MAGIC)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.MAGIC)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec1b8)]
-    public static readonly ConditionSpec MonsterDRAll = ConditionSpec.Create("Monster DR All", 1)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.UNSPECIFIED)
-        .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.UNSPECIFIED)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDRAll = ConditionSpec.Create("Monster DR All", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.UNSPECIFIED)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.UNSPECIFIED)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec210)]
-    public static readonly ConditionSpec MonsterDRSilver = ConditionSpec.Create("Monster DR Silver", 1)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.SILVER)
-        .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.SILVER)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDRSilver = ConditionSpec.Create("Monster DR Silver", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.SILVER)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.SILVER)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec268)]
-    public static readonly ConditionSpec MonsterDRHoly = ConditionSpec.Create("Monster DR Holy", 1)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.HOLY)
-        .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.HOLY)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDRHoly = ConditionSpec.Create("Monster DR Holy", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.HOLY)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.HOLY)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec34c)]
-    public static readonly ConditionSpec MonsterSuperiorTwoWeaponFighting = ConditionSpec
-        .Create("Monster Superior Two Weapon Fighting", 0)
-        .AddHandler(DispatcherType.ToHitBonus2, SuperiorTwoWeaponFighting)
-        .Build();
+    public static readonly ConditionSpec MonsterSuperiorTwoWeaponFighting = ConditionSpec.Create("Monster Superior Two Weapon Fighting", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, SuperiorTwoWeaponFighting)
+        );
 
 
     [TempleDllLocation(0x102ec37c)]
-    public static readonly ConditionSpec MonsterStable = ConditionSpec.Create("Monster Stable", 0)
-        .AddHandler(DispatcherType.AbilityCheckModifier, CommonConditionCallbacks.AbilityModCheckStabilityBonus)
-        .Build();
+    public static readonly ConditionSpec MonsterStable = ConditionSpec.Create("Monster Stable", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.AbilityCheckModifier, CommonConditionCallbacks.AbilityModCheckStabilityBonus)
+        );
 
 
     [TempleDllLocation(0x102ec46c)]
-    public static readonly ConditionSpec MonsterUntripable = ConditionSpec.Create("Monster Untripable", 0)
-        .SetQueryResult(D20DispatcherKey.QUE_Untripable, true)
-        .Build();
+    public static readonly ConditionSpec MonsterUntripable = ConditionSpec.Create("Monster Untripable", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .SetQueryResult(D20DispatcherKey.QUE_Untripable, true)
+        );
 
 
     [TempleDllLocation(0x102ec3b0)]
-    public static readonly ConditionSpec MonsterPlant = ConditionSpec.Create("Monster Plant", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
-        .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 1, 0)
-        .Prevents(StatusEffects.Poisoned)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
-        .Prevents(StatusEffects.Paralyzed)
-        .Prevents(StatusEffects.Stunned)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
-        .Build();
+    public static readonly ConditionSpec MonsterPlant = ConditionSpec.Create("Monster Plant", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
+            .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 1, 0)
+            .Prevents(StatusEffects.Poisoned)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
+            .Prevents(StatusEffects.Paralyzed)
+            .Prevents(StatusEffects.Stunned)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
+        );
 
 
     [TempleDllLocation(0x102ec49c)]
-    public static readonly ConditionSpec MonsterHootingFungi = ConditionSpec.Create("Monster Hooting Fungi", 0)
-        .AddHandler(DispatcherType.TakingDamage2, HootingFunghiTakingDamage)
-        .Build();
+    public static readonly ConditionSpec MonsterHootingFungi = ConditionSpec.Create("Monster Hooting Fungi", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, HootingFunghiTakingDamage)
+        );
 
 
     [TempleDllLocation(0x102ec4d0)]
-    public static readonly ConditionSpec MonsterSpider = ConditionSpec.Create("Monster Spider", 0)
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
-        .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 2, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterSpider = ConditionSpec.Create("Monster Spider", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
+            .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 2, 0)
+        );
 
 
     [TempleDllLocation(0x102ec514)]
-    public static readonly ConditionSpec MonsterIncorporeal = ConditionSpec.Create("Monster Incorporeal", 0)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterIncorporealDamageCallback)
-        .Build();
+    public static readonly ConditionSpec MonsterIncorporeal = ConditionSpec.Create("Monster Incorporeal", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterIncorporealDamageCallback)
+        );
 
 
     [TempleDllLocation(0x102ec548)]
-    public static readonly ConditionSpec MonsterMinotaurCharge = ConditionSpec.Create("Monster Minotaur Charge", 0)
-        .AddHandler(DispatcherType.DealingDamage, MinotaurChargeCallback)
-        .AddQueryHandler(D20DispatcherKey.QUE_Play_Critical_Hit_Anim, MinotaurChargePlayCriticalHitAnim)
-        .Build();
+    public static readonly ConditionSpec MonsterMinotaurCharge = ConditionSpec.Create("Monster Minotaur Charge", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, MinotaurChargeCallback)
+            .AddQueryHandler(D20DispatcherKey.QUE_Play_Critical_Hit_Anim, MinotaurChargePlayCriticalHitAnim)
+        );
 
 
     [TempleDllLocation(0x102ec590)]
-    public static readonly ConditionSpec MonsterFastHealing = ConditionSpec.Create("Monster Fast Healing", 1)
-        .AddHandler(DispatcherType.BeginRound, FastHealingBeginRound)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterFastHealing = ConditionSpec.Create("Monster Fast Healing", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, FastHealingBeginRound)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec5d8)]
-    public static readonly ConditionSpec MonsterPoisonImmunity = ConditionSpec.Create("Monster Poison Immunity", 0)
-        .Prevents(StatusEffects.Poisoned)
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
-        .Build();
+    public static readonly ConditionSpec MonsterPoisonImmunity = ConditionSpec.Create("Monster Poison Immunity", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .Prevents(StatusEffects.Poisoned)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Poison, true)
+        );
 
 
     [TempleDllLocation(0x102ec2c0)]
-    public static readonly ConditionSpec MonsterDRBludgeoning = ConditionSpec.Create("Monster DR Bludgeoning", 1)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.BLUDGEONING)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDRBludgeoning = ConditionSpec.Create("Monster DR Bludgeoning", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.BLUDGEONING)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec308)]
-    public static readonly ConditionSpec MonsterDRSlashing = ConditionSpec.Create("Monster DR Slashing", 1)
-        .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.SLASHING)
-        .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterDRSlashing = ConditionSpec.Create("Monster DR Slashing", 1, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.SLASHING)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+        );
 
 
     [TempleDllLocation(0x102ec620)]
-    public static readonly ConditionSpec MonsterSubdualImmunity = ConditionSpec
-        .Create("Monster Subdual Immunity", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
-        .Build();
+    public static readonly ConditionSpec MonsterSubdualImmunity = ConditionSpec.Create("Monster Subdual Immunity", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
+        );
 
 
     [TempleDllLocation(0x102ec668)]
-    public static readonly ConditionSpec MonsterSpecialFadeOut = ConditionSpec.Create("Monster Special Fade Out", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
-        .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, SpecialFadeOutDamageTaken)
-        .Build();
+    public static readonly ConditionSpec MonsterSpecialFadeOut = ConditionSpec.Create("Monster Special Fade Out", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
+            .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, SpecialFadeOutDamageTaken)
+        );
 
 
     [TempleDllLocation(0x102ec6c0)]
-    public static readonly ConditionSpec MonsterConfusionImmunity = ConditionSpec
-        .Create("Monster Confusion Immunity", 0)
-        .SetUnique()
-        .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
-            CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
-        .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 3, 0)
-        .Build();
+    public static readonly ConditionSpec MonsterConfusionImmunity = ConditionSpec.Create("Monster Confusion Immunity", 0, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
+                CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
+            .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 3, 0)
+        );
 
     [DispTypes(DispatcherType.DealingDamage)]
     [TempleDllLocation(0x100f6930)]

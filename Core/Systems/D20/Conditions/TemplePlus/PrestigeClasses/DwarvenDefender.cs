@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +28,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public class DwarvenDefender
 {
-        
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     private static readonly Stat ClassId = Stat.level_dwarven_defender;
@@ -72,13 +70,13 @@ public class DwarvenDefender
         }.ToImmutableDictionary(),
     };
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetAC, DwarvenDefenderAcBonus)
         .AddHandler(DispatcherType.GetAC, DwDTrapSenseDodgeBonus)
         .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, DwDTrapSenseReflexBonus)
         .AddHandler(DispatcherType.TakingDamage2, DwDDamageReduction)
         .AddHandler(DispatcherType.RadialMenuEntry, DefensiveStanceRadial)
-        .Build();
+    );
 
     public static void DwarvenDefenderAcBonus(in DispatcherCallbackArgs evt)
     {
@@ -87,6 +85,7 @@ public class DwarvenDefender
         var bonval = 1 + (dwdLvl - 1) / 3;
         dispIo.bonlist.AddBonus(bonval, 8, 137); // Dodge bonus,  ~Class~[TAG_LEVEL_BONUSES]
     }
+
     public static void DwDTrapSenseDodgeBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoAttackBonus();
@@ -102,6 +101,7 @@ public class DwarvenDefender
             dispIo.bonlist.AddBonus(bonval, 8, 137);
         }
     }
+
     public static void DwDTrapSenseReflexBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoSavingThrow();
@@ -197,7 +197,7 @@ public class DwarvenDefender
             if (IsWinded(in evt))
             {
                 dispIo.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
-                    
+
                 return;
             }
             else
@@ -205,7 +205,6 @@ public class DwarvenDefender
                 // else: # action is possible (will make attachee winded)
                 return;
             }
-
         }
 
         var dwdLvl = evt.objHndCaller.GetStat(ClassId);
@@ -215,6 +214,7 @@ public class DwarvenDefender
             dispIo.returnVal = ActionErrorCode.AEC_OUT_OF_CHARGES;
         }
     }
+
     public static void OnDefensiveStancePerform(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20ActionTurnBased();
@@ -236,6 +236,7 @@ public class DwarvenDefender
         evt.SetConditionArg3(numRounds); // set the number of rounds remaining
         evt.SetConditionArg4(0); // set isWinded to 0
     }
+
     public static void DefStanceConMod(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoBonusList();
@@ -251,6 +252,7 @@ public class DwarvenDefender
 
         dispIo.bonlist.AddBonus(4, 0, 137);
     }
+
     public static void DefStanceStrMod(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoBonusList();
@@ -267,6 +269,7 @@ public class DwarvenDefender
 
         dispIo.bonlist.AddBonus(2, 0, 137);
     }
+
     public static void DefStanceMoveSpeed(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoMoveSpeed();
@@ -289,6 +292,7 @@ public class DwarvenDefender
         dispIo.bonlist.SetOverallCap(1, movespeedCap, 0, 137); // set upper cap
         dispIo.bonlist.SetOverallCap(6, 0, 0, 137); // lower cap... set with the override flag (4) because dwarves can have a lower racial cap of 20
     }
+
     public static void DefStanceSaveBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoSavingThrow();
@@ -304,6 +308,7 @@ public class DwarvenDefender
 
         dispIo.bonlist.AddBonus(2, 0, 137);
     }
+
     public static void DefStanceAcBonus(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoAttackBonus();
@@ -319,6 +324,7 @@ public class DwarvenDefender
 
         dispIo.bonlist.AddBonus(4, 8, 137);
     }
+
     public static void DefStanceBeginRound(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20Signal();
@@ -350,9 +356,9 @@ public class DwarvenDefender
                 evt.SetConditionArg1(0); // set inactive
                 evt.SetConditionArg3(0); // reset remaining rounds
             }
-
         }
     }
+
     public static void DefStanceNewday(in DispatcherCallbackArgs evt)
     {
         evt.SetConditionArg1(0);
@@ -360,6 +366,7 @@ public class DwarvenDefender
         evt.SetConditionArg3(0);
         evt.SetConditionArg4(0);
     }
+
     public static void DefStanceTooltip(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoTooltip();
@@ -376,6 +383,7 @@ public class DwarvenDefender
 
         dispIo.Append("Defensive Stance (" + evt.GetConditionArg3().ToString() + " rounds)");
     }
+
     public static void DefStanceEffectTooltip(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoEffectTooltip();
@@ -395,22 +403,22 @@ public class DwarvenDefender
     }
 
     // arg0 - is active ; arg1 - number of times used this day ; arg2 - rounds remaining ; arg3 - is in winded state
-    public static readonly ConditionSpec DefensiveStance = ConditionSpec.Create("Defensive Stance", 4)
-        .SetUnique()
-        .AddQueryHandler("Defensive Stance Is Winded", DefensiveStanceIsWinded)
-        .AddQueryHandler("Defensive Stance Is Active", DefensiveStanceIsActive)
-        .AddHandler(DispatcherType.PythonActionCheck, defensiveStanceEnum, OnDefensiveStanceCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, defensiveStanceEnum, OnDefensiveStancePerform)
-        .AddHandler(DispatcherType.PythonActionCheck, defensiveStanceWindedEnum, OnDefensiveStanceCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, defensiveStanceWindedEnum, OnDefensiveStancePerform)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, DefStanceConMod)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, DefStanceStrMod)
-        .AddHandler(DispatcherType.GetMoveSpeed, DefStanceMoveSpeed)
-        .AddHandler(DispatcherType.SaveThrowLevel, DefStanceSaveBonus)
-        .AddHandler(DispatcherType.GetAC, DefStanceAcBonus)
-        .AddHandler(DispatcherType.BeginRound, DefStanceBeginRound)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, DefStanceNewday)
-        .AddHandler(DispatcherType.Tooltip, DefStanceTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, DefStanceEffectTooltip)
-        .Build();
+    public static readonly ConditionSpec DefensiveStance = ConditionSpec.Create("Defensive Stance", 4, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Defensive Stance Is Winded", DefensiveStanceIsWinded)
+            .AddQueryHandler("Defensive Stance Is Active", DefensiveStanceIsActive)
+            .AddHandler(DispatcherType.PythonActionCheck, defensiveStanceEnum, OnDefensiveStanceCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, defensiveStanceEnum, OnDefensiveStancePerform)
+            .AddHandler(DispatcherType.PythonActionCheck, defensiveStanceWindedEnum, OnDefensiveStanceCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, defensiveStanceWindedEnum, OnDefensiveStancePerform)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, DefStanceConMod)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, DefStanceStrMod)
+            .AddHandler(DispatcherType.GetMoveSpeed, DefStanceMoveSpeed)
+            .AddHandler(DispatcherType.SaveThrowLevel, DefStanceSaveBonus)
+            .AddHandler(DispatcherType.GetAC, DefStanceAcBonus)
+            .AddHandler(DispatcherType.BeginRound, DefStanceBeginRound)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, DefStanceNewday)
+            .AddHandler(DispatcherType.Tooltip, DefStanceTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, DefStanceEffectTooltip)
+        );
 }

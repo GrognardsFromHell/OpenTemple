@@ -32,8 +32,8 @@ public class BattleCaster
 
     // args are just-in-case placeholders
     [AutoRegister, FeatCondition("Battle Caster")]
-    public static readonly ConditionSpec Condition = ConditionSpec.Create("Battle Caster", 2)
-        .SetUnique()
-        .AddQueryHandler("Improved Armored Casting", ImprovedArcaneFailure)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Battle Caster", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Improved Armored Casting", ImprovedArcaneFailure)
+        );
 }

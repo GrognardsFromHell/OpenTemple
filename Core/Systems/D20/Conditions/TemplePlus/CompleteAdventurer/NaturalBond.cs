@@ -46,8 +46,8 @@ public class NaturalBond
     // spare, spare
 
     [FeatCondition("Natural Bond"), AutoRegister]
-    public static readonly ConditionSpec Condition = ConditionSpec.Create("Natural Bond Feat", 2)
-        .SetUnique()
-        .AddQueryHandler("Animal Companion Level Bonus", QueryNaturalBond)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Natural Bond Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Animal Companion Level Bonus", QueryNaturalBond)
+        );
 }

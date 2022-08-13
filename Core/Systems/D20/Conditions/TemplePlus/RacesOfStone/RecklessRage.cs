@@ -37,10 +37,9 @@ public class RecklessRage
 
     // args are just-in-case placeholders
     [FeatCondition("Reckless Rage")]
-    public static readonly ConditionSpec recklessRage = ConditionSpec.Create("Reckless Rage", 2)
-        .SetUnique()
-        .AddQueryHandler("Additional Rage Stat Bonus", RecklessRageAbilityBonus)
-        .AddQueryHandler("Additional Rage AC Penalty", RecklessRageACPenalty)
-        .Build();
-
+    public static readonly ConditionSpec recklessRage = ConditionSpec.Create("Reckless Rage", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Additional Rage Stat Bonus", RecklessRageAbilityBonus)
+            .AddQueryHandler("Additional Rage AC Penalty", RecklessRageACPenalty)
+        );
 }

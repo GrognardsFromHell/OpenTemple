@@ -66,8 +66,7 @@ public class EldritchKnight
     };
 
     // Spell casting configure the spell casting condition to hold the highest Arcane classs
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
-        .Build();
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec);
 
     public static void OnAddSpellCasting(in DispatcherCallbackArgs evt)
     {
@@ -177,17 +176,16 @@ public class EldritchKnight
         // TODO classSpecModule.LevelupSpellsFinalize (evt.objHndCaller, class_extended_1);
     }
 
-    public static readonly ConditionSpec spellCasterSpecObj = ConditionSpec
-        .Create(ClassSpec.spellCastingConditionName, 8)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCasting)
-        .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
-        .AddHandler(DispatcherType.SpellListExtension, OnSpellListExtensionGet)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate,
-            OnInitLevelupSpellSelection)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
-            OnLevelupSpellsCheckComplete)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
-            OnLevelupSpellsFinalize)
-        .Build();
+    public static readonly ConditionSpec spellCasterSpecObj = ConditionSpec.Create(ClassSpec.spellCastingConditionName, 8, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCasting)
+            .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
+            .AddHandler(DispatcherType.SpellListExtension, OnSpellListExtensionGet)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate,
+                OnInitLevelupSpellSelection)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
+                OnLevelupSpellsCheckComplete)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
+                OnLevelupSpellsFinalize)
+        );
 }

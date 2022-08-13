@@ -102,12 +102,12 @@ public class Paladin
     };
 
     [TempleDllLocation(0x102f0260)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, ClassConditions.GetRangerOrPaladinCasterLevel,
             Stat.level_paladin)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
             OnLevelupSpellsFinalize)
-        .Build();
+    );
 
     public static void OnLevelupSpellsFinalize(in DispatcherCallbackArgs evt)
     {

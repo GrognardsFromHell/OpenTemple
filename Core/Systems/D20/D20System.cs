@@ -69,8 +69,6 @@ public class D20System : IGameSystem, IResetAwareSystem, ITimeAwareSystem
 
         Logger.Info("Registered {0} conditions.", Conditions.Count);
 
-        Conditions.WarnAboutPendingExtensions();
-
         BonusSystem = new BonusSystem();
         Status = new D20StatusSystem();
         // TODO

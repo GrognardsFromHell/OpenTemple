@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.VisualBasic.FileIO;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.Systems.RadialMenus;
@@ -26,53 +28,134 @@ public enum UniquenessType
 /// </summary>
 public class ConditionSpec
 {
+    private List<Action<Builder>>? _initializers;
+
+    private bool _initialized;
+    private ImmutableArray<SubDispatcherSpec> _handlers = ImmutableArray<SubDispatcherSpec>.Empty;
+
     public string condName { get; }
 
     public ImmutableArray<Type> DataTypes { get; }
 
     public int numArgs => DataTypes.Length;
 
-    public ImmutableArray<SubDispatcherSpec> subDispDefs;
-
     public UniquenessType Uniqueness { get; }
 
-    public bool IsExtension { get; }
+    public ImmutableArray<SubDispatcherSpec> Handlers
+    {
+        get
+        {
+            CheckInitialized();
+            return _handlers;
+        }
+    }
 
-    public ConditionSpec(string condName,
-        ImmutableArray<Type> dataTypes,
-        UniquenessType uniqueness,
-        ImmutableArray<SubDispatcherSpec> subDispDefs,
-        bool extension)
+    private ConditionSpec(string condName, ImmutableArray<Type> dataTypes, UniquenessType uniqueness)
     {
         this.condName = condName;
         DataTypes = dataTypes;
         Uniqueness = uniqueness;
-        this.subDispDefs = subDispDefs;
-        IsExtension = extension;
     }
 
-    public static Builder Create(string name, int numArgs = 0) => new(name, numArgs, false);
+    public static ConditionSpec Create(string name, int numArgs = 0, UniquenessType uniqueness = UniquenessType.NotUnique)
+    {
+        var dataTypes = new Type[numArgs];
+        Array.Fill(dataTypes, typeof(int));
+        return new ConditionSpec(name, dataTypes.ToImmutableArray(), uniqueness);
+    }
 
-    public static Builder Extend(ConditionSpec baseCondition) => new(baseCondition.condName, baseCondition.numArgs, true);
+    public ConditionSpec Configure(Action<Builder> customizer)
+    {
+        if (_initialized)
+        {
+            throw new InvalidOperationException($"Cannot extend initialized condition ${condName}.");
+        }
+
+        _initializers ??= new List<Action<Builder>>();
+        _initializers.Add(customizer);
+        return this;
+    }
+
+    public ConditionSpec Extend(Action<Builder> customizer)
+    {
+        return Configure(customizer);
+    }
+
+    public void Initialize()
+    {
+        if (_initialized)
+        {
+            throw new InvalidOperationException($"Condition {condName} is already initialized.");
+        }
+
+        var handlers = new List<SubDispatcherSpec>();
+
+        var builder = new Builder(handlers);
+
+        // Handle uniqueness by adding handlers to the ConditionAddPre event.
+        if (Uniqueness == UniquenessType.Unique)
+        {
+            builder.AddHandler(
+                DispatcherType.ConditionAddPre,
+                PreventsItself
+            );
+        }
+        else if (Uniqueness == UniquenessType.UniqueArg1)
+        {
+            builder.AddHandler(
+                DispatcherType.ConditionAddPre,
+                PreventItselfWithSameArg1
+            );
+        }
+
+        if (_initializers != null)
+        {
+            foreach (var initializer in _initializers)
+            {
+                initializer(builder);
+            }
+        }
+
+        _handlers = handlers.ToImmutableArray();
+
+        _initializers = null;
+        _initialized = true;
+    }
+
+    private void CheckInitialized()
+    {
+        if (!_initialized)
+        {
+            throw new InvalidOperationException($"Condition ${condName} hasn't been initialized");
+        }
+    }
+
+    private static void PreventsItself(in DispatcherCallbackArgs evt)
+    {
+        var dispIo = evt.GetDispIoCondStruct();
+        if (dispIo.condStruct == evt.subDispNode.condNode.condStruct)
+        {
+            dispIo.outputFlag = false;
+        }
+    }
+
+    private static void PreventItselfWithSameArg1(in DispatcherCallbackArgs evt)
+    {
+        var condArg1 = evt.GetConditionArg1();
+        var dispIo = evt.GetDispIoCondStruct();
+        if (dispIo.condStruct == evt.subDispNode.condNode.condStruct && dispIo.arg1 == condArg1)
+        {
+            dispIo.outputFlag = false;
+        }
+    }
 
     public class Builder
     {
-        private readonly bool _extending;
+        private readonly List<SubDispatcherSpec> _handlers;
 
-        private readonly string _name;
-
-        private readonly Type[] _dataTypes;
-
-        private readonly List<SubDispatcherSpec> _subDisps = new();
-
-        private UniquenessType _uniqueness = UniquenessType.NotUnique;
-
-        internal Builder(string name, int numArgs, bool extending)
+        public Builder(List<SubDispatcherSpec> handlers)
         {
-            _extending = extending;
-            _name = name;
-            _dataTypes = new Type[numArgs];
-            Array.Fill(_dataTypes, typeof(int));
+            _handlers = handlers;
         }
 
         /// <summary>
@@ -80,7 +163,7 @@ public class ConditionSpec
         /// </summary>
         public Builder AddHandler(DispatcherType type, SubDispatcherCallback handler)
         {
-            _subDisps.Add(new SubDispatcherSpec(type, D20DispatcherKey.NONE, handler));
+            _handlers.Add(new SubDispatcherSpec(type, D20DispatcherKey.NONE, handler));
             return this;
         }
 
@@ -89,66 +172,8 @@ public class ConditionSpec
         /// </summary>
         public Builder AddHandler(DispatcherType type, D20DispatcherKey key, SubDispatcherCallback handler)
         {
-            _subDisps.Add(new SubDispatcherSpec(type, key, handler));
+            _handlers.Add(new SubDispatcherSpec(type, key, handler));
             return this;
-        }
-
-        /// <summary>
-        /// Make this condition unique. It can only be added once to a critter.
-        /// </summary>
-        public Builder SetUnique()
-        {
-            if (_extending)
-            {
-                throw new InvalidOperationException("A Condition extension cannot change whether a condition is unique.");
-            }
-            Trace.Assert(_uniqueness == UniquenessType.NotUnique);
-            _uniqueness = UniquenessType.Unique;
-            return AddHandler(
-                DispatcherType.ConditionAddPre,
-                PreventsItself
-            );
-        }
-
-        /// <summary>
-        /// Make conditions of this type with the same arg1 unique.
-        /// </summary>
-        public Builder SetUniqueWithKeyArg1()
-        {
-            if (_extending)
-            {
-                throw new InvalidOperationException("A Condition extension cannot change whether a condition is unique.");
-            }
-            Trace.Assert(_uniqueness == UniquenessType.NotUnique);
-            _uniqueness = UniquenessType.UniqueArg1;
-            return AddHandler(
-                DispatcherType.ConditionAddPre,
-                PreventItselfWithSameArg1
-            );
-        }
-
-        private static void PreventsItself(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoCondStruct();
-            if (dispIo.condStruct == evt.subDispNode.condNode.condStruct)
-            {
-                dispIo.outputFlag = false;
-            }
-        }
-
-        private static void PreventItselfWithSameArg1(in DispatcherCallbackArgs evt)
-        {
-            var condArg1 = evt.GetConditionArg1();
-            var dispIo = evt.GetDispIoCondStruct();
-            if (dispIo.condStruct == evt.subDispNode.condNode.condStruct && dispIo.arg1 == condArg1)
-            {
-                dispIo.outputFlag = false;
-            }
-        }
-
-        public ConditionSpec Build()
-        {
-            return new ConditionSpec(_name, _dataTypes.ToImmutableArray(), _uniqueness, _subDisps.ToImmutableArray(), _extending);
         }
     }
 }
@@ -358,7 +383,6 @@ public static class ConditionSpecBuilderExtensions
             }
         });
     }
-
 }
 
 // Used to mark callbacks with the dispatcher types they're being used for,
@@ -568,6 +592,7 @@ public static class DispatcherCallbackArgsExtensions
     {
         return (EvtObjSpellTargetBonus) args.dispIO;
     }
+
     public static EvtObjSpecialAttack GetEvtObjSpecialAttack(in this DispatcherCallbackArgs args)
     {
         return (EvtObjSpecialAttack) args.dispIO;
@@ -637,6 +662,7 @@ public static class DispatcherCallbackArgsExtensions
         {
             return null;
         }
+
         return (GameObject) value;
     }
 
@@ -696,6 +722,7 @@ public static class DispatcherCallbackArgsExtensions
             GameSystems.ParticleSys.Remove(partSys);
             args.SetConditionPartSysArg(index, null);
         }
+
         throw new NotImplementedException();
     }
 
@@ -707,6 +734,7 @@ public static class DispatcherCallbackArgsExtensions
             GameSystems.ParticleSys.End(partSys);
             args.SetConditionPartSysArg(index, null);
         }
+
         throw new NotImplementedException();
     }
 
@@ -777,7 +805,7 @@ public static class DispatcherCallbackArgsExtensions
     public static string GetConditionName(in this DispatcherCallbackArgs evt)
         => evt.subDispNode.condNode.condStruct.condName;
 
-    // Convenice function for creating a toggle radial menu entry for a condition argument, to toggle between
+    // Convenience function for creating a toggle radial menu entry for a condition argument, to toggle between
     // 0 and 1
     public static RadialMenuEntry CreateToggleForArg(in this DispatcherCallbackArgs evt, int arg)
     {
@@ -806,19 +834,18 @@ public static class DispatcherCallbackArgsExtensions
             maxVal
         );
     }
-
 }
 
 public delegate void SubDispatcherCallback(
     in DispatcherCallbackArgs evt
 );
 
-public delegate void SubDispatcherCallback<T>(
+public delegate void SubDispatcherCallback<in T>(
     in DispatcherCallbackArgs evt,
     T data1
 );
 
-public delegate void SubDispatcherCallback<T, U>(
+public delegate void SubDispatcherCallback<in T, in U>(
     in DispatcherCallbackArgs evt,
     T data1,
     U data2

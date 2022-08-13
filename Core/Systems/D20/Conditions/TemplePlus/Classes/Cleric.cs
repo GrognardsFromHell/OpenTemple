@@ -93,12 +93,12 @@ public class Cleric
     };
 
     [TempleDllLocation(0x102f0048)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, ClassConditions.GrantClassLevelAsCasterLevel,
             Stat.level_cleric)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
             OnLevelupSpellsFinalize)
-        .Build();
+    );
 
     public static void OnLevelupSpellsFinalize(in DispatcherCallbackArgs evt)
     {

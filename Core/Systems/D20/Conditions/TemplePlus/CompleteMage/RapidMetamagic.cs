@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -63,8 +62,9 @@ public class RapidMetamagic
 
     // args are just-in-case placeholders
     [FeatCondition("Rapid Metamagic")]
-    [AutoRegister] public static readonly ConditionSpec Condition = ConditionSpec.Create("Rapid Metamagic Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ActionCostMod, RapidMMActionCostMod)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Rapid Metamagic Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ActionCostMod, RapidMMActionCostMod)
+        );
 }

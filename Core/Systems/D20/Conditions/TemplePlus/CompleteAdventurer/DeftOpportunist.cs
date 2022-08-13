@@ -41,8 +41,8 @@ public class DeftOpportunist
 
     [FeatCondition(Name)]
     [AutoRegister]
-    public static readonly ConditionSpec eDO = ConditionSpec.Create("Deft Opportunist Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, DOAOO)
-        .Build();
+    public static readonly ConditionSpec eDO = ConditionSpec.Create("Deft Opportunist Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, DOAOO)
+        );
 }

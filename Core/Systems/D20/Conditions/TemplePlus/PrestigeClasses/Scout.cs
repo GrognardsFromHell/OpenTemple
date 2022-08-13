@@ -65,7 +65,7 @@ public class Scout
         FeatId.SKILL_FOCUS_SWIM, FeatId.SKILL_FOCUS_TUMBLE, FeatId.SKILL_FOCUS_USE_MAGIC_DEVICE,
         FeatId.SKILL_FOCUS_USE_ROPE, FeatId.SKILL_FOCUS_SURVIVAL
     }.Select(featId => new SelectableFeat(featId)).ToImmutableList();
-        
+
     public static readonly D20ClassSpec ClassSpec = new("scout")
     {
         classEnum = Stat.level_scout,
@@ -128,8 +128,7 @@ public class Scout
         LevelupGetBonusFeats = critter => BonusFeats
     };
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
-        .Build();
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec);
 
     // Scout Specific Feats
 
@@ -334,15 +333,15 @@ public class Scout
     // Distance Moved, Spare, Spare, Spare
 
     [FeatCondition(Skirmish)]
-    public static readonly ConditionSpec ScoutSkirmish = ConditionSpec.Create("Skirmish", 4)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, SkirmishDamageBonus)
-        .AddHandler(DispatcherType.GetAC, SkirmishAcBonus)
-        .AddHandler(DispatcherType.BeginRound, SkirmishReset)
-        .AddSignalHandler(D20DispatcherKey.SIG_Combat_Critter_Moved, ScoutMovedDistance)
-        .AddHandler(DispatcherType.Tooltip, SkirmishTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, SkirmishEffectTooltip)
-        .Build();
+    public static readonly ConditionSpec ScoutSkirmish = ConditionSpec.Create("Skirmish", 4, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, SkirmishDamageBonus)
+            .AddHandler(DispatcherType.GetAC, SkirmishAcBonus)
+            .AddHandler(DispatcherType.BeginRound, SkirmishReset)
+            .AddSignalHandler(D20DispatcherKey.SIG_Combat_Critter_Moved, ScoutMovedDistance)
+            .AddHandler(DispatcherType.Tooltip, SkirmishTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, SkirmishEffectTooltip)
+        );
 
     #endregion
 
@@ -404,11 +403,11 @@ public class Scout
 
     // Spare, Spare
     [FeatCondition(BattleFortitude)]
-    public static readonly ConditionSpec scoutBattleFortitude = ConditionSpec.Create("Battle Fortitude", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.InitiativeMod, BattleFortitudeInitBonus)
-        .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, BattleFortitudeFortSaveBonus)
-        .Build();
+    public static readonly ConditionSpec scoutBattleFortitude = ConditionSpec.Create("Battle Fortitude", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.InitiativeMod, BattleFortitudeInitBonus)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, BattleFortitudeFortSaveBonus)
+        );
 
     #endregion
 
@@ -447,10 +446,10 @@ public class Scout
 
     // Spare, Spare
     [FeatCondition(FastMovement)]
-    public static readonly ConditionSpec FastMovementCondition = ConditionSpec.Create("Fast Movement Scout", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.GetMoveSpeed, FastMovementScoutBonus)
-        .Build();
+    public static readonly ConditionSpec FastMovementCondition = ConditionSpec.Create("Fast Movement Scout", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.GetMoveSpeed, FastMovementScoutBonus)
+        );
 
     #endregion
 
@@ -476,11 +475,10 @@ public class Scout
 
     // Spare, Spare
     [FeatCondition(HideInPlainSight)]
-    public static readonly ConditionSpec HideInPlainSightCondition = ConditionSpec
-        .Create("Hide in Plain Sight Scout", 2)
-        .SetUnique()
-        .AddQueryHandler("Can Hide In Plain Sight", HideInPlainSightQueryScout)
-        .Build();
+    public static readonly ConditionSpec HideInPlainSightCondition = ConditionSpec.Create("Hide in Plain Sight Scout", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Can Hide In Plain Sight", HideInPlainSightQueryScout)
+        );
 
     #endregion
 
@@ -500,10 +498,10 @@ public class Scout
 
     // Spare, Spare
     [FeatCondition(FreeMovement)]
-    public static readonly ConditionSpec FreeMovementCondition = ConditionSpec.Create("Free Movement", 2)
-        .SetUnique()
-        .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, FreeMovementScout)
-        .Build();
+    public static readonly ConditionSpec FreeMovementCondition = ConditionSpec.Create("Free Movement", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, FreeMovementScout)
+        );
 
     #endregion
 
@@ -518,10 +516,10 @@ public class Scout
 
     // Spare, Spare
     [FeatCondition(Blindsight)]
-    public static readonly ConditionSpec BlindsightCondition = ConditionSpec.Create("Blindsight", 2)
-        .SetUnique()
-        .AddQueryHandler("Blindsight Range", ScoutBlindsightRange)
-        .Build();
+    public static readonly ConditionSpec BlindsightCondition = ConditionSpec.Create("Blindsight", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Blindsight Range", ScoutBlindsightRange)
+        );
 
     #endregion
 }

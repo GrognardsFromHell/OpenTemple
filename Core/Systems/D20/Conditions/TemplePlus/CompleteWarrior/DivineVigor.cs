@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -69,6 +68,7 @@ public class DivineVigor
         evt.SetConditionArg3(tempHP);
         return;
     }
+
     public static void DivineVigorBeginRound(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20Signal();
@@ -95,6 +95,7 @@ public class DivineVigor
 
         return;
     }
+
     public static void DivineVigorTooltip(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoTooltip();
@@ -117,6 +118,7 @@ public class DivineVigor
 
         return;
     }
+
     public static void DivineVigorEffectTooltip(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoEffectTooltip();
@@ -139,6 +141,7 @@ public class DivineVigor
 
         return;
     }
+
     public static void DivineVigorMoveSpeed(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoMoveSpeed();
@@ -152,6 +155,7 @@ public class DivineVigor
         dispIo.bonlist.AddBonus(10, 12, "Divine Vigor Feat");
         return;
     }
+
     public static void DivineVigorTakingDamage2(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoDamage();
@@ -190,6 +194,7 @@ public class DivineVigor
         dispIo.damage.AddDamageBonus(-finalDam, 0, 154);
         return;
     }
+
     public static void DivineVigorHasTemporaryHitpoints(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20Query();
@@ -206,21 +211,23 @@ public class DivineVigor
 
     // Setup the feat
     [FeatCondition("Divine Vigor")]
-    [AutoRegister] public static readonly ConditionSpec divineVigorFeat = ConditionSpec.Create("Divine Vigor Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, DivineVigorRadial)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec divineVigorFeat = ConditionSpec.Create("Divine Vigor Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, DivineVigorRadial)
+        );
 
     // Setup the effect
-    [AutoRegister] public static readonly ConditionSpec divineVigorEffect = ConditionSpec.Create("Divine Vigor Effect", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.PythonActionCheck, divineVigorEnum, OnDivineVigorCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, divineVigorEnum, OnDivineVigorPerform)
-        .AddHandler(DispatcherType.BeginRound, DivineVigorBeginRound)
-        .AddHandler(DispatcherType.Tooltip, DivineVigorTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, DivineVigorEffectTooltip)
-        .AddHandler(DispatcherType.GetMoveSpeed, DivineVigorMoveSpeed)
-        .AddHandler(DispatcherType.TakingDamage2, DivineVigorTakingDamage2)
-        .AddQueryHandler(D20DispatcherKey.QUE_Has_Temporary_Hit_Points, DivineVigorHasTemporaryHitpoints)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec divineVigorEffect = ConditionSpec.Create("Divine Vigor Effect", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.PythonActionCheck, divineVigorEnum, OnDivineVigorCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, divineVigorEnum, OnDivineVigorPerform)
+            .AddHandler(DispatcherType.BeginRound, DivineVigorBeginRound)
+            .AddHandler(DispatcherType.Tooltip, DivineVigorTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, DivineVigorEffectTooltip)
+            .AddHandler(DispatcherType.GetMoveSpeed, DivineVigorMoveSpeed)
+            .AddHandler(DispatcherType.TakingDamage2, DivineVigorTakingDamage2)
+            .AddQueryHandler(D20DispatcherKey.QUE_Has_Temporary_Hit_Points, DivineVigorHasTemporaryHitpoints)
+        );
 }

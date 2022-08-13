@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +26,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public class MysticTheurge
 {
-
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     public const Stat ClassId = Stat.level_mystic_theurge;
@@ -63,8 +61,7 @@ public class MysticTheurge
         }.ToImmutableHashSet(),
     };
 
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
-        .Build();
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec);
 
     // Spell casting
     // Mystic Theurge raises the caster level for its two base classes specified in Modifier args 0 & 1
@@ -97,7 +94,6 @@ public class MysticTheurge
             {
                 return;
             }
-
         }
 
         var classLvl = evt.objHndCaller.GetStat(ClassId);
@@ -116,7 +112,6 @@ public class MysticTheurge
             {
                 return;
             }
-
         }
 
         var classLvl = evt.objHndCaller.GetStat(ClassId);
@@ -175,17 +170,13 @@ public class MysticTheurge
         // classSpecModule.LevelupSpellsFinalize(evt.objHndCaller, class_extended_1, class_extended_2);
     }
 
-    public static readonly ConditionSpec spellCasterSpecObj = ConditionSpec
-        .Create(ClassSpec.spellCastingConditionName, 8)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCasting)
-        .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
-        .AddHandler(DispatcherType.SpellListExtension, OnSpellListExtensionGet)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate,
-            OnInitLevelupSpellSelection)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete,
-            OnLevelupSpellsCheckComplete)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize,
-            OnLevelupSpellsFinalize)
-        .Build();
+    public static readonly ConditionSpec spellCasterSpecObj = ConditionSpec.Create(ClassSpec.spellCastingConditionName, 8, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, OnAddSpellCasting)
+            .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
+            .AddHandler(DispatcherType.SpellListExtension, OnSpellListExtensionGet)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate, OnInitLevelupSpellSelection)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete, OnLevelupSpellsCheckComplete)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize, OnLevelupSpellsFinalize)
+        );
 }

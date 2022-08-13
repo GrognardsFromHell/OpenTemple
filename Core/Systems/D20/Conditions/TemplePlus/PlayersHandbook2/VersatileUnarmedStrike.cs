@@ -158,31 +158,32 @@ public class VersatileUnarmedStrike
     // Setup the feat
     // spare, spare
     [FeatCondition("Versatile Unarmed Strike")]
-    [AutoRegister] public static readonly ConditionSpec VersatileUnarmedStrikeFeat = ConditionSpec
-        .Create("Versatile Unarmed Strike Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, VersatileUnarmedStrikeRadial)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec VersatileUnarmedStrikeFeat = ConditionSpec.Create("Versatile Unarmed Strike Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, VersatileUnarmedStrikeRadial)
+        );
 
     // Setup the effect
     // enabled, swapped this round, spare, spare
-    [AutoRegister] public static readonly ConditionSpec VersatileUnarmedStrikeEffect = ConditionSpec
-        .Create("Versatile Unarmed Strike", 4)
-        .AddHandler(DispatcherType.BeginRound, VersatileUnarmedStrikeEffectBeginRound)
-        .AddHandler(DispatcherType.PythonActionCheck, VersatileUnarmedStrikeBludgeoningEnum,
-            OnVersatileUnarmedStrikeEffectCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, VersatileUnarmedStrikeBludgeoningEnum,
-            OnVersatileUnarmedStrikeEffectPerform)
-        .AddHandler(DispatcherType.PythonActionCheck, VersatileUnarmedStrikePiercingEnum,
-            OnVersatileUnarmedStrikeEffectCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, VersatileUnarmedStrikePiercingEnum,
-            OnVersatileUnarmedStrikeEffectPerform)
-        .AddHandler(DispatcherType.PythonActionCheck, VersatileUnarmedStrikeSlashingEnum,
-            OnVersatileUnarmedStrikeEffectCheck)
-        .AddHandler(DispatcherType.PythonActionPerform, VersatileUnarmedStrikeSlashingEnum,
-            OnVersatileUnarmedStrikeEffectPerform)
-        .AddHandler(DispatcherType.Tooltip, VersatileUnarmedStrikeEffectTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, VersatileUnarmedStrikeEffectTooltipEffect)
-        .AddQueryHandler("Unarmed Damage Type", VersatileUnarmedStrikeDamageType)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec VersatileUnarmedStrikeEffect = ConditionSpec.Create("Versatile Unarmed Strike", 4, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, VersatileUnarmedStrikeEffectBeginRound)
+            .AddHandler(DispatcherType.PythonActionCheck, VersatileUnarmedStrikeBludgeoningEnum,
+                OnVersatileUnarmedStrikeEffectCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, VersatileUnarmedStrikeBludgeoningEnum,
+                OnVersatileUnarmedStrikeEffectPerform)
+            .AddHandler(DispatcherType.PythonActionCheck, VersatileUnarmedStrikePiercingEnum,
+                OnVersatileUnarmedStrikeEffectCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, VersatileUnarmedStrikePiercingEnum,
+                OnVersatileUnarmedStrikeEffectPerform)
+            .AddHandler(DispatcherType.PythonActionCheck, VersatileUnarmedStrikeSlashingEnum,
+                OnVersatileUnarmedStrikeEffectCheck)
+            .AddHandler(DispatcherType.PythonActionPerform, VersatileUnarmedStrikeSlashingEnum,
+                OnVersatileUnarmedStrikeEffectPerform)
+            .AddHandler(DispatcherType.Tooltip, VersatileUnarmedStrikeEffectTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, VersatileUnarmedStrikeEffectTooltipEffect)
+            .AddQueryHandler("Unarmed Damage Type", VersatileUnarmedStrikeDamageType)
+        );
 }

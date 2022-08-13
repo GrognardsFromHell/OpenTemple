@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +28,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public static class Assassin
 {
-
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     public const Stat ClassId = Stat.level_assassin;
@@ -106,15 +104,16 @@ public static class Assassin
         }.ToImmutableDictionary(),
     };
 
-    [AutoRegister] public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
-        .AddQueryHandler("Sneak Attack Dice", AssassinSneakAttackDice)
-        .AddHandler(DispatcherType.SaveThrowLevel, AssassinPoisonSaveBonus) // Spell casting
-        .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate, OnInitLevelupSpellSelection)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize, OnLevelupSpellsFinalize)
-        .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete, OnLevelupSpellsCheckComplete)
-        .AddQueryHandler(D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, AssassinSpellFailure)// Hide in Plain Sight    #
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
+            .AddQueryHandler("Sneak Attack Dice", AssassinSneakAttackDice)
+            .AddHandler(DispatcherType.SaveThrowLevel, AssassinPoisonSaveBonus) // Spell casting
+            .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate, OnInitLevelupSpellSelection)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize, OnLevelupSpellsFinalize)
+            .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete, OnLevelupSpellsCheckComplete)
+            .AddQueryHandler(D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, AssassinSpellFailure) // Hide in Plain Sight    #
+    );
 
     public static void AssassinSneakAttackDice(in DispatcherCallbackArgs evt)
     {
@@ -211,7 +210,6 @@ public static class Assassin
             {
                 return;
             }
-
         }
 
         dispIo.return_val += item.GetInt(obj_f.armor_arcane_spell_failure);
@@ -226,13 +224,16 @@ public static class Assassin
     }
 
     [FeatCondition("Hide in Plain Sight")]
-    [AutoRegister] public static readonly ConditionSpec hips_feat = ConditionSpec.Create("Hide In Plain Sight Feat", 2)
-        .AddQueryHandler("Can Hide In Plain Sight", HideInPlainSightQuery)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec hips_feat = ConditionSpec.Create("Hide In Plain Sight Feat", 2, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddQueryHandler("Can Hide In Plain Sight", HideInPlainSightQuery)
+        );
 
     // Death Attack
 
     private static readonly D20DispatcherKey deathAttackStudyEnum = (D20DispatcherKey) 2100;
+
     public static void AssassinDeathAttackRadial(in DispatcherCallbackArgs evt)
     {
         var radial_action = RadialMenuEntry.CreatePythonAction("Study Target",
@@ -275,7 +276,6 @@ public static class Assassin
                 prev_tgt.D20SendSignal("Death Attack Target End", old_spell_id);
                 prev_tgt.FloatLine("Target removed", TextFloaterColor.White);
             }
-
         }
 
         // put the new spell_id in arg2
@@ -293,6 +293,7 @@ public static class Assassin
         // print "sneak attack status reset"
         evt.SetConditionArg1(0);
     }
+
     public static void DeathAtkRegisterSneak(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20Signal();
@@ -385,7 +386,6 @@ public static class Assassin
                 tgt.AddCondition("Paralyzed", ass_level + RandomRange(1, 6), 0, 0);
                 GameSystems.RollHistory.CreateFromFreeText("Target paralyzed.\n\n");
             }
-
         }
     }
 
@@ -418,15 +418,16 @@ public static class Assassin
 
     // arg0 - sneak attack registered;  arg1 - paralyze target;  arg2 - spell_id
     [FeatCondition("Death Attack")]
-    [AutoRegister] public static readonly ConditionSpec death_attack_feat = ConditionSpec.Create("Death Attack Feat", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, AssassinDeathAttackRadial)
-        .AddHandler(DispatcherType.PythonActionPerform, deathAttackStudyEnum, OnStudyTargetPerform)
-        .AddHandler(DispatcherType.ToHitBonusFromDefenderCondition, DeathAtkResetSneak)
-        .AddHandler(DispatcherType.DealingDamage2, DeathAtkDamage)
-        .AddSignalHandler("Sneak Attack Damage Applied", DeathAtkRegisterSneak)
-        .AddQueryHandler("Has Studied Target", HasStudiedTarget)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec death_attack_feat = ConditionSpec.Create("Death Attack Feat", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.RadialMenuEntry, AssassinDeathAttackRadial)
+            .AddHandler(DispatcherType.PythonActionPerform, deathAttackStudyEnum, OnStudyTargetPerform)
+            .AddHandler(DispatcherType.ToHitBonusFromDefenderCondition, DeathAtkResetSneak)
+            .AddHandler(DispatcherType.DealingDamage2, DeathAtkDamage)
+            .AddSignalHandler("Sneak Attack Damage Applied", DeathAtkRegisterSneak)
+            .AddQueryHandler("Has Studied Target", HasStudiedTarget)
+        );
 
     public static void IsDeathAtkTarget(in DispatcherCallbackArgs evt)
     {
@@ -498,12 +499,14 @@ public static class Assassin
     }
     // arg0 - spell id, arg1 - number of rounds
 
-    [AutoRegister] public static readonly ConditionSpec deathAtkTgt = ConditionSpec.Create("Death Attack Target", 3)
-        .AddQueryHandler("Is Death Attack Target", IsDeathAtkTarget)
-        .AddQueryHandler("Is Death Attack Ready", IsDeathAtkReady)
-        .AddSignalHandler("Target Study Round", DeathAtkTargetRound)
-        .AddQueryHandler("Death Attack Target Rounds Studied", DeathAtkTargetRoundsStudied)
-        .AddSignalHandler("Death Attack Target End", DeathAtkTargetEnd)
-        .AddHandler(DispatcherType.BeginRound, DeathAtkTargetCountdown)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec deathAtkTgt = ConditionSpec.Create("Death Attack Target", 3, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddQueryHandler("Is Death Attack Target", IsDeathAtkTarget)
+            .AddQueryHandler("Is Death Attack Ready", IsDeathAtkReady)
+            .AddSignalHandler("Target Study Round", DeathAtkTargetRound)
+            .AddQueryHandler("Death Attack Target Rounds Studied", DeathAtkTargetRoundsStudied)
+            .AddSignalHandler("Death Attack Target End", DeathAtkTargetEnd)
+            .AddHandler(DispatcherType.BeginRound, DeathAtkTargetCountdown)
+        );
 }

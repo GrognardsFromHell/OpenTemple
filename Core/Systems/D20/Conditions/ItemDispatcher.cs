@@ -19,9 +19,9 @@ public static class ItemDispatcher
             condAttachment.args[i] = condArgs[i];
         }
 
-        for (int i = 0; i < condStruct.subDispDefs.Length; i++)
+        for (int i = 0; i < condStruct.Handlers.Length; i++)
         {
-            var sdd = condStruct.subDispDefs[i];
+            var sdd = condStruct.Handlers[i];
             if (sdd.dispType == dispType && (sdd.dispKey == key || sdd.dispKey == D20DispatcherKey.NONE))
             {
                 var attachment = new SubDispatcherAttachment();

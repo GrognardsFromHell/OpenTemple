@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -42,10 +41,10 @@ public class Craven
 
     [FeatCondition("Craven")]
     [AutoRegister]
-    public static readonly ConditionSpec Condition = ConditionSpec.Create("Craven Feat", 2)
-        .SetUnique()
-        .AddQueryHandler("Sneak Attack Bonus", CADamage)
-        // Generalized even though fear effects should only be will saves.
-        .AddHandler(DispatcherType.SaveThrowLevel, Fearful)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Craven Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddQueryHandler("Sneak Attack Bonus", CADamage)
+            // Generalized even though fear effects should only be will saves.
+            .AddHandler(DispatcherType.SaveThrowLevel, Fearful)
+        );
 }

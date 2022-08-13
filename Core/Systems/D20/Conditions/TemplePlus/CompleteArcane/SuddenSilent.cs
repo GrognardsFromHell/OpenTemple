@@ -32,6 +32,5 @@ public class SuddenSilent
 
     [AutoRegister, FeatCondition("Sudden Silent")]
     public static readonly ConditionSpec Condition = SuddenMetamagic
-        .Create("Sudden Silent Feat", "Sudden Silent", ApplySilent)
-        .Build();
+        .Create("Sudden Silent Feat", "Sudden Silent", ApplySilent);
 }

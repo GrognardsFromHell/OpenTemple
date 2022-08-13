@@ -136,23 +136,26 @@ public class MeleeWeaponMastery
     }
 
     [FeatCondition("Melee Weapon Mastery - Bludgeoning")]
-    [AutoRegister] public static readonly ConditionSpec mwmBludg = ConditionSpec.Create("Melee Weapon Mastery - Bludgeoning", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, MWMToHit, DamageType.Bludgeoning)
-        .AddHandler(DispatcherType.DealingDamage, MWMToDam, DamageType.Bludgeoning)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec mwmBludg = ConditionSpec.Create("Melee Weapon Mastery - Bludgeoning", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, MWMToHit, DamageType.Bludgeoning)
+            .AddHandler(DispatcherType.DealingDamage, MWMToDam, DamageType.Bludgeoning)
+        );
 
     [FeatCondition("Melee Weapon Mastery - Slashing")]
-    [AutoRegister] public static readonly ConditionSpec mwmSlash = ConditionSpec.Create("Melee Weapon Mastery - Slashing", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, MWMToHit, DamageType.Slashing)
-        .AddHandler(DispatcherType.DealingDamage, MWMToDam, DamageType.Slashing)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec mwmSlash = ConditionSpec.Create("Melee Weapon Mastery - Slashing", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, MWMToHit, DamageType.Slashing)
+            .AddHandler(DispatcherType.DealingDamage, MWMToDam, DamageType.Slashing)
+        );
 
     [FeatCondition("Melee Weapon Mastery - Piercing")]
-    [AutoRegister] public static readonly ConditionSpec mwmPierc = ConditionSpec.Create("Melee Weapon Mastery - Piercing", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, MWMToHit, DamageType.Piercing)
-        .AddHandler(DispatcherType.DealingDamage, MWMToDam, DamageType.Piercing)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec mwmPierc = ConditionSpec.Create("Melee Weapon Mastery - Piercing", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, MWMToHit, DamageType.Piercing)
+            .AddHandler(DispatcherType.DealingDamage, MWMToDam, DamageType.Piercing)
+        );
 }

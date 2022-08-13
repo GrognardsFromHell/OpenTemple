@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -39,7 +38,9 @@ public class TrippingBite
         }
     }
 
-    [AutoRegister] public static readonly ConditionSpec tripBite = ConditionSpec.Create("Tripping Bite", 0)
-        .AddHandler(DispatcherType.DealingDamage2, OnDamage2)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec tripBite = ConditionSpec.Create("Tripping Bite", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage2, OnDamage2)
+        );
 }

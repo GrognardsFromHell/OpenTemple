@@ -30,8 +30,7 @@ public class StinkingCloudFix
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec StinkingCloudEffectExtension = ConditionSpec
-        .Extend(SpellEffects.SpellStinkingCloudHit)
+    public static readonly ConditionSpec StinkingCloudEffectExtension = SpellEffects.SpellStinkingCloudHit.Extend(builder => builder
         .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, StinkingCloudEffectAOOPossible)
-        .Build();
+    );
 }

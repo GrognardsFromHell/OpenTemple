@@ -25,7 +25,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 // Sudden Empower:  Complete Arcane, p. 83
 public class SuddenEmpower
 {
-
     public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Empower");
 
     private static void ApplyEmpower(ref MetaMagicData metaMagicData)
@@ -41,6 +40,5 @@ public class SuddenEmpower
 
     [AutoRegister, FeatCondition("Sudden Empower")]
     public static readonly ConditionSpec Condition = SuddenMetamagic
-        .Create("Sudden Empower Feat", "Sudden Empower", ApplyEmpower)
-        .Build();
+        .Create("Sudden Empower Feat", "Sudden Empower", ApplyEmpower);
 }

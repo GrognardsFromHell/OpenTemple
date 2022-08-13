@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -46,15 +45,15 @@ public class ImprovedRapidShot
             {
                 dispIo.bonlist.AddBonus(2, 0, "Improved Rapid Shot Feat"); // +2 Bonus makes up for the -2 Rapid shot penalty
             }
-
         }
     }
 
     // args are just-in-case placeholders
 
     [FeatCondition("Improved Rapid Shot")]
-    [AutoRegister] public static readonly ConditionSpec impRapidShot = ConditionSpec.Create("Improved Rapid Shot Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.ToHitBonus2, impRapidShotHitBonus)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec impRapidShot = ConditionSpec.Create("Improved Rapid Shot Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ToHitBonus2, impRapidShotHitBonus)
+        );
 }

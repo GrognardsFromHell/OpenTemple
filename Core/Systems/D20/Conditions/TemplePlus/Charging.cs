@@ -12,7 +12,7 @@ public class Charging
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec ChargingExtension = ConditionSpec.Extend(StatusEffects.Charging)
+    public static readonly ConditionSpec ChargingExtension = StatusEffects.Charging.Extend(builder => builder
         .AddQueryHandler("Charging", ChargingQuery)
-        .Build();
+    );
 }

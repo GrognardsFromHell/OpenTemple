@@ -12,38 +12,39 @@ public class Wildshape
     // mainly to replace the lack of D20StatusInit callback
     // In vanilla, all the callbacks for *being* wild shaped were part of this condition,
     // but we split it up into the feat for shaping, and the condition for being wild-shaped.
-    [TempleDllLocation(0x102ee3a8)] [AutoRegister]
-    public static readonly ConditionSpec FeatCondition = ConditionSpec.Create("Wild Shape", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.RadialMenuEntry, DruidWildShapeInit) // otherwise you go into init hell
-        .Build();
+    [TempleDllLocation(0x102ee3a8)]
+    [AutoRegister]
+    public static readonly ConditionSpec FeatCondition = ConditionSpec.Create("Wild Shape", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+                .AddHandler(DispatcherType.RadialMenuEntry, DruidWildShapeInit) // otherwise you go into init hell
+        );
 
     // because the wild shape args get overwritten on each init
     [AutoRegister]
-    public static readonly ConditionSpec WildShaped = ConditionSpec.Create("Wild Shaped", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, DruidWildShapedInit)
-        .AddHandler(DispatcherType.RadialMenuEntry, WildShapeRadialMenu)
-        .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, WildShapeCheck)
-        .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, WildShapeMorph)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, WildShapeInit)
-        .AddHandler(DispatcherType.BeginRound, WildShapeBeginRound)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH,
-            WildshapeReplaceStats)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY,
-            WildshapeReplaceStats)
-        .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
-            WildshapeReplaceStats)
-        .AddQueryHandler(D20DispatcherKey.QUE_Polymorphed, WildShapePolymorphedQuery)
-        .AddHandler(DispatcherType.GetCritterNaturalAttacksNum, DruidWildShapeGetNumAttacks)
-        .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, WildShapeCannotCastQuery)
-        .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
-            DruidWildShapeD20StatusInit) // takes care of resetting the item conditions
-        .AddHandler(DispatcherType.GetModelScale, DruidWildShapeScale) // NEW! scales the model too
-        .AddSignalHandler("Deduct Wild Shape Charge", DeductWildshapeCharge)
-        .AddQueryHandler("Wild Shape Charges", GetWildshapeCharges)
-        .AddQueryHandler("Wild Shaped Condition Added", WildshapeConditionAdded)
-        .Build();
+    public static readonly ConditionSpec WildShaped = ConditionSpec.Create("Wild Shaped", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, DruidWildShapedInit)
+            .AddHandler(DispatcherType.RadialMenuEntry, WildShapeRadialMenu)
+            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, WildShapeCheck)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, WildShapeMorph)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, WildShapeInit)
+            .AddHandler(DispatcherType.BeginRound, WildShapeBeginRound)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH,
+                WildshapeReplaceStats)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY,
+                WildshapeReplaceStats)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
+                WildshapeReplaceStats)
+            .AddQueryHandler(D20DispatcherKey.QUE_Polymorphed, WildShapePolymorphedQuery)
+            .AddHandler(DispatcherType.GetCritterNaturalAttacksNum, DruidWildShapeGetNumAttacks)
+            .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, WildShapeCannotCastQuery)
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                DruidWildShapeD20StatusInit) // takes care of resetting the item conditions
+            .AddHandler(DispatcherType.GetModelScale, DruidWildShapeScale) // NEW! scales the model too
+            .AddSignalHandler("Deduct Wild Shape Charge", DeductWildshapeCharge)
+            .AddQueryHandler("Wild Shape Charges", GetWildshapeCharges)
+            .AddQueryHandler("Wild Shaped Condition Added", WildshapeConditionAdded)
+        );
 
     [TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapedInit")]
     private static void DruidWildShapedInit(in DispatcherCallbackArgs evt)
@@ -489,7 +490,6 @@ public class Wildshape
         // Used by the C++ side to make sure the condition does not get added multiple times
         dispIo.return_val = 1;
     }
-
 }
 
 public static class WildshapeExtensions

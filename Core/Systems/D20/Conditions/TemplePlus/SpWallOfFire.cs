@@ -154,15 +154,16 @@ public class SpWallOfFire
         return;
     }
 
-    [AutoRegister] public static readonly ConditionSpec wallOfFire = ConditionSpec.Create("sp-Wall of Fire", 8)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, WallOfFireOnAdd)
-        .AddHandler(DispatcherType.ObjectEvent, D20DispatcherKey.OnEnterAoE, OnWallAoEEntered)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Concentration_Broken, OnConcentrationBroken)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Combat_End, OnCombatEnd)
-        .AddSpellCountdownStandardHook()
-        .AddAoESpellEndStandardHook()
-        .Build(); // oops, Wall of Fire doesn't have Dismiss (but it does have COncentration...)
+    [AutoRegister]
+    public static readonly ConditionSpec wallOfFire = ConditionSpec.Create("sp-Wall of Fire", 8, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, WallOfFireOnAdd)
+            .AddHandler(DispatcherType.ObjectEvent, D20DispatcherKey.OnEnterAoE, OnWallAoEEntered)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Concentration_Broken, OnConcentrationBroken)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Combat_End, OnCombatEnd)
+            .AddSpellCountdownStandardHook()
+            .AddAoESpellEndStandardHook()
+        ); // oops, Wall of Fire doesn't have Dismiss (but it does have COncentration...)
 
     // sp-Wall of fire hit
     // does damage at the beginning of round
@@ -246,14 +247,15 @@ public class SpWallOfFire
         return;
     }
 
-    [AutoRegister] public static readonly ConditionSpec wallOfFireHit = ConditionSpec.Create("sp-Wall of Fire hit", 8)
-        .SetUnique()
-        .AddHandler(DispatcherType.BeginRound, WallOfFireBeginRound)
-        .AddHandler(DispatcherType.ConditionAdd, WallOfFireHitDamage)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Spell_End, EndSpellMod)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Killed, EndSpellMod)
-        .AddHandler(DispatcherType.ObjectEvent, D20DispatcherKey.OnLeaveAoE, OnWallAoEExit)
-        .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Concentration_Broken, EndSpellMod)
-        .AddSpellCountdownStandardHook()
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec wallOfFireHit = ConditionSpec.Create("sp-Wall of Fire hit", 8, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.BeginRound, WallOfFireBeginRound)
+            .AddHandler(DispatcherType.ConditionAdd, WallOfFireHitDamage)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Spell_End, EndSpellMod)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Killed, EndSpellMod)
+            .AddHandler(DispatcherType.ObjectEvent, D20DispatcherKey.OnLeaveAoE, OnWallAoEExit)
+            .AddHandler(DispatcherType.D20Signal, D20DispatcherKey.SIG_Concentration_Broken, EndSpellMod)
+            .AddSpellCountdownStandardHook()
+        );
 }

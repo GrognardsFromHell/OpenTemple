@@ -122,19 +122,21 @@ public class PainTouch
     // Setup the feat
     // Extra, Extra
     [FeatCondition("Pain Touch")]
-    [AutoRegister] public static readonly ConditionSpec PainTouchFeat = ConditionSpec.Create("Pain Touch Feat", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.SpecialAttack, PainTouchFeatOnSpecialAttack)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec PainTouchFeat = ConditionSpec.Create("Pain Touch Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.SpecialAttack, PainTouchFeatOnSpecialAttack)
+        );
 
     // Setup the effect
     // Rounds, Extra
-    [AutoRegister] public static readonly ConditionSpec PainTouchEffect = ConditionSpec.Create("Pain Touch Effect", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.TurnBasedStatusInit, PainTouchEffectTurnBasedStatusInit)
-        .AddHandler(DispatcherType.BeginRound, PainTouchEffectBeginRound)
-        .AddHandler(DispatcherType.Tooltip, PainTouchEffectGetTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, PainTouchEffectGetEffectTooltip)
-        .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_AOOPossible, PainTouchEffectAOOPossible)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec PainTouchEffect = ConditionSpec.Create("Pain Touch Effect", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TurnBasedStatusInit, PainTouchEffectTurnBasedStatusInit)
+            .AddHandler(DispatcherType.BeginRound, PainTouchEffectBeginRound)
+            .AddHandler(DispatcherType.Tooltip, PainTouchEffectGetTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, PainTouchEffectGetEffectTooltip)
+            .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_AOOPossible, PainTouchEffectAOOPossible)
+        );
 }

@@ -48,8 +48,8 @@ public class ArmorTwilight
 
     // spare, spare, inv_idx
     [AutoRegister]
-    public static readonly ConditionSpec Condition = ConditionSpec.Create("Armor Twilight", 3)
-        .SetUnique()
-        .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, TwilightSpellFailure)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Armor Twilight", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, TwilightSpellFailure)
+        );
 }

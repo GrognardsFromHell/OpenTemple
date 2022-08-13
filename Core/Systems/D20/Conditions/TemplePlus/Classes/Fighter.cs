@@ -13,7 +13,8 @@ public class Fighter
 {
     public static readonly Stat ClassId = Stat.level_fighter;
 
-    public static readonly ImmutableList<SelectableFeat> CombatFeats = new [] {
+    public static readonly ImmutableList<SelectableFeat> CombatFeats = new[]
+    {
         FeatId.BLIND_FIGHT, FeatId.POWER_ATTACK, FeatId.CLEAVE, FeatId.GREAT_CLEAVE, FeatId.COMBAT_EXPERTISE,
         FeatId.IMPROVED_DISARM, FeatId.IMPROVED_FEINT, FeatId.IMPROVED_TRIP, FeatId.WHIRLWIND_ATTACK,
         FeatId.COMBAT_REFLEXES, FeatId.DODGE, FeatId.MOBILITY, FeatId.SUPERIOR_EXPERTISE,
@@ -73,6 +74,5 @@ public class Fighter
     };
 
     [TempleDllLocation(0x102f0148)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
-        .Build();
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec);
 }

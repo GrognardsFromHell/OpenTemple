@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -107,13 +106,13 @@ public static class Bard
     };
 
     [TempleDllLocation(0x102effc8)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .AddHandler(DispatcherType.GetBaseCasterLevel, ClassConditions.GrantClassLevelAsCasterLevel, Stat.level_bard)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Activate, OnInitLevelupSpellSelection)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Finalize, OnLevelupSpellsFinalize)
         .AddHandler(DispatcherType.LevelupSystemEvent, D20DispatcherKey.LVL_Spells_Check_Complete, OnLevelupSpellsCheckComplete)
         .AddQueryHandler(D20DispatcherKey.QUE_Get_Arcane_Spell_Failure, BardSpellFailure)
-        .Build();
+    );
 
     public static void OnInitLevelupSpellSelection(in DispatcherCallbackArgs evt)
     {
@@ -127,6 +126,7 @@ public static class Bard
         throw new NotImplementedException();
         // classSpecModule.InitSpellSelection(evt.objHndCaller);
     }
+
     public static void OnLevelupSpellsCheckComplete(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetEvtObjSpellCaster();
@@ -142,6 +142,7 @@ public static class Bard
         //     dispIo.bonlist.AddBonus(-1, 0, 137); // denotes incomplete spell selection
         // }
     }
+
     public static void OnLevelupSpellsFinalize(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetEvtObjSpellCaster();
@@ -186,5 +187,4 @@ public static class Bard
 
         dispIo.return_val += item.GetInt(obj_f.armor_arcane_spell_failure);
     }
-
 }

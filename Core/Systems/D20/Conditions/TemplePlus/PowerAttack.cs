@@ -29,8 +29,7 @@ public class PowerAttack
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec PowerAttackExtension = ConditionSpec
-        .Extend(FeatConditions.PowerAttack)
+    public static readonly ConditionSpec PowerAttackExtension = FeatConditions.PowerAttack.Extend(builder => builder
         .AddQueryHandler("Power Attack Value", PowerAttackValue)
-        .Build();
+    );
 }

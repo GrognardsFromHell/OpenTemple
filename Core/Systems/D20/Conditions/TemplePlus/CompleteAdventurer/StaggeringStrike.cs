@@ -130,21 +130,20 @@ public class StaggeringStrike
     // Apply Effect, Extra
 
     [AutoRegister, FeatCondition("Staggering Strike")]
-    public static readonly ConditionSpec StaggeringStrikeFeat = ConditionSpec.Create("Staggering Strike Feat", 2)
-        .SetUnique()
-        .AddSignalHandler("Sneak Attack Damage Applied", StaggeringStrikeFeatOnSneakAttack)
-        .AddHandler(DispatcherType.DealingDamage2, StaggeringStrikeFeatOnDamage)
-        .Build();
+    public static readonly ConditionSpec StaggeringStrikeFeat = ConditionSpec.Create("Staggering Strike Feat", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddSignalHandler("Sneak Attack Damage Applied", StaggeringStrikeFeatOnSneakAttack)
+            .AddHandler(DispatcherType.DealingDamage2, StaggeringStrikeFeatOnDamage)
+        );
 
     // Rounds, Extra
     [AutoRegister]
-    public static readonly ConditionSpec StaggeringStrikeEffect = ConditionSpec
-        .Create("Staggering Strike Effect", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.TurnBasedStatusInit, StaggeringStrikeEffectTurnBasedStatusInit)
-        .AddHandler(DispatcherType.BeginRound, StaggeringStrikeEffectBeginRound)
-        .AddHandler(DispatcherType.ReceiveHealing, StaggeringStrikeEffectOnHealing)
-        .AddHandler(DispatcherType.Tooltip, StaggeringStrikeEffectGetTooltip)
-        .AddHandler(DispatcherType.EffectTooltip, StaggeringStrikeEffectGetEffectTooltip)
-        .Build();
+    public static readonly ConditionSpec StaggeringStrikeEffect = ConditionSpec.Create("Staggering Strike Effect", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.TurnBasedStatusInit, StaggeringStrikeEffectTurnBasedStatusInit)
+            .AddHandler(DispatcherType.BeginRound, StaggeringStrikeEffectBeginRound)
+            .AddHandler(DispatcherType.ReceiveHealing, StaggeringStrikeEffectOnHealing)
+            .AddHandler(DispatcherType.Tooltip, StaggeringStrikeEffectGetTooltip)
+            .AddHandler(DispatcherType.EffectTooltip, StaggeringStrikeEffectGetEffectTooltip)
+        );
 }

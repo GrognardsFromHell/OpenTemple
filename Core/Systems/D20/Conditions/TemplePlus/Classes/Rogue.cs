@@ -28,7 +28,8 @@ public class Rogue
 {
     public static readonly Stat ClassId = Stat.level_rogue;
 
-    private static readonly ImmutableList<SelectableFeat> BonusFeats = new [] {
+    private static readonly ImmutableList<SelectableFeat> BonusFeats = new[]
+    {
         FeatId.DEFENSIVE_ROLL, FeatId.IMPROVED_EVASION, FeatId.CRIPPLING_STRIKE, FeatId.OPPORTUNIST,
         FeatId.SKILL_MASTERY, FeatId.SLIPPERY_MIND
     }.Select(f => new SelectableFeat(f)).ToImmutableList();
@@ -97,13 +98,13 @@ public class Rogue
     };
 
     [TempleDllLocation(0x102f0360)]
-    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
+    public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec, builder => builder
         .SetQueryResult(D20DispatcherKey.QUE_Critter_Can_Find_Traps, true)
         .AddHandler(DispatcherType.GetAC, ClassConditions.TrapSenseDodgeBonus, Stat.level_rogue)
         .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX,
             ClassConditions.TrapSenseRefSaveBonus, Stat.level_rogue)
         .AddQueryHandler("Sneak Attack Dice", RogueSneakAttackDice)
-        .Build();
+    );
 
     public static void RogueSneakAttackDice(in DispatcherCallbackArgs evt)
     {

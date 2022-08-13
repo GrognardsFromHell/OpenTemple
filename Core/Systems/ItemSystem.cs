@@ -190,7 +190,7 @@ public class ItemSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10065010)]
-    public GameObject ItemWornAt(GameObject wearer, EquipSlot slot)
+    public GameObject? ItemWornAt(GameObject wearer, EquipSlot slot)
     {
         if (wearer == null)
         {
@@ -3705,7 +3705,7 @@ public class ItemSystem : IGameSystem
         SizeCategory weaponSize;
 
         var critterSize = (SizeCategory) critter.GetStat(Stat.size);
-        switch ( wpnType )
+        switch (wpnType)
         {
             case WeaponType.light_mace:
             case WeaponType.sickle:
@@ -3806,7 +3806,8 @@ public class ItemSystem : IGameSystem
         // This checks that the PC has at least one level in any of the classes
         Stat stat;
         var classIndex = 0;
-        while (classIndex <= D20ClassSystem.VanillaClasses.Length) {
+        while (classIndex <= D20ClassSystem.VanillaClasses.Length)
+        {
             stat = D20ClassSystem.VanillaClasses[classIndex];
             if (pc.GetStat(stat) > 0)
             {
@@ -3824,13 +3825,16 @@ public class ItemSystem : IGameSystem
 
         // Modify for "small" races
         var race = GameSystems.Critter.GetRace(pc, true);
-        if (race == RaceId.halfling || race == RaceId.gnome) {
+        if (race == RaceId.halfling || race == RaceId.gnome)
+        {
             key += 100;
         }
 
-        if (content.TryGetValue(key, out var it)) {
+        if (content.TryGetValue(key, out var it))
+        {
             var protoIds = it.Split(' ');
-            foreach (var protoIdStr  in  protoIds) {
+            foreach (var protoIdStr in protoIds)
+            {
                 var protoId = int.Parse(protoIdStr.Trim());
                 GiveItemByProto(pc, (ushort) protoId);
             }
@@ -3841,7 +3845,6 @@ public class ItemSystem : IGameSystem
 
         WieldBestAll(pc);
     }
-
 }
 
 public enum ItemErrorCode
@@ -4067,5 +4070,4 @@ public static class ItemExtensions
         // TODO: The implementation of this is SUPER unsafe because it doesn't actually check which one it removes!!
         throw new NotImplementedException();
     }
-
 }

@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -23,7 +22,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 
 public class PowerfulCharge
 {
-
     public static void PowerfulChargeBeginRound(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20Signal();
@@ -100,9 +98,10 @@ public class PowerfulCharge
 
     // userd this round, spare
     [FeatCondition("Powerful Charge")]
-    [AutoRegister] public static readonly ConditionSpec powerfulCharge = ConditionSpec.Create("Powerful Charge", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, PowerfulChargeDamageBonus)
-        .AddHandler(DispatcherType.BeginRound, PowerfulChargeBeginRound)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec powerfulCharge = ConditionSpec.Create("Powerful Charge", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, PowerfulChargeDamageBonus)
+            .AddHandler(DispatcherType.BeginRound, PowerfulChargeBeginRound)
+        );
 }

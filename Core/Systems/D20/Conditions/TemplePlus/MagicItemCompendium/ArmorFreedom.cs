@@ -25,8 +25,8 @@ public class ArmorFreedom
 {
     // spare, spare, inv_idx
     [AutoRegister]
-    public static readonly ConditionSpec armorFreedom = ConditionSpec.Create("Armor Freedom", 3)
-        .SetUnique()
-        .SetQueryResult(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, true)
-        .Build();
+    public static readonly ConditionSpec armorFreedom = ConditionSpec.Create("Armor Freedom", 3, UniquenessType.Unique)
+        .Configure(builder => builder
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, true)
+        );
 }

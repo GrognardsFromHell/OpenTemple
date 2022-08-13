@@ -49,13 +49,13 @@ public class Troll
         feats = {FeatId.SIMPLE_WEAPON_PROFICIENCY, FeatId.MARTIAL_WEAPON_PROFICIENCY}
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddFavoredClassHook(Stat.level_fighter)
-        .AddSaveThrowBonusHook(SavingThrowType.Fortitude, 5)
-        .AddSaveThrowBonusHook(SavingThrowType.Will, 2)
-        .AddSaveThrowBonusHook(SavingThrowType.Reflex, 2)
-        .AddBaseMoveSpeed(30)
-        .Build();
-
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddFavoredClassHook(Stat.level_fighter)
+            .AddSaveThrowBonusHook(SavingThrowType.Fortitude, 5)
+            .AddSaveThrowBonusHook(SavingThrowType.Will, 2)
+            .AddSaveThrowBonusHook(SavingThrowType.Reflex, 2)
+            .AddBaseMoveSpeed(30)
+        );
 }

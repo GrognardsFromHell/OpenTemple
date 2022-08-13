@@ -46,9 +46,9 @@ public class GreaterTurnUndead
         evt.SetConditionArg2(1); // One Charge Per Day
     }
 
-    [AutoRegister] public static readonly ConditionSpec GreaterTurningExtension = ConditionSpec
-        .Extend(DomainConditions.GreaterTurning)
+    [AutoRegister]
+    public static readonly ConditionSpec GreaterTurningExtension = DomainConditions.GreaterTurning.Extend(builder => builder
         .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, OnNewDay)
         .AddSignalHandler("Deduct Greater Turn Undead Charge", DeductGreaterTurnUndeadCharge)
-        .Build();
+    );
 }

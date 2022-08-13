@@ -15,7 +15,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions;
 
 public static class ClassConditions
 {
-
     public static void GrantClassLevelAsCasterLevel(in DispatcherCallbackArgs evt, Stat classEnum)
     {
         var dispIo = evt.GetEvtObjSpellCaster();
@@ -41,9 +40,10 @@ public static class ClassConditions
     }
 
     [TempleDllLocation(0x102f0604)]
-    public static readonly ConditionSpec SchoolSpecialization = ConditionSpec.Create("School Specialization")
-        .AddSkillLevelHandler(SkillId.spellcraft, SchoolSpecializationSkillLevel)
-        .Build();
+    public static readonly ConditionSpec SchoolSpecialization = ConditionSpec.Create("School Specialization", 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddSkillLevelHandler(SkillId.spellcraft, SchoolSpecializationSkillLevel)
+        );
 
     [DispTypes(DispatcherType.GetAC)]
     [TempleDllLocation(0x100feac0)]

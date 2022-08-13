@@ -37,21 +37,22 @@ public class Drow
         }
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSaveThrowBonusHook(SavingThrowType.Will, 2)
-        .AddSkillBonuses(
-            (SkillId.listen, 2),
-            (SkillId.search, 2),
-            (SkillId.spot, 2)
-        )
-        .AddBaseMoveSpeed(30)
-        .AddHandler(DispatcherType.SpellResistanceMod, OnGetSpellResistance)
-        .AddHandler(DispatcherType.Tooltip, OnGetSpellResistanceTooltip)
-        .AddHandler(DispatcherType.SaveThrowLevel, ElvenSaveBonusEnchantment)
-        .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_FavoredClass, OnGetFavoredClass)
-        .AddHandler(DispatcherType.ConditionAddPre, ConditionImmunityOnPreAdd)
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSaveThrowBonusHook(SavingThrowType.Will, 2)
+            .AddSkillBonuses(
+                (SkillId.listen, 2),
+                (SkillId.search, 2),
+                (SkillId.spot, 2)
+            )
+            .AddBaseMoveSpeed(30)
+            .AddHandler(DispatcherType.SpellResistanceMod, OnGetSpellResistance)
+            .AddHandler(DispatcherType.Tooltip, OnGetSpellResistanceTooltip)
+            .AddHandler(DispatcherType.SaveThrowLevel, ElvenSaveBonusEnchantment)
+            .AddHandler(DispatcherType.D20Query, D20DispatcherKey.QUE_FavoredClass, OnGetFavoredClass)
+            .AddHandler(DispatcherType.ConditionAddPre, ConditionImmunityOnPreAdd)
+        );
 
     public static void ElvenSaveBonusEnchantment(in DispatcherCallbackArgs evt)
     {

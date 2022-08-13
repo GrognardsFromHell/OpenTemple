@@ -13,24 +13,25 @@ public static class BardicMusic
 {
     private static readonly int bardFascEnum = 801;
 
-    [TempleDllLocation(0x102f0520)] [AutoRegister]
-    public static readonly ConditionSpec Condition = ConditionSpec.Create("Bardic Music", 6)
-        .SetUnique()
-        .AddHandler(DispatcherType.ConditionAdd, BardicMusicInitCallback, 0)
-        .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, BardicMusicInitCallback, 1)
-        .AddHandler(DispatcherType.RadialMenuEntry, BardicMusicRadial)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_COPY_SCROLL,
-            CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-        .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_COPY_SCROLL, BardicMusicCheck, 0)
-        .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_COPY_SCROLL,
-            BardicMusicActionFrame)
-        .AddHandler(DispatcherType.BeginRound, BardicMusicBeginRound)
-        .AddSignalHandler(D20DispatcherKey.SIG_Sequence, BardicMusicOnSequence)
-        .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-        .AddQueryHandler("Bardic Music Type", GetBardicMusicType)
-        .AddSignalHandler("Bardic Music End", BardicMusicEnd)
-        .AddQueryHandler("Max Bardic Music", QueryMaxBardicMusic)
-        .Build();
+    [TempleDllLocation(0x102f0520)]
+    [AutoRegister]
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Bardic Music", 6, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.ConditionAdd, BardicMusicInitCallback, 0)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, BardicMusicInitCallback, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, BardicMusicRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_COPY_SCROLL,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_COPY_SCROLL, BardicMusicCheck, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_COPY_SCROLL,
+                BardicMusicActionFrame)
+            .AddHandler(DispatcherType.BeginRound, BardicMusicBeginRound)
+            .AddSignalHandler(D20DispatcherKey.SIG_Sequence, BardicMusicOnSequence)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddQueryHandler("Bardic Music Type", GetBardicMusicType)
+            .AddSignalHandler("Bardic Music End", BardicMusicEnd)
+            .AddQueryHandler("Max Bardic Music", QueryMaxBardicMusic)
+        );
 
     [DispTypes(DispatcherType.D20ActionOnActionFrame)]
     [TempleDllLocation(0x100fe570)]

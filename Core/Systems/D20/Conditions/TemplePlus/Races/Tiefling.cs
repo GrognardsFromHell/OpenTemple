@@ -42,14 +42,15 @@ public class Tiefling
         useBaseRaceForDeity = true
     };
 
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSkillBonuses((SkillId.bluff, 2), (SkillId.hide, 2))
-        .AddBaseMoveSpeed(30)
-        .AddFavoredClassHook(Stat.level_rogue)
-        .AddDamageResistances(
-            (DamageType.Fire, 5),
-            (DamageType.Cold, 5),
-            (DamageType.Electricity, 5))
-        .Build();
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSkillBonuses((SkillId.bluff, 2), (SkillId.hide, 2))
+            .AddBaseMoveSpeed(30)
+            .AddFavoredClassHook(Stat.level_rogue)
+            .AddDamageResistances(
+                (DamageType.Fire, 5),
+                (DamageType.Cold, 5),
+                (DamageType.Electricity, 5))
+        );
 }

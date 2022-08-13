@@ -24,7 +24,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 // Sudden Enlarge:  Miniatures Handbook, p. 28
 public class SuddenEnlarge
 {
-
     public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Enlarge");
 
     public static void ApplyEnlarge(ref MetaMagicData metaMagicData)
@@ -40,7 +39,7 @@ public class SuddenEnlarge
 
     // Charges, Toggeled On, Spare, Spare
     [FeatCondition("Sudden Enlarge")]
-    [AutoRegister] public static readonly ConditionSpec Condition = SuddenMetamagic
-        .Create("Sudden Enlarge Feat", "Sudden Enlarge", ApplyEnlarge)
-        .Build();
+    [AutoRegister]
+    public static readonly ConditionSpec Condition = SuddenMetamagic
+        .Create("Sudden Enlarge Feat", "Sudden Enlarge", ApplyEnlarge);
 }

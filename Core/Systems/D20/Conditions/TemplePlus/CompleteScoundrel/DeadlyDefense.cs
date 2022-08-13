@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -85,15 +84,14 @@ public class DeadlyDefense
                 var damage_dice = Dice.D6;
                 dispIo.damage.AddDamageDice(damage_dice, DamageType.Unspecified, 127);
             }
-
         }
     }
 
     // args are just-in-case placeholders
     [FeatCondition("Deadly Defense")]
-    [AutoRegister] public static readonly ConditionSpec Condition = ConditionSpec.Create("Deadly Defense", 2)
-        .SetUnique()
-        .AddHandler(DispatcherType.DealingDamage, DeadlyDefenseDamageBonus)
-        .Build();
-
+    [AutoRegister]
+    public static readonly ConditionSpec Condition = ConditionSpec.Create("Deadly Defense", 2, UniquenessType.Unique)
+        .Configure(builder => builder
+            .AddHandler(DispatcherType.DealingDamage, DeadlyDefenseDamageBonus)
+        );
 }

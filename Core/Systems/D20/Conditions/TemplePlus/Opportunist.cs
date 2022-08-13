@@ -29,7 +29,7 @@ public class Opportunist
     }
 
     [AutoRegister]
-    public static readonly ConditionSpec OpportunistExtension = ConditionSpec.Extend(FeatConditions.Opportunist)
+    public static readonly ConditionSpec OpportunistExtension = FeatConditions.Opportunist.Extend(builder => builder
         .AddHandler(DispatcherType.BeginRound, OpportunistReset)
-        .Build();
+    );
 }

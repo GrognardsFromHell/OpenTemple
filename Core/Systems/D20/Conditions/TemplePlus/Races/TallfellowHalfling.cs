@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
@@ -24,7 +23,6 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 [AutoRegister]
 public class TallfellowHalfling
 {
-
     private const RaceId Id = RaceId.halfling + (1 << 5);
 
     public static readonly RaceSpec RaceSpec = new(Id, RaceBase.halfling, Subrace.tallfellow)
@@ -42,20 +40,21 @@ public class TallfellowHalfling
         materialOffset = 12, // offset into rules/material_ext.mes file
         useBaseRaceForDeity = true
     };
-        
-    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName)
-        .AddAbilityModifierHooks(RaceSpec)
-        .AddSkillBonuses(
-            (SkillId.spot,2),
-            (SkillId.search,2),
-            (SkillId.listen,2),
-            (SkillId.hide,4)
-        )
-        .AddBaseMoveSpeed(20)
-        .AddFavoredClassHook(Stat.level_rogue)
-        .AddHandler(DispatcherType.SaveThrowLevel, HalflingSaveBonus)
-        .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusSlingsThrownWeapons)
-        .Build();
+
+    public static readonly ConditionSpec Condition = ConditionSpec.Create(RaceSpec.conditionName, 0, UniquenessType.NotUnique)
+        .Configure(builder => builder
+            .AddAbilityModifierHooks(RaceSpec)
+            .AddSkillBonuses(
+                (SkillId.spot, 2),
+                (SkillId.search, 2),
+                (SkillId.listen, 2),
+                (SkillId.hide, 4)
+            )
+            .AddBaseMoveSpeed(20)
+            .AddFavoredClassHook(Stat.level_rogue)
+            .AddHandler(DispatcherType.SaveThrowLevel, HalflingSaveBonus)
+            .AddHandler(DispatcherType.ToHitBonus2, OnGetToHitBonusSlingsThrownWeapons)
+        );
 
     public static void HalflingSaveBonus(in DispatcherCallbackArgs evt)
     {
@@ -93,5 +92,4 @@ public class TallfellowHalfling
         }
     }
     // Note:  Adding the size +4 bonus to hide as a racial bonus since setting size to small does not grant the bonus
-
 }
