@@ -7,7 +7,7 @@ namespace OpenTemple.Core.TigSubsystems;
 
 public class HeadlessMainWindow : IMainWindow
 {
-    public void SetWindowMsgFilter(WindowMsgFilter filter)
+    public void SetWindowMsgFilter(SDLEventFilter filter)
     {
     }
 
@@ -37,6 +37,10 @@ public class HeadlessMainWindow : IMainWindow
     }
 
     public bool IsCursorVisible { get; set; }
+    
+    public void ProcessEvents()
+    {
+    }
 
     public void Dispose()
     {

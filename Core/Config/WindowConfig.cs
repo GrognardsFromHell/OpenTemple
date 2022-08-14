@@ -15,6 +15,8 @@ public class WindowConfig
 
     public int MinHeight = 768;
 
+    public bool DisableScreenSaver = true;
+
     public int Width { get; set; } = 1024;
 
     public int Height { get; set; } = 768;

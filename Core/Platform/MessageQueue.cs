@@ -100,6 +100,8 @@ public struct MessageKeyStateChangeArgs
 {
     public DIK key;
     public bool down;
+    public bool modAlt;
+    public bool modCtrl;
 }
 
 public readonly struct MessageCharArgs

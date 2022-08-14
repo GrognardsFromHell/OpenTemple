@@ -84,7 +84,7 @@ public class MouseWheelWindowEvent : MouseWindowEvent
 
 public interface IMainWindow : IDisposable
 {
-    void SetWindowMsgFilter(WindowMsgFilter filter);
+    void SetWindowMsgFilter(SDLEventFilter filter);
 
     /// <summary>
     /// Subscribe to this event to receive input-related window events.
@@ -113,4 +113,6 @@ public interface IMainWindow : IDisposable
     void SetCursor(int hotspotX, int hotspotY, string imagePath);
 
     bool IsCursorVisible { set; }
+    
+    void ProcessEvents();
 }

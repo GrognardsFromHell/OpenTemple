@@ -10,26 +10,26 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="ImGui.NET" Version="1.69.0"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview4.19216.2"/>
-        <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0"/>
-        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0"/>
-        <PackageReference Include="SharpDX.Mathematics" Version="4.2.0"/>
+        <PackageReference Include="ImGui.NET" Version="1.87.3" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview4.19216.2" />
+        <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
 
-        <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.152"/>
-        <PackageReference Include="FfmpegBink.Interop" Version="1.0.0-pre.31"/>
+        <PackageReference Include="OpenTemple.Interop" Version="1.6.0-pre.155" />
+        <PackageReference Include="FfmpegBink.Interop" Version="1.0.0-pre.31" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="DebugUI\Roboto-Medium.ttf"/>
+        <None Remove="DebugUI\Roboto-Medium.ttf" />
         <Content Include="DebugUI\Roboto-Medium.ttf">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Utils\elfhashes.json"/>
-        <EmbeddedResource Include="Utils\elfhashes.json"/>
+        <None Remove="Utils\elfhashes.json" />
+        <EmbeddedResource Include="Utils\elfhashes.json" />
     </ItemGroup>
 
 </Project>
