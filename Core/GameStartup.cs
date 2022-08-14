@@ -1,10 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GFX.TextRendering;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup;
@@ -16,8 +13,6 @@ using OpenTemple.Core.Ui.Assets;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Styles;
 
-[assembly: InternalsVisibleTo("OpenTemple.Tests")]
-
 namespace OpenTemple.Core;
 
 public class GameStartup : IDisposable
@@ -26,7 +21,10 @@ public class GameStartup : IDisposable
 
     private readonly SingleInstanceCheck _singleInstanceCheck = new ();
 
-    public string DataFolder { get; set; }
+    /// <summary>
+    /// Try to auto-detect OpenTemples data folder if null.
+    /// </summary>
+    public string? DataFolder { get; set; }
 
     public bool Startup()
     {

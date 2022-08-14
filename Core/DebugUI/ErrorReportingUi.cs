@@ -1,10 +1,8 @@
 using System;
 using System.Numerics;
 using ImGuiNET;
-using OpenTemple.Core.Platform;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
-using OpenTemple.Interop;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.DebugUI;
 
@@ -101,10 +99,7 @@ public static class ErrorReportingUi
         ImGui.SameLine();
         if (ImGui.Button("Copy to Clipboard"))
         {
-            if (Tig.MainWindow is MainWindow nativeMainWindow)
-            {
-                NativePlatform.SetClipboardText(nativeMainWindow.NativeHandle, currentErrorText);
-            }
+            SDL_SetClipboardText(currentErrorText);
         }
 
         ImGui.End(); // Window

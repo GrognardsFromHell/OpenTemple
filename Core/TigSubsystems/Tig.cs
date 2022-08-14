@@ -169,7 +169,7 @@ public static class Tig
         }
     }
 
-    public static IFileSystem CreateFileSystem(string installationFolder, string dataDirectory)
+    public static IFileSystem CreateFileSystem(string installationFolder, string? dataDirectory)
     {
         Logger.Info("Using ToEE installation from '{0}'", installationFolder);
 
@@ -240,7 +240,7 @@ public static class Tig
 
 public class TigSettings
 {
-    public string DataFolder { get; set; }
+    public string? DataFolder { get; set; }
 
     public bool OffScreen { get; set; }
 

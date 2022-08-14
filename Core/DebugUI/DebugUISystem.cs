@@ -53,7 +53,7 @@ public class DebugUiSystem : IDebugUI, IDisposable
         // This is used for IME only.
         if (mainWindow is MainWindow realMainWindow)
         {
-            _backend = new ImGuiBackend(realMainWindow.SDLWindow);
+            _backend = new ImGuiBackend(realMainWindow);
             mainWindow.SetWindowMsgFilter(_backend.ProcessEvent);
         }
     }

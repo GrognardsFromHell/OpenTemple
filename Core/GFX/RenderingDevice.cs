@@ -340,7 +340,6 @@ public class RenderingDevice : IDisposable
     }
 
     [DllImport("OpenTemple.Native")]
-    [SuppressUnmanagedCodeSecurity]
     private static extern unsafe bool Win32_GetMonitorName(IntPtr monitorHandle, char* name, ref int nameSize);
 
     // Resize the back buffer

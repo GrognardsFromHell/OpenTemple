@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
+using OpenTemple.Core.Platform;
 using SDL2;
 
 namespace OpenTemple.Core.DebugUI;
@@ -15,6 +16,7 @@ using static SDL;
 /// </summary>
 public class ImGuiBackend : IDisposable
 {
+    private readonly MainWindow _mainWindow;
     private readonly IntPtr _window;
     private readonly bool _mouseCanUseGlobalState;
     private readonly Dictionary<ImGuiMouseCursor, IntPtr> _mouseCursors = new();
@@ -22,9 +24,13 @@ public class ImGuiBackend : IDisposable
     private int _pendingMouseLeaveFrame;
     private IntPtr _clipboardTextData;
     private GCHandle _gcHandle;
+    private bool _cursorOverridden;
 
-    public ImGuiBackend(IntPtr window)
+    public ImGuiBackend(MainWindow mainWindow)
     {
+        _mainWindow = mainWindow;
+        _window = mainWindow.SDLWindow;
+
         var io = ImGui.GetIO();
         Trace.Assert(io.BackendPlatformUserData == IntPtr.Zero, "Already initialized a platform backend!");
 
@@ -39,7 +45,6 @@ public class ImGuiBackend : IDisposable
         io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors; // We can honor GetMouseCursor() values (optional)
         io.BackendFlags |= ImGuiBackendFlags.HasSetMousePos; // We can honor io.WantSetMousePos requests (optional, rarely used)
 
-        _window = window;
         _mouseCanUseGlobalState = mouseCanUseGlobalState;
 
         _gcHandle = GCHandle.Alloc(this);
@@ -62,13 +67,8 @@ public class ImGuiBackend : IDisposable
         _mouseCursors[ImGuiMouseCursor.NotAllowed] = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO);
 
         // Set platform dependent data in viewport
-        SDL_SysWMinfo info = default;
-        SDL_VERSION(out info.version);
-        if (SDL_GetWindowWMInfo(window, ref info) == SDL_bool.SDL_TRUE && info.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS)
-        {
-            var mainViewport = ImGui.GetMainViewport();
-            mainViewport.PlatformHandleRaw = info.info.win.window;
-        }
+        var mainViewport = ImGui.GetMainViewport();
+        mainViewport.PlatformHandleRaw = mainWindow.NativeHandle;
 
         // Set SDL hint to receive mouse click events on window focus, otherwise SDL doesn't emit the event.
         // Without this, when clicking to gain focus, our widgets wouldn't activate even though they showed as hovered.
@@ -257,18 +257,26 @@ public class ImGuiBackend : IDisposable
         if ((io.ConfigFlags & ImGuiConfigFlags.NoMouseCursorChange) != 0)
             return;
 
-        ImGuiMouseCursor imguiCursor = ImGui.GetMouseCursor();
-        if (io.MouseDrawCursor || imguiCursor == ImGuiMouseCursor.None)
+        if (io.WantCaptureMouse)
         {
-            // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-            SDL_ShowCursor(SDL_DISABLE);
+            _cursorOverridden = true;
+            var imguiCursor = ImGui.GetMouseCursor();
+            if (imguiCursor == ImGuiMouseCursor.None)
+            {
+                SDL_ShowCursor(SDL_DISABLE);
+            }
+            else
+            {
+                var cursor = _mouseCursors.GetValueOrDefault(imguiCursor, _mouseCursors[ImGuiMouseCursor.Arrow]);
+                SDL_SetCursor(cursor);
+                SDL_ShowCursor(SDL_ENABLE);
+            }
         }
-        else
+        else if (_cursorOverridden)
         {
-            // Show OS mouse cursor
-            var cursor = _mouseCursors.GetValueOrDefault(imguiCursor, _mouseCursors[ImGuiMouseCursor.Arrow]);
-            SDL_SetCursor(cursor);
-            SDL_ShowCursor(SDL_ENABLE);
+            // Reset back to previous cursor
+            _cursorOverridden = false;
+            _mainWindow.UpdateCursor();
         }
     }
 

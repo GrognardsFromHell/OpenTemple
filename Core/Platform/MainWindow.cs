@@ -3,18 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
-using SDL2;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Platform;
 
-public delegate bool SDLEventFilter(ref SDL.SDL_Event e);
+public delegate bool SDLEventFilter(ref SDL_Event e);
 
 public class MainWindow : IMainWindow
 {
+    // The window class name used for RegisterClass and CreateWindow.
+    private const string WindowClassName = "OpenTempleMainWnd";
+    private const string WindowTitle = "OpenTemple";
+
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     private WindowConfig _config;
@@ -35,62 +38,17 @@ public class MainWindow : IMainWindow
     // Used to determine whether a MouseEnter event should be emitted when a mouse event is received
     private bool _mouseFocus;
 
-    public MainWindow(WindowConfig config, IFileSystem fs)
-    {
-        try
-        {
-            WindowsPlatform.RegisterWindowClass(WindowClassName);
-        }
-        catch (EntryPointNotFoundException)
-        {
-        }
-
-        if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
-        {
-            throw new SDLException("Failed to initialize video subsystem.");
-        }
-
-        _fs = fs;
-        _config = config.Copy();
-        if (_config.Width < _config.MinWidth)
-        {
-            _config.Width = _config.MinWidth;
-        }
-
-        if (_config.Height < _config.MinHeight)
-        {
-            _config.Height = _config.MinHeight;
-        }
-
-        CreateWindow();
-        UpdateUiCanvasSize();
-    }
-
-
-    public void Dispose()
-    {
-        if (_window != IntPtr.Zero)
-        {
-            if (_config.DisableScreenSaver)
-            {
-                SDL.SDL_EnableScreenSaver();
-            }
-
-            SDL.SDL_DestroyWindow(_window);
-            try
-            {
-                WindowsPlatform.UnregisterWindowClass();
-            }
-            catch (EntryPointNotFoundException)
-            {
-            }
-
-            _window = IntPtr.Zero;
-            _windowId = 0;
-        }
-    }
-
     public Size Size => new(_width, _height);
+
+    private readonly IFileSystem _fs;
+    private IntPtr _windowHandle;
+    private int _width;
+    private int _height;
+
+    // Caches for cursors
+    private readonly Dictionary<string, IntPtr> _cursorCache = new();
+    private IntPtr _defaultCursor;
+    private IntPtr _currentCursor = IntPtr.Zero;
 
     public WindowConfig WindowConfig
     {
@@ -110,18 +68,18 @@ public class MainWindow : IMainWindow
                     out _
                 );
 
-                SDL.SDL_SetWindowFullscreen(
+                SDL_SetWindowFullscreen(
                     _window,
-                    (uint) (_config.Windowed ? 0 : SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP)
+                    (uint) (_config.Windowed ? 0 : SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP)
                 );
 
                 if (_config.Windowed)
                 {
-                    SDL.SDL_SetWindowPosition(_window, x, y);
-                    SDL.SDL_SetWindowSize(_window, width, height);
+                    SDL_SetWindowPosition(_window, x, y);
+                    SDL_SetWindowSize(_window, width, height);
                     if (_config.Maximized)
                     {
-                        SDL.SDL_MaximizeWindow(_window);
+                        SDL_MaximizeWindow(_window);
                     }
                 }
             }
@@ -130,9 +88,7 @@ public class MainWindow : IMainWindow
 
     public bool IsInForeground { get; set; } = true;
 
-    public event Action<bool> IsInForegroundChanged;
-
-    private bool unsetClip = false;
+    public event Action<bool>? IsInForegroundChanged;
 
     public event Action<WindowEvent>? OnInput;
 
@@ -169,21 +125,83 @@ public class MainWindow : IMainWindow
         {
             if (value)
             {
-                if (_currentCursor != IntPtr.Zero)
-                {
-                    Cursor.SetCursor(_windowHandle, _currentCursor);
-                }
+                SDL_ShowCursor(SDL_ENABLE);
+                UpdateCursor();
             }
             else
             {
-                Cursor.HideCursor(_windowHandle);
+                SDL_ShowCursor(SDL_DISABLE);
             }
+        }
+    }
+
+    public MainWindow(WindowConfig config, IFileSystem fs)
+    {
+        try
+        {
+            WindowsPlatform.RegisterWindowClass(WindowClassName);
+        }
+        catch (EntryPointNotFoundException)
+        {
+        }
+
+        if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        {
+            throw new SDLException("Failed to initialize video subsystem.");
+        }
+
+        _defaultCursor = SDL_CreateSystemCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
+        _fs = fs;
+        _config = config.Copy();
+        if (_config.Width < _config.MinWidth)
+        {
+            _config.Width = _config.MinWidth;
+        }
+
+        if (_config.Height < _config.MinHeight)
+        {
+            _config.Height = _config.MinHeight;
+        }
+
+        CreateWindow();
+        UpdateUiCanvasSize();
+    }
+
+    public void Dispose()
+    {
+        if (_window != IntPtr.Zero)
+        {
+            if (_config.DisableScreenSaver)
+            {
+                SDL_EnableScreenSaver();
+            }
+
+            SDL_DestroyWindow(_window);
+            try
+            {
+                WindowsPlatform.UnregisterWindowClass();
+            }
+            catch (EntryPointNotFoundException)
+            {
+            }
+            
+            SDL_FreeCursor(_defaultCursor);
+            _defaultCursor = IntPtr.Zero;
+            foreach (var cursor in _cursorCache.Values)
+            {
+                SDL_FreeCursor(cursor);
+            }
+            _cursorCache.Clear();
+            _currentCursor = IntPtr.Zero;
+
+            _window = IntPtr.Zero;
+            _windowId = 0;
         }
     }
 
     public void ProcessEvents()
     {
-        while (SDL.SDL_PollEvent(out var e) != 0)
+        while (SDL_PollEvent(out var e) != 0)
         {
             if (_eventFilter != null && _eventFilter(ref e))
             {
@@ -192,34 +210,34 @@ public class MainWindow : IMainWindow
             
             switch (e.type)
             {
-                case SDL.SDL_EventType.SDL_APP_TERMINATING:
-                case SDL.SDL_EventType.SDL_QUIT:
+                case SDL_EventType.SDL_APP_TERMINATING:
+                case SDL_EventType.SDL_QUIT:
                     Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs(0)));
                     Closed?.Invoke();
                     return;
-                case SDL.SDL_EventType.SDL_WINDOWEVENT:
+                case SDL_EventType.SDL_WINDOWEVENT:
                     HandleWindowEvent(ref e.window);
                     return;
                 
-                case SDL.SDL_EventType.SDL_KEYDOWN:
-                case SDL.SDL_EventType.SDL_KEYUP:
+                case SDL_EventType.SDL_KEYDOWN:
+                case SDL_EventType.SDL_KEYUP:
                     HandleKeyEvent(ref e.key);
                     break;
                 
-                case SDL.SDL_EventType.SDL_TEXTINPUT:
+                case SDL_EventType.SDL_TEXTINPUT:
                     HandleTextInputEvent(ref e.text);
                     break;
 
-                case SDL.SDL_EventType.SDL_MOUSEMOTION:
+                case SDL_EventType.SDL_MOUSEMOTION:
                     HandleMouseMoveEvent(WindowEventType.MouseMove, ref e.motion);
                     break;
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                case SDL_EventType.SDL_MOUSEBUTTONDOWN:
                     HandleMouseButtonEvent(WindowEventType.MouseDown, ref e.button);
                     break;
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                case SDL_EventType.SDL_MOUSEBUTTONUP:
                     HandleMouseButtonEvent(WindowEventType.MouseUp, ref e.button);
                     break;
-                case SDL.SDL_EventType.SDL_MOUSEWHEEL:
+                case SDL_EventType.SDL_MOUSEWHEEL:
                     HandleMouseWheelEvent(ref e.wheel);
                     break;
                 default:
@@ -228,7 +246,7 @@ public class MainWindow : IMainWindow
         }
     }
 
-    private unsafe void HandleTextInputEvent(ref SDL.SDL_TextInputEvent e)
+    private unsafe void HandleTextInputEvent(ref SDL_TextInputEvent e)
     {
         var maxCharCount = System.Text.Encoding.UTF8.GetMaxCharCount(32);
         var chars = stackalloc char[maxCharCount];
@@ -249,7 +267,7 @@ public class MainWindow : IMainWindow
         }
     }
 
-    private void HandleKeyEvent(ref SDL.SDL_KeyboardEvent e)
+    private void HandleKeyEvent(ref SDL_KeyboardEvent e)
     {
         // Ignore keyboard events for other windows
         if (e.windowID != _windowId)
@@ -257,15 +275,15 @@ public class MainWindow : IMainWindow
             return;
         }
         
-        var down = e.state == SDL.SDL_PRESSED;
+        var down = e.state == SDL_PRESSED;
         var repeat = e.repeat != 0;
 
         var keysym = e.keysym;
-        var modAlt = (keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0;
-        var modCtrl = (keysym.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
+        var modAlt = (keysym.mod & SDL_Keymod.KMOD_ALT) != 0;
+        var modCtrl = (keysym.mod & SDL_Keymod.KMOD_CTRL) != 0;
         
         // Handle Alt+Enter here
-        if (modAlt && keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RETURN)
+        if (modAlt && keysym.scancode == SDL_Scancode.SDL_SCANCODE_RETURN)
         {
             // Ignore repeats, trigger on down
             if (!repeat && down)
@@ -294,7 +312,7 @@ public class MainWindow : IMainWindow
         }
     }
 
-    private void HandleWindowEvent(ref SDL.SDL_WindowEvent e)
+    private void HandleWindowEvent(ref SDL_WindowEvent e)
     {
         // Ignore events for other windows
         if (e.windowID != _windowId)
@@ -304,9 +322,9 @@ public class MainWindow : IMainWindow
         
         switch (e.windowEvent)
         {
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_EXPOSED:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_EXPOSED:
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
             {
                 var width = e.data1;
                 var height = e.data2;
@@ -339,26 +357,26 @@ public class MainWindow : IMainWindow
 
                 break;
             }
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
                 if (_config.Windowed)
                 {
                     // If the window was maximized by the user, store that in the config
-                    _config.Maximized = e.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED;
+                    _config.Maximized = e.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED;
                     Globals.Config.Window.Maximized = _config.Maximized;
                     Globals.ConfigManager.Save();
                 }
 
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
                 HandleMouseFocusEvent(true);
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
                 HandleMouseFocusEvent(false);
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
                 Logger.Debug("Main window gained keyboard focus.");
 
                 if (!IsInForeground)
@@ -368,7 +386,7 @@ public class MainWindow : IMainWindow
                 }
 
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
                 Logger.Debug("Main window lost keyboard focus.");
 
                 if (IsInForeground)
@@ -378,16 +396,16 @@ public class MainWindow : IMainWindow
                 }
 
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                 Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs(1)));
                 Closed?.Invoke();
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_TAKE_FOCUS:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_TAKE_FOCUS:
                 Logger.Debug("Main window is being offered keyboard focus.");
-                SDL.SDL_SetWindowInputFocus(_window);
-                SDL.SDL_RaiseWindow(_window);
+                SDL_SetWindowInputFocus(_window);
+                SDL_RaiseWindow(_window);
                 break;
-            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_DISPLAY_CHANGED:
+            case SDL_WindowEventID.SDL_WINDOWEVENT_DISPLAY_CHANGED:
                 break;
         }
     }
@@ -413,7 +431,7 @@ public class MainWindow : IMainWindow
             _cursorCache[imagePath] = cursor;
         }
 
-        Cursor.SetCursor(_windowHandle, cursor);
+        SDL_SetCursor(cursor);
         _currentCursor = cursor;
     }
 
@@ -437,15 +455,15 @@ public class MainWindow : IMainWindow
     // if we're in the foreground
     public void ConfineCursor(int x, int y, int w, int h)
     {
-        SDL.SDL_Rect rect = default;
+        SDL_Rect rect = default;
         rect.x = x;
         rect.y = y;
         rect.w = w;
         rect.h = h;
 
-        if (SDL.SDL_SetWindowMouseRect(_window, ref rect) < 0)
+        if (SDL_SetWindowMouseRect(_window, ref rect) < 0)
         {
-            Logger.Warn("Failed to confine cursor to window: {0}", SDL.SDL_GetError());
+            Logger.Warn("Failed to confine cursor to window: {0}", SDL_GetError());
         }
     }
 
@@ -454,19 +472,6 @@ public class MainWindow : IMainWindow
     {
         _eventFilter = filter;
     }
-
-    private readonly IFileSystem _fs;
-    private IntPtr _windowHandle;
-    private int _width;
-    private int _height;
-
-    // Caches for cursors
-    private readonly Dictionary<string, IntPtr> _cursorCache = new();
-    private IntPtr _currentCursor = IntPtr.Zero;
-
-    // The window class name used for RegisterClass and CreateWindow.
-    private const string WindowClassName = "OpenTempleMainWnd";
-    private const string WindowTitle = "OpenTemple";
 
     private void CreateWindow()
     {
@@ -478,18 +483,18 @@ public class MainWindow : IMainWindow
             out var flags
         );
 
-        flags |= SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI;
+        flags |= SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI;
 
         // Show initially maximized in window mode, if the game was previously maximized
         if (_config.Windowed && _config.Maximized)
         {
-            flags |= SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
+            flags |= SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
         }
 
         Logger.Info("Creating window with dimensions {0}x{1}", width, height);
 
         // Create our window
-        _window = SDL.SDL_CreateWindow(WindowTitle, x, y, width, height, flags);
+        _window = SDL_CreateWindow(WindowTitle, x, y, width, height, flags);
 
         // Make sure creating the window succeeded
         if (_window == IntPtr.Zero)
@@ -497,18 +502,18 @@ public class MainWindow : IMainWindow
             throw new SDLException("Failed to create main window");
         }
 
-        _windowId = SDL.SDL_GetWindowID(_window);
+        _windowId = SDL_GetWindowID(_window);
 
-        SDL.SDL_SysWMinfo wmInfo = default;
-        SDL.SDL_VERSION(out wmInfo.version);
-        if (SDL.SDL_GetWindowWMInfo(_window, ref wmInfo) != SDL.SDL_bool.SDL_TRUE)
+        SDL_SysWMinfo wmInfo = default;
+        SDL_VERSION(out wmInfo.version);
+        if (SDL_GetWindowWMInfo(_window, ref wmInfo) != SDL_bool.SDL_TRUE)
         {
             throw new SDLException("Couldn't get HWND from Window");
         }
 
         _windowHandle = wmInfo.info.win.window;
 
-        SDL.SDL_GetWindowSize(_window, out var actualWidth, out var actualHeight);
+        SDL_GetWindowSize(_window, out var actualWidth, out var actualHeight);
         // The returned size should never be zero, unless the window was forced by some hook to be minimized
         if (actualWidth > 0 && actualHeight > 0)
         {
@@ -517,44 +522,41 @@ public class MainWindow : IMainWindow
             Logger.Info("Actual window dimensions {0}x{1}", width, height);
         }
 
-        SDL.SDL_SetWindowMinimumSize(_window, _config.MinWidth, _config.MinHeight);
+        SDL_SetWindowMinimumSize(_window, _config.MinWidth, _config.MinHeight);
 
         if (_config.DisableScreenSaver)
         {
-            SDL.SDL_DisableScreenSaver();
+            SDL_DisableScreenSaver();
         }
     }
 
-    private void CreateWindowRectAndStyles(out int x, out int y, out int width, out int height, out SDL.SDL_WindowFlags flags)
+    private void CreateWindowRectAndStyles(out int x, out int y, out int width, out int height, out SDL_WindowFlags flags)
     {
         flags = default;
 
         if (!_config.Windowed)
         {
-            x = SDL.SDL_WINDOWPOS_CENTERED;
-            y = SDL.SDL_WINDOWPOS_CENTERED;
+            x = SDL_WINDOWPOS_CENTERED;
+            y = SDL_WINDOWPOS_CENTERED;
             // According to SDL2, this is ignored in fullscreen mode
             width = 1024;
             height = 768;
-            flags = SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
+            flags = SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
         else
         {
-            x = SDL.SDL_WINDOWPOS_CENTERED;
-            y = SDL.SDL_WINDOWPOS_CENTERED;
+            x = SDL_WINDOWPOS_CENTERED;
+            y = SDL_WINDOWPOS_CENTERED;
             width = _config.Width;
             height = _config.Height;
-            flags = SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
+            flags = SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
         }
 
         _width = width;
         _height = height;
     }
 
-    [TempleDllLocation(0x10D25CEC), TempleDllLocation(0x10D25CF0)]
-    private PointF mousePos;
-
-    private void HandleMouseWheelEvent(ref SDL.SDL_MouseWheelEvent e)
+    private void HandleMouseWheelEvent(ref SDL_MouseWheelEvent e)
     {
         // Ignore events for other windows
         if (e.windowID != _windowId)
@@ -564,13 +566,13 @@ public class MainWindow : IMainWindow
         
         HandleMouseFocusEvent(true);
 
-        SDL.SDL_GetMouseState(out var x, out var y);
+        SDL_GetMouseState(out var x, out var y);
 
         var windowPos = new Point(x, y);
         var uiPos = TranslateToUiCanvas(windowPos);
 
         var units = e.preciseY;
-        if (e.direction == (uint) SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+        if (e.direction == (uint) SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
         {
             units *= -1;
         }
@@ -584,7 +586,7 @@ public class MainWindow : IMainWindow
         ));
     }
 
-    private void HandleMouseMoveEvent(WindowEventType type, ref SDL.SDL_MouseMotionEvent e)
+    private void HandleMouseMoveEvent(WindowEventType type, ref SDL_MouseMotionEvent e)
     {
         // Ignore events for other windows
         if (e.windowID != _windowId)
@@ -603,46 +605,32 @@ public class MainWindow : IMainWindow
         ));
     }
 
-    private void HandleMouseButtonEvent(WindowEventType type, ref SDL.SDL_MouseButtonEvent e)
+    private void HandleMouseButtonEvent(WindowEventType type, ref SDL_MouseButtonEvent e)
     {
         // Ignore events for other windows
         if (e.windowID != _windowId)
         {
             return;
         }
-        
-        // When a mouse button is pressed, capture the mouse in order to guarantee receiving a mouse up event
-        // if (type == WindowEventType.MouseDown && _mouseCaptureDepth <= 0)
-        // {
-        //     SetCapture(_windowHandle);
-        //     _mouseCaptureDepth++;
-        // }
-        // else if (type == WindowEventType.MouseUp)
-        // {
-        //     if (--_mouseCaptureDepth <= 0)
-        //     {
-        //         ReleaseCapture();
-        //     }
-        // }
 
         MouseButton button;
-        if (e.button == SDL.SDL_BUTTON_LEFT)
+        if (e.button == SDL_BUTTON_LEFT)
         {
             button = MouseButton.LEFT;
         }
-        else if (e.button == SDL.SDL_BUTTON_MIDDLE)
+        else if (e.button == SDL_BUTTON_MIDDLE)
         {
             button = MouseButton.MIDDLE;
         }
-        else if (e.button == SDL.SDL_BUTTON_RIGHT)
+        else if (e.button == SDL_BUTTON_RIGHT)
         {
             button = MouseButton.RIGHT;
         }
-        else if (e.button == SDL.SDL_BUTTON_X1)
+        else if (e.button == SDL_BUTTON_X1)
         {
             button = MouseButton.EXTRA1;
         }
-        else if (e.button == SDL.SDL_BUTTON_X2)
+        else if (e.button == SDL_BUTTON_X2)
         {
             button = MouseButton.EXTRA2;
         }
@@ -682,4 +670,9 @@ public class MainWindow : IMainWindow
     private PointF TranslateToUiCanvas(int x, int y) => new(x / UiScale, y / UiScale);
 
     private PointF TranslateToUiCanvas(Point p) => TranslateToUiCanvas(p.X, p.Y);
+
+    public void UpdateCursor()
+    {
+        SDL_SetCursor(_currentCursor != IntPtr.Zero ? _currentCursor : _defaultCursor);
+    }
 }

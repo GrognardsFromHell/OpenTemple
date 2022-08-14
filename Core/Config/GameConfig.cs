@@ -17,7 +17,7 @@ public class GameConfig
     /// <summary>
     /// The folder where Tempe of Elemental Evil is installed.
     /// </summary>
-    public string InstallationFolder { get; set; }
+    public string? InstallationFolder { get; set; }
 
     public RenderingConfig Rendering { get; set; } = new();
 
