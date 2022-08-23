@@ -18,7 +18,7 @@ internal class PersonalTargetBehavior : PickerBehavior
     {
         ClearResults();
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions();
+        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
         if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags) ||
             target != Picker.caster)
         {
@@ -43,7 +43,7 @@ internal class PersonalTargetBehavior : PickerBehavior
         ClearResults();
         PickerStatusFlags |= PickerStatusFlags.Invalid;
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions();
+        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
         GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags);
 
         PickerState.Target = target;

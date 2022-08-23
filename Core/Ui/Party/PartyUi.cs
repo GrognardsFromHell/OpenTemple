@@ -258,6 +258,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
                     dword_102F8EB4 = partyIdx;
                     dword_10BE33E8 = true;
                 }
+
                 break;
             case TigMsgWidgetEvent.MouseReleased:
                 if (UiSystems.HelpManager.IsSelectingHelpTarget)
@@ -320,8 +321,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
                     if (UiSystems.RadialMenu.IsOpen)
                         break;
 
-                    if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) ||
-                        Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+                    if (Tig.Keyboard.IsShiftPressed)
                     {
                         // Multi-select
                         if (GameSystems.Party.IsSelected(partyMember))

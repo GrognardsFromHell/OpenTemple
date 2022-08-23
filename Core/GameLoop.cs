@@ -8,6 +8,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
+using SDL2;
 
 namespace OpenTemple.Core;
 
@@ -115,7 +116,7 @@ public sealed class GameLoop
         if (message.type == MessageType.KEYSTATECHANGE)
         {
             var keyArgs = message.KeyStateChangeArgs;
-            if (keyArgs.key == DIK.DIK_F10 && keyArgs.down)
+            if (keyArgs.key == SDL.SDL_Keycode.SDLK_F10 && keyArgs.down)
             {
                 // TODO mDiagScreen->Toggle();
                 // TODO UIShowDebug();
@@ -128,11 +129,13 @@ public sealed class GameLoop
             return;
         }
 
-        if (message.type == MessageType.MOUSE && Globals.UiManager.TranslateMouseMessage(message.MouseArgs)) {
+        if (message.type == MessageType.MOUSE && Globals.UiManager.TranslateMouseMessage(message.MouseArgs))
+        {
             return;
         }
 
-        if (!Globals.UiManager.ProcessMessage(message)) {
+        if (!Globals.UiManager.ProcessMessage(message))
+        {
             // TODO: Decide if the message should be re-dispatched to the primary game view as a fallback
             return;
         }
@@ -205,5 +208,4 @@ public sealed class GameLoop
 
         _device.EndPerfGroup();
     }
-
 }

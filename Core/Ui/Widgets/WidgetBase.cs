@@ -1,11 +1,11 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Styles;
@@ -15,6 +15,25 @@ namespace OpenTemple.Core.Ui.Widgets;
 
 public class WidgetBase : Styleable, IDisposable
 {
+    protected WidgetContainer? _parent = null;
+    protected string mSourceURI;
+    protected string mId;
+    protected bool mCenterHorizontally = false;
+    protected bool mCenterVertically = false;
+    protected bool mSizeToParent = false;
+    protected bool mAutoSizeWidth = true;
+    protected bool mAutoSizeHeight = true;
+    protected Margins mMargins;
+    protected Func<MessageMouseArgs, bool>? mMouseMsgHandler;
+    protected Func<MessageWidgetArgs, bool>? mWidgetMsgHandler;
+    protected Func<MessageKeyStateChangeArgs, bool>? mKeyStateChangeHandler;
+    protected Func<MessageCharArgs, bool>? mCharHandler;
+
+    protected List<WidgetContent> _content = new();
+    private bool _visible = true;
+
+    private readonly List<AvailableHotkey> _hotkeys = new ();
+    
     public string Name { get; set; }
 
     // Horizontal position relative to parent
@@ -76,9 +95,9 @@ public class WidgetBase : Styleable, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public event Action OnBeforeRender;
+    public event Action? OnBeforeRender;
 
-    public event Func<Message, bool> OnHandleMessage;
+    public event Func<Message, bool>? OnHandleMessage;
 
     /// <summary>
     /// Hit test the content of this widget instead of just checking against the content rectangle.
@@ -315,7 +334,7 @@ public class WidgetBase : Styleable, IDisposable
          * Null if the coordinates are outside of this widget. If no
          * other widget inside is at the given coordinate, will just return this.
          */
-    public virtual WidgetBase PickWidget(int x, int y)
+    public virtual WidgetBase? PickWidget(int x, int y)
     {
         if (!Visible)
         {
@@ -384,7 +403,7 @@ public class WidgetBase : Styleable, IDisposable
         _parent = parent;
     }
 
-    public WidgetContainer GetParent()
+    public WidgetContainer? GetParent()
     {
         return _parent;
     }
@@ -482,16 +501,12 @@ public class WidgetBase : Styleable, IDisposable
         var bounds = new Rectangle(widget.GetPos(), widget.GetSize());
 
         // The content of an advanced widget container may be moved
-        int scrollOffsetY = 0;
-        if (widget.GetParent() != null)
+        var container = widget.GetParent();
+        if (container != null)
         {
-            var container = widget.GetParent();
-            scrollOffsetY = container.GetScrollOffsetY();
-        }
+            var scrollOffsetY = container.GetScrollOffsetY();
 
-        if (widget.GetParent() != null)
-        {
-            var parentBounds = GetContentArea(widget.GetParent());
+            var parentBounds = GetContentArea(container);
             bounds.X += parentBounds.X;
             bounds.Y += parentBounds.Y - scrollOffsetY;
 
@@ -594,6 +609,8 @@ public class WidgetBase : Styleable, IDisposable
         }
     }
 
+    public event Action<HotkeyActionMessage>? OnHotkeyAction;
+
     public void SetMouseMsgHandler(Func<MessageMouseArgs, bool> handler)
     {
         mMouseMsgHandler = handler;
@@ -614,6 +631,23 @@ public class WidgetBase : Styleable, IDisposable
         mCharHandler = handler;
     }
 
+    public virtual void HandleHotkeyAction(HotkeyActionMessage msg)
+    {
+        OnHotkeyAction?.Invoke(msg);
+
+        if (!msg.IsHandled)
+        {
+            foreach (var (hotkey, callback, condition) in _hotkeys)
+            {
+                if (condition() && hotkey == msg.Hotkey)
+                {
+                    callback();
+                    msg.SetHandled();
+                }
+            }
+        }
+    }
+    
     public virtual bool HandleMouseMessage(MessageMouseArgs msg)
     {
         if (mMouseMsgHandler != null)
@@ -642,24 +676,6 @@ public class WidgetBase : Styleable, IDisposable
         mAutoSizeHeight = enable;
     }
 
-    protected WidgetContainer? _parent = null;
-    protected string mSourceURI;
-    protected string mId;
-    protected bool mCenterHorizontally = false;
-    protected bool mCenterVertically = false;
-    protected bool mSizeToParent = false;
-    protected bool mAutoSizeWidth = true;
-    protected bool mAutoSizeHeight = true;
-    protected Margins mMargins;
-    protected Func<MessageMouseArgs, bool> mMouseMsgHandler;
-    protected Func<MessageWidgetArgs, bool> mWidgetMsgHandler;
-    protected Func<MessageKeyStateChangeArgs, bool> mKeyStateChangeHandler;
-    protected Func<MessageCharArgs, bool> mCharHandler;
-
-    protected List<WidgetContent> _content = new();
-    private bool _visible = true;
-
-
     public virtual void RenderTooltip(int x, int y)
     {
     }
@@ -682,4 +698,12 @@ public class WidgetBase : Styleable, IDisposable
             content.InvalidateStyles();
         }
     }
-};
+
+    public void AddHotkey(Hotkey hotkey, Action callback, Func<bool>? condition = null)
+    {
+        condition ??= () => true;
+        _hotkeys.Add(new AvailableHotkey(hotkey, callback, condition));
+    }
+    
+    private record AvailableHotkey(Hotkey Hotkey, Action Callback, Func<bool> Condition);
+}

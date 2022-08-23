@@ -21,7 +21,7 @@ public class ReactionSystem : IGameSystem
     private bool reactionState;
 
     [TempleDllLocation(0x10053ca0)]
-    public GameObject GetLastReactionPlayer(GameObject npc)
+    public GameObject? GetLastReactionPlayer(GameObject npc)
     {
         if (_reactionNpcObject == npc)
         {

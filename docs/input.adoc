@@ -1,0 +1,19 @@
+﻿
+= Input Processing
+
+== Scancodes
+
+== Virtual Keycodes
+
+== Modifiers
+
+Global modifiers in TigKeyboard are problematic because input arrives event-by-event.
+
+Imagine the following sequence of events:
+
+- Shift key down
+- Mouse click
+- Shift key up
+
+If those three events happen to be processed at once (i.e. due to a hick-up), the key state in `TigKeyboard`
+will indicate that shift is NOT being held after all events have been processed. Due to the delay in processing mouse events, during processing our own mouse event, shift will not be held if read from `TigKeyboard´. Instead, modifier keys need to be attached to the mouse event itself and need to indicate the keyboard state at the time the system-level mouse event is received.

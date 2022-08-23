@@ -30,7 +30,7 @@ public class CharSheetInventoryUi : IDisposable
     [TempleDllLocation(0x10BEECC0)]
     [TempleDllLocation(0x10155160)]
     [TempleDllLocation(0x10155170)]
-    public GameObject DraggedObject
+    public GameObject? DraggedObject
     {
         get => Globals.UiManager.DraggedObject is DraggedItem draggedItem ? draggedItem.Item : null;
         set => Globals.UiManager.DraggedObject = value != null ? new DraggedItem(value) : null;

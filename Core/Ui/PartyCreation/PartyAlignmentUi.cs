@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;
@@ -36,16 +35,7 @@ public class PartyAlignmentUi : IDisposable
 
         // RENDER: 0x1011be20
         // MESSAGE: 0x1011ed20
-        _container.SetKeyStateChangeHandler(evt =>
-        {
-            if (evt.key == DIK.DIK_ESCAPE && evt.down)
-            {
-                Cancel();
-                return true;
-            }
-
-            return false;
-        });
+        _container.AddHotkey(UiHotkeys.CloseWindow, Cancel);
 
         // Alignment buttons:
         // MESSAGE: 0x1011e5c0

@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Widgets;
+using SDL2;
 
 namespace OpenTemple.Core.Platform;
 
-public enum MouseButton : uint {
+public enum MouseButton : uint
+{
     LEFT = 0,
     RIGHT = 1,
     MIDDLE = 2,
@@ -16,13 +19,15 @@ public enum MouseButton : uint {
     EXTRA2 = 4
 };
 
-public enum MessageType : uint {
+public enum MessageType : uint
+{
     MOUSE = 0,
     WIDGET = 1,
     TMT_UNK2 = 2,
     EXIT = 3, // may be exit game, queued on WM_CLOSE and WM_QUIT
     CHAR = 4, // arg1 is the character, in Virtual Key terms
     KEYSTATECHANGE = 5,
+
     /*
         Send once whenever system message are being processed.
         No arguments, just the create time is set to the time
@@ -30,7 +35,8 @@ public enum MessageType : uint {
     */
     UPDATE_TIME = 6,
     TMT_UNK7 = 7,
-    KEYDOWN = 8
+    KEYDOWN = 8,
+    HOTKEY_ACTION = 9
 }
 
 [Flags]
@@ -39,6 +45,7 @@ public enum MouseEventFlag
     LeftClick = 0x001,
     RightClick = 0x010,
     MiddleClick = 0x100,
+
     // Sent every 250ms while a button is being held
     LeftHeld = 0x002,
     RightHeld = 0x020,
@@ -47,9 +54,15 @@ public enum MouseEventFlag
     RightReleased = 0x040, // Right button
     MiddleReleased = 0x400, // Middle button
     PosChange = 0x1000,
+
     // Sent only 35ms after mouse position has stabilized
     PosChangeSlow = 0x2000,
-    ScrollWheelChange = 0x4000
+    ScrollWheelChange = 0x4000,
+    
+    // Key modifiers being held while the mouse event occured
+    KeyModifierAlt= 0x8000,
+    KeyModifierCtrl = 0x10000,
+    KeyModifierShift = 0x20000,
 }
 
 public struct ExitMessageArgs
@@ -68,6 +81,9 @@ public struct MessageMouseArgs
     public int Y;
     public int wheelDelta;
     public MouseEventFlag flags;
+    public bool IsCtrlHeld => (flags & MouseEventFlag.KeyModifierCtrl) != 0;
+    public bool IsShiftHeld => (flags & MouseEventFlag.KeyModifierShift) != 0;
+    public bool IsAltHeld => (flags & MouseEventFlag.KeyModifierAlt) != 0;
 
     public MessageMouseArgs(int x, int y, int wheelDelta, MouseEventFlag flags)
     {
@@ -83,7 +99,7 @@ public enum TigMsgWidgetEvent
     Clicked = 0,
     MouseReleased = 1,
     MouseReleasedAtDifferentButton = 2,
-    Entered  = 3,
+    Entered = 3,
     Exited = 4,
     Scrolled = 5
 }
@@ -98,23 +114,26 @@ public struct MessageWidgetArgs
 
 public struct MessageKeyStateChangeArgs
 {
-    public DIK key;
+    public SDL.SDL_Keycode key;
+    public SDL.SDL_Scancode scancode;
     public bool down;
     public bool modAlt;
     public bool modCtrl;
+    public bool modShift;
 }
 
 public readonly struct MessageCharArgs
 {
-    public readonly char Character;
+    public readonly string Text;
 
-    public MessageCharArgs(char character)
+    public MessageCharArgs(string text)
     {
-        Character = character;
+        Text = text;
     }
 }
 
-public class Message {
+public class Message
+{
     public readonly TimePoint created;
     public readonly MessageType type;
     private object args;
@@ -207,6 +226,23 @@ public class Message {
     }
 }
 
+public class HotkeyActionMessage : Message
+{
+    public HotkeyActionMessage(Hotkey hotkey) : base(MessageType.HOTKEY_ACTION)
+    {
+        Hotkey = hotkey;
+    }
+    
+    public Hotkey Hotkey { get; }
+    
+    public bool IsHandled { get; private set; }
+
+    public void SetHandled()
+    {
+        IsHandled = true;
+    }
+}
+
 public class MessageQueue
 {
     public void Enqueue(Message msg)
@@ -216,7 +252,8 @@ public class MessageQueue
 
     public bool TryGetMessage(out Message unhandledMsgOut)
     {
-        if (_messages.TryDequeue(out var message)) {
+        if (_messages.TryDequeue(out var message))
+        {
             unhandledMsgOut = message;
             return true;
         }

@@ -12,6 +12,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Widgets;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui.SaveGame;
 
@@ -41,7 +42,8 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
 
     private readonly WidgetImage _largeScreenshot;
 
-    [TempleDllLocation(0x10c0a49c)] [TempleDllLocation(0x10c073b4)]
+    [TempleDllLocation(0x10c0a49c)]
+    [TempleDllLocation(0x10c073b4)]
     private bool _pendingConfirmation;
 
     /// <summary>
@@ -55,7 +57,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
     [TempleDllLocation(0x10c0a44c)]
     private List<SaveGameInfo> _saves = new();
 
-    private SaveGameInfo _selectedSave;
+    private SaveGameInfo? _selectedSave;
 
     private readonly SaveGameSlotButton[] _slots = new SaveGameSlotButton[8];
 
@@ -120,7 +122,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         {
             if (slot.Selected)
             {
-                slot.AppendNewNameChar(arg.Character);
+                slot.AppendNewName(arg.Text);
             }
         }
 
@@ -155,10 +157,10 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
 
         switch (arg.key)
         {
-            case DIK.DIK_ESCAPE:
+            case SDL_Keycode.SDLK_ESCAPE:
                 OnCloseClick();
                 return true;
-            case DIK.DIK_RETURN:
+            case SDL_Keycode.SDLK_RETURN:
                 if (_mode == Mode.Loading)
                 {
                     OnLoadClick();
@@ -169,15 +171,15 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
                 }
 
                 return true;
-            case DIK.DIK_DELETE:
+            case SDL_Keycode.SDLK_DELETE:
                 OnDeleteClick();
                 return true;
-            case DIK.DIK_UP:
-            case DIK.DIK_NUMPAD8:
+            case SDL_Keycode.SDLK_UP:
+            case SDL_Keycode.SDLK_KP_8:
                 SelectPreviousSave();
                 return true;
-            case DIK.DIK_DOWN:
-            case DIK.DIK_NUMPAD2:
+            case SDL_Keycode.SDLK_DOWN:
+            case SDL_Keycode.SDLK_KP_2:
                 SelectNextSave();
                 return true;
             default:

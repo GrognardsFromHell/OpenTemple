@@ -198,6 +198,25 @@ public class WidgetContainer : WidgetBase
         }
     }
 
+    public override void HandleHotkeyAction(HotkeyActionMessage msg)
+    {
+        // Iterate in reverse order since this list is ordered in ascending z-order
+        for (var i = mChildren.Count - 1; i >= 0; i--)
+        {
+            var child = mChildren[i];
+            if (child.Visible)
+            {
+                child.HandleHotkeyAction(msg);
+                if (msg.IsHandled)
+                {
+                    return;
+                }
+            }
+        }
+
+        base.HandleHotkeyAction(msg);
+    }
+
     public override bool HandleMouseMessage(MessageMouseArgs msg)
     {
         var area = GetContentArea();

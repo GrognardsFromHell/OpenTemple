@@ -1,6 +1,7 @@
 using System;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Ui.Widgets;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui;
 
@@ -55,8 +56,8 @@ public class TextEntryUi
             // We handle these on key-down because we are interested in key-repeats
             switch (arg.key)
             {
-                case DIK.DIK_LEFT:
-                case DIK.DIK_NUMPAD4:
+                case SDL_Keycode.SDLK_LEFT:
+                case SDL_Keycode.SDLK_KP_4:
                     if (--_caretPosition < 0)
                     {
                         _caretPosition = 0;
@@ -64,31 +65,32 @@ public class TextEntryUi
 
                     UpdateInput(_currentInput);
                     break;
-                case DIK.DIK_RIGHT:
-                case DIK.DIK_NUMPAD6:
+                case SDL_Keycode.SDLK_RIGHT:
+                case SDL_Keycode.SDLK_KP_6:
                     if (++_caretPosition > _currentInput.Length)
                     {
                         _caretPosition = _currentInput.Length;
                     }
+
                     UpdateInput(_currentInput);
                     break;
-                case DIK.DIK_HOME:
+                case SDL_Keycode.SDLK_HOME:
                     _caretPosition = 0;
                     UpdateInput(_currentInput);
                     break;
-                case DIK.DIK_END:
+                case SDL_Keycode.SDLK_END:
                     _caretPosition = _currentInput.Length;
                     UpdateInput(_currentInput);
                     break;
-                case DIK.DIK_DELETE:
-                case DIK.DIK_DECIMAL:
+                case SDL_Keycode.SDLK_DELETE:
+                case SDL_Keycode.SDLK_KP_DECIMAL:
                     if (_caretPosition < _currentInput.Length)
                     {
                         UpdateInput(_currentInput.Remove(_caretPosition, 1));
                     }
 
                     break;
-                case DIK.DIK_BACKSPACE:
+                case SDL_Keycode.SDLK_BACKSPACE:
                     if (_caretPosition > 0)
                     {
                         --_caretPosition;
@@ -102,10 +104,10 @@ public class TextEntryUi
         {
             switch (arg.key)
             {
-                case DIK.DIK_RETURN:
+                case SDL_Keycode.SDLK_RETURN:
                     Confirm();
                     break;
-                case DIK.DIK_ESCAPE:
+                case SDL_Keycode.SDLK_ESCAPE:
                     Cancel();
                     break;
             }
@@ -118,11 +120,9 @@ public class TextEntryUi
     {
         if (arg.type == MessageType.CHAR)
         {
-            if (!char.IsControl(arg.CharArgs.Character))
-            {
-                var newText = _currentInput.Insert(_caretPosition++, arg.CharArgs.Character.ToString());
-                UpdateInput(newText);
-            }
+            var newText = _currentInput.Insert(_caretPosition, arg.CharArgs.Text);
+            _caretPosition += arg.CharArgs.Text.Length;
+            UpdateInput(newText);
 
             return true;
         }

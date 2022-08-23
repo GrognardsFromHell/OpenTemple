@@ -81,6 +81,20 @@ public class GameView : WidgetContainer, IGameViewport
         Globals.ConfigManager.OnConfigChanged += OnConfigChange;
     }
 
+    public override void HandleHotkeyAction(HotkeyActionMessage msg)
+    {
+        base.HandleHotkeyAction(msg);
+
+        if (!msg.IsHandled)
+        {
+            // Delegate handling hotkeys to the InGame ui
+            if (UiSystems.InGame.HandleHotkeyAction(this, msg.Hotkey))
+            {
+                msg.SetHandled();
+            }
+        }
+    }
+
     private void OnConfigChange()
     {
         ReloadConfig(Globals.Config.Rendering);

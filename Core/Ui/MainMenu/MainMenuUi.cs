@@ -33,7 +33,8 @@ public class MainMenuUi : IDisposable
     {
         var mmLocalization = Tig.FS.ReadMesFile("mes/mainmenu.mes");
 
-        var widgetDoc = WidgetDoc.Load("ui/main_menu.json", (type, definition) => {
+        var widgetDoc = WidgetDoc.Load("ui/main_menu.json", (type, definition) =>
+        {
             if (type == "mainMenuButton")
             {
                 return CreateMainMenuButton(definition);
@@ -51,20 +52,8 @@ public class MainMenuUi : IDisposable
         // This eats all mouse messages that reach the full-screen main menu
         mMainWidget.SetMouseMsgHandler(msg => { return true; });
         mMainWidget.SetWidgetMsgHandler(msg => { return true; });
-
-        mMainWidget.SetKeyStateChangeHandler(msg =>
-        {
-            // Close the menu if it's the ingame menu
-            if (msg.key == DIK.DIK_ESCAPE && !msg.down)
-            {
-                if (mCurrentPage == MainMenuPage.InGameNormal || mCurrentPage == MainMenuPage.InGameIronman)
-                {
-                    Hide();
-                }
-            }
-
-            return true;
-        });
+        // Close the menu if it's the ingame menu
+        mMainWidget.AddHotkey(UiHotkeys.CloseWindow, Hide, () => mCurrentPage is MainMenuPage.InGameNormal or MainMenuPage.InGameIronman);
 
         mPagesWidget = widgetDoc.GetContainer("pages");
 
@@ -89,10 +78,7 @@ public class MainMenuUi : IDisposable
         });
         GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
         GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
-        GetButton("quit-game").SetClickHandler(() =>
-        {
-            Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT));
-        });
+        GetButton("quit-game").SetClickHandler(() => { Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT)); });
 
         // Wire up buttons on the difficulty selection page
         GetButton("difficulty-normal").SetClickHandler(() =>
@@ -394,7 +380,6 @@ public class MainMenuUi : IDisposable
         // objects.UpdateRadius(velkor, *anim);
     }
 }
-
 
 class ViewCinematicsDialog
 {

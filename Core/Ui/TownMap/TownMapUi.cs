@@ -68,7 +68,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
 
         _mainWindow = doc.GetRootContainer();
         _mainWindow.Visible = false;
-        _mainWindow.SetKeyStateChangeHandler(HandleShortcut);
+        _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
 
         var exit = doc.GetButton("exit");
         exit.SetClickHandler(Hide);
@@ -140,18 +140,6 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             _worldMapButton.SetDisabled(true);
             _worldMapButton.TooltipText = "#{townmap:200}";
         }
-    }
-
-    private bool HandleShortcut(MessageKeyStateChangeArgs msg)
-    {
-        // Allow closing the townmap with escapep
-        if (!msg.down && msg.key == DIK.DIK_ESCAPE)
-        {
-            Hide();
-            return true;
-        }
-
-        return false;
     }
 
     [TempleDllLocation(0x1012c6a0)]
@@ -583,7 +571,6 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             userMarkers.Remove(marker);
         }
     }
-
 }
 
 public class TownMapMarker

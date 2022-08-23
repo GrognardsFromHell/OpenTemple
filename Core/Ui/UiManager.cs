@@ -75,7 +75,7 @@ public class UiManager
     /// <summary>
     /// Represents an arbitrary object that is currently dragged by the user with their mouse.
     /// </summary>
-    public object DraggedObject { get; set; }
+    public object? DraggedObject { get; set; }
 
     public WidgetContainer Modal { get; set; }
 

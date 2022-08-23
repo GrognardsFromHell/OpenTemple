@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.Platform;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -18,7 +18,7 @@ public class GameViewScrollingController
     private Point _grabMoveRef;
     private bool _mouseHasMoved;
     public bool IsMouseScrolling { get; set; } = true;
-    
+
     public GameViewScrollingController(WidgetContainer widget, IGameViewport viewport)
     {
         _widget = widget;
@@ -74,13 +74,13 @@ public class GameViewScrollingController
             return;
         }
 
-        if (Tig.Keyboard.IsPressed(DIK.DIK_UP))
+        if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollUp))
         {
-            if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
+            if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_LEFT);
             }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
+            else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_RIGHT);
             }
@@ -89,13 +89,13 @@ public class GameViewScrollingController
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP);
             }
         }
-        else if (Tig.Keyboard.IsPressed(DIK.DIK_DOWN))
+        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollDown))
         {
-            if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
+            if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_LEFT);
             }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
+            else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_RIGHT);
             }
@@ -104,11 +104,11 @@ public class GameViewScrollingController
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN);
             }
         }
-        else if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
+        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
         {
             GameSystems.Scroll.SetScrollDirection(ScrollDirection.LEFT);
         }
-        else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
+        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
         {
             GameSystems.Scroll.SetScrollDirection(ScrollDirection.RIGHT);
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
@@ -25,7 +26,7 @@ public class MainWindow : IMainWindow
     public IntPtr NativeHandle => _windowHandle;
 
     private SDLEventFilter _eventFilter;
-    
+
     /// <summary>
     /// SDL2 Window Pointer.
     /// </summary>
@@ -184,13 +185,14 @@ public class MainWindow : IMainWindow
             catch (EntryPointNotFoundException)
             {
             }
-            
+
             SDL_FreeCursor(_defaultCursor);
             _defaultCursor = IntPtr.Zero;
             foreach (var cursor in _cursorCache.Values)
             {
                 SDL_FreeCursor(cursor);
             }
+
             _cursorCache.Clear();
             _currentCursor = IntPtr.Zero;
 
@@ -207,7 +209,7 @@ public class MainWindow : IMainWindow
             {
                 continue;
             }
-            
+
             switch (e.type)
             {
                 case SDL_EventType.SDL_APP_TERMINATING:
@@ -218,12 +220,12 @@ public class MainWindow : IMainWindow
                 case SDL_EventType.SDL_WINDOWEVENT:
                     HandleWindowEvent(ref e.window);
                     return;
-                
+
                 case SDL_EventType.SDL_KEYDOWN:
                 case SDL_EventType.SDL_KEYUP:
                     HandleKeyEvent(ref e.key);
                     break;
-                
+
                 case SDL_EventType.SDL_TEXTINPUT:
                     HandleTextInputEvent(ref e.text);
                     break;
@@ -248,22 +250,15 @@ public class MainWindow : IMainWindow
 
     private unsafe void HandleTextInputEvent(ref SDL_TextInputEvent e)
     {
-        var maxCharCount = System.Text.Encoding.UTF8.GetMaxCharCount(32);
-        var chars = stackalloc char[maxCharCount];
-        int charCount;
+        string text;
         fixed (byte* bytes = e.text)
         {
-            charCount = System.Text.Encoding.UTF8.GetChars(bytes, 32, chars, maxCharCount);
+            text = Marshal.PtrToStringUTF8((IntPtr) bytes);
         }
 
-        for (var i = 0; i < charCount; i++)
+        if (text is {Length: > 0})
         {
-            var ch = chars[i];
-            if (ch == 0)
-            {
-                break;
-            }
-            Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs(ch)));
+            Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs(text)));
         }
     }
 
@@ -274,14 +269,17 @@ public class MainWindow : IMainWindow
         {
             return;
         }
-        
+
         var down = e.state == SDL_PRESSED;
         var repeat = e.repeat != 0;
 
         var keysym = e.keysym;
         var modAlt = (keysym.mod & SDL_Keymod.KMOD_ALT) != 0;
         var modCtrl = (keysym.mod & SDL_Keymod.KMOD_CTRL) != 0;
-        
+
+        Logger.Debug("key {0} scan_code={1}, key={2}, repeat={3}",
+            down ? "down" : "up", SDL_GetScancodeName(keysym.scancode), SDL_GetKeyName(keysym.sym), repeat);
+
         // Handle Alt+Enter here
         if (modAlt && keysym.scancode == SDL_Scancode.SDL_SCANCODE_RETURN)
         {
@@ -296,20 +294,17 @@ public class MainWindow : IMainWindow
             return;
         }
 
-        var key = SDLScanCodeMap.GetDIK(keysym.scancode);
-        if (key != 0)
-        {
-            Tig.MessageQueue.Enqueue(new Message(
-                new MessageKeyStateChangeArgs
-                {
-                    key = key,
-                    // Means it has changed to pressed
-                    down = down,
-                    modAlt = modAlt,
-                    modCtrl = modCtrl
-                }
-            ));
-        }
+        Tig.MessageQueue.Enqueue(new Message(
+            new MessageKeyStateChangeArgs
+            {
+                key = keysym.sym,
+                scancode = keysym.scancode,
+                // Means it has changed to pressed
+                down = down,
+                modAlt = modAlt,
+                modCtrl = modCtrl
+            }
+        ));
     }
 
     private void HandleWindowEvent(ref SDL_WindowEvent e)
@@ -319,7 +314,7 @@ public class MainWindow : IMainWindow
         {
             return;
         }
-        
+
         switch (e.windowEvent)
         {
             case SDL_WindowEventID.SDL_WINDOWEVENT_EXPOSED:
@@ -344,7 +339,7 @@ public class MainWindow : IMainWindow
                     Resized?.Invoke(Size);
                     UpdateUiCanvasSize();
                 }
-                
+
                 // Persist changes to window size in window mode
                 if (_config.Windowed && (_config.Width != width || _config.Height != height))
                 {
@@ -563,7 +558,7 @@ public class MainWindow : IMainWindow
         {
             return;
         }
-        
+
         HandleMouseFocusEvent(true);
 
         SDL_GetMouseState(out var x, out var y);
@@ -593,7 +588,7 @@ public class MainWindow : IMainWindow
         {
             return;
         }
-        
+
         HandleMouseFocusEvent(true);
         var windowPos = new Point(e.x, e.y);
         var uiPos = TranslateToUiCanvas(windowPos);

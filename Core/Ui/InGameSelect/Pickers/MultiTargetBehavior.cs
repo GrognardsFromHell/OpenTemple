@@ -4,6 +4,7 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using SDL2;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
 
@@ -184,7 +185,7 @@ internal class MultiTargetBehavior : PickerBehavior
     internal override bool KeyStateChanged(MessageKeyStateChangeArgs args)
     {
         // Releasing space bar will end the picker
-        if (args.key == DIK.DIK_SPACE && !args.down)
+        if (args.key == SDL.SDL_Keycode.SDLK_SPACE && !args.down)
         {
             return ForceEnd();
         }
@@ -216,7 +217,7 @@ internal class MultiTargetBehavior : PickerBehavior
             return false;
         }
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions();
+        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
         if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var objFound, raycastFlags))
         {
             return true;
@@ -254,7 +255,7 @@ internal class MultiTargetBehavior : PickerBehavior
             return false;
         }
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions();
+        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
         if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags))
         {
             PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);

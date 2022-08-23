@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using JetBrains.Annotations;
 using OpenTemple.Core.GameObjects;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Location;
@@ -12,12 +13,12 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.Widgets;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui.InGame;
 
@@ -89,6 +90,11 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     public void Reset()
     {
         partyMembersMoving = false;
+    }
+
+    public bool HandleHotkeyAction(GameView viewport, Hotkey hotkey)
+    {
+        return false;
     }
 
     [TempleDllLocation(0x10114EF0)]
@@ -178,7 +184,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             }
 
             // End turn for current player
-            if (args.key == DIK.DIK_RETURN || args.key == DIK.DIK_SPACE)
+            if (args.key is SDL_Keycode.SDLK_RETURN or SDL_Keycode.SDLK_SPACE)
             {
                 var currentActor = GameSystems.D20.Initiative.CurrentActor;
                 UiSystems.CharSheet.CurrentPage = 0;
@@ -283,29 +289,29 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             return;
         }
 
+        var potentialHotkey = KeyReference.Physical(args.scancode);
+
         var leader = GameSystems.Party.GetConsciousLeader();
         if (leader != null)
         {
-            if (GameSystems.D20.Hotkeys.IsReservedHotkey(args.key))
+            if (GameSystems.D20.Hotkeys.IsReservedHotkey(potentialHotkey))
             {
-                if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL) ||
-                    Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL))
+                if (args.modCtrl)
                 {
                     // trying to assign hotkey to reserved hotkey
-                    GameSystems.D20.Hotkeys.HotkeyReservedPopup(args.key);
+                    GameSystems.D20.Hotkeys.HotkeyReservedPopup(potentialHotkey);
                     return;
                 }
             }
-            else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(args.key))
+            else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey))
             {
-                if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL) ||
-                    Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL))
+                if (args.modCtrl)
                 {
                     // assign hotkey
                     var leaderLoc = leader.GetLocationFull();
                     var screenPos = viewport.WorldToScreen(leaderLoc.ToInches3D());
 
-                    UiSystems.RadialMenu.Spawn(viewport, (int)screenPos.X, (int)screenPos.Y);
+                    UiSystems.RadialMenu.Spawn(viewport, (int) screenPos.X, (int) screenPos.Y);
                     UiSystems.RadialMenu.HandleKeyMessage(args);
                     return;
                 }
@@ -316,7 +322,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
                 GameSystems.D20.Actions.CurSeqReset(leader);
 
                 GameSystems.D20.Actions.GlobD20ActnInit();
-                if (GameSystems.D20.Hotkeys.RadmenuHotkeySthg(GameSystems.Party.GetConsciousLeader(), args.key))
+                if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(GameSystems.Party.GetConsciousLeader(), potentialHotkey))
                 {
                     GameSystems.D20.Actions.ActionAddToSeq();
                     GameSystems.D20.Actions.sequencePerform();
@@ -429,8 +435,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         _normalLmbClicked = false;
         if (uiDragSelectOn)
         {
-            if (!Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) &&
-                !Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+            if (!Tig.Keyboard.IsShiftPressed)
             {
                 GameSystems.Party.ClearSelection();
             }
@@ -467,8 +472,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             _lastMoveCommandTime = TimePoint.Now;
             _lastMoveCommandLocation = new Point(args.X, args.Y);
 
-            if (!Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) &&
-                !Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+            if (!Tig.Keyboard.IsShiftPressed)
             {
                 var alwaysRun = Globals.Config.AlwaysRun;
                 PartySelectedStandUpAndMoveToPosition(worldPos, !alwaysRun);
@@ -493,7 +497,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
                 UiSystems.CharSheet.ShowInState(state, mouseTgt);
             }
 
-            if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+            if (Tig.Keyboard.IsShiftPressed)
             {
                 if (GameSystems.Party.IsSelected(mouseTgt))
                 {
@@ -646,7 +650,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
                         return;
                     }
 
-                    if (Tig.Keyboard.IsPressed(DIK.DIK_LMENU) || Tig.Keyboard.IsPressed(DIK.DIK_RMENU))
+                    if (Tig.Keyboard.IsAltPressed)
                     {
                         MoveCorpseToPlayer(partyLeader, clickedObj);
                         return;
@@ -746,7 +750,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             return (animObj.GetCritterFlags2() & CritterFlag2.ACTION0_PAUSED) != 0;
         }
 
-        if ((animGoalType == AnimGoalType.attack || animGoalType == AnimGoalType.attempt_attack) &&
+        if (animGoalType is AnimGoalType.attack or AnimGoalType.attempt_attack &&
             IsActionPaused())
             return;
 
@@ -755,9 +759,9 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         {
             if (GameSystems.Anim.GetSlotForGoalAndObjs(animObj, goal).IsNull
                 && GameSystems.Anim.Interrupt(animObj, AnimGoalPriority.AGP_3, false)
-                && GameSystems.Anim.PushGoal(goal, out var a3))
+                && GameSystems.Anim.PushGoal(goal, out var slotId))
             {
-                SetGoalFlags(animObj, a3, a11);
+                SetGoalFlags(animObj, slotId, a11);
             }
         }
         else
@@ -832,34 +836,20 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         return true;
     }
 
-    private void SetGoalFlags(GameObject animObj, AnimSlotId a3, bool a11)
+    private void SetGoalFlags(GameObject animObj, AnimSlotId slotId, bool a11)
     {
-        if (Tig.Keyboard.IsPressed(DIK.DIK_LSHIFT) || Tig.Keyboard.IsPressed(DIK.DIK_RSHIFT))
+        if (Tig.Keyboard.IsShiftPressed)
         {
-            GameSystems.Anim.TurnOn100(a3);
+            GameSystems.Anim.TurnOn100(slotId);
         }
-        else if (Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) || Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
+        else if (GameSystems.Anim.ShouldRun(animObj))
         {
-            GameSystems.Anim.TurnOnRunning(a3);
-        }
-        else if (Tig.Keyboard.IsModifierActive(DIK.DIK_NUMLOCK))
-        {
-            if (GameSystems.Anim.ShouldRun(animObj))
-            {
-                if (!Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) && !Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
-                {
-                    GameSystems.Anim.TurnOnRunning(a3);
-                }
-            }
-        }
-        else if (!Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) && !Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
-        {
-            GameSystems.Anim.TurnOnRunning(a3);
+            GameSystems.Anim.TurnOnRunning(slotId);
         }
 
         if (a11)
         {
-            GameSystems.Anim.TurnOn4000(a3);
+            GameSystems.Anim.TurnOn4000(slotId);
         }
     }
 

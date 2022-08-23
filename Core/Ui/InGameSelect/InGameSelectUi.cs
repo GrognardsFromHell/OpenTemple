@@ -49,7 +49,6 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
 
     public IFlowContentHost TextHost { get; } = new FlowContentHost()
     {
-
     };
 
     [TempleDllLocation(0x10BD2CD8)]
@@ -205,6 +204,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
             _activePickers[_activePickerIndex].Behavior.CancelPicker();
             _activePickerIndex--;
         }
+
         _activePickers.Clear();
     }
 
@@ -430,6 +430,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
         {
             (x2, x1) = (x1, x2);
         }
+
         if (y1 > y2)
         {
             (y2, y1) = (y1, y2);
@@ -1215,10 +1216,10 @@ internal class PickerState
 
     public GameObject Target { get; set; }
 
-    public GameRaycastFlags GetFlagsFromExclusions()
+    public GameRaycastFlags GetFlagsFromExclusions(MessageMouseArgs mouseArgs)
     {
         GameRaycastFlags result = GameRaycastFlags.HITTEST_3D;
-        if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
+        if (mouseArgs.IsAltHeld)
         {
             result = GameRaycastFlags.HITTEST_SEL_CIRCLE;
         }

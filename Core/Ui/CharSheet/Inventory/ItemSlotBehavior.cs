@@ -20,10 +20,12 @@ public enum ItemSlotMode
     /// A slot belonging to one's own inventory.
     /// </summary>
     Inventory,
+
     /// <summary>
     /// A slot belonging to a container or corpse that is being looted.
     /// </summary>
     Looting,
+
     /// <summary>
     /// A slot belonging to a vendor's inventory who is being bartered with.
     /// </summary>
@@ -115,8 +117,7 @@ public class ItemSlotBehavior
                 {
                     // Shift+Click will show extra info about an item
                     if (AllowShowInfo
-                        && (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT)
-                            || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+                        && (Tig.Keyboard.IsShiftPressed)
                         && GameSystems.MapObject.HasLongDescription(currentItem))
                     {
                         UiSystems.CharSheet.ShowItemDetailsPopup(currentItem, ActingCritter);
@@ -203,7 +204,6 @@ public class ItemSlotBehavior
                 // If the item is in another container, then we'll simply try to take it
                 if (GameSystems.Item.GetParent(item) != critter)
                 {
-
                 }
                 // If the item is currently equipped, unequip it,
                 else if (GameSystems.Item.IsEquipped(item))

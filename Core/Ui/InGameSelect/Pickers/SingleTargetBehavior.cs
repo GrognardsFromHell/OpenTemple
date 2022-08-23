@@ -29,7 +29,7 @@ internal class SingleTargetBehavior : PickerBehavior
 
         ClearResults();
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions();
+        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
         if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var objFound, raycastFlags))
         {
             return false;
@@ -67,7 +67,7 @@ internal class SingleTargetBehavior : PickerBehavior
             return false;
         }
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions();
+        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
         if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags))
         {
             PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);

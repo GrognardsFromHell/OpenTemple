@@ -122,7 +122,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         // _mainWindow.OnBeforeRender += 0x1012e4d0;
         // Swallow mouse events (to prevent click through)
         _mainWindow.SetMouseMsgHandler(msg => true);
-        _mainWindow.SetKeyStateChangeHandler(OnKeyStateChange);
+        _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
         _mainWindow.ZIndex = 100000;
         _mainWindow.Visible = false;
         _mainWindow.OnBeforeRender += UpdateCheckboxes;
@@ -373,21 +373,6 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
 
         uiCampingDefinition = 0;
         UiCampingTimeToRestTextUpdate();
-    }
-
-    private bool OnKeyStateChange(MessageKeyStateChangeArgs arg)
-    {
-        if (arg.key == DIK.DIK_ESCAPE)
-        {
-            if (!arg.down)
-            {
-                Hide();
-            }
-
-            return true;
-        }
-
-        return false;
     }
 
     [TempleDllLocation(0x1012e310)]

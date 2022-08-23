@@ -78,7 +78,7 @@ internal class AreaTargetBehavior : PickerBehavior
         // The picker may allow picking an object directly (which will be the basis of the area effect)
         if (Picker.modeTarget.HasFlag(UiPickerType.AreaOrObj))
         {
-            var flags = PickerState.GetFlagsFromExclusions();
+            var flags = PickerState.GetFlagsFromExclusions(args);
             if (GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, flags))
             {
                 if ((Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.LosNotRequired) || !Picker.LosBlocked(target))

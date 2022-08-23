@@ -15,6 +15,7 @@ using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui.Dialog;
 
@@ -28,7 +29,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     private const string NPCLineTextStyle = "dialog-ui-line-npc";
 
     [TempleDllLocation(0x10bea290)]
-    private const string  PcLineTextStyle = "dialog-ui-line-player";
+    private const string PcLineTextStyle = "dialog-ui-line-player";
 
     [TempleDllLocation(0x1014bb50)]
     public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.Visible;
@@ -215,31 +216,31 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         // Allows selecting PC responses by pressing the associated number
         switch (arg.key)
         {
-            case DIK.DIK_1:
+            case SDL_Keycode.SDLK_1:
                 SelectResponse(0);
                 return true;
-            case DIK.DIK_2:
+            case SDL_Keycode.SDLK_2:
                 SelectResponse(1);
                 return true;
-            case DIK.DIK_3:
+            case SDL_Keycode.SDLK_3:
                 SelectResponse(2);
                 return true;
-            case DIK.DIK_4:
+            case SDL_Keycode.SDLK_4:
                 SelectResponse(3);
                 return true;
-            case DIK.DIK_5:
+            case SDL_Keycode.SDLK_5:
                 SelectResponse(4);
                 return true;
-            case DIK.DIK_6:
+            case SDL_Keycode.SDLK_6:
                 SelectResponse(5);
                 return true;
-            case DIK.DIK_7:
+            case SDL_Keycode.SDLK_7:
                 SelectResponse(6);
                 return true;
-            case DIK.DIK_8:
+            case SDL_Keycode.SDLK_8:
                 SelectResponse(7);
                 return true;
-            case DIK.DIK_9:
+            case SDL_Keycode.SDLK_9:
                 SelectResponse(8);
                 return true;
             default:

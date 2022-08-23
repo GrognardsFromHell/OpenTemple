@@ -72,7 +72,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
     private void CreateWidgets()
     {
         _window = new WidgetContainer(new Rectangle(27, 40, 750, 445));
-        _window.SetKeyStateChangeHandler(OnKeyStateChange);
+        _window.AddHotkey(UiHotkeys.CloseWindow, Hide);
         _window.ZIndex = 100050;
         _window.Name = "logbook_ui_main_window";
         // Eat window and click messages
@@ -138,19 +138,6 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
         // Add the tab containers
         _window.Add(Keys.Container);
     }
-
-    [TempleDllLocation(0x10126ba0)]
-    private bool OnKeyStateChange(MessageKeyStateChangeArgs arg)
-    {
-        if (arg.key == DIK.DIK_ESCAPE && arg.down == false)
-        {
-            Hide();
-            return true;
-        }
-
-        return false;
-    }
-
 
     [TempleDllLocation(0x101ccde0)]
     public void RecordSkillUse(GameObject critter, SkillId skill)
@@ -230,7 +217,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
     {
         _window.CenterOnScreen();
 
-        if (_canShowQuotes && (Tig.Keyboard.IsPressed(DIK.DIK_LMENU) || Tig.Keyboard.IsPressed(DIK.DIK_RMENU)))
+        if (_canShowQuotes && Tig.Keyboard.IsAltPressed)
         {
             Show(true);
         }
@@ -244,7 +231,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
             Show(false);
         }
     }
-        
+
     [TempleDllLocation(0x10126030)]
     public void Hide()
     {

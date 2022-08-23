@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.RollHistory;
@@ -64,15 +63,7 @@ public class HelpUi : IResetAwareSystem
         uiHelpWnd = new WidgetContainer(new Rectangle(92, 7, 462, 507));
         uiHelpWnd.ZIndex = 99800;
         uiHelpWnd.Name = "help_main_window";
-        uiHelpWnd.SetKeyStateChangeHandler(args =>
-        {
-            if (!args.down && args.key == DIK.DIK_ESCAPE)
-            {
-                Hide();
-            }
-
-            return true;
-        });
+        uiHelpWnd.AddHotkey(UiHotkeys.CloseWindow, Hide);
         uiHelpWnd.Visible = false;
         uiHelpWnd.SetMouseMsgHandler(msg => true); // Dont allow click-through
 

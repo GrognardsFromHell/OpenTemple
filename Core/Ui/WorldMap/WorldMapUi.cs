@@ -67,10 +67,12 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x10bef818)]
     private bool _randomEncounterTriggered;
 
-    [TempleDllLocation(0x102fb3d4)] [TempleDllLocation(0x102fb3d8)]
+    [TempleDllLocation(0x102fb3d4)]
+    [TempleDllLocation(0x102fb3d8)]
     private Point _randomEncounterPoint;
 
-    [TempleDllLocation(0x10beee60)] [TempleDllLocation(0x10bef788)]
+    [TempleDllLocation(0x10beee60)]
+    [TempleDllLocation(0x10bef788)]
     private Point _lastTrailPos;
 
     [TempleDllLocation(0x10bef814)]
@@ -139,7 +141,8 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         var doc = WidgetDoc.Load("ui/worldmap_ui.json");
         _mainWindow = doc.GetRootContainer();
         _mainWindow.Visible = false;
-        _mainWindow.SetKeyStateChangeHandler(HandleShortcut);
+        // Allow closing the window while no trip is taking place
+        _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide, () => !IsMakingTrip);
         _mainWindow.OnHandleMessage += message =>
         {
             if (message.type == MessageType.UPDATE_TIME)
@@ -481,18 +484,6 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     private IEnumerable<WorldMapLocationWidgets> EnumerateWidgetsForArea(int areaId)
     {
         return _locationWidgets.Where(widgets => widgets.Location.AreaIds.Contains(areaId));
-    }
-
-    private bool HandleShortcut(MessageKeyStateChangeArgs msg)
-    {
-        // Allow closing the worldmap with escapep
-        if (!msg.down && msg.key == DIK.DIK_ESCAPE && !IsMakingTrip)
-        {
-            Hide();
-            return true;
-        }
-
-        return false;
     }
 
     [TempleDllLocation(0x1015f140)]
