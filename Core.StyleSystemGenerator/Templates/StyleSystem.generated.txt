@@ -6,11 +6,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace OpenTemple.Core.Ui.Styles {
-    {{~include "IStyleDefinition.txt" | indent 2~}}
-    {{~include "StyleDefinition.txt" | indent 2~}}
-    {{~include "ComputedStyles.txt" | indent 2~}}
-    {{~include "StyleResolver.txt" | indent 2~}}
-    {{~include "JsonDeserializer.txt" | indent 2~}}
-    {{~include "Enums.txt" | indent 2~}}
-}
+namespace OpenTemple.Core.Ui.Styles;
+
+{{~include "IStyleDefinition.txt" ~}}
+{{~include "StyleDefinition.txt" ~}}
+{{~include "ComputedStyles.txt" ~}}
+{{~include "StyleResolver.txt" ~}}
+{{~include "JsonDeserializer.txt" ~}}
+{{~include "Enums.txt" ~}}
