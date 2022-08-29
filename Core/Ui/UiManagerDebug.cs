@@ -81,7 +81,7 @@ public class UiManagerDebug
     {
         ImGui.PushID($"widget${widget.GetHashCode()}");
         var zIndex = "";
-        if (widget is WidgetContainer window && window.GetParent() == null)
+        if (widget is WidgetContainer window && window.Parent == null)
         {
             zIndex = $" Z:{window.ZIndex}";
         }

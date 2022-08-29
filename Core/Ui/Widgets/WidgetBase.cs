@@ -1,6 +1,8 @@
 #nullable enable
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -13,8 +15,10 @@ using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
-public class WidgetBase : Styleable, IDisposable
+public partial class WidgetBase : Styleable, IDisposable
 {
+    private static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(10);
+    
     protected WidgetContainer? _parent = null;
     protected string mSourceURI;
     protected string mId;
@@ -28,12 +32,25 @@ public class WidgetBase : Styleable, IDisposable
     protected Func<MessageWidgetArgs, bool>? mWidgetMsgHandler;
     protected Func<MessageKeyStateChangeArgs, bool>? mKeyStateChangeHandler;
     protected Func<MessageCharArgs, bool>? mCharHandler;
+    protected bool ContainsMouse { get; private set; }
+
+    public int ZIndex { get; set; }
 
     protected List<WidgetContent> _content = new();
     private bool _visible = true;
 
-    private readonly List<AvailableHotkey> _hotkeys = new ();
-    
+    private readonly List<AvailableHotkey> _hotkeys = new();
+
+    /// <summary>
+    /// Indicates whether this widget is currently part of the widget tree.
+    /// </summary>
+    public bool IsInTree => UiManager != null;
+
+    /// <summary>
+    /// Gets the UI Manager that this widget is attached to.
+    /// </summary>
+    public UiManager? UiManager { get; private set; }
+
     public string Name { get; set; }
 
     // Horizontal position relative to parent
@@ -70,9 +87,7 @@ public class WidgetBase : Styleable, IDisposable
         set => mMargins = value;
     }
 
-    public WidgetBase([CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1)
+    public WidgetBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
     {
         if (filePath != null)
         {
@@ -97,14 +112,12 @@ public class WidgetBase : Styleable, IDisposable
 
     public event Action? OnBeforeRender;
 
-    public event Func<Message, bool>? OnHandleMessage;
-
     /// <summary>
     /// Hit test the content of this widget instead of just checking against the content rectangle.
     /// </summary>
     public bool PreciseHitTest { get; set; } = false;
 
-    public virtual bool HitTest(int x, int y)
+    public virtual bool HitTest(float x, float y)
     {
         var contentArea = GetContentArea();
         x += contentArea.X - mMargins.Left;
@@ -112,7 +125,7 @@ public class WidgetBase : Styleable, IDisposable
 
         if (!PreciseHitTest)
         {
-            return contentArea.Contains(x, y);
+            return contentArea.Contains((int) x, (int) y);
         }
 
         UpdateLayout();
@@ -127,12 +140,11 @@ public class WidgetBase : Styleable, IDisposable
             var contentRect = content.GetBounds();
             contentRect.Intersect(contentArea);
 
-            if (contentRect.Contains(x, y))
+            if (contentRect.Contains((int) x, (int) y))
             {
                 return true;
             }
         }
-
 
         return false;
     }
@@ -273,9 +285,7 @@ public class WidgetBase : Styleable, IDisposable
 
         if (mCenterVertically)
         {
-            int containerHeight = _parent != null
-                ? _parent.Height
-                : Globals.UiManager.CanvasSize.Height;
+            int containerHeight = _parent?.Height ?? Globals.UiManager.CanvasSize.Height;
             int y = (containerHeight - Height) / 2;
             if (y != Y)
             {
@@ -286,19 +296,7 @@ public class WidgetBase : Styleable, IDisposable
 
     public virtual bool HandleMessage(Message msg)
     {
-        if (OnHandleMessage != null)
-        {
-            if (OnHandleMessage(msg))
-            {
-                return true;
-            }
-        }
-
-        if (msg.type == MessageType.WIDGET && mWidgetMsgHandler != null)
-        {
-            return mWidgetMsgHandler(msg.WidgetArgs);
-        }
-        else if (msg.type == MessageType.KEYSTATECHANGE && mKeyStateChangeHandler != null)
+        if (msg.type == MessageType.KEYSTATECHANGE && mKeyStateChangeHandler != null)
         {
             return mKeyStateChangeHandler(msg.KeyStateChangeArgs);
         }
@@ -306,35 +304,16 @@ public class WidgetBase : Styleable, IDisposable
         {
             return mCharHandler(msg.CharArgs);
         }
-        else if (msg.type == MessageType.MOUSE)
-        {
-            return HandleMouseMessage(msg.MouseArgs);
-        }
 
         return false;
     }
 
-    public virtual bool IsContainer()
-    {
-        return false;
-    }
-
-    public virtual bool IsButton()
-    {
-        return false;
-    }
-
-    public virtual bool IsScrollView()
-    {
-        return false;
-    }
-
-    /**
-         * Picks the widget a the x,y coordinate local to this widget.
-         * Null if the coordinates are outside of this widget. If no
-         * other widget inside is at the given coordinate, will just return this.
-         */
-    public virtual WidgetBase? PickWidget(int x, int y)
+    /// <summary>
+    /// Picks the widget a the x,y coordinate local to this widget.
+    /// Null if the coordinates are outside of this widget. If no
+    /// other widget inside is at the given coordinate, will just return this.
+    /// </summary>
+    public virtual WidgetBase? PickWidget(float x, float y)
     {
         if (!Visible)
         {
@@ -397,15 +376,14 @@ public class WidgetBase : Styleable, IDisposable
         }
     }
 
-    public void SetParent(WidgetContainer parent)
+    public WidgetContainer? Parent
     {
-        Trace.Assert(_parent == null || _parent == parent || parent == null);
-        _parent = parent;
-    }
-
-    public WidgetContainer? GetParent()
-    {
-        return _parent;
+        get => _parent;
+        set
+        {
+            Trace.Assert(_parent == null || _parent == value || value == null);
+            _parent = value;
+        }
     }
 
     public Rectangle Rectangle
@@ -501,7 +479,7 @@ public class WidgetBase : Styleable, IDisposable
         var bounds = new Rectangle(widget.GetPos(), widget.GetSize());
 
         // The content of an advanced widget container may be moved
-        var container = widget.GetParent();
+        var container = widget.Parent;
         if (container != null)
         {
             var scrollOffsetY = container.GetScrollOffsetY();
@@ -647,7 +625,7 @@ public class WidgetBase : Styleable, IDisposable
             }
         }
     }
-    
+
     public virtual bool HandleMouseMessage(MessageMouseArgs msg)
     {
         if (mMouseMsgHandler != null)
@@ -658,8 +636,15 @@ public class WidgetBase : Styleable, IDisposable
         return false;
     }
 
-    public virtual void OnUpdateTime(TimePoint timeMs)
+    public virtual void OnUpdateTime(TimePoint now)
     {
+        foreach (var interval in Intervals)
+        {
+            if (interval.NextTrigger <= now)
+            {
+                interval.Trigger();
+            } 
+        }
     }
 
     protected virtual void OnSizeChanged()
@@ -687,7 +672,14 @@ public class WidgetBase : Styleable, IDisposable
 
     public override IStyleable? StyleParent => _parent;
 
-    public virtual bool HasPseudoClass(StylingState stylingState) => false;
+    public virtual bool HasPseudoClass(StylingState stylingState)
+    {
+        return stylingState switch
+        {
+            StylingState.Hover => ContainsMouse,
+            _ => false
+        };
+    }
 
     protected override void OnStylesInvalidated()
     {
@@ -704,6 +696,48 @@ public class WidgetBase : Styleable, IDisposable
         condition ??= () => true;
         _hotkeys.Add(new AvailableHotkey(hotkey, callback, condition));
     }
-    
+
     private record AvailableHotkey(Hotkey Hotkey, Action Callback, Func<bool> Condition);
+
+    public IEnumerable<WidgetBase> EnumerateSelfAndAncestors()
+    {
+        var current = this;
+
+        while (current != null)
+        {
+            yield return current;
+            current = Parent;
+        }
+    }
+
+    public ImmutableList<DeclaredInterval> Intervals { get; private set; } = ImmutableList<DeclaredInterval>.Empty; 
+    
+    /// <summary>
+    /// Adds a callback that will be called in regular intervals as long as this widget is part of the UI tree. 
+    /// </summary>
+    public void AddInterval(Action callback, TimeSpan interval = default)
+    {
+        Intervals = Intervals.Add(new DeclaredInterval(callback, interval));
+    }
+
+    public record DeclaredInterval(Action Callback, TimeSpan Interval)
+    {
+        public TimePoint NextTrigger { get; set; } = GetNextIntervalTrigger(Interval);
+
+        public void Trigger()
+        {
+            NextTrigger = GetNextIntervalTrigger(Interval); 
+            Callback();
+        }
+        
+        private static TimePoint GetNextIntervalTrigger(TimeSpan interval)
+        {
+            if (interval == default)
+            {
+                interval = DefaultInterval;
+            }
+            return TimePoint.Now + interval;
+        }
+        
+    }
 }

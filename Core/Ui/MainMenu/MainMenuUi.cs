@@ -78,7 +78,7 @@ public class MainMenuUi : IDisposable
         });
         GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
         GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
-        GetButton("quit-game").SetClickHandler(() => { Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT)); });
+        GetButton("quit-game").SetClickHandler(() => { Tig.EventLoop.Stop(); });
 
         // Wire up buttons on the difficulty selection page
         GetButton("difficulty-normal").SetClickHandler(() =>

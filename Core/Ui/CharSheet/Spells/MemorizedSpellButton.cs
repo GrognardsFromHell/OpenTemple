@@ -6,6 +6,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Spells;
@@ -92,7 +93,7 @@ public class MemorizedSpellButton : WidgetButtonBase
 
         OnBeforeRender += UpdateSlotRectangle;
         OnMouseEnter += ShowSpellHelp;
-        OnMouseExit += HideSpellHelp;
+        OnMouseLeave += HideSpellHelp;
     }
 
     private void UpdateSlotRectangle()
@@ -138,7 +139,7 @@ public class MemorizedSpellButton : WidgetButtonBase
     }
 
     [TempleDllLocation(0x101b85a0)]
-    private void ShowSpellHelp(MessageWidgetArgs obj)
+    private void ShowSpellHelp(MouseEvent e)
     {
         if (Slot.HasSpell)
         {
@@ -147,7 +148,7 @@ public class MemorizedSpellButton : WidgetButtonBase
         }
     }
 
-    private void HideSpellHelp(MessageWidgetArgs obj)
+    private void HideSpellHelp(MouseEvent e)
     {
         UiSystems.CharSheet.Help.ClearHelpText();
     }

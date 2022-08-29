@@ -15,7 +15,8 @@ public class GameViewScrollingController
     private TimePoint _lastScrolling;
     private static readonly TimeSpan ScrollButterDelay = TimeSpan.FromMilliseconds(16);
     private bool _grabMoving;
-    private Point _grabMoveRef;
+    private PointF _grabMoveRef;
+    private PointF? _lastMousePos;
     private bool _mouseHasMoved;
     public bool IsMouseScrolling { get; set; } = true;
 
@@ -25,9 +26,9 @@ public class GameViewScrollingController
         _viewport = viewport;
     }
 
-    public bool MiddleMouseDown(Point pos)
+    public bool MiddleMouseDown(PointF pos)
     {
-        _grabMoving = Globals.UiManager.SetMouseCaptureWidget(_widget);
+        _grabMoving = Globals.UiManager.CaptureMouse(_widget);
         _grabMoveRef = pos;
         return true;
     }
@@ -36,7 +37,7 @@ public class GameViewScrollingController
     {
         if (_grabMoving)
         {
-            Globals.UiManager.UnsetMouseCaptureWidget(_widget);
+            Globals.UiManager.ReleaseMouseCapture(_widget);
             _grabMoving = false;
             _grabMoveRef = Point.Empty;
             return true;
@@ -45,8 +46,10 @@ public class GameViewScrollingController
         return false;
     }
 
-    public bool MouseMoved(Point pos)
+    public bool MouseMoved(PointF pos)
     {
+        _lastMousePos = pos;
+        
         if (!_grabMoving)
         {
             return false;
@@ -59,7 +62,7 @@ public class GameViewScrollingController
         dx = (int) (dx / _viewport.Zoom);
         dy = (int) (dy / _viewport.Zoom);
 
-        GameSystems.Scroll.ScrollBy(_viewport, dx, dy);
+        GameSystems.Scroll.ScrollBy(_viewport, (int) dx, (int) dy);
 
         _grabMoveRef = pos;
         return true;
@@ -115,7 +118,7 @@ public class GameViewScrollingController
     }
 
     [TempleDllLocation(0x10001010)]
-    public void UpdateTime(TimePoint time, Point mousePos)
+    public void UpdateTime(TimePoint time)
     {
         DoKeyboardScrolling();
 
@@ -127,10 +130,12 @@ public class GameViewScrollingController
 
         // Wait until the mouse has moved at least once to avoid the issue of the mouse at 0,0
         // causing the screen to move directly on startup.
-        if (!_mouseHasMoved)
+        if (_lastMousePos == null)
         {
             return;
         }
+
+        var mousePos = _lastMousePos.Value;
 
         if (!IsMouseScrolling)
         {

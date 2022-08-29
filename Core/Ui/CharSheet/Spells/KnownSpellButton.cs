@@ -5,6 +5,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -44,7 +45,7 @@ public class KnownSpellButton : WidgetButtonBase
         AddContent(_nameLabel);
 
         OnMouseEnter += ShowSpellHelp;
-        OnMouseExit += HideSpellHelp;
+        OnMouseLeave += HideSpellHelp;
 
         if (spellOpposesAlignment)
         {
@@ -99,85 +100,64 @@ public class KnownSpellButton : WidgetButtonBase
         );
     }
 
-    public override bool HandleMessage(Message msg)
+    protected override void HandleMouseDown(MouseEvent e)
     {
         // No interaction when the spell opposes the caster's alignment
         if (_spellOpposesAlignment)
         {
-            return base.HandleMessage(msg);
+            return;
         }
-
-        void StartDragging()
+        
+        if (UiSystems.HelpManager.IsSelectingHelpTarget)
         {
-            _nameLabel.Visible = false;
-            Tig.Mouse.SetCursorDrawCallback(DrawSpellNameUnderMouse);
-            Globals.UiManager.DraggedObject = new DraggedKnownSpell(_spell);
+            var spellHelpTopic = GameSystems.Spell.GetSpellHelpTopic(_spell.spellEnum);
+            GameSystems.Help.ShowTopic(spellHelpTopic);
         }
-
-        void StopDragging()
+        else
         {
-            _nameLabel.Visible = true;
-            Tig.Mouse.SetCursorDrawCallback(null);
-            Globals.UiManager.DraggedObject = null;
+            StartDragging();
         }
-
-        if (msg.type == MessageType.WIDGET)
-        {
-            var widgetArgs = msg.WidgetArgs;
-            if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Clicked)
-            {
-                if (UiSystems.HelpManager.IsSelectingHelpTarget)
-                {
-                    var spellHelpTopic = GameSystems.Spell.GetSpellHelpTopic(_spell.spellEnum);
-                    GameSystems.Help.ShowTopic(spellHelpTopic);
-                }
-                else
-                {
-                    StartDragging();
-                }
-
-                return true;
-            }
-            else if (widgetArgs.widgetEventType == TigMsgWidgetEvent.MouseReleased)
-            {
-                StopDragging();
-                return true;
-            }
-            else if (widgetArgs.widgetEventType == TigMsgWidgetEvent.MouseReleasedAtDifferentButton)
-            {
-                var otherWidget = Globals.UiManager.GetWidgetAt(widgetArgs.x, widgetArgs.y);
-                if (otherWidget is MemorizedSpellButton memorizedSpellButton)
-                {
-                    OnMemorizeSpell?.Invoke(_spell, memorizedSpellButton);
-                }
-
-                StopDragging();
-                return true;
-            }
-        }
-
-        return base.HandleMessage(msg);
     }
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
+    protected override void HandleMouseUp(MouseEvent e)
     {
-        // Forward scroll wheel messages to the parent (which will forward it to the scrollbar)
-        if (_parent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+        // No interaction when the spell opposes the caster's alignment
+        if (_spellOpposesAlignment)
         {
-            return _parent.HandleMouseMessage(msg);
+            return;
+        }
+        
+        var otherWidget = Globals.UiManager.GetWidgetAt(e.X, e.Y);
+        if (otherWidget is MemorizedSpellButton memorizedSpellButton)
+        {
+            OnMemorizeSpell?.Invoke(_spell, memorizedSpellButton);
         }
 
-        return base.HandleMouseMessage(msg);
+        StopDragging();
+    }
+
+    private void StartDragging()
+    {
+        _nameLabel.Visible = false;
+        Tig.Mouse.SetCursorDrawCallback(DrawSpellNameUnderMouse);
+        UiManager.DraggedObject = new DraggedKnownSpell(_spell);
+    }
+
+    private void StopDragging()
+    {
+        _nameLabel.Visible = true;
+        Tig.Mouse.SetCursorDrawCallback(null);
+        UiManager.DraggedObject = null;
     }
 
     [TempleDllLocation(0x101b85a0)]
-    private void ShowSpellHelp(MessageWidgetArgs obj)
+    private void ShowSpellHelp(MouseEvent e)
     {
         var helpText = GameSystems.Spell.GetSpellDescription(_spell.spellEnum);
         UiSystems.CharSheet.Help.SetHelpText(helpText);
     }
 
-    private void HideSpellHelp(MessageWidgetArgs obj)
+    private void HideSpellHelp(MouseEvent e)
     {
         UiSystems.CharSheet.Help.ClearHelpText();
     }

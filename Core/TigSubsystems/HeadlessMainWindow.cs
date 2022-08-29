@@ -11,11 +11,11 @@ public class HeadlessMainWindow : IMainWindow
     {
     }
 
-    public event Action<WindowEvent> OnInput;
-
     public event Action<Size> Resized;
 
     public event Action Closed;
+    
+    public IUiRoot? UiRoot { get; set; }
 
     public Size OffScreenSize { get; set; } = new(1024, 768);
 
@@ -44,10 +44,5 @@ public class HeadlessMainWindow : IMainWindow
 
     public void Dispose()
     {
-    }
-
-    public void SendInput(WindowEvent obj)
-    {
-        OnInput?.Invoke(obj);
     }
 }

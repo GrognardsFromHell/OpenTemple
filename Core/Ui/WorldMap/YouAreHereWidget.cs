@@ -29,5 +29,5 @@ public class YouAreHereWidget : WidgetBase
     }
 
     // The icon is purely decorative and should not iteract with the mouse
-    public override bool HitTest(int x, int y) => false;
+    public override bool HitTest(float x, float y) => false;
 }

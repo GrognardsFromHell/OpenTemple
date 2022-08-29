@@ -61,7 +61,7 @@ internal class WorldMapLocationWidgets
         ListButton.Text = location.Name;
         ListButton.SetClickHandler(() => OnClick?.Invoke(Location));
         ListButton.OnMouseEnter += _ => Ring.ForceVisible = true;
-        ListButton.OnMouseExit += _ => Ring.ForceVisible = false;
+        ListButton.OnMouseLeave += _ => Ring.ForceVisible = false;
 
         UpdateVisibility();
     }

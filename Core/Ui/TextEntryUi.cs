@@ -1,5 +1,6 @@
 using System;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using static SDL2.SDL;
 
@@ -39,7 +40,7 @@ public class TextEntryUi
         _dialog = doc.GetRootContainer();
         _dialog.Visible = false;
         _dialog.SetKeyStateChangeHandler(HandleShortcut);
-        _dialog.OnHandleMessage += HandleMessage;
+        _dialog.OnTextInput += HandleTextInput;
 
         _okButton = doc.GetButton("okButton");
         _okButton.SetClickHandler(Confirm);
@@ -47,6 +48,13 @@ public class TextEntryUi
         _cancelButton.SetClickHandler(Cancel);
         _titleLabel = doc.GetTextContent("titleLabel");
         _currentInputLabel = doc.GetTextContent("currentInputLabel");
+    }
+
+    private void HandleTextInput(TextInputEvent e)
+    {
+        var newText = _currentInput.Insert(_caretPosition, e.Text);
+        _caretPosition += e.Text.Length;
+        UpdateInput(newText);
     }
 
     private bool HandleShortcut(MessageKeyStateChangeArgs arg)
@@ -115,21 +123,7 @@ public class TextEntryUi
 
         return true;
     }
-
-    private bool HandleMessage(Message arg)
-    {
-        if (arg.type == MessageType.CHAR)
-        {
-            var newText = _currentInput.Insert(_caretPosition, arg.CharArgs.Text);
-            _caretPosition += arg.CharArgs.Text.Length;
-            UpdateInput(newText);
-
-            return true;
-        }
-
-        return false;
-    }
-
+    
     [TempleDllLocation(0x1014e670)]
     [TempleDllLocation(0x1014e8a0)]
     public void ShowTextEntry(UiCreateNamePacket crNamePkt)

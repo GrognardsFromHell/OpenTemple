@@ -126,12 +126,12 @@ class AbilityScoreSystem : IChargenSystem
 
     private bool AbilityScoreMouseHandler(MessageMouseArgs msg, AbilityScoreValueWidget widget)
     {
-        if (Globals.UiManager.GetMouseCaptureWidget() == widget)
+        if (Globals.UiManager.MouseCaptureWidget == widget)
         {
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
-                Globals.UiManager.UnsetMouseCaptureWidget(widget);
+                Globals.UiManager.ReleaseMouseCapture(widget);
                 widget.IsDragging = false;
 
                 var widgetUnderCursor = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
@@ -173,7 +173,7 @@ class AbilityScoreSystem : IChargenSystem
         }
         else if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
         {
-            if (!Globals.UiManager.SetMouseCaptureWidget(widget))
+            if (!Globals.UiManager.CaptureMouse(widget))
             {
                 // Something else has the mouse capture right now (how are we getting this message then...?)
                 return true;

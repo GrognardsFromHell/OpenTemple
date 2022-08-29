@@ -50,12 +50,12 @@ public class WidgetContainer : WidgetBase
 
     public virtual void Add(WidgetBase childWidget)
     {
-        if (childWidget.GetParent() != null && childWidget.GetParent() != this)
+        if (childWidget.Parent != null && childWidget.Parent != this)
         {
-            childWidget.GetParent().Remove(childWidget);
+            childWidget.Parent.Remove(childWidget);
         }
 
-        childWidget.SetParent(this);
+        childWidget.Parent = this;
         // If the child widget was a top-level window before, remove it
         if (childWidget is WidgetContainer otherContainer)
         {
@@ -68,13 +68,11 @@ public class WidgetContainer : WidgetBase
 
     public LgcyWindowMouseState MouseState { get; internal set; }
 
-    public int ZIndex { get; set; }
-
     public void Remove(WidgetBase childWidget)
     {
-        Trace.Assert(childWidget.GetParent() == this);
+        Trace.Assert(childWidget.Parent == this);
 
-        childWidget.SetParent(null);
+        childWidget.Parent = null;
         mChildren.Remove(childWidget);
         Globals.UiManager.RefreshMouseOverState();
     }
@@ -95,7 +93,7 @@ public class WidgetContainer : WidgetBase
         }
     }
 
-    public override WidgetBase PickWidget(int x, int y)
+    public override WidgetBase PickWidget(float x, float y)
     {
         for (var i = mChildren.Count - 1; i >= 0; i--)
         {
@@ -106,8 +104,8 @@ public class WidgetContainer : WidgetBase
                 continue;
             }
 
-            int localX = x - child.X;
-            int localY = y - child.Y + mScrollOffsetY;
+            var localX = x - child.X;
+            var localY = y - child.Y + mScrollOffsetY;
             if (localY < 0 || localY >= child.Height)
             {
                 continue;
@@ -138,11 +136,6 @@ public class WidgetContainer : WidgetBase
         {
             base.BringToFront();
         }
-    }
-
-    public override bool IsContainer()
-    {
-        return true;
     }
 
     public List<WidgetBase> GetChildren()
@@ -242,13 +235,13 @@ public class WidgetContainer : WidgetBase
         return base.HandleMouseMessage(msg);
     }
 
-    public override void OnUpdateTime(TimePoint timeMs)
+    public override void OnUpdateTime(TimePoint now)
     {
-        base.OnUpdateTime(timeMs);
+        base.OnUpdateTime(now);
 
         foreach (var widget in mChildren)
         {
-            widget.OnUpdateTime(timeMs);
+            widget.OnUpdateTime(now);
         }
     }
 
@@ -270,7 +263,7 @@ public class WidgetContainer : WidgetBase
 
     public void CenterOnScreen()
     {
-        Trace.Assert(GetParent() == null);
+        Trace.Assert(Parent == null);
         var screenSize = Globals.UiManager.CanvasSize;
         X = (screenSize.Width - Width) / 2;
         Y = (screenSize.Height - Height) / 2;

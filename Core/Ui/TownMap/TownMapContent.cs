@@ -267,7 +267,7 @@ public class TownMapContent : WidgetButtonBase
         switch (msg.widgetEventType)
         {
             case TigMsgWidgetEvent.Clicked:
-                if (!_hasMouseCapture && Globals.UiManager.SetMouseCaptureWidget(this))
+                if (!_hasMouseCapture && Globals.UiManager.CaptureMouse(this))
                 {
                     Logger.Info("Drag Start");
                     _hasMouseCapture = true;
@@ -304,7 +304,7 @@ public class TownMapContent : WidgetButtonBase
                 {
                     _grabbingMap = false;
                     Logger.Info("Drag Stop - Aborted");
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
+                    Globals.UiManager.ReleaseMouseCapture(this);
                     _hasMouseCapture = false;
                 }
 
@@ -383,7 +383,7 @@ public class TownMapContent : WidgetButtonBase
                 Logger.Info("Drag Stop - Released");
                 if (_hasMouseCapture)
                 {
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
+                    Globals.UiManager.ReleaseMouseCapture(this);
                     _hasMouseCapture = false;
                 }
 
@@ -623,7 +623,7 @@ public class TownMapContent : WidgetButtonBase
         if (_hasMouseCapture)
         {
             _hasMouseCapture = false;
-            Globals.UiManager.UnsetMouseCaptureWidget(this);
+            Globals.UiManager.ReleaseMouseCapture(this);
         }
 
         if (_zooming)

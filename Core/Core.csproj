@@ -32,4 +32,8 @@
         <EmbeddedResource Include="Utils\elfhashes.json" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Ui\Messages" />
+    </ItemGroup>
+
 </Project>

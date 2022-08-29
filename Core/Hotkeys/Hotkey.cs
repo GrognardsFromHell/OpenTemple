@@ -1,4 +1,5 @@
 ﻿using System.Dynamic;
+using OpenTemple.Core.Platform;
 using static SDL2.SDL;
 
 namespace OpenTemple.Core.Hotkeys;

@@ -42,11 +42,6 @@ public class WidgetScrollView : WidgetContainer
         return Height - 2 * mPadding;
     }
 
-    public override bool IsScrollView()
-    {
-        return true;
-    }
-
     public void SetPadding(int padding)
     {
         mPadding = padding;

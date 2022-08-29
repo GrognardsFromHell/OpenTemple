@@ -3,6 +3,7 @@ using System.Text;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Feats;
@@ -34,7 +35,7 @@ public class FeatButton : WidgetButtonBase
         AddContent(_label);
         SetClickHandler(ShowFeatHelp);
         OnMouseEnter += ShowShortFeatDescription;
-        OnMouseExit += HideShortFeatDescription;
+        OnMouseLeave += HideShortFeatDescription;
 
         AddStyle("char-ui-feat-button");
     }
@@ -48,7 +49,7 @@ public class FeatButton : WidgetButtonBase
         }
     }
 
-    private void ShowShortFeatDescription(MessageWidgetArgs obj)
+    private void ShowShortFeatDescription(MouseEvent e)
     {
         var helpText = new StringBuilder();
         if (GameSystems.Feat.TryGetFeatDescription(_featId, out var description))
@@ -61,7 +62,7 @@ public class FeatButton : WidgetButtonBase
         UiSystems.CharSheet.Help.SetHelpText(helpText.ToString());
     }
 
-    private void HideShortFeatDescription(MessageWidgetArgs obj)
+    private void HideShortFeatDescription(MouseEvent e)
     {
         UiSystems.CharSheet.Help.ClearHelpText();
     }

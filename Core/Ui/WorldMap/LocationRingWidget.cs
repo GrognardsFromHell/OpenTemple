@@ -97,7 +97,7 @@ public class LocationRingWidget : WidgetButtonBase
         base.Render();
     }
 
-    public override bool HitTest(int x, int y)
+    public override bool HitTest(float x, float y)
     {
         var dx = x - _radius;
         var dy = y - _radius;

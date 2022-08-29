@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Styles;
 
@@ -40,15 +41,11 @@ public class WidgetButtonBase : WidgetBase
     protected TimeSpan mRepeatInterval = TimeSpan.FromMilliseconds(200);
     protected TimePoint mLastClickTriggered;
 
-    public delegate void ClickHandler(int x, int y);
+    public delegate void ClickHandler(float x, float y);
 
     private ClickHandler? mClickHandler;
 
     public event ClickHandler? OnRightClick;
-
-    public event Action<MessageWidgetArgs>? OnMouseEnter;
-
-    public event Action<MessageWidgetArgs>? OnMouseExit;
 
     public WidgetButtonBase([CallerFilePath]
         string? filePath = null, [CallerLineNumber]
@@ -65,42 +62,32 @@ public class WidgetButtonBase : WidgetBase
         SetSize(rect.Size);
     }
 
-    public override bool HandleMessage(Message msg)
+    protected override void DefaultMouseDownAction(MouseEvent e)
     {
-        if (msg.type == MessageType.WIDGET)
+        if (ClickOnMouseDown)
         {
-            MessageWidgetArgs widgetMsg = msg.WidgetArgs;
-            if (mClickHandler != null
-                && (ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.Clicked
-                    || !ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.MouseReleased))
-            {
-                if (mClickHandler != null && !mDisabled)
-                {
-                    var contentArea = GetContentArea();
-                    int x = widgetMsg.x - contentArea.X;
-                    int y = widgetMsg.y - contentArea.Y;
-                    mClickHandler(x, y);
-                    mLastClickTriggered = TimePoint.Now;
-                }
-            }
-            else if (widgetMsg.widgetEventType == TigMsgWidgetEvent.Entered)
-            {
-                OnMouseEnter?.Invoke(widgetMsg);
-            }
-            else if (widgetMsg.widgetEventType == TigMsgWidgetEvent.Exited)
-            {
-                OnMouseExit?.Invoke(widgetMsg);
-            }
-
-            if (mWidgetMsgHandler != null)
-            {
-                return mWidgetMsgHandler(widgetMsg);
-            }
-
-            return true;
+            TriggerAction(e);
         }
+    }
 
-        return base.HandleMessage(msg);
+    protected override void DefaultMouseUpAction(MouseEvent e)
+    {
+        if (!ClickOnMouseDown)
+        {
+            TriggerAction(e);
+        }
+    }
+
+    private void TriggerAction(MouseEvent e)
+    {
+        if (!mDisabled && mClickHandler != null)
+        {
+            var contentArea = GetContentArea();
+            var x = e.X - contentArea.X;
+            var y = e.Y - contentArea.Y;
+            mClickHandler(x, y);
+            mLastClickTriggered = TimePoint.Now;
+        }
     }
 
     public override bool HandleMouseMessage(MessageMouseArgs msg)
@@ -153,11 +140,6 @@ public class WidgetButtonBase : WidgetBase
         mClickHandler = handler;
     }
 
-    public override bool IsButton()
-    {
-        return true;
-    }
-
     public bool IsRepeat()
     {
         return mRepeat;
@@ -179,12 +161,12 @@ public class WidgetButtonBase : WidgetBase
         mRepeatInterval = interval;
     }
 
-    public override void OnUpdateTime(TimePoint timeMs)
+    public override void OnUpdateTime(TimePoint now)
     {
         if (mRepeat && ButtonState == LgcyButtonState.Down)
         {
-            var pos = Tig.Mouse.GetPos();
-            if (mClickHandler != null && !mDisabled && mLastClickTriggered + mRepeatInterval < timeMs)
+            var pos = Tig.Mouse.Pos;
+            if (mClickHandler != null && !mDisabled && mLastClickTriggered + mRepeatInterval < now)
             {
                 var contentArea = GetContentArea();
                 int x = pos.X - contentArea.X;

@@ -1,5 +1,6 @@
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
 
@@ -20,17 +21,17 @@ internal class SingleTargetBehavior : PickerBehavior
     public override string Name => "SP_M_SINGLE";
 
     [TempleDllLocation(0x10137870)]
-    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
-        if (HandleClickInUnexploredArea(args.X, args.Y))
+        if (HandleClickInUnexploredArea(e.X, e.Y))
         {
             return false;
         }
 
         ClearResults();
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
-        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var objFound, raycastFlags))
+        var raycastFlags = PickerState.GetFlagsFromExclusions(e);
+        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, e.X, e.Y, out var objFound, raycastFlags))
         {
             return false;
         }
@@ -60,15 +61,15 @@ internal class SingleTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x10138170)]
-    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool MouseMoved(IGameViewport viewport, MouseEvent e)
     {
-        if (HandleClickInUnexploredArea(args.X, args.Y))
+        if (HandleClickInUnexploredArea(e.X, e.Y))
         {
             return false;
         }
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
-        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags))
+        var raycastFlags = PickerState.GetFlagsFromExclusions(e);
+        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, e.X, e.Y, out var target, raycastFlags))
         {
             PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);
             PickerState.Target = null;

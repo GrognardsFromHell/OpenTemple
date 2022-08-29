@@ -10,6 +10,7 @@ using OpenTemple.Core.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using OpenTemple.Core.GFX;
+using SDL2;
 using SixLabors.ImageSharp.Advanced;
 using Point = System.Drawing.Point;
 using PointF = System.Drawing.PointF;
@@ -66,7 +67,7 @@ public class HeadlessGameHelper : IDisposable
         Window = (HeadlessMainWindow)Tig.MainWindow;
 
         Globals.GameLoop = new GameLoop(
-            Tig.MessageQueue,
+            Tig.EventLoop,
             Tig.RenderingDevice,
             Tig.DebugUI
         );
@@ -194,23 +195,28 @@ public class HeadlessGameHelper : IDisposable
         (int)(uiPoint.Y * Window.UiScale)
     );
 
-    public void SendMouseEvent(WindowEventType type, Point screenPoint, MouseButton button)
+    public void SendMouseDown(Point screenPoint, MouseButton button)
     {
-        Window.SendInput(new MouseWindowEvent(
-            type,
-            Window,
+        Window.UiRoot?.MouseDown(
             screenPoint,
-            ToUiCanvas(screenPoint)
-        )
-        {
-            Button = button
-        });
+            ToUiCanvas(screenPoint),
+            button
+        );
+    }
+
+    public void SendMouseUp(Point screenPoint, MouseButton button)
+    {
+        Window.UiRoot?.MouseDown(
+            screenPoint,
+            ToUiCanvas(screenPoint),
+            button
+        );
     }
 
     public void Click(Point screenPoint, MouseButton button = MouseButton.LEFT)
     {
-        SendMouseEvent(WindowEventType.MouseDown, screenPoint, button);
-        SendMouseEvent(WindowEventType.MouseUp, screenPoint, button);
+        SendMouseDown(screenPoint, button);
+        SendMouseUp(screenPoint, button);
     }
 
     public void ClickUi(float x, float y, MouseButton button = MouseButton.LEFT)

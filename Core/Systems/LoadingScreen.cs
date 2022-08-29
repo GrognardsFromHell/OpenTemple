@@ -129,7 +129,7 @@ public class LoadingScreen : IDisposable, ILoadingProgress
         _device.EndDraw();
         _device.Present();
 
-        Tig.SystemEventPump.PumpSystemEvents();
+        Tig.EventLoop.Tick();
     }
 
     private void Layout()

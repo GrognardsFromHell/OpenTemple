@@ -19,6 +19,8 @@ public class MovieRenderer : IDisposable
     private readonly IMainWindow _mainWindow;
 
     private readonly RenderingDevice _device;
+    
+    private readonly EventLoop _eventLoop;
 
     private readonly Material _material;
 
@@ -34,15 +36,16 @@ public class MovieRenderer : IDisposable
     private double _currentTime;
 
     public MovieRenderer(VideoPlayer player, MovieSubtitles? subtitles) : this(Tig.MainWindow, Tig.RenderingDevice,
-        player, subtitles)
+        Tig.EventLoop, player, subtitles)
     {
     }
 
-    public MovieRenderer(IMainWindow mainWindow, RenderingDevice device, VideoPlayer player,
+    public MovieRenderer(IMainWindow mainWindow, RenderingDevice device, EventLoop eventLoop, VideoPlayer player,
         MovieSubtitles? subtitles)
     {
         _mainWindow = mainWindow;
         _device = device;
+        _eventLoop = eventLoop;
         _material = CreateMaterial(device);
         _player = player;
 
@@ -83,40 +86,32 @@ public class MovieRenderer : IDisposable
 
     public void Run()
     {
-        _mainWindow.IsCursorVisible = false;
-        _player.Play();
-
-        var keyPressed = false;
-        while (!_player.AtEnd && !keyPressed)
+        var previousUiRoot = _mainWindow.UiRoot;
+        var ui = new MoviePlayerUi();
+        _mainWindow.UiRoot = ui;
+        try
         {
-            RenderFrame();
-            Thread.Sleep(3);
+            _mainWindow.IsCursorVisible = false;
+            _player.Play();
 
-            // Resizing the window can cause device interaction which might conflict with the update frame thread
-            lock (this)
+            while (!_player.AtEnd && !ui.KeyPressed)
             {
-                Tig.SystemEventPump.PumpSystemEvents();
+                RenderFrame();
+                Thread.Sleep(3); // TODO: this is obviously not good a good sync mechanism
+
+                // Resizing the window can cause device interaction which might conflict with the update frame thread
+                lock (this)
+                {
+                    _eventLoop.Tick();
+                }
             }
 
-            ProcessMessages(ref keyPressed);
+            _player.Stop();
         }
-
-        _player.Stop();
-        _mainWindow.IsCursorVisible = true;
-    }
-
-    internal static void ProcessMessages(ref bool keyPressed)
-    {
-        while (Tig.MessageQueue.TryGetMessage(out var msg))
+        finally
         {
-            // Allow skipping the movie via key-press or mouse-press
-            if (msg.type == MessageType.KEYSTATECHANGE && msg.KeyStateChangeArgs.down
-                || msg.type == MessageType.MOUSE && (msg.MouseArgs.flags & MouseEventFlag.LeftClick) != 0)
-            {
-                // TODO Wait for the key to be unpressed again
-                keyPressed = true;
-                break;
-            }
+            _mainWindow.IsCursorVisible = true;
+            _mainWindow.UiRoot = previousUiRoot;
         }
     }
 

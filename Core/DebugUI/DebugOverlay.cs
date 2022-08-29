@@ -15,9 +15,10 @@ public static class DebugOverlay
     public static void Render(IGameViewport viewport)
     {
             
-        if (ImGui.Begin( "Debug Overlay", ref isActive)){
+        if (ImGui.Begin( "Debug Overlay", ref isActive))
+        {
 
-            var mousePt = TigSubsystems.Tig.Mouse.GetPos();
+            var mousePt = TigSubsystems.Tig.Mouse.Pos;
 
             var worldCoord = viewport.ScreenToTile(mousePt.X, mousePt.Y);
             ImGui.Text($"{worldCoord}");

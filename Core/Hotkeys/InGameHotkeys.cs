@@ -1,4 +1,5 @@
 ﻿
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup.Discovery;
 using static SDL2.SDL;
 
@@ -27,15 +28,15 @@ public static class InGameHotKey
     public static readonly Hotkey SelectChar8 = Hotkey.Build("select_char_8").Primary(SDL_Scancode.SDL_SCANCODE_8).Build();
     public static readonly Hotkey SelectChar9 = Hotkey.Build("select_char_9").Primary(SDL_Scancode.SDL_SCANCODE_9).Build();
 
-    public static readonly Hotkey AssignGroup1 = Hotkey.Build("assign_group_1").Primary(SDL_Scancode.SDL_SCANCODE_F1, KeyModifier.Control).Build();
-    public static readonly Hotkey AssignGroup2 = Hotkey.Build("assign_group_2").Primary(SDL_Scancode.SDL_SCANCODE_F2, KeyModifier.Control).Build();
-    public static readonly Hotkey AssignGroup3 = Hotkey.Build("assign_group_3").Primary(SDL_Scancode.SDL_SCANCODE_F3, KeyModifier.Control).Build();
-    public static readonly Hotkey AssignGroup4 = Hotkey.Build("assign_group_4").Primary(SDL_Scancode.SDL_SCANCODE_F4, KeyModifier.Control).Build();
-    public static readonly Hotkey AssignGroup5 = Hotkey.Build("assign_group_5").Primary(SDL_Scancode.SDL_SCANCODE_F5, KeyModifier.Control).Build();
-    public static readonly Hotkey AssignGroup6 = Hotkey.Build("assign_group_6").Primary(SDL_Scancode.SDL_SCANCODE_F6, KeyModifier.Control).Build();
-    public static readonly Hotkey AssignGroup7 = Hotkey.Build("assign_group_7").Primary(SDL_Scancode.SDL_SCANCODE_F7, KeyModifier.Control).Build();
-    public static readonly Hotkey AssignGroup8 = Hotkey.Build("assign_group_8").Primary(SDL_Scancode.SDL_SCANCODE_F8, KeyModifier.Control).Build();
-    public static readonly Hotkey AssignGroup9 = Hotkey.Build("assign_group_9").Primary(SDL_Scancode.SDL_SCANCODE_F9, KeyModifier.Control).Build();
+    public static readonly Hotkey AssignGroup1 = Hotkey.Build("assign_group_1").Primary(SDL_Scancode.SDL_SCANCODE_F1, KeyModifier.Ctrl).Build();
+    public static readonly Hotkey AssignGroup2 = Hotkey.Build("assign_group_2").Primary(SDL_Scancode.SDL_SCANCODE_F2, KeyModifier.Ctrl).Build();
+    public static readonly Hotkey AssignGroup3 = Hotkey.Build("assign_group_3").Primary(SDL_Scancode.SDL_SCANCODE_F3, KeyModifier.Ctrl).Build();
+    public static readonly Hotkey AssignGroup4 = Hotkey.Build("assign_group_4").Primary(SDL_Scancode.SDL_SCANCODE_F4, KeyModifier.Ctrl).Build();
+    public static readonly Hotkey AssignGroup5 = Hotkey.Build("assign_group_5").Primary(SDL_Scancode.SDL_SCANCODE_F5, KeyModifier.Ctrl).Build();
+    public static readonly Hotkey AssignGroup6 = Hotkey.Build("assign_group_6").Primary(SDL_Scancode.SDL_SCANCODE_F6, KeyModifier.Ctrl).Build();
+    public static readonly Hotkey AssignGroup7 = Hotkey.Build("assign_group_7").Primary(SDL_Scancode.SDL_SCANCODE_F7, KeyModifier.Ctrl).Build();
+    public static readonly Hotkey AssignGroup8 = Hotkey.Build("assign_group_8").Primary(SDL_Scancode.SDL_SCANCODE_F8, KeyModifier.Ctrl).Build();
+    public static readonly Hotkey AssignGroup9 = Hotkey.Build("assign_group_9").Primary(SDL_Scancode.SDL_SCANCODE_F9, KeyModifier.Ctrl).Build();
 
     public static readonly Hotkey RecallGroup1 = Hotkey.Build("select_group_1").Primary(SDL_Scancode.SDL_SCANCODE_F1).Build();
     public static readonly Hotkey RecallGroup2 = Hotkey.Build("select_group_2").Primary(SDL_Scancode.SDL_SCANCODE_F2).Build();
@@ -74,5 +75,5 @@ public static class InGameHotKey
     public static readonly Hotkey EndTurn = Hotkey.Build("end_turn").Primary(SDL_Scancode.SDL_SCANCODE_SPACE).Secondary(SDL_Scancode.SDL_SCANCODE_RETURN).Build();
     public static readonly Hotkey EndTurnNonParty = Hotkey.Build("end_turn_non_party").Primary(SDL_Scancode.SDL_SCANCODE_RETURN, KeyModifier.Shift).Build();
 
-    public static readonly Hotkey ToggleRun = Hotkey.Build("toggle_run").Primary(KeyModifier.Control).Build();
+    public static readonly Hotkey ToggleRun = Hotkey.Build("toggle_run").Primary(KeyModifier.Ctrl).Build();
 }

@@ -51,7 +51,7 @@ internal class AlignmentSystem : IChargenSystem
         foreach (var (alignment, button) in _alignmentButtons)
         {
             button.OnMouseEnter += msg => ShowAlignmentHelp(alignment);
-            button.OnMouseExit += msg => UpdateDescriptionBox();
+            button.OnMouseLeave += msg => UpdateDescriptionBox();
             button.SetClickHandler(() => SelectAlignment(alignment));
         }
     }

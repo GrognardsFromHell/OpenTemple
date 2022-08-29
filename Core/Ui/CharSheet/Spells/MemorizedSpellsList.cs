@@ -124,15 +124,15 @@ public class MemorizedSpellsList : WidgetContainer
     private static readonly TimeSpan ScrollInterval = TimeSpan.FromMilliseconds(100);
     private const int ScrollBandHeight = 15; // How high is the area that will auto-scroll the container
 
-    public override void OnUpdateTime(TimePoint timeMs)
+    public override void OnUpdateTime(TimePoint now)
     {
         if (_scrollbar == null)
         {
             return;
         }
         
-        var pos = Tig.Mouse.GetPos();
-        if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < timeMs)
+        var pos = Tig.Mouse.Pos;
+        if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < now)
         {
             var contentArea = GetContentArea();
             // Scroll if the cursor is within the scroll-sensitive band

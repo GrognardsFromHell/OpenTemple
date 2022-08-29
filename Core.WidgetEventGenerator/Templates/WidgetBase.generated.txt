@@ -1,0 +1,107 @@
+#nullable enable
+using System;
+using System.Collections.Immutable;
+{{~ for namespace in additional_namespaces ~}}
+using {{namespace}};
+{{~ end ~}}
+
+namespace OpenTemple.Core.Ui.Widgets;
+
+[global::System.CodeDom.Compiler.GeneratedCode("{{tool}}", "{{version}}")]
+public partial class WidgetBase
+{
+    public delegate void EventHandler<in T>(T e) where T : UiEvent;
+
+    {{~for event in events~}}
+    #region {{event.name}}
+
+    private ImmutableList<RegisteredListener<{{ event.event_class_short }}>> _listeners{{ event.name }} = ImmutableList<RegisteredListener<{{ event.event_class_short }}>>.Empty;
+    
+    public event EventHandler<{{event.event_class_short}}>? On{{event.name}} 
+    {
+        add => Add{{ event.name }}Listener(value);
+        remove => Remove{{ event.name }}Listener(value);
+    }
+    
+    public void Add{{ event.name }}Listener(EventHandler<{{ event.event_class_short }}> handler)
+    {
+        _listeners{{ event.name }} = _listeners{{ event.name }}.Add(new (handler));
+    }
+    
+    public void Remove{{ event.name }}Listener(EventHandler<{{ event.event_class_short }}> handler)
+    {
+        _listeners{{ event.name }} = _listeners{{ event.name }}.Remove(new (handler));
+    }
+    
+    /// <summary>
+    /// Allows a class to handle events of this type without registering an event listener.
+    /// These handlers always run after additional event handlers registered using Add{{event.name}}Listener.
+    /// </summary>
+    protected virtual void Handle{{ event.name }}({{ event.event_class_short }} e)
+    {
+    }
+
+    {{~ if event.has_default_action ~}}    
+    /// <summary>
+    /// Allows widgets to implement the default action associated with an event type.
+    /// </summary>
+    protected virtual void Default{{ event.name }}Action({{ event.event_class_short }} e)
+    {
+    }
+    {{~ end ~}}
+    
+    /// <summary>
+    /// Allows a class to implicitly handle the event, without having to overwrite it.
+    /// These handlers always run after additional event handlers registered using On{{event.name}}
+    /// </summary>
+    internal void Dispatch{{ event.name }}({{ event.event_class_short }} e)
+    {
+{{~ ## The dispatch logic for dispatching an event only to listeners in this instance without capture/bubble phase ## ~}}
+{{~ func dispatch_local(event, target) ~}}
+// Dispatch to additional registered handlers first
+var listeners = {{ target }}._listeners{{ event.name }};
+foreach (var listener in listeners)
+{
+    // We need to remove once-listeners now, since they may re-add themselves as a once-listener and we would immediately
+    // remove it again.
+    if (listener.Once)
+    {
+        {{ target }}._listeners{{ event.name }} = {{ target }}._listeners{{ event.name }}.Remove(listener); 
+    }
+    listener.Listener(e);
+    if (e.IsImmediatePropagationStopped)
+    {
+        break;
+    }
+}
+
+// Call the implicitly registered event listener if propagation wasn't stopped
+if (!e.IsImmediatePropagationStopped)
+{
+    {{ target }}.Handle{{ event.name }}(e);
+}
+{{ end ~}}
+
+        {{~ if event.bubbles ~}}
+        // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
+        for (var target = this; target != null && !e.IsPropagationStopped; target = target.Parent)
+        {
+            {{ dispatch_local event "target" ~}}
+        }
+        {{~ else ~}}
+        {{ dispatch_local event "this" ~}}
+        {{~ end ~}}
+        
+        {{~ if event.has_default_action ~}}
+        if (!e.IsDefaultPrevented)
+        {
+            Default{{ event.name }}Action(e);
+        }
+        {{~ end ~}}
+    }
+    #endregion
+    
+    {{~end~}}
+    
+    private readonly record struct RegisteredListener<T>(EventHandler<T> Listener, bool Once = false) where T : UiEvent;
+}

@@ -189,7 +189,7 @@ public class WidgetSlider : WidgetContainer
 
         public override bool HandleMouseMessage(MessageMouseArgs msg)
         {
-            if (Globals.UiManager.GetMouseCaptureWidget() == this)
+            if (Globals.UiManager.MouseCaptureWidget == this)
             {
                 if (msg.flags.HasFlag(MouseEventFlag.PosChange))
                 {
@@ -212,14 +212,14 @@ public class WidgetSlider : WidgetContainer
 
                 if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
                 {
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
+                    Globals.UiManager.ReleaseMouseCapture(this);
                 }
             }
             else
             {
                 if (msg.flags.HasFlag(MouseEventFlag.LeftHeld))
                 {
-                    Globals.UiManager.SetMouseCaptureWidget(this);
+                    Globals.UiManager.CaptureMouse(this);
                     _dragGrabPoint = msg.X;
                     _dragX = X;
                 }

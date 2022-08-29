@@ -36,7 +36,7 @@ public class HeightSlider : WidgetButtonBase
 
     private readonly int _thumbHeight;
 
-    public override bool HitTest(int x, int y)
+    public override bool HitTest(float x, float y)
     {
         return true;
     }
@@ -71,7 +71,7 @@ public class HeightSlider : WidgetButtonBase
     {
         var localY = msg.Y - GetContentArea().Y;
 
-        if (Globals.UiManager.GetMouseCaptureWidget() == this)
+        if (Globals.UiManager.MouseCaptureWidget == this)
         {
             // Reposition the thumb
             Value = GetValueFromTrackPos(localY);
@@ -79,7 +79,7 @@ public class HeightSlider : WidgetButtonBase
 
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
-                Globals.UiManager.UnsetMouseCaptureWidget(this);
+                Globals.UiManager.ReleaseMouseCapture(this);
             }
 
             return true;
@@ -99,7 +99,7 @@ public class HeightSlider : WidgetButtonBase
 
         if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
         {
-            Globals.UiManager.SetMouseCaptureWidget(this);
+            Globals.UiManager.CaptureMouse(this);
         }
 
         return true;
@@ -116,14 +116,14 @@ public class HeightSlider : WidgetButtonBase
         return 1.0f - (trackPos - trackMin) / (float) trackSize;
     }
 
-    public override void OnUpdateTime(TimePoint timeMs)
+    public override void OnUpdateTime(TimePoint now)
     {
         if (Math.Abs(Value - _targetValue) < 0.001f)
         {
             return;
         }
 
-        var elapsed = timeMs - _lastAnimationTime;
+        var elapsed = now - _lastAnimationTime;
         // Ignores moves of less than 1%
         var amountMoved = (float)  elapsed.TotalSeconds;
         if (amountMoved < 0.01f)
@@ -131,7 +131,7 @@ public class HeightSlider : WidgetButtonBase
             return;
         }
 
-        _lastAnimationTime = timeMs;
+        _lastAnimationTime = now;
         var deltaRemaining = _targetValue - Value;
         _value += Math.Sign(deltaRemaining) * Math.Min(amountMoved, Math.Abs(deltaRemaining));
         OnValueChanged?.Invoke(_value);

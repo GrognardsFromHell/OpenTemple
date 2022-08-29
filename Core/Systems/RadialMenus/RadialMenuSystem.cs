@@ -62,11 +62,11 @@ public partial class RadialMenuSystem
 
     // Relative to ActiveMenuWorldPosition
     [TempleDllLocation(0x10be67bc)]
-    public int RelativeMousePosX { get; set; }
+    public float RelativeMousePosX { get; set; }
 
     // Relative to ActiveMenuWorldPosition
     [TempleDllLocation(0x10be6238)]
-    public int RelativeMousePosY { get; set; }
+    public float RelativeMousePosY { get; set; }
 
     public RadialMenuSystem()
     {

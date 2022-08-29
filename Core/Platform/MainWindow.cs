@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using static SDL2.SDL;
 
 namespace OpenTemple.Core.Platform;
@@ -51,6 +51,12 @@ public class MainWindow : IMainWindow
     private IntPtr _defaultCursor;
     private IntPtr _currentCursor = IntPtr.Zero;
 
+    public IUiRoot? UiRoot
+    {
+        get => _uiRoot;
+        set => _uiRoot = value;
+    }
+
     public WindowConfig WindowConfig
     {
         get => _config;
@@ -86,12 +92,10 @@ public class MainWindow : IMainWindow
             }
         }
     }
-
+    
     public bool IsInForeground { get; set; } = true;
 
     public event Action<bool>? IsInForegroundChanged;
-
-    public event Action<WindowEvent>? OnInput;
 
     public event Action<Size>? Resized;
 
@@ -100,7 +104,9 @@ public class MainWindow : IMainWindow
     public SizeF UiCanvasSize { get; private set; }
 
     private Size _uiCanvasTargetSize = new(1024, 768);
-
+    
+    private IUiRoot? _uiRoot;
+    
     public Size UiCanvasTargetSize
     {
         get => _uiCanvasTargetSize;
@@ -201,6 +207,7 @@ public class MainWindow : IMainWindow
         }
     }
 
+    [TempleDllLocation(0x101de880)]
     public void ProcessEvents()
     {
         while (SDL_PollEvent(out var e) != 0)
@@ -214,7 +221,6 @@ public class MainWindow : IMainWindow
             {
                 case SDL_EventType.SDL_APP_TERMINATING:
                 case SDL_EventType.SDL_QUIT:
-                    Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs(0)));
                     Closed?.Invoke();
                     return;
                 case SDL_EventType.SDL_WINDOWEVENT:
@@ -231,13 +237,13 @@ public class MainWindow : IMainWindow
                     break;
 
                 case SDL_EventType.SDL_MOUSEMOTION:
-                    HandleMouseMoveEvent(WindowEventType.MouseMove, ref e.motion);
+                    HandleMouseMoveEvent(ref e.motion);
                     break;
                 case SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    HandleMouseButtonEvent(WindowEventType.MouseDown, ref e.button);
+                    HandleMouseButtonEvent(true, ref e.button);
                     break;
                 case SDL_EventType.SDL_MOUSEBUTTONUP:
-                    HandleMouseButtonEvent(WindowEventType.MouseUp, ref e.button);
+                    HandleMouseButtonEvent(false, ref e.button);
                     break;
                 case SDL_EventType.SDL_MOUSEWHEEL:
                     HandleMouseWheelEvent(ref e.wheel);
@@ -246,6 +252,8 @@ public class MainWindow : IMainWindow
                     break;
             }
         }
+
+        UiRoot?.Tick();
     }
 
     private unsafe void HandleTextInputEvent(ref SDL_TextInputEvent e)
@@ -258,7 +266,7 @@ public class MainWindow : IMainWindow
 
         if (text is {Length: > 0})
         {
-            Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs(text)));
+            _uiRoot.TextInput(text);
         }
     }
 
@@ -274,14 +282,13 @@ public class MainWindow : IMainWindow
         var repeat = e.repeat != 0;
 
         var keysym = e.keysym;
-        var modAlt = (keysym.mod & SDL_Keymod.KMOD_ALT) != 0;
-        var modCtrl = (keysym.mod & SDL_Keymod.KMOD_CTRL) != 0;
+        var modifiers = GetKeyModifiers(keysym);
 
         Logger.Debug("key {0} scan_code={1}, key={2}, repeat={3}",
             down ? "down" : "up", SDL_GetScancodeName(keysym.scancode), SDL_GetKeyName(keysym.sym), repeat);
 
         // Handle Alt+Enter here
-        if (modAlt && keysym.scancode == SDL_Scancode.SDL_SCANCODE_RETURN)
+        if (modifiers == KeyModifier.Alt && keysym.scancode == SDL_Scancode.SDL_SCANCODE_RETURN)
         {
             // Ignore repeats, trigger on down
             if (!repeat && down)
@@ -294,17 +301,49 @@ public class MainWindow : IMainWindow
             return;
         }
 
-        Tig.MessageQueue.Enqueue(new Message(
-            new MessageKeyStateChangeArgs
-            {
-                key = keysym.sym,
-                scancode = keysym.scancode,
-                // Means it has changed to pressed
-                down = down,
-                modAlt = modAlt,
-                modCtrl = modCtrl
-            }
-        ));
+        if (down)
+        {
+            _uiRoot.KeyDown(
+                keysym.sym,
+                keysym.scancode,
+                modifiers,
+                repeat
+            );
+        }
+        else
+        {
+            _uiRoot.KeyUp(
+                keysym.sym,
+                keysym.scancode,
+                modifiers
+            );
+        }
+    }
+
+    private static KeyModifier GetKeyModifiers(SDL_Keysym keysym)
+    {
+        KeyModifier modifiers = default;
+        if ((keysym.mod & SDL_Keymod.KMOD_ALT) != 0)
+        {
+            modifiers |= KeyModifier.Alt;
+        }
+
+        if ((keysym.mod & SDL_Keymod.KMOD_CTRL) != 0)
+        {
+            modifiers |= KeyModifier.Ctrl;
+        }
+
+        if ((keysym.mod & SDL_Keymod.KMOD_SHIFT) != 0)
+        {
+            modifiers |= KeyModifier.Shift;
+        }
+
+        if ((keysym.mod & SDL_Keymod.KMOD_GUI) != 0)
+        {
+            modifiers |= KeyModifier.Meta;
+        }
+
+        return modifiers;
     }
 
     private void HandleWindowEvent(ref SDL_WindowEvent e)
@@ -392,7 +431,6 @@ public class MainWindow : IMainWindow
 
                 break;
             case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs(1)));
                 Closed?.Invoke();
                 break;
             case SDL_WindowEventID.SDL_WINDOWEVENT_TAKE_FOCUS:
@@ -572,16 +610,14 @@ public class MainWindow : IMainWindow
             units *= -1;
         }
 
-        OnInput?.Invoke(new MouseWheelWindowEvent(
-            WindowEventType.Wheel,
-            this,
+        UiRoot?.MouseWheel(
             windowPos,
             uiPos,
             units
-        ));
+        );
     }
 
-    private void HandleMouseMoveEvent(WindowEventType type, ref SDL_MouseMotionEvent e)
+    private void HandleMouseMoveEvent(ref SDL_MouseMotionEvent e)
     {
         // Ignore events for other windows
         if (e.windowID != _windowId)
@@ -592,15 +628,13 @@ public class MainWindow : IMainWindow
         HandleMouseFocusEvent(true);
         var windowPos = new Point(e.x, e.y);
         var uiPos = TranslateToUiCanvas(windowPos);
-        OnInput?.Invoke(new MouseWindowEvent(
-            type,
-            this,
+        UiRoot?.MouseMove(
             windowPos,
             uiPos
-        ));
+        );
     }
 
-    private void HandleMouseButtonEvent(WindowEventType type, ref SDL_MouseButtonEvent e)
+    private void HandleMouseButtonEvent(bool down, ref SDL_MouseButtonEvent e)
     {
         // Ignore events for other windows
         if (e.windowID != _windowId)
@@ -638,15 +672,14 @@ public class MainWindow : IMainWindow
         HandleMouseFocusEvent(true);
         var windowPos = new Point(e.x, e.y);
         var uiPos = TranslateToUiCanvas(windowPos);
-        OnInput?.Invoke(new MouseWindowEvent(
-            type,
-            this,
-            windowPos,
-            uiPos
-        )
+        if (down)
         {
-            Button = button
-        });
+            UiRoot?.MouseDown(windowPos, uiPos, button);
+        }
+        else
+        {
+            UiRoot?.MouseUp(windowPos, uiPos, button);
+        }
     }
 
     private void HandleMouseFocusEvent(bool focus)
@@ -658,8 +691,14 @@ public class MainWindow : IMainWindow
 
         _mouseFocus = focus;
 
-        var type = focus ? WindowEventType.MouseEnter : WindowEventType.MouseLeave;
-        OnInput?.Invoke(new MouseFocusEvent(type, this));
+        if (focus)
+        {
+            UiRoot?.MouseEnter();
+        }
+        else
+        {
+            UiRoot?.MouseLeave();
+        }
     }
 
     private PointF TranslateToUiCanvas(int x, int y) => new(x / UiScale, y / UiScale);

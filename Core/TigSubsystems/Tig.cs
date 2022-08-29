@@ -30,11 +30,9 @@ public static class Tig
 
     public static TigKeyboard Keyboard { get; set; }
 
-    public static SystemEventPump SystemEventPump { get; set; }
-
     public static IMainWindow MainWindow { get; set; }
-
-    public static MessageQueue MessageQueue { get; set; }
+    
+    public static EventLoop EventLoop { get; set; }
 
     public static RenderingDevice RenderingDevice { get; set; }
 
@@ -123,8 +121,6 @@ public static class Tig
         Mouse = new TigMouse();
         // TODO mStartedSystems.emplace_back(StartSystem("mouse.c", 0x101DDF50, 0x101DDE30));
         // TODO mStartedSystems.emplace_back(StartSystem("message.c", 0x101DE460, 0x101DE4E0));
-        MessageQueue = new MessageQueue();
-        SystemEventPump = new SystemEventPump();
 
         // startedSystems.emplace_back(StartSystem("gfx.c", TigStartupNoop, TigShutdownNoop));
         // TODO mStartedSystems.emplace_back(StartSystem("strparse.c", 0x101EBF00, TigShutdownNoop));
@@ -150,6 +146,8 @@ public static class Tig
         // TODO mStartedSystems.emplace_back(StartSystem("loadscreen.c", 0x101E8260, TigShutdownNoop));
 
         // TODO *tigInternal.consoleDisabled = false; // tig init disables console by default
+
+        EventLoop = new EventLoop(MainWindow, Keyboard, Sound);        
     }
 
     private static IDynamicScripting TryLoadDynamicScripting()
@@ -222,9 +220,7 @@ public static class Tig
         FS = null;
         Mouse = null;
         Keyboard = null;
-        SystemEventPump = null;
         MainWindow = null;
-        MessageQueue = null;
         RenderingDevice = null;
         DebugUI = null;
         MdfFactory = null;
@@ -234,6 +230,7 @@ public static class Tig
         Sound = null;
         Fonts = null;
         Console = null;
+        EventLoop = null;
         Logger.Info("TIG shutdown completed in {0}.", sw.Elapsed);
     }
 }

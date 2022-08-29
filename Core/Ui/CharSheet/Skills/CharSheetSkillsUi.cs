@@ -81,7 +81,7 @@ public class CharSheetSkillsUi : IDisposable
         {
             var button = new SkillButton(new Rectangle(1, 1 + 13 * i, 156, 13));
             button.OnMouseEnter += _ => ShowSkillDetails(button);
-            button.OnMouseExit += _ => HideSkillDetails();
+            button.OnMouseLeave += _ => HideSkillDetails();
             button.SetMouseMsgHandler(msg =>
             {
                 if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)

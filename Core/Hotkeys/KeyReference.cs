@@ -1,17 +1,9 @@
 ﻿using System;
 using System.Text;
+using OpenTemple.Core.Platform;
 using static SDL2.SDL;
 
 namespace OpenTemple.Core.Hotkeys;
-
-[Flags]
-public enum KeyModifier
-{
-    None,
-    Control = 1,
-    Alt = 2,
-    Shift = 4
-}
 
 /// <summary>
 /// References either a physical key on the keyboard regardless of keyboard map or a virtual key
@@ -95,7 +87,7 @@ public readonly struct KeyReference
     {
         var builder = new StringBuilder();
 
-        if ((Modifiers & KeyModifier.Control) != 0)
+        if ((Modifiers & KeyModifier.Ctrl) != 0)
         {
             builder.Append("Ctrl+");
         }

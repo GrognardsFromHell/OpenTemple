@@ -23,17 +23,17 @@ public interface IGameViewport
 
     [TempleDllLocation(0x10029300)]
     [TempleDllLocation(0x1002A1E0)]
-    LocAndOffsets ScreenToTile(int screenX, int screenY)
+    LocAndOffsets ScreenToTile(float screenX, float screenY)
     {
         return Camera.ScreenToTile(screenX / Zoom, screenY / Zoom);
     }
 
-    Vector3 ScreenToWorld(int screenX, int screenY)
+    Vector3 ScreenToWorld(float screenX, float screenY)
     {
         return Camera.ScreenToWorld(screenX / Zoom, screenY / Zoom);
     }
 
-    Ray3d GetPickRay(int screenX, int screenY)
+    Ray3d GetPickRay(float screenX, float screenY)
     {
         return Camera.GetPickRay(screenX / Zoom, screenY / Zoom);
     }

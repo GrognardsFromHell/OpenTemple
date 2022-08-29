@@ -127,12 +127,12 @@ internal class ClericFeaturesUi : IChargenSystem
     {
         var domain = _selectableDomains[index];
 
-        if (Globals.UiManager.GetMouseCaptureWidget() == widget)
+        if (Globals.UiManager.MouseCaptureWidget == widget)
         {
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
-                Globals.UiManager.UnsetMouseCaptureWidget(widget);
+                Globals.UiManager.ReleaseMouseCapture(widget);
                 widget.Visible = true;
 
                 var widgetUnderCursor = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
@@ -179,7 +179,7 @@ internal class ClericFeaturesUi : IChargenSystem
         }
         else if ((msg.flags & MouseEventFlag.LeftClick) != 0)
         {
-            if (!Globals.UiManager.SetMouseCaptureWidget(widget))
+            if (!Globals.UiManager.CaptureMouse(widget))
             {
                 // Something else has the mouse capture right now (how are we getting this message then...?)
                 return true;

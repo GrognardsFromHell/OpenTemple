@@ -2,6 +2,7 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
 
@@ -43,17 +44,17 @@ internal class ConeTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x101380b0)]
-    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool MouseMoved(IGameViewport viewport, MouseEvent e)
     {
-        var location = GameViews.Primary.ScreenToTile(args.X, args.Y);
+        var location = GameViews.Primary.ScreenToTile(e.X, e.Y);
         Picker.SetConeTargets(location);
         return false;
     }
 
     [TempleDllLocation(0x10138130)]
-    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
-        MouseMoved(viewport, args);
+        MouseMoved(viewport, e);
         return FinalizePicker();
     }
 }

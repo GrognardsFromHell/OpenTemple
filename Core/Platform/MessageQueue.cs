@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTemple.Core.Hotkeys;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Widgets;
 using SDL2;
 
@@ -17,13 +15,20 @@ public enum MouseButton : uint
     MIDDLE = 2,
     EXTRA1 = 3,
     EXTRA2 = 4
-};
+}
+
+[Flags]
+public enum MouseButtons : byte
+{
+    Left = 0x01,
+    Right = 0x02,
+    Middle = 0x04,
+    Extra1 = 0x08,
+    Extra2 = 0x10
+}
 
 public enum MessageType : uint
 {
-    MOUSE = 0,
-    WIDGET = 1,
-    TMT_UNK2 = 2,
     EXIT = 3, // may be exit game, queued on WM_CLOSE and WM_QUIT
     CHAR = 4, // arg1 is the character, in Virtual Key terms
     KEYSTATECHANGE = 5,
@@ -34,7 +39,6 @@ public enum MessageType : uint
         the messages were processed.
     */
     UPDATE_TIME = 6,
-    TMT_UNK7 = 7,
     KEYDOWN = 8,
     HOTKEY_ACTION = 9
 }
@@ -154,47 +158,9 @@ public class Message
         CharArgs = messageArgs;
     }
 
-    public Message(MessageMouseArgs mouseArgs) : this(MessageType.MOUSE)
-    {
-        MouseArgs = mouseArgs;
-    }
-
     public Message(MessageKeyStateChangeArgs keyArgs) : this(MessageType.KEYSTATECHANGE)
     {
         KeyStateChangeArgs = keyArgs;
-    }
-
-    public Message(MessageWidgetArgs widgetArgs) : this(MessageType.WIDGET)
-    {
-        WidgetArgs = widgetArgs;
-    }
-
-    public MessageMouseArgs MouseArgs
-    {
-        get
-        {
-            Trace.Assert(type == MessageType.MOUSE);
-            return (MessageMouseArgs) args;
-        }
-        private init
-        {
-            Trace.Assert(type == MessageType.MOUSE);
-            args = value;
-        }
-    }
-
-    public MessageWidgetArgs WidgetArgs
-    {
-        get
-        {
-            Trace.Assert(type == MessageType.WIDGET);
-            return (MessageWidgetArgs) args;
-        }
-        private init
-        {
-            Trace.Assert(type == MessageType.WIDGET);
-            args = value;
-        }
     }
 
     public MessageKeyStateChangeArgs KeyStateChangeArgs
@@ -241,26 +207,4 @@ public class HotkeyActionMessage : Message
     {
         IsHandled = true;
     }
-}
-
-public class MessageQueue
-{
-    public void Enqueue(Message msg)
-    {
-        _messages.Enqueue(msg);
-    }
-
-    public bool TryGetMessage(out Message unhandledMsgOut)
-    {
-        if (_messages.TryDequeue(out var message))
-        {
-            unhandledMsgOut = message;
-            return true;
-        }
-
-        unhandledMsgOut = null;
-        return false;
-    }
-
-    private readonly Queue<Message> _messages = new(100);
 }

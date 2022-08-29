@@ -17,19 +17,19 @@ public class WidgetScrollBar : WidgetContainer
     public WidgetScrollBar() : base(0, 0)
     {
         var upButton = new WidgetButton();
-        upButton.SetParent(this);
+        upButton.Parent = this;
         upButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-up"));
         upButton.SetClickHandler(() => { SetValue(GetValue() - 1); });
         upButton.SetRepeat(true);
 
         var downButton = new WidgetButton();
-        downButton.SetParent(this);
+        downButton.Parent = this;
         downButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-down"));
         downButton.SetClickHandler(() => { SetValue(GetValue() + 1); });
         downButton.SetRepeat(true);
 
         var track = new WidgetButton();
-        track.SetParent(this);
+        track.Parent = this;
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-track"));
         track.SetClickHandler((x, y) =>
         {
@@ -48,7 +48,7 @@ public class WidgetScrollBar : WidgetContainer
         track.SetRepeat(true);
 
         var handle = new WidgetScrollBarHandle(this);
-        handle.SetParent(this);
+        handle.Parent = this;
         handle.Height = 100;
 
         Width = Math.Max(upButton.Width, downButton.Width);
@@ -216,7 +216,7 @@ public class WidgetScrollBar : WidgetContainer
             var contentArea = GetContentArea();
 
             WidgetImage top, handle, bottom;
-            if (Globals.UiManager.GetMouseCaptureWidget() == this)
+            if (Globals.UiManager.MouseCaptureWidget == this)
             {
                 top = mTopClicked;
                 handle = mHandleClicked;
@@ -256,7 +256,7 @@ public class WidgetScrollBar : WidgetContainer
 
         public override bool HandleMouseMessage(MessageMouseArgs msg)
         {
-            if (Globals.UiManager.GetMouseCaptureWidget() == this)
+            if (Globals.UiManager.MouseCaptureWidget == this)
             {
                 if (msg.flags.HasFlag(MouseEventFlag.PosChange))
                 {
@@ -280,14 +280,14 @@ public class WidgetScrollBar : WidgetContainer
 
                 if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
                 {
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
+                    Globals.UiManager.ReleaseMouseCapture(this);
                 }
             }
             else
             {
                 if (msg.flags.HasFlag(MouseEventFlag.LeftClick))
                 {
-                    Globals.UiManager.SetMouseCaptureWidget(this);
+                    Globals.UiManager.CaptureMouse(this);
                     mDragGrabPoint = msg.Y;
                     mDragY = Y;
                 }

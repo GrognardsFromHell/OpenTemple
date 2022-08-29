@@ -1,5 +1,6 @@
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
 
@@ -14,12 +15,12 @@ internal class PersonalTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x10135fd0)]
-    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
         ClearResults();
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
-        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags) ||
+        var raycastFlags = PickerState.GetFlagsFromExclusions(e);
+        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, e.X, e.Y, out var target, raycastFlags) ||
             target != Picker.caster)
         {
             return true;
@@ -38,13 +39,13 @@ internal class PersonalTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x101361b0)]
-    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool MouseMoved(IGameViewport viewport, MouseEvent e)
     {
         ClearResults();
         PickerStatusFlags |= PickerStatusFlags.Invalid;
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions(args);
-        GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags);
+        var raycastFlags = PickerState.GetFlagsFromExclusions(e);
+        GameSystems.Raycast.PickObjectOnScreen(viewport, e.X, e.Y, out var target, raycastFlags);
 
         PickerState.Target = target;
         if (target != Picker.caster)

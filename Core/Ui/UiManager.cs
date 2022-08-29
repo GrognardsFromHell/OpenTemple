@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Styles;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui;
@@ -31,13 +30,17 @@ public enum LgcyButtonState
     Disabled = 4
 }
 
-public class UiManager
+public class UiManager : IUiRoot
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private List<WidgetContainer> _topLevelWidgets = new();
+    private readonly List<WidgetBase> _topLevelWidgets = new();
 
-    private int maxZIndex = 0;
+    // Is the mouse currently in the main window?
+    private bool _mouseOverUi = false;
+
+    //  Last reported mouse position
+    private PointF _mousePos = PointF.Empty;
 
     /// <summary>
     /// The size in "virtual pixels" of the UI canvas.
@@ -49,17 +52,15 @@ public class UiManager
 
     public event Action<Size> OnCanvasSizeChanged;
 
-    public IEnumerable<WidgetContainer> ActiveWindows => _topLevelWidgets;
+    public IEnumerable<WidgetBase> ActiveWindows => _topLevelWidgets;
 
     public UiManagerDebug Debug { get; }
 
     [TempleDllLocation(0x11E74384)]
-    private WidgetBase _mouseCaptureWidget;
+    public WidgetBase? MouseCaptureWidget { get; set; }
 
     [TempleDllLocation(0x10301324)]
-    private WidgetBase _currentMouseOverWidget;
-
-    public WidgetBase CurrentMouseOverWidget => _currentMouseOverWidget;
+    public WidgetBase? CurrentMouseOverWidget { get; private set; }
 
     [TempleDllLocation(0x10301328)]
     private WidgetBase mMouseButtonId; // TODO = temple.GetRef<int>(0x10301328);
@@ -71,13 +72,15 @@ public class UiManager
     [TempleDllLocation(0x101f97d0)]
     [TempleDllLocation(0x101f97e0)]
     public bool IsDragging => DraggedObject != null;
-    
+
     /// <summary>
     /// Represents an arbitrary object that is currently dragged by the user with their mouse.
     /// </summary>
     public object? DraggedObject { get; set; }
 
     public WidgetContainer Modal { get; set; }
+    
+    public PointF MousePos => _mousePos;
 
     private readonly IMainWindow _mainWindow;
 
@@ -87,13 +90,11 @@ public class UiManager
         _renderTooltipCallback = RenderTooltip;
         Debug = new UiManagerDebug(this);
         mainWindow.UiCanvasSizeChanged += () => OnCanvasSizeChanged?.Invoke(CanvasSize);
-
-        _mainWindow.OnInput += HandleInputEvent;
     }
 
-    /*
-    Add something to the list of active windows on top of all existing windows.
-    */
+    /// <summary>
+    /// Add something to the list of active windows on top of all existing windows.
+    /// </summary>
     public void AddWindow(WidgetContainer window)
     {
         if (_topLevelWidgets.Contains(window))
@@ -133,7 +134,7 @@ public class UiManager
 
     public void SetVisible(WidgetBase widget, bool visible)
     {
-        if (widget is WidgetContainer container && container.GetParent() == null)
+        if (widget is WidgetContainer container && container.Parent == null)
         {
             if (visible)
             {
@@ -144,6 +145,7 @@ public class UiManager
                 RemoveWindow(container);
             }
         }
+
         RefreshMouseOverState();
     }
 
@@ -155,7 +157,8 @@ public class UiManager
             {
                 return true;
             }
-            widget = widget.GetParent();
+
+            widget = widget.Parent;
         }
 
         return false;
@@ -175,19 +178,20 @@ public class UiManager
             RefreshMouseOverState();
         }
 
-        if (IsAncestor(_mouseCaptureWidget, widget))
+        if (IsAncestor(MouseCaptureWidget, widget))
         {
-            _mouseCaptureWidget = null;
+            MouseCaptureWidget = null;
             RefreshMouseOverState();
         }
 
-        if (IsAncestor(_currentMouseOverWidget, widget))
+        if (IsAncestor(CurrentMouseOverWidget, widget))
         {
-            if (_currentMouseOverWidget is WidgetButton button && !button.IsDisabled())
+            if (CurrentMouseOverWidget is WidgetButton button && !button.IsDisabled())
             {
                 button.ButtonState = LgcyButtonState.Normal;
             }
-            _currentMouseOverWidget = null;
+
+            CurrentMouseOverWidget = null;
             RefreshMouseOverState();
         }
     }
@@ -207,7 +211,7 @@ public class UiManager
         Debug.AfterRenderWidgets();
     }
 
-    public WidgetBase GetWidgetAt(int x, int y)
+    public WidgetBase? GetWidgetAt(float x, float y)
     {
         WidgetBase result = null;
 
@@ -225,8 +229,8 @@ public class UiManager
             {
                 result = window;
 
-                int localX = x - window.X;
-                int localY = y - window.Y;
+                var localX = x - window.X;
+                var localY = y - window.Y;
 
                 var widgetIn = window.PickWidget(localX, localY);
                 if (widgetIn != null)
@@ -239,7 +243,7 @@ public class UiManager
         return result;
     }
 
-    private static bool DoesWidgetContain(WidgetBase widget, int x, int y)
+    private static bool DoesWidgetContain(WidgetBase widget, float x, float y)
     {
         var rect = widget.GetContentArea();
         return x >= rect.X
@@ -248,35 +252,28 @@ public class UiManager
                && y < rect.Y + rect.Height;
     }
 
-    /**
-        * Uses the current mouse position to refresh which widget is being moused over.
-        * Useful if a widget is hidden, shown or added to update the mouse-over state
-        * without actually moving the mouse.
-        */
+    /// <summary>
+    /// Uses the current mouse position to refresh which widget is being moused over.
+    /// Useful if a widget is hidden, shown or added to update the mouse-over state
+    /// without actually moving the mouse.
+    /// </summary>
     public void RefreshMouseOverState()
     {
-        Tig.Mouse.GetState(out var state);
-
         var args = new MessageMouseArgs
         {
-            X = state.x,
-            Y = state.y,
-            flags = MouseEventFlag.PosChange|MouseEventFlag.PosChangeSlow
+            X = (int) _mousePos.X,
+            Y = (int) _mousePos.Y,
+            flags = MouseEventFlag.PosChange | MouseEventFlag.PosChangeSlow
         };
         TranslateMouseMessage(args);
     }
 
-    public WidgetBase GetMouseCaptureWidget()
-    {
-        return _mouseCaptureWidget;
-    }
-
     [TempleDllLocation(0x101f9830)]
-    public bool SetMouseCaptureWidget(WidgetBase widget)
+    public bool CaptureMouse(WidgetBase widget)
     {
-        if (_mouseCaptureWidget == null)
+        if (MouseCaptureWidget == null)
         {
-            _mouseCaptureWidget = widget;
+            MouseCaptureWidget = widget;
             return true;
         }
 
@@ -284,11 +281,11 @@ public class UiManager
     }
 
     [TempleDllLocation(0x101f9850)]
-    public void UnsetMouseCaptureWidget(WidgetBase widget)
+    public void ReleaseMouseCapture(WidgetBase? widget)
     {
-        if (_mouseCaptureWidget == widget)
+        if (MouseCaptureWidget == widget)
         {
-            _mouseCaptureWidget = null;
+            MouseCaptureWidget = null;
         }
     }
 
@@ -299,10 +296,7 @@ public class UiManager
     private void SortWindows()
     {
         // Sort Windows by Z-Index
-        _topLevelWidgets.Sort((windowA, windowB) =>
-        {
-            return windowA.ZIndex.CompareTo(windowB.ZIndex);
-        });
+        _topLevelWidgets.Sort((windowA, windowB) => { return windowA.ZIndex.CompareTo(windowB.ZIndex); });
 
         // Reassign a zindex in monotonous order to those windows that dont have one
         for (var i = 0; i < _topLevelWidgets.Count; ++i)
@@ -317,7 +311,7 @@ public class UiManager
 
     private void RenderTooltip(int x, int y, object userArg)
     {
-        _currentMouseOverWidget?.RenderTooltip(x, y);
+        CurrentMouseOverWidget?.RenderTooltip(x, y);
     }
 
     /// <summary>
@@ -336,7 +330,7 @@ public class UiManager
 
         var widAtCursor = GetWidgetAt(x, y);
 
-        var globalWid = _currentMouseOverWidget;
+        var globalWid = CurrentMouseOverWidget;
 
         // moused widget changed
         if ((flags & MouseEventFlag.PosChange) != 0 && widAtCursor != globalWid)
@@ -382,7 +376,7 @@ public class UiManager
                 {
                     newTigMsg.widgetId = globalWid;
                     newTigMsg.widgetEventType = TigMsgWidgetEvent.Exited;
-                    Tig.MessageQueue.Enqueue(new Message(newTigMsg));
+                    // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
                 }
             }
 
@@ -417,10 +411,10 @@ public class UiManager
 
                 newTigMsg.widgetId = widAtCursor;
                 newTigMsg.widgetEventType = TigMsgWidgetEvent.Entered;
-                Tig.MessageQueue.Enqueue(new Message(newTigMsg));
+                // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
             }
 
-            globalWid = _currentMouseOverWidget = widAtCursor;
+            globalWid = CurrentMouseOverWidget = widAtCursor;
         }
 
         if ((mouseMsg.flags & MouseEventFlag.PosChangeSlow) != 0
@@ -452,7 +446,7 @@ public class UiManager
                 newTigMsg.widgetEventType = TigMsgWidgetEvent.Clicked;
                 newTigMsg.widgetId = widIdAtCursor2;
                 mMouseButtonId = widIdAtCursor2;
-                Tig.MessageQueue.Enqueue(new Message(newTigMsg));
+                // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
             }
         }
 
@@ -481,7 +475,7 @@ public class UiManager
             newTigMsg.widgetEventType = (widIdAtCursor2 != mMouseButtonId)
                 ? TigMsgWidgetEvent.MouseReleasedAtDifferentButton
                 : TigMsgWidgetEvent.MouseReleased;
-            Tig.MessageQueue.Enqueue(new Message(newTigMsg));
+            // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
             mMouseButtonId = null;
         }
 
@@ -500,228 +494,336 @@ public class UiManager
                 return false;
             }
 
-            if (widget.GetParent() == null)
+            if (widget.Parent == null)
             {
                 // It must be a top-level window to be visible
                 return ActiveWindows.Contains(widget);
             }
             else
             {
-                widget = widget.GetParent();
+                widget = widget.Parent;
             }
         }
     }
 
-    [TempleDllLocation(0x101f8a80)]
-    public bool ProcessMessage(Message msg)
+    // [TempleDllLocation(0x101f8a80)]
+    // public bool ProcessMessage(Message msg)
+    // {
+    //     Globals.UiManager.TranslateMouseMessage(msg);
+    //
+    //     switch (msg.type)
+    //     {
+    //         case MessageType.MOUSE:
+    //             return ProcessMouseMessage(msg);
+    //         case MessageType.WIDGET:
+    //             return ProcessWidgetMessage(msg);
+    //         default:
+    //             // In order from top to bottom (back is top)
+    //             for (var i = _topLevelWidgets.Count - 1; i >= 0; i--)
+    //             {
+    //                 var window = _topLevelWidgets[i];
+    //
+    //                 // Skip the top-level window if there's a modal and the modal is a different window
+    //                 if (Modal != null && Modal != window)
+    //                 {
+    //                     continue;
+    //                 }
+    //
+    //                 if (window.HandleMessage(msg))
+    //                 {
+    //                     return true;
+    //                 }
+    //             }
+    //
+    //             return false;
+    //     }
+    // }
+
+    // private bool ProcessWidgetMessage(Message msg)
+    // {
+    //     var widgetArgs = msg.WidgetArgs;
+    //
+    //     var dispatchTo = widgetArgs.widgetId;
+    //     while (dispatchTo != null)
+    //     {
+    //         var parent = dispatchTo.GetParent();
+    //         if ((parent == null || parent.Visible) && dispatchTo.Visible)
+    //         {
+    //             if (dispatchTo.HandleMessage(msg))
+    //             {
+    //                 return true;
+    //             }
+    //         }
+    //
+    //         // Bubble up the msg if the widget didn't handle it
+    //         dispatchTo = dispatchTo.GetParent();
+    //     }
+    //
+    //     return false;
+    // }
+
+    /// <summary>
+    /// Works like Document.elementsFromPoint and enumerates all elements that intersect the given point on screen,
+    /// from topmost to bottommost.
+    /// </summary>
+    public IEnumerable<WidgetBase> ElementsFromPoint(int x, int y)
     {
-        // Dispatch time update messages continuously to all advanced widgets
-        if (msg.type == MessageType.UPDATE_TIME)
+        foreach (var widget in _topLevelWidgets)
         {
-            foreach (var entry in _topLevelWidgets)
+            foreach (var el in ElementsFromPoint(widget, x, y))
             {
-                entry.OnUpdateTime(msg.created);
+                yield return el;
             }
-        }
-
-        switch (msg.type)
-        {
-            case MessageType.MOUSE:
-                return ProcessMouseMessage(msg);
-            case MessageType.WIDGET:
-                return ProcessWidgetMessage(msg);
-            default:
-                // In order from top to bottom (back is top)
-                for (var i = _topLevelWidgets.Count - 1; i >= 0; i--)
-                {
-                    var window = _topLevelWidgets[i];
-
-                    // Skip the top-level window if there's a modal and the modal is a different window
-                    if (Modal != null && Modal != window)
-                    {
-                        continue;
-                    }
-
-                    if (window.HandleMessage(msg))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
         }
     }
 
-    private bool ProcessWidgetMessage(Message msg)
+    private static IEnumerable<WidgetBase> ElementsFromPoint(WidgetBase context, int x, int y)
     {
-        var widgetArgs = msg.WidgetArgs;
-
-        var dispatchTo = widgetArgs.widgetId;
-        while (dispatchTo != null)
+        if (!context.Visible || !context.HitTest(x, y))
         {
-            var parent = dispatchTo.GetParent();
-            if ((parent == null || parent.Visible) && dispatchTo.Visible)
-            {
-                if (dispatchTo.HandleMessage(msg))
-                {
-                    return true;
-                }
-            }
-
-            // Bubble up the msg if the widget didn't handle it
-            dispatchTo = dispatchTo.GetParent();
+            yield break;
         }
 
-        return false;
-    }
-
-    private bool ProcessMouseMessage(Message msg)
-    {
-
-        // Handle if a widget requested mouse capture
-        if (_mouseCaptureWidget != null)
+        if (context is WidgetContainer container)
         {
-            _mouseCaptureWidget.HandleMessage(msg);
-            return true;
-        }
-
-        var mouseArgs = msg.MouseArgs;
-
-        for (var i = _topLevelWidgets.Count - 1; i >= 0; i--)
-        {
-            var window = _topLevelWidgets[i];
-
-            // Skip the top-level window if there's a modal and the modal is a different window
-            if (Modal != null && Modal != window)
+            foreach (var child in container.GetChildren())
             {
-                continue;
-            }
-
-            if (window == null || !window.Visible || !DoesWidgetContain(window, mouseArgs.X, mouseArgs.Y))
-            {
-                continue;
-            }
-
-            // Try dispatching the msg to all children of the window that are also under the mouse cursor, in reverse order of their
-            // own insertion into the children list
-            for (var j = window.GetChildren().Count - 1; j >= 0; j--)
-            {
-                var childWidget = window.GetChildren()[j];
-
-                if (DoesWidgetContain(childWidget, mouseArgs.X, mouseArgs.Y))
+                foreach (var widgetBase in ElementsFromPoint(child, x, y))
                 {
-                    if (childWidget.Visible && childWidget.HandleMouseMessage(mouseArgs))
-                    {
-                        return true;
-                    }
+                    yield return widgetBase;
                 }
             }
+        }
 
-            // After checking with all children, dispatch the msg to the window itself
-            if (window.Visible && window.HandleMessage(msg))
+        yield return context;
+    }
+
+    // private bool ProcessMouseMessage(Message msg)
+    // {
+    //     // Handle if a widget requested mouse capture
+    //     if (MouseCaptureWidget != null)
+    //     {
+    //         MouseCaptureWidget.HandleMessage(msg);
+    //         return true;
+    //     }
+    //
+    //     var mouseArgs = msg.MouseArgs;
+    //
+    //     for (var i = _topLevelWidgets.Count - 1; i >= 0; i--)
+    //     {
+    //         var window = _topLevelWidgets[i];
+    //
+    //         // Skip the top-level window if there's a modal and the modal is a different window
+    //         if (Modal != null && Modal != window)
+    //         {
+    //             continue;
+    //         }
+    //
+    //         if (window == null || !window.Visible || !DoesWidgetContain(window, mouseArgs.X, mouseArgs.Y))
+    //         {
+    //             continue;
+    //         }
+    //
+    //         // Try dispatching the msg to all children of the window that are also under the mouse cursor, in reverse order of their
+    //         // own insertion into the children list
+    //         for (var j = window.GetChildren().Count - 1; j >= 0; j--)
+    //         {
+    //             var childWidget = window.GetChildren()[j];
+    //
+    //             if (DoesWidgetContain(childWidget, mouseArgs.X, mouseArgs.Y))
+    //             {
+    //                 if (childWidget.Visible && childWidget.HandleMouseMessage(mouseArgs))
+    //                 {
+    //                     return true;
+    //                 }
+    //             }
+    //         }
+    //
+    //         // After checking with all children, dispatch the msg to the window itself
+    //         if (window.Visible && window.HandleMessage(msg))
+    //         {
+    //             return true;
+    //         }
+    //     }
+    //
+    //     if (Modal != null)
+    //     {
+    //         // Always swallow mouse messages when a modal is visible
+    //         return true;
+    //     }
+    //
+    //     return false;
+    // }
+
+    public void MouseEnter()
+    {
+        Tig.Mouse.IsMouseOutsideWindow = false;
+
+        _mouseOverUi = true;
+        UpdateMouseOver();
+    }
+
+    public void MouseLeave()
+    {
+        Tig.Mouse.IsMouseOutsideWindow = true;
+
+        _mouseOverUi = false;
+        UpdateMouseOver();
+    }
+
+    private void UpdateMousePosition(PointF uiPos)
+    {
+        if (_mousePos != uiPos)
+        {
+            _mousePos = uiPos;
+            UpdateMouseOver();
+        }
+    }
+
+    private void UpdateMouseOver()
+    {
+        var mouseOver = _mouseOverUi ? GetWidgetAt(_mousePos.X, _mousePos.Y) : null;
+        var prevMouseOver = CurrentMouseOverWidget;
+
+        if (mouseOver == prevMouseOver)
+        {
+            return; // Current mouse over widget has not changed
+        }
+
+        if (mouseOver != null && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
+        {
+            Tig.Mouse.SetCursorDrawCallback(null, 0);
+        }
+
+        if (prevMouseOver != null)
+        {
+            // if window
+            if (prevMouseOver is WidgetContainer prevHoveredWindow)
             {
-                return true;
-            }
-        }
-
-        if (Modal != null)
-        {
-            // Always swallow mouse messages when a modal is visible
-            return true;
-        }
-
-        return false;
-    }
-
-    private void HandleInputEvent(WindowEvent e)
-    {
-        switch (e.Type)
-        {
-            case WindowEventType.MouseEnter:
-                Tig.Mouse.IsMouseOutsideWindow = false;
-                break;
-            case WindowEventType.MouseLeave:
-                Tig.Mouse.IsMouseOutsideWindow = true;
-                break;
-            case WindowEventType.MouseMove:
-                HandleMouseMoveEvent((MouseWindowEvent) e);
-                break;
-            case WindowEventType.MouseDown:
-            case WindowEventType.MouseUp:
-                HandleMouseButtonEvent((MouseWindowEvent) e);
-                break;
-            case WindowEventType.Wheel:
-                HandleMouseWheelEvent((MouseWheelWindowEvent) e);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-    }
-
-    private void HandleMouseMoveEvent(MouseWindowEvent evt)
-    {
-        Tig.Mouse.SetPos((int) evt.UiPos.X, (int) evt.UiPos.Y, 0);
-    }
-
-    private void HandleMouseButtonEvent(MouseWindowEvent evt)
-    {
-        // Otherwise we might not get the actual position that was clicked if we use the last mouse move position..
-        if (evt.Type == WindowEventType.MouseDown)
-        {
-            HandleMouseMoveEvent(evt);
-        }
-
-        Tig.Mouse.SetButtonState(evt.Button, evt.Type == WindowEventType.MouseDown);
-    }
-
-    private void HandleMouseWheelEvent(MouseWheelWindowEvent evt)
-    {
-        Tig.Mouse.SetPos((int) evt.UiPos.X, (int) evt.UiPos.Y, (int) (evt.Delta * 120));
-    }
-
-    private void OnMouseMove(PointF pos, int wheelDelta)
-    {
-        var x = pos.X;
-        var y = pos.Y;
-        var width = CanvasSize.Width;
-        var height = CanvasSize.Height;
-
-        // Account for a resized screen
-        if (x < 0 || y < 0 || x >= width || y >= height)
-        {
-            if (Globals.Config.Window.Windowed)
-            {
-                if ((x > -7 && x < width + 7 && x > -7 && y < height + 7))
+                if (prevHoveredWindow.MouseState == LgcyWindowMouseState.Pressed)
                 {
-                    if (x < 0)
-                        x = 0;
-                    else if (x > width)
-                        x = width;
-                    if (y < 0)
-                        y = 0;
-                    else if (y > height)
-                        y = height;
-                    Tig.Mouse.IsMouseOutsideWindow = false;
-                    // TODO: Switch all mouse positioning to floats
-                    Tig.Mouse.SetPos((int) x, (int) y, wheelDelta);
-                    return;
+                    prevHoveredWindow.MouseState = LgcyWindowMouseState.PressedOutside;
+                }
+                else if (prevHoveredWindow.MouseState != LgcyWindowMouseState.PressedOutside)
+                {
+                    prevHoveredWindow.MouseState = LgcyWindowMouseState.Outside;
+                }
+            }
+            // button
+            else if (prevMouseOver is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
+            {
+                switch (buttonWid.ButtonState)
+                {
+                    case LgcyButtonState.Hovered:
+                        // Unhover
+                        buttonWid.ButtonState = LgcyButtonState.Normal;
+                        Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
+                        break;
+                    case LgcyButtonState.Down:
+                        // Down . Released without click event
+                        buttonWid.ButtonState = LgcyButtonState.Released;
+                        break;
+                }
+            }
+
+            DispatchMouseLeave(prevMouseOver, mouseOver);
+        }
+
+        if (mouseOver != null)
+        {
+            if (mouseOver is WidgetContainer widAtCursorWindow)
+            {
+                if (widAtCursorWindow.MouseState == LgcyWindowMouseState.PressedOutside)
+                {
+                    widAtCursorWindow.MouseState = LgcyWindowMouseState.Pressed;
+                }
+                else if (widAtCursorWindow.MouseState != LgcyWindowMouseState.Pressed)
+                {
+                    widAtCursorWindow.MouseState = LgcyWindowMouseState.Hovered;
+                }
+            }
+            else if (mouseOver is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
+            {
+                if (buttonWid.ButtonState != LgcyButtonState.Normal)
+                {
+                    if (buttonWid.ButtonState == LgcyButtonState.Released)
+                    {
+                        buttonWid.ButtonState = LgcyButtonState.Down;
+                    }
                 }
                 else
                 {
-                    Tig.Mouse.IsMouseOutsideWindow = true;
+                    buttonWid.ButtonState = LgcyButtonState.Hovered;
+                    Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
                 }
             }
-            else
-            {
-                Logger.Info("Mouse outside resized window: {0},{1}, wheel: {2}", x, y, wheelDelta);
-            }
 
-            return;
+            DispatchMouseEnter(mouseOver, prevMouseOver);
         }
 
-        Tig.Mouse.IsMouseOutsideWindow = false;
-        // TODO: Switch all mouse positioning to floats
-        Tig.Mouse.SetPos((int) pos.X, (int) pos.Y, wheelDelta);
+        CurrentMouseOverWidget = mouseOver;
     }
 
+    public void MouseMove(Point windowPos, PointF uiPos)
+    {
+        UpdateMousePosition(uiPos);
+    }
+
+    private void DispatchMouseLeave(WidgetBase target, WidgetBase? newMouseOver)
+    {
+        // Dispatch the event up to the root or until the common ancestor
+        WidgetBase? stopAt = null;
+        if (newMouseOver != null)
+        {
+            stopAt = target.GetCommonAncestor(newMouseOver);
+        }
+
+        for (var node = target; node != null && node != stopAt; node = node.Parent)
+        {
+            var e = new MouseEvent {InitialTarget = target};
+            node.DispatchMouseLeave(e);
+        }
+    }
+
+    private void DispatchMouseEnter(WidgetBase target, WidgetBase? prevMouseOver)
+    {
+        // Dispatch the event up to the root or until the common ancestor
+        WidgetBase? stopAt = null;
+        if (prevMouseOver != null)
+        {
+            stopAt = target.GetCommonAncestor(prevMouseOver);
+        }
+
+        for (var node = target; node != null && node != stopAt; node = node.Parent)
+        {
+            var e = new MouseEvent {InitialTarget = target};
+            node.DispatchMouseLeave(e);
+        }
+    }
+
+    public void MouseDown(Point windowPos, PointF uiPos, MouseButton button)
+    {
+        // Otherwise we might not get the actual position that was clicked if we use the last mouse move position..
+        // TODO _mouseState.SetPos((int) uiPos.X, (int) uiPos.Y, 0);
+    }
+
+    public void MouseUp(Point windowPos, PointF uiPos, MouseButton button)
+    {
+    }
+
+    public void MouseWheel(Point windowPos, PointF uiPos, float units)
+    {
+        // TODO (int) (units * 120);
+    }
+
+    public void Tick()
+    {
+        var now = TimePoint.Now;
+
+        // Dispatch time update messages continuously to all advanced widgets
+        foreach (var entry in _topLevelWidgets)
+        {
+            entry.OnUpdateTime(now);
+        }
+    }
 }

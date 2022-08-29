@@ -2,6 +2,7 @@ using System;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Combat;
@@ -106,105 +107,86 @@ public class InitiativePortraitButton : WidgetButtonBase
         }
     }
 
-    [TempleDllLocation(0x101428d0)]
-    public override bool HandleMessage(Message msg)
+    protected override void HandleMouseDown(MouseEvent e)
     {
         var initiativeIndex = GameSystems.D20.Initiative.IndexOf(_combatant);
-        if (msg.type == MessageType.WIDGET)
+
+        if (!InitiativeUi.uiPortraitState1)
         {
-            var widgetArgs = msg.WidgetArgs;
-            var evt = widgetArgs.widgetEventType;
-            switch (evt)
-            {
-                case TigMsgWidgetEvent.Clicked:
-                    if (!InitiativeUi.uiPortraitState1)
-                    {
-                        InitiativeUi.initiativeSwapSourceIndex = initiativeIndex;
-                        InitiativeUi.initiativeSwapTargetIndex = initiativeIndex;
-                        InitiativeUi.uiPortraitState1 = true;
-                        InitiativeUi.actorCanChangeInitiative =
-                            GameSystems.D20.Actions.ActorCanChangeInitiative(_combatant);
-                    }
+            InitiativeUi.initiativeSwapSourceIndex = initiativeIndex;
+            InitiativeUi.initiativeSwapTargetIndex = initiativeIndex;
+            InitiativeUi.uiPortraitState1 = true;
+            InitiativeUi.actorCanChangeInitiative =
+                GameSystems.D20.Actions.ActorCanChangeInitiative(_combatant);
+        }
+    }
 
-                    return true;
-                case TigMsgWidgetEvent.MouseReleased:
-                case TigMsgWidgetEvent.MouseReleasedAtDifferentButton:
-                    if (InitiativeUi.uiPortraitState1 && InitiativeUi.draggingPortrait)
-                    {
-                        InitiativeUi.draggingPortrait = false;
-                    }
-
-                    InitiativeUi.uiPortraitState1 = false;
-                    if (InitiativeUi.swapPortraitsForDragAndDrop)
-                    {
-                        var swapTarget = InitiativeUi.initiativeSwapTargetIndex;
-                        var swapSourceCritter = GameSystems.D20.Initiative[InitiativeUi.initiativeSwapSourceIndex];
-                        GameSystems.D20.Actions.SwapInitiativeWith(swapSourceCritter, swapTarget);
-                        InitiativeUi.swapPortraitsForDragAndDrop = false;
-                        if (field8C == -1)
-                        {
-                            UiSystems.Combat.Initiative.UpdateIfNeeded();
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        if (evt == TigMsgWidgetEvent.MouseReleasedAtDifferentButton)
-                        {
-                            InitiativeUi.UpdateIfNeeded();
-                            UiSystems.TurnBased.sub_101749D0();
-                            return true;
-                        }
-
-                        if (!GameSystems.Critter.IsConcealed(_combatant))
-                        {
-                            GameSystems.Scroll.CenterOnSmooth(_combatant);
-                        }
-
-                        UiSystems.TurnBased.sub_101749D0();
-                    }
-
-                    return true;
-                case TigMsgWidgetEvent.Entered:
-                    if (InitiativeUi.uiPortraitState1 && InitiativeUi.actorCanChangeInitiative)
-                    {
-                        InitiativeUi.initiativeSwapTargetIndex = initiativeIndex;
-                        InitiativeUi.swapPortraitsForDragAndDrop =
-                            initiativeIndex != InitiativeUi.initiativeSwapSourceIndex;
-                        UiSystems.Combat.Initiative.UpdateIfNeeded();
-                    }
-
-                    if (!GameSystems.Critter.IsConcealed(_combatant))
-                    {
-                        UiSystems.TurnBased.TargetFromPortrait(_combatant);
-                    }
-
-                    return true;
-                case TigMsgWidgetEvent.Exited:
-                    InitiativeUi.initiativeSwapTargetIndex = InitiativeUi.initiativeSwapSourceIndex;
-                    InitiativeUi.swapPortraitsForDragAndDrop = false;
-                    UiSystems.TurnBased.TargetFromPortrait(null);
-                    return true;
-                default:
-                    UiSystems.Combat.Initiative.UpdateIfNeeded();
-                    return false;
-            }
+    protected override void HandleMouseUp(MouseEvent e)
+    {
+        if (InitiativeUi.uiPortraitState1 && InitiativeUi.draggingPortrait)
+        {
+            InitiativeUi.draggingPortrait = false;
         }
 
-        if (msg.type == MessageType.MOUSE)
+        InitiativeUi.uiPortraitState1 = false;
+        if (InitiativeUi.swapPortraitsForDragAndDrop)
         {
-            var mouseArgs = msg.MouseArgs;
-            if ((mouseArgs.flags & MouseEventFlag.LeftHeld) != 0
-                && InitiativeUi.uiPortraitState1 && !InitiativeUi.draggingPortrait)
+            var swapTarget = InitiativeUi.initiativeSwapTargetIndex;
+            var swapSourceCritter = GameSystems.D20.Initiative[InitiativeUi.initiativeSwapSourceIndex];
+            GameSystems.D20.Actions.SwapInitiativeWith(swapSourceCritter, swapTarget);
+            InitiativeUi.swapPortraitsForDragAndDrop = false;
+            if (field8C == -1)
             {
-                InitiativeUi.draggingPortrait = true;
+                UiSystems.Combat.Initiative.UpdateIfNeeded();
             }
+        }
+        else
+        {
+            if (!ContainsMouse)
+            {
+                InitiativeUi.UpdateIfNeeded();
+            }
+            else if (!GameSystems.Critter.IsConcealed(_combatant))
+            {
+                GameSystems.Scroll.CenterOnSmooth(_combatant);
+            }
+            
+            UiSystems.TurnBased.sub_101749D0();
+        }
+    }
 
-            return true;
+    protected override void HandleMouseEnter(MouseEvent e)
+    {
+        var initiativeIndex = GameSystems.D20.Initiative.IndexOf(_combatant);
+        
+        if (InitiativeUi.uiPortraitState1 && InitiativeUi.actorCanChangeInitiative)
+        {
+            InitiativeUi.initiativeSwapTargetIndex = initiativeIndex;
+            InitiativeUi.swapPortraitsForDragAndDrop =
+                initiativeIndex != InitiativeUi.initiativeSwapSourceIndex;
+            UiSystems.Combat.Initiative.UpdateIfNeeded();
         }
 
-        UiSystems.Combat.Initiative.UpdateIfNeeded();
-        return false;
+        if (!GameSystems.Critter.IsConcealed(_combatant))
+        {
+            UiSystems.TurnBased.TargetFromPortrait(_combatant);
+        }
+    }
+
+    protected override void HandleMouseLeave(MouseEvent e)
+    {
+        InitiativeUi.initiativeSwapTargetIndex = InitiativeUi.initiativeSwapSourceIndex;
+        InitiativeUi.swapPortraitsForDragAndDrop = false;
+        UiSystems.TurnBased.TargetFromPortrait(null);
+    }
+
+    protected override void HandleMouseMove(MouseEvent e)
+    {
+        if (e.IsLeftButtonHeld
+            && InitiativeUi.uiPortraitState1 && !InitiativeUi.draggingPortrait)
+        {
+            InitiativeUi.draggingPortrait = true;
+        }
     }
 
     [TempleDllLocation(0x10141780)]

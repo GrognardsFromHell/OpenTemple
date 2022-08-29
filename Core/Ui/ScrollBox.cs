@@ -9,6 +9,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
@@ -69,7 +70,7 @@ public class ScrollBox : WidgetContainer
         }
     }
 
-    public event Action<D20HelpLink> OnLinkClicked;
+    public event Action<D20HelpLink>? OnLinkClicked;
 
     public string BackgroundPath
     {
@@ -176,20 +177,9 @@ public class ScrollBox : WidgetContainer
     }
 
     [TempleDllLocation(0x1018d720)]
-    public override bool HandleMessage(Message msg)
+    protected override void HandleMouseUp(MouseEvent e)
     {
-        if (msg.type == MessageType.WIDGET)
-        {
-            var widgetArgs = msg.WidgetArgs;
-            if (widgetArgs.widgetEventType == TigMsgWidgetEvent.MouseReleased)
-            {
-                HandleClickOnText(widgetArgs.x, widgetArgs.y);
-            }
-
-            return true;
-        }
-
-        return base.HandleMessage(msg);
+        HandleClickOnText((int) e.X, (int) e.Y);
     }
 
     public override bool HandleMouseMessage(MessageMouseArgs msg)

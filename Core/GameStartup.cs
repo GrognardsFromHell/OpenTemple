@@ -55,9 +55,9 @@ public class GameStartup : IDisposable
 #if !DEBUG
             Tig.Mouse.HideCursor();
 #endif
-
+        
         Globals.GameLoop = new GameLoop(
-            Tig.MessageQueue,
+            Tig.EventLoop,
             Tig.RenderingDevice,
             Tig.DebugUI
         );

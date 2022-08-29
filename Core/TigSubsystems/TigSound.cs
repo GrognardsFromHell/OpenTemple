@@ -343,15 +343,17 @@ public class TigSound : IDisposable
         {
             return;
         }
+        
+        var now = TimePoint.Now;
 
-        if (Tig.SystemEventPump.system_events_processed_time < _nextAudioTick - OneSecond)
+        if (now < _nextAudioTick - OneSecond)
         {
-            _nextAudioTick = Tig.SystemEventPump.system_events_processed_time;
+            _nextAudioTick = now;
         }
 
-        if (Tig.SystemEventPump.system_events_processed_time <= _nextAudioTick + OneSecond)
+        if (now <= _nextAudioTick + OneSecond)
         {
-            if (Tig.SystemEventPump.system_events_processed_time < _nextAudioTick)
+            if (now < _nextAudioTick)
             {
                 return;
             }
@@ -360,7 +362,7 @@ public class TigSound : IDisposable
         }
         else
         {
-            _nextAudioTick = Tig.SystemEventPump.system_events_processed_time + HundredMs;
+            _nextAudioTick = now + HundredMs;
         }
 
         UpdateSoundStreams();

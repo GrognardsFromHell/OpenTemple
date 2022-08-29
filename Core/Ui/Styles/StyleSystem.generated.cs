@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace OpenTemple.Core.Ui.Styles;
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public interface IStyleDefinition {
     public OpenTemple.Core.GFX.PackedLinearColorA? BackgroundColor { get; }
     public OpenTemple.Core.GFX.PackedLinearColorA? BorderColor { get; }
@@ -138,7 +138,7 @@ public interface IStyleDefinition {
         }
     }
 }
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public sealed class StyleDefinition : IStyleDefinition {
     private OpenTemple.Core.GFX.PackedLinearColorA? _backgroundColor;
     private OpenTemple.Core.GFX.PackedLinearColorA? _borderColor;
@@ -554,7 +554,7 @@ public sealed class StyleDefinition : IStyleDefinition {
 /// <summary>
 /// Contains the resolved values for all style properties.
 /// </summary>
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public class ComputedStyles {
     public OpenTemple.Core.GFX.PackedLinearColorA BackgroundColor { get; }
     public OpenTemple.Core.GFX.PackedLinearColorA BorderColor { get; }
@@ -657,7 +657,7 @@ public class ComputedStyles {
     }
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public class StyleResolver
 {
 
@@ -1240,7 +1240,7 @@ public class StyleResolver
         );
     }
 }
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public static partial class StyleJsonDeserializer {
 
     ///<summary>
@@ -1639,7 +1639,7 @@ public static partial class StyleJsonDeserializer {
 }
 
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public enum TextAlign
 {
     Left = 0,
@@ -1648,7 +1648,7 @@ public enum TextAlign
     Justified,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public enum ParagraphAlign
 {
     Near = 0,
@@ -1656,7 +1656,7 @@ public enum ParagraphAlign
     Center,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public enum WordWrap
 {
     Wrap = 0,
@@ -1666,7 +1666,7 @@ public enum WordWrap
     Character,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public enum TrimMode
 {
     None = 0,
@@ -1674,14 +1674,14 @@ public enum TrimMode
     Word,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public enum TrimmingSign
 {
     None = 0,
     Ellipsis,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public enum FontStretch
 {
     UltraCondensed = 0,
@@ -1695,7 +1695,7 @@ public enum FontStretch
     UltraExpanded,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public enum FontStyle
 {
     Normal = 0,
@@ -1703,7 +1703,7 @@ public enum FontStyle
     Oblique,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:39:21.0773331Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
 public enum FontWeight
 {
     Thin = 100,

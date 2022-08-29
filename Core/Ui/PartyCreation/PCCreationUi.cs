@@ -205,7 +205,7 @@ public class PCCreationUi : IDisposable
         };
         stageButton.SetClickHandler(() => ShowStage(system.Stage));
         stageButton.OnMouseEnter += msg => { ShowHelpTopic(system.HelpTopic); };
-        stageButton.OnMouseExit += msg => { system.ButtonExited(); };
+        stageButton.OnMouseLeave += msg => { system.ButtonExited(); };
         return stageButton;
     }
 

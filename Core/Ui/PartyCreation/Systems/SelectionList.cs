@@ -87,7 +87,7 @@ public class SelectionList<T>
             });
             // Allows the caller to display tooltips in the help-box if items are hovered
             button.OnMouseEnter += msg => OnItemHovered?.Invoke(GetValueForIndexOnPage(index));
-            button.OnMouseExit += msg => OnItemHovered?.Invoke(default);
+            button.OnMouseLeave += msg => OnItemHovered?.Invoke(default);
             _selectionButtons.Add(button);
         }
 

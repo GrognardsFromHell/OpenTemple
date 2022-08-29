@@ -52,7 +52,7 @@ internal class RaceSystem : IChargenSystem
                     ShowRaceHelp(_subraces[buttonIndex]);
                 }
             };
-            button.OnMouseExit += msg => { UpdateDescriptionBox(); };
+            button.OnMouseLeave += msg => { UpdateDescriptionBox(); };
             _subraceButtons.Add(button);
         }
 

@@ -8,7 +8,6 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
-using SDL2;
 
 namespace OpenTemple.Core;
 
@@ -16,7 +15,7 @@ public sealed class GameLoop
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private readonly MessageQueue _messageQueue;
+    private readonly EventLoop _eventLoop;
 
     private readonly RenderingDevice _device;
 
@@ -37,11 +36,11 @@ public sealed class GameLoop
     }
 
     public GameLoop(
-        MessageQueue messageQueue,
+        EventLoop eventLoop,
         RenderingDevice device,
         IDebugUI debugUiSystem)
     {
-        _messageQueue = messageQueue;
+        _eventLoop = eventLoop;
         _device = device;
         _debugUiSystem = debugUiSystem;
 
@@ -53,6 +52,8 @@ public sealed class GameLoop
         // Run console commands from "startup.txt" (working dir)
         Tig.DynamicScripting.RunStartupScripts();
 
+        _eventLoop.OnQuit += Stop;
+        
         while (!_quit)
         {
             RunOneIteration();
@@ -66,19 +67,7 @@ public sealed class GameLoop
         AcquireGlobalLock();
         try
         {
-            Tig.SystemEventPump.PumpSystemEvents();
-
-            try
-            {
-                ProcessMessages();
-            }
-            catch (Exception e)
-            {
-                if (!ErrorReporting.ReportException(e))
-                {
-                    throw;
-                }
-            }
+            _eventLoop.Tick();
 
             RenderFrame();
 
@@ -97,48 +86,9 @@ public sealed class GameLoop
 
     public void Stop()
     {
+        _eventLoop.OnQuit -= Stop;
         _quit = true;
         Logger.Info("Stopping game loop");
-    }
-
-    private void ProcessMessages()
-    {
-        // Why does it process msgs AFTER rendering???
-        while (!_quit && _messageQueue.TryGetMessage(out var msg))
-        {
-            HandleMessage(msg);
-        }
-    }
-
-    private void HandleMessage(Message message)
-    {
-        // Pressing the F10 key toggles the diag screen
-        if (message.type == MessageType.KEYSTATECHANGE)
-        {
-            var keyArgs = message.KeyStateChangeArgs;
-            if (keyArgs.key == SDL.SDL_Keycode.SDLK_F10 && keyArgs.down)
-            {
-                // TODO mDiagScreen->Toggle();
-                // TODO UIShowDebug();
-                Stub.TODO();
-            }
-        }
-        else if (message.type == MessageType.EXIT)
-        {
-            Stop();
-            return;
-        }
-
-        if (message.type == MessageType.MOUSE && Globals.UiManager.TranslateMouseMessage(message.MouseArgs))
-        {
-            return;
-        }
-
-        if (!Globals.UiManager.ProcessMessage(message))
-        {
-            // TODO: Decide if the message should be re-dispatched to the primary game view as a fallback
-            return;
-        }
     }
 
     public void RenderFrame()
@@ -174,8 +124,6 @@ public sealed class GameLoop
 
         _device.EndDraw();
         _device.EndPerfGroup();
-
-        // TODO mDiagScreen.Render();
 
         try
         {

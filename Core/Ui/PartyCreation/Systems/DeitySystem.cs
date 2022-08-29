@@ -39,7 +39,7 @@ internal class DeitySystem : IChargenSystem
             button.SetStyle("deity-button");
             button.Text = GameSystems.Deity.GetName(deityId).ToUpper();
             button.OnMouseEnter += msg => ShowDeityHelp(deityId);
-            button.OnMouseExit += msg => UpdateDescriptionBox();
+            button.OnMouseLeave += msg => UpdateDescriptionBox();
             button.SetClickHandler(() => SelectDeity(deityId));
             Container.Add(button);
             _deityButtons[deityId] = button;
