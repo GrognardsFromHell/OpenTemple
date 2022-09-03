@@ -29,11 +29,11 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
     private readonly WidgetRectangle _background;
 
-    public GameObject Inventory { get; set; }
+    public GameObject? Inventory { get; set; }
 
     public int InventoryIndex { get; }
 
-    public GameObject CurrentItem
+    public GameObject? CurrentItem
     {
         get
         {
@@ -116,7 +116,11 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
         var critter = UiSystems.CharSheet.CurrentCritter;
         var color = SlotNormalOutline;
 
-        if (MouseState == LgcyWindowMouseState.Hovered)
+        if (ContainsPress)
+        {
+            color = _slotPressedColor;
+        }
+        else if (ContainsMouse)
         {
             color = _slotHoverColor;
 
@@ -128,10 +132,6 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
                     color = SlotCantWearOutline;
                 }
             }
-        }
-        else if (MouseState == LgcyWindowMouseState.Pressed)
-        {
-            color = _slotPressedColor;
         }
 
         if (currentItem.type == ObjectType.weapon)
@@ -183,7 +183,7 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
     public override void RenderTooltip(int x, int y)
     {
-        if (MouseState == LgcyWindowMouseState.Pressed)
+        if (Pressed)
         {
             return;
         }

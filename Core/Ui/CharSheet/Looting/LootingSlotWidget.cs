@@ -23,9 +23,9 @@ public class LootingSlotWidget : WidgetContainer
 
     public int InventorySlot { get; set; }
 
-    private GameObject _item;
+    private GameObject? _item;
 
-    private WidgetImage _icon;
+    private readonly WidgetImage _icon;
 
     private readonly WidgetText _quantityLabel;
 
@@ -118,7 +118,7 @@ public class LootingSlotWidget : WidgetContainer
 
     public override void RenderTooltip(int x, int y)
     {
-        if (MouseState == LgcyWindowMouseState.Pressed)
+        if (Pressed)
         {
             return;
         }

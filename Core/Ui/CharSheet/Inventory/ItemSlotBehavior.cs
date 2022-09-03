@@ -41,21 +41,21 @@ public class ItemSlotBehavior
 
     private readonly Func<GameObject?> _currentItemSupplier;
 
-    private readonly Func<GameObject> _actingCritterSupplier;
+    private readonly Func<GameObject?> _actingCritterSupplier;
 
     private GameObject? CurrentItem => _currentItemSupplier();
 
-    private GameObject ActingCritter => _actingCritterSupplier();
+    private GameObject? ActingCritter => _actingCritterSupplier();
 
     public bool AllowShowInfo { get; set; }
 
     public ItemSlotMode Mode { get; set; } = ItemSlotMode.Inventory;
 
-    private bool _dragging = false;
+    private bool _dragging;
 
     public ItemSlotBehavior(WidgetBase slotWidget,
-        Func<GameObject> currentItemSupplier,
-        Func<GameObject> actingCritterSupplier)
+        Func<GameObject?> currentItemSupplier,
+        Func<GameObject?> actingCritterSupplier)
     {
         _slotWidget = slotWidget;
         _currentItemSupplier = currentItemSupplier;
@@ -342,11 +342,11 @@ public class ItemSlotBehavior
     {
         var target = UiSystems.CharSheet.Looting.LootingContainer;
         ItemInsertFlag insertFlags;
-        if (target.IsCritter())
+        if (target != null && target.IsCritter())
         {
             insertFlags = ItemInsertFlag.Unk4;
         }
-        else if (target.type == ObjectType.container)
+        else if (target?.type == ObjectType.container)
         {
             insertFlags = ItemInsertFlag.Unk4 | ItemInsertFlag.Use_Max_Idx_200;
         }
@@ -388,7 +388,7 @@ public class ItemSlotBehavior
     private void InsertIntoBarterContainer(GameObject critter, GameObject item, int msg)
     {
         var buyer = UiSystems.CharSheet.Looting.LootingContainer;
-        if (!buyer.IsCritter())
+        if (buyer == null || !buyer.IsCritter())
         {
             buyer = UiSystems.CharSheet.Looting.Vendor;
         }

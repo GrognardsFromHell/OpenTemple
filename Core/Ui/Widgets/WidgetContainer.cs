@@ -64,8 +64,6 @@ public class WidgetContainer : WidgetBase
         UiManager?.RefreshMouseOverState();
     }
 
-    public LgcyWindowMouseState MouseState { get; internal set; }
-
     public void Remove(WidgetBase childWidget)
     {
         Trace.Assert(childWidget.Parent == this);

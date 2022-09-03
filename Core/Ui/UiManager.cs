@@ -11,16 +11,6 @@ using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui;
 
-public enum LgcyWindowMouseState
-{
-    Outside = 0,
-    Hovered = 6,
-
-    // I have not actually found any place where this is ever set
-    Pressed = 7,
-    PressedOutside = 8
-}
-
 public class UiManager : IUiRoot
 {
     // Tracks the state of the first button that caused a mouse-down event,
@@ -371,14 +361,14 @@ public class UiManager : IUiRoot
                 // if window
                 if (globalWid is WidgetContainer prevHoveredWindow)
                 {
-                    if (prevHoveredWindow.MouseState == LgcyWindowMouseState.Pressed)
-                    {
-                        prevHoveredWindow.MouseState = LgcyWindowMouseState.PressedOutside;
-                    }
-                    else if (prevHoveredWindow.MouseState != LgcyWindowMouseState.PressedOutside)
-                    {
-                        prevHoveredWindow.MouseState = LgcyWindowMouseState.Outside;
-                    }
+                    // if (prevHoveredWindow.MouseState == LgcyWindowMouseState.Pressed)
+                    // {
+                    //     prevHoveredWindow.MouseState = LgcyWindowMouseState.PressedOutside;
+                    // }
+                    // else if (prevHoveredWindow.MouseState != LgcyWindowMouseState.PressedOutside)
+                    // {
+                    //     prevHoveredWindow.MouseState = LgcyWindowMouseState.Outside;
+                    // }
                 }
                 // button
                 else if (globalWid is WidgetButtonBase buttonWid && !buttonWid.Disabled)

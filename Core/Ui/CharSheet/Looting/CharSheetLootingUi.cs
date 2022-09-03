@@ -31,11 +31,11 @@ public class CharSheetLootingUi : IDisposable
 
     [TempleDllLocation(0x1013de30)]
     [TempleDllLocation(0x10BE6EC0)]
-    public GameObject LootingContainer { get; private set; }
+    public GameObject? LootingContainer { get; private set; }
 
     [TempleDllLocation(0x10BE6EC8)]
     [TempleDllLocation(0x1013de20)]
-    public GameObject Vendor { get; private set; }
+    public GameObject? Vendor { get; private set; }
 
     [TempleDllLocation(0x10be6e9c)] [TempleDllLocation(0x10be6eb4)]
     private readonly LootingSlotWidget[] _lootingSlots = new LootingSlotWidget[12];
