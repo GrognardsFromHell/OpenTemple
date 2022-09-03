@@ -326,8 +326,8 @@ public partial class WidgetBase : Styleable, IDisposable
     {
         if (_sizeToParent)
         {
-            var containerWidth = _parent?.Width ?? UiManager?.CanvasSize.Width ?? 0;
-            var containerHeight = _parent?.Height ?? UiManager?.CanvasSize.Height ?? 0;
+            var containerWidth = _parent?.Width ?? UiManager?.CanvasSize.Width ?? 1;
+            var containerHeight = _parent?.Height ?? UiManager?.CanvasSize.Height ?? 1;
             Size = new Size(containerWidth, containerHeight);
         }
 

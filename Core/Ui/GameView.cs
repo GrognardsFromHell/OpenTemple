@@ -85,6 +85,8 @@ public class GameView : WidgetContainer, IGameViewport
         UiSystems.TurnBased.AddEventListeners(this);
         UiSystems.InGameSelect.AddEventListeners(this);
         UiSystems.InGame.AddEventListeners(this);
+
+        Globals.UiManager.AddWindow(this);
     }
 
     public override void HandleHotkeyAction(HotkeyActionMessage msg)
@@ -120,7 +122,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     public void RenderScene()
     {
-        if (!Visible)
+        if (!Visible || !IsInTree)
         {
             return;
         }
