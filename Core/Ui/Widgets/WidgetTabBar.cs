@@ -167,8 +167,8 @@ public class WidgetTabButton : WidgetButtonBase
     public WidgetTabButton(string label, WidgetTabStyle style)
     {
         _style = style;
-        sndClick = WidgetButtonStyle.DefaultUpSound;
-        sndDown = WidgetButtonStyle.DefaultDownSound;
+        SoundClicked = WidgetButtonStyle.DefaultUpSound;
+        SoundPressed = WidgetButtonStyle.DefaultDownSound;
 
         if (style == WidgetTabStyle.Large)
         {

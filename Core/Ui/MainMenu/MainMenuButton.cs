@@ -33,10 +33,10 @@ public class MainMenuButton : WidgetButtonBase
         int lineNumber = -1) : base(filePath, lineNumber)
     {
         var defaultSounds = Globals.WidgetButtonStyles.GetStyle("default-sounds");
-        sndHoverOn = defaultSounds.SoundEnter;
-        sndHoverOff = defaultSounds.SoundLeave;
-        sndDown = defaultSounds.SoundDown;
-        sndClick = defaultSounds.SoundClick;
+        SoundMouseEnter = defaultSounds.SoundEnter;
+        SoundMouseLeave = defaultSounds.SoundLeave;
+        SoundPressed = defaultSounds.SoundDown;
+        SoundClicked = defaultSounds.SoundClick;
 
         _normalStyle = new TigTextStyle()
         {

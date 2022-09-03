@@ -50,10 +50,10 @@ public class WidgetButton : WidgetButtonBase
     public void SetStyle(WidgetButtonStyle style)
     {
         _style = style;
-        sndHoverOn = style.SoundEnter;
-        sndHoverOff = style.SoundLeave;
-        sndDown = style.SoundDown;
-        sndClick = style.SoundClick;
+        SoundMouseEnter = style.SoundEnter;
+        SoundMouseLeave = style.SoundLeave;
+        SoundPressed = style.SoundDown;
+        SoundClicked = style.SoundClick;
         UpdateContent();
     }
 

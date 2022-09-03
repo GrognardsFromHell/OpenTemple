@@ -57,6 +57,12 @@ public class WidgetButtonBase : WidgetBase
             e.PreventDefault();
             return;
         }
+
+        if (SoundPressed != -1)
+        {
+            Tig.Sound.PlaySoundEffect(SoundPressed);
+        }
+        
         if (IsRepeat && e.Button == MouseButton.LEFT)
         {
             if (SetMouseCapture())
@@ -87,27 +93,27 @@ public class WidgetButtonBase : WidgetBase
     protected override void HandleClick(MouseEvent e)
     {
         base.HandleClick(e);
-        if (sndClick != -1)
+        if (SoundClicked != -1)
         {
-            Tig.Sound.PlaySoundEffect(sndClick);
+            Tig.Sound.PlaySoundEffect(SoundClicked);
         }
     }
 
-    public int sndHoverOff { get; set; } = -1;
+    public int SoundMouseLeave { get; set; } = -1;
 
-    public int sndHoverOn { get; set; } = -1;
+    public int SoundMouseEnter { get; set; } = -1;
 
-    public int sndDown { get; set; } = -1;
+    public int SoundPressed { get; set; } = -1;
 
-    public int sndClick { get; set; } = -1;
+    public int SoundClicked { get; set; } = -1;
 
     protected override void HandleMouseEnter(MouseEvent e)
     {
         base.HandleMouseEnter(e);
 
-        if (sndHoverOn != -1)
+        if (SoundMouseEnter != -1)
         {
-            Tig.Sound.PlaySoundEffect(sndHoverOn);
+            Tig.Sound.PlaySoundEffect(SoundMouseEnter);
         }
     }
 
@@ -115,9 +121,9 @@ public class WidgetButtonBase : WidgetBase
     {
         base.HandleMouseLeave(e);
         
-        if (sndHoverOff != -1)
+        if (SoundMouseLeave != -1)
         {
-            Tig.Sound.PlaySoundEffect(sndHoverOff);
+            Tig.Sound.PlaySoundEffect(SoundMouseLeave);
         }
     }
 
