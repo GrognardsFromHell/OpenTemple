@@ -777,7 +777,7 @@ public class UiManager : IUiRoot
         for (var node = target; node != null && node != stopAtParent; node = node.Parent)
         {
             var e = new MouseEvent {InitialTarget = target};
-            node.DispatchMouseLeave(e);
+            node.DispatchMouseEnter(e);
         }
     }
 
@@ -808,6 +808,8 @@ public class UiManager : IUiRoot
 
         if (dispatchTo != null)
         {
+            SetPressed(dispatchTo, true);
+            
             var e = CreateMouseEvent(UiEventType.MouseDown, dispatchTo);
             dispatchTo.DispatchMouseDown(e);
         }
@@ -833,12 +835,22 @@ public class UiManager : IUiRoot
         }
 
         var lastMouseDownAt = _mouseDownState.Target;
+        
+        // Unset the Pressed visual state
+        if (lastMouseDownAt != null)
+        {
+            SetPressed(lastMouseDownAt, false);
+        }
 
         var target = GetWidgetAt(uiPos.X, uiPos.Y);
 
         var dispatchTo = MouseCaptureWidget ?? target;
         if (dispatchTo == null)
-        {
+        {        
+            // Release the mouse down state here so that the mouse up event cannot recapture the mouse
+            _mouseDownState = null;
+            // Implicitly release mouse capture
+            _pendingMouseCaptureWidget = null;
             return;
         }
         
@@ -870,6 +882,14 @@ public class UiManager : IUiRoot
         }
 
         ProcessPendingMouseCapture();
+    }
+
+    private static void SetPressed(WidgetBase widget, bool value)
+    {
+        foreach (var node in widget.EnumerateSelfAndAncestors())
+        {
+            node.Pressed = value;
+        }
     }
 
     public void MouseWheel(Point windowPos, PointF uiPos, float units)

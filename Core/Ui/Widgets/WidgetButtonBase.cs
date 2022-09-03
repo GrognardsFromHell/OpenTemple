@@ -3,6 +3,7 @@ using System;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
@@ -76,11 +77,20 @@ public class WidgetButtonBase : WidgetBase
             e.PreventDefault();
         }
     }
-
+    
     private void TriggerAction(MouseEvent e)
     {
         DispatchClick(e); // TODO: should translate mouse event here
         _repeatingEventTime = TimePoint.Now;
+    }
+
+    protected override void HandleClick(MouseEvent e)
+    {
+        base.HandleClick(e);
+        if (sndClick != -1)
+        {
+            Tig.Sound.PlaySoundEffect(sndClick);
+        }
     }
 
     public int sndHoverOff { get; set; } = -1;
@@ -91,6 +101,25 @@ public class WidgetButtonBase : WidgetBase
 
     public int sndClick { get; set; } = -1;
 
+    protected override void HandleMouseEnter(MouseEvent e)
+    {
+        base.HandleMouseEnter(e);
+
+        if (sndHoverOn != -1)
+        {
+            Tig.Sound.PlaySoundEffect(sndHoverOn);
+        }
+    }
+
+    protected override void HandleMouseLeave(MouseEvent e)
+    {
+        base.HandleMouseLeave(e);
+        
+        if (sndHoverOff != -1)
+        {
+            Tig.Sound.PlaySoundEffect(sndHoverOff);
+        }
+    }
 
     public override void OnUpdateTime(TimePoint now)
     {

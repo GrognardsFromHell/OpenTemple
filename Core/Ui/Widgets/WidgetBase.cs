@@ -768,7 +768,7 @@ public partial class WidgetBase : Styleable, IDisposable
         while (current != null)
         {
             yield return current;
-            current = Parent;
+            current = current.Parent;
         }
     }
 
