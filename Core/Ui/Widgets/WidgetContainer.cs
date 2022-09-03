@@ -60,6 +60,7 @@ public class WidgetContainer : WidgetBase
             UiManager?.RemoveWindow(otherContainer);
         }
 
+        childWidget.AttachToTree(UiManager);
         mChildren.Add(childWidget);
         UiManager?.RefreshMouseOverState();
     }
@@ -70,6 +71,7 @@ public class WidgetContainer : WidgetBase
 
         childWidget.Parent = null;
         mChildren.Remove(childWidget);
+        childWidget.AttachToTree(null);
         UiManager?.RefreshMouseOverState();
     }
 

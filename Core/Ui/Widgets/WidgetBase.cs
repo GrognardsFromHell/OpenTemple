@@ -32,11 +32,11 @@ public partial class WidgetBase : Styleable, IDisposable
     protected Func<MessageWidgetArgs, bool>? mWidgetMsgHandler;
     protected Func<MessageKeyStateChangeArgs, bool>? mKeyStateChangeHandler;
     protected Func<MessageCharArgs, bool>? mCharHandler;
-
+    protected readonly List<WidgetContent> Content = new();
+    private readonly List<AvailableHotkey> _hotkeys = new();
+    private bool _visible = true;
     private bool _containsMouse;
-    
     private bool _pressed;
-    
     private bool _disabled;
     
     /// <summary>
@@ -94,12 +94,6 @@ public partial class WidgetBase : Styleable, IDisposable
     }
 
     public int ZIndex { get; set; }
-
-    protected readonly List<WidgetContent> Content = new();
-    
-    private bool _visible = true;
-
-    private readonly List<AvailableHotkey> _hotkeys = new();
 
     /// <summary>
     /// Indicates whether this widget is currently part of the widget tree.
@@ -805,6 +799,10 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public virtual void AttachToTree(UiManager? manager)
     {
+        if (UiManager != null && UiManager != manager)
+        {
+            UiManager.RemoveWidget(this);
+        }
         UiManager = manager;
     }
 
