@@ -200,7 +200,7 @@ internal class WidgetDocLoader
             StyleJsonDeserializer.DeserializeProperties(localStylesNode, widget.LocalStyles);
         }
 
-        var size = widget.GetSize();
+        var size = widget.Size;
         if (jsonObj.TryGetProperty("width", out var widthNode))
         {
             size.Width = widthNode.GetInt32();
@@ -213,16 +213,16 @@ internal class WidgetDocLoader
             widget.SetAutoSizeHeight(false);
         }
 
-        widget.SetSize(size);
+        widget.Size = size;
 
         if (jsonObj.TryGetProperty("centerHorizontally", out var centerHorizontallyNode))
         {
-            widget.SetCenterHorizontally(centerHorizontallyNode.GetBoolean());
+            widget.CenterHorizontally = centerHorizontallyNode.GetBoolean();
         }
 
         if (jsonObj.TryGetProperty("centerVertically", out var centerVerticallyNode))
         {
-            widget.SetCenterVertically(centerVerticallyNode.GetBoolean());
+            widget.CenterVertically = centerVerticallyNode.GetBoolean();
         }
 
         if (jsonObj.TryGetProperty("sizeToParent", out var sizeToParentNode))
@@ -438,7 +438,7 @@ internal class WidgetDocLoader
                 throw new Exception($"Cannot process unknown widget type: '{type}'");
         }
 
-        widget.SetSourceURI(_path);
+        widget.SourceURI = _path;
 
         // If the widget had an ID, put it into the registry
         if (jsonObj.TryGetProperty("id", out var idNode))
@@ -450,7 +450,7 @@ internal class WidgetDocLoader
             }
 
             Registry[id] = widget;
-            widget.SetId(id);
+            widget.Id = id;
         }
 
         return widget;

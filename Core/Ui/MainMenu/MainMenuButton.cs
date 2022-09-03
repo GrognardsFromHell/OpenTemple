@@ -1,4 +1,5 @@
 #nullable enable
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
@@ -82,7 +83,7 @@ public class MainMenuButton : WidgetButtonBase
         );
         Tig.Fonts.PopFont();
 
-        SetSize(metrics.Size);
+        Size = metrics.Size;
     }
 
     public override void Render()

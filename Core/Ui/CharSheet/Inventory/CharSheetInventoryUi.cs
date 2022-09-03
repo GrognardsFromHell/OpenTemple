@@ -70,7 +70,7 @@ public class CharSheetInventoryUi : IDisposable
                 var slot = new InventorySlotWidget(SlotSize, inventoryIdx);
                 var x = 1 + col * (slot.Width + 2);
                 var y = 1 + row * (slot.Height + 2);
-                slot.SetPos(new Point(x, y));
+                slot.Pos = new Point(x, y);
                 slotContainer.Add(slot);
                 new ItemSlotBehavior(slot,
                     () => slot.CurrentItem,

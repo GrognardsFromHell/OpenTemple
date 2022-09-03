@@ -81,7 +81,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         currentMapButton.AddClickListener(SwitchToCurrentMap);
 
         var contentContainer = doc.GetContainer("mapContent");
-        _mapContent = new TownMapContent(new Rectangle(Point.Empty, contentContainer.GetSize()));
+        _mapContent = new TownMapContent(new Rectangle(Point.Empty, contentContainer.Size));
         contentContainer.Add(_mapContent);
         _mapContent.OnCursorChanged += ChangeCursor;
         _mapContent.OnControlModeChange += UpdateModeButtons;

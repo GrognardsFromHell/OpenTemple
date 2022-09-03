@@ -191,7 +191,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         });
 
         // This is placed on top of the other map widgets to show the trail dots above the location icons
-        _trailDotsContainer = new WidgetContainer(_mapContent.GetSize());
+        _trailDotsContainer = new WidgetContainer(_mapContent.Size);
         _mapContent.Add(_trailDotsContainer);
 
         _youAreHereWidget = new YouAreHereWidget();

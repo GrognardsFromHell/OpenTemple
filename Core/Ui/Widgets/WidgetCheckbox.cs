@@ -32,7 +32,7 @@ public class WidgetCheckbox : WidgetButtonBase
             OnCheckedChanged?.Invoke(Checked);
         });
 
-        SetSize(_checkedImage.GetPreferredSize());
+        Size = _checkedImage.GetPreferredSize();
     }
 
     public override void Render()

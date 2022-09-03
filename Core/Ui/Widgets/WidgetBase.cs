@@ -21,11 +21,17 @@ public partial class WidgetBase : Styleable, IDisposable
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(10);
     
     protected WidgetContainer? _parent = null;
-    protected string mSourceURI;
-    protected string mId;
-    protected bool mCenterHorizontally = false;
-    protected bool mCenterVertically = false;
-    protected bool mSizeToParent = false;
+    /// <summary>
+    /// If this widget was loaded from a file, indicates the URI to that file to more easily identify it.
+    /// </summary>
+    public string SourceURI { get; set; }
+    /// <summary>
+    /// A unique id for this widget within the source URI (see below).
+    /// </summary>
+    public string Id { get; set; }
+    public bool CenterHorizontally { get; set; }
+    public bool CenterVertically { get; set; }
+    protected bool _sizeToParent = false;
     protected bool mAutoSizeWidth = true;
     protected bool mAutoSizeHeight = true;
     protected Margins mMargins;
@@ -144,7 +150,7 @@ public partial class WidgetBase : Styleable, IDisposable
     {
         if (filePath != null)
         {
-            mSourceURI = $"{Path.GetFileName(filePath)}:{lineNumber}";
+            SourceURI = $"{Path.GetFileName(filePath)}:{lineNumber}";
         }
     }
 
@@ -318,33 +324,27 @@ public partial class WidgetBase : Styleable, IDisposable
 
     protected void ApplyAutomaticSizing()
     {
-        if (mSizeToParent)
+        if (_sizeToParent)
         {
-            int containerWidth = _parent != null
-                ? _parent.Width
-                : Globals.UiManager.CanvasSize.Width;
-            int containerHeight = _parent != null
-                ? _parent.Height
-                : Globals.UiManager.CanvasSize.Height;
-            SetSize(new Size(containerWidth, containerHeight));
+            var containerWidth = _parent?.Width ?? UiManager?.CanvasSize.Width ?? 0;
+            var containerHeight = _parent?.Height ?? UiManager?.CanvasSize.Height ?? 0;
+            Size = new Size(containerWidth, containerHeight);
         }
 
-        if (mCenterHorizontally)
+        if (CenterHorizontally)
         {
-            int containerWidth = _parent != null
-                ? _parent.Width
-                : Globals.UiManager.CanvasSize.Width;
-            int x = (containerWidth - Width) / 2;
+            var containerWidth = _parent?.Width ?? UiManager?.CanvasSize.Width ?? 0;
+            var x = (containerWidth - Width) / 2;
             if (x != X)
             {
                 X = x;
             }
         }
 
-        if (mCenterVertically)
+        if (CenterVertically)
         {
-            int containerHeight = _parent?.Height ?? Globals.UiManager.CanvasSize.Height;
-            int y = (containerHeight - Height) / 2;
+            var containerHeight = _parent?.Height ?? UiManager?.CanvasSize.Height ?? 0;
+            var y = (containerHeight - Height) / 2;
             if (y != Y)
             {
                 Y = y;
@@ -446,11 +446,11 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public Rectangle Rectangle
     {
-        get => new(GetPos(), GetSize());
+        get => new(Pos, Size);
         set
         {
-            SetPos(value.Location);
-            SetSize(value.Size);
+            Pos = value.Location;
+            Size = value.Size;
         }
     }
 
@@ -460,67 +460,29 @@ public partial class WidgetBase : Styleable, IDisposable
         Y = y;
     }
 
-    public void SetPos(Point point) => SetPos(point.X, point.Y);
-
-    public Point GetPos()
+    public Point Pos
     {
-        return new Point(X, Y);
+        get => new (X, Y);
+        set => SetPos(value.X, value.Y);
     }
 
-    public void SetSize(Size size)
+    public Size Size
     {
-        if (size.Width != Width || size.Height != Height)
+        get => new(Width, Height);
+        set
         {
-            Width = size.Width;
-            Height = size.Height;
-            OnSizeChanged();
+            if (value.Width != Width || value.Height != Height)
+            {
+                Width = value.Width;
+                Height = value.Height;
+                OnSizeChanged();
+            }
         }
-    }
-
-    public Size GetSize()
-    {
-        return new Size(Width, Height);
-    }
-
-    /**
-         * A unique id for this widget within the source URI (see below).
-         */
-    public string GetId()
-    {
-        return mId;
-    }
-
-    public void SetId(string id)
-    {
-        mId = id;
-    }
-
-    /**
-         * If this widget was loaded from a file, indicates the URI to that file to more easily identify it.
-         */
-    public string GetSourceURI()
-    {
-        return mSourceURI;
-    }
-
-    public void SetSourceURI(string sourceUri)
-    {
-        mSourceURI = sourceUri;
-    }
-
-    public void SetCenterHorizontally(bool enable)
-    {
-        mCenterHorizontally = enable;
-    }
-
-    public void SetCenterVertically(bool enable)
-    {
-        mCenterVertically = enable;
     }
 
     public void SetSizeToParent(bool enable)
     {
-        mSizeToParent = enable;
+        _sizeToParent = enable;
         if (enable)
         {
             SetAutoSizeHeight(false);
@@ -528,13 +490,13 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    /**
-         *	Basically gets a Rectangle of x,y,w,h.
-         *	Can modify based on parent.
-         */
+    /// <summary>
+    /// Basically gets a Rectangle of x,y,w,h.
+    /// Can modify based on parent.
+    /// </summary>
     private static Rectangle GetContentArea(WidgetBase widget)
     {
-        var bounds = new Rectangle(widget.GetPos(), widget.GetSize());
+        var bounds = new Rectangle(widget.Pos, widget.Size);
 
         // The content of an advanced widget container may be moved
         var container = widget.Parent;
@@ -573,12 +535,12 @@ public partial class WidgetBase : Styleable, IDisposable
         return bounds;
     }
 
-    /*
-     Returns the {x,y,w,h} rect, but regards modification from parent and subtracts the margins.
-     Content area controls:
-     - Mouse handling active area
-     - Rendering area
-     */
+    /// <summary>
+    /// Returns the {x,y,w,h} rect, but regards modification from parent and subtracts the margins.
+    /// Content area controls:
+    /// - Mouse handling active area
+    /// - Rendering area
+    /// </summary>
     public Rectangle GetContentArea(bool includingMargins = false)
     {
         var res = GetContentArea(this);
@@ -647,11 +609,13 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public event Action<HotkeyActionMessage>? OnHotkeyAction;
 
+    [Obsolete]
     public void SetKeyStateChangeHandler(Func<MessageKeyStateChangeArgs, bool> handler)
     {
         mKeyStateChangeHandler = handler;
     }
 
+    [Obsolete]
     public void SetCharHandler(Func<MessageCharArgs, bool> handler)
     {
         mCharHandler = handler;
@@ -674,6 +638,7 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
+    [Obsolete]
     public virtual bool HandleMouseMessage(MessageMouseArgs msg)
     {
         return false;

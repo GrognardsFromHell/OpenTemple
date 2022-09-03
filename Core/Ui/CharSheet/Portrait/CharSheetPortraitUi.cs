@@ -138,7 +138,7 @@ public class CharSheetPortraitUi : IDisposable
     private void CreateButtons(PortraitUiParams uiParams)
     {
         _miniatureButton = new WidgetButton();
-        _miniatureButton.SetPos(uiParams.MiniatureButton.Location);
+        _miniatureButton.Pos = uiParams.MiniatureButton.Location;
         _miniatureButton.SetStyle(new WidgetButtonStyle
         {
             NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelNormal],
@@ -152,7 +152,7 @@ public class CharSheetPortraitUi : IDisposable
         Container.Add(_miniatureButton);
 
         _portraitButton = new WidgetButton();
-        _portraitButton.SetPos(uiParams.PortraitButton.Location);
+        _portraitButton.Pos = uiParams.PortraitButton.Location;
         _portraitButton.SetStyle(new WidgetButtonStyle
         {
             NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitNormal],
@@ -166,7 +166,7 @@ public class CharSheetPortraitUi : IDisposable
         Container.Add(_portraitButton);
 
         _paperdollButton = new WidgetButton();
-        _paperdollButton.SetPos(uiParams.PaperdollButton.Location);
+        _paperdollButton.Pos = uiParams.PaperdollButton.Location;
         _paperdollButton.SetStyle(new WidgetButtonStyle
         {
             NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollNormal],
@@ -214,7 +214,7 @@ public class CharSheetPortraitUi : IDisposable
             kp =>
             {
                 var parent = widgetDoc.GetContainer(kp.Value);
-                var slotWidget = new PaperdollSlotWidget(uiParams, parent.GetSize(), kp.Key);
+                var slotWidget = new PaperdollSlotWidget(uiParams, parent.Size, kp.Key);
                 new ItemSlotBehavior(slotWidget,
                     () => slotWidget.CurrentItem,
                     () => slotWidget.Critter);

@@ -181,7 +181,7 @@ public class PCCreationUi : IDisposable
 
         var modelPreviewContainer = doc.GetContainer("modelPreview");
         _modelPreview = new MiniatureWidget();
-        _modelPreview.SetSize(modelPreviewContainer.GetSize());
+        _modelPreview.Size = modelPreviewContainer.Size;
         modelPreviewContainer.Add(_modelPreview);
     }
 

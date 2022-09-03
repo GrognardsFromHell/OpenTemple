@@ -8,7 +8,7 @@ public class WidgetScrollBar : WidgetContainer
 {
     public WidgetScrollBar(Rectangle rectangle) : this()
     {
-        SetPos(rectangle.Location);
+        Pos = rectangle.Location;
         Height = rectangle.Height;
     }
 

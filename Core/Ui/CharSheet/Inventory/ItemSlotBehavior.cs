@@ -93,7 +93,7 @@ public class ItemSlotBehavior
 
             UiSystems.CharSheet.Inventory.DraggedObject = currentItem;
             var texturePath = currentItem.GetInventoryIconPath();
-            var iconSize = _slotWidget.GetSize();
+            var iconSize = _slotWidget.Size;
             iconSize.Height -= 4;
             iconSize.Width -= 4;
             Tig.Mouse.SetDraggedIcon(texturePath, Point.Round(new PointF(-relPos.X + 4, -relPos.Y + 4)), iconSize);

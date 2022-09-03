@@ -7,7 +7,6 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
-using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
@@ -46,8 +45,8 @@ public class WidgetButtonBase : WidgetBase
 
     public WidgetButtonBase(Rectangle rect, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(filePath, lineNumber)
     {
-        SetPos(rect.Location);
-        SetSize(rect.Size);
+        Pos = rect.Location;
+        Size = rect.Size;
     }
 
     protected override void DefaultMouseDownAction(MouseEvent e)

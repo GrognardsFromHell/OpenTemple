@@ -39,8 +39,8 @@ public class WidgetButton : WidgetButtonBase
 
     public WidgetButton(Rectangle rect) : this()
     {
-        SetPos(rect.Location);
-        SetSize(rect.Size);
+        Pos = rect.Location;
+        Size = rect.Size;
     }
 
     /*
@@ -343,7 +343,7 @@ public class WidgetButton : WidgetButtonBase
 
             if (mAutoSizeWidth && mAutoSizeHeight)
             {
-                SetSize(prefSize);
+                Size = prefSize;
             }
             else if (mAutoSizeWidth)
             {

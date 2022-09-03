@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -32,8 +33,8 @@ public class InitiativePortraitButton : WidgetButtonBase
         _smallMode = smallMode;
         _metrics = smallMode ? InitiativeMetrics.Small : InitiativeMetrics.Normal;
 
-        SetPos(_metrics.Button.Location);
-        SetSize(_metrics.Button.Size);
+        Pos = _metrics.Button.Location;
+        Size = _metrics.Button.Size;
 
         _portrait = new WidgetImage(GetPortraitPath());
         AddContent(_portrait); // This is for automated cleanup

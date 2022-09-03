@@ -42,9 +42,9 @@ public class StatsCurrencyLabel : WidgetButtonBase
                 throw new ArgumentOutOfRangeException(nameof(moneyType), moneyType, null);
         }
 
-        SetPos(rect.Location);
+        Pos = rect.Location;
         Y = Y - 1; // This is hardcoded in the render-function in ToEE
-        SetSize(rect.Size);
+        Size = rect.Size;
 
         MoneyType = moneyType;
 

@@ -440,7 +440,7 @@ class ViewCinematicsDialog
 
             var button = new WidgetButton();
             button.Text = mMovieNames[movieInd];
-            button.SetId(mMovieNames[movieInd]);
+            button.Id = mMovieNames[movieInd];
             var innerWidth = mListBox.GetInnerWidth();
             button.Width = innerWidth;
             button.SetAutoSizeWidth(false);
@@ -538,7 +538,7 @@ class SetPiecesDialog
         {
             var button = new WidgetButton();
             button.Text = "Arena";
-            button.SetId("Arena");
+            button.Id = "Arena";
             var innerWidth = mListBox.GetInnerWidth();
             button.Width = innerWidth;
             button.SetAutoSizeWidth(false);

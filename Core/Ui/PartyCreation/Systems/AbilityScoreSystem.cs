@@ -88,7 +88,7 @@ class AbilityScoreSystem : IChargenSystem
 
             var assignedValContainer = doc.GetContainer($"assigned-val-{AttributeIdSuffixes[i]}");
             var assignedVal = new AbilityScoreValueWidget(
-                assignedValContainer.GetSize(),
+                assignedValContainer.Size,
                 () => _pkt.abilityStats[abilityIndex],
                 value => _pkt.abilityStats[abilityIndex] = value,
                 true
@@ -99,7 +99,7 @@ class AbilityScoreSystem : IChargenSystem
             // Displays the modifier for the assigned attribute
             var assignedModContainer = doc.GetContainer($"assigned-mod-{AttributeIdSuffixes[i]}");
             var assignedMod = new AbilityScoreModifierWidget(
-                assignedValContainer.GetSize(),
+                assignedValContainer.Size,
                 () => _pkt.abilityStats[abilityIndex]
             );
             assignedModContainer.Add(assignedMod);
@@ -113,7 +113,7 @@ class AbilityScoreSystem : IChargenSystem
             var index = i;
             var rolledStatContainer = doc.GetContainer("rolledAttribute" + i);
             var rolledStatWidget = new AbilityScoreValueWidget(
-                rolledStatContainer.GetSize(),
+                rolledStatContainer.Size,
                 () => charGenRolledStats[index],
                 value => charGenRolledStats[index] = value,
                 false
@@ -165,7 +165,7 @@ class AbilityScoreSystem : IChargenSystem
                 {
                     var point = new Point(x, y);
                     point.Offset(-localX, -localY);
-                    var contentArea = new Rectangle(point, widget.GetSize());
+                    var contentArea = new Rectangle(point, widget.Size);
 
                     _draggedAbilityScoreLabel.SetBounds(contentArea);
                     _draggedAbilityScoreLabel.Render();

@@ -33,8 +33,8 @@ public class PartyUiPortrait : IDisposable
         container.AddContent(image);
 
         var portraitButton = new PortraitButton(partyMember);
-        portraitButton.SetSize(uiParams.party_ui_portrait_button.Size);
-        portraitButton.SetPos(uiParams.party_ui_portrait_button.Location);
+        portraitButton.Size = uiParams.party_ui_portrait_button.Size;
+        portraitButton.Pos = uiParams.party_ui_portrait_button.Location;
         container.Add(portraitButton);
 
         var healthBar = new PortraitHealthBar(

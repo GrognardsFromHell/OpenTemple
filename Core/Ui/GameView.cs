@@ -49,7 +49,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     public float Zoom => _zoom;
 
-    public Size Size => GetSize();
+    public Size Size => ((WidgetBase) this).Size;
 
     event Action IGameViewport.OnResize
     {

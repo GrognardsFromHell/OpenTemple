@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
@@ -22,7 +23,7 @@ public class CharUiMainWidget : WidgetContainer
     {
         _normalBackground = new WidgetImage("art/interface/char_ui/main_window.img");
         _ironmanBackground = new WidgetImage("art/interface/char_ui/ironman_main_window.img");
-        SetSize(_normalBackground.GetPreferredSize());
+        Size = _normalBackground.GetPreferredSize();
 
         _translation = Tig.FS.ReadMesFile("mes/0_char_ui_text.mes");
         var pcCreationMes = Tig.FS.ReadMesFile("mes/pc_creation.mes");

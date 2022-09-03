@@ -61,8 +61,8 @@ public class UiManagerDebug
             var currentMouseOver = _uiManager.CurrentMouseOverWidget;
             if (currentMouseOver != null)
             {
-                ImGui.Text("Source URI: " + currentMouseOver.GetSourceURI());
-                ImGui.Text("ID: " + currentMouseOver.GetId());
+                ImGui.Text("Source URI: " + currentMouseOver.SourceURI);
+                ImGui.Text("ID: " + currentMouseOver.Id);
             }
 
             if (ImGui.CollapsingHeader("Widgets"))
@@ -85,7 +85,7 @@ public class UiManagerDebug
         {
             zIndex = $" Z:{window.ZIndex}";
         }
-        if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
+        if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.Id} ({widget.SourceURI}){zIndex}"))
         {
             if (ImGui.IsItemHovered())
             {

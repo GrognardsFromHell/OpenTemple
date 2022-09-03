@@ -196,7 +196,7 @@ public class WidgetTabButton : WidgetButtonBase
         // Layout the content items
         LayoutContent(_selectedLeft, _selectedBg, _selectedRight, _label);
         var size = LayoutContent(_normalLeft, _normalBg, _normalRight, _label);
-        SetSize(size);
+        Size = size;
 
         UpdateSelectedState();
     }

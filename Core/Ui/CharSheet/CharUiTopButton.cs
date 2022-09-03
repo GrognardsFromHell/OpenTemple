@@ -56,8 +56,8 @@ public class CharUiTopButton : WidgetButton
                 throw new ArgumentOutOfRangeException();
         }
 
-        SetPos(rectangle.Location);
-        SetSize(rectangle.Size);
+        Pos = rectangle.Location;
+        Size = rectangle.Size;
 
         _arcTopTexture = ResolveTexture(CharUiTexture.ButtonArcTopSelected);
     }

@@ -43,8 +43,8 @@ public class CharInventoryButton : WidgetButton
                 throw new ArgumentOutOfRangeException();
         }
 
-        SetPos(rectangle.Location);
-        SetSize(rectangle.Size);
+        Pos = rectangle.Location;
+        Size = rectangle.Size;
 
         _borderTexture = Tig.Textures.Resolve(uiParams.TexturePaths[CharUiTexture.ButtonContainerSelected], false);
         _arcTopTexture = Tig.Textures.Resolve(uiParams.TexturePaths[CharUiTexture.ButtonArcTopSelected], false);
