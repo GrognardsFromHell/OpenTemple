@@ -62,16 +62,10 @@ public class OptionsUi
         _tabBar.ActiveTabIndex = 0;
 
         // Forward otherwise unhandled mouse-wheel messages to the scrollbar
-        _container.SetMouseMsgHandler(msg =>
-        {
-            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-            {
-                _scrollbar.HandleMouseMessage(msg);
-                return true;
-            }
-
-            return false;
-        });
+        _container.OnMouseWheel += e => {
+            e.StopPropagation();
+            _scrollbar.DispatchMouseWheel(e);
+        };
     }
 
     private void CreatePages()

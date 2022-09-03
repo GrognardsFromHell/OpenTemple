@@ -41,16 +41,9 @@ public class StatsValue : WidgetButtonBase
         _valueSupplier = valueSupplier;
 
         _label = new WidgetText("", "char-ui-stat-value");
-        SetWidgetMsgHandler(msg =>
-        {
-            if (msg.widgetEventType == TigMsgWidgetEvent.Exited)
-            {
-                UiSystems.CharSheet.Help.ClearHelpText();
-                return true;
-            }
-
-            return false;
-        });
+        OnMouseLeave += _ => {
+            UiSystems.CharSheet.Help.ClearHelpText();
+        };
 
         TooltipText = UiSystems.Tooltip.GetString(6044);
     }

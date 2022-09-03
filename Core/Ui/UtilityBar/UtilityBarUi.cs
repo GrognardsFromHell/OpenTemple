@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -70,7 +69,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
         // Begin top level window
         // Created @ 0x10110f7f
         _container = new WidgetContainer(new Rectangle(0, 0, 179, 81));
-        _container.SetWidgetMsgHandler(OnUtilityBarClick);
+        _container.AddClickListener(OnUtilityBarClick);
         _container.ZIndex = 100000;
         _container.Visible = false;
         var background = new WidgetImage("art/interface/utility_bar_ui/background.tga");
@@ -331,17 +330,12 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
     }
 
     [TempleDllLocation(0x1010f820)]
-    private bool OnUtilityBarClick(MessageWidgetArgs msg)
+    private void OnUtilityBarClick()
     {
-        if (msg.widgetEventType == TigMsgWidgetEvent.MouseReleased)
+        if (UiSystems.HelpManager.IsSelectingHelpTarget)
         {
-            if (UiSystems.HelpManager.IsSelectingHelpTarget)
-            {
-                UiSystems.HelpManager.ShowPredefinedTopic(63);
-            }
+            UiSystems.HelpManager.ShowPredefinedTopic(63);
         }
-
-        return true;
     }
 
     [TempleDllLocation(0x1010f8e0)]

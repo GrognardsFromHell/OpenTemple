@@ -41,11 +41,17 @@ public class WidgetContainer : WidgetBase
         Height = height;
 
         // Containers are usually empty and should be click through where there is no content
-        PreciseHitTest = true;
+        HitTesting = HitTestingMode.Content;
     }
+    
+    /// <summary>
+    /// Previously this was implemented by always returning true from the mouse event handler.
+    /// TODO: Actually implement this, and check if it's not more like a modal backdrop
+    /// </summary>
+    public bool PreventsInGameInteraction { get; set; }
 
     public bool ClipChildren { get; set; } = true;
-
+    
     public virtual void Add(WidgetBase childWidget)
     {
         if (childWidget.Parent != null && childWidget.Parent != this)

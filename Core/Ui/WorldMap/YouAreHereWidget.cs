@@ -28,6 +28,6 @@ public class YouAreHereWidget : WidgetBase
         base.Render();
     }
 
-    // The icon is purely decorative and should not iteract with the mouse
+    // The icon is purely decorative and should not interact with the mouse
     public override bool HitTest(float x, float y) => false;
 }

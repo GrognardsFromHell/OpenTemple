@@ -120,8 +120,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         // Created @ 0x1012f29f
         _mainWindow = doc.GetRootContainer();
         // _mainWindow.OnBeforeRender += 0x1012e4d0;
-        // Swallow mouse events (to prevent click through)
-        _mainWindow.SetMouseMsgHandler(msg => true);
+        _mainWindow.PreventsInGameInteraction = true;
         _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
         _mainWindow.ZIndex = 100000;
         _mainWindow.Visible = false;

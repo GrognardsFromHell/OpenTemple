@@ -65,8 +65,8 @@ public class HelpUi : IResetAwareSystem
         uiHelpWnd.Name = "help_main_window";
         uiHelpWnd.AddHotkey(UiHotkeys.CloseWindow, Hide);
         uiHelpWnd.Visible = false;
-        uiHelpWnd.SetMouseMsgHandler(msg => true); // Dont allow click-through
-
+        uiHelpWnd.PreventsInGameInteraction = true;
+        
         var background = new WidgetImage("art/interface/HELP_UI/helpmenu_background.img");
         uiHelpWnd.AddContent(background);
 

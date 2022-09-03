@@ -43,7 +43,7 @@ internal class WorldMapLocationWidgets
             var rect = image.Rectangle;
             var button = new WidgetButtonBase(rect);
             button.AddContent(new WidgetImage(image.Path));
-            button.SetMouseMsgHandler(_ => false);
+            button.HitTesting = HitTestingMode.Ignore;
 
             parent.Add(button);
             _images.Add((image, button));

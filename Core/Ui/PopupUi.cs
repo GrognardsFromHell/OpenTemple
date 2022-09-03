@@ -44,10 +44,10 @@ public class PopupUi : IDisposable, IResetAwareSystem
     private void CreatePopupWidget(UiPromptListEntry uiPopup)
     {
         var window = new WidgetContainer(new Rectangle(0, 0, 0, 0));
-// popup_ui_main_window1.OnBeforeRender += 0x10170a90;
+        // popup_ui_main_window1.OnBeforeRender += 0x10170a90;
         window.Name = "popup_ui_main_window";
         window.Visible = false;
-        window.SetMouseMsgHandler(msg => true); // Swallow mouse clicks and such
+        window.PreventsInGameInteraction = true;        
         uiPopup.wnd = window;
 
         uiPopup.background = new WidgetImage();

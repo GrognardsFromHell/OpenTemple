@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
@@ -28,8 +29,6 @@ public partial class WidgetBase : Styleable, IDisposable
     protected bool mAutoSizeWidth = true;
     protected bool mAutoSizeHeight = true;
     protected Margins mMargins;
-    protected Func<MessageMouseArgs, bool>? mMouseMsgHandler;
-    protected Func<MessageWidgetArgs, bool>? mWidgetMsgHandler;
     protected Func<MessageKeyStateChangeArgs, bool>? mKeyStateChangeHandler;
     protected Func<MessageCharArgs, bool>? mCharHandler;
     protected readonly List<WidgetContent> Content = new();
@@ -169,15 +168,20 @@ public partial class WidgetBase : Styleable, IDisposable
     /// <summary>
     /// Hit test the content of this widget instead of just checking against the content rectangle.
     /// </summary>
-    public bool PreciseHitTest { get; set; } = false;
+    public HitTestingMode HitTesting { get; set; }
 
     public virtual bool HitTest(float x, float y)
     {
+        if (HitTesting == HitTestingMode.Ignore)
+        {
+            return false;
+        }
+        
         var contentArea = GetContentArea();
         x += contentArea.X - mMargins.Left;
         y += contentArea.Y - mMargins.Top;
 
-        if (!PreciseHitTest)
+        if (HitTesting == HitTestingMode.ContentArea)
         {
             return contentArea.Contains((int) x, (int) y);
         }
@@ -643,16 +647,6 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public event Action<HotkeyActionMessage>? OnHotkeyAction;
 
-    public void SetMouseMsgHandler(Func<MessageMouseArgs, bool> handler)
-    {
-        mMouseMsgHandler = handler;
-    }
-
-    public void SetWidgetMsgHandler(Func<MessageWidgetArgs, bool> handler)
-    {
-        mWidgetMsgHandler = handler;
-    }
-
     public void SetKeyStateChangeHandler(Func<MessageKeyStateChangeArgs, bool> handler)
     {
         mKeyStateChangeHandler = handler;
@@ -682,11 +676,6 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public virtual bool HandleMouseMessage(MessageMouseArgs msg)
     {
-        if (mMouseMsgHandler != null)
-        {
-            return mMouseMsgHandler(msg);
-        }
-
         return false;
     }
 

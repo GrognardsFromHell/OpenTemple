@@ -49,9 +49,8 @@ public class MainMenuUi : IDisposable
         mViewCinematicsDialog = new ViewCinematicsDialog(this, mmLocalization);
         mSetPiecesDialog = new SetPiecesDialog(this);
 
-        // This eats all mouse messages that reach the full-screen main menu
-        mMainWidget.SetMouseMsgHandler(msg => { return true; });
-        mMainWidget.SetWidgetMsgHandler(msg => { return true; });
+        mMainWidget.PreventsInGameInteraction = true;
+        
         // Close the menu if it's the ingame menu
         mMainWidget.AddHotkey(UiHotkeys.CloseWindow, Hide, () => mCurrentPage is MainMenuPage.InGameNormal or MainMenuPage.InGameIronman);
 

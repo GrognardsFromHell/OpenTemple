@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Feats;
@@ -25,7 +25,7 @@ public class CharSheetFeatsUi : IDisposable
     public CharSheetFeatsUi()
     {
         Container = new WidgetContainer(new Rectangle(256, 76, 398, 266));
-        Container.SetMouseMsgHandler(ForwardScrollWheel);
+        Container.OnMouseWheel += ForwardScrollWheel;
         Container.Name = "char_feats_ui_main_window";
         Container.Visible = false;
 
@@ -38,22 +38,17 @@ public class CharSheetFeatsUi : IDisposable
         {
             var button = new FeatButton(new Rectangle(1, 1 + 13 * i, 280, 13));
             button.Name = "char_feats_ui_feat_button" + i;
-            button.SetMouseMsgHandler(ForwardScrollWheel);
             _featButtons[i] = button;
             Container.Add(button);
         }
     }
 
     [TempleDllLocation(0x101bbf90)]
-    private bool ForwardScrollWheel(MessageMouseArgs msg)
+    private void ForwardScrollWheel(WheelEvent e)
     {
         // Forward the scroll wheel to the scrollbar
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            _scrollbar.HandleMouseMessage(msg);
-        }
-
-        return true;
+        e.StopPropagation();
+        _scrollbar.DispatchMouseWheel(e);
     }
 
     private void UpdateButtons()

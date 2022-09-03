@@ -19,7 +19,7 @@ public class StatsLabel : WidgetButtonBase
 
     public StatsLabel(
         Stat stat,
-        string helpTopic,
+        string? helpTopic,
         Rectangle rect,
         StatsUiTexture downImage,
         StatsUiTexture hoverImage,
@@ -32,16 +32,9 @@ public class StatsLabel : WidgetButtonBase
         var statName = GetStatName(uiParams, stat);
 
         _label = new WidgetText(statName, "char-ui-stat-label");
-        SetWidgetMsgHandler(msg =>
-        {
-            if (msg.widgetEventType == TigMsgWidgetEvent.Exited)
-            {
+        OnMouseLeave += _ => {
                 UiSystems.CharSheet.Help.ClearHelpText();
-                return true;
-            }
-
-            return false;
-        });
+        };
         if (helpTopic != null)
         {
             AddClickListener(() => { GameSystems.Help.ShowTopic(helpTopic); });

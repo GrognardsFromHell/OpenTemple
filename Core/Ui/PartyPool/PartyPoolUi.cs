@@ -103,9 +103,8 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         // TODO: Auto-resize to screen size
         _container = new WidgetContainer(Globals.UiManager.CanvasSize);
         _container.Visible = false;
-        // Eat mouse clicks to prevent "walking around" on the shopmap
-        _container.SetMouseMsgHandler(msg => true);
-
+        _container.PreventsInGameInteraction = true;
+        
         var doc = WidgetDoc.Load("ui/party_pool.json");
         var window = doc.GetRootContainer();
         _container.Add(window);
@@ -196,6 +195,11 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         _scrollBar.SetValueChangeHandler(_ => Update());
 
         var slotsContainer = doc.GetContainer("slots");
+        // Forward scrollwheel to the scrollbar
+        slotsContainer.OnMouseWheel += e => {
+            _scrollBar.DispatchMouseWheel(e);
+        };
+        
         _slots = new PartyPoolSlot[7];
         for (var i = 0; i < _slots.Length; i++)
         {
@@ -209,16 +213,6 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             slot.Y = i * (slot.Height + padding);
             var slotIdx = i;
             slot.AddClickListener(() => SelectAvailable(slot));
-            // Forward scrollwheel to the scrollbar
-            slot.SetMouseMsgHandler(msg =>
-            {
-                if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-                {
-                    return _scrollBar.HandleMouseMessage(msg);
-                }
-
-                return false;
-            });
             _slots[i] = slot;
 
             slotsContainer.Add(slot);

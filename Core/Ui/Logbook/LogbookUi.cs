@@ -75,8 +75,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
         _window.AddHotkey(UiHotkeys.CloseWindow, Hide);
         _window.ZIndex = 100050;
         _window.Name = "logbook_ui_main_window";
-        // Eat window and click messages
-        _window.SetMouseMsgHandler(msg => true);
+        _window.PreventsInGameInteraction = true;
         _window.Visible = false;
 
         var background = new WidgetImage("art/interface/logbook_ui/whole_book.img");

@@ -10,6 +10,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Widgets;
 using static SDL2.SDL;
@@ -93,6 +94,8 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         // Forward mouse events on the window to the savegame list
         _window.SetKeyStateChangeHandler(OnKeyPress);
 
+        _window.OnMouseWheel += ForwardScrollWheelMessage;
+
         for (var i = 0; i < _slots.Length; i++)
         {
             // Size is determined by the border image
@@ -104,7 +107,6 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
                 _selectedSave = slot.SaveGame;
                 UpdateSlots();
             });
-            slot.SetMouseMsgHandler(ForwardScrollWheelMessage);
             _slots[i] = slot;
             _window.Add(slot);
         }
@@ -129,14 +131,10 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         return true;
     }
 
-    private bool ForwardScrollWheelMessage(MessageMouseArgs args)
+    private void ForwardScrollWheelMessage(WheelEvent e)
     {
-        if ((args.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            return _scrollBar.HandleMouseMessage(args);
-        }
-
-        return false;
+        e.StopPropagation();
+        _scrollBar.DispatchMouseWheel(e);
     }
 
     private bool OnKeyPress(MessageKeyStateChangeArgs arg)
