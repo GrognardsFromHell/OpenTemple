@@ -147,7 +147,7 @@ public class CharSheetPortraitUi : IDisposable
             HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelHover],
             DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelDisabled]
         });
-        _miniatureButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Miniature);
+        _miniatureButton.AddClickListener(() => Mode = CharSheetPortraitMode.Miniature);
         _miniatureButton.TooltipText = UiSystems.Tooltip.GetString(5000);
         Container.Add(_miniatureButton);
 
@@ -161,7 +161,7 @@ public class CharSheetPortraitUi : IDisposable
             HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitHover],
             DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitDisabled]
         });
-        _portraitButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Portrait);
+        _portraitButton.AddClickListener(() => Mode = CharSheetPortraitMode.Portrait);
         _portraitButton.TooltipText = UiSystems.Tooltip.GetString(5001);
         Container.Add(_portraitButton);
 
@@ -175,7 +175,7 @@ public class CharSheetPortraitUi : IDisposable
             HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollHover],
             DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollDisabled]
         });
-        _paperdollButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Paperdoll);
+        _paperdollButton.AddClickListener(() => Mode = CharSheetPortraitMode.Paperdoll);
         _paperdollButton.TooltipText = UiSystems.Tooltip.GetString(5002);
         Container.Add(_paperdollButton);
     }

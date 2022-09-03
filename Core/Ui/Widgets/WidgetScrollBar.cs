@@ -19,23 +19,22 @@ public class WidgetScrollBar : WidgetContainer
         var upButton = new WidgetButton();
         upButton.Parent = this;
         upButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-up"));
-        upButton.SetClickHandler(() => { SetValue(GetValue() - 1); });
-        upButton.SetRepeat(true);
+        upButton.AddClickListener(() => { SetValue(GetValue() - 1); });
+        upButton.IsRepeat = true;
 
         var downButton = new WidgetButton();
         downButton.Parent = this;
         downButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-down"));
-        downButton.SetClickHandler(() => { SetValue(GetValue() + 1); });
-        downButton.SetRepeat(true);
+        downButton.AddClickListener(() => { SetValue(GetValue() + 1); });
+        downButton.IsRepeat = true;
 
         var track = new WidgetButton();
         track.Parent = this;
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-track"));
-        track.SetClickHandler((x, y) =>
-        {
+        track.AddClickListener(e => {
             // The y value is in relation to the track, we need to add it's own Y value,
             // and compare against the current position of the handle
-            y += mTrack.Y;
+            var y = e.Y + mTrack.Y;
             if (y < mHandleButton.Y)
             {
                 SetValue(GetValue() - 5);
@@ -45,7 +44,7 @@ public class WidgetScrollBar : WidgetContainer
                 SetValue(GetValue() + 5);
             }
         });
-        track.SetRepeat(true);
+        track.IsRepeat = true;
 
         var handle = new WidgetScrollBarHandle(this);
         handle.Parent = this;
@@ -280,14 +279,14 @@ public class WidgetScrollBar : WidgetContainer
 
                 if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
                 {
-                    Globals.UiManager.ReleaseMouseCapture(this);
+                    ReleaseMouseCapture();
                 }
             }
             else
             {
                 if (msg.flags.HasFlag(MouseEventFlag.LeftClick))
                 {
-                    Globals.UiManager.CaptureMouse(this);
+                    SetMouseCapture();
                     mDragGrabPoint = msg.Y;
                     mDragY = Y;
                 }

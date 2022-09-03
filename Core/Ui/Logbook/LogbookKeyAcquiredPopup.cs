@@ -48,7 +48,7 @@ internal class LogbookKeyAcquiredPopup
         // logbook_ui_key_entry_accept_butn1.OnBeforeRender += 0x10196d70;
         acceptButton.Text = translations.NotificationPopupYes;
         acceptButton.Name = "logbook_ui_key_entry_accept_butn";
-        acceptButton.SetClickHandler(() =>
+        acceptButton.AddClickListener(() =>
         {
             OnChangeNotificationSetting?.Invoke(false);
             Hide();
@@ -60,7 +60,7 @@ internal class LogbookKeyAcquiredPopup
         // logbook_ui_key_entry_decline_butn1.OnBeforeRender += 0x10196d70;
         declineButton.Text = translations.NotificationPopupNo;
         declineButton.Name = "logbook_ui_key_entry_decline_butn";
-        declineButton.SetClickHandler(Hide);
+        declineButton.AddClickListener(Hide);
     }
 
     [TempleDllLocation(0x101954C0)]

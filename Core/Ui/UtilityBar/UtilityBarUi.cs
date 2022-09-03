@@ -86,7 +86,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/selectparty_click.tga"
         }.UseDefaultSounds());
         selectAllButton.TooltipText = _translations[10];
-        selectAllButton.SetClickHandler(OnSelectAllButtonClick);
+        selectAllButton.AddClickListener(OnSelectAllButtonClick);
         _container.Add(selectAllButton);
 
         // Created @ 0x101106f9
@@ -98,7 +98,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/formation_click.tga"
         }.UseDefaultSounds());
         formationButton.TooltipText = _translations[0];
-        formationButton.SetClickHandler(OnFormationButtonClick);
+        formationButton.AddClickListener(OnFormationButtonClick);
         _container.Add(formationButton);
 
         // Created @ 0x10110829
@@ -111,7 +111,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/logbook_click.tga"
         }.UseDefaultSounds());
         _logbookButton.TooltipText = _translations[1];
-        _logbookButton.SetClickHandler(OnLogbookButtonClick);
+        _logbookButton.AddClickListener(OnLogbookButtonClick);
         _container.Add(_logbookButton);
 
         // Created @ 0x10110959
@@ -124,7 +124,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/townmap_click.tga"
         }.UseDefaultSounds());
         _mapButton.TooltipText = _translations[2];
-        _mapButton.SetClickHandler(OnMapButtonClick);
+        _mapButton.AddClickListener(OnMapButtonClick);
         _container.Add(_mapButton);
 
         // Created @ 0x10110a89
@@ -135,7 +135,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             HoverImagePath = "art/interface/utility_bar_ui/camp_hover.tga",
             PressedImagePath = "art/interface/utility_bar_ui/camp_click.tga"
         }.UseDefaultSounds());
-        _restButton.SetClickHandler(OnRestButtonClick);
+        _restButton.AddClickListener(OnRestButtonClick);
         UpdateRestButton();
         _container.Add(_restButton);
 
@@ -148,7 +148,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/help_click.tga"
         }.UseDefaultSounds());
         helpButton.TooltipText = _translations[4];
-        helpButton.SetClickHandler(OnHelpButtonClick);
+        helpButton.AddClickListener(OnHelpButtonClick);
         _container.Add(helpButton);
 
         // Created @ 0x10110bbc
@@ -160,7 +160,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/options_click.tga"
         }.UseDefaultSounds());
         optionsButton.TooltipText = _translations[5];
-        optionsButton.SetClickHandler(OnOptionsButtonClick);
+        optionsButton.AddClickListener(OnOptionsButtonClick);
         _container.Add(optionsButton);
 
         // Created @ 0x10110e15
@@ -207,7 +207,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
 
         _restButton.SetStyle(style);
         _restButton.TooltipText = tooltip;
-        _restButton.SetDisabled(GameSystems.Combat.IsCombatActive());
+        _restButton.Disabled = GameSystems.Combat.IsCombatActive();
     }
 
     /// <summary>
@@ -288,11 +288,11 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
 
         if (!_enableMapButton || GameSystems.Combat.IsCombatActive())
         {
-            _mapButton.SetDisabled(true);
+            _mapButton.Disabled = true;
         }
         else
         {
-            _mapButton.SetDisabled(false);
+            _mapButton.Disabled = false;
         }
 
         _mapButton.PulseColor = GetPulsingColor(ref _mapButtonPulsing, _mapButtonPulsingStart);

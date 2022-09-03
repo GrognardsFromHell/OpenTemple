@@ -38,7 +38,7 @@ public class MiniatureWidget : WidgetButtonBase
 
     protected override void HandleMouseDown(MouseEvent e)
     {
-        if (UiManager?.CaptureMouse(this) == true)
+        if (SetMouseCapture())
         {
             _rotationMode = 1;
         }
@@ -46,7 +46,7 @@ public class MiniatureWidget : WidgetButtonBase
 
     protected override void HandleMouseUp(MouseEvent e)
     {
-        UiManager?.ReleaseMouseCapture(this);
+        ReleaseMouseCapture();
         _rotationMode = 0;
     }
 

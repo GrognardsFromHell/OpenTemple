@@ -138,7 +138,7 @@ public class WidgetTabBar : WidgetContainer
             Add(button);
 
             var index = _tabs.Count - 1;
-            button.SetClickHandler(() => ActiveTabIndex = index);
+            button.AddClickListener(() => ActiveTabIndex = index);
 
             x += button.Width + _spacing;
         }
@@ -236,7 +236,7 @@ public class WidgetTabButton : WidgetButtonBase
 
     private void UpdateSelectedState()
     {
-        _content.Clear();
+        Content.Clear();
         if (Active)
         {
             AddContent(_selectedLeft);

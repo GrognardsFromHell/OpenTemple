@@ -40,8 +40,6 @@ public class WidgetContainer : WidgetBase
         Width = width;
         Height = height;
 
-        Globals.UiManager.AddWindow(this);
-
         // Containers are usually empty and should be click through where there is no content
         PreciseHitTest = true;
     }
@@ -59,11 +57,11 @@ public class WidgetContainer : WidgetBase
         // If the child widget was a top-level window before, remove it
         if (childWidget is WidgetContainer otherContainer)
         {
-            Globals.UiManager.RemoveWindow(otherContainer);
+            UiManager?.RemoveWindow(otherContainer);
         }
 
         mChildren.Add(childWidget);
-        Globals.UiManager.RefreshMouseOverState();
+        UiManager?.RefreshMouseOverState();
     }
 
     public LgcyWindowMouseState MouseState { get; internal set; }
@@ -74,7 +72,7 @@ public class WidgetContainer : WidgetBase
 
         childWidget.Parent = null;
         mChildren.Remove(childWidget);
-        Globals.UiManager.RefreshMouseOverState();
+        UiManager?.RefreshMouseOverState();
     }
 
     public virtual void Clear(bool disposeChildren = false)
@@ -130,7 +128,7 @@ public class WidgetContainer : WidgetBase
     {
         if (_parent == null)
         {
-            Globals.UiManager.BringToFront(this);
+            UiManager?.BringToFront(this);
         }
         else
         {
@@ -245,10 +243,20 @@ public class WidgetContainer : WidgetBase
         }
     }
 
+    public override void AttachToTree(UiManager? manager)
+    {
+        base.AttachToTree(manager);
+
+        foreach (var child in mChildren)
+        {
+            child.AttachToTree(manager);
+        }
+    }
+
     public void SetScrollOffsetY(int scrollY)
     {
         mScrollOffsetY = scrollY;
-        Globals.UiManager.RefreshMouseOverState();
+        UiManager?.RefreshMouseOverState();
     }
 
     [TempleDllLocation(0x101fa150)]
@@ -264,8 +272,11 @@ public class WidgetContainer : WidgetBase
     public void CenterOnScreen()
     {
         Trace.Assert(Parent == null);
-        var screenSize = Globals.UiManager.CanvasSize;
-        X = (screenSize.Width - Width) / 2;
-        Y = (screenSize.Height - Height) / 2;
+        if (UiManager != null)
+        {
+            var screenSize = UiManager.CanvasSize;
+            X = (screenSize.Width - Width) / 2;
+            Y = (screenSize.Height - Height) / 2;
+        }
     }
 };

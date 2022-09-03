@@ -109,7 +109,7 @@ public class CharSheetSpellsUi : IDisposable
             var button = new WidgetTabButton(spellList.SpellsPerDay.Name, WidgetTabStyle.Small);
             button.Y = 4;
             button.X = currentX;
-            button.SetClickHandler(() => ActivateTab(spellList));
+            button.AddClickListener(() => ActivateTab(spellList));
             currentX += button.Width;
             _classTabBar.Add(button);
 

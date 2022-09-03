@@ -37,7 +37,7 @@ public class BuffDebuffButton : WidgetButtonBase
         AddContent(_image);
         Type = type;
         Index = index;
-        SetClickHandler(ShowHelpTopic);
+        AddClickListener(ShowHelpTopic);
 
         _tooltipRenderer.TooltipStyle = "buffdebuff-tooltip";
     }
@@ -54,7 +54,7 @@ public class BuffDebuffButton : WidgetButtonBase
     [TempleDllLocation(0x10131ea0)]
     public override void RenderTooltip(int x, int y)
     {
-        if (ButtonState == LgcyButtonState.Disabled)
+        if (Disabled)
         {
             return;
         }

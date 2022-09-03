@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -43,7 +44,7 @@ public class StatsLabel : WidgetButtonBase
         });
         if (helpTopic != null)
         {
-            SetClickHandler(() => { GameSystems.Help.ShowTopic(helpTopic); });
+            AddClickListener(() => { GameSystems.Help.ShowTopic(helpTopic); });
         }
     }
 
@@ -80,13 +81,13 @@ public class StatsLabel : WidgetButtonBase
     public override void Render()
     {
         WidgetImage renderImage = null;
-        if (ButtonState == LgcyButtonState.Hovered)
-        {
-            renderImage = _hoverImage;
-        }
-        else if (ButtonState == LgcyButtonState.Down)
+        if (ContainsPress)
         {
             renderImage = _downImage;
+        }
+        else if (ContainsMouse)
+        {
+            renderImage = _hoverImage;
         }
 
         var contentArea = GetContentArea();

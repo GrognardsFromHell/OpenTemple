@@ -11,7 +11,7 @@ public class RootModel
     public string Tool { get; }
     public string Version { get; }
 
-    public List<EventDefinition> Events = new()
+    public readonly List<EventDefinition> Events = new()
     {
         new EventDefinition("MouseDown", "OpenTemple.Core.Ui.Events.MouseEvent", true, true, true),
         new EventDefinition("MouseUp", "OpenTemple.Core.Ui.Events.MouseEvent", true, true, true),
@@ -20,9 +20,12 @@ public class RootModel
         new EventDefinition("MouseMove", "OpenTemple.Core.Ui.Events.MouseEvent", true, true, true),
         new EventDefinition("MouseWheel", "OpenTemple.Core.Ui.Events.WheelEvent", true, true, true),
         new EventDefinition("Click", "OpenTemple.Core.Ui.Events.MouseEvent", true, true, true),
+        new EventDefinition("OtherClick", "OpenTemple.Core.Ui.Events.MouseEvent", true, true, true),
         new EventDefinition("TextInput", "OpenTemple.Core.Ui.Events.TextInputEvent", true, true, true),
         new EventDefinition("KeyDown", "OpenTemple.Core.Ui.Events.KeyboardEvent", true, true, true),
         new EventDefinition("KeyUp", "OpenTemple.Core.Ui.Events.KeyboardEvent", true, true, true),
+        new EventDefinition("GotMouseCapture", "OpenTemple.Core.Ui.Events.MouseEvent", false, true, false),
+        new EventDefinition("LostMouseCapture", "OpenTemple.Core.Ui.Events.MouseEvent", false, true, false),
     };
 
     public ImmutableSortedSet<string> AdditionalNamespaces;

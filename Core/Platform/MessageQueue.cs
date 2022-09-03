@@ -8,13 +8,14 @@ using SDL2;
 
 namespace OpenTemple.Core.Platform;
 
-public enum MouseButton : uint
+public enum MouseButton : int
 {
     LEFT = 0,
     RIGHT = 1,
     MIDDLE = 2,
     EXTRA1 = 3,
-    EXTRA2 = 4
+    EXTRA2 = 4,
+    Unchanged = 0
 }
 
 [Flags]

@@ -5,7 +5,7 @@ using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-08-29T22:08:34.9484465Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-09-02T23:16:32.2621007Z")]
 public partial class WidgetBase
 {
     public delegate void EventHandler<in T>(T e) where T : UiEvent;
@@ -23,6 +23,11 @@ public partial class WidgetBase
     public void AddMouseDownListener(EventHandler<MouseEvent> handler)
     {
         _listenersMouseDown = _listenersMouseDown.Add(new (handler));
+    }
+    
+    public void AddMouseDownListener(Action handler)
+    {
+        _listenersMouseDown = _listenersMouseDown.Add(new (e => handler()));
     }
     
     public void RemoveMouseDownListener(EventHandler<MouseEvent> handler)
@@ -101,6 +106,11 @@ public partial class WidgetBase
         _listenersMouseUp = _listenersMouseUp.Add(new (handler));
     }
     
+    public void AddMouseUpListener(Action handler)
+    {
+        _listenersMouseUp = _listenersMouseUp.Add(new (e => handler()));
+    }
+    
     public void RemoveMouseUpListener(EventHandler<MouseEvent> handler)
     {
         _listenersMouseUp = _listenersMouseUp.Remove(new (handler));
@@ -177,6 +187,11 @@ public partial class WidgetBase
         _listenersMouseEnter = _listenersMouseEnter.Add(new (handler));
     }
     
+    public void AddMouseEnterListener(Action handler)
+    {
+        _listenersMouseEnter = _listenersMouseEnter.Add(new (e => handler()));
+    }
+    
     public void RemoveMouseEnterListener(EventHandler<MouseEvent> handler)
     {
         _listenersMouseEnter = _listenersMouseEnter.Remove(new (handler));
@@ -239,6 +254,11 @@ public partial class WidgetBase
         _listenersMouseLeave = _listenersMouseLeave.Add(new (handler));
     }
     
+    public void AddMouseLeaveListener(Action handler)
+    {
+        _listenersMouseLeave = _listenersMouseLeave.Add(new (e => handler()));
+    }
+    
     public void RemoveMouseLeaveListener(EventHandler<MouseEvent> handler)
     {
         _listenersMouseLeave = _listenersMouseLeave.Remove(new (handler));
@@ -299,6 +319,11 @@ public partial class WidgetBase
     public void AddMouseMoveListener(EventHandler<MouseEvent> handler)
     {
         _listenersMouseMove = _listenersMouseMove.Add(new (handler));
+    }
+    
+    public void AddMouseMoveListener(Action handler)
+    {
+        _listenersMouseMove = _listenersMouseMove.Add(new (e => handler()));
     }
     
     public void RemoveMouseMoveListener(EventHandler<MouseEvent> handler)
@@ -377,6 +402,11 @@ public partial class WidgetBase
         _listenersMouseWheel = _listenersMouseWheel.Add(new (handler));
     }
     
+    public void AddMouseWheelListener(Action handler)
+    {
+        _listenersMouseWheel = _listenersMouseWheel.Add(new (e => handler()));
+    }
+    
     public void RemoveMouseWheelListener(EventHandler<WheelEvent> handler)
     {
         _listenersMouseWheel = _listenersMouseWheel.Remove(new (handler));
@@ -453,6 +483,11 @@ public partial class WidgetBase
         _listenersClick = _listenersClick.Add(new (handler));
     }
     
+    public void AddClickListener(Action handler)
+    {
+        _listenersClick = _listenersClick.Add(new (e => handler()));
+    }
+    
     public void RemoveClickListener(EventHandler<MouseEvent> handler)
     {
         _listenersClick = _listenersClick.Remove(new (handler));
@@ -514,6 +549,87 @@ public partial class WidgetBase
     }
     #endregion
     
+    #region OtherClick
+
+    private ImmutableList<RegisteredListener<MouseEvent>> _listenersOtherClick = ImmutableList<RegisteredListener<MouseEvent>>.Empty;
+    
+    public event EventHandler<MouseEvent>? OnOtherClick 
+    {
+        add => AddOtherClickListener(value);
+        remove => RemoveOtherClickListener(value);
+    }
+    
+    public void AddOtherClickListener(EventHandler<MouseEvent> handler)
+    {
+        _listenersOtherClick = _listenersOtherClick.Add(new (handler));
+    }
+    
+    public void AddOtherClickListener(Action handler)
+    {
+        _listenersOtherClick = _listenersOtherClick.Add(new (e => handler()));
+    }
+    
+    public void RemoveOtherClickListener(EventHandler<MouseEvent> handler)
+    {
+        _listenersOtherClick = _listenersOtherClick.Remove(new (handler));
+    }
+    
+    /// <summary>
+    /// Allows a class to handle events of this type without registering an event listener.
+    /// These handlers always run after additional event handlers registered using AddOtherClickListener.
+    /// </summary>
+    protected virtual void HandleOtherClick(MouseEvent e)
+    {
+    }
+
+    /// <summary>
+    /// Allows widgets to implement the default action associated with an event type.
+    /// </summary>
+    protected virtual void DefaultOtherClickAction(MouseEvent e)
+    {
+    }
+    
+    /// <summary>
+    /// Allows a class to implicitly handle the event, without having to overwrite it.
+    /// These handlers always run after additional event handlers registered using OnOtherClick
+    /// </summary>
+    internal void DispatchOtherClick(MouseEvent e)
+    {
+
+        // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
+        for (var target = this; target != null && !e.IsPropagationStopped; target = target.Parent)
+        {
+            // Dispatch to additional registered handlers first
+            var listeners = target._listenersOtherClick;
+            foreach (var listener in listeners)
+            {
+                // We need to remove once-listeners now, since they may re-add themselves as a once-listener and we would immediately
+                // remove it again.
+                if (listener.Once)
+                {
+                    target._listenersOtherClick = target._listenersOtherClick.Remove(listener); 
+                }
+                listener.Listener(e);
+                if (e.IsImmediatePropagationStopped)
+                {
+                    break;
+                }
+            }
+            
+            // Call the implicitly registered event listener if propagation wasn't stopped
+            if (!e.IsImmediatePropagationStopped)
+            {
+                target.HandleOtherClick(e);
+            }
+        }
+        
+        if (!e.IsDefaultPrevented)
+        {
+            DefaultOtherClickAction(e);
+        }
+    }
+    #endregion
+    
     #region TextInput
 
     private ImmutableList<RegisteredListener<TextInputEvent>> _listenersTextInput = ImmutableList<RegisteredListener<TextInputEvent>>.Empty;
@@ -527,6 +643,11 @@ public partial class WidgetBase
     public void AddTextInputListener(EventHandler<TextInputEvent> handler)
     {
         _listenersTextInput = _listenersTextInput.Add(new (handler));
+    }
+    
+    public void AddTextInputListener(Action handler)
+    {
+        _listenersTextInput = _listenersTextInput.Add(new (e => handler()));
     }
     
     public void RemoveTextInputListener(EventHandler<TextInputEvent> handler)
@@ -605,6 +726,11 @@ public partial class WidgetBase
         _listenersKeyDown = _listenersKeyDown.Add(new (handler));
     }
     
+    public void AddKeyDownListener(Action handler)
+    {
+        _listenersKeyDown = _listenersKeyDown.Add(new (e => handler()));
+    }
+    
     public void RemoveKeyDownListener(EventHandler<KeyboardEvent> handler)
     {
         _listenersKeyDown = _listenersKeyDown.Remove(new (handler));
@@ -681,6 +807,11 @@ public partial class WidgetBase
         _listenersKeyUp = _listenersKeyUp.Add(new (handler));
     }
     
+    public void AddKeyUpListener(Action handler)
+    {
+        _listenersKeyUp = _listenersKeyUp.Add(new (e => handler()));
+    }
+    
     public void RemoveKeyUpListener(EventHandler<KeyboardEvent> handler)
     {
         _listenersKeyUp = _listenersKeyUp.Remove(new (handler));
@@ -742,6 +873,166 @@ public partial class WidgetBase
     }
     #endregion
     
+    #region GotMouseCapture
+
+    private ImmutableList<RegisteredListener<MouseEvent>> _listenersGotMouseCapture = ImmutableList<RegisteredListener<MouseEvent>>.Empty;
+    
+    public event EventHandler<MouseEvent>? OnGotMouseCapture 
+    {
+        add => AddGotMouseCaptureListener(value);
+        remove => RemoveGotMouseCaptureListener(value);
+    }
+    
+    public void AddGotMouseCaptureListener(EventHandler<MouseEvent> handler)
+    {
+        _listenersGotMouseCapture = _listenersGotMouseCapture.Add(new (handler));
+    }
+    
+    public void AddGotMouseCaptureListener(Action handler)
+    {
+        _listenersGotMouseCapture = _listenersGotMouseCapture.Add(new (e => handler()));
+    }
+    
+    public void RemoveGotMouseCaptureListener(EventHandler<MouseEvent> handler)
+    {
+        _listenersGotMouseCapture = _listenersGotMouseCapture.Remove(new (handler));
+    }
+    
+    /// <summary>
+    /// Allows a class to handle events of this type without registering an event listener.
+    /// These handlers always run after additional event handlers registered using AddGotMouseCaptureListener.
+    /// </summary>
+    protected virtual void HandleGotMouseCapture(MouseEvent e)
+    {
+    }
+
+    
+    /// <summary>
+    /// Allows a class to implicitly handle the event, without having to overwrite it.
+    /// These handlers always run after additional event handlers registered using OnGotMouseCapture
+    /// </summary>
+    internal void DispatchGotMouseCapture(MouseEvent e)
+    {
+
+        // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
+        for (var target = this; target != null && !e.IsPropagationStopped; target = target.Parent)
+        {
+            // Dispatch to additional registered handlers first
+            var listeners = target._listenersGotMouseCapture;
+            foreach (var listener in listeners)
+            {
+                // We need to remove once-listeners now, since they may re-add themselves as a once-listener and we would immediately
+                // remove it again.
+                if (listener.Once)
+                {
+                    target._listenersGotMouseCapture = target._listenersGotMouseCapture.Remove(listener); 
+                }
+                listener.Listener(e);
+                if (e.IsImmediatePropagationStopped)
+                {
+                    break;
+                }
+            }
+            
+            // Call the implicitly registered event listener if propagation wasn't stopped
+            if (!e.IsImmediatePropagationStopped)
+            {
+                target.HandleGotMouseCapture(e);
+            }
+        }
+        
+    }
+    #endregion
+    
+    #region LostMouseCapture
+
+    private ImmutableList<RegisteredListener<MouseEvent>> _listenersLostMouseCapture = ImmutableList<RegisteredListener<MouseEvent>>.Empty;
+    
+    public event EventHandler<MouseEvent>? OnLostMouseCapture 
+    {
+        add => AddLostMouseCaptureListener(value);
+        remove => RemoveLostMouseCaptureListener(value);
+    }
+    
+    public void AddLostMouseCaptureListener(EventHandler<MouseEvent> handler)
+    {
+        _listenersLostMouseCapture = _listenersLostMouseCapture.Add(new (handler));
+    }
+    
+    public void AddLostMouseCaptureListener(Action handler)
+    {
+        _listenersLostMouseCapture = _listenersLostMouseCapture.Add(new (e => handler()));
+    }
+    
+    public void RemoveLostMouseCaptureListener(EventHandler<MouseEvent> handler)
+    {
+        _listenersLostMouseCapture = _listenersLostMouseCapture.Remove(new (handler));
+    }
+    
+    /// <summary>
+    /// Allows a class to handle events of this type without registering an event listener.
+    /// These handlers always run after additional event handlers registered using AddLostMouseCaptureListener.
+    /// </summary>
+    protected virtual void HandleLostMouseCapture(MouseEvent e)
+    {
+    }
+
+    
+    /// <summary>
+    /// Allows a class to implicitly handle the event, without having to overwrite it.
+    /// These handlers always run after additional event handlers registered using OnLostMouseCapture
+    /// </summary>
+    internal void DispatchLostMouseCapture(MouseEvent e)
+    {
+
+        // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
+        for (var target = this; target != null && !e.IsPropagationStopped; target = target.Parent)
+        {
+            // Dispatch to additional registered handlers first
+            var listeners = target._listenersLostMouseCapture;
+            foreach (var listener in listeners)
+            {
+                // We need to remove once-listeners now, since they may re-add themselves as a once-listener and we would immediately
+                // remove it again.
+                if (listener.Once)
+                {
+                    target._listenersLostMouseCapture = target._listenersLostMouseCapture.Remove(listener); 
+                }
+                listener.Listener(e);
+                if (e.IsImmediatePropagationStopped)
+                {
+                    break;
+                }
+            }
+            
+            // Call the implicitly registered event listener if propagation wasn't stopped
+            if (!e.IsImmediatePropagationStopped)
+            {
+                target.HandleLostMouseCapture(e);
+            }
+        }
+        
+    }
+    #endregion
+    
     
     private readonly record struct RegisteredListener<T>(EventHandler<T> Listener, bool Once = false) where T : UiEvent;
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-09-02T23:16:32.2621007Z")]
+public enum UiEventType
+{
+    MouseDown,
+    MouseUp,
+    MouseEnter,
+    MouseLeave,
+    MouseMove,
+    MouseWheel,
+    Click,
+    OtherClick,
+    TextInput,
+    KeyDown,
+    KeyUp,
+    GotMouseCapture,
+    LostMouseCapture,
 }

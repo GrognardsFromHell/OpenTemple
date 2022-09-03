@@ -74,7 +74,7 @@ public class LogbookKeysUi : IDisposable
         for (var i = 0; i < 10; i++)
         {
             var row = new LogbookKeyButton(_translations, new Rectangle(2, 3 + 31 * i, 267, 30));
-            row.SetClickHandler(() =>
+            Action handler = () =>
             {
                 foreach (var otherRow in _rows)
                 {
@@ -91,7 +91,8 @@ public class LogbookKeysUi : IDisposable
                 {
                     _details.Key = null;
                 }
-            });
+            };
+            row.AddClickListener(handler);
             row.Name = "logbook_ui_keys_acquired_keys_butn" + i;
             _rows[i] = row;
             listContainer.Add(row);

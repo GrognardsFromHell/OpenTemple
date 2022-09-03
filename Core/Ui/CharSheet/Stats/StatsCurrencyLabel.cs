@@ -50,7 +50,7 @@ public class StatsCurrencyLabel : WidgetButtonBase
 
         _label = new WidgetText(_currentText, "char-ui-stat-money");
         AddContent(_label);
-        SetClickHandler(OnClick);
+        AddClickListener(OnClick);
     }
 
     [TempleDllLocation(0x101c5dd0)]
@@ -108,7 +108,7 @@ public class StatsCurrencyLabel : WidgetButtonBase
 
     public override void RenderTooltip(int x, int y)
     {
-        if (ButtonState == LgcyButtonState.Down)
+        if (ContainsPress)
         {
             return;
         }

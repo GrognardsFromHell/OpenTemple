@@ -66,7 +66,7 @@ internal class HairSystem : IChargenSystem
             _colorButtons[i] = button;
             button.HairColor = HairColors[i];
             var color = (HairColor) i;
-            button.SetClickHandler(() =>
+            button.AddClickListener(() =>
             {
                 _pkt.hairColor = color;
                 UpdateButtons();
@@ -79,7 +79,7 @@ internal class HairSystem : IChargenSystem
             var style = HairStyles[i];
             var button = (HairColorButton) doc.GetWidget("style" + i);
             _styleButtons[i] = button;
-            button.SetClickHandler(() =>
+            button.AddClickListener(() =>
             {
                 _pkt.hairStyle = style;
                 UpdateButtons();

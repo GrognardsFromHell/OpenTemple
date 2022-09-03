@@ -66,7 +66,7 @@ public class PartyUiPortrait : IDisposable
             HoverImagePath = uiParams.Textures[PartyUiTexture.DismissBtnHover],
             PressedImagePath = uiParams.Textures[PartyUiTexture.DismissBtnPressed],
         });
-        DismissButton.SetClickHandler(OnDismissClick);
+        DismissButton.AddClickListener(OnDismissClick);
         container.Add(DismissButton);
 
         // Level Up icon
@@ -78,7 +78,7 @@ public class PartyUiPortrait : IDisposable
             HoverImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnHovered],
             PressedImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnPressed],
         });
-        LevelUpButton.SetClickHandler(OnLevelUpClick);
+        LevelUpButton.AddClickListener(OnLevelUpClick);
         container.Add(LevelUpButton);
 
         for (var i = 0; i < 8; i++)
@@ -176,11 +176,11 @@ public class PartyUiPortrait : IDisposable
             LevelUpButton.Visible = true;
             if (GameSystems.Combat.IsCombatActive() || disableLevelUp)
             {
-                LevelUpButton.SetDisabled(true);
+                LevelUpButton.Disabled = true;
             }
             else
             {
-                LevelUpButton.SetDisabled(false);
+                LevelUpButton.Disabled = false;
             }
         }
         else

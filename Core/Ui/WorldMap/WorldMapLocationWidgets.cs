@@ -53,13 +53,13 @@ internal class WorldMapLocationWidgets
         {
             TooltipText = location.Name
         };
-        Ring.SetClickHandler(() => OnClick?.Invoke(Location));
+        Ring.AddClickListener(() => OnClick?.Invoke(Location));
         parent.Add(Ring);
 
         ListButton = new WidgetButton();
         ListButton.SetStyle("mapLocationListButton"); // Defined in worldmap_ui.json
         ListButton.Text = location.Name;
-        ListButton.SetClickHandler(() => OnClick?.Invoke(Location));
+        ListButton.AddClickListener(() => OnClick?.Invoke(Location));
         ListButton.OnMouseEnter += _ => Ring.ForceVisible = true;
         ListButton.OnMouseLeave += _ => Ring.ForceVisible = false;
 

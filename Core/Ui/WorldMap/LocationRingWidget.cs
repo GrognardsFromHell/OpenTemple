@@ -20,7 +20,7 @@ public class LocationRingWidget : WidgetButtonBase
 
     private float _animationPhase;
 
-    private LgcyButtonState _lastButtonState;
+    private bool _wasVisible;
 
     public bool ForceVisible { get; set; }
 
@@ -39,12 +39,12 @@ public class LocationRingWidget : WidgetButtonBase
     [TempleDllLocation(0x1015a710)]
     public override void Render()
     {
-        var buttonState = ForceVisible ? LgcyButtonState.Hovered : ButtonState;
+        var shouldBeVisible = ForceVisible || ContainsMouse;
 
-        if (buttonState != _lastButtonState)
+        if (shouldBeVisible != _wasVisible)
         {
-            _lastButtonState = buttonState;
-            if (buttonState == LgcyButtonState.Hovered)
+            _wasVisible = shouldBeVisible;
+            if (ContainsMouse)
             {
                 if (float.IsNaN(_animationPhase))
                 {
@@ -59,7 +59,7 @@ public class LocationRingWidget : WidgetButtonBase
                     _trend = 1;
                 }
             }
-            else if (buttonState == LgcyButtonState.Normal)
+            else if (!Pressed)
             {
                 _time += TimeSpan.FromMilliseconds((int) (_animationPhase * -333.3f));
                 _trend = -1;
@@ -106,7 +106,7 @@ public class LocationRingWidget : WidgetButtonBase
 
     public void Reset()
     {
-        _lastButtonState = LgcyButtonState.Normal;
+        _wasVisible = false;
         _trend = 1;
         _time = default;
         _animationPhase = float.NaN;

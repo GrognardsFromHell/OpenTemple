@@ -57,14 +57,14 @@ public class PartyAlignmentUi : IDisposable
             var alignmentName = GameSystems.Stat.GetAlignmentName(alignment).ToUpper();
             button.Text = alignmentName;
 
-            button.SetClickHandler(() => SelectAlignment(alignment));
+            button.AddClickListener(() => SelectAlignment(alignment));
         }
 
         // OK Button:
         // MESSAGE: 0x1011bf70
         // RENDER: 0x1011beb0
         _okButton = doc.GetButton("ok");
-        _okButton.SetClickHandler(() =>
+        _okButton.AddClickListener(() =>
         {
             var alignment = _alignment;
             if (alignment.HasValue)
@@ -78,7 +78,7 @@ public class PartyAlignmentUi : IDisposable
         // MESSAGE: 0x1011ed50
         // RENDER: 0x1011bfa0
         var cancelButton = doc.GetButton("cancel");
-        cancelButton.SetClickHandler(Cancel);
+        cancelButton.AddClickListener(Cancel);
 
         _selectionRect = doc.GetImageContent("selected");
     }
@@ -101,12 +101,12 @@ public class PartyAlignmentUi : IDisposable
         if (!_alignment.HasValue)
         {
             _selectionRect.Visible = false;
-            _okButton.SetDisabled(true);
+            _okButton.Disabled = true;
         }
         else
         {
             _selectionRect.Visible = true;
-            _okButton.SetDisabled(false);
+            _okButton.Disabled = false;
 
             // Center the rectangle on the button that is the selected alignment
             var button = _alignmentButtons[_alignment.Value];

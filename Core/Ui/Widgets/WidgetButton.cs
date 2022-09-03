@@ -9,13 +9,13 @@ public class WidgetButton : WidgetButtonBase
 {
     private readonly WidgetText _label;
 
-    private WidgetImage _activatedImage;
-    private WidgetImage _disabledImage;
-    private WidgetImage _frameImage;
-    private WidgetImage _hoverImage;
+    private WidgetImage? _activatedImage;
+    private WidgetImage? _disabledImage;
+    private WidgetImage? _frameImage;
+    private WidgetImage? _hoverImage;
 
-    protected WidgetImage _normalImage;
-    private WidgetImage _pressedImage;
+    protected WidgetImage? _normalImage;
+    private WidgetImage? _pressedImage;
 
     private WidgetButtonStyle _style;
 
@@ -81,7 +81,7 @@ public class WidgetButton : WidgetButtonBase
 
         string? labelStyle = null;
 
-        if (mDisabled)
+        if (Disabled)
         {
             if (_style.DisabledTextStyleId != null)
             {
@@ -94,7 +94,7 @@ public class WidgetButton : WidgetButtonBase
         }
         else
         {
-            if (ButtonState == LgcyButtonState.Down)
+            if (ContainsPress)
             {
                 if (_style.PressedTextStyleId != null)
                 {
@@ -111,8 +111,7 @@ public class WidgetButton : WidgetButtonBase
             }
             else if (IsActive())
             {
-                if (ButtonState == LgcyButtonState.Hovered
-                    || ButtonState == LgcyButtonState.Released)
+                if (ContainsMouse || Pressed)
                 {
                     if (_style.HoverTextStyleId != null)
                     {
@@ -128,8 +127,7 @@ public class WidgetButton : WidgetButtonBase
                     labelStyle = _style.TextStyleId;
                 }
             }
-            else if (ButtonState == LgcyButtonState.Hovered
-                     || ButtonState == LgcyButtonState.Released)
+            else if (ContainsMouse || Pressed)
             {
                 if (_style.HoverTextStyleId != null)
                 {
@@ -167,25 +165,18 @@ public class WidgetButton : WidgetButtonBase
         _label.Render();
     }
 
-    protected virtual WidgetImage GetCurrentImage()
+    protected virtual WidgetImage? GetCurrentImage()
     {
         // Always fall back to the default
         var image = _normalImage;
 
-        if (mDisabled)
+        if (Disabled)
         {
-            if (_disabledImage != null)
-            {
-                image = _disabledImage;
-            }
-            else
-            {
-                image = _normalImage;
-            }
+            image = _disabledImage ?? _normalImage;
         }
         else
         {
-            if (ButtonState == LgcyButtonState.Down)
+            if (ContainsPress)
             {
                 if (_pressedImage != null)
                 {
@@ -216,17 +207,9 @@ public class WidgetButton : WidgetButtonBase
                     image = _hoverImage;
                 }
             }
-            else if (ButtonState == LgcyButtonState.Hovered
-                     || ButtonState == LgcyButtonState.Released)
+            else if (ContainsMouse || Pressed)
             {
-                if (_hoverImage != null)
-                {
-                    image = _hoverImage;
-                }
-                else
-                {
-                    image = _normalImage;
-                }
+                image = _hoverImage ?? _normalImage;
             }
             else
             {

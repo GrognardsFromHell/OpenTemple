@@ -1,6 +1,6 @@
+
 using System.Drawing;
 using System.Text;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Ui.Events;
@@ -33,7 +33,7 @@ public class FeatButton : WidgetButtonBase
     {
         _label = new WidgetText();
         AddContent(_label);
-        SetClickHandler(ShowFeatHelp);
+        AddClickListener(ShowFeatHelp);
         OnMouseEnter += ShowShortFeatDescription;
         OnMouseLeave += HideShortFeatDescription;
 
@@ -69,7 +69,7 @@ public class FeatButton : WidgetButtonBase
 
     public override void Render()
     {
-        var hover = ButtonState == LgcyButtonState.Hovered || ButtonState == LgcyButtonState.Down;
+        var hover = ContainsMouse;
         ToggleStyle("char-ui-feat-button-hover", hover);
 
         base.Render();

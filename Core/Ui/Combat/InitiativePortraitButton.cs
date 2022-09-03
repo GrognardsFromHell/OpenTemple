@@ -68,7 +68,7 @@ public class InitiativePortraitButton : WidgetButtonBase
     [TempleDllLocation(0x10141a50)]
     public override void RenderTooltip(int x, int y)
     {
-        if (ButtonState == LgcyButtonState.Disabled)
+        if (Disabled)
         {
             return;
         }
@@ -96,13 +96,13 @@ public class InitiativePortraitButton : WidgetButtonBase
         // TODO: This should be on mouseover, not on render
         if (!GameSystems.Critter.IsConcealed(_combatant))
         {
-            if (ButtonState == LgcyButtonState.Hovered)
-            {
-                UiSystems.InGameSelect.Focus = _combatant;
-            }
-            else if (ButtonState == LgcyButtonState.Down)
+            if (ContainsPress)
             {
                 UiSystems.InGameSelect.AddToFocusGroup(_combatant);
+            }
+            else if (ContainsMouse)
+            {
+                UiSystems.InGameSelect.Focus = _combatant;
             }
         }
     }

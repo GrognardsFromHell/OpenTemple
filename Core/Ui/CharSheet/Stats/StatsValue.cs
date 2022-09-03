@@ -68,13 +68,13 @@ public class StatsValue : WidgetButtonBase
     public override void Render()
     {
         WidgetImage renderImage = null;
-        if (ButtonState == LgcyButtonState.Hovered)
-        {
-            renderImage = _hoverImage;
-        }
-        else if (ButtonState == LgcyButtonState.Down)
+        if (ContainsPress)
         {
             renderImage = _downImage;
+        }
+        else if (ContainsMouse)
+        {
+            renderImage = _hoverImage;
         }
 
         var contentArea = GetContentArea();

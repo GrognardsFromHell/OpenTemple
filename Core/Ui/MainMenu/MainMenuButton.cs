@@ -88,13 +88,15 @@ public class MainMenuButton : WidgetButtonBase
     public override void Render()
     {
         var extents = GetContentArea();
-        var style = ButtonState switch
+        var style = _normalStyle;
+        if (ContainsPress)
         {
-            LgcyButtonState.Down => _pressedStyle,
-            LgcyButtonState.Hovered => _hoverStyle,
-            LgcyButtonState.Released => _hoverStyle,
-            _ => _normalStyle
-        };
+            style = _pressedStyle;
+        }
+        else if (Pressed || ContainsMouse)
+        {
+            style = _hoverStyle;
+        }
 
         Tig.Fonts.PushFont(PredefinedFont.SCURLOCK_48);
         Tig.Fonts.RenderText(

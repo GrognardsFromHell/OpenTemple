@@ -163,7 +163,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             var button = new CharInventoryButton(_uiParams, i);
             if (i == 0)
             {
-                button.SetClickHandler(() => SelectInventoryTab(0));
+                button.AddClickListener(() => SelectInventoryTab(0));
                 // TODO: Click handlers for the other bags were never implemented apparently
             }
 
@@ -171,15 +171,15 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         }
 
         var skillsButton = new CharUiTopButton(_uiParams, 5);
-        skillsButton.SetClickHandler(SelectSkillsTab);
+        skillsButton.AddClickListener(SelectSkillsTab);
         _mainWidget.Add(skillsButton);
 
         var featsButton = new CharUiTopButton(_uiParams, 6);
-        featsButton.SetClickHandler(SelectFeatsTab);
+        featsButton.AddClickListener(SelectFeatsTab);
         _mainWidget.Add(featsButton);
 
         var spellsButton = new CharUiTopButton(_uiParams, 7);
-        spellsButton.SetClickHandler(SelectSpellsTab);
+        spellsButton.AddClickListener(SelectSpellsTab);
         _mainWidget.Add(spellsButton);
 
         Skills = new CharSheetSkillsUi();
@@ -377,7 +377,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             NormalImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverOff],
             PressedImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverPressed]
         });
-        exitButton.SetClickHandler(ExitClicked);
+        exitButton.AddClickListener(ExitClicked);
         _mainWidget.Add(exitButton);
     }
 

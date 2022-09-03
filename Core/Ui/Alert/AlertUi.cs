@@ -34,7 +34,7 @@ public class AlertUi
 
         _okButton = doc.GetButton("alert_ok_button");
         _okButton.Name = "alert_ok_button";
-        _okButton.SetClickHandler(OkButtonClicked);
+        _okButton.AddClickListener(OkButtonClicked);
         _mainWindow.Add(_okButton);
 
         ScrollBoxSettings settings = new ScrollBoxSettings();

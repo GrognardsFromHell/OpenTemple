@@ -61,7 +61,7 @@ public class UtilityBarHistoryUi
         uiHistoryMinimizeBtn = new WidgetButton(new Rectangle(_container.Width - 36, 0, 24, 20));
         uiHistoryMinimizeBtn.SetStyle(ToggleRollButtonStyle);
         uiHistoryMinimizeBtn.TooltipText = UiSystems.Tooltip.GetString(6029);
-        uiHistoryMinimizeBtn.SetClickHandler(() =>
+        uiHistoryMinimizeBtn.AddClickListener(() =>
         {
             // Previously @ 0x10121C20
             if (UiSystems.HelpManager.IsSelectingHelpTarget)
@@ -78,7 +78,7 @@ public class UtilityBarHistoryUi
         uiHistoryMaximizeBtn = new WidgetButton(new Rectangle(_container.Width - 36, 272, 24, 20));
         uiHistoryMaximizeBtn.SetStyle(ToggleRollButtonStyle);
         uiHistoryMaximizeBtn.TooltipText = UiSystems.Tooltip.GetString(6029);
-        uiHistoryMaximizeBtn.SetClickHandler(() =>
+        uiHistoryMaximizeBtn.AddClickListener(() =>
         {
             // Previously @ 0x10121bd0
             if (UiSystems.HelpManager.IsSelectingHelpTarget)
@@ -94,13 +94,13 @@ public class UtilityBarHistoryUi
 
         uiHistoryMaximizeDialogBtn = new WidgetButton(new Rectangle(_container.Width - 62, 272, 24, 20));
         uiHistoryMaximizeDialogBtn.SetStyle(ToggleDialogButtonStyle);
-        uiHistoryMaximizeDialogBtn.SetClickHandler(OnDialogButtonClicked);
+        uiHistoryMaximizeDialogBtn.AddClickListener(OnDialogButtonClicked);
         uiHistoryMaximizeDialogBtn.TooltipText = UiSystems.Tooltip.GetString(6028);
         _container.Add(uiHistoryMaximizeDialogBtn);
 
         uiHistoryMinimizeDialogBtn = new WidgetButton(new Rectangle(_container.Width - 62, 0, 24, 20));
         uiHistoryMinimizeDialogBtn.SetStyle(ToggleDialogButtonStyle);
-        uiHistoryMinimizeDialogBtn.SetClickHandler(OnDialogButtonClicked);
+        uiHistoryMinimizeDialogBtn.AddClickListener(OnDialogButtonClicked);
         uiHistoryMinimizeDialogBtn.TooltipText = UiSystems.Tooltip.GetString(6028);
         _container.Add(uiHistoryMinimizeDialogBtn);
 

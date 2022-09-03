@@ -114,16 +114,16 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         // ADD button
         // Render: 0x10163800
         // Message: 0x10166020
-        _addRemoveButton.SetClickHandler(AddOrRemovePlayer);
+        _addRemoveButton.AddClickListener(AddOrRemovePlayer);
 
         // Created @ 0x1016610b
         // var @ [TempleDllLocation(0x10bf2398)]
         var createButton = doc.GetButton("createButton");
-        createButton.SetClickHandler(StartCharCreation);
+        createButton.AddClickListener(StartCharCreation);
 
         // Created @ 0x101649ae
         _viewButton = doc.GetButton("viewButton");
-        _viewButton.SetClickHandler(ViewSelected);
+        _viewButton.AddClickListener(ViewSelected);
         // _viewButton.OnBeforeRender += 0x10163aa0;
 
         // Created @ 0x101667fe
@@ -140,11 +140,11 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         var exitButton = doc.GetButton("exitButton");
         // exitButton.OnHandleMessage += 0x10166040;
         // exitButton.OnBeforeRender += 0x10163910;
-        exitButton.SetClickHandler(Cancel);
+        exitButton.AddClickListener(Cancel);
 
         _hidePreGenButton = doc.GetButton("hidePregen");
         // Hide Pregenerated chars, RENDER: 0x10164320, Message: 0x10164460
-        _hidePreGenButton.SetClickHandler(() =>
+        _hidePreGenButton.AddClickListener(() =>
         {
             Globals.Config.PartyPoolHidePreGeneratedChars = !Globals.Config.PartyPoolHidePreGeneratedChars;
             Update();
@@ -152,7 +152,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
         _hideIncompatibleButton = doc.GetButton("hideIncompatible");
         // Hide Pregenerated chars, RENDER: 0x101644a0, Message: 0x101645e0
-        _hideIncompatibleButton.SetClickHandler(() =>
+        _hideIncompatibleButton.AddClickListener(() =>
         {
             Globals.Config.PartyPoolHideIncompatibleChars = !Globals.Config.PartyPoolHideIncompatibleChars;
             Update();
@@ -175,7 +175,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             _container.Width - BeginAdventuringButton.Width,
             _container.Height - BeginAdventuringButton.Height
         );
-        BeginAdventuringButton.SetClickHandler(BeginAdventuring);
+        BeginAdventuringButton.AddClickListener(BeginAdventuring);
         _container.Add(BeginAdventuringButton);
 
         var scrollBoxSettings = new ScrollBoxSettings
@@ -208,7 +208,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
             slot.Y = i * (slot.Height + padding);
             var slotIdx = i;
-            slot.SetClickHandler(() => SelectAvailable(slot));
+            slot.AddClickListener(() => SelectAvailable(slot));
             // Forward scrollwheel to the scrollbar
             slot.SetMouseMsgHandler(msg =>
             {
@@ -629,32 +629,32 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
         _addRemoveButton.SetStyle(AddButtonStyle);
         _addRemoveButton.Text = AddButtonLabel;
-        _addRemoveButton.SetDisabled(true);
-        _viewButton.SetDisabled(true);
-        _renameButton.SetDisabled(true);
-        _deleteButton.SetDisabled(true);
+        _addRemoveButton.Disabled = true;
+        _viewButton.Disabled = true;
+        _renameButton.Disabled = true;
+        _deleteButton.Disabled = true;
 
         var selectedPlayer = _availablePlayers.Find(p => p.Selected);
         if (selectedPlayer != null)
         {
             if (selectedPlayer.state == SlotState.CanJoin)
             {
-                _addRemoveButton.SetDisabled(false);
+                _addRemoveButton.Disabled = false;
             }
 
-            _viewButton.SetDisabled(false);
+            _viewButton.Disabled = false;
             // TODO: where a char is premade or not should be decided based on the storage location, not its content
             if (!selectedPlayer.premade)
             {
-                _renameButton.SetDisabled(false);
-                _deleteButton.SetDisabled(false);
+                _renameButton.Disabled = false;
+                _deleteButton.Disabled = false;
             }
         }
         else if (_portraits.Selected != null)
         {
             _addRemoveButton.SetStyle(RemoveButtonStyle);
             _addRemoveButton.Text = RemoveButtonLabel;
-            _addRemoveButton.SetDisabled(false);
+            _addRemoveButton.Disabled = false;
         }
 
         if (uiPartyCreationNotFromShopmap || GameSystems.Party.PartySize == 0)

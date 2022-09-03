@@ -28,6 +28,11 @@ public partial class WidgetBase
         _listeners{{ event.name }} = _listeners{{ event.name }}.Add(new (handler));
     }
     
+    public void Add{{ event.name }}Listener(Action handler)
+    {
+        _listeners{{ event.name }} = _listeners{{ event.name }}.Add(new (e => handler()));
+    }
+    
     public void Remove{{ event.name }}Listener(EventHandler<{{ event.event_class_short }}> handler)
     {
         _listeners{{ event.name }} = _listeners{{ event.name }}.Remove(new (handler));
@@ -104,4 +109,12 @@ if (!e.IsImmediatePropagationStopped)
     {{~end~}}
     
     private readonly record struct RegisteredListener<T>(EventHandler<T> Listener, bool Once = false) where T : UiEvent;
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("{{tool}}", "{{version}}")]
+public enum UiEventType
+{
+{{~for event in events~}}
+    {{event.name}},
+{{~end~}}
 }

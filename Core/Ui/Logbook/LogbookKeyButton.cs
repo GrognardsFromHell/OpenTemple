@@ -5,12 +5,12 @@ using OpenTemple.Core.Ui.Widgets;
 namespace OpenTemple.Core.Ui.Logbook;
 
 /// <summary>
-/// See primarily function 0x101956a0 for details on how the widget is layed out.
+/// See primarily function 0x101956a0 for details on how the widget is laid out.
 /// </summary>
 internal class LogbookKeyButton : WidgetButtonBase
 {
         
-    private KeylogEntry _key;
+    private KeylogEntry? _key;
 
     private readonly WidgetText _title;
 
@@ -55,7 +55,7 @@ internal class LogbookKeyButton : WidgetButtonBase
 
     }
 
-    public KeylogEntry Key
+    public KeylogEntry? Key
     {
         get => _key;
         set
@@ -74,7 +74,7 @@ internal class LogbookKeyButton : WidgetButtonBase
         {
             _outerRectangle.Pen = new PackedLinearColorA(0xFF1AC3FF);
         }
-        else if (ButtonState == LgcyButtonState.Hovered)
+        else if (ContainsMouse && !Pressed)
         {
             _outerRectangle.Pen = PackedLinearColorA.White;
         }

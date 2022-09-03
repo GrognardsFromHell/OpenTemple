@@ -125,7 +125,7 @@ public class CharSheetLootingUi : IDisposable
         _takeAllButton = new WidgetButton(new Rectangle(9, 97, 120, 30));
         _takeAllButton.Name = "char_looting_ui_take_all_button";
         _takeAllButton.SetStyle("charLootingIdentify");
-        _takeAllButton.SetClickHandler(OnClickTakeAllButton);
+        _takeAllButton.AddClickListener(OnClickTakeAllButton);
         _mainWindow.Add(_takeAllButton);
 
         _containerIconButton = new WidgetButtonBase(new Rectangle(41, 32, 53, 47));

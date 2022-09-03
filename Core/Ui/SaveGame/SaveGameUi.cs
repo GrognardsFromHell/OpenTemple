@@ -73,16 +73,16 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         _window.SetCharHandler(OnCharEntered);
 
         _loadButton = doc.GetButton("load");
-        _loadButton.SetClickHandler(OnLoadClick);
+        _loadButton.AddClickListener(OnLoadClick);
         _loadTitle = doc.GetTextContent("loadTitle");
 
         _saveButton = doc.GetButton("save");
-        _saveButton.SetClickHandler(OnSaveClick);
+        _saveButton.AddClickListener(OnSaveClick);
         _saveTitle = doc.GetTextContent("saveTitle");
 
         _deleteButton = doc.GetButton("delete");
-        _deleteButton.SetClickHandler(OnDeleteClick);
-        doc.GetButton("close").SetClickHandler(OnCloseClick);
+        _deleteButton.AddClickListener(OnDeleteClick);
+        doc.GetButton("close").AddClickListener(OnCloseClick);
 
         _scrollBar = doc.GetScrollBar("scrollbar");
         _scrollBar.SetValueChangeHandler(value => UpdateSlots());
@@ -99,7 +99,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
             var rect = new Rectangle(26, 34 + 53 * i, 318, 54);
 
             var slot = new SaveGameSlotButton(rect);
-            slot.SetClickHandler(() =>
+            slot.AddClickListener(() =>
             {
                 _selectedSave = slot.SaveGame;
                 UpdateSlots();
@@ -508,14 +508,14 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
             || _selectedSave.Type == SaveGameType.AutoSave
             || _selectedSave.Type == SaveGameType.QuickSave)
         {
-            _deleteButton.SetDisabled(true);
+            _deleteButton.Disabled = true;
         }
         else
         {
-            _deleteButton.SetDisabled(false);
+            _deleteButton.Disabled = false;
         }
 
-        _loadButton.SetDisabled(_selectedSave == null);
+        _loadButton.Disabled = _selectedSave == null;
     }
 
     private void ShowSaveDetails(SaveGameInfo save)

@@ -139,7 +139,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
 
         _showHistoryButton = new WidgetButton(new Rectangle(581, 1, 23, 18));
         _showHistoryButton.SetStyle(HeadButtonStyle);
-        _showHistoryButton.SetClickHandler(OnHeadButtonClicked);
+        _showHistoryButton.AddClickListener(OnHeadButtonClicked);
         // uiDialogButton1Id.OnBeforeRender += 0x1014be30;
         // uiDialogButton1Id.OnRenderTooltip += 0x100027f0;
         _mainWindow.Add(_showHistoryButton);

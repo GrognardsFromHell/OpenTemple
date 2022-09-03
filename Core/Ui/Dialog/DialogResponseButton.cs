@@ -71,13 +71,18 @@ public class DialogResponseButton : WidgetButtonBase
     private IImmutableList<string> GetTextStyles()
     {
         // Update text style based on button state
-        var styleId = ButtonState switch
+        if (ContainsPress)
         {
-            LgcyButtonState.Hovered => _skillUsed == DialogSkill.None ? HoverStyle : SkillHoverStyle,
-            LgcyButtonState.Down => _skillUsed == DialogSkill.None ? PressedStyle : SkillPressedStyle,
-            _ => _skillUsed == DialogSkill.None ? NormalStyle : SkillNormalStyle
-        };
-        return ImmutableList.Create(styleId);
+            return ImmutableList.Create(_skillUsed == DialogSkill.None ? PressedStyle : SkillPressedStyle);
+        }
+        else if (ContainsMouse)
+        {
+            return ImmutableList.Create(_skillUsed == DialogSkill.None ? HoverStyle : SkillHoverStyle);
+        }
+        else
+        {
+            return ImmutableList.Create(_skillUsed == DialogSkill.None ? NormalStyle : SkillNormalStyle);
+        }
     }
 
     [TempleDllLocation(0x1014c520)]

@@ -21,20 +21,32 @@ public enum LgcyWindowMouseState
     PressedOutside = 8
 }
 
-public enum LgcyButtonState
-{
-    Normal = 0,
-    Hovered = 1,
-    Down = 2,
-    Released = 3,
-    Disabled = 4
-}
-
 public class UiManager : IUiRoot
 {
+    // Tracks the state of the first button that caused a mouse-down event,
+    // which has not been released yet.
+    private class MouseDownState
+    {
+        // The first button that was pressed
+        public MouseButton Button { get; init; }
+
+        // The element it was pressed on
+        public WidgetBase? Target { get; init; }
+
+        // The UI position it was pressed at
+        public PointF Pos { get; init; }
+
+        // A bit-field with the buttons that are held, which might change
+        // between the mouse down and mouse up event. Buttons pressed
+        // after the first but before the first is released do not trigger
+        // mouse down / up events.
+        public MouseButtons Buttons { get; set; }
+    }
+
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     private readonly List<WidgetBase> _topLevelWidgets = new();
+    private readonly List<WidgetBase> _widgetsTemp = new();
 
     // Is the mouse currently in the main window?
     private bool _mouseOverUi = false;
@@ -50,6 +62,11 @@ public class UiManager : IUiRoot
         (int) _mainWindow.UiCanvasSize.Height
     );
 
+    /// <summary>
+    /// The last widget to receive a mouse down event (separate for each button).
+    /// </summary>
+    private MouseDownState? _mouseDownState;
+
     public event Action<Size> OnCanvasSizeChanged;
 
     public IEnumerable<WidgetBase> ActiveWindows => _topLevelWidgets;
@@ -57,7 +74,10 @@ public class UiManager : IUiRoot
     public UiManagerDebug Debug { get; }
 
     [TempleDllLocation(0x11E74384)]
-    public WidgetBase? MouseCaptureWidget { get; set; }
+    public WidgetBase? MouseCaptureWidget { get; private set; }
+
+    [TempleDllLocation(0x11E74384)]
+    private WidgetBase? _pendingMouseCaptureWidget;
 
     [TempleDllLocation(0x10301324)]
     public WidgetBase? CurrentMouseOverWidget { get; private set; }
@@ -79,7 +99,7 @@ public class UiManager : IUiRoot
     public object? DraggedObject { get; set; }
 
     public WidgetContainer Modal { get; set; }
-    
+
     public PointF MousePos => _mousePos;
 
     private readonly IMainWindow _mainWindow;
@@ -87,6 +107,7 @@ public class UiManager : IUiRoot
     public UiManager(IMainWindow mainWindow)
     {
         _mainWindow = mainWindow;
+        _mainWindow.UiRoot = this;
         _renderTooltipCallback = RenderTooltip;
         Debug = new UiManagerDebug(this);
         mainWindow.UiCanvasSizeChanged += () => OnCanvasSizeChanged?.Invoke(CanvasSize);
@@ -110,6 +131,7 @@ public class UiManager : IUiRoot
         }
 
         _topLevelWidgets.Add(window);
+        window.AttachToTree(this);
     }
 
     public void RemoveWindow(WidgetContainer window)
@@ -121,8 +143,10 @@ public class UiManager : IUiRoot
     public void BringToFront(WidgetContainer window)
     {
         window.ZIndex = _topLevelWidgets
-            .Where(otherWindow => otherWindow != window)
-            .Max(otherWindow => otherWindow.ZIndex) + 1;
+            .Where(widget => widget != window)
+            .Select(widget => widget.ZIndex)
+            .DefaultIfEmpty()
+            .Max() + 1;
         SortWindows();
     }
 
@@ -171,27 +195,28 @@ public class UiManager : IUiRoot
             RemoveWindow(container);
         }
 
+        var refreshMouseOverState = false;
+        
         // Invalidate any fields that may still hold a reference to the now invalid widget id
         if (IsAncestor(mMouseButtonId, widget))
         {
             mMouseButtonId = null;
-            RefreshMouseOverState();
+            refreshMouseOverState = true;
         }
 
         if (IsAncestor(MouseCaptureWidget, widget))
         {
-            MouseCaptureWidget = null;
-            RefreshMouseOverState();
+            ReleaseMouseCapture(MouseCaptureWidget);
+            refreshMouseOverState = true;
         }
 
         if (IsAncestor(CurrentMouseOverWidget, widget))
         {
-            if (CurrentMouseOverWidget is WidgetButton button && !button.IsDisabled())
-            {
-                button.ButtonState = LgcyButtonState.Normal;
-            }
+            refreshMouseOverState = true;
+        }
 
-            CurrentMouseOverWidget = null;
+        if (refreshMouseOverState)
+        {
             RefreshMouseOverState();
         }
     }
@@ -259,33 +284,33 @@ public class UiManager : IUiRoot
     /// </summary>
     public void RefreshMouseOverState()
     {
-        var args = new MessageMouseArgs
-        {
-            X = (int) _mousePos.X,
-            Y = (int) _mousePos.Y,
-            flags = MouseEventFlag.PosChange | MouseEventFlag.PosChangeSlow
-        };
-        TranslateMouseMessage(args);
+        UpdateMouseOver();
     }
 
     [TempleDllLocation(0x101f9830)]
     public bool CaptureMouse(WidgetBase widget)
     {
-        if (MouseCaptureWidget == null)
+        if (widget.UiManager != this)
         {
-            MouseCaptureWidget = widget;
-            return true;
+            throw new ArgumentException("Widget cannot capture pointer because it's not part of the UI tree.");
         }
 
-        return false;
+        // Capturing is only possible while a button is held
+        if (_mouseDownState == null)
+        {
+            return false;
+        }
+
+        _pendingMouseCaptureWidget = widget;
+        return true;
     }
 
     [TempleDllLocation(0x101f9850)]
     public void ReleaseMouseCapture(WidgetBase? widget)
     {
-        if (MouseCaptureWidget == widget)
+        if (_pendingMouseCaptureWidget == widget)
         {
-            MouseCaptureWidget = null;
+            _pendingMouseCaptureWidget = null;
         }
     }
 
@@ -356,20 +381,20 @@ public class UiManager : IUiRoot
                     }
                 }
                 // button
-                else if (globalWid is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
+                else if (globalWid is WidgetButtonBase buttonWid && !buttonWid.Disabled)
                 {
-                    switch (buttonWid.ButtonState)
-                    {
-                        case LgcyButtonState.Hovered:
-                            // Unhover
-                            buttonWid.ButtonState = LgcyButtonState.Normal;
-                            Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
-                            break;
-                        case LgcyButtonState.Down:
-                            // Down . Released without click event
-                            buttonWid.ButtonState = LgcyButtonState.Released;
-                            break;
-                    }
+                    // switch (buttonWid.ButtonState)
+                    // {
+                    //     case LgcyButtonState.Hovered:
+                    //         // Unhover
+                    //         buttonWid.ButtonState = LgcyButtonState.Normal;
+                    //         Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
+                    //         break;
+                    //     case LgcyButtonState.Down:
+                    //         // Down . Released without click event
+                    //         buttonWid.ButtonState = LgcyButtonState.Released;
+                    //         break;
+                    // }
                 }
 
                 if (IsVisible(globalWid))
@@ -382,32 +407,32 @@ public class UiManager : IUiRoot
 
             if (widAtCursor != null)
             {
-                if (widAtCursor is WidgetContainer widAtCursorWindow)
-                {
-                    if (widAtCursorWindow.MouseState == LgcyWindowMouseState.PressedOutside)
-                    {
-                        widAtCursorWindow.MouseState = LgcyWindowMouseState.Pressed;
-                    }
-                    else if (widAtCursorWindow.MouseState != LgcyWindowMouseState.Pressed)
-                    {
-                        widAtCursorWindow.MouseState = LgcyWindowMouseState.Hovered;
-                    }
-                }
-                else if (widAtCursor is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
-                {
-                    if (buttonWid.ButtonState != LgcyButtonState.Normal)
-                    {
-                        if (buttonWid.ButtonState == LgcyButtonState.Released)
-                        {
-                            buttonWid.ButtonState = LgcyButtonState.Down;
-                        }
-                    }
-                    else
-                    {
-                        buttonWid.ButtonState = LgcyButtonState.Hovered;
-                        Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
-                    }
-                }
+                // if (widAtCursor is WidgetContainer widAtCursorWindow)
+                // {
+                //     if (widAtCursorWindow.MouseState == LgcyWindowMouseState.PressedOutside)
+                //     {
+                //         widAtCursorWindow.MouseState = LgcyWindowMouseState.Pressed;
+                //     }
+                //     else if (widAtCursorWindow.MouseState != LgcyWindowMouseState.Pressed)
+                //     {
+                //         widAtCursorWindow.MouseState = LgcyWindowMouseState.Hovered;
+                //     }
+                // }
+                // else if (widAtCursor is WidgetButtonBase buttonWid && !buttonWid.Disabled)
+                // {
+                //     if (buttonWid.ButtonState != LgcyButtonState.Normal)
+                //     {
+                //         if (buttonWid.ButtonState == LgcyButtonState.Released)
+                //         {
+                //             buttonWid.ButtonState = LgcyButtonState.Down;
+                //         }
+                //     }
+                //     else
+                //     {
+                //         buttonWid.ButtonState = LgcyButtonState.Hovered;
+                //         Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
+                //     }
+                // }
 
                 newTigMsg.widgetId = widAtCursor;
                 newTigMsg.widgetEventType = TigMsgWidgetEvent.Entered;
@@ -430,17 +455,17 @@ public class UiManager : IUiRoot
             var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
             if (widIdAtCursor2 != null)
             {
-                if (widIdAtCursor2 is WidgetButtonBase button && !button.IsDisabled())
+                if (widIdAtCursor2 is WidgetButtonBase button && !button.Disabled)
                 {
-                    switch (button.ButtonState)
-                    {
-                        case LgcyButtonState.Hovered:
-                            button.ButtonState = LgcyButtonState.Down;
-                            Tig.Sound.PlaySoundEffect(button.sndDown);
-                            break;
-                        case LgcyButtonState.Disabled:
-                            return false;
-                    }
+                    // switch (button.ButtonState)
+                    // {
+                    //     case LgcyButtonState.Hovered:
+                    //         button.ButtonState = LgcyButtonState.Down;
+                    //         Tig.Sound.PlaySoundEffect(button.sndDown);
+                    //         break;
+                    //     case LgcyButtonState.Disabled:
+                    //         return false;
+                    // }
                 }
 
                 newTigMsg.widgetEventType = TigMsgWidgetEvent.Clicked;
@@ -452,21 +477,21 @@ public class UiManager : IUiRoot
 
         if ((mouseMsg.flags & MouseEventFlag.LeftReleased) != 0 && mMouseButtonId != null)
         {
-            if (mMouseButtonId is WidgetButtonBase button && !button.IsDisabled())
+            if (mMouseButtonId is WidgetButtonBase button && !button.Disabled)
             {
-                switch (button.ButtonState)
-                {
-                    case LgcyButtonState.Down:
-                        button.ButtonState = LgcyButtonState.Hovered;
-                        Tig.Sound.PlaySoundEffect(button.sndClick);
-                        break;
-                    case LgcyButtonState.Released:
-                        button.ButtonState = LgcyButtonState.Normal;
-                        Tig.Sound.PlaySoundEffect(button.sndClick);
-                        break;
-                    case LgcyButtonState.Disabled:
-                        return false;
-                }
+                // switch (button.ButtonState)
+                // {
+                //     case LgcyButtonState.Down:
+                //         button.ButtonState = LgcyButtonState.Hovered;
+                //         Tig.Sound.PlaySoundEffect(button.sndClick);
+                //         break;
+                //     case LgcyButtonState.Released:
+                //         button.ButtonState = LgcyButtonState.Normal;
+                //         Tig.Sound.PlaySoundEffect(button.sndClick);
+                //         break;
+                //     case LgcyButtonState.Disabled:
+                //         return false;
+                // }
             }
 
             // probably redundant to do again, but just to be safe...
@@ -657,6 +682,7 @@ public class UiManager : IUiRoot
 
     public void MouseEnter()
     {
+        ProcessPendingMouseCapture();
         Tig.Mouse.IsMouseOutsideWindow = false;
 
         _mouseOverUi = true;
@@ -665,6 +691,7 @@ public class UiManager : IUiRoot
 
     public void MouseLeave()
     {
+        ProcessPendingMouseCapture();
         Tig.Mouse.IsMouseOutsideWindow = true;
 
         _mouseOverUi = false;
@@ -682,7 +709,19 @@ public class UiManager : IUiRoot
 
     private void UpdateMouseOver()
     {
-        var mouseOver = _mouseOverUi ? GetWidgetAt(_mousePos.X, _mousePos.Y) : null;
+        ProcessPendingMouseCapture();
+        
+        WidgetBase? mouseOver;
+        if (MouseCaptureWidget != null)
+        {
+            // Force the mouse-over widget to be the capture target
+            mouseOver = MouseCaptureWidget;
+        }
+        else
+        {
+            mouseOver = _mouseOverUi ? GetWidgetAt(_mousePos.X, _mousePos.Y) : null;
+        }
+
         var prevMouseOver = CurrentMouseOverWidget;
 
         if (mouseOver == prevMouseOver)
@@ -695,70 +734,34 @@ public class UiManager : IUiRoot
             Tig.Mouse.SetCursorDrawCallback(null, 0);
         }
 
+        // When mouse over changes from one widget to another, we only need to propagate
+        // this change up until the first common ancestor of both.
+        WidgetBase? commonAncestor = null;
+        if (prevMouseOver != null && mouseOver != null)
+        {
+            commonAncestor = prevMouseOver.GetCommonAncestor(mouseOver);
+        }
+
         if (prevMouseOver != null)
         {
-            // if window
-            if (prevMouseOver is WidgetContainer prevHoveredWindow)
-            {
-                if (prevHoveredWindow.MouseState == LgcyWindowMouseState.Pressed)
-                {
-                    prevHoveredWindow.MouseState = LgcyWindowMouseState.PressedOutside;
-                }
-                else if (prevHoveredWindow.MouseState != LgcyWindowMouseState.PressedOutside)
-                {
-                    prevHoveredWindow.MouseState = LgcyWindowMouseState.Outside;
-                }
-            }
-            // button
-            else if (prevMouseOver is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
-            {
-                switch (buttonWid.ButtonState)
-                {
-                    case LgcyButtonState.Hovered:
-                        // Unhover
-                        buttonWid.ButtonState = LgcyButtonState.Normal;
-                        Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
-                        break;
-                    case LgcyButtonState.Down:
-                        // Down . Released without click event
-                        buttonWid.ButtonState = LgcyButtonState.Released;
-                        break;
-                }
-            }
-
-            DispatchMouseLeave(prevMouseOver, mouseOver);
+            DispatchMouseLeave(prevMouseOver, commonAncestor);
         }
 
         if (mouseOver != null)
         {
-            if (mouseOver is WidgetContainer widAtCursorWindow)
-            {
-                if (widAtCursorWindow.MouseState == LgcyWindowMouseState.PressedOutside)
-                {
-                    widAtCursorWindow.MouseState = LgcyWindowMouseState.Pressed;
-                }
-                else if (widAtCursorWindow.MouseState != LgcyWindowMouseState.Pressed)
-                {
-                    widAtCursorWindow.MouseState = LgcyWindowMouseState.Hovered;
-                }
-            }
-            else if (mouseOver is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
-            {
-                if (buttonWid.ButtonState != LgcyButtonState.Normal)
-                {
-                    if (buttonWid.ButtonState == LgcyButtonState.Released)
-                    {
-                        buttonWid.ButtonState = LgcyButtonState.Down;
-                    }
-                }
-                else
-                {
-                    buttonWid.ButtonState = LgcyButtonState.Hovered;
-                    Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
-                }
-            }
+            DispatchMouseEnter(mouseOver, commonAncestor);
+        }
 
-            DispatchMouseEnter(mouseOver, prevMouseOver);
+        // Set the ContainsMouse state until we reach a potential common ancestor
+        for (var node = mouseOver; node != null && node != commonAncestor; node = node.Parent)
+        {
+            node.ContainsMouse = true;
+        }
+
+        // Unset the ContainsMouse state until we reach a potential common ancestor
+        for (var node = prevMouseOver; node != null && node != commonAncestor; node = node.Parent)
+        {
+            node.ContainsMouse = false;
         }
 
         CurrentMouseOverWidget = mouseOver;
@@ -766,35 +769,22 @@ public class UiManager : IUiRoot
 
     public void MouseMove(Point windowPos, PointF uiPos)
     {
+        ProcessPendingMouseCapture();
         UpdateMousePosition(uiPos);
     }
 
-    private void DispatchMouseLeave(WidgetBase target, WidgetBase? newMouseOver)
+    private void DispatchMouseLeave(WidgetBase target, WidgetBase? stopAtParent)
     {
-        // Dispatch the event up to the root or until the common ancestor
-        WidgetBase? stopAt = null;
-        if (newMouseOver != null)
-        {
-            stopAt = target.GetCommonAncestor(newMouseOver);
-        }
-
-        for (var node = target; node != null && node != stopAt; node = node.Parent)
+        for (var node = target; node != null && node != stopAtParent; node = node.Parent)
         {
             var e = new MouseEvent {InitialTarget = target};
             node.DispatchMouseLeave(e);
         }
     }
 
-    private void DispatchMouseEnter(WidgetBase target, WidgetBase? prevMouseOver)
+    private void DispatchMouseEnter(WidgetBase target, WidgetBase? stopAtParent)
     {
-        // Dispatch the event up to the root or until the common ancestor
-        WidgetBase? stopAt = null;
-        if (prevMouseOver != null)
-        {
-            stopAt = target.GetCommonAncestor(prevMouseOver);
-        }
-
-        for (var node = target; node != null && node != stopAt; node = node.Parent)
+        for (var node = target; node != null && node != stopAtParent; node = node.Parent)
         {
             var e = new MouseEvent {InitialTarget = target};
             node.DispatchMouseLeave(e);
@@ -803,12 +793,93 @@ public class UiManager : IUiRoot
 
     public void MouseDown(Point windowPos, PointF uiPos, MouseButton button)
     {
-        // Otherwise we might not get the actual position that was clicked if we use the last mouse move position..
-        // TODO _mouseState.SetPos((int) uiPos.X, (int) uiPos.Y, 0);
+        ProcessPendingMouseCapture();
+        UpdateMousePosition(uiPos);
+
+        if (_mouseDownState != null)
+        {
+            // We do not dispatch additional mouse down events if a button is already held
+            _mouseDownState.Buttons |= GetMouseButtons(button);
+            return;
+        }
+
+        // This should not really happen since capturing the mouse should only be allowed
+        // if the mouse was already down, and it should be released, when the mouse button
+        // is released. We'll handle it anyway.
+        var dispatchTo = MouseCaptureWidget ?? GetWidgetAt(uiPos.X, uiPos.Y);
+
+        _mouseDownState = new MouseDownState
+        {
+            Button = button,
+            Buttons = GetMouseButtons(button),
+            Pos = uiPos,
+            Target = dispatchTo
+        };
+
+        if (dispatchTo != null)
+        {
+            var e = CreateMouseEvent(UiEventType.MouseDown, dispatchTo);
+            dispatchTo.DispatchMouseDown(e);
+        }
     }
 
     public void MouseUp(Point windowPos, PointF uiPos, MouseButton button)
     {
+        ProcessPendingMouseCapture();
+        UpdateMousePosition(uiPos);
+
+        if (_mouseDownState == null)
+        {
+            // Ignore spurious mouse up event. Might happen if a secondary button is released 
+            // after the initial mouse-down button was already released.
+            return;
+        }
+        
+        // Only emit a mouse up event if the initially pressed button is released
+        if (_mouseDownState.Button != button)
+        {
+            _mouseDownState.Buttons &= ~GetMouseButtons(button);
+            return;
+        }
+
+        var lastMouseDownAt = _mouseDownState.Target;
+
+        var target = GetWidgetAt(uiPos.X, uiPos.Y);
+
+        var dispatchTo = MouseCaptureWidget ?? target;
+        if (dispatchTo == null)
+        {
+            return;
+        }
+        
+        var e = CreateMouseEvent(UiEventType.MouseUp, dispatchTo);
+        
+        // Release the mouse down state here so that the mouse up event cannot recapture the mouse
+        _mouseDownState = null;
+        // Implicitly release mouse capture
+        _pendingMouseCaptureWidget = null;
+        
+        dispatchTo.DispatchMouseUp(e);
+
+        // We emit click events on the first common ancestor of the mouse-down target
+        // and the mouse-up target.
+        if (!e.IsDefaultPrevented && lastMouseDownAt != null)
+        {
+            var clickTarget = lastMouseDownAt.GetCommonAncestor(dispatchTo);
+            if (clickTarget != null)
+            {
+                if (button == MouseButton.LEFT)
+                {
+                    clickTarget.DispatchClick(e);
+                }
+                else
+                {
+                    clickTarget.DispatchOtherClick(e);
+                }
+            }
+        }
+
+        ProcessPendingMouseCapture();
     }
 
     public void MouseWheel(Point windowPos, PointF uiPos, float units)
@@ -816,14 +887,87 @@ public class UiManager : IUiRoot
         // TODO (int) (units * 120);
     }
 
+    private MouseEvent CreateMouseEvent(UiEventType type, WidgetBase target)
+    {
+        var button = MouseButton.Unchanged;
+        MouseButtons buttons = default;
+        if (_mouseDownState != null)
+        {
+            // Only on mouse down do we actually get the button set 
+            if (type is UiEventType.MouseDown or UiEventType.MouseUp)
+            {
+                button = _mouseDownState.Button;
+            }
+
+            buttons = _mouseDownState.Buttons;
+        }
+
+        return new MouseEvent
+        {
+            Type = type,
+            InitialTarget = target,
+            MouseOverWidget = GetWidgetAt(_mousePos.X, _mousePos.Y),
+            Button = button,
+            Buttons = buttons,
+            X = _mousePos.X,
+            Y = _mousePos.Y,
+            IsAltHeld = Tig.Keyboard.IsAltPressed,
+            IsCtrlHeld = Tig.Keyboard.IsCtrlPressed,
+            IsShiftHeld = Tig.Keyboard.IsShiftPressed,
+            IsMetaHeld = Tig.Keyboard.IsMetaHeld
+        };
+    }
+
     public void Tick()
     {
+        // handle any queued tasks
+        ProcessPendingMouseCapture();
+
         var now = TimePoint.Now;
 
         // Dispatch time update messages continuously to all advanced widgets
-        foreach (var entry in _topLevelWidgets)
+        _widgetsTemp.Clear();
+        _widgetsTemp.AddRange(_topLevelWidgets);
+        foreach (var entry in _widgetsTemp)
         {
-            entry.OnUpdateTime(now);
+            if (entry.UiManager == this)
+            {
+                entry.OnUpdateTime(now);
+            }
         }
     }
+
+    // See https://w3c.github.io/pointerevents/#process-pending-pointer-capture
+    private void ProcessPendingMouseCapture()
+    {
+        if (_pendingMouseCaptureWidget != MouseCaptureWidget && MouseCaptureWidget != null)
+        {
+            MouseCaptureWidget.DispatchLostMouseCapture(CreateMouseEvent(UiEventType.LostMouseCapture, MouseCaptureWidget));
+        }
+
+        if (_pendingMouseCaptureWidget != MouseCaptureWidget && _pendingMouseCaptureWidget != null)
+        {
+            _pendingMouseCaptureWidget.DispatchGotMouseCapture(CreateMouseEvent(UiEventType.GotMouseCapture, _pendingMouseCaptureWidget));
+        }
+
+        if (MouseCaptureWidget != _pendingMouseCaptureWidget)
+        {
+            MouseCaptureWidget = _pendingMouseCaptureWidget;
+            UpdateMouseOver();
+        }
+    }
+    
+    private static MouseButtons GetMouseButtons(MouseButton button)
+    {
+        return button switch
+        {
+            MouseButton.LEFT => MouseButtons.Left,
+            MouseButton.RIGHT => MouseButtons.Right,
+            MouseButton.MIDDLE => MouseButtons.Middle,
+            MouseButton.EXTRA1 => MouseButtons.Extra1,
+            MouseButton.EXTRA2 => MouseButtons.Extra2,
+            _ => throw new ArgumentOutOfRangeException(nameof(button), button, null)
+        };
+    }
+
 }

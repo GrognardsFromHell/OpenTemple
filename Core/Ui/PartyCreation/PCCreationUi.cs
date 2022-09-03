@@ -193,7 +193,7 @@ public class PCCreationUi : IDisposable
         stageButton.OnBeforeRender += () =>
         {
             stageButton.SetActive(uiPcCreationActiveStageIdx == system.Stage);
-            stageButton.SetDisabled(uiPcCreationStagesCompleted < system.Stage);
+            stageButton.Disabled = uiPcCreationStagesCompleted < system.Stage;
 
             // Render the blue outline for the active stage
             if (stageButton.IsActive())
@@ -203,7 +203,7 @@ public class PCCreationUi : IDisposable
                 _activeButtonBorder.Render();
             }
         };
-        stageButton.SetClickHandler(() => ShowStage(system.Stage));
+        stageButton.AddClickListener(() => ShowStage(system.Stage));
         stageButton.OnMouseEnter += msg => { ShowHelpTopic(system.HelpTopic); };
         stageButton.OnMouseLeave += msg => { system.ButtonExited(); };
         return stageButton;
@@ -586,7 +586,7 @@ public class PCCreationUi : IDisposable
     {
         // TODO: This seems weird and kills encapsulation
         UiSystems.PartyPool.BeginAdventuringButton.Visible = true;
-        UiSystems.PartyPool.BeginAdventuringButton.SetDisabled(false);
+        UiSystems.PartyPool.BeginAdventuringButton.Disabled = false;
 
         StartNewParty();
         uiPcCreationActiveStageIdx = 0;

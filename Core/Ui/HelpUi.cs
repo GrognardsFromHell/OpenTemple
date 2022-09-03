@@ -82,7 +82,7 @@ public class HelpUi : IResetAwareSystem
             PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Click.tga",
             DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Grey.tga"
         });
-        uiHelpBackButton.SetClickHandler(() => GameSystems.Help.NavigateBackward());
+        uiHelpBackButton.AddClickListener(() => GameSystems.Help.NavigateBackward());
         uiHelpBackButton.Name = "help_back_button";
         uiHelpWnd.Add(uiHelpBackButton);
 
@@ -95,7 +95,7 @@ public class HelpUi : IResetAwareSystem
             PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Click.tga",
             DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Grey.tga"
         });
-        uiHelpForwardButton.SetClickHandler(() => GameSystems.Help.NavigateForward());
+        uiHelpForwardButton.AddClickListener(() => GameSystems.Help.NavigateForward());
         uiHelpForwardButton.Name = "help_forward_button";
         uiHelpWnd.Add(uiHelpForwardButton);
 
@@ -108,7 +108,7 @@ public class HelpUi : IResetAwareSystem
             PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Click.tga",
             DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Grey.tga"
         });
-        uiHelpHomeButton.SetClickHandler(() => GameSystems.Help.ShowTopic(GameSystems.Help.RootTopic.Id));
+        uiHelpHomeButton.AddClickListener(() => GameSystems.Help.ShowTopic(GameSystems.Help.RootTopic.Id));
         uiHelpHomeButton.Name = "help_home_button";
         uiHelpWnd.Add(uiHelpHomeButton);
 
@@ -121,7 +121,7 @@ public class HelpUi : IResetAwareSystem
             PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Click.tga",
             DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Grey.tga"
         });
-        uiHelpPrevButton.SetClickHandler(() => GameSystems.Help.NavigateToPreviousSibling());
+        uiHelpPrevButton.AddClickListener(() => GameSystems.Help.NavigateToPreviousSibling());
         uiHelpPrevButton.Name = "help_prev_button";
         uiHelpWnd.Add(uiHelpPrevButton);
 
@@ -134,7 +134,7 @@ public class HelpUi : IResetAwareSystem
             PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Click.tga",
             DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Grey.tga"
         });
-        uiHelpUpButton.SetClickHandler(() => GameSystems.Help.NavigateUp());
+        uiHelpUpButton.AddClickListener(() => GameSystems.Help.NavigateUp());
         uiHelpUpButton.Name = "help_up_button";
         uiHelpWnd.Add(uiHelpUpButton);
 
@@ -147,7 +147,7 @@ public class HelpUi : IResetAwareSystem
             PressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Click.tga",
             DisabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Grey.tga"
         });
-        uiHelpNextButton.SetClickHandler(() => GameSystems.Help.NavigateToNextSibling());
+        uiHelpNextButton.AddClickListener(() => GameSystems.Help.NavigateToNextSibling());
         uiHelpNextButton.Name = "help_next_button";
         uiHelpWnd.Add(uiHelpNextButton);
 
@@ -160,7 +160,7 @@ public class HelpUi : IResetAwareSystem
             PressedImagePath = "art/interface/HELP_UI/main_exit_button_Click.tga",
             DisabledImagePath = "art/interface/HELP_UI/main_exit_button_Grey.tga"
         });
-        uiHelpExitButton.SetClickHandler(Hide);
+        uiHelpExitButton.AddClickListener(Hide);
         uiHelpExitButton.Name = "help_exit_button";
         uiHelpWnd.Add(uiHelpExitButton);
 
@@ -250,56 +250,56 @@ public class HelpUi : IResetAwareSystem
     {
         if (GameSystems.Help.CanNavigateBackward)
         {
-            uiHelpBackButton.SetDisabled(false);
+            uiHelpBackButton.Disabled = false;
             // TODO uiHelpBackButton.field98 &= ~0x20;
         }
         else
         {
-            uiHelpBackButton.SetDisabled(true);
+            uiHelpBackButton.Disabled = true;
             // TODO uiHelpBackButton.field98 |= 0x20;
         }
 
         if (GameSystems.Help.CanNavigateForward)
         {
-            uiHelpForwardButton.SetDisabled(false);
+            uiHelpForwardButton.Disabled = false;
             // TODO uiHelpForwardButton.field98 &= ~0x20;
         }
         else
         {
-            uiHelpForwardButton.SetDisabled(true);
+            uiHelpForwardButton.Disabled = true;
             // TODO uiHelpForwardButton.field98 |= 0x20;
         }
 
         if (GameSystems.Help.CanNavigateUp)
         {
-            uiHelpUpButton.SetDisabled(false);
+            uiHelpUpButton.Disabled = false;
             // TODO uiHelpUpButton.field98 &= ~0x20;
         }
         else
         {
-            uiHelpUpButton.SetDisabled(true);
+            uiHelpUpButton.Disabled = true;
             // TODO uiHelpUpButton.field98 |= 0x20;
         }
 
         if (GameSystems.Help.CanNavigateToPreviousSibling)
         {
-            uiHelpPrevButton.SetDisabled(false);
+            uiHelpPrevButton.Disabled = false;
             // TODO uiHelpPrevButton.field98 &= ~0x20;
         }
         else
         {
-            uiHelpPrevButton.SetDisabled(true);
+            uiHelpPrevButton.Disabled = true;
             // TODO uiHelpPrevButton.field98 |= 0x20;
         }
 
         if (GameSystems.Help.CanNavigateToNextSibling)
         {
-            uiHelpNextButton.SetDisabled(false);
+            uiHelpNextButton.Disabled = false;
             // TODO uiHelpNextButton.field98 &= ~0x20;
         }
         else
         {
-            uiHelpNextButton.SetDisabled(true);
+            uiHelpNextButton.Disabled = true;
             // TODO uiHelpNextButton.field98 |= 0x20;
         }
     }

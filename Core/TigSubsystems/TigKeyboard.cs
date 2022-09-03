@@ -20,6 +20,8 @@ public unsafe class TigKeyboard
     public bool IsAltPressed { get; private set; }
     
     public bool IsShiftPressed { get; private set; }
+    
+    public bool IsMetaHeld { get; private set; }
 
     [TempleDllLocation(0x101DE050)]
     private bool IsPressed(SDL_Scancode scanCode)
@@ -35,5 +37,6 @@ public unsafe class TigKeyboard
         IsCtrlPressed = IsPressed(SDL_Scancode.SDL_SCANCODE_LCTRL) || IsPressed(SDL_Scancode.SDL_SCANCODE_RCTRL);
         IsShiftPressed = IsPressed(SDL_Scancode.SDL_SCANCODE_LSHIFT) || IsPressed(SDL_Scancode.SDL_SCANCODE_RSHIFT);
         IsAltPressed = IsPressed(SDL_Scancode.SDL_SCANCODE_LALT) || IsPressed(SDL_Scancode.SDL_SCANCODE_RALT);
+        IsMetaHeld = IsPressed(SDL_Scancode.SDL_SCANCODE_LGUI) || IsPressed(SDL_Scancode.SDL_SCANCODE_RGUI);
     }
 }

@@ -49,10 +49,10 @@ public class OptionsUi
         _scrollbar = doc.GetScrollBar("scrollbar");
 
         var accept = doc.GetButton("accept");
-        accept.SetClickHandler(ApplySettings);
+        accept.AddClickListener(ApplySettings);
 
         var cancel = doc.GetButton("cancel");
-        cancel.SetClickHandler(Cancel);
+        cancel.AddClickListener(Cancel);
 
         CreatePages();
 

@@ -89,7 +89,7 @@ public class MemorizedSpellButton : WidgetButtonBase
         _spellName.Visible = false;
         AddContent(_spellName);
 
-        SetClickHandler(OnClicked);
+        AddClickListener(OnClicked);
 
         OnBeforeRender += UpdateSlotRectangle;
         OnMouseEnter += ShowSpellHelp;

@@ -101,7 +101,7 @@ public class CharSheetStatsUi : IDisposable
                 StatsUiTexture.ButtonLevelOutputHover,
                 uiParams
             );
-            widget.SetClickHandler(() => ShowAbilityScoreHelp(stat));
+            widget.AddClickListener(() => ShowAbilityScoreHelp(stat));
             Container.Add(widget);
         }
 
@@ -115,7 +115,7 @@ public class CharSheetStatsUi : IDisposable
                 uiParams
             );
             widget.TooltipText = null;
-            widget.SetClickHandler(() => { GameSystems.Help.ShowTopic("TAG_ABILITY_MODIFIERS"); });
+            widget.AddClickListener(() => { GameSystems.Help.ShowTopic("TAG_ABILITY_MODIFIERS"); });
             Container.Add(widget);
         }
 
@@ -160,7 +160,7 @@ public class CharSheetStatsUi : IDisposable
             StatsUiTexture.ButtonHPOutputHover,
             uiParams
         );
-        hpValue.SetClickHandler(() => GameSystems.Help.ShowTopic("TAG_HIT_POINTS"));
+        hpValue.AddClickListener(() => GameSystems.Help.ShowTopic("TAG_HIT_POINTS"));
         hpValue.TooltipText = null;
         Container.Add(hpValue);
 
@@ -178,7 +178,7 @@ public class CharSheetStatsUi : IDisposable
             StatsUiTexture.ButtonHPOutputHover,
             uiParams
         );
-        acValue.SetClickHandler(ShowArmorClassHelp);
+        acValue.AddClickListener(ShowArmorClassHelp);
         Container.Add(acValue);
     }
 
@@ -200,7 +200,7 @@ public class CharSheetStatsUi : IDisposable
                 StatsUiTexture.ButtonFORTOutputHover,
                 uiParams
             );
-            valueWidget.SetClickHandler(() => ShowSavingThrowHelp(stat));
+            valueWidget.AddClickListener(() => ShowSavingThrowHelp(stat));
             Container.Add(valueWidget);
         }
 
@@ -262,7 +262,7 @@ public class CharSheetStatsUi : IDisposable
             StatsUiTexture.ButtonInitiativeOutputHover,
             uiParams
         );
-        initValue.SetClickHandler(ShowInitiativeBonusHelp);
+        initValue.AddClickListener(ShowInitiativeBonusHelp);
         Container.Add(initValue);
 
         Container.Add(new StatsLabel(Stat.movement_speed,
@@ -279,7 +279,7 @@ public class CharSheetStatsUi : IDisposable
             StatsUiTexture.ButtonInitiativeOutputHover,
             uiParams
         );
-        speedValue.SetClickHandler(() => GameSystems.Help.ShowTopic("TAG_MOVEMENT_RATE"));
+        speedValue.AddClickListener(() => GameSystems.Help.ShowTopic("TAG_MOVEMENT_RATE"));
         speedValue.TooltipText = null;
         Container.Add(speedValue);
 
@@ -299,7 +299,7 @@ public class CharSheetStatsUi : IDisposable
             StatsUiTexture.ButtonInitiativeOutputHover,
             uiParams
         );
-        primaryAtkValue.SetClickHandler(ShowPrimaryWeaponAttackBonusHelp);
+        primaryAtkValue.AddClickListener(ShowPrimaryWeaponAttackBonusHelp);
         Container.Add(primaryAtkValue);
 
         // Secondary Weapon Attack Bonus
@@ -317,7 +317,7 @@ public class CharSheetStatsUi : IDisposable
             StatsUiTexture.ButtonInitiativeOutputHover,
             uiParams
         );
-        secondaryAtkValue.SetClickHandler(ShowSecondaryWeaponAttackBonusHelp);
+        secondaryAtkValue.AddClickListener(ShowSecondaryWeaponAttackBonusHelp);
         Container.Add(secondaryAtkValue);
     }
 

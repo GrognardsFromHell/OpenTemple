@@ -212,7 +212,7 @@ public class TownMapContent : WidgetButtonBase
             return true;
         }
 
-        if (ButtonState == LgcyButtonState.Down)
+        if (ContainsPress)
         {
             if (ControlMode == TownMapControlMode.Pan)
             {
@@ -267,7 +267,7 @@ public class TownMapContent : WidgetButtonBase
         switch (msg.widgetEventType)
         {
             case TigMsgWidgetEvent.Clicked:
-                if (!_hasMouseCapture && Globals.UiManager.CaptureMouse(this))
+                if (!_hasMouseCapture && SetMouseCapture())
                 {
                     Logger.Info("Drag Start");
                     _hasMouseCapture = true;
@@ -299,12 +299,12 @@ public class TownMapContent : WidgetButtonBase
                 // TODO: Fat note on the mouse capture: It's broken in Vanilla.
                 // TODO: Since Exited will still be triggered even if the mouse is captured, it'll actually cancel the panning...
                 OnCursorChanged?.Invoke(null);
-                ButtonState = 0;
+                
                 if (_grabbingMap)
                 {
                     _grabbingMap = false;
                     Logger.Info("Drag Stop - Aborted");
-                    Globals.UiManager.ReleaseMouseCapture(this);
+                    ReleaseMouseCapture();
                     _hasMouseCapture = false;
                 }
 
@@ -383,7 +383,7 @@ public class TownMapContent : WidgetButtonBase
                 Logger.Info("Drag Stop - Released");
                 if (_hasMouseCapture)
                 {
-                    Globals.UiManager.ReleaseMouseCapture(this);
+                    ReleaseMouseCapture();
                     _hasMouseCapture = false;
                 }
 
@@ -618,12 +618,11 @@ public class TownMapContent : WidgetButtonBase
 
     public void Reset()
     {
-        ButtonState = default;
         _grabbingMap = false;
         if (_hasMouseCapture)
         {
             _hasMouseCapture = false;
-            Globals.UiManager.ReleaseMouseCapture(this);
+            ReleaseMouseCapture();
         }
 
         if (_zooming)

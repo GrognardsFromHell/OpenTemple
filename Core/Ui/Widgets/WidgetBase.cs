@@ -32,11 +32,71 @@ public partial class WidgetBase : Styleable, IDisposable
     protected Func<MessageWidgetArgs, bool>? mWidgetMsgHandler;
     protected Func<MessageKeyStateChangeArgs, bool>? mKeyStateChangeHandler;
     protected Func<MessageCharArgs, bool>? mCharHandler;
-    protected bool ContainsMouse { get; private set; }
+
+    private bool _containsMouse;
+    
+    private bool _pressed;
+    
+    private bool _disabled;
+    
+    /// <summary>
+    /// Is the mouse currently over this widget?
+    /// </summary>
+    public bool ContainsMouse
+    {
+        get => _containsMouse;
+        set
+        {
+            if (value != _containsMouse)
+            {
+                _containsMouse = value;
+                InvalidateStyles(); // Pseudo-class has changed
+            }
+        }
+    }
+
+    /// <summary>
+    /// Indicates that the primary mouse button has been pressed on this element
+    /// or one of its descendants, and has not been released yet.
+    /// </summary>
+    public bool Pressed
+    {
+        get => _pressed;
+        set
+        {
+            if (value != _pressed)
+            {
+                _pressed = value;
+                InvalidateStyles(); // Pseudo-class has changed
+            }
+        }
+    }
+
+    /// <summary>
+    /// Convenience property that is true if the widget is both pressed and contains the mouse.
+    /// </summary>
+    public bool ContainsPress => ContainsMouse && Pressed;
+    
+    /// <summary>
+    /// Disables the interactivity of this element.
+    /// </summary>
+    public bool Disabled
+    {
+        get => _disabled;
+        set
+        {
+            if (value != _disabled)
+            {
+                _disabled = value;
+                InvalidateStyles(); // Pseudo-class has changed
+            }
+        }
+    }
 
     public int ZIndex { get; set; }
 
-    protected List<WidgetContent> _content = new();
+    protected readonly List<WidgetContent> Content = new();
+    
     private bool _visible = true;
 
     private readonly List<AvailableHotkey> _hotkeys = new();
@@ -130,7 +190,7 @@ public partial class WidgetBase : Styleable, IDisposable
 
         UpdateLayout();
 
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             if (!content.Visible)
             {
@@ -162,7 +222,7 @@ public partial class WidgetBase : Styleable, IDisposable
 
         var contentArea = GetContentArea();
 
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             if (!content.Visible || !content.GetBounds().IntersectsWith(contentArea))
             {
@@ -182,7 +242,7 @@ public partial class WidgetBase : Styleable, IDisposable
         // Size to content
         if (contentArea.Width == 0 && contentArea.Height == 0)
         {
-            foreach (var content in _content)
+            foreach (var content in Content)
             {
                 var preferred = content.GetPreferredSize();
                 contentArea.Width = Math.Max(contentArea.Width, preferred.Width);
@@ -200,7 +260,7 @@ public partial class WidgetBase : Styleable, IDisposable
             }
         }
 
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             if (!content.Visible)
             {
@@ -335,12 +395,12 @@ public partial class WidgetBase : Styleable, IDisposable
     public void AddContent(WidgetContent content)
     {
         content.Parent = this;
-        _content.Add(content);
+        Content.Add(content);
     }
 
     public void RemoveContent(WidgetContent content)
     {
-        if (_content.Remove(content))
+        if (Content.Remove(content))
         {
             content.Parent = null;
         }
@@ -348,12 +408,12 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public void ClearContent()
     {
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             content.Parent = null;
         }
 
-        _content.Clear();
+        Content.Clear();
     }
 
     public void Show()
@@ -677,6 +737,8 @@ public partial class WidgetBase : Styleable, IDisposable
         return stylingState switch
         {
             StylingState.Hover => ContainsMouse,
+            StylingState.Pressed => Pressed,
+            StylingState.Disabled => Disabled,
             _ => false
         };
     }
@@ -685,7 +747,7 @@ public partial class WidgetBase : Styleable, IDisposable
     {
         base.OnStylesInvalidated();
 
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             content.InvalidateStyles();
         }
@@ -740,4 +802,21 @@ public partial class WidgetBase : Styleable, IDisposable
         }
         
     }
+
+    public virtual void AttachToTree(UiManager? manager)
+    {
+        UiManager = manager;
+    }
+
+    public bool SetMouseCapture()
+    {
+        return UiManager?.CaptureMouse(this) ?? false;
+    }
+
+    public void ReleaseMouseCapture()
+    {
+        UiManager?.ReleaseMouseCapture(this);
+    }
+
+    public bool HasMouseCapture => UiManager?.MouseCaptureWidget == this;
 }

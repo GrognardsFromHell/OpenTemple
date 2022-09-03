@@ -71,14 +71,14 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
 
         var exit = doc.GetButton("exit");
-        exit.SetClickHandler(Hide);
+        exit.AddClickListener(Hide);
 
         _worldMapButton = doc.GetButton("worldMapButton");
-        _worldMapButton.SetClickHandler(OpenWorldMap);
+        _worldMapButton.AddClickListener(OpenWorldMap);
 
         // Since we're on the worldmap, this button switches to the townmap
         var currentMapButton = doc.GetButton("currentMapButton");
-        currentMapButton.SetClickHandler(SwitchToCurrentMap);
+        currentMapButton.AddClickListener(SwitchToCurrentMap);
 
         var contentContainer = doc.GetContainer("mapContent");
         _mapContent = new TownMapContent(new Rectangle(Point.Empty, contentContainer.GetSize()));
@@ -90,16 +90,16 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         _mapContent.OnMarkerRemoved += MarkerRemoved;
 
         var centerOnPartyButton = doc.GetButton("centerOnPartyButton");
-        centerOnPartyButton.SetClickHandler(CenterOnPartyClicked);
+        centerOnPartyButton.AddClickListener(CenterOnPartyClicked);
 
         _placeMarkerButton = doc.GetButton("placeMarkerButton");
-        _placeMarkerButton.SetClickHandler(EnterPlaceMarkerMode);
+        _placeMarkerButton.AddClickListener(EnterPlaceMarkerMode);
 
         _removeMarkerButton = doc.GetButton("removeMarkerButton");
-        _removeMarkerButton.SetClickHandler(EnterDeleteMarkerMode);
+        _removeMarkerButton.AddClickListener(EnterDeleteMarkerMode);
 
         _zoomButton = doc.GetButton("zoomButton");
-        _zoomButton.SetClickHandler(EnterZoomMode);
+        _zoomButton.AddClickListener(EnterZoomMode);
 
         _visitedMapsList = doc.GetScrollView("visitedMapsList");
     }
@@ -133,11 +133,11 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         if (UiSystems.WorldMap.IsWorldMapAccessible)
         {
             _worldMapButton.TooltipText = null;
-            _worldMapButton.SetDisabled(false);
+            _worldMapButton.Disabled = false;
         }
         else
         {
-            _worldMapButton.SetDisabled(true);
+            _worldMapButton.Disabled = true;
             _worldMapButton.TooltipText = "#{townmap:200}";
         }
     }
@@ -222,7 +222,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             ));
             visitedMapButton.SetStyle("visitedMapButton");
             visitedMapButton.Text = GameSystems.Map.GetMapDescription(visitedMap);
-            visitedMapButton.SetClickHandler(() =>
+            visitedMapButton.AddClickListener(() =>
             {
                 if (_currentMapId != visitedMap)
                 {

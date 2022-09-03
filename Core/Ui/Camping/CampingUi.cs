@@ -145,27 +145,27 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         _mainWindow.AddContent(_hoursToRestText);
 
         _restButton = doc.GetButton("restButton");
-        _restButton.SetClickHandler(OnRestClicked);
+        _restButton.AddClickListener(OnRestClicked);
 
         _cancelButton = doc.GetButton("cancelButton");
         _cancelButton.Text = ButtonLabelCancel;
-        _cancelButton.SetClickHandler(Hide);
+        _cancelButton.AddClickListener(Hide);
 
         _incrementDaysButton = doc.GetButton("incDaysButton");
-        _incrementDaysButton.SetRepeat(true);
-        _incrementDaysButton.SetClickHandler(OnIncrementDays);
+        _incrementDaysButton.IsRepeat = true;
+        _incrementDaysButton.AddClickListener(OnIncrementDays);
 
         _decrementDaysButton = doc.GetButton("decDaysButton");
-        _decrementDaysButton.SetRepeat(true);
-        _decrementDaysButton.SetClickHandler(OnDecrementDays);
+        _decrementDaysButton.IsRepeat = true;
+        _decrementDaysButton.AddClickListener(OnDecrementDays);
 
         _incrementHoursButton = doc.GetButton("incHoursButton");
-        _incrementHoursButton.SetRepeat(true);
-        _incrementHoursButton.SetClickHandler(OnIncrementHours);
+        _incrementHoursButton.IsRepeat = true;
+        _incrementHoursButton.AddClickListener(OnIncrementHours);
 
         _decrementHoursButton = doc.GetButton("decHoursButton");
-        _decrementHoursButton.SetRepeat(true);
-        _decrementHoursButton.SetClickHandler(OnDecrementHours);
+        _decrementHoursButton.IsRepeat = true;
+        _decrementHoursButton.AddClickListener(OnDecrementHours);
 
         _restUntilHealedCheckbox = new CampingCheckbox(new Rectangle(86, 96, 113, 15), UntilHealedLabel,
             "camping-checkbox-labels");
@@ -522,11 +522,11 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         _hoursToRestLabelText.X = hoursLeft + hoursSize.Width + 153;
         _hoursToRestLabelText.Y = 85 - hoursLabelSize.Height;
 
-        _incrementDaysButton.SetDisabled(uiCampingDaysToRest >= 99);
-        _decrementDaysButton.SetDisabled(uiCampingDaysToRest <= 0);
+        _incrementDaysButton.Disabled = uiCampingDaysToRest >= 99;
+        _decrementDaysButton.Disabled = uiCampingDaysToRest <= 0;
 
-        _incrementHoursButton.SetDisabled(uiCampingHoursToRest >= 99);
-        _decrementHoursButton.SetDisabled(uiCampingHoursToRest <= 0);
+        _incrementHoursButton.Disabled = uiCampingHoursToRest >= 99;
+        _decrementHoursButton.Disabled = uiCampingHoursToRest <= 0;
     }
 
     [TempleDllLocation(0x1012ed50)]

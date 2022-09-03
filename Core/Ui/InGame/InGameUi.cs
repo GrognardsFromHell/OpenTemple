@@ -30,8 +30,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     private Dictionary<int, string> _translations;
 
     // Is set to the widget that we capture input for during drag-selection.
-    [CanBeNull]
-    private WidgetBase _capturedInputWidget;
+    private WidgetBase? _capturedInputWidget;
 
     private static readonly TimeSpan DoubleClickWindow = TimeSpan.FromMilliseconds(200);
 
@@ -451,7 +450,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         // Release previous mouse capture if applicable
         ReleaseMouseCapture();
 
-        if (viewport is WidgetBase widget && Globals.UiManager.CaptureMouse(widget))
+        if (viewport is WidgetBase widget && widget.SetMouseCapture())
         {
             _capturedInputWidget = widget;
         }
@@ -459,11 +458,8 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
 
     private void ReleaseMouseCapture()
     {
-        if (_capturedInputWidget != null)
-        {
-            Globals.UiManager.ReleaseMouseCapture(_capturedInputWidget);
-            _capturedInputWidget = null;
-        }
+        _capturedInputWidget?.ReleaseMouseCapture();
+        _capturedInputWidget = null;
     }
 
     [TempleDllLocation(0x101140F0)]

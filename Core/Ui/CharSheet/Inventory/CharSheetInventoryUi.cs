@@ -83,11 +83,11 @@ public class CharSheetInventoryUi : IDisposable
     private void SetupTotalWeightWidgets(WidgetDoc widgetDoc)
     {
         _totalWeightLabel = widgetDoc.GetButton("totalWeightLabel");
-        _totalWeightLabel.SetClickHandler(ShowTotalWeightHelp);
+        _totalWeightLabel.AddClickListener(ShowTotalWeightHelp);
 
         _totalWeightValue = widgetDoc.GetButton("totalWeightValue");
         _totalWeightLabelDefaultStyle = _totalWeightValue.GetStyle().Id;
-        _totalWeightValue.SetClickHandler(ShowTotalWeightHelp);
+        _totalWeightValue.AddClickListener(ShowTotalWeightHelp);
         _totalWeightValue.OnBeforeRender += UpdateTotalWeight;
     }
 

@@ -43,9 +43,9 @@ public class TextEntryUi
         _dialog.OnTextInput += HandleTextInput;
 
         _okButton = doc.GetButton("okButton");
-        _okButton.SetClickHandler(Confirm);
+        _okButton.AddClickListener(Confirm);
         _cancelButton = doc.GetButton("cancelButton");
-        _cancelButton.SetClickHandler(Cancel);
+        _cancelButton.AddClickListener(Cancel);
         _titleLabel = doc.GetTextContent("titleLabel");
         _currentInputLabel = doc.GetTextContent("currentInputLabel");
     }

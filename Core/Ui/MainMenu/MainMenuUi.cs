@@ -70,44 +70,44 @@ public class MainMenuUi : IDisposable
         }
 
         // Wire up buttons on the main menu
-        GetButton("new-game").SetClickHandler(() => { Show(MainMenuPage.Difficulty); });
-        GetButton("load-game").SetClickHandler(() =>
+        GetButton("new-game").AddClickListener(() => { Show(MainMenuPage.Difficulty); });
+        GetButton("load-game").AddClickListener(() =>
         {
             Hide();
             UiSystems.SaveGame.ShowLoad(true);
         });
-        GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
-        GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
-        GetButton("quit-game").SetClickHandler(() => { Tig.EventLoop.Stop(); });
+        GetButton("tutorial").AddClickListener(() => LaunchTutorial());
+        GetButton("options").AddClickListener(() => { Show(MainMenuPage.Options); });
+        GetButton("quit-game").AddClickListener(() => { Tig.EventLoop.Stop(); });
 
         // Wire up buttons on the difficulty selection page
-        GetButton("difficulty-normal").SetClickHandler(() =>
+        GetButton("difficulty-normal").AddClickListener(() =>
         {
             Globals.GameLib.IsIronmanGame = false;
             Hide();
             UiSystems.PCCreation.Start();
         });
-        GetButton("difficulty-ironman").SetClickHandler(() =>
+        GetButton("difficulty-ironman").AddClickListener(() =>
         {
             Globals.GameLib.IsIronmanGame = true;
             Hide();
             UiSystems.PCCreation.Start();
         });
-        GetButton("difficulty-exit").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
+        GetButton("difficulty-exit").AddClickListener(() => { Show(MainMenuPage.MainMenu); });
 
         // Wire up buttons on the ingame menu (normal difficulty)
-        GetButton("ingame-normal-load").SetClickHandler(() =>
+        GetButton("ingame-normal-load").AddClickListener(() =>
         {
             Hide();
             UiSystems.SaveGame.ShowLoad(false);
         });
-        GetButton("ingame-normal-save").SetClickHandler(() =>
+        GetButton("ingame-normal-save").AddClickListener(() =>
         {
             Hide();
             UiSystems.SaveGame.ShowSave(true);
         });
-        GetButton("ingame-normal-close").SetClickHandler(Hide);
-        GetButton("ingame-normal-quit").SetClickHandler(() =>
+        GetButton("ingame-normal-close").AddClickListener(Hide);
+        GetButton("ingame-normal-quit").AddClickListener(() =>
         {
             Hide();
             GameSystems.ResetGame();
@@ -116,8 +116,8 @@ public class MainMenuUi : IDisposable
         });
 
         // Wire up buttons on the ingame menu (ironman difficulty)
-        GetButton("ingame-ironman-close").SetClickHandler(Hide);
-        GetButton("ingame-ironman-save-quit").SetClickHandler(() =>
+        GetButton("ingame-ironman-close").AddClickListener(Hide);
+        GetButton("ingame-ironman-save-quit").AddClickListener(() =>
         {
             Globals.GameLib.IronmanSave();
             Globals.GameLib.Reset();
@@ -126,19 +126,19 @@ public class MainMenuUi : IDisposable
         });
 
         // Wire up buttons on the ingame menu (ironman difficulty)
-        GetButton("options-show").SetClickHandler(() =>
+        GetButton("options-show").AddClickListener(() =>
         {
             Hide();
             UiSystems.Options.Show(true);
         });
-        GetButton("options-view-cinematics").SetClickHandler(() =>
+        GetButton("options-view-cinematics").AddClickListener(() =>
         {
             Hide();
             UiSystems.UtilityBar.Hide();
             // TODO ui_mm_msg_ui4();
             mViewCinematicsDialog.Show();
         });
-        GetButton("options-credits").SetClickHandler(() =>
+        Action handler = () =>
         {
             Hide();
 
@@ -151,8 +151,9 @@ public class MainMenuUi : IDisposable
             GameSystems.Movies.MovieQueuePlay();
 
             Show(MainMenuPage.Options);
-        });
-        GetButton("options-back").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
+        };
+        GetButton("options-credits").AddClickListener(handler);
+        GetButton("options-back").AddClickListener(() => { Show(MainMenuPage.MainMenu); });
 
         RepositionWidgets(Globals.UiManager.CanvasSize);
         Globals.UiManager.OnCanvasSizeChanged += RepositionWidgets;
@@ -391,7 +392,7 @@ class ViewCinematicsDialog
 
         WidgetDoc doc = WidgetDoc.Load("ui/main_menu_cinematics.json");
 
-        doc.GetButton("view").SetClickHandler(() =>
+        doc.GetButton("view").AddClickListener(() =>
         {
             if (mSelection < 0 || mSelection >= seenIndices.Count)
                 return;
@@ -401,7 +402,7 @@ class ViewCinematicsDialog
             var movieId = movieIds[movieIdx];
             GameSystems.Movies.PlayMovieId(movieId, 0);
         });
-        doc.GetButton("cancel").SetClickHandler(() =>
+        doc.GetButton("cancel").AddClickListener(() =>
         {
             mWidget.Hide();
             _mainMenu.Show(MainMenuPage.Options);
@@ -449,7 +450,7 @@ class ViewCinematicsDialog
             //var pBtn = button.get();
             btnIds.Add(button);
             var selectIdx = i;
-            button.SetClickHandler(() => Select(selectIdx));
+            button.AddClickListener(() => Select(selectIdx));
             y += button.Height;
             mListBox.Add(button);
         }
@@ -506,12 +507,12 @@ class SetPiecesDialog
 
         WidgetDoc doc = WidgetDoc.Load("ui/main_menu_setpieces.json");
 
-        doc.GetButton("go").SetClickHandler(() =>
+        doc.GetButton("go").AddClickListener(() =>
         {
             mWidget.Hide();
             LaunchScenario();
         });
-        doc.GetButton("cancel").SetClickHandler(() =>
+        doc.GetButton("cancel").AddClickListener(() =>
         {
             mWidget.Hide();
             _mainMenuUi.Show(MainMenuPage.MainMenu);
@@ -546,7 +547,7 @@ class SetPiecesDialog
             button.Y = y;
             btnIds.Add(button);
             var idx = i;
-            button.SetClickHandler(() => Select(idx));
+            button.AddClickListener(() => Select(idx));
             y += button.Height;
             mListBox.Add(button);
         }

@@ -22,6 +22,6 @@ public class HotkeySystem : IResetAwareSystem, ISaveGameAwareGameSystem
 
     public bool IsHeld(Hotkey hotkey)
     {
-        throw new System.NotImplementedException();
+        return false; // TODO
     }
 }

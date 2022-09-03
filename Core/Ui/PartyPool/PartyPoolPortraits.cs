@@ -46,7 +46,7 @@ internal class PartyPoolPortraits
                 portrait.X = _portraits[i - 1].X + _portraits[i - 1].Width;
             }
 
-            portrait.SetClickHandler(() => Select(portrait.Player));
+            portrait.AddClickListener(() => Select(portrait.Player));
             _portraits[i] = portrait;
             Container.Add(portrait);
         }
@@ -130,7 +130,7 @@ internal class PartyPoolPortrait : WidgetButton
 
     private void Update()
     {
-        SetDisabled(_player == null);
+        Disabled = _player == null;
         if (_player != null)
         {
             var portraitId = _player.GetInt32(obj_f.critter_portrait);

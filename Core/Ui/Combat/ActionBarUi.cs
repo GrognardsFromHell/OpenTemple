@@ -77,7 +77,7 @@ public class ActionBarUi
         var actionBarButton = new WidgetButton();
         actionBarButton.SetStyle(new WidgetButtonStyle());
         actionBarButton.SetSizeToParent(true);
-        actionBarButton.SetClickHandler(OnActionBarButtonClick);
+        actionBarButton.AddClickListener(OnActionBarButtonClick);
         actionBarButton.TooltipStyle = "action-bar-tooltip";
         actionBarButton.OnBeforeRender += () =>
         {
@@ -96,7 +96,7 @@ public class ActionBarUi
         });
         nextTurn.Name = "next_turn";
         nextTurn.OnBeforeRender += () => OnBeforeRenderNextTurn(nextTurn);
-        nextTurn.SetClickHandler(OnNextTurnClick);
+        nextTurn.AddClickListener(OnNextTurnClick);
         _window.Add(nextTurn);
     }
 
@@ -151,7 +151,7 @@ public class ActionBarUi
     {
         var disabled = !GameSystems.Party.IsPlayerControlled(GameSystems.D20.Initiative.CurrentActor) ||
                        uiCombat_10C040B0;
-        nextTurn.SetDisabled(disabled);
+        nextTurn.Disabled = disabled;
     }
 
     [TempleDllLocation(0x10172ac0)]

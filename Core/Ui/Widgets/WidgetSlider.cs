@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
 
@@ -23,33 +22,33 @@ public class WidgetSlider : WidgetContainer
 
         var leftButton = new WidgetButton();
         leftButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-left"));
-        leftButton.SetClickHandler(() => { SetValue(GetValue() - 1); });
-        leftButton.SetRepeat(true);
+        leftButton.AddClickListener(() => { SetValue(GetValue() - 1); });
+        leftButton.IsRepeat = true;
         leftButton.Width = 27;
         leftButton.Height = 27;
 
         var rightButton = new WidgetButton();
         rightButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-right"));
-        rightButton.SetClickHandler(() => { SetValue(GetValue() + 1); });
-        rightButton.SetRepeat(true);
+        rightButton.AddClickListener(() => { SetValue(GetValue() + 1); });
+        rightButton.IsRepeat = true;
         rightButton.Width = 27;
         rightButton.Height = 27;
         rightButton.X = Width - rightButton.Width;
 
         var track = new WidgetButton();
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-track"));
-        track.SetClickHandler((x, y) =>
+        track.AddClickListener(e =>
         {
-            if (x < _handleButton.X)
+            if (e.X < _handleButton.X)
             {
                 SetValue(GetValue() - Quantum);
             }
-            else if (x >= _handleButton.X + _handleButton.Width)
+            else if (e.X >= _handleButton.X + _handleButton.Width)
             {
                 SetValue(GetValue() + Quantum);
             }
         });
-        track.SetRepeat(true);
+        track.IsRepeat = true;
 
         var handle = new WidgetSliderHandle(this);
         handle.Y = 2;
@@ -212,14 +211,14 @@ public class WidgetSlider : WidgetContainer
 
                 if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
                 {
-                    Globals.UiManager.ReleaseMouseCapture(this);
+                    ReleaseMouseCapture();
                 }
             }
             else
             {
                 if (msg.flags.HasFlag(MouseEventFlag.LeftHeld))
                 {
-                    Globals.UiManager.CaptureMouse(this);
+                    SetMouseCapture();
                     _dragGrabPoint = msg.X;
                     _dragX = X;
                 }

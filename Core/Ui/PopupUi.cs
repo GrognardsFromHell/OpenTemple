@@ -71,7 +71,7 @@ public class PopupUi : IDisposable, IResetAwareSystem
         okButton.Visible = false;
         window.Add(okButton);
         uiPopup.btn1 = okButton;
-        okButton.SetClickHandler(() => OnClickButton(uiPopup, 0));
+        okButton.AddClickListener(() => OnClickButton(uiPopup, 0));
 
         var cancelButton = new WidgetButton(new Rectangle(0, 0, 0, 0));
 // popup_ui_button2.OnHandleMessage += 0x10171b50;
@@ -81,7 +81,7 @@ public class PopupUi : IDisposable, IResetAwareSystem
         cancelButton.Visible = false;
         window.Add(cancelButton);
         uiPopup.btn2 = cancelButton;
-        cancelButton.SetClickHandler(() => OnClickButton(uiPopup, 1));
+        cancelButton.AddClickListener(() => OnClickButton(uiPopup, 1));
 
         var popup_ui_button3 = new WidgetButton(new Rectangle(0, 0, 0, 0));
 // popup_ui_button3.OnHandleMessage += 0x10171b50;

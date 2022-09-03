@@ -34,7 +34,7 @@ internal class DialogResponseList : WidgetContainer
                 responseLine.SkillUsed
             );
             var index = responseIndex;
-            responseButton.SetClickHandler(() => OnResponseSelected?.Invoke(index));
+            responseButton.AddClickListener(() => OnResponseSelected?.Invoke(index));
             Add(responseButton);
             responseIndex++;
         }

@@ -75,7 +75,7 @@ public class CharInventoryButton : WidgetButton
         }
 
         // Draw the bag icon
-        if (ButtonState != LgcyButtonState.Disabled)
+        if (!Disabled)
         {
             Tig.ShapeRenderer2d.DrawRectangle(
                 contentArea.X,

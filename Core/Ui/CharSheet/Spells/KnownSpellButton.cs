@@ -54,7 +54,13 @@ public class KnownSpellButton : WidgetButtonBase
         else
         {
             TooltipText = GameSystems.Spell.GetSpellName(_spell.spellEnum);
-            OnRightClick += (x, y) => OnMemorizeSpell?.Invoke(_spell, null);
+            OnOtherClick += e =>
+            {
+                if (e.Button == MouseButton.RIGHT)
+                {
+                    OnMemorizeSpell?.Invoke(_spell, null);
+                }
+            };
         }
     }
 

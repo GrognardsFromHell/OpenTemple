@@ -160,7 +160,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
 
         var exit = doc.GetButton("exit");
-        exit.SetClickHandler(() =>
+        exit.AddClickListener(() =>
         {
             if (!IsMakingTrip)
             {
@@ -174,10 +174,10 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
         // Since we're on the worldmap, this button switches to the townmap
         _currentMapButton = doc.GetButton("currentMapButton");
-        _currentMapButton.SetClickHandler(SwitchToTownMap);
+        _currentMapButton.AddClickListener(SwitchToTownMap);
 
         var centerOnParty = doc.GetButton("centerOnPartyButton");
-        centerOnParty.SetClickHandler(() =>
+        centerOnParty.AddClickListener(() =>
         {
             // TODO: This is ... weird. The renderer will swap in a greyed out texture, but the message
             // handler will still react ?!
@@ -500,12 +500,12 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         // TODO: Honestly, this should just use whether a townmap is available or not
         if (mode == WorldMapMode.LeaveRandomEncounter)
         {
-            _currentMapButton.SetDisabled(true);
+            _currentMapButton.Disabled = true;
             _currentMapButton.TooltipText = "#{townmap:13}";
         }
         else
         {
-            _currentMapButton.SetDisabled(false);
+            _currentMapButton.Disabled = false;
             _currentMapButton.TooltipText = null;
         }
 

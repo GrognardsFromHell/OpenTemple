@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GameObjects;
@@ -62,13 +63,13 @@ internal class ClericFeaturesUi : IChargenSystem
         _channelingTypeContainer = doc.GetContainer("channelingTypeContainer");
         _channelingTypeLabel = doc.GetTextContent("channelingTypeLabel");
         _channelingPositiveButton = doc.GetButton("channelingPositiveButton");
-        _channelingPositiveButton.SetClickHandler(() =>
+        _channelingPositiveButton.AddClickListener(() =>
         {
             _pkt.alignmentChoice = AlignmentChoice.Positive;
             OnAlignmentChoiceChanged();
         });
         _channelingNegativeButton = doc.GetButton("channelingNegativeButton");
-        _channelingNegativeButton.SetClickHandler(() =>
+        _channelingNegativeButton.AddClickListener(() =>
         {
             _pkt.alignmentChoice = AlignmentChoice.Negative;
             OnAlignmentChoiceChanged();
@@ -132,7 +133,7 @@ internal class ClericFeaturesUi : IChargenSystem
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
-                Globals.UiManager.ReleaseMouseCapture(widget);
+                widget.ReleaseMouseCapture();
                 widget.Visible = true;
 
                 var widgetUnderCursor = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
@@ -179,7 +180,7 @@ internal class ClericFeaturesUi : IChargenSystem
         }
         else if ((msg.flags & MouseEventFlag.LeftClick) != 0)
         {
-            if (!Globals.UiManager.CaptureMouse(widget))
+            if (!widget.SetMouseCapture())
             {
                 // Something else has the mouse capture right now (how are we getting this message then...?)
                 return true;

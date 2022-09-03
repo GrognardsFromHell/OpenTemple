@@ -45,7 +45,7 @@ public class CampingCheckbox : WidgetButtonBase
         AddContent(_unchecked);
 
         Checked = false;
-        SetClickHandler(OnClick);
+        AddClickListener(OnClick);
     }
 
     private void OnClick()

@@ -3,7 +3,6 @@ using System;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
@@ -14,8 +13,6 @@ namespace OpenTemple.Core.Ui.Widgets;
 public class WidgetButtonBase : WidgetBase
 {
     private readonly WidgetTooltipRenderer _tooltipRenderer = new ();
-
-    public bool ClickOnMouseDown { get; set; } = false;
 
     public string TooltipStyle
     {
@@ -35,28 +32,18 @@ public class WidgetButtonBase : WidgetBase
         set => _tooltipRenderer.TooltipContent = value;
     }
 
-    protected bool mDisabled = false;
+    public bool IsRepeat { get; set; }
+    
+    public TimeSpan RepeatInterval { get; set; } = TimeSpan.FromMilliseconds(200);
+    
+    private MouseEvent? _repeatingEvent;
+    private TimePoint _repeatingEventTime;
 
-    protected bool mRepeat = false;
-    protected TimeSpan mRepeatInterval = TimeSpan.FromMilliseconds(200);
-    protected TimePoint mLastClickTriggered;
-
-    public delegate void ClickHandler(float x, float y);
-
-    private ClickHandler? mClickHandler;
-
-    public event ClickHandler? OnRightClick;
-
-    public WidgetButtonBase([CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1)
-        : base(filePath, lineNumber)
+    public WidgetButtonBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : base(filePath, lineNumber)
     {
     }
 
-    public WidgetButtonBase(Rectangle rect, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : this(filePath, lineNumber)
+    public WidgetButtonBase(Rectangle rect, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(filePath, lineNumber)
     {
         SetPos(rect.Location);
         SetSize(rect.Size);
@@ -64,53 +51,37 @@ public class WidgetButtonBase : WidgetBase
 
     protected override void DefaultMouseDownAction(MouseEvent e)
     {
-        if (ClickOnMouseDown)
+        if (Disabled)
         {
-            TriggerAction(e);
+            e.PreventDefault();
+            return;
+        }
+        if (IsRepeat && e.Button == MouseButton.LEFT)
+        {
+            if (SetMouseCapture())
+            {
+                _repeatingEvent = e;
+                TriggerAction(e);
+                e.PreventDefault(); // Prevent normal click handling                
+            }
         }
     }
 
     protected override void DefaultMouseUpAction(MouseEvent e)
     {
-        if (!ClickOnMouseDown)
+        if (IsRepeat && e.Button == MouseButton.LEFT)
         {
-            TriggerAction(e);
+            ReleaseMouseCapture();
+            _repeatingEvent = null;
+            e.PreventDefault();
         }
     }
 
     private void TriggerAction(MouseEvent e)
     {
-        if (!mDisabled && mClickHandler != null)
-        {
-            var contentArea = GetContentArea();
-            var x = e.X - contentArea.X;
-            var y = e.Y - contentArea.Y;
-            mClickHandler(x, y);
-            mLastClickTriggered = TimePoint.Now;
-        }
+        DispatchClick(e); // TODO: should translate mouse event here
+        _repeatingEventTime = TimePoint.Now;
     }
-
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        if (ClickOnMouseDown && (msg.flags & MouseEventFlag.RightClick) != 0
-            || !ClickOnMouseDown && (msg.flags & MouseEventFlag.RightReleased) != 0)
-        {
-            var clickHandler = OnRightClick;
-            if (!mDisabled && clickHandler != null)
-            {
-                var contentArea = GetContentArea();
-                var x = msg.X - contentArea.X;
-                var y = msg.Y - contentArea.Y;
-                clickHandler(x, y);
-                return true;
-            }
-        }
-
-        base.HandleMouseMessage(msg);
-        return true; // Always swallow mouse messages by default to prevent buttons from being click-through
-    }
-
-    public LgcyButtonState ButtonState { get; set; }
 
     public int sndHoverOff { get; set; } = -1;
 
@@ -120,59 +91,15 @@ public class WidgetButtonBase : WidgetBase
 
     public int sndClick { get; set; } = -1;
 
-    public void SetDisabled(bool disabled)
-    {
-        mDisabled = disabled;
-    }
-
-    public bool IsDisabled()
-    {
-        return mDisabled;
-    }
-
-    public void SetClickHandler(Action handler)
-    {
-        mClickHandler = (x, y) => handler();
-    }
-
-    public void SetClickHandler(ClickHandler handler)
-    {
-        mClickHandler = handler;
-    }
-
-    public bool IsRepeat()
-    {
-        return mRepeat;
-    }
-
-    public void SetRepeat(bool enable)
-    {
-        mRepeat = enable;
-        ClickOnMouseDown = true;
-    }
-
-    public TimeSpan GetRepeatInterval()
-    {
-        return mRepeatInterval;
-    }
-
-    public void SetRepeatInterval(TimeSpan interval)
-    {
-        mRepeatInterval = interval;
-    }
 
     public override void OnUpdateTime(TimePoint now)
     {
-        if (mRepeat && ButtonState == LgcyButtonState.Down)
+        if (IsRepeat && _repeatingEvent != null && !Disabled)
         {
-            var pos = Tig.Mouse.Pos;
-            if (mClickHandler != null && !mDisabled && mLastClickTriggered + mRepeatInterval < now)
+            if (_repeatingEventTime + RepeatInterval < now && ContainsMouse)
             {
-                var contentArea = GetContentArea();
-                int x = pos.X - contentArea.X;
-                int y = pos.Y - contentArea.Y;
-                mClickHandler(x, y);
-                mLastClickTriggered = TimePoint.Now;
+                DispatchClick(_repeatingEvent);
+                _repeatingEventTime = TimePoint.Now;
             }
         }
     }
@@ -180,15 +107,5 @@ public class WidgetButtonBase : WidgetBase
     public override void RenderTooltip(int x, int y)
     {
         _tooltipRenderer.Render(x, y);
-    }
-
-    public override bool HasPseudoClass(StylingState stylingState)
-    {
-        if (stylingState == StylingState.Hover)
-        {
-            return ButtonState == LgcyButtonState.Hovered;
-        }
-
-        return base.HasPseudoClass(stylingState);
     }
 }

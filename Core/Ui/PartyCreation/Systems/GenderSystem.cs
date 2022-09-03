@@ -34,10 +34,10 @@ internal class GenderSystem : IChargenSystem
         Container.Visible = false;
 
         _maleButton = doc.GetButton("maleButton");
-        _maleButton.SetClickHandler(() => ChooseGender(Gender.Male));
+        _maleButton.AddClickListener(() => ChooseGender(Gender.Male));
 
         _femaleButton = doc.GetButton("femaleButton");
-        _femaleButton.SetClickHandler(() => ChooseGender(Gender.Female));
+        _femaleButton.AddClickListener(() => ChooseGender(Gender.Female));
 
         // NOTE: Vanilla previously tried showing gender-specific help texts, but those texts actually don't exist
     }

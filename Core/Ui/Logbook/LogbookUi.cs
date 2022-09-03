@@ -91,7 +91,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
             HoverImagePath = "art/interface/logbook_ui/exit_hover.tga",
             PressedImagePath = "art/interface/logbook_ui/exit_click.tga"
         }.UseDefaultSounds());
-        exitButton.SetClickHandler(Hide);
+        exitButton.AddClickListener(Hide);
         exitButton.Name = "logbook_ui_main_exit_butn";
         _window.Add(exitButton);
 
@@ -122,7 +122,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
 
             // Activate the corresponding tab on click
             var tabToActivate = index;
-            tabButton.SetClickHandler(() =>
+            tabButton.AddClickListener(() =>
             {
                 _currentTab = tabToActivate;
                 Show(_showingQuotes);

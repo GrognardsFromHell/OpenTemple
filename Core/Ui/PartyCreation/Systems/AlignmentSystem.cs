@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -52,7 +53,7 @@ internal class AlignmentSystem : IChargenSystem
         {
             button.OnMouseEnter += msg => ShowAlignmentHelp(alignment);
             button.OnMouseLeave += msg => UpdateDescriptionBox();
-            button.SetClickHandler(() => SelectAlignment(alignment));
+            button.AddClickListener(() => SelectAlignment(alignment));
         }
     }
 
@@ -75,7 +76,7 @@ internal class AlignmentSystem : IChargenSystem
             // TODO: We should show a tooltip explaining WHY a certain alignment is unavailable
             var compatibleWithParty = IsCompatibleAlignment(partyAlignment, alignment);
             var compatibleWithClass = D20ClassSystem.IsCompatibleAlignment(_pkt.classCode, alignment);
-            button.SetDisabled(!compatibleWithParty || !compatibleWithClass);
+            button.Disabled = !compatibleWithParty || !compatibleWithClass;
         }
 
         UpdateSelection();
@@ -145,7 +146,7 @@ internal class AlignmentSystem : IChargenSystem
 
         foreach (var (alignment, button) in _alignmentButtons)
         {
-            if (!button.IsDisabled())
+            if (!button.Disabled)
             {
                 SelectAlignment(alignment);
                 return true;

@@ -70,21 +70,21 @@ class AbilityScoreSystem : IChargenSystem
 
         _titleLabel = doc.GetTextContent("title");
         _rerollButton = doc.GetButton("reroll");
-        _rerollButton.SetClickHandler(RerollStats);
+        _rerollButton.AddClickListener(RerollStats);
         _rerollsLabel = doc.GetTextContent("rerollsLabel");
 
         _togglePointBuyButton = doc.GetButton("togglePointBuy");
-        _togglePointBuyButton.SetClickHandler(TogglePointBuy);
+        _togglePointBuyButton.AddClickListener(TogglePointBuy);
         _increaseButtons = new WidgetButton[6];
         _decreaseButtons = new WidgetButton[6];
         for (var i = 0; i < 6; i++)
         {
             var abilityIndex = i;
             _increaseButtons[i] = doc.GetButton($"increase-{AttributeIdSuffixes[i]}");
-            _increaseButtons[i].SetClickHandler(() => IncreaseStat(abilityIndex));
+            _increaseButtons[i].AddClickListener(() => IncreaseStat(abilityIndex));
 
             _decreaseButtons[i] = doc.GetButton($"decrease-{AttributeIdSuffixes[i]}");
-            _decreaseButtons[i].SetClickHandler(() => DecreaseStat(abilityIndex));
+            _decreaseButtons[i].AddClickListener(() => DecreaseStat(abilityIndex));
 
             var assignedValContainer = doc.GetContainer($"assigned-val-{AttributeIdSuffixes[i]}");
             var assignedVal = new AbilityScoreValueWidget(
@@ -131,7 +131,7 @@ class AbilityScoreSystem : IChargenSystem
             if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
-                Globals.UiManager.ReleaseMouseCapture(widget);
+                widget.ReleaseMouseCapture();
                 widget.IsDragging = false;
 
                 var widgetUnderCursor = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
@@ -173,7 +173,7 @@ class AbilityScoreSystem : IChargenSystem
         }
         else if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
         {
-            if (!Globals.UiManager.CaptureMouse(widget))
+            if (!widget.SetMouseCapture())
             {
                 // Something else has the mouse capture right now (how are we getting this message then...?)
                 return true;
@@ -238,7 +238,7 @@ class AbilityScoreSystem : IChargenSystem
             {
                 if (Globals.GameLib.IsIronmanGame)
                 {
-                    _rerollButton.SetDisabled(true);
+                    _rerollButton.Disabled = true;
                     RollIronmanStats();
                 }
                 else
@@ -350,7 +350,7 @@ class AbilityScoreSystem : IChargenSystem
             pkt.abilityStats[i] = -1;
         }
 
-        _rerollButton.SetDisabled(false);
+        _rerollButton.Disabled = false;
         UiPcCreationStatSetPointbuyState(false);
     }
 
@@ -449,9 +449,9 @@ class AbilityScoreSystem : IChargenSystem
                 else if (abLvl >= 14)
                     cost = 2;
                 if (pointBuyPoints < cost || (abLvl == 18 && !Globals.Config.laxRules))
-                    incBtnId.SetDisabled(true);
+                    incBtnId.Disabled = true;
                 else
-                    incBtnId.SetDisabled(false);
+                    incBtnId.Disabled = false;
                 incBtnId.Visible = isPointBuyMode;
             }
 
@@ -466,9 +466,9 @@ class AbilityScoreSystem : IChargenSystem
 
                 if (pointBuyPoints >= Globals.Config.PointBuyBudget || (abLvl == 8 && !Globals.Config.laxRules) ||
                     abLvl <= 5)
-                    decBtnId.SetDisabled(true);
+                    decBtnId.Disabled = true;
                 else
-                    decBtnId.SetDisabled(false);
+                    decBtnId.Disabled = false;
                 decBtnId.Visible = isPointBuyMode;
             }
         }

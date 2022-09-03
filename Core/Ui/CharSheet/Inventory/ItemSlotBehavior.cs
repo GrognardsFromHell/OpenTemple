@@ -98,14 +98,14 @@ public class ItemSlotBehavior
             iconSize.Width -= 4;
             Tig.Mouse.SetDraggedIcon(texturePath, Point.Round(new PointF(-relPos.X + 4, -relPos.Y + 4)), iconSize);
 
-            _slotWidget.UiManager?.CaptureMouse(_slotWidget);
+            _slotWidget.SetMouseCapture();
             _dragging = false;
         }
     }
     
     private void HandleMouseUp(MouseEvent e)
     {
-        _slotWidget.UiManager?.ReleaseMouseCapture(_slotWidget);
+        _slotWidget.ReleaseMouseCapture();
         
         var currentItem = CurrentItem;
 
