@@ -50,11 +50,11 @@ public class StatsCurrencyLabel : WidgetButtonBase
 
         _label = new WidgetText(_currentText, "char-ui-stat-money");
         AddContent(_label);
-        AddClickListener(OnClick);
+        AddClickListener(ShowHelp);
     }
 
     [TempleDllLocation(0x101c5dd0)]
-    private void OnClick()
+    private void ShowHelp()
     {
         GameSystems.Help.ShowTopic("TAG_MONEY");
     }

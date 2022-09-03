@@ -112,8 +112,8 @@ public class CharSheetLootingUi : IDisposable
             var slotsOrigin = new Point(12, 128);
             var slotPos = slotsOrigin;
             slotPos.Offset(
-                slotX * (LootingSlotWidget.Size.Width + LootingSlotWidget.MarginRight),
-                slotY * (LootingSlotWidget.Size.Height + LootingSlotWidget.MarginBottom)
+                slotX * (LootingSlotWidget.SlotSize.Width + LootingSlotWidget.MarginRight),
+                slotY * (LootingSlotWidget.SlotSize.Height + LootingSlotWidget.MarginBottom)
             );
 
             var slotWidget = new LootingSlotWidget(i, slotPos);
