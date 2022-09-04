@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -54,7 +53,12 @@ public class WidgetContainer : WidgetBase
     
     public virtual void Add(WidgetBase childWidget)
     {
-        if (childWidget.Parent != null && childWidget.Parent != this)
+        if (childWidget.Parent == this)
+        {
+            Trace.Assert(mChildren.Contains(childWidget));
+            return;
+        }
+        if (childWidget.Parent != null)
         {
             childWidget.Parent.Remove(childWidget);
         }
@@ -97,8 +101,13 @@ public class WidgetContainer : WidgetBase
         }
     }
 
-    public override WidgetBase PickWidget(float x, float y)
+    public override WidgetBase? PickWidget(float x, float y)
     {
+        if (!Visible)
+        {
+            return null;
+        }
+        
         for (var i = mChildren.Count - 1; i >= 0; i--)
         {
             var child = mChildren[i];
@@ -132,7 +141,7 @@ public class WidgetContainer : WidgetBase
 
     public override void BringToFront()
     {
-        if (_parent == null)
+        if (Parent == null)
         {
             UiManager?.BringToFront(this);
         }
@@ -275,14 +284,4 @@ public class WidgetContainer : WidgetBase
 
     private int mScrollOffsetY = 0;
 
-    public void CenterOnScreen()
-    {
-        Trace.Assert(Parent == null);
-        if (UiManager != null)
-        {
-            var screenSize = UiManager.CanvasSize;
-            X = (screenSize.Width - Width) / 2;
-            Y = (screenSize.Height - Height) / 2;
-        }
-    }
 };

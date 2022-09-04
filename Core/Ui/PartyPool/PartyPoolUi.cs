@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -38,7 +39,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10163720)]
-    public bool IsVisible => _container.Visible;
+    public bool IsVisible => _container.IsInTree;
 
     private Alignment _alignment;
 
@@ -102,7 +103,6 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     {
         // TODO: Auto-resize to screen size
         _container = new WidgetContainer(Globals.UiManager.CanvasSize);
-        _container.Visible = false;
         _container.PreventsInGameInteraction = true;
         
         var doc = WidgetDoc.Load("ui/party_pool.json");
@@ -471,7 +471,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         AddPcsFromBuffer();
         Update();
 
-        _container.Show();
+        Globals.UiManager.AddWindow(_container);
         _container.CenterOnScreen();
 
         UiSystems.Party.Hide();
@@ -515,7 +515,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             }
         }
 
-        _container.Visible = false;
+        Globals.UiManager.RemoveWindow(_container);
 
         if (!a1)
         {

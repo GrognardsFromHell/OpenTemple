@@ -22,8 +22,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait;
 
 public class CharSheetPortraitUi : IDisposable
 {
-    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
     public WidgetContainer Container { get; }
 
     [TempleDllLocation(0x10C4D4A0)]

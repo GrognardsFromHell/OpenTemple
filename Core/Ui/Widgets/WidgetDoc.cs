@@ -235,9 +235,7 @@ internal class WidgetDocLoader
     {
         foreach (var childJson in jsonObj.EnumerateArray())
         {
-            var childWidget = LoadWidgetTree(childJson);
-            childWidget.Parent = container;
-            container.Add(childWidget);
+            container.Add(LoadWidgetTree(childJson));
         }
     }
 

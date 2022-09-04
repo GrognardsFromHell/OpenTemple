@@ -172,7 +172,6 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     private void InitConfirmSelectionButton()
     {
         _confirmSelectionButtonContainer = new WidgetContainer(0, 0, 30, 30);
-        _confirmSelectionButtonContainer.Visible = false;
         _confirmSelectionButtonContainer.ZIndex = 999999;
 
         var confirmSelectionButton = new WidgetButton(new Rectangle(0, 0, 30, 30));
@@ -668,7 +667,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
         {
             if (!UiSystems.Party.TryGetPartyMemberRect(caster, out var rectangle))
             {
-                _confirmSelectionButtonContainer.Visible = false;
+                Globals.UiManager.RemoveWindow(_confirmSelectionButtonContainer);
                 return;
             }
 
@@ -678,16 +677,16 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
             var x = rectangle.X + (rectangle.Width - buttonWidth) / 2;
             var y = rectangle.Y - 12; // TODO: I believe this rectangle might differ from vanilla and this height adjustment needs to be changed
             _confirmSelectionButtonContainer.SetPos(x, y);
-            _confirmSelectionButtonContainer.Visible = true;
+            Globals.UiManager.AddWindow(_confirmSelectionButtonContainer);
             return;
         }
 
-        _confirmSelectionButtonContainer.Visible = false;
+        Globals.UiManager.RemoveWindow(_confirmSelectionButtonContainer);
     }
 
     public void HideConfirmSelectionButton()
     {
-        _confirmSelectionButtonContainer.Visible = false;
+        Globals.UiManager.RemoveWindow(_confirmSelectionButtonContainer);
     }
 
     [TempleDllLocation(0x101350f0)]

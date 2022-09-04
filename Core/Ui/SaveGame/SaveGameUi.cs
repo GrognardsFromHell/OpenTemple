@@ -22,7 +22,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10176b00)]
-    public bool IsVisible => _window.Visible;
+    public bool IsVisible => _window.IsInTree;
 
     [TempleDllLocation(0x10c07ca0)]
     private readonly WidgetContainer _window;
@@ -70,7 +70,6 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         var doc = WidgetDoc.Load("ui/save_game_ui.json");
 
         _window = doc.GetRootContainer();
-        _window.Visible = false;
         _window.SetCharHandler(OnCharEntered);
 
         _loadButton = doc.GetButton("load");
@@ -415,7 +414,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         LoadSaveList();
         UpdateUi();
 
-        _window.Visible = true;
+        Globals.UiManager.AddWindow(_window);
         _window.CenterOnScreen();
         _window.BringToFront();
         _openedFromMainMenu = fromMainMenu;
@@ -462,7 +461,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
 
         _saves.Clear();
         _selectedSave = null;
-        _window.Visible = false;
+        Globals.UiManager.RemoveWindow(_window);
         if (_mode == Mode.Loading)
         {
             if (!_openedFromMainMenu)

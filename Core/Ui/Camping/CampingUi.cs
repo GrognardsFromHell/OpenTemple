@@ -28,7 +28,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
     private readonly Dictionary<int, string> _translations;
 
     [TempleDllLocation(0x1012e440)]
-    public bool IsHidden => !_mainWindow.Visible;
+    public bool IsHidden => !_mainWindow.IsInTree;
 
     public bool IsVisible => !IsHidden;
 
@@ -123,7 +123,6 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         _mainWindow.PreventsInGameInteraction = true;
         _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
         _mainWindow.ZIndex = 100000;
-        _mainWindow.Visible = false;
         _mainWindow.OnBeforeRender += UpdateCheckboxes;
 
         var titleLabel = new WidgetText(WindowTitle, "camping-button-text");
@@ -189,7 +188,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         // sticky_ui_main_window1.OnBeforeRender += 0x1019a9a0;
         sticky_ui_main_window1.ZIndex = 0;
         sticky_ui_main_window1.Name = "sticky_ui_main_window";
-        sticky_ui_main_window1.Visible = false;
+        sticky_ui_main_window1.Visible = false; // TODO
         // Created @ 0x1019b39a
         // var @ [TempleDllLocation(0x11e7277c)]
         var radialmenuslideracceptbutton1 = new WidgetButton(new Rectangle(328, 370, 112, 22));
@@ -391,12 +390,10 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
     [TempleDllLocation(0x1012eef0)]
     public void Hide()
     {
-        if (_mainWindow.Visible)
+        if (Globals.UiManager.RemoveWindow(_mainWindow))
         {
             GameSystems.TimeEvent.ResumeGameTime();
         }
-
-        _mainWindow.Visible = false;
     }
 
     [TempleDllLocation(0x1012f0c0)]
@@ -411,9 +408,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         GameSystems.TimeEvent.PauseGameTime();
         UiSystems.HideOpenedWindows(true);
 
-        _mainWindow.Visible = true;
-        _mainWindow.BringToFront();
-        _mainWindow.CenterOnScreen();
+        Globals.UiManager.ShowModal(_mainWindow);
 
         if (sleepStatus == SleepStatus.PassTimeOnly)
         {

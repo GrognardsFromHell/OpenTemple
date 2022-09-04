@@ -441,13 +441,13 @@ public class PartyUi : IResetAwareSystem, IDisposable
         ui_party_widgets_need_refresh = true;
     }
 
-    public void Hide()
-    {
-        _container.Visible = false;
-    }
-
     public void Show()
     {
-        _container.Visible = true;
+        Globals.UiManager.AddWindow(_container);
+    }
+
+    public void Hide()
+    {
+        Globals.UiManager.RemoveWindow(_container);
     }
 }

@@ -27,7 +27,6 @@ public class CharSheetFeatsUi : IDisposable
         Container = new WidgetContainer(new Rectangle(256, 76, 398, 266));
         Container.OnMouseWheel += ForwardScrollWheel;
         Container.Name = "char_feats_ui_main_window";
-        Container.Visible = false;
 
         _scrollbar = new WidgetScrollBar(new Rectangle(384, 0, 13, 266));
         _scrollbar.SetValueChangeHandler(_ => UpdateButtons());

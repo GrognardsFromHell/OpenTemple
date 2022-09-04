@@ -17,19 +17,16 @@ public class WidgetScrollBar : WidgetContainer
     public WidgetScrollBar() : base(0, 0)
     {
         var upButton = new WidgetButton();
-        upButton.Parent = this;
         upButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-up"));
         upButton.AddClickListener(() => { SetValue(GetValue() - 1); });
         upButton.IsRepeat = true;
 
         var downButton = new WidgetButton();
-        downButton.Parent = this;
         downButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-down"));
         downButton.AddClickListener(() => { SetValue(GetValue() + 1); });
         downButton.IsRepeat = true;
 
         var track = new WidgetButton();
-        track.Parent = this;
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-track"));
         track.AddClickListener(e => {
             // The y value is in relation to the track, we need to add it's own Y value,
@@ -47,7 +44,6 @@ public class WidgetScrollBar : WidgetContainer
         track.IsRepeat = true;
 
         var handle = new WidgetScrollBarHandle(this);
-        handle.Parent = this;
         handle.Height = 100;
 
         Width = Math.Max(upButton.Width, downButton.Width);

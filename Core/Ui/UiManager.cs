@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.Logging;
@@ -88,7 +89,7 @@ public class UiManager : IUiRoot
     /// </summary>
     public object? DraggedObject { get; set; }
 
-    public WidgetContainer Modal { get; set; }
+    public WidgetBase Modal { get; set; }
 
     public PointF MousePos => _mousePos;
 
@@ -106,28 +107,44 @@ public class UiManager : IUiRoot
     /// <summary>
     /// Add something to the list of active windows on top of all existing windows.
     /// </summary>
-    public void AddWindow(WidgetContainer window)
+    public void AddWindow(WidgetBase widget)
     {
-        if (_topLevelWidgets.Contains(window))
+        if (_topLevelWidgets.Contains(widget))
         {
             // Window is already in the list
             return;
         }
 
-        // Don't add it, if it's hidden
-        if (!window.Visible)
+        if (widget.Parent != null)
         {
-            return;
+            throw new ArgumentException("Cannot show a parented widget as a window.");
         }
 
-        _topLevelWidgets.Add(window);
-        window.AttachToTree(this);
+        if (widget.UiManager != null)
+        {
+            throw new ArgumentException("Widget already belongs to a different UI manager.");
+        }
+
+        _topLevelWidgets.Add(widget);
+        widget.AttachToTree(this);
     }
 
-    public void RemoveWindow(WidgetContainer window)
+    public bool RemoveWindow(WidgetContainer window)
     {
-        _topLevelWidgets.Remove(window);
-        SortWindows();
+        if (Modal == window)
+        {
+            Modal = null;
+        }
+
+        if (_topLevelWidgets.Remove(window))
+        {
+            window.AttachToTree(null);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public void BringToFront(WidgetContainer window)
@@ -146,23 +163,17 @@ public class UiManager : IUiRoot
         SortWindows();
     }
 
-    public void SetVisible(WidgetBase widget, bool visible)
+    public void ShowModal(WidgetBase widget, bool centerOnScreen = true)
     {
-        if (widget is WidgetContainer container && container.Parent == null)
+        AddWindow(widget);
+        Modal = widget;
+        widget.BringToFront();
+        if (centerOnScreen)
         {
-            if (visible)
-            {
-                AddWindow(container);
-            }
-            else
-            {
-                RemoveWindow(container);
-            }
+            widget.CenterOnScreen();
         }
-
-        RefreshMouseOverState();
     }
-
+    
     private static bool IsAncestor(WidgetBase widget, WidgetBase parent)
     {
         while (widget != null)
@@ -311,7 +322,7 @@ public class UiManager : IUiRoot
     private void SortWindows()
     {
         // Sort Windows by Z-Index
-        _topLevelWidgets.Sort((windowA, windowB) => { return windowA.ZIndex.CompareTo(windowB.ZIndex); });
+        _topLevelWidgets.Sort((windowA, windowB) => windowA.ZIndex.CompareTo(windowB.ZIndex));
 
         // Reassign a zindex in monotonous order to those windows that dont have one
         for (var i = 0; i < _topLevelWidgets.Count; ++i)
@@ -985,5 +996,4 @@ public class UiManager : IUiRoot
             _ => throw new ArgumentOutOfRangeException(nameof(button), button, null)
         };
     }
-
 }

@@ -45,6 +45,7 @@ public class LogbookKeysUi : IDisposable
 
         var doc = WidgetDoc.Load("ui/logbook/keys.json");
         Container = doc.GetRootContainer();
+        Container.Visible = false;
         CreateWidgets();
 
         _keyAcquiredPopup = new LogbookKeyAcquiredPopup(_translations);
@@ -61,7 +62,6 @@ public class LogbookKeysUi : IDisposable
         // Created @ 0x10198765
         Container.ZIndex = 100051;
         Container.Name = "logbook_ui_keys_acquired_keys_window";
-        Container.Visible = false;
 
         // Container for the scrollable list on the left
         var listContainer = new WidgetContainer(new Rectangle(0, 20, 283, 313));
@@ -233,6 +233,7 @@ public class LogbookKeysUi : IDisposable
 
     public void Dispose()
     {
+        Container.Dispose();
         Stub.TODO();
     }
 

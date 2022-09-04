@@ -9,7 +9,7 @@ namespace OpenTemple.Core.Ui;
 public class TextEntryUi
 {
     [TempleDllLocation(0x1014e8e0)]
-    public bool IsVisible => _dialog.Visible;
+    public bool IsVisible => _dialog.IsInTree;
 
     [TempleDllLocation(0x10bec3a0)]
     private readonly WidgetContainer _dialog;
@@ -38,7 +38,6 @@ public class TextEntryUi
         var doc = WidgetDoc.Load("ui/text_entry_ui.json");
 
         _dialog = doc.GetRootContainer();
-        _dialog.Visible = false;
         _dialog.SetKeyStateChangeHandler(HandleShortcut);
         _dialog.OnTextInput += HandleTextInput;
 
@@ -128,13 +127,14 @@ public class TextEntryUi
     [TempleDllLocation(0x1014e8a0)]
     public void ShowTextEntry(UiCreateNamePacket crNamePkt)
     {
-        _dialog.SetPos(crNamePkt.DialogX, crNamePkt.DialogY);
 
         UpdateInput(crNamePkt.InitialValue ?? "");
         _titleLabel.Text = crNamePkt.DialogTitle ?? "";
         _okButton.Text = crNamePkt.OkButtonLabel ?? "";
         _cancelButton.Text = crNamePkt.CancelButtonLabel ?? "";
         _callback = crNamePkt.Callback;
+
+        Globals.UiManager.AddWindow(_dialog);
 
         if (crNamePkt.DialogX != 0 || crNamePkt.DialogY != 0)
         {
@@ -145,8 +145,6 @@ public class TextEntryUi
         {
             _dialog.CenterOnScreen();
         }
-
-        _dialog.Visible = true;
         _dialog.BringToFront();
     }
 
@@ -182,7 +180,7 @@ public class TextEntryUi
 
     private void Reset()
     {
-        _dialog.Visible = false;
+        Globals.UiManager.RemoveWindow(_dialog);
         _currentInput = "";
         _callback = null;
         _caretPosition = 0;
@@ -193,9 +191,9 @@ public class UiCreateNamePacket
 {
     public int DialogX;
     public int DialogY;
-    public string OkButtonLabel;
-    public string CancelButtonLabel;
-    public string DialogTitle;
-    public string InitialValue;
+    public string? OkButtonLabel;
+    public string? CancelButtonLabel;
+    public string? DialogTitle;
+    public string? InitialValue;
     public Action<string, bool> Callback;
 }

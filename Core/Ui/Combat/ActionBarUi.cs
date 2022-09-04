@@ -62,8 +62,16 @@ public class ActionBarUi
         _window.Name = "combat_ui_debug_output_window";
 
         // Hide or show the entire action bar based on combat status
-        _window.Visible = false;
-        GameSystems.Combat.OnCombatStatusChanged += combatStatus => { _window.Visible = combatStatus; };
+        GameSystems.Combat.OnCombatStatusChanged += combatStatus => {
+            if (combatStatus)
+            {
+                Globals.UiManager.AddWindow(_window);
+            }
+            else
+            {
+                Globals.UiManager.RemoveWindow(_window);
+            }
+        };
 
         var actionBarImage = new WidgetImage("art/interface/COMBAT_UI/combatbar.img");
         _window.AddContent(actionBarImage);

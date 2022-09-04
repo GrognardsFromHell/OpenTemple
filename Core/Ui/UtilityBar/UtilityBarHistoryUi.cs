@@ -47,7 +47,7 @@ public class UtilityBarHistoryUi
     private WidgetButton uiHistoryMaximizeDialogBtn;
 
     [TempleDllLocation(0x10bdde34)]
-    public bool IsVisible => _container.Visible;
+    public bool IsVisible => _container.IsInTree;
 
     private List<D20RollHistoryLine> _lines = new();
 
@@ -193,7 +193,7 @@ public class UtilityBarHistoryUi
     [TempleDllLocation(0x101221c0)]
     public void Show()
     {
-        _container.Visible = true;
+        Globals.UiManager.AddWindow(_container);
         if (_maximized)
         {
             Maximize();
@@ -207,6 +207,6 @@ public class UtilityBarHistoryUi
     [TempleDllLocation(0x101219b0)]
     public void Hide()
     {
-        _container.Visible = false;
+        Globals.UiManager.RemoveWindow(_container);
     }
 }

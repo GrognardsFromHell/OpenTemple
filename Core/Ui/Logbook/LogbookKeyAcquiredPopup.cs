@@ -40,7 +40,6 @@ internal class LogbookKeyAcquiredPopup
         // _window.OnBeforeRender += 0x10196a10;
         _window.ZIndex = 100051;
         _window.Name = "logbook_ui_keys_key_entry_window";
-        _window.Visible = false;
 
         // Created @ 0x10197385
         var acceptButton = doc.GetButton("accept");
@@ -66,13 +65,13 @@ internal class LogbookKeyAcquiredPopup
     [TempleDllLocation(0x101954C0)]
     public void Show()
     {
+        Globals.UiManager.AddWindow(_window);
         _window.CenterOnScreen();
-        _window.Visible = true;
         _window.BringToFront();
     }
 
     public void Hide()
     {
-        _window.Visible = false;
+        Globals.UiManager.RemoveWindow(_window);
     }
 }

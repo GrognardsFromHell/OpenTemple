@@ -115,7 +115,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         Globals.UiStyles.LoadStylesFile("ui/char_ui_styles.json");
 
         _mainWidget = new CharUiMainWidget(_uiParams);
-        _mainWidget.Visible = false; // Initially invisible
 
         char_ui_main_nav_editor_window = new WidgetContainer(_uiParams.CharUiMainNavEditorWindow);
         _mainWidget.Add(char_ui_main_nav_editor_window);
@@ -184,12 +183,15 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
 
         Skills = new CharSheetSkillsUi();
         _mainWidget.Add(Skills.Container);
+        Skills.Hide();
         Inventory = new CharSheetInventoryUi();
         _mainWidget.Add(Inventory.Widget);
         Feats = new CharSheetFeatsUi();
         _mainWidget.Add(Feats.Container);
+        Feats.Hide();
         Spells = new CharSheetSpellsUi();
         _mainWidget.Add(Spells.Container);
+        Spells.Hide();
         Looting = new CharSheetLootingUi();
         Stats = new CharSheetStatsUi(_uiParams.CharUiMainWindow);
         _mainWidget.Add(Stats.Container);
@@ -464,7 +466,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
 
         CurrentCritter = obj;
         Inventory.Container = obj;
-        _mainWidget.Visible = true;
+        Globals.UiManager.AddWindow(_mainWidget);
         _mainWidget.BringToFront();
         Stats.Show();
         Portrait.Show(obj);
@@ -640,7 +642,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             Tig.Mouse.ClearDraggedIcon();
         }
 
-        _mainWidget.Hide();
+        Globals.UiManager.RemoveWindow(_mainWidget);
         Stats.Hide();
         Portrait.Hide();
         Inventory.Hide();

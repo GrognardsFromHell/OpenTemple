@@ -30,7 +30,6 @@ public class CharSheetStatsUi : IDisposable
         );
 
         Container = new WidgetContainer(uiParams.MainWindow);
-        Container.Visible = false;
 
         CreateMoneyLabels(uiParams);
 

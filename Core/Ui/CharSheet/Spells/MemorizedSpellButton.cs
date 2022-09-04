@@ -130,9 +130,9 @@ public class MemorizedSpellButton : WidgetButtonBase
     public override bool HandleMouseMessage(MessageMouseArgs msg)
     {
         // Forward scroll wheel messages to the parent (which will forward it to the scrollbar)
-        if (_parent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+        if (Parent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
         {
-            return _parent.HandleMouseMessage(msg);
+            return Parent.HandleMouseMessage(msg);
         }
 
         return base.HandleMouseMessage(msg);

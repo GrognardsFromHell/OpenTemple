@@ -31,7 +31,6 @@ public class PartyAlignmentUi : IDisposable
         var doc = WidgetDoc.Load("ui/party_creation/party_alignment.json");
 
         _container = doc.GetRootContainer();
-        _container.Visible = false;
 
         // RENDER: 0x1011be20
         // MESSAGE: 0x1011ed20
@@ -150,8 +149,8 @@ public class PartyAlignmentUi : IDisposable
 
     public void Show()
     {
+        Globals.UiManager.AddWindow(_container);
         _container.CenterOnScreen();
-        _container.Visible = true;
         _container.BringToFront();
 
 //            dword_10BDC430/*0x10bdc430*/ = (string )uiPcCreationText_SelectAPartyAlignment/*0x10bdb018*/;
@@ -161,6 +160,6 @@ public class PartyAlignmentUi : IDisposable
 
     public void Hide()
     {
-        _container.Visible = false;
+        Globals.UiManager.RemoveWindow(_container);
     }
 }

@@ -16,7 +16,7 @@ public class HelpUi : IResetAwareSystem
 {
     [TempleDllLocation(0x10be2e84)]
     [TempleDllLocation(0x10130300)]
-    public bool IsVisible => uiHelpWnd.Visible;
+    public bool IsVisible => uiHelpWnd.IsInTree;
 
     [TempleDllLocation(0x10be2c20)]
     private HelpRequest _currentHelpRequest;
@@ -64,7 +64,6 @@ public class HelpUi : IResetAwareSystem
         uiHelpWnd.ZIndex = 99800;
         uiHelpWnd.Name = "help_main_window";
         uiHelpWnd.AddHotkey(UiHotkeys.CloseWindow, Hide);
-        uiHelpWnd.Visible = false;
         uiHelpWnd.PreventsInGameInteraction = true;
         
         var background = new WidgetImage("art/interface/HELP_UI/helpmenu_background.img");
@@ -189,7 +188,7 @@ public class HelpUi : IResetAwareSystem
             UiSystems.HideOpenedWindows(true);
         }
 
-        uiHelpWnd.Visible = true;
+        Globals.UiManager.AddWindow(uiHelpWnd);
         uiHelpWnd.BringToFront();
         uiHelpWnd.CenterOnScreen();
 
@@ -307,7 +306,7 @@ public class HelpUi : IResetAwareSystem
     [TempleDllLocation(0x10130640)]
     public void Hide()
     {
-        uiHelpWnd.Visible = false;
+        Globals.UiManager.RemoveWindow(uiHelpWnd);
     }
 
     [TempleDllLocation(0x10130f00)]

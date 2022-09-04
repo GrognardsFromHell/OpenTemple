@@ -22,7 +22,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     private bool _isAvailable;
 
     [TempleDllLocation(0x10128b60)]
-    public bool IsVisible => _mainWindow.Visible;
+    public bool IsVisible => _mainWindow.IsInTree;
 
     private readonly WidgetContainer _mainWindow;
 
@@ -67,7 +67,6 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         var doc = WidgetDoc.Load("ui/townmap_ui.json");
 
         _mainWindow = doc.GetRootContainer();
-        _mainWindow.Visible = false;
         _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
 
         var exit = doc.GetButton("exit");
@@ -169,13 +168,13 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             return;
         }
 
-        if (!_mainWindow.Visible)
+        if (!IsVisible)
         {
             GameSystems.TimeEvent.PauseGameTime();
         }
 
         UiSystems.HideOpenedWindows(true);
-        _mainWindow.Visible = true;
+        Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
         UpdateWorldMapButton();
 
@@ -191,12 +190,11 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x1012bcb0)]
     public void Hide()
     {
-        if (!_mainWindow.Visible)
+        if (!Globals.UiManager.RemoveWindow(_mainWindow))
         {
             return;
         }
 
-        _mainWindow.Visible = false;
         _mapContent.Reset();
 
         if (UiSystems.TextEntry.IsVisible)

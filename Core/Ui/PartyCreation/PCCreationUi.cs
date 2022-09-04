@@ -124,7 +124,6 @@ public class PCCreationUi : IDisposable
 
         var doc = WidgetDoc.Load("ui/pc_creation/pc_creation_ui.json");
         _mainWindow = doc.GetRootContainer();
-        _mainWindow.Visible = false;
         _mainWindow.OnBeforeRender += BeforeRenderMainWindow;
         uiPcCreationScrollBox = new ScrollBox(new Rectangle(219, 295, 433, 148), new ScrollBoxSettings
         {
@@ -599,7 +598,7 @@ public class PCCreationUi : IDisposable
         }
 
         UiSystems.PCCreation._partyAlignmentUi.Hide();
-        _mainWindow.Show();
+        Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
 
         ShowStage(ChargenStages.CG_Stage_Stats);
@@ -843,14 +842,14 @@ public interface IChargenSystem : IDisposable
     {
     }
 
-    void Hide()
-    {
-        Container.Visible = false;
-    }
-
     void Show()
     {
         Container.Visible = true;
+    }
+
+    void Hide()
+    {
+        Container.Visible = false;
     }
 
     // checks if the char editing stage is complete (thus allowing you to move on to the next stage). This is checked at every render call.

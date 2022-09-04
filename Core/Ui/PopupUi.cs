@@ -46,7 +46,6 @@ public class PopupUi : IDisposable, IResetAwareSystem
         var window = new WidgetContainer(new Rectangle(0, 0, 0, 0));
         // popup_ui_main_window1.OnBeforeRender += 0x10170a90;
         window.Name = "popup_ui_main_window";
-        window.Visible = false;
         window.PreventsInGameInteraction = true;        
         uiPopup.wnd = window;
 
@@ -105,7 +104,7 @@ public class PopupUi : IDisposable, IResetAwareSystem
 
         popup.isActive = false;
         uiPopupCurrent = -1;
-        popup.wnd.Visible = false;
+        Globals.UiManager.RemoveWindow(popup.wnd);
 
         popup.prompt.onPopupHide?.Invoke();
         popup.wnd.Rectangle = Rectangle.Empty;
@@ -254,7 +253,7 @@ public class PopupUi : IDisposable, IResetAwareSystem
             throw new NotImplementedException();
         }
 
-        popup.wnd.Visible = true;
+        Globals.UiManager.AddWindow(popup.wnd);
         popup.wnd.BringToFront();
         popup.wnd.CenterOnScreen();
 

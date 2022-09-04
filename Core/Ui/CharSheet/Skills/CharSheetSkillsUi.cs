@@ -64,7 +64,6 @@ public class CharSheetSkillsUi : IDisposable
             _scrollbar.DispatchMouseWheel(e);
         };
         Container.Name = "char_skills_ui_main_window";
-        Container.Visible = false;
 
         _skillRanks = detailsDoc.GetTextContent("skill-ranks-label");
         _attributeBonus = detailsDoc.GetTextContent("skill-attribute-bonus-label");

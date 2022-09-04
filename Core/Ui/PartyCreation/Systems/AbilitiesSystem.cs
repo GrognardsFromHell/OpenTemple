@@ -67,7 +67,7 @@ internal class AbilitiesSystem : IChargenSystem
     [TempleDllLocation(0x10185670)]
     public void Show()
     {
-        Container.Show();
+        Container.Visible = true;
 
         _featuresByClass.TryGetValue(_pkt.classCode, out _activeFeaturesUi);
         _activeFeaturesUi?.Show();
@@ -81,7 +81,7 @@ internal class AbilitiesSystem : IChargenSystem
             _activeFeaturesUi = null;
         }
 
-        Container.Hide();
+        Container.Visible = false;
     }
 
     [TempleDllLocation(0x10184bd0)]

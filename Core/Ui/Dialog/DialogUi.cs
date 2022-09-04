@@ -32,7 +32,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     private const string PcLineTextStyle = "dialog-ui-line-player";
 
     [TempleDllLocation(0x1014bb50)]
-    public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.Visible;
+    public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.IsInTree;
 
     [TempleDllLocation(0x1014bac0)]
     [TempleDllLocation(0x10BEC348)]
@@ -111,7 +111,6 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         // uiDialogWndId.OnHandleMessage += 0x1014bd00;
         // uiDialogWndId.OnBeforeRender += 0x1014bbb0;
         _mainWindow.OnBeforeRender += UpdateLayout;
-        _mainWindow.Visible = false;
         _mainWindow.SetKeyStateChangeHandler(OnKeyPressed);
 
         // This renders the NPC's dialog lines
@@ -159,7 +158,6 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
 
         uiDialogWnd2Id = new WidgetContainer(new Rectangle(0, 0, 1024, 768));
         // uiDialogWnd2Id.OnHandleMessage += 0x1014bdc0;
-        uiDialogWnd2Id.Visible = false;
     }
 
     private void UpdatePosition(Size screenSize)
@@ -365,8 +363,8 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         }
 
         uiDialogFlags = 1;
-        uiDialogWnd2Id.Visible = false;
-        _mainWindow.Visible = false;
+        Globals.UiManager.RemoveWindow(uiDialogWnd2Id);
+        Globals.UiManager.RemoveWindow(_mainWindow);
         UiSystems.UtilityBar.HistoryUi.UpdateWidgetVisibility(); // Show the dialog history button again
     }
 
@@ -453,7 +451,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         if (!ShowDialogHistory)
         {
             UiDialogBegin();
-            uiDialogWnd2Id.Visible = false;
+            Globals.UiManager.RemoveWindow(uiDialogWnd2Id);
             ShowDialogHistory = true;
             UpdateLayout();
             return;
@@ -656,10 +654,10 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     public void UiDialogWidgetsShow()
     {
         UiSystems.InGame.ResetInput();
-        uiDialogWnd2Id.Visible = true;
+        Globals.UiManager.AddWindow(uiDialogWnd2Id);
         uiDialogWnd2Id.BringToFront();
 
-        _mainWindow.Visible = true;
+        Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
 
         UpdateLayout();

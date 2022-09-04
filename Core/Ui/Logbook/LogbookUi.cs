@@ -76,7 +76,6 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
         _window.ZIndex = 100050;
         _window.Name = "logbook_ui_main_window";
         _window.PreventsInGameInteraction = true;
-        _window.Visible = false;
 
         var background = new WidgetImage("art/interface/logbook_ui/whole_book.img");
         background.Y = 25;
@@ -237,7 +236,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
         if (IsVisible)
         {
             IsVisible = false;
-            _window.Visible = false;
+            Globals.UiManager.RemoveWindow(_window);
 
             Quests.Hide();
             Ego.Hide();
@@ -270,7 +269,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
         Rumors.Hide();
         Quotes.Hide();
 
-        _window.Visible = true;
+        Globals.UiManager.AddWindow(_window);
         _window.BringToFront();
 
         _showingQuotes = showQuotes;

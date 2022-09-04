@@ -21,7 +21,7 @@ public class CharSheetLootingUi : IDisposable
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10BE6EE8)]
-    internal bool IsVisible => _mainWindow.Visible;
+    internal bool IsVisible => _mainWindow.IsInTree;
 
     [TempleDllLocation(0x10BE6EB8)]
     private int dword_10BE6EB8;
@@ -78,14 +78,11 @@ public class CharSheetLootingUi : IDisposable
     [TempleDllLocation(0x101412a0)]
     public CharSheetLootingUi()
     {
-        var doc = WidgetDoc.Load("ui/char_looting.json");
-        var root = doc.GetRootContainer();
-        root.Visible = false;
+        WidgetDoc.Load("ui/char_looting.json");
 
         _translations = Tig.FS.ReadMesFile("mes/6_char_looting_ui_text.mes");
 
         _mainWindow = new WidgetContainer(new Rectangle(7, 77, 137, 464));
-        _mainWindow.Visible = false;
         _mainWindow.ZIndex = 100050;
         _mainWindow.Name = "char_looting_ui_main_window";
         _mainWindow.AddContent(new WidgetImage("art/interface/char_ui/char_looting_ui/looting_background.img"));
@@ -384,7 +381,7 @@ public class CharSheetLootingUi : IDisposable
         }
 
         UpdateLabels();
-        _mainWindow.Visible = true;
+        Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
     }
 
@@ -405,7 +402,7 @@ public class CharSheetLootingUi : IDisposable
         }
 
         Reset();
-        _mainWindow.Visible = false;
+        Globals.UiManager.RemoveWindow(_mainWindow);
     }
 
     [TempleDllLocation(0x1013f9c0)]

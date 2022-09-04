@@ -1,13 +1,11 @@
 #nullable enable
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
@@ -20,7 +18,7 @@ public partial class WidgetBase : Styleable, IDisposable
 {
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(10);
     
-    protected WidgetContainer? _parent = null;
+    private WidgetContainer? _parent;
     /// <summary>
     /// If this widget was loaded from a file, indicates the URI to that file to more easily identify it.
     /// </summary>
@@ -130,7 +128,7 @@ public partial class WidgetBase : Styleable, IDisposable
             if (value != _visible)
             {
                 _visible = value;
-                Globals.UiManager.SetVisible(this, value);
+                UiManager?.RefreshMouseOverState();
             }
         }
     }
@@ -412,11 +410,6 @@ public partial class WidgetBase : Styleable, IDisposable
         }
 
         Content.Clear();
-    }
-
-    public void Show()
-    {
-        Visible = true;
     }
 
     public void Hide()
@@ -771,6 +764,17 @@ public partial class WidgetBase : Styleable, IDisposable
     {
         UiManager?.ReleaseMouseCapture(this);
     }
+
+    public void CenterOnScreen()
+    {
+        Trace.Assert(Parent == null);
+        if (UiManager != null)
+        {
+            var screenSize = UiManager.CanvasSize;
+            X = (screenSize.Width - Width) / 2;
+            Y = (screenSize.Height - Height) / 2;
+        }
+    }    
 
     public bool HasMouseCapture => UiManager?.MouseCaptureWidget == this;
 }

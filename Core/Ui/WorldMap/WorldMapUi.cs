@@ -39,7 +39,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
     [TempleDllLocation(0x10bef7dc)]
     [TempleDllLocation(0x10159b10)]
-    public bool IsVisible => _mainWindow.Visible;
+    public bool IsVisible => _mainWindow.IsInTree;
 
     [TempleDllLocation(0x11ea2406)]
     private readonly WorldMapPath[] _paths;
@@ -140,7 +140,6 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
         var doc = WidgetDoc.Load("ui/worldmap_ui.json");
         _mainWindow = doc.GetRootContainer();
-        _mainWindow.Visible = false;
         // Allow closing the window while no trip is taking place
         _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide, () => !IsMakingTrip);
         _mainWindow.AddInterval(UpdateTime);
@@ -482,7 +481,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     public void Show(WorldMapMode mode = WorldMapMode.Travel)
     {
         UiSystems.HideOpenedWindows(true);
-        if (!_mainWindow.Visible)
+        if (_mainWindow.IsInTree)
         {
             GameViews.DisableDrawing();
             UiSystems.Party.Hide();
@@ -495,7 +494,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
 
         _mode = mode;
-        _mainWindow.Visible = true;
+        Globals.UiManager.AddWindow(_mainWindow);
 
         // TODO: Honestly, this should just use whether a townmap is available or not
         if (mode == WorldMapMode.LeaveRandomEncounter)
@@ -865,10 +864,9 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x1015e210)]
     public void Hide()
     {
-        if (_mainWindow.Visible)
+        if (Globals.UiManager.RemoveWindow(_mainWindow))
         {
             Tig.Sound.EffectVolume = _originalVolume;
-            _mainWindow.Visible = false;
 
             if (!Tig.Sound.IsStreamPlaying(_soundStream1))
             {

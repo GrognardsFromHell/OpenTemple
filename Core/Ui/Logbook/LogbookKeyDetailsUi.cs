@@ -63,7 +63,6 @@ internal class LogbookKeyDetailsUi
         _helpText = doc.GetTextContent("helpText");
 
         _keyDetailsContainer = doc.GetContainer("keyDetailsContainer");
-        Container.Add(_keyDetailsContainer);
 
         _acquiredLabel = doc.GetTextContent("acquiredLabel");
         _usedLabel = doc.GetTextContent("usedLabel");
