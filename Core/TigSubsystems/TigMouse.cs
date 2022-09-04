@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GFX;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.TigSubsystems;
 
@@ -84,7 +85,7 @@ public class TigMouse
         SetDraggedIcon(texture.Resource, center, size);
     }
 
-    public void SetDraggedIcon(ITexture texture, Point center, Size size = default)
+    public void SetDraggedIcon(ITexture? texture, Point center, Size size = default)
     {
         if (texture != null)
         {
@@ -155,34 +156,15 @@ public class TigMouse
         );
     }
 
-    private bool _cursorLocked;
-
-    [TempleDllLocation(0x10d251c0)]
-    [TempleDllLocation(0x10d25580)]
-    private Point _cursorLockPos;
-
     [TempleDllLocation(0x101ddee0)]
     public void PushCursorLock()
     {
-        GetCursorPos(out _cursorLockPos);
-        _cursorLocked = true;
-        HideCursor();
+        SDL_SetRelativeMouseMode(SDL_bool.SDL_TRUE);
     }
 
     [TempleDllLocation(0x101dd470)]
     public void PopCursorLock()
     {
-        if (_cursorLocked)
-        {
-            _cursorLocked = false;
-            SetCursorPos(_cursorLockPos.X, _cursorLockPos.Y);
-            ShowCursor();
-        }
+        SDL_SetRelativeMouseMode(SDL_bool.SDL_FALSE);
     }
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool SetCursorPos(int x, int y);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool GetCursorPos(out Point point);
 }

@@ -128,6 +128,8 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x10be1f40)]
     private bool _zooming;
 
+    private float _zoomStart;
+    
     [TempleDllLocation(0x102f896c)]
     private float _zoomStartX;
 
@@ -210,7 +212,7 @@ public class TownMapContent : WidgetButtonBase
                 {
                     var oldZoom = Zoom;
 
-                    Zoom += (_zoomStartY - e.Y) / 400.0f;
+                    Zoom = _zoomStart + (_zoomStartY - e.Y) / 400.0f;
                     Zoom = Math.Clamp(Zoom, MinZoom, MaxZoom);
 
                     // Ensures the point on the map that we started zooming on stays under the mouse
@@ -223,6 +225,7 @@ public class TownMapContent : WidgetButtonBase
                 {
                     _zooming = true;
                     Tig.Mouse.PushCursorLock();
+                    _zoomStart = Zoom;
                     _zoomStartX = e.X;
                     _zoomStartY = e.Y;
                 }

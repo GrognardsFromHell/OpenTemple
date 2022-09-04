@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Ui;
 using static SDL2.SDL;
 
 namespace OpenTemple.Core.Platform;
@@ -248,8 +247,6 @@ public class MainWindow : IMainWindow
                 case SDL_EventType.SDL_MOUSEWHEEL:
                     HandleMouseWheelEvent(ref e.wheel);
                     break;
-                default:
-                    break;
             }
         }
 
@@ -266,7 +263,7 @@ public class MainWindow : IMainWindow
 
         if (text is {Length: > 0})
         {
-            _uiRoot.TextInput(text);
+            _uiRoot?.TextInput(text);
         }
     }
 
@@ -303,7 +300,7 @@ public class MainWindow : IMainWindow
 
         if (down)
         {
-            _uiRoot.KeyDown(
+            _uiRoot?.KeyDown(
                 keysym.sym,
                 keysym.scancode,
                 modifiers,
@@ -312,7 +309,7 @@ public class MainWindow : IMainWindow
         }
         else
         {
-            _uiRoot.KeyUp(
+            _uiRoot?.KeyUp(
                 keysym.sym,
                 keysym.scancode,
                 modifiers
