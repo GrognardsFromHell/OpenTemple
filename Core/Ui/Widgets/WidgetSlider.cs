@@ -38,17 +38,6 @@ public class WidgetSlider : WidgetContainer
 
         var track = new WidgetButton();
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-track"));
-        track.AddClickListener(e =>
-        {
-            if (e.X < _handleButton.X)
-            {
-                SetValue(GetValue() - Quantum);
-            }
-            else if (e.X >= _handleButton.X + _handleButton.Width)
-            {
-                SetValue(GetValue() + Quantum);
-            }
-        });
         track.IsRepeat = true;
 
         var handle = new WidgetSliderHandle(this);
@@ -63,6 +52,19 @@ public class WidgetSlider : WidgetContainer
         Add(leftButton);
         Add(rightButton);
         Add(handle);
+        
+        track.OnClick += e =>
+        {
+            var handleArea = _handleButton.GetContentArea();
+            if (e.X < handleArea.Left)
+            {
+                SetValue(GetValue() - Quantum);
+            }
+            else if (e.X >= handleArea.Right)
+            {
+                SetValue(GetValue() + Quantum);
+            }
+        };
     }
 
     public int GetMin()

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
-using System.Transactions;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 
