@@ -30,9 +30,9 @@ public partial class WidgetBase : Styleable, IDisposable
     public bool CenterHorizontally { get; set; }
     public bool CenterVertically { get; set; }
     protected bool _sizeToParent = false;
-    protected bool mAutoSizeWidth = true;
-    protected bool mAutoSizeHeight = true;
-    protected Margins mMargins;
+    protected bool _autoSizeWidth = true;
+    protected bool _autoSizeHeight = true;
+    protected Margins _margins;
     protected Func<MessageKeyStateChangeArgs, bool>? mKeyStateChangeHandler;
     protected Func<MessageCharArgs, bool>? mCharHandler;
     protected readonly List<WidgetContent> Content = new();
@@ -140,8 +140,8 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public Margins Margins
     {
-        get => mMargins;
-        set => mMargins = value;
+        get => _margins;
+        set => _margins = value;
     }
 
     public WidgetBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
@@ -182,8 +182,8 @@ public partial class WidgetBase : Styleable, IDisposable
         }
         
         var contentArea = GetContentArea();
-        x += contentArea.X - mMargins.Left;
-        y += contentArea.Y - mMargins.Top;
+        x += contentArea.X - _margins.Left;
+        y += contentArea.Y - _margins.Top;
 
         if (HitTesting == HitTestingMode.ContentArea)
         {
@@ -254,8 +254,8 @@ public partial class WidgetBase : Styleable, IDisposable
             // set widget size (adding up the margins in addition to the content dimensions, since the overall size should include the margins)
             if (contentArea.Width != 0 && contentArea.Height != 0)
             {
-                Width = contentArea.Width + mMargins.Left + mMargins.Right;
-                Height = contentArea.Height + mMargins.Top + mMargins.Bottom;
+                Width = contentArea.Width + _margins.Left + _margins.Right;
+                Height = contentArea.Height + _margins.Top + _margins.Bottom;
 
                 ApplyAutomaticSizing();
                 contentArea = GetContentArea();
@@ -376,10 +376,10 @@ public partial class WidgetBase : Styleable, IDisposable
             return null;
         }
 
-        if (x >= mMargins.Left &
-            y >= mMargins.Bottom &&
-            x < Width - mMargins.Right
-            && y < Height - mMargins.Top
+        if (x >= _margins.Left &
+            y >= _margins.Bottom &&
+            x < Width - _margins.Right
+            && y < Height - _margins.Top
             && HitTest(x, y))
         {
             return this;
@@ -543,10 +543,10 @@ public partial class WidgetBase : Styleable, IDisposable
         {
             if (res.Width != 0 & res.Height != 0)
             {
-                res.X += mMargins.Left;
-                res.Width -= mMargins.Left + mMargins.Right;
-                res.Y += mMargins.Top;
-                res.Height -= mMargins.Bottom + mMargins.Top;
+                res.X += _margins.Left;
+                res.Width -= _margins.Left + _margins.Right;
+                res.Y += _margins.Top;
+                res.Height -= _margins.Bottom + _margins.Top;
                 if (res.Width < 0) res.Width = 0;
                 if (res.Height < 0) res.Height = 0;
             }
@@ -654,12 +654,12 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public void SetAutoSizeWidth(bool enable)
     {
-        mAutoSizeWidth = enable;
+        _autoSizeWidth = enable;
     }
 
     public void SetAutoSizeHeight(bool enable)
     {
-        mAutoSizeHeight = enable;
+        _autoSizeHeight = enable;
     }
 
     public virtual void RenderTooltip(int x, int y)

@@ -307,7 +307,7 @@ public class WidgetButton : WidgetButtonBase
     private void UpdateAutoSize()
     {
         // Try to var-size
-        if (mAutoSizeWidth || mAutoSizeHeight)
+        if (_autoSizeWidth || _autoSizeHeight)
         {
             Size prefSize;
             if (_normalImage != null)
@@ -327,29 +327,29 @@ public class WidgetButton : WidgetButtonBase
                 var marginH = framePrefSize.Height - prefSize.Height;
                 if (marginW > 0)
                 {
-                    mMargins.Right = marginW / 2;
-                    mMargins.Left = marginW - mMargins.Right;
+                    _margins.Right = marginW / 2;
+                    _margins.Left = marginW - _margins.Right;
                 }
 
                 if (marginH > 0)
                 {
-                    mMargins.Bottom = marginH / 2;
-                    mMargins.Top = marginH - mMargins.Bottom;
+                    _margins.Bottom = marginH / 2;
+                    _margins.Top = marginH - _margins.Bottom;
                 }
             }
 
-            prefSize.Height += mMargins.Bottom + mMargins.Top;
-            prefSize.Width += mMargins.Left + mMargins.Right;
+            prefSize.Height += _margins.Bottom + _margins.Top;
+            prefSize.Width += _margins.Left + _margins.Right;
 
-            if (mAutoSizeWidth && mAutoSizeHeight)
+            if (_autoSizeWidth && _autoSizeHeight)
             {
                 Size = prefSize;
             }
-            else if (mAutoSizeWidth)
+            else if (_autoSizeWidth)
             {
                 Width = prefSize.Width;
             }
-            else if (mAutoSizeHeight)
+            else if (_autoSizeHeight)
             {
                 Height = prefSize.Height;
             }

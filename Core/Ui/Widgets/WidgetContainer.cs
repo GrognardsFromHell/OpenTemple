@@ -10,6 +10,18 @@ namespace OpenTemple.Core.Ui.Widgets;
 
 public class WidgetContainer : WidgetBase
 {
+    private readonly List<WidgetBase> _children = new();
+
+    private int _scrollOffsetY;
+    
+    /// <summary>
+    /// Previously this was implemented by always returning true from the mouse event handler.
+    /// TODO: Actually implement this, and check if it's not more like a modal backdrop
+    /// </summary>
+    public bool PreventsInGameInteraction { get; set; }
+
+    public bool ClipChildren { get; set; } = true;
+
     public WidgetContainer(Size size, [CallerFilePath]
         string? filePath = null, [CallerLineNumber]
         int lineNumber = -1)
@@ -43,19 +55,11 @@ public class WidgetContainer : WidgetBase
         HitTesting = HitTestingMode.Content;
     }
     
-    /// <summary>
-    /// Previously this was implemented by always returning true from the mouse event handler.
-    /// TODO: Actually implement this, and check if it's not more like a modal backdrop
-    /// </summary>
-    public bool PreventsInGameInteraction { get; set; }
-
-    public bool ClipChildren { get; set; } = true;
-    
     public virtual void Add(WidgetBase childWidget)
     {
         if (childWidget.Parent == this)
         {
-            Trace.Assert(mChildren.Contains(childWidget));
+            Trace.Assert(_children.Contains(childWidget));
             return;
         }
         if (childWidget.Parent != null)
@@ -71,7 +75,7 @@ public class WidgetContainer : WidgetBase
         }
 
         childWidget.AttachToTree(UiManager);
-        mChildren.Add(childWidget);
+        _children.Add(childWidget);
         UiManager?.RefreshMouseOverState();
     }
 
@@ -80,23 +84,23 @@ public class WidgetContainer : WidgetBase
         Trace.Assert(childWidget.Parent == this);
 
         childWidget.Parent = null;
-        mChildren.Remove(childWidget);
+        _children.Remove(childWidget);
         childWidget.AttachToTree(null);
         UiManager?.RefreshMouseOverState();
     }
 
     public virtual void Clear(bool disposeChildren = false)
     {
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
             if (disposeChildren)
             {
                 // This will auto remove from the list
-                mChildren[i].Dispose();
+                _children[i].Dispose();
             }
             else
             {
-                Remove(mChildren[i]);
+                Remove(_children[i]);
             }
         }
     }
@@ -108,9 +112,9 @@ public class WidgetContainer : WidgetBase
             return null;
         }
         
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
-            var child = mChildren[i];
+            var child = _children[i];
 
             if (!child.Visible)
             {
@@ -118,7 +122,7 @@ public class WidgetContainer : WidgetBase
             }
 
             var localX = x - child.X;
-            var localY = y - child.Y + mScrollOffsetY;
+            var localY = y - child.Y + _scrollOffsetY;
             if (localY < 0 || localY >= child.Height)
             {
                 continue;
@@ -153,18 +157,18 @@ public class WidgetContainer : WidgetBase
 
     public List<WidgetBase> GetChildren()
     {
-        return mChildren;
+        return _children;
     }
 
     protected override void Dispose(bool disposing)
     {
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
-            mChildren[i].Dispose();
+            _children[i].Dispose();
         }
 
         // Child widgets should have removed themselves from this list
-        Trace.Assert(mChildren.Count == 0);
+        Trace.Assert(_children.Count == 0);
 
         base.Dispose(disposing);
     }
@@ -176,7 +180,7 @@ public class WidgetContainer : WidgetBase
             return;
         }
 
-        ContentOffset = new Point(0, mScrollOffsetY);
+        ContentOffset = new Point(0, _scrollOffsetY);
 
         base.Render();
 
@@ -184,7 +188,7 @@ public class WidgetContainer : WidgetBase
 
         var clipAreaSet = false;
 
-        foreach (var child in mChildren)
+        foreach (var child in _children)
         {
             if (child.Visible)
             {
@@ -207,9 +211,9 @@ public class WidgetContainer : WidgetBase
     public override void HandleHotkeyAction(HotkeyActionMessage msg)
     {
         // Iterate in reverse order since this list is ordered in ascending z-order
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
-            var child = mChildren[i];
+            var child = _children[i];
             if (child.Visible)
             {
                 child.HandleHotkeyAction(msg);
@@ -228,9 +232,9 @@ public class WidgetContainer : WidgetBase
         var area = GetContentArea();
 
         // Iterate in reverse order since this list is ordered in ascending z-order
-        for (var i = mChildren.Count - 1; i >= 0; i--)
+        for (var i = _children.Count - 1; i >= 0; i--)
         {
-            var child = mChildren[i];
+            var child = _children[i];
 
             int x = msg.X - area.X;
             int y = msg.Y - area.Y + GetScrollOffsetY();
@@ -252,7 +256,7 @@ public class WidgetContainer : WidgetBase
     {
         base.OnUpdateTime(now);
 
-        foreach (var widget in mChildren)
+        foreach (var widget in _children)
         {
             widget.OnUpdateTime(now);
         }
@@ -262,7 +266,7 @@ public class WidgetContainer : WidgetBase
     {
         base.AttachToTree(manager);
 
-        foreach (var child in mChildren)
+        foreach (var child in _children)
         {
             child.AttachToTree(manager);
         }
@@ -270,18 +274,14 @@ public class WidgetContainer : WidgetBase
 
     public void SetScrollOffsetY(int scrollY)
     {
-        mScrollOffsetY = scrollY;
+        _scrollOffsetY = scrollY;
         UiManager?.RefreshMouseOverState();
     }
 
     [TempleDllLocation(0x101fa150)]
     public int GetScrollOffsetY()
     {
-        return mScrollOffsetY;
+        return _scrollOffsetY;
     }
-
-    private List<WidgetBase> mChildren = new();
-
-    private int mScrollOffsetY = 0;
 
 };
