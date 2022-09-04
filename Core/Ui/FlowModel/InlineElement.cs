@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 using OpenTemple.Core.Ui.Styles;
 
 #nullable enable
@@ -56,10 +55,7 @@ public abstract class InlineElement : Styleable
         }
     }
 
-    public bool HasPseudoClass(StylingState stylingState)
-    {
-        return (_stylingStates & stylingState) == stylingState;
-    }
+    public override StylingState PseudoClassState => _stylingStates;
 
     public void ToggleStylingState(StylingState stylingState, bool enable)
     {
@@ -81,7 +77,7 @@ public abstract class InlineElement : Styleable
                 _stylingStates &= ~stylingState;
             }
 
-            Host?.NotifyStyleChanged();
+            InvalidateStyles();
         }
     }
 

@@ -667,7 +667,7 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public override IStyleable? StyleParent => _parent;
 
-    public virtual bool HasPseudoClass(StylingState stylingState)
+    public bool HasPseudoClass(StylingState stylingState)
     {
         return stylingState switch
         {
@@ -676,6 +676,30 @@ public partial class WidgetBase : Styleable, IDisposable
             StylingState.Disabled => Disabled,
             _ => false
         };
+    }
+
+    public override StylingState PseudoClassState
+    {
+        get
+        {
+            StylingState result = default;
+            if (ContainsMouse)
+            {
+                result |= StylingState.Hover;
+            }
+
+            if (Pressed)
+            {
+                result |= StylingState.Pressed;
+            }
+
+            if (Disabled)
+            {
+                result |= StylingState.Disabled;
+            }
+
+            return result;
+        }
     }
 
     protected override void OnStylesInvalidated()

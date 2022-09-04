@@ -4,7 +4,7 @@ using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.FlowModel;
 
-public class Block : Styleable
+public abstract class Block : Styleable
 {
     public IFlowContentHost? Host { get; set; }
 
