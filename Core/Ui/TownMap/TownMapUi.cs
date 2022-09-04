@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.IO.MapMarkers;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
@@ -54,7 +54,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     // Stores which predefined markers have been revealed for the user
     private readonly HashSet<PredefinedMarkerId> _revealedMarkers = new();
 
-    private string _currentCursor;
+    private string? _currentCursor;
 
     private readonly WidgetButton _placeMarkerButton;
 
@@ -325,7 +325,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     {
         // Load markers
         var markersFile = $"{GameSystems.Map.GetDataDir(mapId)}/map_markers.json";
-        var markers = new List<TownMapMarker>();
+        var markers = ImmutableList.CreateBuilder<TownMapMarker>();
         if (Tig.FS.FileExists(markersFile))
         {
             var predefinedMarkers = MapMarkersReader.Load(Tig.FS, markersFile);
@@ -353,7 +353,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             Logger.Info("Loaded {0} user-defined map-markers", userMarkers.Count);
         }
 
-        _mapContent.Markers = markers;
+        _mapContent.Markers = markers.ToImmutable();
     }
 
     [TempleDllLocation(0x10128420)]
@@ -520,7 +520,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
 
     [TempleDllLocation(0x1012bae0)]
     [TempleDllLocation(0x1012bb20)]
-    private void ChangeCursor(string path)
+    private void ChangeCursor(string? path)
     {
         if (_currentCursor != path)
         {

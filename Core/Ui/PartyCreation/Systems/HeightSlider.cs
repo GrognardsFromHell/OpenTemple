@@ -27,6 +27,7 @@ public class HeightSlider : WidgetButtonBase
         {
             _value = Math.Clamp(value, 0, 1);
             _targetValue = _value;
+            UpdateThumbPosition();
         }
     }
     public event Action<float>? OnValueChanged;
@@ -55,15 +56,6 @@ public class HeightSlider : WidgetButtonBase
 
         Width = _thumbImage.X + _thumbImage.GetPreferredSize().Width;
         Height = trackImage.GetPreferredSize().Height;
-    }
-
-    public override void Render()
-    {
-        var y = (int) (MinThumbY + (MaxThumbY - MinThumbY) * (1.0f - Value));
-        y = Math.Clamp(y, MinThumbY, MaxThumbY);
-        _thumbImage.Y = y;
-
-        base.Render();
     }
 
     protected override void HandleMouseDown(MouseEvent e)
@@ -119,6 +111,14 @@ public class HeightSlider : WidgetButtonBase
         _lastAnimationTime = now;
         var deltaRemaining = _targetValue - Value;
         _value += Math.Sign(deltaRemaining) * Math.Min(amountMoved, Math.Abs(deltaRemaining));
+        UpdateThumbPosition();
         OnValueChanged?.Invoke(_value);
+    }
+
+    private void UpdateThumbPosition()
+    {
+        var y = (int) (MinThumbY + (MaxThumbY - MinThumbY) * (1.0f - Value));
+        y = Math.Clamp(y, MinThumbY, MaxThumbY);
+        _thumbImage.Y = y;
     }
 }
