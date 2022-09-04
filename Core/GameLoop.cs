@@ -125,19 +125,6 @@ public sealed class GameLoop
         _device.EndDraw();
         _device.EndPerfGroup();
 
-        try
-        {
-            Tig.Mouse.DrawTooltip();
-            Tig.Mouse.DrawItemUnderCursor();
-        }
-        catch (Exception e)
-        {
-            if (!ErrorReporting.ReportException(e))
-            {
-                throw;
-            }
-        }
-
         // Render "GFade" overlay
         if (GameSystems.GFade.IsOverlayEnabled)
         {

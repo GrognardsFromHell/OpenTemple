@@ -130,18 +130,16 @@ public class TigMouse
         CursorDrawCallbackArg = arg;
     }
 
-    public Point Pos { get; set; }
-
     public bool IsMouseOutsideWindow { get; set; } = true;
 
     [TempleDllLocation(0x101dd330, true)]
-    public void DrawTooltip()
+    public void DrawTooltip(PointF pos)
     {
-        CursorDrawCallback?.Invoke(Pos.X, Pos.Y, CursorDrawCallbackArg);
+        CursorDrawCallback?.Invoke((int) pos.X, (int) pos.Y, CursorDrawCallbackArg);
     }
 
     [TempleDllLocation(0x101dd330, true)]
-    public void DrawItemUnderCursor()
+    public void DrawItemUnderCursor(PointF pos)
     {
         if (!_iconUnderCursor.IsValid)
         {
@@ -149,8 +147,8 @@ public class TigMouse
         }
 
         Tig.ShapeRenderer2d.DrawRectangle(
-            Pos.X + _iconUnderCursorCenter.X,
-            Pos.Y + _iconUnderCursorCenter.Y,
+            pos.X + _iconUnderCursorCenter.X,
+            pos.Y + _iconUnderCursorCenter.Y,
             _iconUnderCursorSize.Width,
             _iconUnderCursorSize.Height,
             _iconUnderCursor.Resource

@@ -198,7 +198,7 @@ public class GameRenderer : IDisposable
     private void RenderDebugPathfinding(IGameViewport viewport)
     {
         var leader = GameSystems.Party.GetLeader();
-        var mousePos = Tig.Mouse.Pos;
+        var mousePos = Globals.UiManager.MousePos;
         var worldPos = viewport.ScreenToTile(mousePos.X, mousePos.Y);
 
         var pq = new PathQuery();

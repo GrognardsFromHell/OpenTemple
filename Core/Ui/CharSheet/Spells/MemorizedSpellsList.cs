@@ -18,7 +18,7 @@ public class MemorizedSpellsList : WidgetContainer
 
     private readonly SpellsPerDay _spellsPerDay;
 
-    public event Action OnChange;
+    public event Action? OnChange;
 
     /// <summary>
     /// Key is the spell-level, Value is the list of slots for that level.
@@ -117,12 +117,12 @@ public class MemorizedSpellsList : WidgetContainer
 
     public override void OnUpdateTime(TimePoint now)
     {
-        if (_scrollbar == null)
+        if (_scrollbar == null || UiManager == null)
         {
             return;
         }
         
-        var pos = Tig.Mouse.Pos;
+        var pos = UiManager.MousePos;
         if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < now)
         {
             var contentArea = GetContentArea();

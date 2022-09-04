@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.Logging;
@@ -14,25 +13,7 @@ namespace OpenTemple.Core.Ui;
 
 public class UiManager : IUiRoot
 {
-    // Tracks the state of the first button that caused a mouse-down event,
-    // which has not been released yet.
-    private class MouseDownState
-    {
-        // The first button that was pressed
-        public MouseButton Button { get; init; }
-
-        // The element it was pressed on
-        public WidgetBase? Target { get; init; }
-
-        // The UI position it was pressed at
-        public PointF Pos { get; init; }
-
-        // A bit-field with the buttons that are held, which might change
-        // between the mouse down and mouse up event. Buttons pressed
-        // after the first but before the first is released do not trigger
-        // mouse down / up events.
-        public MouseButtons Buttons { get; set; }
-    }
+    private static readonly TimeSpan TooltipDelay = TimeSpan.FromMilliseconds(250);
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -44,6 +25,8 @@ public class UiManager : IUiRoot
 
     //  Last reported mouse position
     private PointF _mousePos = PointF.Empty;
+
+    private TimePoint _mousePosLastChanged = TimePoint.Now;
 
     /// <summary>
     /// The size in "virtual pixels" of the UI canvas.
@@ -78,6 +61,8 @@ public class UiManager : IUiRoot
 
     // Hang on to the delegate
     private readonly CursorDrawCallback _renderTooltipCallback;
+
+    private WidgetBase? _renderingTooltipFor;
 
     [TempleDllLocation(0x10EF97C4)]
     [TempleDllLocation(0x101f97d0)]
@@ -173,7 +158,7 @@ public class UiManager : IUiRoot
             widget.CenterOnScreen();
         }
     }
-    
+
     private static bool IsAncestor(WidgetBase widget, WidgetBase parent)
     {
         while (widget != null)
@@ -197,7 +182,7 @@ public class UiManager : IUiRoot
         }
 
         var refreshMouseOverState = false;
-        
+
         // Invalidate any fields that may still hold a reference to the now invalid widget id
         if (IsAncestor(mMouseButtonId, widget))
         {
@@ -235,6 +220,9 @@ public class UiManager : IUiRoot
         }
 
         Debug.AfterRenderWidgets();
+        
+        Tig.Mouse.DrawTooltip(_mousePos);
+        Tig.Mouse.DrawItemUnderCursor(_mousePos);
     }
 
     public WidgetBase? GetWidgetAt(float x, float y)
@@ -704,6 +692,7 @@ public class UiManager : IUiRoot
         if (_mousePos != uiPos)
         {
             _mousePos = uiPos;
+            _mousePosLastChanged = TimePoint.Now;
             UpdateMouseOver();
         }
     }
@@ -711,7 +700,7 @@ public class UiManager : IUiRoot
     private void UpdateMouseOver()
     {
         ProcessPendingMouseCapture();
-        
+
         WidgetBase? mouseOver;
         if (MouseCaptureWidget != null)
         {
@@ -826,7 +815,7 @@ public class UiManager : IUiRoot
         if (dispatchTo != null)
         {
             SetPressed(dispatchTo, true);
-            
+
             var e = CreateMouseEvent(UiEventType.MouseDown, dispatchTo);
             dispatchTo.DispatchMouseDown(e);
         }
@@ -843,7 +832,7 @@ public class UiManager : IUiRoot
             // after the initial mouse-down button was already released.
             return;
         }
-        
+
         // Only emit a mouse up event if the initially pressed button is released
         if (_mouseDownState.Button != button)
         {
@@ -852,7 +841,7 @@ public class UiManager : IUiRoot
         }
 
         var lastMouseDownAt = _mouseDownState.Target;
-        
+
         // Unset the Pressed visual state
         if (lastMouseDownAt != null)
         {
@@ -863,21 +852,21 @@ public class UiManager : IUiRoot
 
         var dispatchTo = MouseCaptureWidget ?? target;
         if (dispatchTo == null)
-        {        
+        {
             // Release the mouse down state here so that the mouse up event cannot recapture the mouse
             _mouseDownState = null;
             // Implicitly release mouse capture
             _pendingMouseCaptureWidget = null;
             return;
         }
-        
+
         var e = CreateMouseEvent(UiEventType.MouseUp, dispatchTo);
-        
+
         // Release the mouse down state here so that the mouse up event cannot recapture the mouse
         _mouseDownState = null;
         // Implicitly release mouse capture
         _pendingMouseCaptureWidget = null;
-        
+
         dispatchTo.DispatchMouseUp(e);
 
         // We emit click events on the first common ancestor of the mouse-down target
@@ -980,6 +969,21 @@ public class UiManager : IUiRoot
         ProcessPendingMouseCapture();
 
         var now = TimePoint.Now;
+        if (Tig.Mouse.CursorDrawCallback == null && now - _mousePosLastChanged >= TooltipDelay)
+        {
+            Tig.Mouse.SetCursorDrawCallback(_renderTooltipCallback);
+            _renderingTooltipFor = CurrentMouseOverWidget;
+        }
+        // If the mouse over widget changes, reset tooltip
+        else if (_renderingTooltipFor != null
+                 && _renderingTooltipFor != CurrentMouseOverWidget
+                 && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
+        {
+            Tig.Mouse.SetCursorDrawCallback(null);
+            _renderingTooltipFor = null;
+        }
+
+        // Handle showing tooltips
 
         // Dispatch time update messages continuously to all advanced widgets
         _widgetsTemp.Clear();
@@ -1012,7 +1016,7 @@ public class UiManager : IUiRoot
             UpdateMouseOver();
         }
     }
-    
+
     private static MouseButtons GetMouseButtons(MouseButton button)
     {
         return button switch
@@ -1024,5 +1028,25 @@ public class UiManager : IUiRoot
             MouseButton.EXTRA2 => MouseButtons.Extra2,
             _ => throw new ArgumentOutOfRangeException(nameof(button), button, null)
         };
+    }
+
+    // Tracks the state of the first button that caused a mouse-down event,
+    // which has not been released yet.
+    private class MouseDownState
+    {
+        // The first button that was pressed
+        public MouseButton Button { get; init; }
+
+        // The element it was pressed on
+        public WidgetBase? Target { get; init; }
+
+        // The UI position it was pressed at
+        public PointF Pos { get; init; }
+
+        // A bit-field with the buttons that are held, which might change
+        // between the mouse down and mouse up event. Buttons pressed
+        // after the first but before the first is released do not trigger
+        // mouse down / up events.
+        public MouseButtons Buttons { get; set; }
     }
 }

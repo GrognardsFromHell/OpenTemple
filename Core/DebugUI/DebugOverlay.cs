@@ -9,16 +9,13 @@ namespace OpenTemple.Core.DebugUI;
 
 public static class DebugOverlay
 {
-
-    static bool isActive = false;
+    private static bool _isActive;
 
     public static void Render(IGameViewport viewport)
     {
-            
-        if (ImGui.Begin( "Debug Overlay", ref isActive))
+        if (ImGui.Begin( "Debug Overlay", ref _isActive))
         {
-
-            var mousePt = TigSubsystems.Tig.Mouse.Pos;
+            var mousePt = Globals.UiManager.MousePos;
 
             var worldCoord = viewport.ScreenToTile(mousePt.X, mousePt.Y);
             ImGui.Text($"{worldCoord}");
