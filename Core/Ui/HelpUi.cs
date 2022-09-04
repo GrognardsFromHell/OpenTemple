@@ -52,9 +52,9 @@ public class HelpUi : IResetAwareSystem
     }
 
     [TempleDllLocation(0x10be2e78)]
-    private ScrollBox _bodyScrollBox;
+    private readonly ScrollBox _bodyScrollBox;
 
-    private WidgetText _titleLabel;
+    private readonly WidgetText _titleLabel;
 
     [TempleDllLocation(0x101317f0)]
     public HelpUi()

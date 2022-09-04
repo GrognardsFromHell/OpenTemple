@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using JetBrains.Annotations;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -15,7 +12,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells;
 
 public class MemorizedSpellsList : WidgetContainer
 {
-    [CanBeNull] private readonly WidgetScrollBar _scrollbar;
+    private readonly WidgetScrollBar? _scrollbar;
 
     private readonly GameObject _caster;
 
@@ -100,6 +97,11 @@ public class MemorizedSpellsList : WidgetContainer
                 _scrollbar.Y = value * buttonHeight; // Horrible fakery, moving the scrollbar along
             });
             Add(_scrollbar);
+            
+            OnMouseWheel += e =>
+            {
+                _scrollbar?.DispatchMouseWheel(e);
+            };
         }
     }
 
@@ -107,17 +109,6 @@ public class MemorizedSpellsList : WidgetContainer
     {
         return _slotsByLevel.TryGetValue(level, out var slots) 
             ? slots : Enumerable.Empty<MemorizedSpellButton>();
-    }
-
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        // Forward scroll wheel messages to the scrollbar
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            _scrollbar?.HandleMouseMessage(msg);
-            return true;
-        }
-        return base.HandleMouseMessage(msg);
     }
 
     private TimePoint _lastScrollTick;

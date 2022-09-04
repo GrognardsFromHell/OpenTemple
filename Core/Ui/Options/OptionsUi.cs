@@ -62,7 +62,6 @@ public class OptionsUi
 
         // Forward otherwise unhandled mouse-wheel messages to the scrollbar
         _container.OnMouseWheel += e => {
-            e.StopPropagation();
             _scrollbar.DispatchMouseWheel(e);
         };
     }

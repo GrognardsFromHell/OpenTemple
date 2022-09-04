@@ -10,7 +10,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells;
 
 public class KnownSpellsList : WidgetContainer
 {
-    private readonly WidgetScrollBar _scrollbar;
+    private readonly WidgetScrollBar? _scrollbar;
 
     public event Action<SpellStoreData, MemorizedSpellButton> OnMemorizeSpell;
 
@@ -87,18 +87,11 @@ public class KnownSpellsList : WidgetContainer
                 _scrollbar.Y = value * buttonHeight; // Horrible fakery, moving the scrollbar along
             });
             Add(_scrollbar);
+            
+            OnMouseWheel += e =>
+            {
+                _scrollbar.DispatchMouseWheel(e);
+            };
         }
-    }
-
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        // Forward scroll wheel messages to the scrollbar.
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            _scrollbar.HandleMouseMessage(msg);
-            return true;
-        }
-
-        return base.HandleMouseMessage(msg);
     }
 }

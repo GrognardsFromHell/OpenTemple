@@ -44,32 +44,6 @@ public enum MessageType : uint
     HOTKEY_ACTION = 9
 }
 
-[Flags]
-public enum MouseEventFlag
-{
-    LeftClick = 0x001,
-    RightClick = 0x010,
-    MiddleClick = 0x100,
-
-    // Sent every 250ms while a button is being held
-    LeftHeld = 0x002,
-    RightHeld = 0x020,
-    MiddleHeld = 0x200,
-    LeftReleased = 0x004, // Left button
-    RightReleased = 0x040, // Right button
-    MiddleReleased = 0x400, // Middle button
-    PosChange = 0x1000,
-
-    // Sent only 35ms after mouse position has stabilized
-    PosChangeSlow = 0x2000,
-    ScrollWheelChange = 0x4000,
-    
-    // Key modifiers being held while the mouse event occured
-    KeyModifierAlt= 0x8000,
-    KeyModifierCtrl = 0x10000,
-    KeyModifierShift = 0x20000,
-}
-
 public struct ExitMessageArgs
 {
     public readonly int Code;
@@ -78,43 +52,6 @@ public struct ExitMessageArgs
     {
         Code = code;
     }
-}
-
-public struct MessageMouseArgs
-{
-    public int X;
-    public int Y;
-    public int wheelDelta;
-    public MouseEventFlag flags;
-    public bool IsCtrlHeld => (flags & MouseEventFlag.KeyModifierCtrl) != 0;
-    public bool IsShiftHeld => (flags & MouseEventFlag.KeyModifierShift) != 0;
-    public bool IsAltHeld => (flags & MouseEventFlag.KeyModifierAlt) != 0;
-
-    public MessageMouseArgs(int x, int y, int wheelDelta, MouseEventFlag flags)
-    {
-        X = x;
-        Y = y;
-        this.wheelDelta = wheelDelta;
-        this.flags = flags;
-    }
-}
-
-public enum TigMsgWidgetEvent
-{
-    Clicked = 0,
-    MouseReleased = 1,
-    MouseReleasedAtDifferentButton = 2,
-    Entered = 3,
-    Exited = 4,
-    Scrolled = 5
-}
-
-public struct MessageWidgetArgs
-{
-    public WidgetBase widgetId;
-    public TigMsgWidgetEvent widgetEventType; // 3 - widget entered; 4 - widget left
-    public int x;
-    public int y;
 }
 
 public struct MessageKeyStateChangeArgs

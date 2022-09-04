@@ -132,7 +132,6 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
 
     private void ForwardScrollWheelMessage(WheelEvent e)
     {
-        e.StopPropagation();
         _scrollBar.DispatchMouseWheel(e);
     }
 

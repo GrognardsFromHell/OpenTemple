@@ -1,7 +1,6 @@
 using System;
-using System.Drawing;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems;
@@ -30,7 +29,7 @@ public class HeightSlider : WidgetButtonBase
             _targetValue = _value;
         }
     }
-    public event Action<float> OnValueChanged;
+    public event Action<float>? OnValueChanged;
 
     public int ThumbCenterY => Y + _thumbImage.Y + _thumbHeight / 2;
 
@@ -67,42 +66,28 @@ public class HeightSlider : WidgetButtonBase
         base.Render();
     }
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
+    protected override void HandleMouseDown(MouseEvent e)
     {
-        var localY = msg.Y - GetContentArea().Y;
-
-        if (Globals.UiManager.MouseCaptureWidget == this)
-        {
-            // Reposition the thumb
-            Value = GetValueFromTrackPos(localY);
-            OnValueChanged?.Invoke(Value);
-
-            if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
-            {
-                ReleaseMouseCapture();
-            }
-
-            return true;
-        }
-
+        SetMouseCapture();
+        
         // Smoothly animate moving towards the clicked location
+        var localY = (int) (e.Y - GetContentArea().Y);
         if (localY < _thumbImage.Y || localY >= _thumbImage.Y + _thumbHeight)
         {
-            if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
-            {
-                _targetValue = GetValueFromTrackPos(localY);
-                _lastAnimationTime = TimePoint.Now;
-            }
-
-            return true;
+            _targetValue = GetValueFromTrackPos(localY);
+            _lastAnimationTime = TimePoint.Now;
         }
+    }
 
-        if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
+    protected override void HandleMouseMove(MouseEvent e)
+    {
+        // Reposition the thumb immediately while dragging
+        if (HasMouseCapture)
         {
-            SetMouseCapture();
+            var localY = (int) (e.Y - GetContentArea().Y);
+            Value = GetValueFromTrackPos(localY);
+            OnValueChanged?.Invoke(Value);
         }
-
-        return true;
     }
 
     private float GetValueFromTrackPos(int trackPos)

@@ -60,7 +60,6 @@ public class CharSheetSkillsUi : IDisposable
         Container.OnMouseWheel += e =>
         {
             // Forward mouse wheel messages to the scrollbar
-            e.StopPropagation();
             _scrollbar.DispatchMouseWheel(e);
         };
         Container.Name = "char_skills_ui_main_window";

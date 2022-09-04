@@ -343,170 +343,170 @@ public class UiManager : IUiRoot
     /// <summary>
     /// Handles a mouse message and produces higher level mouse messages based on it.
     /// </summary>
-    [TempleDllLocation(0x101f9970)]
-    public bool TranslateMouseMessage(MessageMouseArgs mouseMsg)
-    {
-        var flags = mouseMsg.flags;
-        var x = mouseMsg.X;
-        var y = mouseMsg.Y;
-
-        var newTigMsg = new MessageWidgetArgs();
-        newTigMsg.x = x;
-        newTigMsg.y = y;
-
-        var widAtCursor = GetWidgetAt(x, y);
-
-        var globalWid = CurrentMouseOverWidget;
-
-        // moused widget changed
-        if ((flags & MouseEventFlag.PosChange) != 0 && widAtCursor != globalWid)
-        {
-            if (widAtCursor != null && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
-            {
-                Tig.Mouse.SetCursorDrawCallback(null, 0);
-            }
-
-            if (globalWid != null)
-            {
-                bool enqueueExited = false;
-                // if window
-                if (globalWid is WidgetContainer prevHoveredWindow)
-                {
-                    // if (prevHoveredWindow.MouseState == LgcyWindowMouseState.Pressed)
-                    // {
-                    //     prevHoveredWindow.MouseState = LgcyWindowMouseState.PressedOutside;
-                    // }
-                    // else if (prevHoveredWindow.MouseState != LgcyWindowMouseState.PressedOutside)
-                    // {
-                    //     prevHoveredWindow.MouseState = LgcyWindowMouseState.Outside;
-                    // }
-                }
-                // button
-                else if (globalWid is WidgetButtonBase buttonWid && !buttonWid.Disabled)
-                {
-                    // switch (buttonWid.ButtonState)
-                    // {
-                    //     case LgcyButtonState.Hovered:
-                    //         // Unhover
-                    //         buttonWid.ButtonState = LgcyButtonState.Normal;
-                    //         Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
-                    //         break;
-                    //     case LgcyButtonState.Down:
-                    //         // Down . Released without click event
-                    //         buttonWid.ButtonState = LgcyButtonState.Released;
-                    //         break;
-                    // }
-                }
-
-                if (IsVisible(globalWid))
-                {
-                    newTigMsg.widgetId = globalWid;
-                    newTigMsg.widgetEventType = TigMsgWidgetEvent.Exited;
-                    // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
-                }
-            }
-
-            if (widAtCursor != null)
-            {
-                // if (widAtCursor is WidgetContainer widAtCursorWindow)
-                // {
-                //     if (widAtCursorWindow.MouseState == LgcyWindowMouseState.PressedOutside)
-                //     {
-                //         widAtCursorWindow.MouseState = LgcyWindowMouseState.Pressed;
-                //     }
-                //     else if (widAtCursorWindow.MouseState != LgcyWindowMouseState.Pressed)
-                //     {
-                //         widAtCursorWindow.MouseState = LgcyWindowMouseState.Hovered;
-                //     }
-                // }
-                // else if (widAtCursor is WidgetButtonBase buttonWid && !buttonWid.Disabled)
-                // {
-                //     if (buttonWid.ButtonState != LgcyButtonState.Normal)
-                //     {
-                //         if (buttonWid.ButtonState == LgcyButtonState.Released)
-                //         {
-                //             buttonWid.ButtonState = LgcyButtonState.Down;
-                //         }
-                //     }
-                //     else
-                //     {
-                //         buttonWid.ButtonState = LgcyButtonState.Hovered;
-                //         Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
-                //     }
-                // }
-
-                newTigMsg.widgetId = widAtCursor;
-                newTigMsg.widgetEventType = TigMsgWidgetEvent.Entered;
-                // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
-            }
-
-            globalWid = CurrentMouseOverWidget = widAtCursor;
-        }
-
-        if ((mouseMsg.flags & MouseEventFlag.PosChangeSlow) != 0
-            && globalWid != null
-            && Tig.Mouse.CursorDrawCallback == null)
-        {
-            Tig.Mouse.SetCursorDrawCallback(_renderTooltipCallback);
-        }
-
-        if ((mouseMsg.flags & MouseEventFlag.LeftClick) != 0)
-        {
-            // probably redundant to do again, but just to be safe...
-            var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
-            if (widIdAtCursor2 != null)
-            {
-                if (widIdAtCursor2 is WidgetButtonBase button && !button.Disabled)
-                {
-                    // switch (button.ButtonState)
-                    // {
-                    //     case LgcyButtonState.Hovered:
-                    //         button.ButtonState = LgcyButtonState.Down;
-                    //         Tig.Sound.PlaySoundEffect(button.sndDown);
-                    //         break;
-                    //     case LgcyButtonState.Disabled:
-                    //         return false;
-                    // }
-                }
-
-                newTigMsg.widgetEventType = TigMsgWidgetEvent.Clicked;
-                newTigMsg.widgetId = widIdAtCursor2;
-                mMouseButtonId = widIdAtCursor2;
-                // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
-            }
-        }
-
-        if ((mouseMsg.flags & MouseEventFlag.LeftReleased) != 0 && mMouseButtonId != null)
-        {
-            if (mMouseButtonId is WidgetButtonBase button && !button.Disabled)
-            {
-                // switch (button.ButtonState)
-                // {
-                //     case LgcyButtonState.Down:
-                //         button.ButtonState = LgcyButtonState.Hovered;
-                //         Tig.Sound.PlaySoundEffect(button.sndClick);
-                //         break;
-                //     case LgcyButtonState.Released:
-                //         button.ButtonState = LgcyButtonState.Normal;
-                //         Tig.Sound.PlaySoundEffect(button.sndClick);
-                //         break;
-                //     case LgcyButtonState.Disabled:
-                //         return false;
-                // }
-            }
-
-            // probably redundant to do again, but just to be safe...
-            var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
-            newTigMsg.widgetId = mMouseButtonId;
-            newTigMsg.widgetEventType = (widIdAtCursor2 != mMouseButtonId)
-                ? TigMsgWidgetEvent.MouseReleasedAtDifferentButton
-                : TigMsgWidgetEvent.MouseReleased;
-            // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
-            mMouseButtonId = null;
-        }
-
-        return false;
-    }
+    // [TempleDllLocation(0x101f9970)]
+    // public bool TranslateMouseMessage(MessageMouseArgs mouseMsg)
+    // {
+    //     var flags = mouseMsg.flags;
+    //     var x = mouseMsg.X;
+    //     var y = mouseMsg.Y;
+    //
+    //     var newTigMsg = new MessageWidgetArgs();
+    //     newTigMsg.x = x;
+    //     newTigMsg.y = y;
+    //
+    //     var widAtCursor = GetWidgetAt(x, y);
+    //
+    //     var globalWid = CurrentMouseOverWidget;
+    //
+    //     // moused widget changed
+    //     if ((flags & MouseEventFlag.PosChange) != 0 && widAtCursor != globalWid)
+    //     {
+    //         if (widAtCursor != null && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
+    //         {
+    //             Tig.Mouse.SetCursorDrawCallback(null, 0);
+    //         }
+    //
+    //         if (globalWid != null)
+    //         {
+    //             bool enqueueExited = false;
+    //             // if window
+    //             if (globalWid is WidgetContainer prevHoveredWindow)
+    //             {
+    //                 // if (prevHoveredWindow.MouseState == LgcyWindowMouseState.Pressed)
+    //                 // {
+    //                 //     prevHoveredWindow.MouseState = LgcyWindowMouseState.PressedOutside;
+    //                 // }
+    //                 // else if (prevHoveredWindow.MouseState != LgcyWindowMouseState.PressedOutside)
+    //                 // {
+    //                 //     prevHoveredWindow.MouseState = LgcyWindowMouseState.Outside;
+    //                 // }
+    //             }
+    //             // button
+    //             else if (globalWid is WidgetButtonBase buttonWid && !buttonWid.Disabled)
+    //             {
+    //                 // switch (buttonWid.ButtonState)
+    //                 // {
+    //                 //     case LgcyButtonState.Hovered:
+    //                 //         // Unhover
+    //                 //         buttonWid.ButtonState = LgcyButtonState.Normal;
+    //                 //         Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
+    //                 //         break;
+    //                 //     case LgcyButtonState.Down:
+    //                 //         // Down . Released without click event
+    //                 //         buttonWid.ButtonState = LgcyButtonState.Released;
+    //                 //         break;
+    //                 // }
+    //             }
+    //
+    //             if (IsVisible(globalWid))
+    //             {
+    //                 newTigMsg.widgetId = globalWid;
+    //                 newTigMsg.widgetEventType = TigMsgWidgetEvent.Exited;
+    //                 // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
+    //             }
+    //         }
+    //
+    //         if (widAtCursor != null)
+    //         {
+    //             // if (widAtCursor is WidgetContainer widAtCursorWindow)
+    //             // {
+    //             //     if (widAtCursorWindow.MouseState == LgcyWindowMouseState.PressedOutside)
+    //             //     {
+    //             //         widAtCursorWindow.MouseState = LgcyWindowMouseState.Pressed;
+    //             //     }
+    //             //     else if (widAtCursorWindow.MouseState != LgcyWindowMouseState.Pressed)
+    //             //     {
+    //             //         widAtCursorWindow.MouseState = LgcyWindowMouseState.Hovered;
+    //             //     }
+    //             // }
+    //             // else if (widAtCursor is WidgetButtonBase buttonWid && !buttonWid.Disabled)
+    //             // {
+    //             //     if (buttonWid.ButtonState != LgcyButtonState.Normal)
+    //             //     {
+    //             //         if (buttonWid.ButtonState == LgcyButtonState.Released)
+    //             //         {
+    //             //             buttonWid.ButtonState = LgcyButtonState.Down;
+    //             //         }
+    //             //     }
+    //             //     else
+    //             //     {
+    //             //         buttonWid.ButtonState = LgcyButtonState.Hovered;
+    //             //         Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
+    //             //     }
+    //             // }
+    //
+    //             newTigMsg.widgetId = widAtCursor;
+    //             newTigMsg.widgetEventType = TigMsgWidgetEvent.Entered;
+    //             // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
+    //         }
+    //
+    //         globalWid = CurrentMouseOverWidget = widAtCursor;
+    //     }
+    //
+    //     if ((mouseMsg.flags & MouseEventFlag.PosChangeSlow) != 0
+    //         && globalWid != null
+    //         && Tig.Mouse.CursorDrawCallback == null)
+    //     {
+    //         Tig.Mouse.SetCursorDrawCallback(_renderTooltipCallback);
+    //     }
+    //
+    //     if ((mouseMsg.flags & MouseEventFlag.LeftClick) != 0)
+    //     {
+    //         // probably redundant to do again, but just to be safe...
+    //         var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
+    //         if (widIdAtCursor2 != null)
+    //         {
+    //             if (widIdAtCursor2 is WidgetButtonBase button && !button.Disabled)
+    //             {
+    //                 // switch (button.ButtonState)
+    //                 // {
+    //                 //     case LgcyButtonState.Hovered:
+    //                 //         button.ButtonState = LgcyButtonState.Down;
+    //                 //         Tig.Sound.PlaySoundEffect(button.sndDown);
+    //                 //         break;
+    //                 //     case LgcyButtonState.Disabled:
+    //                 //         return false;
+    //                 // }
+    //             }
+    //
+    //             newTigMsg.widgetEventType = TigMsgWidgetEvent.Clicked;
+    //             newTigMsg.widgetId = widIdAtCursor2;
+    //             mMouseButtonId = widIdAtCursor2;
+    //             // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
+    //         }
+    //     }
+    //
+    //     if ((mouseMsg.flags & MouseEventFlag.LeftReleased) != 0 && mMouseButtonId != null)
+    //     {
+    //         if (mMouseButtonId is WidgetButtonBase button && !button.Disabled)
+    //         {
+    //             // switch (button.ButtonState)
+    //             // {
+    //             //     case LgcyButtonState.Down:
+    //             //         button.ButtonState = LgcyButtonState.Hovered;
+    //             //         Tig.Sound.PlaySoundEffect(button.sndClick);
+    //             //         break;
+    //             //     case LgcyButtonState.Released:
+    //             //         button.ButtonState = LgcyButtonState.Normal;
+    //             //         Tig.Sound.PlaySoundEffect(button.sndClick);
+    //             //         break;
+    //             //     case LgcyButtonState.Disabled:
+    //             //         return false;
+    //             // }
+    //         }
+    //
+    //         // probably redundant to do again, but just to be safe...
+    //         var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
+    //         newTigMsg.widgetId = mMouseButtonId;
+    //         newTigMsg.widgetEventType = (widIdAtCursor2 != mMouseButtonId)
+    //             ? TigMsgWidgetEvent.MouseReleasedAtDifferentButton
+    //             : TigMsgWidgetEvent.MouseReleased;
+    //         // TODO Tig.MessageQueue.Enqueue(new Message(newTigMsg));
+    //         mMouseButtonId = null;
+    //     }
+    //
+    //     return false;
+    // }
 
     /// <summary>
     /// Checks if a widget is really on screen by checking all of it's parents as well for visibility.
@@ -911,7 +911,15 @@ public class UiManager : IUiRoot
 
     public void MouseWheel(Point windowPos, PointF uiPos, float units)
     {
-        // TODO (int) (units * 120);
+        UpdateMousePosition(uiPos);
+
+        var target = MouseCaptureWidget ?? CurrentMouseOverWidget;
+        if (target != null)
+        {
+            // Old code assumes the wheel units to be windows wheel units, which usually are 120 * increments of the wheel
+            var e = CreateWheelEvent(UiEventType.MouseWheel, target, 0, units * 120.0f, 0);
+            target.DispatchMouseWheel(e);
+        }
     }
 
     private MouseEvent CreateMouseEvent(UiEventType type, WidgetBase target)
@@ -942,6 +950,27 @@ public class UiManager : IUiRoot
             IsCtrlHeld = Tig.Keyboard.IsCtrlPressed,
             IsShiftHeld = Tig.Keyboard.IsShiftPressed,
             IsMetaHeld = Tig.Keyboard.IsMetaHeld
+        };
+    }
+
+    private WheelEvent CreateWheelEvent(UiEventType type, WidgetBase target, float deltaX, float deltaY, float deltaZ)
+    {
+        return new WheelEvent
+        {
+            Type = type,
+            InitialTarget = target,
+            MouseOverWidget = GetWidgetAt(_mousePos.X, _mousePos.Y),
+            Button = MouseButton.Unchanged,
+            Buttons = _mouseDownState?.Buttons ?? default,
+            X = _mousePos.X,
+            Y = _mousePos.Y,
+            IsAltHeld = Tig.Keyboard.IsAltPressed,
+            IsCtrlHeld = Tig.Keyboard.IsCtrlPressed,
+            IsShiftHeld = Tig.Keyboard.IsShiftPressed,
+            IsMetaHeld = Tig.Keyboard.IsMetaHeld,
+            DeltaX = deltaX,
+            DeltaY = deltaY,
+            DeltaZ = deltaZ,
         };
     }
 

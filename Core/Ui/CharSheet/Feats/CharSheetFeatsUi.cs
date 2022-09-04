@@ -46,7 +46,6 @@ public class CharSheetFeatsUi : IDisposable
     private void ForwardScrollWheel(WheelEvent e)
     {
         // Forward the scroll wheel to the scrollbar
-        e.StopPropagation();
         _scrollbar.DispatchMouseWheel(e);
     }
 

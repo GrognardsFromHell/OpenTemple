@@ -112,27 +112,27 @@ public class TownMapContent : WidgetButtonBase
         set => _tileRenderer.UpdateFogOfWar(value);
     }
 
-    public event Action<string> OnCursorChanged;
+    public event Action<string>? OnCursorChanged;
 
-    public event Action<TownMapControlMode> OnControlModeChange;
+    public event Action<TownMapControlMode>? OnControlModeChange;
 
     [TempleDllLocation(0x10BE1F41)]
     private bool _grabbingMap;
 
     [TempleDllLocation(0x102f8964)]
-    private int _grabMapX = -1;
+    private float _grabMapX;
 
     [TempleDllLocation(0x102f8968)]
-    private int _grabMapY = -1;
+    private float _grabMapY;
 
     [TempleDllLocation(0x10be1f40)]
     private bool _zooming;
 
     [TempleDllLocation(0x102f896c)]
-    private int _zoomStartX;
+    private float _zoomStartX;
 
     [TempleDllLocation(0x102f8970)]
-    private int _zoomStartY;
+    private float _zoomStartY;
 
     public TownMapContent(Rectangle rect) : base(rect)
     {
@@ -160,113 +160,64 @@ public class TownMapContent : WidgetButtonBase
         }
     }
 
+    // Handle mouse-wheel zooming
     [TempleDllLocation(0x1012c870)]
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
+    protected override void HandleMouseWheel(WheelEvent e)
     {
-        // Handle mouse-wheel zooming
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+        var oldZoom = Zoom;
+
+        Zoom += e.DeltaY * 0.1f / 400.0f;
+        Zoom = Math.Clamp(Zoom, MinZoom, MaxZoom);
+
+        // Try to keep the map centered on the previous center point after zooming
+        var zoomDelta = 1.0f / oldZoom - 1.0f / Zoom;
+        XTranslation = (float) Width / 2 * zoomDelta + XTranslation;
+        YTranslation = (float) Height / 2 * zoomDelta + YTranslation;
+    }
+
+    [TempleDllLocation(0x1012c870)]
+    protected override void HandleMouseMove(MouseEvent e)
+    {
+        if (ControlMode == TownMapControlMode.Pan)
         {
-            if (msg.wheelDelta != 0)
+            if (!_grabbingMap)
+            {
+                _grabbingMap = true;
+                _grabMapX = e.X;
+                _grabMapY = e.Y;                
+                OnCursorChanged?.Invoke(CursorClosedHand);
+            }
+
+            XTranslation += (int) ((_grabMapX - e.X) / Zoom);
+            YTranslation += (int) ((_grabMapY - e.Y) / Zoom);
+            _grabMapX = e.X;
+            _grabMapY = e.Y;
+        }
+        else if (ControlMode == TownMapControlMode.Zoom)
+        {
+            if (_zooming)
             {
                 var oldZoom = Zoom;
 
-                Zoom += msg.wheelDelta * 0.1f / 400.0f;
+                Zoom += (_zoomStartY - e.Y) / 400.0f;
                 Zoom = Math.Clamp(Zoom, MinZoom, MaxZoom);
 
-                // Try to keep the map centered on the previous center point after zooming
+                // Ensures the point on the map that we started zooming on stays under the mouse
                 var zoomDelta = 1.0f / oldZoom - 1.0f / Zoom;
-                XTranslation = (float) Width / 2 * zoomDelta + XTranslation;
-                YTranslation = (float) Height / 2 * zoomDelta + YTranslation;
+                var contentArea = GetContentArea();
+                XTranslation = (_zoomStartX - contentArea.X) * zoomDelta + XTranslation;
+                YTranslation = (_zoomStartY - contentArea.Y) * zoomDelta + YTranslation;
             }
-        }
-
-        if ((msg.flags & MouseEventFlag.RightReleased) != 0 && ControlMode != 0)
-        {
-            ControlMode = 0;
-
-            OnCursorChanged?.Invoke(CursorOpenHand);
-        }
-
-        if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
-        {
-            switch (ControlMode)
+            else
             {
-                case TownMapControlMode.Pan:
-                    OnCursorChanged?.Invoke(CursorOpenHand);
-                    break;
-                case TownMapControlMode.Zoom:
-                    OnCursorChanged?.Invoke(CursorZoom);
-                    break;
-                case TownMapControlMode.PlaceMarker:
-                    OnCursorChanged?.Invoke(CursorPlaceMarker);
-                    break;
-                case TownMapControlMode.RemoveMarker:
-                    OnCursorChanged?.Invoke(CursorRemoveMarker);
-                    break;
+                _zooming = true;
+                Tig.Mouse.PushCursorLock();
+                _zoomStartX = e.X;
+                _zoomStartY = e.Y;
             }
-
-            return true;
-        }
-
-        if (ContainsPress)
-        {
-            if (ControlMode == TownMapControlMode.Pan)
-            {
-                if (!_grabbingMap)
-                {
-                    _grabbingMap = true;
-                    OnCursorChanged?.Invoke(CursorClosedHand);
-                }
-
-                if (_grabMapX == -1)
-                {
-                    _grabMapX = msg.X;
-                    _grabMapY = msg.Y;
-                }
-
-                XTranslation += (int) ((_grabMapX - msg.X) / Zoom);
-                YTranslation += (int) ((_grabMapY - msg.Y) / Zoom);
-                _grabMapX = msg.X;
-                _grabMapY = msg.Y;
-            }
-            else if (ControlMode == TownMapControlMode.Zoom)
-            {
-                if (_zooming)
-                {
-                    var oldZoom = Zoom;
-
-                    Zoom += (_zoomStartY - msg.Y) / 400.0f;
-                    Zoom = Math.Clamp(Zoom, MinZoom, MaxZoom);
-
-                    // Ensures the point on the map that we started zooming on stays under the mouse
-                    var zoomDelta = 1.0f / oldZoom - 1.0f / Zoom;
-                    var contentArea = GetContentArea();
-                    XTranslation = (_zoomStartX - contentArea.X) * zoomDelta + XTranslation;
-                    YTranslation = (_zoomStartY - contentArea.Y) * zoomDelta + YTranslation;
-                }
-                else
-                {
-                    _zooming = true;
-                    Tig.Mouse.PushCursorLock();
-                    _zoomStartX = msg.X;
-                    _zoomStartY = msg.Y;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    [TempleDllLocation(0x1012c870)]
-    protected override void HandleMouseDown(MouseEvent e)
-    {
-        if (e.Button == MouseButton.LEFT && !HasMouseCapture && SetMouseCapture())
-        {
-            Logger.Info("Drag Start");
-            _grabbingMap = true;
         }
     }
-
+    
     [TempleDllLocation(0x1012c870)]
     protected override void HandleMouseEnter(MouseEvent e)
     {
@@ -289,8 +240,49 @@ public class TownMapContent : WidgetButtonBase
     }
 
     [TempleDllLocation(0x1012c870)]
+    protected override void HandleMouseDown(MouseEvent e)
+    {
+        if (e.Button == MouseButton.LEFT && !HasMouseCapture && SetMouseCapture())
+        {
+            Logger.Info("Drag Start");
+            _grabbingMap = true;
+        }
+    }
+
+    [TempleDllLocation(0x1012c870)]
     protected override void HandleMouseUp(MouseEvent e)
     {
+        if (!HasMouseCapture)
+        {
+            if (e.Button == MouseButton.RIGHT && ControlMode != 0)
+            {
+                ControlMode = 0;
+                OnCursorChanged?.Invoke(CursorOpenHand);
+            }
+            else if (e.Button == MouseButton.LEFT)
+            {
+                switch (ControlMode)
+                {
+                    case TownMapControlMode.Pan:
+                        OnCursorChanged?.Invoke(CursorOpenHand);
+                        break;
+                    case TownMapControlMode.Zoom:
+                        OnCursorChanged?.Invoke(CursorZoom);
+                        break;
+                    case TownMapControlMode.PlaceMarker:
+                        OnCursorChanged?.Invoke(CursorPlaceMarker);
+                        break;
+                    case TownMapControlMode.RemoveMarker:
+                        OnCursorChanged?.Invoke(CursorRemoveMarker);
+                        break;
+                }
+
+                e.StopPropagation();
+            }
+
+            return;
+        }
+
         if (ControlMode == TownMapControlMode.Zoom)
         {
             OnCursorChanged?.Invoke(CursorZoom);
@@ -325,7 +317,7 @@ public class TownMapContent : WidgetButtonBase
                 CreateOrEditMarker(marker, true);
             }
         }
-        else if (ControlMode == TownMapControlMode.RemoveMarker || ControlMode == TownMapControlMode.Pan)
+        else if (ControlMode is TownMapControlMode.RemoveMarker or TownMapControlMode.Pan)
         {
             var marker = GetHoveredFlagWidgetIdx(e.X, e.Y);
             if (marker != null && marker.IsUserMarker)
@@ -362,10 +354,9 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x1012c870)]
     protected override void HandleLostMouseCapture(MouseEvent e)
     {
-        base.HandleLostMouseCapture(e);
-        
         // TODO: Fat note on the mouse capture: It's broken in Vanilla.
         // TODO: Since Exited will still be triggered even if the mouse is captured, it'll actually cancel the panning...
+        ControlMode = default;
         OnCursorChanged?.Invoke(null);
                 
         if (_grabbingMap)

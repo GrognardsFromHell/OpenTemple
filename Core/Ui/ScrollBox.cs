@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using JetBrains.Annotations;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.RollHistory;
@@ -58,15 +55,20 @@ public class ScrollBox : WidgetContainer
         set => _settings.DontAutoScroll = value;
     }
 
+    private int _indent;
+
     public int Indent
     {
-        get => _settings.Indent;
+        get => _indent;
         [TempleDllLocation(0x1018ccd0)]
         set
         {
-            _settings.Indent = value;
-            UpdateSettings(_settings);
-            Relayout();
+            if (_indent != value)
+            {
+                _contentHost.LocalStyles.Indent = value;
+                _indent = value;
+                InvalidateContentLayout();
+            }
         }
     }
 
@@ -90,12 +92,12 @@ public class ScrollBox : WidgetContainer
 
     private float _contentHeight;
 
-    private SimpleInlineElement _hoveredContent;
+    private SimpleInlineElement? _hoveredContent;
 
     [TempleDllLocation(0x1018d8a0)]
     public ScrollBox(Rectangle rectangle, ScrollBoxSettings settings) : base(rectangle)
     {
-        UpdateSettings(settings);
+        _settings = settings;
 
         Name = "scrollbox";
         _background = new WidgetImage();
@@ -105,14 +107,26 @@ public class ScrollBox : WidgetContainer
 
         var scrollBarRect = new Rectangle(settings.ScrollBarPos, new Size(13, settings.ScrollBarHeight));
         _scrollbar = new WidgetScrollBar(scrollBarRect);
-        Add(_scrollbar);
-
         _scrollbar.SetMin(0);
         _scrollbar.Max = settings.ScrollBarMax;
         _scrollbar.SetValue(settings.ScrollBarMax);
+        Add(_scrollbar);
 
+        _contentHost.SetStyleParent(this);
+        _contentHost.LocalStyles.HangingIndent = true;
+        Indent = settings.Indent;
         _contentHost.OnStyleChanged += InvalidateContentLayout;
         _contentHost.OnTextFlowChanged += InvalidateContentLayout;
+        
+        // Forward scroll wheel messages to the scrollbar
+        OnMouseWheel += e =>
+        {
+            _scrollbar.DispatchMouseWheel(e);
+        };
+        OnMouseMove += e =>
+        {
+            UpdateHoveredElement((int) e.X, (int) e.Y);
+        };
     }
 
     protected void Relayout()
@@ -143,21 +157,6 @@ public class ScrollBox : WidgetContainer
         }
     }
 
-    private void UpdateSettings(ScrollBoxSettings settings)
-    {
-        _settings = settings;
-
-        if (_scrollbar != null)
-        {
-            _scrollbar.X = settings.ScrollBarPos.X;
-            _scrollbar.Y = settings.ScrollBarPos.Y;
-            _scrollbar.Height = settings.ScrollBarHeight;
-        }
-
-        _contentHost.LocalStyles.HangingIndent = true;
-        _contentHost.LocalStyles.Indent = settings.Indent;
-    }
-
     [TempleDllLocation(0x1018d1b0)]
     [TempleDllLocation(0x1018ce70)]
     public void SetEntries(List<D20RollHistoryLine> entries)
@@ -182,28 +181,7 @@ public class ScrollBox : WidgetContainer
         HandleClickOnText((int) e.X, (int) e.Y);
     }
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        // This will forward to the children of this widget
-        if (base.HandleMouseMessage(msg))
-        {
-            return true;
-        }
-
-        // Forward scroll wheel messages to the scrollbar
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            _scrollbar.HandleMouseMessage(msg);
-        }
-
-        UpdateHoveredElement(msg.X, msg.Y);
-
-        // Ensure the scrollbox is not click-through
-        return true;
-    }
-
-    [CanBeNull]
-    private SimpleInlineElement HitTestText(int x, int y)
+    private SimpleInlineElement? HitTestText(int x, int y)
     {
         UpdateLayoutIfNeeded();
 

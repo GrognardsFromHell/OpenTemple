@@ -631,12 +631,6 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    [Obsolete]
-    public virtual bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        return false;
-    }
-
     public virtual void OnUpdateTime(TimePoint now)
     {
         foreach (var interval in Intervals)
@@ -718,9 +712,16 @@ public partial class WidgetBase : Styleable, IDisposable
     /// <summary>
     /// Adds a callback that will be called in regular intervals as long as this widget is part of the UI tree. 
     /// </summary>
-    public void AddInterval(Action callback, TimeSpan interval = default)
+    public DeclaredInterval AddInterval(Action callback, TimeSpan interval = default)
     {
-        Intervals = Intervals.Add(new DeclaredInterval(callback, interval));
+        var declaredInterval = new DeclaredInterval(callback, interval);
+        Intervals = Intervals.Add(declaredInterval);
+        return declaredInterval;
+    }
+
+    public void StopInterval(DeclaredInterval interval)
+    {
+        Intervals = Intervals.Remove(interval);
     }
 
     public record DeclaredInterval(Action Callback, TimeSpan Interval)

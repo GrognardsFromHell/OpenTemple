@@ -227,31 +227,6 @@ public class WidgetContainer : WidgetBase
         base.HandleHotkeyAction(msg);
     }
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        var area = GetContentArea();
-
-        // Iterate in reverse order since this list is ordered in ascending z-order
-        for (var i = _children.Count - 1; i >= 0; i--)
-        {
-            var child = _children[i];
-
-            int x = msg.X - area.X;
-            int y = msg.Y - area.Y + GetScrollOffsetY();
-
-            if (child.Visible & x >= child.X && y >= child.Y && x < child.X + child.Width &&
-                y < child.Y + child.Height)
-            {
-                if (child.HandleMouseMessage(msg))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return base.HandleMouseMessage(msg);
-    }
-
     public override void OnUpdateTime(TimePoint now)
     {
         base.OnUpdateTime(now);

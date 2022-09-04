@@ -127,17 +127,6 @@ public class MemorizedSpellButton : WidgetButtonBase
         }
     }
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        // Forward scroll wheel messages to the parent (which will forward it to the scrollbar)
-        if (Parent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            return Parent.HandleMouseMessage(msg);
-        }
-
-        return base.HandleMouseMessage(msg);
-    }
-
     [TempleDllLocation(0x101b85a0)]
     private void ShowSpellHelp(MouseEvent e)
     {

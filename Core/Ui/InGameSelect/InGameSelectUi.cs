@@ -45,9 +45,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     [TempleDllLocation(0x10BD2C50)]
     private ResourceRef<IMdfRenderMaterial> _spellPointerMaterial;
 
-    public IFlowContentHost TextHost { get; } = new FlowContentHost()
-    {
-    };
+    public IFlowContentHost TextHost { get; } = new FlowContentHost();
 
     [TempleDllLocation(0x10BD2CD8)]
     private readonly Dictionary<GameObject, string> intgameselTexts = new();
