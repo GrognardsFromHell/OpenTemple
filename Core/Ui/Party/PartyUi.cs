@@ -142,7 +142,6 @@ public class PartyUi : IResetAwareSystem, IDisposable
     {
         var availablePortraits = _portraits;
         _portraits = new List<PartyUiPortrait>(GameSystems.Party.PartySize);
-        _container.Clear();
 
         foreach (var partyMember in GameSystems.Party.PartyMembers)
         {
@@ -157,7 +156,6 @@ public class PartyUi : IResetAwareSystem, IDisposable
                 var portrait = availablePortraits[existingIdx];
                 portrait.Update();
                 _portraits.Add(portrait);
-                _container.Add(portrait.Widget);
                 availablePortraits.RemoveAt(existingIdx);
             }
             else
@@ -182,10 +180,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
         }
 
         // Free any remaining unused portraits
-        foreach (var portrait in availablePortraits)
-        {
-            portrait.Dispose();
-        }
+        availablePortraits.DisposeAll();
     }
 
     [TempleDllLocation(0x10135000)]
@@ -246,6 +241,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
             _canSwapPartyMembers = false;
             dword_102F8EB4 = partyIdx;
             dword_10BE33E8 = true;
+            portrait.Widget.SetMouseCapture();
         }
     }
 

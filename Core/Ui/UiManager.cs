@@ -761,6 +761,12 @@ public class UiManager : IUiRoot
     {
         ProcessPendingMouseCapture();
         UpdateMousePosition(uiPos);
+
+        if (CurrentMouseOverWidget != null)
+        {
+            var e = CreateMouseEvent(UiEventType.MouseMove, CurrentMouseOverWidget);
+            CurrentMouseOverWidget.DispatchMouseMove(e);
+        }
     }
 
     private void DispatchMouseLeave(WidgetBase target, WidgetBase? stopAtParent)

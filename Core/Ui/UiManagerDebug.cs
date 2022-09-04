@@ -1,5 +1,6 @@
 using System.Numerics;
 using ImGuiNET;
+using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
@@ -59,10 +60,19 @@ public class UiManagerDebug
             }
 
             var currentMouseOver = _uiManager.CurrentMouseOverWidget;
+            ImGui.Text("Mouse Over");
             if (currentMouseOver != null)
             {
                 ImGui.Text("Source URI: " + currentMouseOver.SourceURI);
                 ImGui.Text("ID: " + currentMouseOver.Id);
+            }
+
+            var mouseCapture = _uiManager.MouseCaptureWidget;
+            if (mouseCapture != null)
+            {
+                ImGui.Text("Mouse Capture");
+                ImGui.Text("Source URI: " + mouseCapture.SourceURI);
+                ImGui.Text("ID: " + mouseCapture.Id);
             }
 
             if (ImGui.CollapsingHeader("Widgets"))

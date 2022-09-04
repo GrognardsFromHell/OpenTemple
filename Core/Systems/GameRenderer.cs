@@ -1,9 +1,7 @@
 using System;
 using System.Drawing;
-using JetBrains.Annotations;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
-using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.FogOfWar;
 using OpenTemple.Core.Systems.GameObjects;
@@ -42,7 +40,7 @@ public class GameRenderer : IDisposable
     private readonly IGameViewport _viewport;
 
     // A texture containing the last rendered scene
-    [CanBeNull] public ITexture SceneTexture => _sceneColor.Resource;
+    public ITexture? SceneTexture => _sceneColor.Resource;
 
     // The pixel size of the render texture to create
     private Size _renderSize;
@@ -212,8 +210,7 @@ public class GameRenderer : IDisposable
         pq.tolRadius = reach * 12.0f - 8.0f;
         pq.distanceToTargetMin = reach;
 
-        var pqr = new PathQueryResult();
-        if (!GameSystems.PathX.FindPath(pq, out pqr))
+        if (!GameSystems.PathX.FindPath(pq, out var pqr))
         {
             var red = new PackedLinearColorA(255, 0, 0, 255);
             var center = worldPos.ToInches3D();

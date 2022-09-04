@@ -41,7 +41,7 @@ public class GameView : WidgetContainer, IGameViewport
     [Obsolete]
     public GameRenderer GameRenderer => _gameRenderer;
 
-    private event Action _onResize;
+    private event Action? _onResize;
 
     private float _renderScale;
 

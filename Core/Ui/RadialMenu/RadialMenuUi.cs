@@ -1634,6 +1634,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
                     }
 
                     RadialMenus.ClearActiveRadialMenu();
+                    return;
                 }
 
                 var clickedNode = RadialMenus.GetActiveRadMenuNodeRegardMorph(clickedNodeIdx);
