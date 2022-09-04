@@ -206,7 +206,7 @@ public class HeadlessGameHelper : IDisposable
 
     public void SendMouseUp(Point screenPoint, MouseButton button)
     {
-        Window.UiRoot?.MouseDown(
+        Window.UiRoot?.MouseUp(
             screenPoint,
             ToUiCanvas(screenPoint),
             button
