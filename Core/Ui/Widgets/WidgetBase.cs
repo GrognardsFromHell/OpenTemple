@@ -760,6 +760,8 @@ public partial class WidgetBase : Styleable, IDisposable
         UiManager = manager;
     }
 
+    public void DetachFromTree() => AttachToTree(null);
+
     public bool SetMouseCapture()
     {
         return UiManager?.CaptureMouse(this) ?? false;

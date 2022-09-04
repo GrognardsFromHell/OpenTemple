@@ -87,6 +87,7 @@ public class GameView : WidgetContainer, IGameViewport
         UiSystems.InGame.AddEventListeners(this);
 
         Globals.UiManager.AddWindow(this);
+        Globals.UiManager.SendToBack(this);
     }
 
     public override void HandleHotkeyAction(HotkeyActionMessage msg)

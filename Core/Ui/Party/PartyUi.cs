@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
@@ -61,6 +58,20 @@ public class PartyUi : IResetAwareSystem, IDisposable
 
     [TempleDllLocation(0x10BE33EC)]
     private bool _isDraggingPartyMember;
+
+    [TempleDllLocation(0x10134bf0)]
+    public PartyUi()
+    {
+        _uiParams = new PartyUiParams();
+        CreateWidgets();
+        ui_party_widgets_need_refresh = true;
+
+        UiSystems.InGameSelect.LoadSelectionShaders();
+
+        Globals.UiManager.OnCanvasSizeChanged += ResizeViewport;
+        ResizeViewport(Globals.UiManager.CanvasSize);
+        Globals.UiManager.AddWindow(_container);
+    }
 
     // Related to target picking
     [TempleDllLocation(0x10131950)]
@@ -116,19 +127,6 @@ public class PartyUi : IResetAwareSystem, IDisposable
     private void InvokeTargetOnExitCallback()
     {
         _targetOnExitCallback?.Invoke(null);
-    }
-
-    [TempleDllLocation(0x10134bf0)]
-    public PartyUi()
-    {
-        _uiParams = new PartyUiParams();
-        CreateWidgets();
-        ui_party_widgets_need_refresh = true;
-
-        UiSystems.InGameSelect.LoadSelectionShaders();
-
-        Globals.UiManager.OnCanvasSizeChanged += ResizeViewport;
-        ResizeViewport(Globals.UiManager.CanvasSize);
     }
 
     [TempleDllLocation(0x10133800)]
