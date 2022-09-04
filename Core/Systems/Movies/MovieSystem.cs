@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using FfmpegBink.Interop;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Widgets;
 
 #nullable enable
 
@@ -15,6 +12,8 @@ namespace OpenTemple.Core.Systems.Movies;
 public class MovieSystem : IGameSystem, IModuleAwareSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+    internal static Action<PlayMovieEvent>? OnPlayMovie;
 
     [TempleDllLocation(0x102ad0a8)]
     private readonly Dictionary<int, MovieDefinition> _movies = new();
@@ -52,40 +51,31 @@ public class MovieSystem : IGameSystem, IModuleAwareSystem
     {
         var subtitles = LoadSubtitles(subtitleFile);
 
-        GameSystems.SoundGame?.StashSchemes();
-        try
+        if (!Tig.FS.TryGetRealPath(moviePath, out var fullMoviePath))
         {
-            if (!Tig.FS.TryGetRealPath(moviePath, out var fullMoviePath))
-            {
-                Logger.Error("Unable to find movie '{0}' in data directories.", moviePath);
-                return;
-            }
-
-            using var videoPlayer = new VideoPlayer();
-            if (!videoPlayer.Open(fullMoviePath))
-            {
-                Logger.Error("Unable to open movie '{0}': {1}", moviePath, videoPlayer.Error);
-                return;
-            }
-
-            using var movieRenderer = new MovieRenderer(videoPlayer, subtitles);
-            movieRenderer.Run();
+            Logger.Error("Unable to find movie '{0}' in data directories.", moviePath);
+            return;
         }
-        finally
+
+        using var videoPlayer = new VideoPlayer();
+        if (!videoPlayer.Open(fullMoviePath))
         {
-            GameSystems.SoundGame?.UnstashSchemes();
+            Logger.Error("Unable to open movie '{0}': {1}", moviePath, videoPlayer.Error);
+            return;
         }
+
+        using var movieRenderer = new MovieRenderer(videoPlayer, subtitles);
+        movieRenderer.Run();
     }
 
     [TempleDllLocation(0x10034190)]
-    public void PlayMovieSlide(string slidePath, string? musicPath, string? subtitleFile,
+    public static void PlayMovieSlide(string slidePath, string? musicPath, string? subtitleFile,
         int soundtrackId)
     {
         Logger.Info("Play Movie Slide {0} {1} {2} {3}", slidePath, musicPath, subtitleFile, soundtrackId);
 
         Tig.MainWindow.IsCursorVisible = false;
 
-        GameSystems.SoundGame.StashSchemes();
         try
         {
             var subtitles = LoadSubtitles(subtitleFile);
@@ -94,7 +84,6 @@ public class MovieSystem : IGameSystem, IModuleAwareSystem
         }
         finally
         {
-            GameSystems.SoundGame.UnstashSchemes();
             Tig.MainWindow.IsCursorVisible = true;
         }
     }
@@ -112,20 +101,37 @@ public class MovieSystem : IGameSystem, IModuleAwareSystem
     [TempleDllLocation(0x100341f0)]
     public void PlayMovieId(int movieId, int soundtrackId)
     {
+        var e = new PlayMovieEvent(movieId, soundtrackId);
+        OnPlayMovie?.Invoke(e);
+        if (e.Cancelled)
+        {
+            Logger.Info($"Playing of movie {movieId} (Soundtrack: {soundtrackId}) was cancelled @ {e.CancelledFilePath}:{e.CancelledLineNumber}");
+            return;
+        }
+        
         if (!_movies.TryGetValue(movieId, out var movieDefinition))
         {
             Logger.Warn("Cannot play unknown movie: {0}", movieId);
             return;
         }
 
-        if (movieDefinition.MovieType == MovieType.BinkVideo)
+        GameSystems.SoundGame.StashSchemes();
+
+        try
         {
-            PlayMovie(movieDefinition.MoviePath, movieDefinition.SubtitleFile);
+            if (movieDefinition.MovieType == MovieType.BinkVideo)
+            {
+                PlayMovie(movieDefinition.MoviePath, movieDefinition.SubtitleFile);
+            }
+            else if (movieDefinition.MovieType == MovieType.Slide)
+            {
+                PlayMovieSlide(movieDefinition.MoviePath, movieDefinition.MusicPath, movieDefinition.SubtitleFile,
+                    soundtrackId);
+            }
         }
-        else if (movieDefinition.MovieType == MovieType.Slide)
+        finally
         {
-            PlayMovieSlide(movieDefinition.MoviePath, movieDefinition.MusicPath, movieDefinition.SubtitleFile,
-                soundtrackId);
+            GameSystems.SoundGame.UnstashSchemes();
         }
     }
 

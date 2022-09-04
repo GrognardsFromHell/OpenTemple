@@ -71,7 +71,7 @@ public class MovieRenderer : IDisposable
     {
         lock (this)
         {
-            _texture.Resource.UpdateRaw(frame.PixelData, frame.Stride);
+            _texture.Resource?.UpdateRaw(frame.PixelData, frame.Stride);
             _currentTime = frame.Time;
         }
     }
