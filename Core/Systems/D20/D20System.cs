@@ -403,10 +403,9 @@ public class D20System : IGameSystem, IResetAwareSystem, ITimeAwareSystem
         }
     }
 
-    [TempleDllLocation(0x10092A50)]
     public void turnBasedReset()
     {
-        Stub.TODO();
+        Actions.ResetTurnBased();
     }
 
     public void ResetRadialMenus()

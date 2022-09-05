@@ -811,7 +811,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003C8B0)]
     public void StopCombatMusic(GameObject handle)
     {
-        if ( _combatMusicPlaying && handle != null )
+        if (_combatMusicPlaying && handle != null)
         {
             Tig.Sound.FadeOutStream(_combatMusicIntroStreamId, 25);
             Tig.Sound.FadeOutStream(_combatMusicLoopStreamId, 25);

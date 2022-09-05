@@ -13,7 +13,7 @@ public class PathQuery
     public int field2c;
     public GameObject critter; // Set PQF_HAS_CRITTER
 
-    public GameObject targetObj; // Set PQF_TARGET_OBJ
+    public GameObject? targetObj; // Set PQF_TARGET_OBJ
 
     /*
      When ADJ_RADIUS is set, (usually when there's a TARGET_OBJ)

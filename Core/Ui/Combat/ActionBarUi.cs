@@ -23,10 +23,10 @@ public class ActionBarUi
     private WidgetContainer _window;
 
     [TempleDllLocation(0x10c040b0)]
-    private bool uiCombat_10C040B0;
+    public bool uiCombat_10C040B0;
 
     [TempleDllLocation(0x10c040c0)]
-    private GameObject actionBarActor;
+    private GameObject? _actionBarActor;
 
     [TempleDllLocation(0x10c040b8)]
     private readonly ActionBar _actionBar = GameSystems.Vagrant.AllocateActionBar();
@@ -35,7 +35,7 @@ public class ActionBarUi
     private readonly ActionBar _pulseAnimation = GameSystems.Vagrant.AllocateActionBar();
 
     [TempleDllLocation(0x10c040c8)]
-    private float actionBarEndingMoveDist;
+    private float _actionBarEndingMoveDist;
 
     [TempleDllLocation(0x10c040ac)]
     private ResourceRef<ITexture> _combatBarFill;
@@ -48,7 +48,6 @@ public class ActionBarUi
     [TempleDllLocation(0x101734b0)]
     public ActionBarUi()
     {
-        _pulseAnimation = GameSystems.Vagrant.AllocateActionBar();
         // These values were configurable in a MES file before
         GameSystems.Vagrant.ActionBarSetPulseValues(_pulseAnimation, 64, 255, 0.125f);
 
@@ -222,10 +221,10 @@ public class ActionBarUi
                     maxFullRoundMoveDist = 30.0f;
                 }
 
-                if (actor != actionBarActor)
+                if (actor != _actionBarActor)
                 {
                     GameSystems.Vagrant.ActionBarStopActivity(_actionBar);
-                    actionBarEndingMoveDist = 0;
+                    _actionBarEndingMoveDist = 0;
                 }
 
                 float actualRemainingMoveDist;
@@ -236,7 +235,7 @@ public class ActionBarUi
                 }
                 else if (GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
                 {
-                    actualRemainingMoveDist = actionBarEndingMoveDist;
+                    actualRemainingMoveDist = _actionBarEndingMoveDist;
                     v21 = false;
                 }
                 else
@@ -405,7 +404,7 @@ public class ActionBarUi
 
         GameSystems.Vagrant.ActionBarStartRamp(_actionBar, startDist, endDist,
             20.0f /* This was configurable in a MES file before */);
-        actionBarActor = GameSystems.D20.Initiative.CurrentActor;
-        actionBarEndingMoveDist = endDist;
+        _actionBarActor = GameSystems.D20.Initiative.CurrentActor;
+        _actionBarEndingMoveDist = endDist;
     }
 }

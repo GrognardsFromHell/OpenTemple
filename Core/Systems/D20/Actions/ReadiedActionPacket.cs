@@ -5,7 +5,7 @@ namespace OpenTemple.Core.Systems.D20.Actions;
 public class ReadiedActionPacket
 {
     public int flags;
-    public GameObject interrupter;
+    public GameObject? interrupter;
     public ReadyVsTypeEnum readyType;
 }
 

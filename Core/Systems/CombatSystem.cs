@@ -37,7 +37,7 @@ public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSy
     [TempleDllLocation(0x10AA8418)]
     private bool _active;
 
-    public event Action<bool> OnCombatStatusChanged;
+    public event Action<bool>? OnCombatStatusChanged;
 
     [TempleDllLocation(0x10AA8420)]
     private int combatSubturnTimeEvent;
@@ -110,6 +110,7 @@ public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSy
     public void LoadGame(SavedGameState savedGameState)
     {
         _active = savedGameState.CombatState.InCombat;
+        OnCombatStatusChanged?.Invoke(_active);
     }
 
     [TempleDllLocation(0x10062e20)]
@@ -1204,6 +1205,16 @@ public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSy
         return true;
     }
 
+    [TempleDllLocation(0x100624a0)]
+    public void OnAfterActionsLoaded()
+    {
+        if (_active)
+        {
+            GameUiBridge.CombatSthCallback();
+            GameUiBridge.RefreshInitiativePortraits();
+        }
+    }
+    
     [TempleDllLocation(0x10062ac0)]
     private void AddToInitiativeWithinRect(GameObject partyMember)
     {

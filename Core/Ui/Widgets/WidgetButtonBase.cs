@@ -31,13 +31,36 @@ public class WidgetButtonBase : WidgetBase
         get => _tooltipRenderer.TooltipContent;
         set => _tooltipRenderer.TooltipContent = value;
     }
+        
+    public int SoundMouseLeave { get; set; } = -1;
 
+    public int SoundMouseEnter { get; set; } = -1;
+
+    public int SoundPressed { get; set; } = -1;
+
+    public int SoundClicked { get; set; } = -1;
+    
+    /// <summary>
+    /// A repeating button triggers a click event immediately when pressed using the primary mouse button,
+    /// and continuously at regular intervals while the mouse button remains held. Triggering will pause
+    /// while the mouse cursor is not over the button, but will resume when it is moved back onto the button.
+    /// </summary>
     public bool IsRepeat { get; set; }
     
+    /// <summary>
+    /// The interval in which repeat events trigger while the mouse is being held.
+    /// </summary>
     public TimeSpan RepeatInterval { get; set; } = TimeSpan.FromMilliseconds(200);
     
+    /// <summary>
+    /// The initial mouse-down event that causes the button to repeatedly trigger.
+    /// </summary>
     private MouseEvent? _repeatingEvent;
+    
     private TimePoint _repeatingEventTime;
+    
+    // Suppresses sound events. Used to suppress sound events when the button is triggered via repeated events.
+    private bool _suppressSound;
 
     public WidgetButtonBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : base(filePath, lineNumber)
     {
@@ -62,14 +85,11 @@ public class WidgetButtonBase : WidgetBase
             Tig.Sound.PlaySoundEffect(SoundPressed);
         }
         
-        if (IsRepeat && e.Button == MouseButton.LEFT)
+        if (IsRepeat && e.Button == MouseButton.LEFT && SetMouseCapture())
         {
-            if (SetMouseCapture())
-            {
-                _repeatingEvent = e;
-                TriggerAction(e);
-                e.PreventDefault(); // Prevent normal click handling                
-            }
+            _repeatingEvent = e;
+            TriggerAction(e);
+            e.PreventDefault(); // Prevent normal click handling                
         }
     }
 
@@ -85,26 +105,26 @@ public class WidgetButtonBase : WidgetBase
     
     private void TriggerAction(MouseEvent e)
     {
-        DispatchClick(e); // TODO: should translate mouse event here
+        _suppressSound = true;
+        try
+        {
+            DispatchClick(e); // TODO: should translate mouse event here
+        }
+        finally
+        {
+            _suppressSound = false;
+        }
         _repeatingEventTime = TimePoint.Now;
     }
 
     protected override void HandleClick(MouseEvent e)
     {
         base.HandleClick(e);
-        if (SoundClicked != -1)
+        if (!_suppressSound && SoundClicked != -1)
         {
             Tig.Sound.PlaySoundEffect(SoundClicked);
         }
     }
-
-    public int SoundMouseLeave { get; set; } = -1;
-
-    public int SoundMouseEnter { get; set; } = -1;
-
-    public int SoundPressed { get; set; } = -1;
-
-    public int SoundClicked { get; set; } = -1;
 
     protected override void HandleMouseEnter(MouseEvent e)
     {
@@ -132,8 +152,7 @@ public class WidgetButtonBase : WidgetBase
         {
             if (_repeatingEventTime + RepeatInterval < now && ContainsMouse)
             {
-                DispatchClick(_repeatingEvent);
-                _repeatingEventTime = TimePoint.Now;
+                TriggerAction(_repeatingEvent);
             }
         }
     }

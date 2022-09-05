@@ -203,6 +203,7 @@ public class SavedAnimSlot
     }
 
     [SuppressMessage("ReSharper", "RedundantCast")]
+    [TempleDllLocation(0x1001ac10)]
     public static void Save(BinaryWriter writer, SavedAnimSlot slot)
     {
         writer.WriteInt32(slot.Id.slotIndex);

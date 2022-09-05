@@ -37,17 +37,17 @@ public delegate void SeqRenderFuncCallback(IGameViewport viewport, D20Action act
 
 public class D20ActionDef
 {
-    public AddToSeqCallback addToSeqFunc;
-    public TurnBasedStatusCheckCallback turnBasedStatusCheck;
-    public ActionCheckCallback actionCheckFunc = (action, stat) => ActionErrorCode.AEC_OK;
-    public TgtCheckCallback tgtCheckFunc;
-    public LocCheckCallback locCheckFunc;
+    public AddToSeqCallback? addToSeqFunc;
+    public TurnBasedStatusCheckCallback? turnBasedStatusCheck;
+    public ActionCheckCallback actionCheckFunc = (_, _) => ActionErrorCode.AEC_OK;
+    public TgtCheckCallback? tgtCheckFunc;
+    public LocCheckCallback? locCheckFunc;
     public PerformCallback performFunc = action => ActionErrorCode.AEC_OK;
-    public ActionFrameCallback actionFrameFunc;
-    public ProjectileHitCallback projectileHitFunc;
+    public ActionFrameCallback? actionFrameFunc;
+    public ProjectileHitCallback? projectileHitFunc;
     public ActionCostCallback actionCost;
     public Func<D20Action, CursorType?> getCursor = action => null;
-    public SeqRenderFuncCallback seqRenderFunc;
+    public SeqRenderFuncCallback? seqRenderFunc;
     public D20ADF flags;
 }
 
