@@ -388,20 +388,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         }
 
         // The animation slot id we're triggered for
-        var triggerId = new AnimSlotId(evt.arg1.int32, evt.arg2.int32, evt.arg3.int32);
+        var slotIndex = evt.arg1.int32;
 
-        Trace.Assert(triggerId.slotIndex >= 0 && triggerId.slotIndex < _slots.Count);
-
-        var slot = _slots[triggerId.slotIndex];
-
-        // This seems like a pretty stupid check since slots cannot "move"
-        // and the first part of their ID must be the slot index
-        // Shouldn't this really check for the unique id of the animation instead?
-        if (slot.id.uniqueId != triggerId.uniqueId)
-        {
-            Logger.Debug("{0} != {1}", slot.id, triggerId);
-            return true;
-        }
+        var slot = _slots[slotIndex];
 
         // Slot did belong to "us", but it was deactivated earlier
         if (!slot.IsActive)
@@ -1499,21 +1488,22 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     }
 
     [TempleDllLocation(0x1001ada0)]
-    private AnimSlot LoadSlot(SavedAnimSlot savedSlot)
+    private AnimSlot? LoadSlot(SavedAnimSlot savedSlot)
     {
         var animSlot = new AnimSlot();
         animSlot.id = savedSlot.Id;
         animSlot.flags = savedSlot.Flags;
         animSlot.currentState = savedSlot.CurrentState;
         animSlot.field_14 = savedSlot.Field14;
-        animSlot.animObj = GameSystems.Object.GetObject(savedSlot.AnimatedObject.guid);
-        if (animSlot.animObj == null)
+        var animObj = GameSystems.Object.GetObject(savedSlot.AnimatedObject.guid);
+        if (animObj == null)
         {
             Logger.Error("Failed to load anim slot because animated object {0} could not be found.",
                 savedSlot.AnimatedObject);
             return null;
         }
-
+        
+        animSlot.animObj = animObj;
         animSlot.currentGoal = savedSlot.Goals.Count - 1;
 
         // Restore the individual goals
