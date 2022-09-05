@@ -627,7 +627,7 @@ public class TigSound : IDisposable
 
     [TempleDllLocation(0x101e3660)]
     [TempleDllLocation(0x101e36c0)]
-    public void FadeOutStream(int streamId, int a2)
+    public void FadeOutStream(int streamId, int fadeOutTime)
     {
         if (!sound_initialized || streamId < 0 || streamId >= 70)
         {
@@ -640,7 +640,7 @@ public class TigSound : IDisposable
         if ((stream.flags & 4) == 0)
         {
             stream.flags |= 4;
-            stream.field8 = Math.Abs(a2);
+            stream.field8 = Math.Abs(fadeOutTime);
             stream.fieldC = 0;
         }
     }
