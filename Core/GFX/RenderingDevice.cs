@@ -6,7 +6,6 @@ using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Security;
 using JetBrains.Annotations;
 using SharpDX;
 using SharpDX.Direct3D;
@@ -339,7 +338,7 @@ public class RenderingDevice : IDisposable
         return mDisplayDevices;
     }
 
-    [DllImport("OpenTemple.Native")]
+    [DllImport(OpenTempleLib.Path)]
     private static extern unsafe bool Win32_GetMonitorName(IntPtr monitorHandle, char* name, ref int nameSize);
 
     // Resize the back buffer

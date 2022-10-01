@@ -10,6 +10,7 @@ using OpenTemple.Core.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Ui.Events;
 using SDL2;
 using SixLabors.ImageSharp.Advanced;
 using Point = System.Drawing.Point;

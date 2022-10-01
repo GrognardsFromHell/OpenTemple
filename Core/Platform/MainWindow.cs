@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
+using OpenTemple.Core.Ui.Events;
 using static SDL2.SDL;
 
 namespace OpenTemple.Core.Platform;

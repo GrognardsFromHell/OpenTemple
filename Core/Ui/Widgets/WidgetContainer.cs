@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 
@@ -208,25 +207,6 @@ public class WidgetContainer : WidgetBase
         }
     }
 
-    public override void HandleHotkeyAction(HotkeyActionMessage msg)
-    {
-        // Iterate in reverse order since this list is ordered in ascending z-order
-        for (var i = _children.Count - 1; i >= 0; i--)
-        {
-            var child = _children[i];
-            if (child.Visible)
-            {
-                child.HandleHotkeyAction(msg);
-                if (msg.IsHandled)
-                {
-                    return;
-                }
-            }
-        }
-
-        base.HandleHotkeyAction(msg);
-    }
-
     public override void OnUpdateTime(TimePoint now)
     {
         base.OnUpdateTime(now);
@@ -246,6 +226,10 @@ public class WidgetContainer : WidgetBase
             child.AttachToTree(manager);
         }
     }
+
+    public override WidgetBase? FirstChild => _children.Count > 0 ? _children[0] : null;
+    
+    public override WidgetBase? LastChild => _children.Count > 0 ? _children[^1] : null;
 
     public void SetScrollOffsetY(int scrollY)
     {

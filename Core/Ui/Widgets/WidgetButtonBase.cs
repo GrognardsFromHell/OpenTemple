@@ -64,6 +64,7 @@ public class WidgetButtonBase : WidgetBase
 
     public WidgetButtonBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : base(filePath, lineNumber)
     {
+        FocusMode = FocusMode.User;
     }
 
     public WidgetButtonBase(Rectangle rect, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(filePath, lineNumber)

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Ui.Events;
 using static SDL2.SDL;
 
 namespace OpenTemple.Core.Systems.Movies;

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Runtime.CompilerServices;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Styles;
 using Size = System.Drawing.Size;
 
@@ -17,19 +19,22 @@ namespace OpenTemple.Core.Ui.Widgets;
 public partial class WidgetBase : Styleable, IDisposable
 {
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(10);
-    
+
     private WidgetContainer? _parent;
+
     /// <summary>
     /// If this widget was loaded from a file, indicates the URI to that file to more easily identify it.
     /// </summary>
     public string SourceURI { get; set; }
+
     /// <summary>
     /// A unique id for this widget within the source URI (see below).
     /// </summary>
     public string Id { get; set; }
+
     public bool CenterHorizontally { get; set; }
     public bool CenterVertically { get; set; }
-    protected bool _sizeToParent = false;
+    protected bool _sizeToParent;
     protected bool _autoSizeWidth = true;
     protected bool _autoSizeHeight = true;
     protected Margins _margins;
@@ -41,7 +46,44 @@ public partial class WidgetBase : Styleable, IDisposable
     private bool _containsMouse;
     private bool _pressed;
     private bool _disabled;
-    
+    private FocusMode _focusMode = FocusMode.None;
+
+    /// <summary>
+    /// Controls whether this widget can receive keyboard focus.
+    /// </summary>
+    public FocusMode FocusMode
+    {
+        get => _focusMode;
+        set
+        {
+            if (_focusMode != value)
+            {
+                _focusMode = value;
+                // Ensure we relinquish focus if focusing is disabled
+                if (value == FocusMode.None)
+                {
+                    Blur();
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// True if this widget currently has keyboard focus.
+    /// </summary>
+    public bool HasFocus => UiManager?.KeyboardFocus == this;
+
+    /// <summary>
+    /// If this widget is currently focused, release the keyboard focus.
+    /// </summary>
+    private void Blur()
+    {
+        if (HasFocus)
+        {
+            Stub.TODO();
+        }
+    }
+
     /// <summary>
     /// Is the mouse currently over this widget?
     /// </summary>
@@ -79,7 +121,7 @@ public partial class WidgetBase : Styleable, IDisposable
     /// Convenience property that is true if the widget is both pressed and contains the mouse.
     /// </summary>
     public bool ContainsPress => ContainsMouse && Pressed;
-    
+
     /// <summary>
     /// Disables the interactivity of this element.
     /// </summary>
@@ -180,7 +222,7 @@ public partial class WidgetBase : Styleable, IDisposable
         {
             return false;
         }
-        
+
         var contentArea = GetContentArea();
         x += contentArea.X - _margins.Left;
         y += contentArea.Y - _margins.Top;
@@ -455,7 +497,7 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public Point Pos
     {
-        get => new (X, Y);
+        get => new(X, Y);
         set => SetPos(value.X, value.Y);
     }
 
@@ -600,8 +642,6 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    public event Action<HotkeyActionMessage>? OnHotkeyAction;
-
     [Obsolete]
     public void SetKeyStateChangeHandler(Func<MessageKeyStateChangeArgs, bool> handler)
     {
@@ -614,23 +654,6 @@ public partial class WidgetBase : Styleable, IDisposable
         mCharHandler = handler;
     }
 
-    public virtual void HandleHotkeyAction(HotkeyActionMessage msg)
-    {
-        OnHotkeyAction?.Invoke(msg);
-
-        if (!msg.IsHandled)
-        {
-            foreach (var (hotkey, callback, condition) in _hotkeys)
-            {
-                if (condition() && hotkey == msg.Hotkey)
-                {
-                    callback();
-                    msg.SetHandled();
-                }
-            }
-        }
-    }
-
     public virtual void OnUpdateTime(TimePoint now)
     {
         foreach (var interval in Intervals)
@@ -638,7 +661,7 @@ public partial class WidgetBase : Styleable, IDisposable
             if (interval.NextTrigger <= now)
             {
                 interval.Trigger();
-            } 
+            }
         }
     }
 
@@ -731,8 +754,8 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    public ImmutableList<DeclaredInterval> Intervals { get; private set; } = ImmutableList<DeclaredInterval>.Empty; 
-    
+    public ImmutableList<DeclaredInterval> Intervals { get; private set; } = ImmutableList<DeclaredInterval>.Empty;
+
     /// <summary>
     /// Adds a callback that will be called in regular intervals as long as this widget is part of the UI tree. 
     /// </summary>
@@ -754,19 +777,19 @@ public partial class WidgetBase : Styleable, IDisposable
 
         public void Trigger()
         {
-            NextTrigger = GetNextIntervalTrigger(Interval); 
+            NextTrigger = GetNextIntervalTrigger(Interval);
             Callback();
         }
-        
+
         private static TimePoint GetNextIntervalTrigger(TimeSpan interval)
         {
             if (interval == default)
             {
                 interval = DefaultInterval;
             }
+
             return TimePoint.Now + interval;
         }
-        
     }
 
     public virtual void AttachToTree(UiManager? manager)
@@ -775,6 +798,7 @@ public partial class WidgetBase : Styleable, IDisposable
         {
             UiManager.RemoveWidget(this);
         }
+
         UiManager = manager;
     }
 
@@ -799,7 +823,163 @@ public partial class WidgetBase : Styleable, IDisposable
             X = (screenSize.Width - Width) / 2;
             Y = (screenSize.Height - Height) / 2;
         }
-    }    
+    }
 
     public bool HasMouseCapture => UiManager?.MouseCaptureWidget == this;
+    
+    #region Tree Navigation
+
+    public virtual WidgetBase? FirstChild => null;
+    
+    public virtual WidgetBase? LastChild => null;
+
+    public WidgetBase? PreviousSibling
+    {
+        get
+        {
+            var siblings = GetSiblings();
+            if (siblings == null)
+            {
+                return null;
+            }
+
+            // Search for us in the list of children of our parent and return the previous element
+            for (var i = 0; i < siblings.Count; i++)
+            {
+                if (siblings[i] == this)
+                {
+                    return i > 0 ? siblings[i - 1] : null;
+                }
+            }
+
+            throw new InvalidOperationException("Could not find this widget among the children of its parent.");
+        }
+    }
+
+    public WidgetBase? NextSibling
+    {
+        get
+        {
+            var siblings = GetSiblings();
+            if (siblings == null)
+            {
+                return null;
+            }
+
+            // Search for us in the list of children of our parent and return the next element
+            for (var i = 0; i < siblings.Count; i++)
+            {
+                if (siblings[i] == this)
+                {
+                    return i + 1 < siblings.Count ? siblings[i + 1] : null;
+                }
+            }
+
+            throw new InvalidOperationException("Could not find this widget among the children of its parent.");
+        }
+    }
+
+    private IReadOnlyList<WidgetBase>? GetSiblings()
+    {
+        var parent = Parent;
+        IReadOnlyList<WidgetBase> siblings;
+        if (parent == null)
+        {
+            if (UiManager == null)
+            {
+                return null;
+            }
+
+            siblings = UiManager.TopLevelWidgets;
+        }
+        else
+        {
+            siblings = parent.GetChildren();
+        }
+
+        return siblings;
+    }
+
+    /// <summary>
+    /// Find the preceding object (A) of the given object (B).
+    /// An object A is preceding an object B if A and B are in the same tree
+    ///     and A comes before B in tree order.
+    /// * `O(n)` (worst case)
+    ///     * `O(1)` (amortized when walking the entire tree)
+    /// </summary>
+    /// <param name="root">If set, `root` must be an inclusive ancestor
+    ///      of the return value (or else null is returned). This check _assumes_
+    ///        that `root` is also an inclusive ancestor of the given `object`</param>
+    public WidgetBase? Preceding(WidgetBase? root = null)
+    {
+        if (this == root)
+        {
+            return null;
+        }
+
+        if (PreviousSibling != null)
+        {
+            return PreviousSibling.LastInclusiveDescendant();
+        }
+
+        // if there is no previous sibling return the parent (might be null)
+        return Parent;
+    }
+
+    /// <summary>
+    /// Find the following object (A) of the given object (B).
+    /// An object A is following an object B if A and B are in the same tree
+    /// and A comes after B in tree order.
+    /// 
+    /// `O(n)` (worst case) where `n` is the amount of objects in the entire tree
+    /// `O(1)` (amortized when walking the entire tree)
+    /// </summary>
+    /// <param name="treeRoot">If not null, iteration will stop and return null, when this element is reached.</param>
+    /// <param name="skipChildren">If true, iteration will skip past children of this node.</param>
+    /// <param name="predicate">If not null, skip nodes that do not satisfy this predicate.</param>
+    internal WidgetBase? Following(WidgetBase? treeRoot = null, bool skipChildren = false, Predicate<WidgetBase>? predicate = null)
+    {
+        if (!skipChildren && FirstChild != null && (predicate == null || predicate(FirstChild)))
+        {
+            return FirstChild;
+        }
+
+        var current = this;
+        do
+        {
+            if (current == treeRoot)
+            {
+                return null;
+            }
+
+            for (var nextSibling = current.NextSibling; nextSibling != null; nextSibling = nextSibling.NextSibling)
+            {
+                if (predicate == null || predicate(nextSibling))
+                {
+                    return nextSibling;
+                }
+            }
+
+            current = current.Parent;
+        } while (current != null);
+
+        return null;
+    }
+    
+    /// <summary>
+    /// Find the inclusive descendant that is last in tree order of the given object.
+    /// `O(n)` (worst case) where `n` is the depth of the subtree of `object`
+    /// </summary>
+    public WidgetBase LastInclusiveDescendant()
+    {
+        var current = this;
+
+        while (current.LastChild is { } lastChild)
+        {
+            current = lastChild;
+        }
+
+        return current;
+    }
+    #endregion
 }

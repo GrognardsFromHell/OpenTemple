@@ -1,6 +1,5 @@
 using System.Numerics;
 using ImGuiNET;
-using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
@@ -51,8 +50,11 @@ public class UiManagerDebug
             return;
         }
 
-        if (ImGui.Begin("UI Debug Menu"))
+        var open = DebugMenuVisible;
+        if (ImGui.Begin("UI Debug Menu", ref open, ImGuiWindowFlags.NoCollapse))
         {
+            DebugMenuVisible = open;
+
             var enabled = RenderHoveredWidgetOutline;
             if (ImGui.Checkbox("Render Outline on Hover", ref enabled))
             {
@@ -75,9 +77,17 @@ public class UiManagerDebug
                 ImGui.Text("ID: " + mouseCapture.Id);
             }
 
+            var focus = _uiManager.KeyboardFocus;
+            if (focus != null)
+            {
+                ImGui.Text("Keyboard Focus:");
+                ImGui.Text("Source URI: " + focus.SourceURI);
+                ImGui.Text("ID: " + focus.Id);
+            }
+
             if (ImGui.CollapsingHeader("Widgets"))
             {
-                foreach (var window in _uiManager.ActiveWindows)
+                foreach (var window in _uiManager.TopLevelWidgets)
                 {
                     RenderWidgetTreeNode(window);
                 }

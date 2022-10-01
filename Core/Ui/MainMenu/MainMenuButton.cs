@@ -1,5 +1,4 @@
 #nullable enable
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
@@ -94,7 +93,7 @@ public class MainMenuButton : WidgetButtonBase
         {
             style = _pressedStyle;
         }
-        else if (Pressed || ContainsMouse)
+        else if (Pressed || ContainsMouse || HasFocus)
         {
             style = _hoverStyle;
         }

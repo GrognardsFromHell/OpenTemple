@@ -23,7 +23,7 @@ public class TigSound : IDisposable
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private Soloud _soloud;
+    private Soloud? _soloud;
 
     [TempleDllLocation(0x10ee7570)]
     private bool sound_initialized => _soloud != null;

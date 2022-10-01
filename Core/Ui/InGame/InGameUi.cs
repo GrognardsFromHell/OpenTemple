@@ -76,11 +76,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     {
     }
 
-    public bool HandleHotkeyAction(GameView viewport, Hotkey hotkey)
-    {
-        return false;
-    }
-
     [TempleDllLocation(0x10114EF0)]
     public void HandleMessage(IGameViewport viewport, Message msg)
     {
