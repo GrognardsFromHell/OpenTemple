@@ -20,19 +20,29 @@ public class KeyboardFocusManager
 
     public void MoveFocusByKeyboard(bool backwards)
     {
-        static bool CanContainFocus(WidgetBase widget) => !widget.Visible || widget.Disabled;
+        static bool CanContainFocus(WidgetBase widget) => widget.Visible && !widget.Disabled;
 
         WidgetBase? candidate;
+        if (_topLevelWidgets.Count == 0)
+        {
+            KeyboardFocus = null;
+            return;
+        }
+
         if (!backwards)
         {
             // The first focusable element when navigating forward is simply the first
             // Otherwise just start with the first one following the current keyboard focus
-            candidate = KeyboardFocus == null ? _topLevelWidgets.FirstOrDefault() : KeyboardFocus.Following(predicate: CanContainFocus);
+            candidate = KeyboardFocus == null
+                ? _topLevelWidgets[0]
+                : KeyboardFocus.Following(predicate: CanContainFocus);
         }
         else
         {
             // 
-            candidate = KeyboardFocus == null ? _topLevelWidgets.LastOrDefault()?.LastInclusiveDescendant() : KeyboardFocus.Preceding();
+            candidate = KeyboardFocus == null
+                ? _topLevelWidgets[^1].LastInclusiveDescendant()
+                : KeyboardFocus.Preceding();
         }
 
         while (candidate != null)
@@ -40,7 +50,7 @@ public class KeyboardFocusManager
             var skipChildren = false;
 
             // Skip invisible and disabled elements and their children
-            if (CanContainFocus(candidate))
+            if (!CanContainFocus(candidate))
             {
                 skipChildren = true;
             }

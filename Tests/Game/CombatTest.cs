@@ -69,7 +69,7 @@ public class CombatTest : HeadlessGameTest
         Game.RunUntil(() => GameSystems.Combat.IsCombatActive());
 
         GameSystems.Combat.IsCombatActive().Should().BeTrue();
-        GameSystems.D20.Initiative.Should().BeEquivalentTo(
+        GameSystems.D20.Initiative.Should().Equal(
             _player,
             zombie
         );

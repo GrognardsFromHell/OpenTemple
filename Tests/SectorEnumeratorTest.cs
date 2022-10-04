@@ -14,66 +14,66 @@ public class SectorEnumeratorTest
     public void IterateEmpty()
     {
         SectorEnumerator e = default;
-        e.MoveNext().IsSameOrEqualTo(false);
+        e.MoveNext().Should().BeFalse();
     }
 
     [Test]
     public void IterateSingleTileAlignedAtStart()
     {
         var e = new SectorEnumerator(new Rectangle(0, 0, 1, 1), false);
-        e.MoveNext().IsSameOrEqualTo(true);
-        e.Current.IsSameOrEqualTo(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(0, 0, 1, 1),
+        e.MoveNext().Should().BeTrue();
+        e.Current.Should().Be(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(0, 0, 1, 1),
             default));
-        e.MoveNext().IsSameOrEqualTo(false);
+        e.MoveNext().Should().BeFalse();
     }
 
     [Test]
     public void IterateSingleTileAlignedAtEnd()
     {
         var e = new SectorEnumerator(new Rectangle(63, 63, 1, 1), false);
-        e.MoveNext().IsSameOrEqualTo(true);
-        e.Current.IsSameOrEqualTo(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(63, 63, 1, 1),
+        e.MoveNext().Should().BeTrue();
+        e.Current.Should().Be(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(63, 63, 1, 1),
             default));
-        e.MoveNext().IsSameOrEqualTo(false);
+        e.MoveNext().Should().BeFalse();
     }
 
     [Test]
     public void IterateSingleTileInMiddle()
     {
         var e = new SectorEnumerator(new Rectangle(10, 10, 1, 1), false);
-        e.MoveNext().IsSameOrEqualTo(true);
-        e.Current.IsSameOrEqualTo(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(10, 10, 1, 1),
+        e.MoveNext().Should().BeTrue();
+        e.Current.Should().Be(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(10, 10, 1, 1),
             default));
-        e.MoveNext().IsSameOrEqualTo(false);
+        e.MoveNext().Should().BeFalse();
     }
 
     [Test]
     public void IterateFourTilesSpanningFourSectors()
     {
         var e = new SectorEnumerator(new Rectangle(63, 63, 2, 2), false);
-        e.MoveNext().IsSameOrEqualTo(true);
-        e.Current.IsSameOrEqualTo(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(63, 63, 1, 1),
+        e.MoveNext().Should().BeTrue();
+        e.Current.Should().Be(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(63, 63, 1, 1),
             default));
-        e.MoveNext().IsSameOrEqualTo(true);
-        e.Current.IsSameOrEqualTo(
+        e.MoveNext().Should().BeTrue();
+        e.Current.Should().Be(
             new PartialSector(new SectorLoc(1, 0), false, new Rectangle(0, 63, 1, 1), default));
-        e.MoveNext().IsSameOrEqualTo(true);
-        e.Current.IsSameOrEqualTo(new PartialSector(new SectorLoc(0, 1), false, new Rectangle(63, 63, 1, 1),
+        e.MoveNext().Should().BeTrue();
+        e.Current.Should().Be(new PartialSector(new SectorLoc(0, 1), false, new Rectangle(63, 63, 1, 1),
             default));
-        e.MoveNext().IsSameOrEqualTo(true);
-        e.Current.IsSameOrEqualTo(new PartialSector(new SectorLoc(1, 1), false, new Rectangle(63, 63, 1, 1),
+        e.MoveNext().Should().BeTrue();
+        e.Current.Should().Be(new PartialSector(new SectorLoc(1, 1), false, new Rectangle(63, 63, 1, 1),
             default));
-        e.MoveNext().IsSameOrEqualTo(false);
+        e.MoveNext().Should().BeFalse();
     }
 
     [Test]
     public void IterateOneFullSector()
     {
         var e = new SectorEnumerator(new Rectangle(64, 64, 64, 64), false);
-        e.MoveNext().IsSameOrEqualTo(true);
-        e.Current.IsSameOrEqualTo(
+        e.MoveNext().Should().BeTrue();
+        e.Current.Should().Be(
             new PartialSector(new SectorLoc(1, 1), true, new Rectangle(0, 0, 64, 64), default));
-        e.MoveNext().IsSameOrEqualTo(false);
+        e.MoveNext().Should().BeFalse();
     }
 
     [Test]
