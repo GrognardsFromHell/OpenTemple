@@ -51,19 +51,13 @@ public class SectorEnumeratorTest
     public void IterateFourTilesSpanningFourSectors()
     {
         var e = new SectorEnumerator(new Rectangle(63, 63, 2, 2), false);
-        e.MoveNext().Should().BeTrue();
-        e.Current.Should().Be(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(63, 63, 1, 1),
-            default));
-        e.MoveNext().Should().BeTrue();
-        e.Current.Should().Be(
-            new PartialSector(new SectorLoc(1, 0), false, new Rectangle(0, 63, 1, 1), default));
-        e.MoveNext().Should().BeTrue();
-        e.Current.Should().Be(new PartialSector(new SectorLoc(0, 1), false, new Rectangle(63, 63, 1, 1),
-            default));
-        e.MoveNext().Should().BeTrue();
-        e.Current.Should().Be(new PartialSector(new SectorLoc(1, 1), false, new Rectangle(63, 63, 1, 1),
-            default));
-        e.MoveNext().Should().BeFalse();
+        var sectors = EnumerateFully(e);
+        sectors.Should()
+            .HaveCount(4)
+            .And.ContainEquivalentOf(new PartialSector(new SectorLoc(0, 0), false, new Rectangle(63, 63, 1, 1), default))
+            .And.ContainEquivalentOf(new PartialSector(new SectorLoc(1, 0), false, new Rectangle(0, 63, 1, 1), default))
+            .And.ContainEquivalentOf(new PartialSector(new SectorLoc(0, 1), false, new Rectangle(63, 0, 1, 1), default))
+            .And.ContainEquivalentOf(new PartialSector(new SectorLoc(1, 1), false, new Rectangle(0, 0, 1, 1), default));
     }
 
     [Test]
@@ -114,5 +108,16 @@ public class SectorEnumeratorTest
         e.Current.TileRectangle.Should().Be(new Rectangle(0, 0, 63, 63));
 
         e.MoveNext().Should().BeFalse();
+    }
+
+    private static List<PartialSector> EnumerateFully(SectorEnumerator enumerator)
+    {
+        var result = new List<PartialSector>();
+        while (enumerator.MoveNext())
+        {
+            result.Add(enumerator.Current);
+        }
+
+        return result;
     }
 }
