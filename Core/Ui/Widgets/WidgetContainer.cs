@@ -20,6 +20,13 @@ public class WidgetContainer : WidgetBase
     public bool PreventsInGameInteraction { get; set; }
 
     public bool ClipChildren { get; set; } = true;
+    
+    public WidgetContainer([CallerFilePath]
+        string? filePath = null, [CallerLineNumber]
+        int lineNumber = -1)
+        : this(0, 0, 0, 0, filePath, lineNumber)
+    {
+    }
 
     public WidgetContainer(Size size, [CallerFilePath]
         string? filePath = null, [CallerLineNumber]
