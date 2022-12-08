@@ -17,7 +17,7 @@ public class KeyboardFocusManagerTest
         [SetUp]
         public void SetUp()
         {
-            Manager = new KeyboardFocusManager(UiManager.TopLevelWidgets);
+            Manager = new KeyboardFocusManager(UiManager.Root.Children);
         }
 
         protected List<string?> GetFocusChain(bool backwards)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
@@ -70,7 +71,7 @@ public class WidgetScrollView : WidgetContainer
     private void UpdateInnerHeight()
     {
         int innerHeight = 0;
-        foreach (var child in _container.GetChildren())
+        foreach (var child in _container.Children)
         {
             var childY = child.Y;
             var childH = child.Height;

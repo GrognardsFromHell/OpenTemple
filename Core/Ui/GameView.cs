@@ -85,9 +85,6 @@ public class GameView : WidgetContainer, IGameViewport
         UiSystems.TurnBased.AddEventListeners(this);
         UiSystems.InGameSelect.AddEventListeners(this);
         UiSystems.InGame.AddEventListeners(this);
-
-        Globals.UiManager.AddWindow(this);
-        Globals.UiManager.SendToBack(this);
     }
 
     private void OnConfigChange()

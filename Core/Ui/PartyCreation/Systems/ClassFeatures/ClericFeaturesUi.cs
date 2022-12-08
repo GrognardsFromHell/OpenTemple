@@ -136,7 +136,7 @@ internal class ClericFeaturesUi : IChargenSystem
                 button.ReleaseMouseCapture();
                 button.Visible = true;
 
-                var widgetUnderCursor = Globals.UiManager.GetWidgetAt(e.X, e.Y);
+                var widgetUnderCursor = Globals.UiManager.PickWidget(e.X, e.Y);
                 if (widgetUnderCursor == _selectedDomain1)
                 {
                     RemoveSelectedDomain(domain);

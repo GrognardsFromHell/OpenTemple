@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
@@ -70,7 +71,7 @@ public class KnownSpellsList : WidgetContainer
             _scrollbar.Height = Height;
 
             // Clip existing items that overlap the scrollbar
-            foreach (var widgetBase in GetChildren())
+            foreach (var widgetBase in Children)
             {
                 if (widgetBase.X + widgetBase.Width >= _scrollbar.X)
                 {

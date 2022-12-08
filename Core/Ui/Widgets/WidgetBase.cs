@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -10,7 +9,6 @@ using System.Runtime.CompilerServices;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Styles;
 using Size = System.Drawing.Size;
 
@@ -174,7 +172,34 @@ public partial class WidgetBase : Styleable, IDisposable
             }
         }
     }
+    
+    /// <summary>
+    /// Checks if a widget is really on screen by checking all of it's parents as well for visibility.
+    /// </summary>
+    public bool IsVisibleIncludingParents
+    {
+        get
+        {
+            if (!IsInTree)
+            {
+                return false; // can't be visible when we're not in the UI tree
+            }
 
+            var c = this;
+            while (c != null)
+            {
+                if (!c.Visible)
+                {
+                    return false;
+                }
+
+                c = c.Parent;
+            }
+
+            return true;
+        }
+    }
+    
     /// <summary>
     /// Content is shifted by this offset within the viewport of the widget.
     /// </summary>
@@ -459,14 +484,14 @@ public partial class WidgetBase : Styleable, IDisposable
         Visible = false;
     }
 
-    public virtual void BringToFront()
+    public void BringToFront()
     {
-        var parent = _parent;
-        if (parent != null)
-        {
-            parent.Remove(this);
-            parent.Add(this);
-        }
+        _parent?.BringToFront(this);
+    }
+
+    public void MoveToBack()
+    {
+        _parent?.MoveToBack(this);
     }
 
     public WidgetContainer? Parent
@@ -826,7 +851,7 @@ public partial class WidgetBase : Styleable, IDisposable
     }
 
     public bool HasMouseCapture => UiManager?.MouseCaptureWidget == this;
-    
+
     #region Tree Navigation
 
     public virtual WidgetBase? FirstChild => null;
@@ -837,7 +862,7 @@ public partial class WidgetBase : Styleable, IDisposable
     {
         get
         {
-            var siblings = GetSiblings();
+            var siblings = (IReadOnlyList<WidgetBase>?) Parent?.Children;
             if (siblings == null)
             {
                 return null;
@@ -860,7 +885,7 @@ public partial class WidgetBase : Styleable, IDisposable
     {
         get
         {
-            var siblings = GetSiblings();
+            var siblings = (IReadOnlyList<WidgetBase>?) Parent?.Children;
             if (siblings == null)
             {
                 return null;
@@ -877,27 +902,6 @@ public partial class WidgetBase : Styleable, IDisposable
 
             throw new InvalidOperationException("Could not find this widget among the children of its parent.");
         }
-    }
-
-    private IReadOnlyList<WidgetBase>? GetSiblings()
-    {
-        var parent = Parent;
-        IReadOnlyList<WidgetBase> siblings;
-        if (parent == null)
-        {
-            if (UiManager == null)
-            {
-                return null;
-            }
-
-            siblings = UiManager.TopLevelWidgets;
-        }
-        else
-        {
-            siblings = parent.GetChildren();
-        }
-
-        return siblings;
     }
 
     /// <summary>

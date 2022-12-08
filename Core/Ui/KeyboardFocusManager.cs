@@ -20,7 +20,7 @@ public class KeyboardFocusManager
 
     public void MoveFocusByKeyboard(bool backwards)
     {
-        static bool CanContainFocus(WidgetBase widget) => widget.Visible && !widget.Disabled;
+        static bool CanContainFocus(WidgetBase widget) => widget is {Visible: true, Disabled: false};
 
         WidgetBase? candidate;
         if (_topLevelWidgets.Count == 0)

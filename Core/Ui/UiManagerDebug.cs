@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
@@ -87,10 +88,7 @@ public class UiManagerDebug
 
             if (ImGui.CollapsingHeader("Widgets"))
             {
-                foreach (var window in _uiManager.TopLevelWidgets)
-                {
-                    RenderWidgetTreeNode(window);
-                }
+                RenderWidgetTreeNode(_uiManager.Root);
             }
 
             ImGui.End();
@@ -114,7 +112,7 @@ public class UiManagerDebug
 
             if (widget is WidgetContainer container)
             {
-                foreach (var child in container.GetChildren())
+                foreach (var child in container.Children)
                 {
                     RenderWidgetTreeNode(child);
                 }

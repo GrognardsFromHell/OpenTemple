@@ -4,6 +4,10 @@ using SDL2;
 
 namespace OpenTemple.Core.Platform;
 
+/// <summary>
+/// The root of the user interface component tree. It models the view of the UI that the
+/// containing window has and allows it to forward events into the user interface.
+/// </summary>
 public interface IUiRoot
 {
     void TextInput(string text)

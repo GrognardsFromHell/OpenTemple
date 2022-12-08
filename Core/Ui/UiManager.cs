@@ -1,8 +1,5 @@
 using System;
-using System.Buffers;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -16,7 +13,7 @@ public class UiManager : IUiRoot
 {
     private static readonly TimeSpan TooltipDelay = TimeSpan.FromMilliseconds(250);
 
-    private readonly List<WidgetBase> _topLevelWidgets = new();
+    public RootWidget Root { get; }
 
     // Is the mouse currently in the main window?
     private bool _mouseOverUi;
@@ -39,9 +36,7 @@ public class UiManager : IUiRoot
     /// </summary>
     private MouseDownState? _mouseDownState;
 
-    public event Action<Size> OnCanvasSizeChanged;
-
-    public IReadOnlyList<WidgetBase> TopLevelWidgets => _topLevelWidgets;
+    public event Action<Size>? OnCanvasSizeChanged;
 
     public UiManagerDebug Debug { get; }
 
@@ -69,7 +64,7 @@ public class UiManager : IUiRoot
     /// </summary>
     public object? DraggedObject { get; set; }
 
-    public WidgetBase Modal { get; set; }
+    public WidgetBase? Modal { get; set; }
 
     public PointF MousePos => _mousePos;
 
@@ -88,72 +83,32 @@ public class UiManager : IUiRoot
         _mainWindow.UiRoot = this;
         _renderTooltipCallback = RenderTooltip;
         Debug = new UiManagerDebug(this);
-        mainWindow.UiCanvasSizeChanged += () => OnCanvasSizeChanged?.Invoke(CanvasSize);
-        _keyboardFocusManager = new KeyboardFocusManager(_topLevelWidgets);
+        mainWindow.UiCanvasSizeChanged += ResizeCanvas;
+
+        Root = new RootWidget();
+        Root.AttachToTree(this);
+        Root.Size = CanvasSize;
+        _keyboardFocusManager = new KeyboardFocusManager(Root.Children);
+    }
+
+    private void ResizeCanvas()
+    {
+        // Resize the root element
+        Root.Size = CanvasSize;
+        
+        OnCanvasSizeChanged?.Invoke(CanvasSize);
     }
 
     /// <summary>
     /// Add something to the list of active windows on top of all existing windows.
     /// </summary>
-    public void AddWindow(WidgetBase widget)
-    {
-        if (_topLevelWidgets.Contains(widget))
-        {
-            // Window is already in the list
-            return;
-        }
+    public void AddWindow(WidgetBase widget) => Root.Add(widget);
 
-        if (widget.Parent != null)
-        {
-            throw new ArgumentException("Cannot show a parented widget as a window.");
-        }
-
-        if (widget.UiManager != null)
-        {
-            throw new ArgumentException("Widget already belongs to a different UI manager.");
-        }
-
-        _topLevelWidgets.Add(widget);
-        widget.AttachToTree(this);
-    }
-
-    public bool RemoveWindow(WidgetContainer window)
-    {
-        if (Modal == window)
-        {
-            Modal = null;
-        }
-
-        if (_topLevelWidgets.Remove(window))
-        {
-            window.AttachToTree(null);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public void BringToFront(WidgetContainer window)
-    {
-        window.ZIndex = _topLevelWidgets
-            .Where(widget => widget != window)
-            .Select(widget => widget.ZIndex)
-            .DefaultIfEmpty()
-            .Max() + 1;
-        SortWindows();
-    }
-
-    public void SendToBack(WidgetContainer window)
-    {
-        window.ZIndex = int.MinValue;
-        SortWindows();
-    }
+    public bool RemoveWindow(WidgetBase widget) => Root.Remove(widget);
 
     public void ShowModal(WidgetBase widget, bool centerOnScreen = true)
     {
-        AddWindow(widget);
+        Root.Add(widget);
         Modal = widget;
         widget.BringToFront();
         if (centerOnScreen)
@@ -162,37 +117,17 @@ public class UiManager : IUiRoot
         }
     }
 
-    private static bool IsAncestor(WidgetBase widget, WidgetBase parent)
-    {
-        while (widget != null)
-        {
-            if (widget == parent)
-            {
-                return true;
-            }
-
-            widget = widget.Parent;
-        }
-
-        return false;
-    }
-
     public void RemoveWidget(WidgetBase widget)
     {
-        if (widget is WidgetContainer container)
-        {
-            RemoveWindow(container);
-        }
-
         var refreshMouseOverState = false;
 
-        if (IsAncestor(MouseCaptureWidget, widget))
+        if (widget.IsInclusiveAncestorOf(MouseCaptureWidget))
         {
             ReleaseMouseCapture(MouseCaptureWidget);
             refreshMouseOverState = true;
         }
 
-        if (IsAncestor(CurrentMouseOverWidget, widget))
+        if (widget.IsInclusiveAncestorOf(CurrentMouseOverWidget))
         {
             refreshMouseOverState = true;
         }
@@ -201,19 +136,17 @@ public class UiManager : IUiRoot
         {
             RefreshMouseOverState();
         }
+
+        if (Modal != null && widget.IsInclusiveAncestorOf(Modal))
+        {
+            Modal = null;
+        }
     }
 
     [TempleDllLocation(0x101F8D10)]
     public void Render()
     {
-        // Make a copy here since some vanilla logic will show/hide windows in their render callbacks
-        var activeWindows = _topLevelWidgets;
-
-        foreach (var windowId in activeWindows)
-        {
-            // Our new widget system handles rendering itself
-            windowId.Render();
-        }
+        Root.Render();
 
         Debug.AfterRenderWidgets();
 
@@ -221,45 +154,9 @@ public class UiManager : IUiRoot
         Tig.Mouse.DrawItemUnderCursor(_mousePos);
     }
 
-    public WidgetBase? GetWidgetAt(float x, float y)
+    public WidgetBase? PickWidget(float x, float y)
     {
-        WidgetBase result = null;
-
-        // Backwards because of render order (rendered last is really on top)
-        for (int i = _topLevelWidgets.Count - 1; i >= 0; --i)
-        {
-            var window = _topLevelWidgets[i];
-
-            if (Modal != null && Modal != window)
-            {
-                continue;
-            }
-
-            if (window.Visible && DoesWidgetContain(window, x, y))
-            {
-                result = window;
-
-                var localX = x - window.X;
-                var localY = y - window.Y;
-
-                var widgetIn = window.PickWidget(localX, localY);
-                if (widgetIn != null)
-                {
-                    return widgetIn;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private static bool DoesWidgetContain(WidgetBase widget, float x, float y)
-    {
-        var rect = widget.GetContentArea();
-        return x >= rect.X
-               && y >= rect.Y
-               && x < rect.X + rect.Width
-               && y < rect.Y + rect.Height;
+        return Modal != null ? Modal.PickWidget(x, y) : Root.PickWidget(x, y);
     }
 
     /// <summary>
@@ -299,89 +196,9 @@ public class UiManager : IUiRoot
         }
     }
 
-    /*
-    This will sort the windows using their z-order in the order in which
-    they should be rendered.
-    */
-    private void SortWindows()
-    {
-        // Sort Windows by Z-Index
-        _topLevelWidgets.Sort((windowA, windowB) => windowA.ZIndex.CompareTo(windowB.ZIndex));
-
-        // Reassign a zindex in monotonous order to those windows that dont have one
-        for (var i = 0; i < _topLevelWidgets.Count; ++i)
-        {
-            var window = _topLevelWidgets[i];
-            if (window.ZIndex == 0)
-            {
-                window.ZIndex = i * 100;
-            }
-        }
-    }
-
     private void RenderTooltip(int x, int y, object userArg)
     {
         CurrentMouseOverWidget?.RenderTooltip(x, y);
-    }
-
-    /// <summary>
-    /// Checks if a widget is really on screen by checking all of it's parents as well for visibility.
-    /// </summary>
-    public bool IsVisible(WidgetBase widget)
-    {
-        while (true)
-        {
-            if (!widget.Visible)
-            {
-                return false;
-            }
-
-            if (widget.Parent == null)
-            {
-                // It must be a top-level window to be visible
-                return TopLevelWidgets.Contains(widget);
-            }
-            else
-            {
-                widget = widget.Parent;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Works like Document.elementsFromPoint and enumerates all elements that intersect the given point on screen,
-    /// from topmost to bottommost.
-    /// </summary>
-    public IEnumerable<WidgetBase> ElementsFromPoint(int x, int y)
-    {
-        foreach (var widget in _topLevelWidgets)
-        {
-            foreach (var el in ElementsFromPoint(widget, x, y))
-            {
-                yield return el;
-            }
-        }
-    }
-
-    private static IEnumerable<WidgetBase> ElementsFromPoint(WidgetBase context, int x, int y)
-    {
-        if (!context.Visible || !context.HitTest(x, y))
-        {
-            yield break;
-        }
-
-        if (context is WidgetContainer container)
-        {
-            foreach (var child in container.GetChildren())
-            {
-                foreach (var widgetBase in ElementsFromPoint(child, x, y))
-                {
-                    yield return widgetBase;
-                }
-            }
-        }
-
-        yield return context;
     }
 
     public void MouseEnter()
@@ -424,7 +241,7 @@ public class UiManager : IUiRoot
         }
         else
         {
-            mouseOver = _mouseOverUi ? GetWidgetAt(_mousePos.X, _mousePos.Y) : null;
+            mouseOver = _mouseOverUi ? PickWidget(_mousePos.X, _mousePos.Y) : null;
         }
 
         var prevMouseOver = CurrentMouseOverWidget;
@@ -517,7 +334,7 @@ public class UiManager : IUiRoot
         // This should not really happen since capturing the mouse should only be allowed
         // if the mouse was already down, and it should be released, when the mouse button
         // is released. We'll handle it anyway.
-        var dispatchTo = MouseCaptureWidget ?? GetWidgetAt(uiPos.X, uiPos.Y);
+        var dispatchTo = MouseCaptureWidget ?? PickWidget(uiPos.X, uiPos.Y);
 
         _mouseDownState = new MouseDownState
         {
@@ -563,7 +380,7 @@ public class UiManager : IUiRoot
             SetPressed(lastMouseDownAt, false);
         }
 
-        var target = GetWidgetAt(uiPos.X, uiPos.Y);
+        var target = PickWidget(uiPos.X, uiPos.Y);
 
         var dispatchTo = MouseCaptureWidget ?? target;
         if (dispatchTo == null)
@@ -645,7 +462,7 @@ public class UiManager : IUiRoot
         {
             Type = type,
             InitialTarget = target,
-            MouseOverWidget = GetWidgetAt(_mousePos.X, _mousePos.Y),
+            MouseOverWidget = PickWidget(_mousePos.X, _mousePos.Y),
             Button = button,
             Buttons = buttons,
             X = _mousePos.X,
@@ -663,7 +480,7 @@ public class UiManager : IUiRoot
         {
             Type = type,
             InitialTarget = target,
-            MouseOverWidget = GetWidgetAt(_mousePos.X, _mousePos.Y),
+            MouseOverWidget = PickWidget(_mousePos.X, _mousePos.Y),
             Button = MouseButton.Unchanged,
             Buttons = _mouseDownState?.Buttons ?? default,
             X = _mousePos.X,
@@ -680,10 +497,35 @@ public class UiManager : IUiRoot
 
     public void KeyDown(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
     {
+        var initialTarget = KeyboardFocus;
+
+        var e = CreateKeyboardEvent(UiEventType.KeyDown, initialTarget, virtualKey, physicalKey, modifiers, repeat);
+
+        if (KeyboardFocus != null)
+        {
+            KeyboardFocus?.DispatchKeyDown(e);
+        }
+
         if (virtualKey == SDL_Keycode.SDLK_TAB)
         {
             _keyboardFocusManager.MoveFocusByKeyboard((modifiers & KeyModifier.Shift) != 0);
         }
+    }
+
+    private KeyboardEvent CreateKeyboardEvent(UiEventType type, WidgetBase target, SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
+    {
+        return new KeyboardEvent
+        {
+            Type = type,
+            InitialTarget = target,
+            VirtualKey = virtualKey,
+            PhysicalKey = physicalKey,
+            IsAltHeld = (modifiers & KeyModifier.Alt) != 0,
+            IsCtrlHeld = (modifiers & KeyModifier.Ctrl) != 0,
+            IsShiftHeld = (modifiers & KeyModifier.Shift) != 0,
+            IsMetaHeld = (modifiers & KeyModifier.Meta) != 0,
+            IsRepeat = repeat
+        };
     }
 
     public void Tick()
@@ -706,26 +548,7 @@ public class UiManager : IUiRoot
             _renderingTooltipFor = null;
         }
 
-        // Make a local copy of the widget list, because it could be modified by the event handlers
-        var tempWidgets = ArrayPool<WidgetBase>.Shared.Rent(_topLevelWidgets.Count);
-        try
-        {
-            _topLevelWidgets.CopyTo(tempWidgets);
-            var widgets = tempWidgets.AsSpan(0, _topLevelWidgets.Count);
-
-            // Dispatch time update messages continuously to all advanced widgets
-            foreach (var entry in widgets)
-            {
-                if (entry.UiManager == this)
-                {
-                    entry.OnUpdateTime(now);
-                }
-            }
-        }
-        finally
-        {
-            ArrayPool<WidgetBase>.Shared.Return(tempWidgets);
-        }
+        Root.OnUpdateTime(now);
     }
 
     // See https://w3c.github.io/pointerevents/#process-pending-pointer-capture

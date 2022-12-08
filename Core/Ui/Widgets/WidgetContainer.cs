@@ -1,6 +1,9 @@
+using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -9,10 +12,13 @@ namespace OpenTemple.Core.Ui.Widgets;
 
 public class WidgetContainer : WidgetBase
 {
-    private readonly List<WidgetBase> _children = new();
 
     private int _scrollOffsetY;
     
+    private readonly List<WidgetBase> _children = new();
+    
+    public IReadOnlyList<WidgetBase> Children => _children;
+
     /// <summary>
     /// Previously this was implemented by always returning true from the mouse event handler.
     /// TODO: Actually implement this, and check if it's not more like a modal backdrop
@@ -20,37 +26,28 @@ public class WidgetContainer : WidgetBase
     public bool PreventsInGameInteraction { get; set; }
 
     public bool ClipChildren { get; set; } = true;
-    
-    public WidgetContainer([CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1)
+
+    public WidgetContainer([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
         : this(0, 0, 0, 0, filePath, lineNumber)
     {
     }
 
-    public WidgetContainer(Size size, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1)
+    public WidgetContainer(Size size, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
         : this(0, 0, size.Width, size.Height, filePath, lineNumber)
     {
     }
 
-    public WidgetContainer(Rectangle rectangle, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : this(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, filePath,
+    public WidgetContainer(Rectangle rectangle, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height,
+        filePath,
         lineNumber)
     {
     }
 
-    public WidgetContainer(int width, int height, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : this(0, 0, width, height, filePath, lineNumber)
+    public WidgetContainer(int width, int height, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(0, 0, width, height, filePath, lineNumber)
     {
     }
 
-    public WidgetContainer(int x, int y, int width, int height, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : base(filePath, lineNumber)
+    public WidgetContainer(int x, int y, int width, int height, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : base(filePath, lineNumber)
     {
         X = x;
         Y = y;
@@ -60,18 +57,16 @@ public class WidgetContainer : WidgetBase
         // Containers are usually empty and should be click through where there is no content
         HitTesting = HitTestingMode.Content;
     }
-    
+
     public virtual void Add(WidgetBase childWidget)
     {
         if (childWidget.Parent == this)
         {
-            Trace.Assert(_children.Contains(childWidget));
+            Trace.Assert(Children.Contains(childWidget));
             return;
         }
-        if (childWidget.Parent != null)
-        {
-            childWidget.Parent.Remove(childWidget);
-        }
+
+        childWidget.Parent?.Remove(childWidget);
 
         childWidget.Parent = this;
         // If the child widget was a top-level window before, remove it
@@ -85,14 +80,20 @@ public class WidgetContainer : WidgetBase
         UiManager?.RefreshMouseOverState();
     }
 
-    public void Remove(WidgetBase childWidget)
+    public bool Remove(WidgetBase childWidget)
     {
+        if (childWidget.Parent == null)
+        {
+            return false;
+        }
+
         Trace.Assert(childWidget.Parent == this);
 
         childWidget.Parent = null;
         _children.Remove(childWidget);
         childWidget.AttachToTree(null);
         UiManager?.RefreshMouseOverState();
+        return true;
     }
 
     public virtual void Clear(bool disposeChildren = false)
@@ -117,7 +118,7 @@ public class WidgetContainer : WidgetBase
         {
             return null;
         }
-        
+
         for (var i = _children.Count - 1; i >= 0; i--)
         {
             var child = _children[i];
@@ -147,23 +148,6 @@ public class WidgetContainer : WidgetBase
         }
 
         return base.PickWidget(x, y);
-    }
-
-    public override void BringToFront()
-    {
-        if (Parent == null)
-        {
-            UiManager?.BringToFront(this);
-        }
-        else
-        {
-            base.BringToFront();
-        }
-    }
-
-    public List<WidgetBase> GetChildren()
-    {
-        return _children;
     }
 
     protected override void Dispose(bool disposing)
@@ -218,9 +202,32 @@ public class WidgetContainer : WidgetBase
     {
         base.OnUpdateTime(now);
 
-        foreach (var widget in _children)
+        // Make a local copy of the widget list, because it could be modified by the event handlers
+        var tempWidgets = ArrayPool<WidgetBase>.Shared.Rent(_children.Count);
+        try
         {
-            widget.OnUpdateTime(now);
+            _children.CopyTo(tempWidgets);
+            var widgets = tempWidgets.AsSpan(0, _children.Count);
+
+            // Dispatch time update messages continuously to all advanced widgets
+            foreach (var entry in widgets)
+            {
+                // Only dispatch if the widget wasn't moved away
+                if (entry.Parent == this)
+                {
+                    entry.OnUpdateTime(now);
+                    
+                    // Stop updating if we've been detached from the tree
+                    if (!IsInTree)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            ArrayPool<WidgetBase>.Shared.Return(tempWidgets);
         }
     }
 
@@ -235,7 +242,7 @@ public class WidgetContainer : WidgetBase
     }
 
     public override WidgetBase? FirstChild => _children.Count > 0 ? _children[0] : null;
-    
+
     public override WidgetBase? LastChild => _children.Count > 0 ? _children[^1] : null;
 
     public void SetScrollOffsetY(int scrollY)
@@ -250,4 +257,79 @@ public class WidgetContainer : WidgetBase
         return _scrollOffsetY;
     }
 
-};
+    /// <summary>
+    /// This will sort the windows using their z-order in the order in which
+    /// they should be rendered.
+    /// </summary>
+    private void SortChildren()
+    {
+        // Sort Windows by Z-Index
+        _children.Sort((windowA, windowB) => windowA.ZIndex.CompareTo(windowB.ZIndex));
+
+        // Reassign a zindex in monotonous order to those windows that dont have one
+        for (var i = 0; i < _children.Count; ++i)
+        {
+            var window = _children[i];
+            if (window.ZIndex == 0)
+            {
+                window.ZIndex = i * 100;
+            }
+        }
+    }
+
+    public void BringToFront(WidgetBase widget)
+    {
+        widget.ZIndex = _children
+            .Where(child => child != widget)
+            .Select(child => child.ZIndex)
+            .DefaultIfEmpty()
+            .Max() + 1;
+        SortChildren();
+    }
+
+    public void MoveToBack(WidgetBase widget)
+    {
+        widget.ZIndex = _children
+            .Where(child => child != widget)
+            .Select(child => child.ZIndex)
+            .DefaultIfEmpty()
+            .Min() - 1;
+        SortChildren();
+    }
+
+    public void SendToBack(WidgetBase widget)
+    {
+        widget.ZIndex = int.MinValue;
+        SortChildren();
+    }
+
+    /// <summary>
+    /// Works like Document.elementsFromPoint and enumerates all elements that intersect the given point on screen,
+    /// from topmost to bottommost.
+    /// </summary>
+    public IEnumerable<WidgetBase> ElementsFromPoint(int x, int y)
+    {
+        return ElementsFromPoint(this, x, y);
+    }
+
+    private static IEnumerable<WidgetBase> ElementsFromPoint(WidgetBase context, int x, int y)
+    {
+        if (!context.Visible || !context.HitTest(x, y))
+        {
+            yield break;
+        }
+
+        if (context is WidgetContainer container)
+        {
+            foreach (var child in container.Children)
+            {
+                foreach (var widgetBase in ElementsFromPoint(child, x, y))
+                {
+                    yield return widgetBase;
+                }
+            }
+        }
+
+        yield return context;
+    }
+}

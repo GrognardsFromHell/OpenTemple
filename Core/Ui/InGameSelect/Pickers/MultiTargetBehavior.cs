@@ -172,7 +172,7 @@ internal class MultiTargetBehavior : PickerBehavior
     internal override void DrawTextAtCursor(int x, int y)
     {
         // This dirty hack will render tooltips and THEN the text over them...
-        var widget = Globals.UiManager.GetWidgetAt(x, y);
+        var widget = Globals.UiManager.PickWidget(x, y);
         widget?.RenderTooltip(x, y);
 
         Tig.RenderingDevice.TextEngine.RenderText(

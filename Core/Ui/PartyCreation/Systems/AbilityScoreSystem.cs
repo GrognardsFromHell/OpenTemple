@@ -182,7 +182,7 @@ class AbilityScoreSystem : IChargenSystem
                 widget.ReleaseMouseCapture();
                 widget.IsDragging = false;
 
-                var widgetUnderCursor = Globals.UiManager.GetWidgetAt(e.X, e.Y);
+                var widgetUnderCursor = Globals.UiManager.PickWidget(e.X, e.Y);
                 if (widgetUnderCursor is AbilityScoreValueWidget otherAbilityScoreValue)
                 {
                     // Swap the two values

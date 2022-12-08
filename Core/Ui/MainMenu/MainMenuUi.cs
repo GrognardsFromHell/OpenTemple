@@ -14,6 +14,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.MainMenu;
@@ -158,6 +159,13 @@ public class MainMenuUi : IDisposable
         Globals.UiManager.OnCanvasSizeChanged += RepositionWidgets;
 
         Hide(); // Hide everything by default
+
+        var textInput = new TextFieldWidget();
+        textInput.X = 5;
+        textInput.Y = 25;
+        textInput.Width = 150;
+        textInput.Height = 20;
+        _mainWidget.Add(textInput);
     }
 
     private WidgetButtonBase CreateMainMenuButton(JsonElement definition)

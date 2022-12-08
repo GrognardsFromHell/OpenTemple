@@ -12,7 +12,7 @@ namespace OpenTemple.Tests.Ui;
 
 public abstract class BaseWidgetTest
 {
-    protected List<WidgetContainer> Widgets => UiManager.TopLevelWidgets.Cast<WidgetContainer>().ToList();
+    protected List<WidgetContainer> Widgets => UiManager.Root.Children.Cast<WidgetContainer>().ToList();
     protected Dictionary<string, WidgetContainer> WidgetsById;
     protected UiManager UiManager;
 

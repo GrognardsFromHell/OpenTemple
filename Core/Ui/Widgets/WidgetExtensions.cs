@@ -79,14 +79,14 @@ public static class WidgetExtensions
         return null;
     }
 
-    public static bool IsInclusiveAncestorOf(this WidgetBase self, WidgetBase other)
+    public static bool IsInclusiveAncestorOf(this WidgetBase self, WidgetBase? other)
     {
-        return self == other || IsAncestorOf(self, other);
+        return other != null && (self == other || IsAncestorOf(self, other));
     }
 
-    public static bool IsAncestorOf(this WidgetBase self, WidgetBase other)
+    public static bool IsAncestorOf(this WidgetBase self, WidgetBase? other)
     {
-        return self != other && other.IsDescendantOf(self);
+        return other != null && self != other && other.IsDescendantOf(self);
     }
 
     /// <summary>

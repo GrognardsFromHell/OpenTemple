@@ -113,7 +113,7 @@ public class ItemSlotBehavior
         {
             if (_dragging)
             {
-                var droppedOn = Globals.UiManager.GetWidgetAt(e.X, e.Y);
+                var droppedOn = Globals.UiManager.PickWidget(e.X, e.Y);
                 var item = UiSystems.CharSheet.Inventory.DraggedObject;
 
                 UiSystems.CharSheet.Inventory.DraggedObject = null;

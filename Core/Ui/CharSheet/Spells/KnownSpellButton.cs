@@ -133,7 +133,7 @@ public class KnownSpellButton : WidgetButtonBase
             return;
         }
         
-        var otherWidget = Globals.UiManager.GetWidgetAt(e.X, e.Y);
+        var otherWidget = Globals.UiManager.PickWidget(e.X, e.Y);
         if (otherWidget is MemorizedSpellButton memorizedSpellButton)
         {
             OnMemorizeSpell?.Invoke(_spell, memorizedSpellButton);

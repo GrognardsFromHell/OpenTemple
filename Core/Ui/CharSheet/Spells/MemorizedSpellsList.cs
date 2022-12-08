@@ -80,7 +80,7 @@ public class MemorizedSpellsList : WidgetContainer
             _scrollbar.Height = Height;
 
             // Clip existing items that overlap the scrollbar
-            foreach (var childWidget in GetChildren())
+            foreach (var childWidget in Children)
             {
                 if (childWidget.X + childWidget.Width >= _scrollbar.X)
                 {
