@@ -171,7 +171,7 @@ public static class UiSystems
             Globals.Config.Rendering
         ));
         Globals.UiManager.AddWindow(GameView);
-        GameView.BringToFront();
+        GameView.SendToBack();
     }
 
     private static T Startup<T>() where T : new()

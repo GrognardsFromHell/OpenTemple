@@ -72,6 +72,7 @@ public class WidgetContainer : WidgetBase
 
         childWidget.AttachToTree(UiManager);
         _children.Add(childWidget);
+        SortChildren();
         UiManager?.RefreshMouseOverState();
     }
 
@@ -292,10 +293,18 @@ public class WidgetContainer : WidgetBase
         SortChildren();
     }
 
-    public void SendToBack(WidgetBase widget)
+    public void SendToBack()
     {
-        widget.ZIndex = int.MinValue;
-        SortChildren();
+        Parent?.SendToBack(this);
+    }
+
+    public void SendToBack(WidgetBase child)
+    {
+        if (child.Parent == this)
+        {
+            child.ZIndex = int.MinValue;
+            SortChildren();
+        }
     }
 
     /// <summary>

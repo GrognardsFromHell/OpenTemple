@@ -98,11 +98,8 @@ public class UiManagerDebug
     private static void RenderWidgetTreeNode(WidgetBase widget)
     {
         ImGui.PushID($"widget${widget.GetHashCode()}");
-        var zIndex = "";
-        if (widget is WidgetContainer window && window.Parent == null)
-        {
-            zIndex = $" Z:{window.ZIndex}";
-        }
+        var zIndex = $" Z:{widget.ZIndex}";
+
         if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.Id} ({widget.SourceURI}){zIndex}"))
         {
             if (ImGui.IsItemHovered())
