@@ -69,11 +69,6 @@ public class WidgetContainer : WidgetBase
         childWidget.Parent?.Remove(childWidget);
 
         childWidget.Parent = this;
-        // If the child widget was a top-level window before, remove it
-        if (childWidget is WidgetContainer otherContainer)
-        {
-            UiManager?.RemoveWindow(otherContainer);
-        }
 
         childWidget.AttachToTree(UiManager);
         _children.Add(childWidget);

@@ -143,7 +143,7 @@ public class TextEntryUi
         }
         else
         {
-            _dialog.CenterOnScreen();
+            _dialog.CenterInParent();
         }
         _dialog.BringToFront();
     }

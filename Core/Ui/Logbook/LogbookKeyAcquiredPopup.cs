@@ -66,7 +66,7 @@ internal class LogbookKeyAcquiredPopup
     public void Show()
     {
         Globals.UiManager.AddWindow(_window);
-        _window.CenterOnScreen();
+        _window.CenterInParent();
         _window.BringToFront();
     }
 

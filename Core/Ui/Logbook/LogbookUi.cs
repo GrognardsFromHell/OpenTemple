@@ -213,7 +213,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x10128310)]
     public void Show()
     {
-        _window.CenterOnScreen();
+        _window.CenterInParent();
 
         if (_canShowQuotes && Tig.Keyboard.IsAltPressed)
         {

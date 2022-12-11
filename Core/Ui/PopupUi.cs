@@ -255,7 +255,7 @@ public class PopupUi : IDisposable, IResetAwareSystem
 
         Globals.UiManager.AddWindow(popup.wnd);
         popup.wnd.BringToFront();
-        popup.wnd.CenterOnScreen();
+        popup.wnd.CenterInParent();
 
         popup.prompt.onPopupShow?.Invoke();
     }

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
@@ -14,6 +15,7 @@ using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
+[DebuggerDisplay("{ToString()}")]
 public partial class WidgetBase : Styleable, IDisposable
 {
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(10);
@@ -23,12 +25,12 @@ public partial class WidgetBase : Styleable, IDisposable
     /// <summary>
     /// If this widget was loaded from a file, indicates the URI to that file to more easily identify it.
     /// </summary>
-    public string SourceURI { get; set; }
+    public string? SourceURI { get; set; }
 
     /// <summary>
     /// A unique id for this widget within the source URI (see below).
     /// </summary>
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     public bool CenterHorizontally { get; set; }
     public bool CenterVertically { get; set; }
@@ -168,11 +170,11 @@ public partial class WidgetBase : Styleable, IDisposable
             if (value != _visible)
             {
                 _visible = value;
-                UiManager?.RefreshMouseOverState();
+                UiManager?.VisibilityChanged(this);
             }
         }
     }
-    
+
     /// <summary>
     /// Checks if a widget is really on screen by checking all of it's parents as well for visibility.
     /// </summary>
@@ -199,7 +201,7 @@ public partial class WidgetBase : Styleable, IDisposable
             return true;
         }
     }
-    
+
     /// <summary>
     /// Content is shifted by this offset within the viewport of the widget.
     /// </summary>
@@ -432,6 +434,21 @@ public partial class WidgetBase : Styleable, IDisposable
     }
 
     /// <summary>
+    /// Same as <see cref="PickWidget"/>, but the x and y coordinates
+    /// are global UI coordinates,and not local to this widget. 
+    /// </summary>
+    public WidgetBase? PickWidgetGlobal(float x, float y)
+    {
+        var contentBounds = GetContentArea(true);
+        if (x < contentBounds.X || x >= contentBounds.Right || y < contentBounds.Y || y >= contentBounds.Bottom)
+        {
+            return null;
+        }
+
+        return PickWidget(x - contentBounds.X, y - contentBounds.Y);
+    }
+
+    /// <summary>
     /// Picks the widget a the x,y coordinate local to this widget.
     /// Null if the coordinates are outside of this widget. If no
     /// other widget inside is at the given coordinate, will just return this.
@@ -444,9 +461,9 @@ public partial class WidgetBase : Styleable, IDisposable
         }
 
         if (x >= _margins.Left &
-            y >= _margins.Bottom &&
-            x < Width - _margins.Right
-            && y < Height - _margins.Top
+            y >= _margins.Top &&
+            x - _margins.Left < Width - _margins.Right
+            && y - _margins.Top < Height - _margins.Bottom
             && HitTest(x, y))
         {
             return this;
@@ -477,11 +494,6 @@ public partial class WidgetBase : Styleable, IDisposable
         }
 
         Content.Clear();
-    }
-
-    public void Hide()
-    {
-        Visible = false;
     }
 
     public void BringToFront()
@@ -839,14 +851,13 @@ public partial class WidgetBase : Styleable, IDisposable
         UiManager?.ReleaseMouseCapture(this);
     }
 
-    public void CenterOnScreen()
+    public void CenterInParent()
     {
-        Trace.Assert(Parent == null);
-        if (UiManager != null)
+        if (Parent != null)
         {
-            var screenSize = UiManager.CanvasSize;
-            X = (screenSize.Width - Width) / 2;
-            Y = (screenSize.Height - Height) / 2;
+            var parentSize = Parent.Size;
+            X = (parentSize.Width - Width) / 2;
+            Y = (parentSize.Height - Height) / 2;
         }
     }
 
@@ -855,7 +866,7 @@ public partial class WidgetBase : Styleable, IDisposable
     #region Tree Navigation
 
     public virtual WidgetBase? FirstChild => null;
-    
+
     public virtual WidgetBase? LastChild => null;
 
     public WidgetBase? PreviousSibling
@@ -969,7 +980,7 @@ public partial class WidgetBase : Styleable, IDisposable
 
         return null;
     }
-    
+
     /// <summary>
     /// Find the inclusive descendant that is last in tree order of the given object.
     /// `O(n)` (worst case) where `n` is the depth of the subtree of `object`
@@ -985,5 +996,30 @@ public partial class WidgetBase : Styleable, IDisposable
 
         return current;
     }
+
     #endregion
+
+    public override string ToString()
+    {
+        var result = new StringBuilder();
+        if (SourceURI != null)
+        {
+            result.Append(SourceURI);
+            if (Id != null)
+            {
+                result.Append('#').Append(Id);
+            }
+        }
+        else if (Id != null)
+        {
+            result.Append(Id);
+        }
+        else
+        {
+            return GetType().Name;
+        }
+
+        result.Append(" (").Append(GetType().Name).Append(')');
+        return result.ToString();
+    }
 }

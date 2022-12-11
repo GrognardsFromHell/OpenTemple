@@ -65,14 +65,14 @@ public class CombatTest : HeadlessGameTest
     {
         var zombie = GameSystems.MapObject.CreateObject(TestProtos.Zombie, new locXY(500, 483));
         GameSystems.Critter.GenerateHp(zombie);
-
+        
         Game.RunUntil(() => GameSystems.Combat.IsCombatActive());
 
         GameSystems.Combat.IsCombatActive().Should().BeTrue();
-        GameSystems.D20.Initiative.Should().Equal(
+        GameSystems.D20.Initiative.Should().BeEquivalentTo(new []{
             _player,
             zombie
-        );
+        });
     }
 
     [Test]

@@ -190,7 +190,7 @@ public class HelpUi : IResetAwareSystem
 
         Globals.UiManager.AddWindow(uiHelpWnd);
         uiHelpWnd.BringToFront();
-        uiHelpWnd.CenterOnScreen();
+        uiHelpWnd.CenterInParent();
 
         if (_currentHelpRequest == null)
         {

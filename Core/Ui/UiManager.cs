@@ -88,14 +88,14 @@ public class UiManager : IUiRoot
         Root = new RootWidget();
         Root.AttachToTree(this);
         Root.Size = CanvasSize;
-        _keyboardFocusManager = new KeyboardFocusManager(Root.Children);
+        _keyboardFocusManager = new KeyboardFocusManager(Root);
     }
 
     private void ResizeCanvas()
     {
         // Resize the root element
         Root.Size = CanvasSize;
-        
+
         OnCanvasSizeChanged?.Invoke(CanvasSize);
     }
 
@@ -113,7 +113,12 @@ public class UiManager : IUiRoot
         widget.BringToFront();
         if (centerOnScreen)
         {
-            widget.CenterOnScreen();
+            widget.CenterInParent();
+        }
+        // Move keyboard focus to the first focusable element in Modal
+        if (KeyboardFocus != null)
+        {
+            _keyboardFocusManager.FocusFirstFocusableChild(Modal);
         }
     }
 
@@ -156,7 +161,7 @@ public class UiManager : IUiRoot
 
     public WidgetBase? PickWidget(float x, float y)
     {
-        return Modal != null ? Modal.PickWidget(x, y) : Root.PickWidget(x, y);
+        return Modal != null ? Modal.PickWidgetGlobal(x, y) : Root.PickWidgetGlobal(x, y);
     }
 
     /// <summary>
@@ -166,6 +171,18 @@ public class UiManager : IUiRoot
     /// </summary>
     public void RefreshMouseOverState()
     {
+        UpdateMouseOver();
+    }
+
+    /// <summary>
+    /// Notifies the UI manager that the visibility of a widget has changed.
+    /// </summary>
+    public void VisibilityChanged(WidgetBase widget)
+    {
+        if (Modal == widget && !widget.Visible)
+        {
+            Modal = null;
+        }
         UpdateMouseOver();
     }
 

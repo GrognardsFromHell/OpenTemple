@@ -414,7 +414,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         UpdateUi();
 
         Globals.UiManager.AddWindow(_window);
-        _window.CenterOnScreen();
+        _window.CenterInParent();
         _window.BringToFront();
         _openedFromMainMenu = fromMainMenu;
         UiSystems.UtilityBar.Hide();

@@ -69,6 +69,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
         // Begin top level window
         // Created @ 0x10110f7f
         _container = new WidgetContainer(new Rectangle(0, 0, 179, 81));
+        _container.Id = "utility_bar";
         _container.AddClickListener(OnUtilityBarClick);
         _container.ZIndex = 100000;
         var background = new WidgetImage("art/interface/utility_bar_ui/background.tga");

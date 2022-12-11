@@ -150,7 +150,7 @@ public class PartyAlignmentUi : IDisposable
     public void Show()
     {
         Globals.UiManager.AddWindow(_container);
-        _container.CenterOnScreen();
+        _container.CenterInParent();
         _container.BringToFront();
 
 //            dword_10BDC430/*0x10bdc430*/ = (string )uiPcCreationText_SelectAPartyAlignment/*0x10bdb018*/;

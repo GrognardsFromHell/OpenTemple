@@ -542,7 +542,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         }
         else
         {
-            _mainWidget.CenterOnScreen();
+            _mainWidget.CenterInParent();
         }
     }
 

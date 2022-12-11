@@ -472,7 +472,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         Update();
 
         Globals.UiManager.AddWindow(_container);
-        _container.CenterOnScreen();
+        _container.CenterInParent();
 
         UiSystems.Party.Hide();
         UiSystems.UtilityBar.Hide();
