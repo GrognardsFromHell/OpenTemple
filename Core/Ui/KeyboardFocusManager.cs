@@ -49,6 +49,39 @@ public class KeyboardFocusManager
         KeyboardFocus = FindFocusCandidate(candidate, backwards, _treeRoot);
     }
 
+    /// <summary>
+    /// Move focus by holding down the primary mouse button on the given widget.
+    /// This may also focus the closest focusable ancestor instead.
+    /// </summary>
+    public void MoveFocusByMouseDown(WidgetBase widget)
+    {
+        foreach (var candidate in widget.EnumerateSelfAndAncestors())
+        {
+            if (widget.FocusMode == FocusMode.User && CanContainFocus(widget))
+            {
+                KeyboardFocus = candidate;
+                return;
+            }
+        }
+
+        // Nothing focusable
+        KeyboardFocus = null;
+    }
+    
+    /// <summary>
+    /// Moves keyboard focus to the given element programatically.
+    /// If the element cannot be focused, the method fails silently.
+    /// </summary>
+    public void MoveFocus(WidgetBase widget)
+    {
+        if (widget.FocusMode == FocusMode.None || !CanContainFocus(widget))
+        {
+            return;
+        }
+        
+        KeyboardFocus = widget;
+    }
+    
     private static WidgetBase? FindFocusCandidate(WidgetBase? candidate, bool backwards, WidgetBase treeRoot)
     {
         while (candidate != null)

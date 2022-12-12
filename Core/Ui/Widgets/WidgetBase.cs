@@ -1022,4 +1022,14 @@ public partial class WidgetBase : Styleable, IDisposable
         result.Append(" (").Append(GetType().Name).Append(')');
         return result.ToString();
     }
+
+    public void Focus()
+    {
+        if (FocusMode == FocusMode.None || HasFocus || UiManager == null)
+        {
+            return;
+        }
+
+        UiManager.Focus(this);
+    }
 }

@@ -115,6 +115,7 @@ public class UiManager : IUiRoot
         {
             widget.CenterInParent();
         }
+
         // Move keyboard focus to the first focusable element in Modal
         if (KeyboardFocus != null)
         {
@@ -183,6 +184,7 @@ public class UiManager : IUiRoot
         {
             Modal = null;
         }
+
         UpdateMouseOver();
     }
 
@@ -367,6 +369,12 @@ public class UiManager : IUiRoot
 
             var e = CreateMouseEvent(UiEventType.MouseDown, dispatchTo);
             dispatchTo.DispatchMouseDown(e);
+
+            if (e is {Button: MouseButton.LEFT, IsDefaultPrevented: false})
+            {
+                // Handle focus movement via mouse
+                _keyboardFocusManager.MoveFocusByMouseDown(dispatchTo);
+            }
         }
     }
 
@@ -619,5 +627,10 @@ public class UiManager : IUiRoot
         // after the first but before the first is released do not trigger
         // mouse down / up events.
         public MouseButtons Buttons { get; set; }
+    }
+
+    public void Focus(WidgetBase widget)
+    {
+        _keyboardFocusManager.MoveFocus(widget);
     }
 }
