@@ -2,6 +2,7 @@
 using System.Drawing;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.Widgets.TextField;
 
 namespace OpenTemple.Core.Ui.Events;
 
@@ -29,16 +30,25 @@ public class MouseEvent : UiEvent
     public bool IsAltHeld { get; init; }
     public bool IsShiftHeld { get; init; }
     public bool IsMetaHeld { get; init; }
+
+    /// <summary>
+    /// Returns <see cref="Pos"/> relative to the widgets content area.
+    /// </summary>
+    public PointF GetLocalPos(WidgetBase widget)
+    {
+        var contentRect = widget.GetContentArea();
+        return new PointF(Pos.X - contentRect.X, Pos.Y - contentRect.Y);
+    }
 }
 
 public enum MouseButton : int
 {
-    LEFT = 0,
-    RIGHT = 1,
-    MIDDLE = 2,
-    EXTRA1 = 3,
-    EXTRA2 = 4,
-    Unchanged = 0
+    Unchanged = 0,
+    Left = 1,
+    Right = 2,
+    Middle = 3,
+    Extra1 = 4,
+    Extra2 = 5,
 }
 
 [Flags]

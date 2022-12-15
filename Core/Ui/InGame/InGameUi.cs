@@ -975,12 +975,12 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         {
             if (!GameSystems.Combat.IsCombatActive())
             {
-                if (e.Button == MouseButton.LEFT)
+                if (e.Button == MouseButton.Left)
                 {
                     HandleNormalLeftMouseDragHandler(viewport, e);
                     e.StopImmediatePropagation();
                 }
-                else if (e.Button == MouseButton.RIGHT)
+                else if (e.Button == MouseButton.Right)
                 {
                     HandleNormalRightMouseButton(viewport, e);
                 }
@@ -988,7 +988,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         };
         viewport.OnMouseUp += e =>
         {
-            if (!GameSystems.Combat.IsCombatActive() && e.Button == MouseButton.LEFT)
+            if (!GameSystems.Combat.IsCombatActive() && e.Button == MouseButton.Left)
             {
                 e.StopImmediatePropagation();
                 HandleNormalLeftMouseReleased(viewport, e);

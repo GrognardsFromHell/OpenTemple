@@ -67,7 +67,7 @@ public sealed class WidgetScrollBar : WidgetContainer
         
         // Scroll up or down repeatedly if the mouse is held on the track above/below the handle
         OnMouseDown += e => {
-            if (e.Button == MouseButton.LEFT && e.InitialTarget == track && SetMouseCapture())
+            if (e.Button == MouseButton.Left && e.InitialTarget == track && SetMouseCapture())
             {
                 if (_repeatedScrolling != null)
                 {
@@ -285,7 +285,7 @@ public sealed class WidgetScrollBar : WidgetContainer
 
         protected override void HandleMouseDown(MouseEvent e)
         {
-            if (e.Button == MouseButton.LEFT)
+            if (e.Button == MouseButton.Left)
             {
                 SetMouseCapture();
                 _dragGrabPoint = (int) e.Y;

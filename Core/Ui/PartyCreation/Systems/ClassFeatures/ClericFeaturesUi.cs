@@ -130,7 +130,7 @@ internal class ClericFeaturesUi : IChargenSystem
         {
             var domain = _selectableDomains[index];
 
-            if (button.HasMouseCapture && e.Button == MouseButton.LEFT)
+            if (button.HasMouseCapture && e.Button == MouseButton.Left)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
                 button.ReleaseMouseCapture();
@@ -164,7 +164,7 @@ internal class ClericFeaturesUi : IChargenSystem
             }
 
             // Allow quickly swapping values between the two columns
-            if (e.Button == MouseButton.RIGHT)
+            if (e.Button == MouseButton.Right)
             {
                 if (_pkt.domain1 == DomainId.None)
                 {
@@ -180,7 +180,7 @@ internal class ClericFeaturesUi : IChargenSystem
                     return;
                 }
             }
-            else if (e.Button == MouseButton.LEFT && button.SetMouseCapture())
+            else if (e.Button == MouseButton.Left && button.SetMouseCapture())
             {
                 // Figure out where in the widget we got clicked so we can draw the dragged text with the proper offset
                 var globalContentArea = button.GetContentArea(true);

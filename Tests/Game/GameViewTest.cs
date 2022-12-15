@@ -56,10 +56,10 @@ public class GameViewTest : HeadlessGameTest
 
         // Initiate and immediately release MMB scrolling because previously the state would get de-synched
         // and cause the view to jerk around
-        UiSystems.GameView.DispatchMouseDown(new MouseEvent {Button = MouseButton.MIDDLE});
+        UiSystems.GameView.DispatchMouseDown(new MouseEvent {Button = MouseButton.Middle});
         UiSystems.GameView.DispatchMouseMove(new MouseEvent {X = 1});
         UiSystems.GameView.DispatchMouseMove(new MouseEvent {X = -1});
-        UiSystems.GameView.DispatchMouseUp(new MouseEvent {Button = MouseButton.MIDDLE});
+        UiSystems.GameView.DispatchMouseUp(new MouseEvent {Button = MouseButton.Middle});
         var centerAfterMove = gv.CenteredOn.ToInches2D();
         Vector2.Subtract(centerAfterZoom, centerAfterMove).Length().Should().BeLessOrEqualTo(3);
     }

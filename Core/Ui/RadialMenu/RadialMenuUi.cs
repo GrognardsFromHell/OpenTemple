@@ -1608,7 +1608,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             if (IsOpen)
             {
                 e.StopImmediatePropagation();
-                if (e.Button == MouseButton.RIGHT)
+                if (e.Button == MouseButton.Right)
                 {
                     HandleRightMouseClick(e);
                 }
@@ -1622,7 +1622,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             }
             
             e.StopImmediatePropagation();
-            if (e.Button == MouseButton.LEFT)
+            if (e.Button == MouseButton.Left)
             {
                 var clickedNodeIdx = UiRadialGetNodeClick(e.X, e.Y);
                 if (clickedNodeIdx == -1)
@@ -1667,7 +1667,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
                     ActivateActiveNode();
                 }
             }
-            else if (e.Button == MouseButton.RIGHT) 
+            else if (e.Button == MouseButton.Right) 
             {
                 UiRadialMenuRmbReleased(viewport, e);
             }

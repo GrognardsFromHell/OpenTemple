@@ -370,7 +370,7 @@ public class UiManager : IUiRoot
             var e = CreateMouseEvent(UiEventType.MouseDown, dispatchTo);
             dispatchTo.DispatchMouseDown(e);
 
-            if (e is {Button: MouseButton.LEFT, IsDefaultPrevented: false})
+            if (e is {Button: MouseButton.Left, IsDefaultPrevented: false})
             {
                 // Handle focus movement via mouse
                 _keyboardFocusManager.MoveFocusByMouseDown(dispatchTo);
@@ -433,7 +433,7 @@ public class UiManager : IUiRoot
             var clickTarget = lastMouseDownAt.GetCommonAncestor(dispatchTo);
             if (clickTarget != null)
             {
-                if (button == MouseButton.LEFT)
+                if (button == MouseButton.Left)
                 {
                     clickTarget.DispatchClick(e);
                 }
@@ -522,22 +522,28 @@ public class UiManager : IUiRoot
 
     public void KeyDown(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
     {
-        var initialTarget = KeyboardFocus;
+        var initialTarget = KeyboardFocus ?? Root;
 
         var e = CreateKeyboardEvent(UiEventType.KeyDown, initialTarget, virtualKey, physicalKey, modifiers, repeat);
 
-        if (KeyboardFocus != null)
-        {
-            KeyboardFocus?.DispatchKeyDown(e);
-        }
+        initialTarget.DispatchKeyDown(e);
 
-        if (virtualKey == SDL_Keycode.SDLK_TAB)
+        if (!e.IsDefaultPrevented && virtualKey == SDL_Keycode.SDLK_TAB)
         {
             _keyboardFocusManager.MoveFocusByKeyboard((modifiers & KeyModifier.Shift) != 0);
         }
     }
 
-    private KeyboardEvent CreateKeyboardEvent(UiEventType type, WidgetBase target, SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
+    public void KeyUp(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers)
+    {
+        var initialTarget = KeyboardFocus ?? Root;
+
+        var e = CreateKeyboardEvent(UiEventType.KeyUp, initialTarget, virtualKey, physicalKey, modifiers, false);
+
+        initialTarget.DispatchKeyUp(e);
+    }
+
+    private static KeyboardEvent CreateKeyboardEvent(UiEventType type, WidgetBase target, SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
     {
         return new KeyboardEvent
         {
@@ -551,6 +557,20 @@ public class UiManager : IUiRoot
             IsMetaHeld = (modifiers & KeyModifier.Meta) != 0,
             IsRepeat = repeat
         };
+    }
+
+    public void TextInput(string text)
+    {
+        var initialTarget = KeyboardFocus ?? Root;
+
+        var e = new TextInputEvent
+        {
+            Type = UiEventType.TextInput,
+            InitialTarget = initialTarget,
+            Text = text
+        };
+
+        initialTarget.DispatchTextInput(e);
     }
 
     public void Tick()
@@ -600,11 +620,11 @@ public class UiManager : IUiRoot
     {
         return button switch
         {
-            MouseButton.LEFT => MouseButtons.Left,
-            MouseButton.RIGHT => MouseButtons.Right,
-            MouseButton.MIDDLE => MouseButtons.Middle,
-            MouseButton.EXTRA1 => MouseButtons.Extra1,
-            MouseButton.EXTRA2 => MouseButtons.Extra2,
+            MouseButton.Left => MouseButtons.Left,
+            MouseButton.Right => MouseButtons.Right,
+            MouseButton.Middle => MouseButtons.Middle,
+            MouseButton.Extra1 => MouseButtons.Extra1,
+            MouseButton.Extra2 => MouseButtons.Extra2,
             _ => throw new ArgumentOutOfRangeException(nameof(button), button, null)
         };
     }
@@ -632,5 +652,17 @@ public class UiManager : IUiRoot
     public void Focus(WidgetBase widget)
     {
         _keyboardFocusManager.MoveFocus(widget);
+    }
+
+    public void SnapToPhysicalPixelGrid(ref RectangleF rect)
+    {
+        var scale = _mainWindow.UiScale;
+        var right = rect.Right;
+        var bottom = rect.Bottom;
+        
+        rect.X = MathF.Round(rect.X * scale) / scale;
+        rect.Y = MathF.Round(rect.Y * scale) / scale;
+        rect.Width = MathF.Round(right * scale) / scale - rect.X;
+        rect.Height = MathF.Round(bottom * scale) / scale - rect.Y;
     }
 }

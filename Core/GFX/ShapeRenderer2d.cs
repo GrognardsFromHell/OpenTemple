@@ -208,8 +208,18 @@ public sealed class ShapeRenderer2d : IDisposable
     }
 
     public void DrawRectangle(
+        RectangleF rect,
+        ITexture? texture,
+        PackedLinearColorA color,
+        SamplerType2d samplerType = SamplerType2d.CLAMP
+    )
+    {
+        DrawRectangle(rect.X, rect.Y, rect.Width, rect.Height, texture, color, samplerType);
+    }
+
+    public void DrawRectangle(
         float x, float y, float width, float height,
-        ITexture texture,
+        ITexture? texture,
         PackedLinearColorA color,
         SamplerType2d samplerType = SamplerType2d.CLAMP
     )
@@ -241,7 +251,7 @@ public sealed class ShapeRenderer2d : IDisposable
     }
 
     public void DrawRectangle(Span<Vertex2d> corners,
-        ITexture texture,
+        ITexture? texture,
         ITexture? mask = null,
         SamplerType2d samplerType = SamplerType2d.CLAMP,
         bool blending = true)

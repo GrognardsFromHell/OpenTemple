@@ -138,7 +138,7 @@ class AbilityScoreSystem : IChargenSystem
 
             // Allow quickly swapping values between the two columns, but only when we actually have rolled values
             // (not in point buy mode)
-            if (!_pkt.isPointbuy && e.Button == MouseButton.RIGHT)
+            if (!_pkt.isPointbuy && e.Button == MouseButton.Right)
             {
                 var destinationPool = widget.IsAssigned ? charGenRolledStats : _pkt.abilityStats;
                 for (var i = 0; i < destinationPool.Length; i++)
@@ -152,7 +152,7 @@ class AbilityScoreSystem : IChargenSystem
                     }
                 }
             }
-            else if (e.Button == MouseButton.LEFT && widget.SetMouseCapture())
+            else if (e.Button == MouseButton.Left && widget.SetMouseCapture())
             {
                 // Figure out where in the widget we got clicked so we can draw the dragged text with the proper offset
                 var globalContentArea = widget.GetContentArea(true);
@@ -176,7 +176,7 @@ class AbilityScoreSystem : IChargenSystem
         
         widget.OnMouseUp += e =>
         {
-            if (widget.HasMouseCapture && e.Button == MouseButton.LEFT)
+            if (widget.HasMouseCapture && e.Button == MouseButton.Left)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
                 widget.ReleaseMouseCapture();

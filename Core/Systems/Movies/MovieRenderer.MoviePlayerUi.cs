@@ -17,7 +17,7 @@ public class MoviePlayerUi : IUiRoot
 
     public void MouseUp(Point windowPos, PointF uiPos, MouseButton button)
     {
-        if (button == MouseButton.LEFT)
+        if (button == MouseButton.Left)
         {
             KeyPressed = true;
         }

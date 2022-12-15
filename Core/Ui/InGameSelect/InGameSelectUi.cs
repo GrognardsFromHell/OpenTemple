@@ -1154,13 +1154,13 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
         {
             switch (e.Button)
             {
-                case MouseButton.LEFT:
+                case MouseButton.Left:
                     behavior.LeftMouseButtonClicked(viewport, e);
                     break;
-                case MouseButton.RIGHT:
+                case MouseButton.Right:
                     behavior.RightMouseButtonClicked(viewport, e);
                     break;
-                case MouseButton.MIDDLE:
+                case MouseButton.Middle:
                     behavior.MiddleMouseButtonClicked(viewport, e);
                     break;
             }
@@ -1169,13 +1169,13 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
         {
             switch (e.Button)
             {
-                case MouseButton.LEFT:
+                case MouseButton.Left:
                     behavior.LeftMouseButtonReleased(viewport, e);
                     break;
-                case MouseButton.RIGHT:
+                case MouseButton.Right:
                     behavior.RightMouseButtonReleased(viewport, e);
                     break;
-                case MouseButton.MIDDLE:
+                case MouseButton.Middle:
                     behavior.MiddleMouseButtonReleased(viewport, e);
                     break;
             }

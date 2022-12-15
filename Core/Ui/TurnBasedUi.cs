@@ -189,12 +189,12 @@ public class TurnBasedUi : IResetAwareSystem
         {
             var initialSeq = GameSystems.D20.Actions.CurrentSequence;
 
-            if (e.Button == MouseButton.LEFT)
+            if (e.Button == MouseButton.Left)
             {
                 if (ToggleAcquisition(viewport, e))
                     e.StopImmediatePropagation();
             } 
-            else if (e.Button == MouseButton.RIGHT)
+            else if (e.Button == MouseButton.Right)
             {
                 if (HandleRightMousePressed(viewport, e))
                     e.StopImmediatePropagation();
@@ -218,12 +218,12 @@ public class TurnBasedUi : IResetAwareSystem
         {
             var initialSeq = GameSystems.D20.Actions.CurrentSequence;
             
-            if (e.Button == MouseButton.LEFT)
+            if (e.Button == MouseButton.Left)
             {
                 if (UiIntgamePathSequenceHandler(viewport, e.X, e.Y))
                     e.StopImmediatePropagation();
             } 
-            else if (e.Button == MouseButton.RIGHT)
+            else if (e.Button == MouseButton.Right)
             {
                 if (ResetViaRmb(viewport, e))
                     e.StopImmediatePropagation();

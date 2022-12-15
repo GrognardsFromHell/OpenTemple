@@ -214,7 +214,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     protected override void HandleMouseDown(MouseEvent e)
     {
-        if (e.Button == MouseButton.MIDDLE)
+        if (e.Button == MouseButton.Middle)
         {
             var mousePos = new PointF(e.X, e.Y);
             if (_scrollingController.MiddleMouseDown(GetRelativeMousePos(mousePos)))
@@ -226,7 +226,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     protected override void HandleMouseUp(MouseEvent e)
     {
-        if (e.Button == MouseButton.MIDDLE)
+        if (e.Button == MouseButton.Middle)
         {
             _scrollingController.MiddleMouseUp();
         }

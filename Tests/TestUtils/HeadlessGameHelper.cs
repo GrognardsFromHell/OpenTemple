@@ -214,13 +214,13 @@ public class HeadlessGameHelper : IDisposable
         );
     }
 
-    public void Click(Point screenPoint, MouseButton button = MouseButton.LEFT)
+    public void Click(Point screenPoint, MouseButton button = MouseButton.Left)
     {
         SendMouseDown(screenPoint, button);
         SendMouseUp(screenPoint, button);
     }
 
-    public void ClickUi(float x, float y, MouseButton button = MouseButton.LEFT)
+    public void ClickUi(float x, float y, MouseButton button = MouseButton.Left)
     {
         Click(FromUiCanvas(new PointF(x, y)), button);
     }

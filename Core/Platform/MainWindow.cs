@@ -643,23 +643,23 @@ public class MainWindow : IMainWindow
         MouseButton button;
         if (e.button == SDL_BUTTON_LEFT)
         {
-            button = MouseButton.LEFT;
+            button = MouseButton.Left;
         }
         else if (e.button == SDL_BUTTON_MIDDLE)
         {
-            button = MouseButton.MIDDLE;
+            button = MouseButton.Middle;
         }
         else if (e.button == SDL_BUTTON_RIGHT)
         {
-            button = MouseButton.RIGHT;
+            button = MouseButton.Right;
         }
         else if (e.button == SDL_BUTTON_X1)
         {
-            button = MouseButton.EXTRA1;
+            button = MouseButton.Extra1;
         }
         else if (e.button == SDL_BUTTON_X2)
         {
-            button = MouseButton.EXTRA2;
+            button = MouseButton.Extra2;
         }
         else
         {

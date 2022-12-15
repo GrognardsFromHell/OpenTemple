@@ -86,7 +86,7 @@ public class WidgetButtonBase : WidgetBase
             Tig.Sound.PlaySoundEffect(SoundPressed);
         }
         
-        if (IsRepeat && e.Button == MouseButton.LEFT && SetMouseCapture())
+        if (IsRepeat && e.Button == MouseButton.Left && SetMouseCapture())
         {
             _repeatingEvent = e;
             TriggerAction(e);
@@ -96,7 +96,7 @@ public class WidgetButtonBase : WidgetBase
 
     protected override void DefaultMouseUpAction(MouseEvent e)
     {
-        if (IsRepeat && e.Button == MouseButton.LEFT)
+        if (IsRepeat && e.Button == MouseButton.Left)
         {
             ReleaseMouseCapture();
             _repeatingEvent = null;

@@ -210,7 +210,7 @@ public class ImGuiBackend : IDisposable
                 self._clipboardTextData = IntPtr.Zero;
             }
 
-            self._clipboardTextData = Marshal.StringToCoTaskMemUTF8(SDL_GetClipboardText());
+            self._clipboardTextData = Marshal.StringToCoTaskMemUTF8(Clipboard.GetText());
 
             return self._clipboardTextData;
         }
@@ -222,7 +222,7 @@ public class ImGuiBackend : IDisposable
     private static void SetClipboardTextCallback(IntPtr userData, IntPtr textPtr)
     {
         var text = Marshal.PtrToStringUTF8(textPtr);
-        SDL_SetClipboardText(text);
+        Clipboard.SetText(text);
     }
 
     private void UpdateMouseData()

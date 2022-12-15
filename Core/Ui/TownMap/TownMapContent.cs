@@ -257,7 +257,7 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x1012c870)]
     protected override void HandleMouseDown(MouseEvent e)
     {
-        if (e.Button == MouseButton.LEFT && SetMouseCapture())
+        if (e.Button == MouseButton.Left && SetMouseCapture())
         {
             Logger.Info("Drag Start");
             _grabbingMap = true;
@@ -271,12 +271,12 @@ public class TownMapContent : WidgetButtonBase
     {
         if (!HasMouseCapture)
         {
-            if (e.Button == MouseButton.RIGHT && ControlMode != TownMapControlMode.Pan)
+            if (e.Button == MouseButton.Right && ControlMode != TownMapControlMode.Pan)
             {
                 ControlMode = TownMapControlMode.Pan;
                 OnCursorChanged?.Invoke(CursorOpenHand);
             }
-            else if (e.Button == MouseButton.LEFT)
+            else if (e.Button == MouseButton.Left)
             {
                 switch (ControlMode)
                 {

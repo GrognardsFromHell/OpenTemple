@@ -75,7 +75,7 @@ public class ItemSlotBehavior
 
     private void HandleMouseDown(MouseEvent e)
     {
-        if (e.Button == MouseButton.LEFT)
+        if (e.Button == MouseButton.Left)
         {
             var currentItem = CurrentItem;
 
@@ -109,7 +109,7 @@ public class ItemSlotBehavior
         
         var currentItem = CurrentItem;
 
-        if (e.Button == MouseButton.LEFT)
+        if (e.Button == MouseButton.Left)
         {
             if (_dragging)
             {
@@ -160,7 +160,7 @@ public class ItemSlotBehavior
                 }
             }
         }
-        else if (e.Button == MouseButton.RIGHT)
+        else if (e.Button == MouseButton.Right)
         {
             var critter = ActingCritter;
             if (currentItem != null)

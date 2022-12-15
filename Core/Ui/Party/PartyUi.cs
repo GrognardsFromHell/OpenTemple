@@ -230,7 +230,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
     [TempleDllLocation(0x101331e0)]
     private void PortraitMouseDown(PartyUiPortrait portrait, MouseEvent e)
     {
-        if (e.Button == MouseButton.LEFT && !dword_10BE33E8)
+        if (e.Button == MouseButton.Left && !dword_10BE33E8)
         {
             var partyMember = portrait.PartyMember;
             var partyIdx = GameSystems.Party.PartyMembers.ToList().IndexOf(partyMember);
@@ -248,7 +248,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
     [TempleDllLocation(0x101331e0)]
     private void PortraitMouseUp(PartyUiPortrait portrait, MouseEvent e)
     {
-        if (e.Button != MouseButton.LEFT)
+        if (e.Button != MouseButton.Left)
         {
             return;
         }

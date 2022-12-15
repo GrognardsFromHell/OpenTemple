@@ -107,6 +107,7 @@ public sealed class TextLayout : IDisposable
                     break;
                 }
             }
+
             _lineMetricsInvalid = false;
         }
     }
@@ -119,7 +120,26 @@ public sealed class TextLayout : IDisposable
 
     public bool TryHitTest(float x, float y, out int start, out int length)
     {
-        return NativeTextLayout.HitTest(x, y, out start, out length, out _);
+        return NativeTextLayout.HitTestPoint(x, y, out start, out length, out _);
+    }
+
+    public RectangleF HitTestPosition(int index, bool after)
+    {
+        var rect = NativeTextLayout.HitTestTextPosition(index, after);
+        return new RectangleF(rect.X, rect.Y, rect.Width, rect.Height);
+    }
+
+    public RectangleF[] HitTestRange(int start, int length)
+    {
+        var rects = NativeTextLayout.HitTestTextRange(start, length);
+        var result = new RectangleF[rects.Length];
+        for (var index = 0; index < rects.Length; index++)
+        {
+            var rect = rects[index];
+            result[index] = new RectangleF(rect.X, rect.Y, rect.Width, rect.Height);
+        }
+
+        return result;
     }
 
     public void Dispose()
