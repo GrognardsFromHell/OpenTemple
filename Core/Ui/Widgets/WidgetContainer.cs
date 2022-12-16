@@ -12,12 +12,16 @@ namespace OpenTemple.Core.Ui.Widgets;
 
 public class WidgetContainer : WidgetBase
 {
-
     private int _scrollOffsetY;
-    
+
     private readonly List<WidgetBase> _children = new();
-    
+
+    // Children ordered by ascending Z-Index
+    private readonly List<WidgetBase> _zOrderChildren = new();
+
     public IReadOnlyList<WidgetBase> Children => _children;
+    
+    public IReadOnlyList<WidgetBase> ZOrderChildren => _zOrderChildren;
 
     /// <summary>
     /// Previously this was implemented by always returning true from the mouse event handler.
@@ -87,6 +91,7 @@ public class WidgetContainer : WidgetBase
 
         childWidget.Parent = null;
         _children.Remove(childWidget);
+        _zOrderChildren.Remove(childWidget);
         childWidget.AttachToTree(null);
         UiManager?.RefreshMouseOverState();
         return true;
@@ -94,6 +99,7 @@ public class WidgetContainer : WidgetBase
 
     public virtual void Clear(bool disposeChildren = false)
     {
+        _zOrderChildren.Clear();
         for (var i = _children.Count - 1; i >= 0; i--)
         {
             if (disposeChildren)
@@ -115,9 +121,9 @@ public class WidgetContainer : WidgetBase
             return null;
         }
 
-        for (var i = _children.Count - 1; i >= 0; i--)
+        for (var i = _zOrderChildren.Count - 1; i >= 0; i--)
         {
-            var child = _children[i];
+            var child = _zOrderChildren[i];
 
             if (!child.Visible)
             {
@@ -148,6 +154,7 @@ public class WidgetContainer : WidgetBase
 
     protected override void Dispose(bool disposing)
     {
+        _zOrderChildren.Clear();
         for (var i = _children.Count - 1; i >= 0; i--)
         {
             _children[i].Dispose();
@@ -174,7 +181,7 @@ public class WidgetContainer : WidgetBase
 
         var clipAreaSet = false;
 
-        foreach (var child in _children)
+        foreach (var child in _zOrderChildren)
         {
             if (child.Visible)
             {
@@ -212,7 +219,7 @@ public class WidgetContainer : WidgetBase
                 if (entry.Parent == this)
                 {
                     entry.OnUpdateTime(now);
-                    
+
                     // Stop updating if we've been detached from the tree
                     if (!IsInTree)
                     {
@@ -260,26 +267,28 @@ public class WidgetContainer : WidgetBase
     private void SortChildren()
     {
         // Sort Windows by Z-Index
-        _children.Sort((windowA, windowB) => windowA.ZIndex.CompareTo(windowB.ZIndex));
-
-        // Reassign a zindex in monotonous order to those windows that dont have one
-        for (var i = 0; i < _children.Count; ++i)
-        {
-            var window = _children[i];
-            if (window.ZIndex == 0)
-            {
-                window.ZIndex = i * 100;
-            }
-        }
+        _zOrderChildren.Clear();
+        _zOrderChildren.AddRange(_children.OrderBy(child => child.ZIndex));
     }
 
     public void BringToFront(WidgetBase widget)
     {
-        widget.ZIndex = _children
-            .Where(child => child != widget)
-            .Select(child => child.ZIndex)
-            .DefaultIfEmpty()
-            .Max() + 1;
+        if (!_zOrderChildren.Contains(widget))
+        {
+            return;
+        }
+
+        // If the widget is already at the top and has a unique Z-Index, we don't do anything
+        if (_zOrderChildren.Count == 1
+            || (_zOrderChildren.Count >= 2
+                && _zOrderChildren[^1] == widget
+                && _zOrderChildren[^2].ZIndex < widget.ZIndex))
+        {
+            return;
+        }
+
+        var highestZIndex = _zOrderChildren[^1].ZIndex;
+        widget.ZIndex = highestZIndex + 1;
         SortChildren();
     }
 
@@ -325,7 +334,7 @@ public class WidgetContainer : WidgetBase
 
         if (context is WidgetContainer container)
         {
-            foreach (var child in container.Children)
+            foreach (var child in container._zOrderChildren)
             {
                 foreach (var widgetBase in ElementsFromPoint(child, x, y))
                 {

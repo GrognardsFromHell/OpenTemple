@@ -35,7 +35,7 @@ public class HeadlessGameHelper : IDisposable
 
     public event Action OnRenderFrame;
 
-    public HeadlessGameHelper()
+    public HeadlessGameHelper(bool withGameSystems = true, bool withUserInterface = true)
     {
         if (_activeInstance != null)
         {
@@ -60,7 +60,8 @@ public class HeadlessGameHelper : IDisposable
         var options = new HeadlessGameOptions(toeeDir)
         {
             UserDataFolder = _userData.Path,
-            WithUserInterface = true
+            WithGameSystems = withGameSystems,
+            WithUserInterface = withUserInterface
         };
 
         Game = HeadlessGame.Start(options);

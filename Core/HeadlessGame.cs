@@ -43,9 +43,13 @@ public sealed class HeadlessGame : IDisposable
         Tig.Startup(config, settings);
 
         GameSystems.InitializeFonts();
-        GameSystems.InitializeSystems(new DummyLoadingProgress());
 
-        GameSystems.GameInit.EnableStartMap = options.EnableStartMap; // Prevents shopmap from opening
+        if (options.WithGameSystems)
+        {
+            GameSystems.InitializeSystems(new DummyLoadingProgress());
+
+            GameSystems.GameInit.EnableStartMap = options.EnableStartMap; // Prevents shopmap from opening
+        }
 
         if (options.WithUserInterface)
         {
@@ -54,11 +58,16 @@ public sealed class HeadlessGame : IDisposable
             Globals.UiStyles = new UiStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();
 
-            UiSystems.Startup(config);
+            if (options.WithGameSystems)
+            {
+                UiSystems.Startup(config);
+            }
         }
 
-        GameSystems.LoadModule("ToEE", true);
-
+        if (options.WithGameSystems)
+        {
+            GameSystems.LoadModule("ToEE", true);
+        }
     }
 
     public static HeadlessGame Start(HeadlessGameOptions options)
@@ -125,6 +134,11 @@ public class HeadlessGameOptions
     /// The size of the off-screen rendering surface.
     /// </summary>
     public Size SurfaceSize { get; init; } = new(1024, 768);
+
+    /// <summary>
+    /// Enables initialization of the game systems.
+    /// </summary>
+    public bool WithGameSystems { get; init; }
 
     /// <summary>
     /// Enables initialization of the UI systems.

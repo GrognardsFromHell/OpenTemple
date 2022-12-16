@@ -2,10 +2,11 @@
 using NUnit.Framework;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets.TextField;
+using OpenTemple.Tests.TestUtils;
 
 namespace OpenTemple.Tests.Ui.Widgets.Text;
 
-public class TextFieldWidgetTest
+public class TextFieldWidgetTest : HeadlessPlatformTest
 {
     [Test]
     public void TextInsertionWorks()

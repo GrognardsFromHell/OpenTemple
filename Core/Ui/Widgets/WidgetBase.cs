@@ -226,7 +226,6 @@ public partial class WidgetBase : Styleable, IDisposable
         if (disposing)
         {
             _parent?.Remove(this);
-            Globals.UiManager.RemoveWidget(this);
         }
     }
 
