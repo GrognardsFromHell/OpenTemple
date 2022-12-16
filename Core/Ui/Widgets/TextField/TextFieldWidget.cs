@@ -19,21 +19,18 @@ public class TextFieldWidget : WidgetBase
 {
     private readonly WidgetText _placeholderLabel = new();
     private readonly StringBuilder _buffer = new();
-    private bool _needsUpdate = true;
-    private TextLayout? _textLayout;
+    private bool _needsTextUpdate;
+    private bool _needsCaretUpdate = true;
+    private TextLayout _textLayout;
     private RectangleF _caretRect;
 
     private RectangleF[] _selectionRects;
 
-    // Inner Y position of the text line
-    private int _lineYOffset;
+    // Rectangle containing the text input area inside of this widget
+    private Rectangle _innerTextAreaRect;
 
     // By how much is the text layout shifted to the left
-    private int _lineXShift;
-
-    // Index in _buffer. Can be 0 to the size of the buffer (inclusive)
-    private string _placeholder = "";
-    private bool _undecorated;
+    private float _lineXShift;
 
     private readonly Caret _caret;
 
@@ -41,7 +38,17 @@ public class TextFieldWidget : WidgetBase
 
     private PackedLinearColorA _caretColor = PackedLinearColorA.White;
 
-    public bool Undecorated { get; set; }
+    private bool _undecorated;
+
+    public bool Undecorated
+    {
+        get => _undecorated;
+        set
+        {
+            _undecorated = value;
+            InvalidateCaret();
+        }
+    }
 
     public int MaxLength { get; set; } = 100;
 
@@ -65,12 +72,8 @@ public class TextFieldWidget : WidgetBase
     /// </summary>
     public string Placeholder
     {
-        get => _placeholder;
-        set
-        {
-            _placeholder = value;
-            _placeholderLabel.Text = value;
-        }
+        get => _placeholderLabel.Text;
+        set => _placeholderLabel.Text = value;
     }
 
     public TextFieldWidget([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber =
@@ -79,8 +82,12 @@ public class TextFieldWidget : WidgetBase
     {
         FocusMode = FocusMode.User;
         _caret = new Caret(_buffer);
-        _caret.OnChange += Invalidate;
+        _caret.OnChangeText += InvalidateText;
+        _caret.OnChangeCaret += InvalidateCaret;
         LocalStyles.WordWrap = WordWrap.NoWrap;
+
+        _placeholderLabel.LocalStyles.Color = PackedLinearColorA.FromHex("#666666");
+        _textLayout = Tig.RenderingDevice.TextEngine.CreateTextLayout(ComputedStyles, "", float.MaxValue, float.MaxValue);
     }
 
     protected override void DefaultTextInputAction(TextInputEvent e)
@@ -169,7 +176,6 @@ public class TextFieldWidget : WidgetBase
             }
 
             // Handle UTF-16 surrogates
-            bool keepTogetherWithNextChar = false;
             if (char.IsHighSurrogate(ch))
             {
                 if (i + 1 >= text.Length)
@@ -206,26 +212,64 @@ public class TextFieldWidget : WidgetBase
         _caret.Replace(sanitized[..sanitizedLength]);
     }
 
-
     public override void Render()
     {
         base.Render();
-
-        var contentRect = GetContentArea();
-
-        Tig.ShapeRenderer2d.DrawRectangle(contentRect, null, PackedLinearColorA.FromHex("#333333"));
-
-        // Focus outline
-        if (HasFocus)
+        if (!Visible)
         {
-            Tig.ShapeRenderer2d.DrawRectangleOutline(contentRect, PackedLinearColorA.White);
+            return;
         }
 
-        EnsureUpdated();
+        // Draw border
+        if (!_undecorated)
+        {
+            var decorationRect = GetContentArea();
+            PackedLinearColorA outlineColor;
+            if (HasFocus || ContainsMouse)
+            {
+                outlineColor = PackedLinearColorA.White;
+            }
+            else
+            {
+                outlineColor = PackedLinearColorA.FromHex("#1AC3FF");
+            }
 
-        var lineY = contentRect.Y + _lineYOffset;
+            // Draw the background first
+            Tig.ShapeRenderer2d.DrawRectangle(decorationRect, PackedLinearColorA.FromHex("#000000"));
 
-        Tig.RenderingDevice.TextEngine.RenderTextLayout(contentRect.X, lineY, _textLayout);
+            // Then the borders around it
+            Tig.ShapeRenderer2d.DrawRectangleOutline(decorationRect, outlineColor);
+            decorationRect.Inflate(-1, -1);
+            Tig.ShapeRenderer2d.DrawRectangleOutline(decorationRect, PackedLinearColorA.FromHex("#000000"));
+            decorationRect.Inflate(-1, -1);
+            Tig.ShapeRenderer2d.DrawRectangleOutline(decorationRect, PackedLinearColorA.FromHex("#5D5D5D"));
+        }
+
+        UpdateIfNeeded();
+
+        var textAreaRect = _innerTextAreaRect;
+        textAreaRect.Offset(GetContentArea().Location);
+
+        Tig.RenderingDevice.SetScissorRect(textAreaRect.X, textAreaRect.Y, textAreaRect.Width, textAreaRect.Height);
+
+        if (!HasFocus && _buffer.Length == 0)
+        {
+            _placeholderLabel.SetBounds(textAreaRect);
+            _placeholderLabel.Render();
+        }
+        else
+        {
+            RenderTextLine(textAreaRect);
+        }
+
+        Tig.RenderingDevice.ResetScissorRect();
+    }
+
+    private void RenderTextLine(Rectangle textAreaRect)
+    {
+        var textLayoutLeft = textAreaRect.X - _lineXShift;
+        
+        Tig.RenderingDevice.TextEngine.RenderTextLayout(textLayoutLeft, textAreaRect.Y, _textLayout);
 
         // Caret & Selection
         if (HasFocus)
@@ -234,7 +278,7 @@ public class TextFieldWidget : WidgetBase
             for (var index = 0; index < _selectionRects.Length; index++)
             {
                 var selectionRect = _selectionRects[index];
-                selectionRect.Offset(contentRect.X, lineY);
+                selectionRect.Offset(textLayoutLeft, textAreaRect.Y);
                 UiManager?.SnapToPhysicalPixelGrid(ref selectionRect);
 
                 Tig.ShapeRenderer2d.DrawRectangle(
@@ -245,7 +289,7 @@ public class TextFieldWidget : WidgetBase
             }
 
             var caretRect = _caretRect;
-            caretRect.Offset(contentRect.X, lineY);
+            caretRect.Offset(textLayoutLeft, textAreaRect.Y);
 
             UiManager?.SnapToPhysicalPixelGrid(ref caretRect);
 
@@ -261,15 +305,16 @@ public class TextFieldWidget : WidgetBase
     {
         if (e.Button == MouseButton.Left)
         {
+            UpdateIfNeeded();
+
             var pos = e.GetLocalPos(this);
+            TransformToTextArea(ref pos);
             pos.X += _lineXShift;
-            pos.Y -= _lineYOffset;
-            EnsureUpdated();
             if (pos.X < 0)
             {
                 _caret.MoveBackwards(CaretMove.All, e.IsShiftHeld);
             }
-            else if (pos.X >= _textLayout.OverallWidth)
+            else if (pos.X >= _textLayout!.OverallWidth)
             {
                 _caret.MoveForward(CaretMove.All, e.IsShiftHeld);
             }
@@ -286,35 +331,51 @@ public class TextFieldWidget : WidgetBase
     {
         if (HasMouseCapture)
         {
+            UpdateIfNeeded();
+
             var pos = e.GetLocalPos(this);
+            TransformToTextArea(ref pos);
             pos.X += _lineXShift;
-            pos.Y -= _lineYOffset;
-            EnsureUpdated();
+
+            var y = Math.Clamp(pos.Y, 0, _caretRect.Height);
+
             if (pos.X < 0)
             {
                 _caret.MoveBackwards(CaretMove.All, true);
             }
-            else if (pos.X >= _textLayout.OverallWidth)
+            else if (pos.X >= _textLayout!.OverallWidth)
             {
                 _caret.MoveForward(CaretMove.All, true);
             }
-            else if (_textLayout.TryHitTest(pos.X, pos.Y, out var position, out _))
+            else if (_textLayout.TryHitTest(pos.X, y, out var position, out _))
             {
                 _caret.Set(position, true);
             }
         }
     }
 
-    private void EnsureUpdated()
+    private void TransformToTextArea(ref PointF pos)
     {
-        if (!_needsUpdate)
+        pos.X -= _innerTextAreaRect.X;
+        pos.Y -= _innerTextAreaRect.Y;
+    }
+
+    private void UpdateIfNeeded()
+    {
+        if (_needsTextUpdate)
+        {
+            var style = ComputedStyles;
+            _textLayout.Dispose();
+            _textLayout = Tig.RenderingDevice.TextEngine.CreateTextLayout(style, _buffer.ToString(), float.MaxValue, float.MaxValue);
+            _needsTextUpdate = false;
+            _needsCaretUpdate = true;
+        }
+
+        if (!_needsCaretUpdate)
         {
             return;
         }
-
-        var style = ComputedStyles;
-        _textLayout = Tig.RenderingDevice.TextEngine.CreateTextLayout(style, _buffer.ToString(), Width, Height);
-
+        
         _caretRect = _textLayout.HitTestPosition(_caret.Position, true);
         _caretRect.Width = 1;
 
@@ -327,13 +388,59 @@ public class TextFieldWidget : WidgetBase
             _selectionRects = Array.Empty<RectangleF>();
         }
 
-        _lineYOffset = (int) MathF.Ceiling((Height - _caretRect.Height) / 2);
+        // Update content rectangle
+        _innerTextAreaRect = new Rectangle(
+            Margins.Left,
+            Margins.Top,
+            Width - Margins.Left - Margins.Right,
+            Height - Margins.Top - Margins.Bottom
+        );
+        if (!_undecorated)
+        {
+            _innerTextAreaRect.Inflate(-4, -4);
+        }
 
-        _needsUpdate = false;
+        // How much of the total text width is overflowing the available bounds
+        var overflowingWidth = Math.Max(0, _textLayout.OverallWidth - _innerTextAreaRect.Width + _caretRect.Width);
+        // Clamp the current shift, but account for the visibility of the caret rect
+        _lineXShift = Math.Clamp(_lineXShift, 0, overflowingWidth);
+        
+        // Check if the caret - accounting for current shift - 
+        // is to the left or right of the visible area
+        var caretInViewport = _caretRect.X - _lineXShift;
+        if (caretInViewport < 0)
+        {
+            // The caret is at least partially to the left of the viewport
+            // Shift the viewport such that the caret is roughly
+            // viewportWidth/4 away from the left of the viewport
+            _lineXShift -= - caretInViewport + _innerTextAreaRect.Width / 4f;
+        }
+        else if (caretInViewport + _caretRect.Width >= _innerTextAreaRect.Width)
+        {
+            // The caret is at least partially to the right of the viewport
+            // Shift the viewport such that the caret is roughly
+            // viewportWidth/4 away from the right of the viewport
+            var distFromRightEdge = caretInViewport - (_innerTextAreaRect.Width - _caretRect.Width);
+            _lineXShift += distFromRightEdge + _innerTextAreaRect.Width / 4f;
+        }
+        
+        // Clamp the shift again after potentially adjusting it
+        _lineXShift = Math.Clamp(_lineXShift, 0, overflowingWidth);
+
+        // Vertically center the text line
+        var lineYOffset = (int) MathF.Ceiling((_innerTextAreaRect.Height - _caretRect.Height) / 2);
+        _innerTextAreaRect.Inflate(0, lineYOffset);
+
+        _needsCaretUpdate = false;
     }
 
-    private void Invalidate()
+    private void InvalidateCaret()
     {
-        _needsUpdate = true;
+        _needsCaretUpdate = true;
+    }
+    
+    private void InvalidateText()
+    {
+        _needsTextUpdate = true;
     }
 }

@@ -8,7 +8,7 @@ namespace OpenTemple.Core.GFX.TextRendering;
 
 public sealed class TextLayout : IDisposable
 {
-    internal NativeTextLayout NativeTextLayout;
+    internal readonly NativeTextLayout NativeTextLayout;
 
     private bool _metricsInvalid = true;
     private bool _lineMetricsInvalid = true;

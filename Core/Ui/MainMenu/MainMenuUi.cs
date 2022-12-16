@@ -166,6 +166,7 @@ public class MainMenuUi : IDisposable
         textInput.Y = 25;
         textInput.Width = 150;
         textInput.Height = 20;
+        textInput.Placeholder = "Name...";
         _mainWidget.Add(textInput);
     }
 

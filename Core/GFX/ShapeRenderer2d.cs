@@ -250,6 +250,11 @@ public sealed class ShapeRenderer2d : IDisposable
         DrawRectangle(vertices, texture, null, samplerType);
     }
 
+    public void DrawRectangle(Rectangle rectangle, PackedLinearColorA color)
+    {
+        DrawRectangle(rectangle, null, color);
+    }
+    
     public void DrawRectangle(Span<Vertex2d> corners,
         ITexture? texture,
         ITexture? mask = null,

@@ -9,7 +9,14 @@ public class Caret
 {
     private readonly StringBuilder _buffer;
 
-    public event Action? OnChange;
+    /// <summary>
+    /// Triggered when the string builder given to the caret is modified by the caret.
+    /// </summary>
+    public event Action? OnChangeText;
+    /// <summary>
+    /// Triggered when the caret position or selection anchor changes.
+    /// </summary>
+    public event Action? OnChangeCaret;
 
     public Caret(StringBuilder buffer)
     {
@@ -31,7 +38,7 @@ public class Caret
     {
         Position = ClampPosition(position);
         SelectionAnchor = ClampPosition(selectionAnchor);
-        OnChange?.Invoke();
+        OnChangeCaret?.Invoke();
     }
 
     private int ClampPosition(int position) => Math.Clamp(position, 0, _buffer.Length);
@@ -46,6 +53,7 @@ public class Caret
     {
         _buffer.Remove(SelectionStartIndex, SelectionLength);
         _buffer.Insert(SelectionStartIndex, text);
+        OnChangeText?.Invoke();
         Set(SelectionStartIndex + text.Length);
     }
 
@@ -72,6 +80,7 @@ public class Caret
     public void DeleteSelection()
     {
         _buffer.Remove(SelectionStartIndex, SelectionLength);
+        OnChangeText?.Invoke();
         Set(SelectionStartIndex);
     }
 
