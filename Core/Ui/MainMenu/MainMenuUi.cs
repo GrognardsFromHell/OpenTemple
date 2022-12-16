@@ -160,14 +160,6 @@ public class MainMenuUi : IDisposable
         Globals.UiManager.OnCanvasSizeChanged += RepositionWidgets;
 
         Hide(); // Hide everything by default
-
-        var textInput = new TextFieldWidget();
-        textInput.X = 5;
-        textInput.Y = 25;
-        textInput.Width = 150;
-        textInput.Height = 20;
-        textInput.Placeholder = "Name...";
-        _mainWidget.Add(textInput);
     }
 
     private WidgetButtonBase CreateMainMenuButton(JsonElement definition)
