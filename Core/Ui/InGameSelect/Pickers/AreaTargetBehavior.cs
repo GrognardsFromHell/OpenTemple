@@ -3,6 +3,7 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
 
@@ -59,18 +60,18 @@ internal class AreaTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x10138070)]
-    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
-        MouseMoved(viewport, args);
+        MouseMoved(viewport, e);
         return FinalizePicker();
     }
 
     [TempleDllLocation(0x10137dd0)]
-    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool MouseMoved(IGameViewport viewport, MouseEvent e)
     {
         PickerStatusFlags &= ~PickerStatusFlags.Invalid;
 
-        if (HandleClickInUnexploredArea(args.X, args.Y))
+        if (HandleClickInUnexploredArea(e.X, e.Y))
         {
             return false;
         }
@@ -78,8 +79,8 @@ internal class AreaTargetBehavior : PickerBehavior
         // The picker may allow picking an object directly (which will be the basis of the area effect)
         if (Picker.modeTarget.HasFlag(UiPickerType.AreaOrObj))
         {
-            var flags = PickerState.GetFlagsFromExclusions();
-            if (GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, flags))
+            var flags = PickerState.GetFlagsFromExclusions(e);
+            if (GameSystems.Raycast.PickObjectOnScreen(viewport, e.X, e.Y, out var target, flags))
             {
                 if ((Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.LosNotRequired) || !Picker.LosBlocked(target))
                     && Picker.CheckTargetVsIncFlags(target)
@@ -101,7 +102,7 @@ internal class AreaTargetBehavior : PickerBehavior
             }
         }
 
-        var targetLoc = GameViews.Primary.ScreenToTile(args.X, args.Y);
+        var targetLoc = GameViews.Primary.ScreenToTile(e.X, e.Y);
 
         // Even when the picked object above is not valid, targeting the location underneath is a valid alternative
         if (!Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.LosNotRequired)

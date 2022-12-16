@@ -65,6 +65,7 @@ public class InitiativeUi
         );
 
         _portraitContainer.ZIndex = 90550;
+        Globals.UiManager.AddWindow(_portraitContainer);
     }
 
     [TempleDllLocation(0x101414b0)]

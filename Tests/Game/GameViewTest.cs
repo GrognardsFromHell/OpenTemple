@@ -2,10 +2,10 @@ using System.Numerics;
 using FluentAssertions;
 using NUnit.Framework;
 using OpenTemple.Core;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Tests.TestUtils;
 
 namespace OpenTemple.Tests.Game;
@@ -40,12 +40,12 @@ public class GameViewTest : HeadlessGameTest
         var initialCenter = gv.CenteredOn.ToInches2D(); // Remember where it's centered now
 
         // One "pip" of scroll-wheel -> 10% zoom
-        var msg = new MessageMouseArgs(0, 0, 1, MouseEventFlag.ScrollWheelChange);
-        UiSystems.GameView.HandleMouseMessage(msg);
+        var e = new WheelEvent {DeltaY = 1};
+        UiSystems.GameView.DispatchMouseWheel(e);
         TakeScreenshot("after_zoom1");
         gv.Zoom.Should().BeApproximately(1.1f, 0.001f);
 
-        UiSystems.GameView.HandleMouseMessage(msg);
+        UiSystems.GameView.DispatchMouseWheel(e);
         TakeScreenshot("after_zoom2");
         gv.Zoom.Should().BeApproximately(1.2f, 0.001f);
 
@@ -56,10 +56,10 @@ public class GameViewTest : HeadlessGameTest
 
         // Initiate and immediately release MMB scrolling because previously the state would get de-synched
         // and cause the view to jerk around
-        UiSystems.GameView.HandleMouseMessage(new MessageMouseArgs(0, 0, 0, MouseEventFlag.MiddleClick));
-        UiSystems.GameView.HandleMouseMessage(new MessageMouseArgs(1, 0, 0, MouseEventFlag.PosChange));
-        UiSystems.GameView.HandleMouseMessage(new MessageMouseArgs(-1, 0, 0, MouseEventFlag.PosChange));
-        UiSystems.GameView.HandleMouseMessage(new MessageMouseArgs(0, 0, 0, MouseEventFlag.MiddleReleased));
+        UiSystems.GameView.DispatchMouseDown(new MouseEvent {Button = MouseButton.Middle});
+        UiSystems.GameView.DispatchMouseMove(new MouseEvent {X = 1});
+        UiSystems.GameView.DispatchMouseMove(new MouseEvent {X = -1});
+        UiSystems.GameView.DispatchMouseUp(new MouseEvent {Button = MouseButton.Middle});
         var centerAfterMove = gv.CenteredOn.ToInches2D();
         Vector2.Subtract(centerAfterZoom, centerAfterMove).Length().Should().BeLessOrEqualTo(3);
     }

@@ -9,26 +9,28 @@ using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Systems.Movies;
 
-public class SlideRenderer : IDisposable
+public sealed class SlideRenderer : IDisposable
 {
     private readonly IMainWindow _mainWindow;
     private readonly RenderingDevice _device;
+    private readonly EventLoop _eventLoop;
     private readonly WidgetImage _image;
     private readonly SubtitleRenderer? _subtitleRenderer;
     private readonly string? _musicPath;
 
     public SlideRenderer(string slidePath, string? musicPath,
-        MovieSubtitles? subtitles) : this(Tig.MainWindow, Tig.RenderingDevice, slidePath, musicPath, subtitles)
+        MovieSubtitles? subtitles) : this(Tig.MainWindow, Tig.RenderingDevice, Tig.EventLoop, slidePath, musicPath, subtitles)
     {
     }
 
-    public SlideRenderer(IMainWindow mainWindow, RenderingDevice device, string slidePath, string? musicPath,
+    public SlideRenderer(IMainWindow mainWindow, RenderingDevice device, EventLoop eventLoop, string slidePath, string? musicPath,
         MovieSubtitles? subtitles)
     {
         _mainWindow = mainWindow;
         _device = device;
         _musicPath = musicPath;
         _image = new WidgetImage(slidePath);
+        _eventLoop = eventLoop;
         if (subtitles != null)
         {
             _subtitleRenderer = new SubtitleRenderer(_device, subtitles);
@@ -37,13 +39,11 @@ public class SlideRenderer : IDisposable
 
     public void Dispose()
     {
-        _image?.Dispose();
+        _image.Dispose();
     }
 
     public void Run()
     {
-        _mainWindow.IsCursorVisible = false;
-
         int streamId = -1;
         if (_musicPath != null)
         {
@@ -55,56 +55,65 @@ public class SlideRenderer : IDisposable
             }
         }
 
-        var keyPressed = false;
-        var stopwatch = Stopwatch.StartNew();
-        while (!keyPressed)
+        var previousUiRoot = _mainWindow.UiRoot;
+        var ui = new MoviePlayerUi();
+        _mainWindow.UiRoot = ui;
+
+        try
         {
-            if (streamId == -1)
+            _mainWindow.IsCursorVisible = false;
+
+            var stopwatch = Stopwatch.StartNew();
+            while (!ui.KeyPressed)
             {
-                // Show slides for 3s without audio
-                if (stopwatch.ElapsedMilliseconds >= 3000)
+                if (streamId == -1)
                 {
-                    break;
+                    // Show slides for 3s without audio
+                    if (stopwatch.ElapsedMilliseconds >= 3000)
+                    {
+                        break;
+                    }
                 }
-            }
-            else
-            {
-                // Otherwise until the stream is done
-                if (!Tig.Sound.IsStreamPlaying(streamId))
+                else
                 {
-                    break;
+                    // Otherwise until the stream is done
+                    if (!Tig.Sound.IsStreamPlaying(streamId))
+                    {
+                        break;
+                    }
                 }
+
+                _device.ClearCurrentColorTarget(LinearColorA.Black);
+
+                var movieRect = MovieRenderer.GetMovieRect(
+                    _device,
+                    _image.GetPreferredSize().Width,
+                    _image.GetPreferredSize().Height
+                );
+                _image.SetBounds(new Rectangle(
+                    (int) movieRect.X,
+                    (int) movieRect.Y,
+                    (int) movieRect.Width,
+                    (int) movieRect.Height
+                ));
+                _image.Render();
+
+                _subtitleRenderer?.Render(stopwatch.Elapsed.TotalSeconds);
+
+                _device.Present();
+
+                _eventLoop.Tick();
             }
-
-            _device.ClearCurrentColorTarget(LinearColorA.Black);
-
-            var movieRect = MovieRenderer.GetMovieRect(
-                _device,
-                _image.GetPreferredSize().Width,
-                _image.GetPreferredSize().Height
-            );
-            _image.SetBounds(new Rectangle(
-                (int)movieRect.X,
-                (int)movieRect.Y,
-                (int)movieRect.Width,
-                (int)movieRect.Height
-            ));
-            _image.Render();
-
-            _subtitleRenderer?.Render(stopwatch.Elapsed.TotalSeconds);
-
-            _device.Present();
-
-            Tig.SystemEventPump.PumpSystemEvents();
-
-            MovieRenderer.ProcessMessages(ref keyPressed);
+        }
+        finally
+        {
+            _mainWindow.IsCursorVisible = true;
+            _mainWindow.UiRoot = previousUiRoot;
         }
 
         if (streamId != -1)
         {
             Tig.Sound.FreeStream(streamId);
         }
-
-        _mainWindow.IsCursorVisible = true;
     }
 }

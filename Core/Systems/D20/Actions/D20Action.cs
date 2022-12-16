@@ -77,7 +77,7 @@ public class D20Action
 	public D20CAF d20Caf; // Based on D20_CAF flags
 	public uint field_C; // unknown use
 	public GameObject d20APerformer;
-	public GameObject d20ATarget;
+	public GameObject? d20ATarget;
 	public LocAndOffsets destLoc; // action located (usually movement destination)
 	public float distTraversed; // distanced traversed by a move action
 	public int radialMenuActualArg; // the value chosen by radial menu toggle/slider
@@ -88,7 +88,7 @@ public class D20Action
 	public D20SpellData d20SpellData = new();
 	public int spellId;
 	public int animID;
-	public PathQueryResult path;
+	public PathQueryResult? path;
 
 	public D20Action()
 	{

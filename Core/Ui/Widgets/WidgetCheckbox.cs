@@ -26,13 +26,13 @@ public class WidgetCheckbox : WidgetButtonBase
         _uncheckedImage = new WidgetImage("art/interface/options_ui/checkbox_off.tga");
         AddContent(_uncheckedImage);
 
-        SetClickHandler(() =>
+        AddClickListener(() =>
         {
             Checked = !Checked;
             OnCheckedChanged?.Invoke(Checked);
         });
 
-        SetSize(_checkedImage.GetPreferredSize());
+        Size = _checkedImage.GetPreferredSize();
     }
 
     public override void Render()

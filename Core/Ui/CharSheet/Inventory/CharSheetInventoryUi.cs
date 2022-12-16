@@ -30,7 +30,7 @@ public class CharSheetInventoryUi : IDisposable
     [TempleDllLocation(0x10BEECC0)]
     [TempleDllLocation(0x10155160)]
     [TempleDllLocation(0x10155170)]
-    public GameObject DraggedObject
+    public GameObject? DraggedObject
     {
         get => Globals.UiManager.DraggedObject is DraggedItem draggedItem ? draggedItem.Item : null;
         set => Globals.UiManager.DraggedObject = value != null ? new DraggedItem(value) : null;
@@ -70,7 +70,7 @@ public class CharSheetInventoryUi : IDisposable
                 var slot = new InventorySlotWidget(SlotSize, inventoryIdx);
                 var x = 1 + col * (slot.Width + 2);
                 var y = 1 + row * (slot.Height + 2);
-                slot.SetPos(new Point(x, y));
+                slot.Pos = new Point(x, y);
                 slotContainer.Add(slot);
                 new ItemSlotBehavior(slot,
                     () => slot.CurrentItem,
@@ -83,11 +83,11 @@ public class CharSheetInventoryUi : IDisposable
     private void SetupTotalWeightWidgets(WidgetDoc widgetDoc)
     {
         _totalWeightLabel = widgetDoc.GetButton("totalWeightLabel");
-        _totalWeightLabel.SetClickHandler(ShowTotalWeightHelp);
+        _totalWeightLabel.AddClickListener(ShowTotalWeightHelp);
 
         _totalWeightValue = widgetDoc.GetButton("totalWeightValue");
         _totalWeightLabelDefaultStyle = _totalWeightValue.GetStyle().Id;
-        _totalWeightValue.SetClickHandler(ShowTotalWeightHelp);
+        _totalWeightValue.AddClickListener(ShowTotalWeightHelp);
         _totalWeightValue.OnBeforeRender += UpdateTotalWeight;
     }
 

@@ -30,7 +30,7 @@ public class PortraitHealthBar : WidgetButtonBase
         _subdualImage = new WidgetImage("art/interface/PARTY_UI/subdual_meter_off.tga");
         AddContent(_subdualImage);
 
-        SetClickHandler(ToggleShowHp);
+        AddClickListener(ToggleShowHp);
 
         // Previously @ 0x10132240
         TooltipText = UiSystems.Tooltip.GetString(6038);

@@ -28,8 +28,8 @@ public class CombatUi: IResetAwareSystem
     [TempleDllLocation(0x10172e80)]
     public void SthCallback()
     {
-        Stub.TODO();
         Initiative.Update();
+        ActionBar.uiCombat_10C040B0 = false;
     }
 
 }

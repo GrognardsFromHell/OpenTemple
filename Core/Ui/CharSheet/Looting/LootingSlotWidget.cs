@@ -10,7 +10,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting;
 
 public class LootingSlotWidget : WidgetContainer
 {
-    public static readonly Size Size = new(50, 51);
+    public static readonly Size SlotSize = new(50, 51);
     public const int MarginRight = 3;
     public const int MarginBottom = 3;
 
@@ -23,9 +23,9 @@ public class LootingSlotWidget : WidgetContainer
 
     public int InventorySlot { get; set; }
 
-    private GameObject _item;
+    private GameObject? _item;
 
-    private WidgetImage _icon;
+    private readonly WidgetImage _icon;
 
     private readonly WidgetText _quantityLabel;
 
@@ -33,7 +33,7 @@ public class LootingSlotWidget : WidgetContainer
 
     private readonly ItemSlotBehavior _behavior;
 
-    public LootingSlotWidget(int index, Point position) : base(position.X, position.Y, Size.Width, Size.Height)
+    public LootingSlotWidget(int index, Point position) : base(position.X, position.Y, SlotSize.Width, SlotSize.Height)
     {
         Index = index;
         Reset();
@@ -118,7 +118,7 @@ public class LootingSlotWidget : WidgetContainer
 
     public override void RenderTooltip(int x, int y)
     {
-        if (MouseState == LgcyWindowMouseState.Pressed)
+        if (Pressed)
         {
             return;
         }

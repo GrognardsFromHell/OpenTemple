@@ -40,7 +40,6 @@ internal class LogbookKeyAcquiredPopup
         // _window.OnBeforeRender += 0x10196a10;
         _window.ZIndex = 100051;
         _window.Name = "logbook_ui_keys_key_entry_window";
-        _window.Visible = false;
 
         // Created @ 0x10197385
         var acceptButton = doc.GetButton("accept");
@@ -48,7 +47,7 @@ internal class LogbookKeyAcquiredPopup
         // logbook_ui_key_entry_accept_butn1.OnBeforeRender += 0x10196d70;
         acceptButton.Text = translations.NotificationPopupYes;
         acceptButton.Name = "logbook_ui_key_entry_accept_butn";
-        acceptButton.SetClickHandler(() =>
+        acceptButton.AddClickListener(() =>
         {
             OnChangeNotificationSetting?.Invoke(false);
             Hide();
@@ -60,19 +59,19 @@ internal class LogbookKeyAcquiredPopup
         // logbook_ui_key_entry_decline_butn1.OnBeforeRender += 0x10196d70;
         declineButton.Text = translations.NotificationPopupNo;
         declineButton.Name = "logbook_ui_key_entry_decline_butn";
-        declineButton.SetClickHandler(Hide);
+        declineButton.AddClickListener(Hide);
     }
 
     [TempleDllLocation(0x101954C0)]
     public void Show()
     {
-        _window.CenterOnScreen();
-        _window.Visible = true;
+        Globals.UiManager.AddWindow(_window);
+        _window.CenterInParent();
         _window.BringToFront();
     }
 
     public void Hide()
     {
-        _window.Visible = false;
+        Globals.UiManager.RemoveWindow(_window);
     }
 }

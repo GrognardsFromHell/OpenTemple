@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -18,7 +19,7 @@ public class StatsLabel : WidgetButtonBase
 
     public StatsLabel(
         Stat stat,
-        string helpTopic,
+        string? helpTopic,
         Rectangle rect,
         StatsUiTexture downImage,
         StatsUiTexture hoverImage,
@@ -31,19 +32,12 @@ public class StatsLabel : WidgetButtonBase
         var statName = GetStatName(uiParams, stat);
 
         _label = new WidgetText(statName, "char-ui-stat-label");
-        SetWidgetMsgHandler(msg =>
-        {
-            if (msg.widgetEventType == TigMsgWidgetEvent.Exited)
-            {
+        OnMouseLeave += _ => {
                 UiSystems.CharSheet.Help.ClearHelpText();
-                return true;
-            }
-
-            return false;
-        });
+        };
         if (helpTopic != null)
         {
-            SetClickHandler(() => { GameSystems.Help.ShowTopic(helpTopic); });
+            AddClickListener(() => { GameSystems.Help.ShowTopic(helpTopic); });
         }
     }
 
@@ -80,13 +74,13 @@ public class StatsLabel : WidgetButtonBase
     public override void Render()
     {
         WidgetImage renderImage = null;
-        if (ButtonState == LgcyButtonState.Hovered)
-        {
-            renderImage = _hoverImage;
-        }
-        else if (ButtonState == LgcyButtonState.Down)
+        if (ContainsPress)
         {
             renderImage = _downImage;
+        }
+        else if (ContainsMouse)
+        {
+            renderImage = _hoverImage;
         }
 
         var contentArea = GetContentArea();

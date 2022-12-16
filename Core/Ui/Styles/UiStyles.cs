@@ -25,6 +25,8 @@ public sealed class UiStyles
 
     private readonly Dictionary<string, IStyleDefinition> _styles = new();
 
+    private readonly Dictionary<string, List<(StylingState, IStyleDefinition)>> _pseudoClassRules = new();
+
     public StyleResolver StyleResolver { get; }
 
     public UiStyles()
@@ -39,12 +41,62 @@ public sealed class UiStyles
         StyleResolver = new StyleResolver(defaultStyle);
     }
 
-    public void AddStyle(string id, IStyleDefinition style)
+    private void AddStyle(string id, IStyleDefinition style)
     {
+        // Consider pseudo-class selectors
+        var pseudoClasses = GetPseudoClasses(ref id);
+        if (pseudoClasses != default)
+        {
+            if (_pseudoClassRules.TryGetValue(id, out var rules))
+            {
+                rules.Add((pseudoClasses, style));
+            }
+            else
+            {
+                _pseudoClassRules[id] = new List<(StylingState, IStyleDefinition)>
+                {
+                    (pseudoClasses, style)
+                };
+            }
+
+            return;
+        }
+        
         if (!_styles.TryAdd(id, style))
         {
             throw new Exception($"Duplicate style defined: {id}");
         }
+    }
+
+    private static StylingState GetPseudoClasses(ref string id)
+    {
+        var idx = id.IndexOf(':', StringComparison.Ordinal);
+        if (idx == -1)
+        {
+            return default;
+        }
+
+        StylingState result = default;
+        foreach (var selector in id[(idx + 1)..].Split(':'))
+        {
+            switch (selector)
+            {
+                case "hover":
+                    result |= StylingState.Hover;
+                    break;
+                case "pressed":
+                    result |= StylingState.Pressed;
+                    break;
+                case "disabled":
+                    result |= StylingState.Disabled;
+                    break;
+                default:
+                    throw new StyleParsingException($"Style id ${id} has invalid selector ${selector}");
+            }
+        }
+
+        id = id[..idx];
+        return result;
     }
 
     public ComputedStyles GetComputed(params string[] ids)
@@ -61,6 +113,16 @@ public sealed class UiStyles
 
         Logger.Warn("Missing style: {0}", id);
         return _styles[id] = FallbackStyle;
+    }
+
+    public IEnumerable<IStyleDefinition> GetPseudoClassRules(string id, StylingState pseudoClasses)
+    {
+        if (_pseudoClassRules.TryGetValue(id, out var rules))
+        {
+            return rules.Where(r => (pseudoClasses & r.Item1) == r.Item1).Select(r => r.Item2);
+        }
+
+        return Enumerable.Empty<IStyleDefinition>();
     }
 
     public void LoadStylesFile(string path)
@@ -85,7 +147,7 @@ public sealed class UiStyles
 
         if (!root.TryGetProperty("styles", out var stylesEl))
         {
-            throw new Exception("Text style files must start with an object at the root wich has a 'styles' property.");
+            throw new Exception("Text style files must start with an object at the root which has a 'styles' property.");
         }
 
         LoadStyles(stylesEl);
@@ -165,4 +227,5 @@ public sealed class UiStyles
             style.MarginLeft = margin;
         }
     }
-};
+    
+}

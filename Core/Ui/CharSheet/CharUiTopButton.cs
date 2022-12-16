@@ -56,8 +56,8 @@ public class CharUiTopButton : WidgetButton
                 throw new ArgumentOutOfRangeException();
         }
 
-        SetPos(rectangle.Location);
-        SetSize(rectangle.Size);
+        Pos = rectangle.Location;
+        Size = rectangle.Size;
 
         _arcTopTexture = ResolveTexture(CharUiTexture.ButtonArcTopSelected);
     }
@@ -74,27 +74,25 @@ public class CharUiTopButton : WidgetButton
         ResourceRef<ITexture> buttonTexture = default;
         try
         {
-            switch (ButtonState)
+            if (Disabled)
             {
-                case LgcyButtonState.Normal:
-                    buttonTexture = _normalTexture;
-                    break;
-                case LgcyButtonState.Disabled:
-                    buttonTexture = _selectedTexture;
-                    break;
-                case LgcyButtonState.Down:
-                    destRect.Width += 3;
-                    destRect.Height += 3;
-                    srcRect.Width += 3;
-                    srcRect.Height += 3;
-                    buttonTexture = _pressedTexture;
-                    break;
-                case LgcyButtonState.Hovered:
-                    buttonTexture = _hoverTexture;
-                    break;
-                default:
-                    buttonTexture = _normalTexture;
-                    break;
+                buttonTexture = _selectedTexture;
+            } 
+            else if (ContainsPress)
+            {
+                destRect.Width += 3;
+                destRect.Height += 3;
+                srcRect.Width += 3;
+                srcRect.Height += 3;
+                buttonTexture = _pressedTexture;
+            }
+            else if (ContainsMouse)
+            {
+                buttonTexture = _hoverTexture;
+            }
+            else
+            {
+                buttonTexture = _normalTexture;
             }
 
             if (UiSystems.CharSheet.CurrentPage == _sheetPage)
@@ -110,7 +108,7 @@ public class CharUiTopButton : WidgetButton
                 args.flags |= Render2dFlag.FLIPH;
                 Tig.ShapeRenderer2d.DrawRectangle(ref args);
 
-                if (ButtonState != LgcyButtonState.Down)
+                if (!ContainsPress)
                 {
                     srcRect.Width += 3;
                     srcRect.Height += 3;

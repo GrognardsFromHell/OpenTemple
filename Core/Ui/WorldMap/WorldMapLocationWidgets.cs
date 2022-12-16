@@ -43,7 +43,7 @@ internal class WorldMapLocationWidgets
             var rect = image.Rectangle;
             var button = new WidgetButtonBase(rect);
             button.AddContent(new WidgetImage(image.Path));
-            button.SetMouseMsgHandler(_ => false);
+            button.HitTesting = HitTestingMode.Ignore;
 
             parent.Add(button);
             _images.Add((image, button));
@@ -53,15 +53,15 @@ internal class WorldMapLocationWidgets
         {
             TooltipText = location.Name
         };
-        Ring.SetClickHandler(() => OnClick?.Invoke(Location));
+        Ring.AddClickListener(() => OnClick?.Invoke(Location));
         parent.Add(Ring);
 
         ListButton = new WidgetButton();
         ListButton.SetStyle("mapLocationListButton"); // Defined in worldmap_ui.json
         ListButton.Text = location.Name;
-        ListButton.SetClickHandler(() => OnClick?.Invoke(Location));
+        ListButton.AddClickListener(() => OnClick?.Invoke(Location));
         ListButton.OnMouseEnter += _ => Ring.ForceVisible = true;
-        ListButton.OnMouseExit += _ => Ring.ForceVisible = false;
+        ListButton.OnMouseLeave += _ => Ring.ForceVisible = false;
 
         UpdateVisibility();
     }

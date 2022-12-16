@@ -26,7 +26,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
 
     private readonly WidgetTooltipRenderer _tooltipRenderer = new ();
 
-    public GameObject CurrentItem
+    public GameObject? CurrentItem
     {
         get
         {
@@ -39,7 +39,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         }
     }
 
-    public GameObject Critter { get; set; }
+    public GameObject? Critter { get; set; }
 
     protected override void Dispose(bool disposing)
     {
@@ -72,7 +72,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         _quantityLabel = CreateQuantityLabel();
 
         // We use a custom renderer, so this won't work
-        PreciseHitTest = false;
+        HitTesting = HitTestingMode.ContentArea;
     }
 
     private static WidgetText CreateQuantityLabel()
@@ -93,7 +93,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         }
 
         // Render the weapon-set color
-        if (Critter.IsPC() && GameSystems.Item.IsSlotPartOfWeaponSet(_slot))
+        if (Critter != null && Critter.IsPC() && GameSystems.Item.IsSlotPartOfWeaponSet(_slot))
         {
             RenderWeaponSetColor();
         }
@@ -164,18 +164,18 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
             var area = GetContentArea();
             area.Inflate(-1, -1);
 
-            if (MouseState == LgcyWindowMouseState.Hovered)
-            {
-                Tig.ShapeRenderer2d.DrawRectangleOutline(
-                    area,
-                    _slotHoverColor
-                );
-            }
-            else if (MouseState == LgcyWindowMouseState.Pressed)
+            if (ContainsPress)
             {
                 Tig.ShapeRenderer2d.DrawRectangleOutline(
                     area,
                     _slotPressedColor
+                );
+            }
+            else if (ContainsMouse)
+            {
+                Tig.ShapeRenderer2d.DrawRectangleOutline(
+                    area,
+                    _slotHoverColor
                 );
             }
         }
@@ -241,7 +241,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
 
     public override void RenderTooltip(int x, int y)
     {
-        if (MouseState == LgcyWindowMouseState.Pressed)
+        if (Pressed)
         {
             return;
         }
@@ -262,8 +262,6 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
             _tooltipRenderer.Render(x, y);
         }
     }
-
-    public GameObject Container => Critter;
 
     public int InventoryIndex => GameSystems.Item.InvIdxForSlot(_slot);
 }

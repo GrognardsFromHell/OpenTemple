@@ -22,8 +22,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait;
 
 public class CharSheetPortraitUi : IDisposable
 {
-    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
     public WidgetContainer Container { get; }
 
     [TempleDllLocation(0x10C4D4A0)]
@@ -138,7 +136,7 @@ public class CharSheetPortraitUi : IDisposable
     private void CreateButtons(PortraitUiParams uiParams)
     {
         _miniatureButton = new WidgetButton();
-        _miniatureButton.SetPos(uiParams.MiniatureButton.Location);
+        _miniatureButton.Pos = uiParams.MiniatureButton.Location;
         _miniatureButton.SetStyle(new WidgetButtonStyle
         {
             NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelNormal],
@@ -147,12 +145,12 @@ public class CharSheetPortraitUi : IDisposable
             HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelHover],
             DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.Button3dModelDisabled]
         });
-        _miniatureButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Miniature);
+        _miniatureButton.AddClickListener(() => Mode = CharSheetPortraitMode.Miniature);
         _miniatureButton.TooltipText = UiSystems.Tooltip.GetString(5000);
         Container.Add(_miniatureButton);
 
         _portraitButton = new WidgetButton();
-        _portraitButton.SetPos(uiParams.PortraitButton.Location);
+        _portraitButton.Pos = uiParams.PortraitButton.Location;
         _portraitButton.SetStyle(new WidgetButtonStyle
         {
             NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitNormal],
@@ -161,12 +159,12 @@ public class CharSheetPortraitUi : IDisposable
             HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitHover],
             DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPortraitDisabled]
         });
-        _portraitButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Portrait);
+        _portraitButton.AddClickListener(() => Mode = CharSheetPortraitMode.Portrait);
         _portraitButton.TooltipText = UiSystems.Tooltip.GetString(5001);
         Container.Add(_portraitButton);
 
         _paperdollButton = new WidgetButton();
-        _paperdollButton.SetPos(uiParams.PaperdollButton.Location);
+        _paperdollButton.Pos = uiParams.PaperdollButton.Location;
         _paperdollButton.SetStyle(new WidgetButtonStyle
         {
             NormalImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollNormal],
@@ -175,7 +173,7 @@ public class CharSheetPortraitUi : IDisposable
             HoverImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollHover],
             DisabledImagePath = uiParams.TexturePaths[PortraitUiTexture.ButtonPaperdollDisabled]
         });
-        _paperdollButton.SetClickHandler(() => Mode = CharSheetPortraitMode.Paperdoll);
+        _paperdollButton.AddClickListener(() => Mode = CharSheetPortraitMode.Paperdoll);
         _paperdollButton.TooltipText = UiSystems.Tooltip.GetString(5002);
         Container.Add(_paperdollButton);
     }
@@ -214,7 +212,7 @@ public class CharSheetPortraitUi : IDisposable
             kp =>
             {
                 var parent = widgetDoc.GetContainer(kp.Value);
-                var slotWidget = new PaperdollSlotWidget(uiParams, parent.GetSize(), kp.Key);
+                var slotWidget = new PaperdollSlotWidget(uiParams, parent.Size, kp.Key);
                 new ItemSlotBehavior(slotWidget,
                     () => slotWidget.CurrentItem,
                     () => slotWidget.Critter);

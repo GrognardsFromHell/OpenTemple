@@ -18,6 +18,8 @@ public abstract class Styleable : IStyleable
     /// </summary>
     public abstract IStyleable? StyleParent { get; }
 
+    public abstract StylingState PseudoClassState { get; }
+    
     public bool HasLocalStyles => _localStyles != null || _styleIds.Count > 0;
 
     public ComputedStyles ComputedStyles => _computedStyles ??= UpdateComputedStyles();
@@ -113,6 +115,17 @@ public abstract class Styleable : IStyleable
             var styleId = _styleIds[i];
             builder.Add(Globals.UiStyles.Get(styleId));
         }
+        
+        // Consider pseudo-class state (higher specificity than normal rules)
+        var pseudoClassState = PseudoClassState;
+        if (pseudoClassState != default)
+        {
+            for (var i = _styleIds.Count - 1; i >= 0; i--)
+            {
+                var styleId = _styleIds[i];
+                builder.AddRange(Globals.UiStyles.GetPseudoClassRules(styleId, pseudoClassState));
+            }            
+        }
 
         return builder.ToImmutable();
     }
@@ -120,7 +133,7 @@ public abstract class Styleable : IStyleable
     private ComputedStyles UpdateComputedStyles()
     {
         // Reuse the parent's styles directly if this element has no local styles,
-        // and the paren't doesn't either.
+        // and the parent doesn't either.
         if (!HasLocalStyles && StyleParent is {HasLocalStyles: false})
         {
             return StyleParent.ComputedStyles;

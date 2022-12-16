@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -56,7 +57,8 @@ internal class HeightSystem : IChargenSystem
         _currentHeightLabel = doc.GetTextContent("currentHeightLabel");
 
         _slider = new HeightSlider();
-        _slider.SetPos(doc.GetContainer("sliderContainer").GetPos());
+        WidgetContainer tempQualifier = doc.GetContainer("sliderContainer");
+        _slider.Pos = tempQualifier.Pos;
         Container.Add(_slider);
         _slider.OnValueChanged += (newValue) => { UpdateModelScale(); };
     }

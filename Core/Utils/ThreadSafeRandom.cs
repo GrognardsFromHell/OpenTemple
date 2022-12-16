@@ -15,7 +15,7 @@ internal static class ThreadSafeRandom
         set => LocalRandom.Value = new Random(value);
     }
 
-    public static Random Random => LocalRandom.Value;
+    public static Random Random => LocalRandom.Value!;
 
     /// <inheritdoc cref="System.Random.Next()"/>
     public static int Next() => Random.Next();

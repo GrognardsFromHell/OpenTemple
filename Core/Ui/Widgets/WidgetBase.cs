@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Styles;
@@ -13,8 +15,141 @@ using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
-public class WidgetBase : Styleable, IDisposable
+[DebuggerDisplay("{ToString()}")]
+public partial class WidgetBase : Styleable, IDisposable
 {
+    private static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(10);
+
+    private WidgetContainer? _parent;
+
+    /// <summary>
+    /// If this widget was loaded from a file, indicates the URI to that file to more easily identify it.
+    /// </summary>
+    public string? SourceURI { get; set; }
+
+    /// <summary>
+    /// A unique id for this widget within the source URI (see below).
+    /// </summary>
+    public string? Id { get; set; }
+
+    public bool CenterHorizontally { get; set; }
+    public bool CenterVertically { get; set; }
+    protected bool _sizeToParent;
+    protected bool _autoSizeWidth = true;
+    protected bool _autoSizeHeight = true;
+    protected Margins _margins;
+    protected Func<MessageKeyStateChangeArgs, bool>? mKeyStateChangeHandler;
+    protected Func<MessageCharArgs, bool>? mCharHandler;
+    protected readonly List<WidgetContent> Content = new();
+    private readonly List<AvailableHotkey> _hotkeys = new();
+    private bool _visible = true;
+    private bool _containsMouse;
+    private bool _pressed;
+    private bool _disabled;
+    private FocusMode _focusMode = FocusMode.None;
+
+    /// <summary>
+    /// Controls whether this widget can receive keyboard focus.
+    /// </summary>
+    public FocusMode FocusMode
+    {
+        get => _focusMode;
+        set
+        {
+            if (_focusMode != value)
+            {
+                _focusMode = value;
+                // Ensure we relinquish focus if focusing is disabled
+                if (value == FocusMode.None)
+                {
+                    Blur();
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// True if this widget currently has keyboard focus.
+    /// </summary>
+    public bool HasFocus => UiManager?.KeyboardFocus == this;
+
+    /// <summary>
+    /// If this widget is currently focused, release the keyboard focus.
+    /// </summary>
+    private void Blur()
+    {
+        if (HasFocus)
+        {
+            Stub.TODO();
+        }
+    }
+
+    /// <summary>
+    /// Is the mouse currently over this widget?
+    /// </summary>
+    public bool ContainsMouse
+    {
+        get => _containsMouse;
+        set
+        {
+            if (value != _containsMouse)
+            {
+                _containsMouse = value;
+                InvalidateStyles(); // Pseudo-class has changed
+            }
+        }
+    }
+
+    /// <summary>
+    /// Indicates that the primary mouse button has been pressed on this element
+    /// or one of its descendants, and has not been released yet.
+    /// </summary>
+    public bool Pressed
+    {
+        get => _pressed;
+        set
+        {
+            if (value != _pressed)
+            {
+                _pressed = value;
+                InvalidateStyles(); // Pseudo-class has changed
+            }
+        }
+    }
+
+    /// <summary>
+    /// Convenience property that is true if the widget is both pressed and contains the mouse.
+    /// </summary>
+    public bool ContainsPress => ContainsMouse && Pressed;
+
+    /// <summary>
+    /// Disables the interactivity of this element.
+    /// </summary>
+    public bool Disabled
+    {
+        get => _disabled;
+        set
+        {
+            if (value != _disabled)
+            {
+                _disabled = value;
+                InvalidateStyles(); // Pseudo-class has changed
+            }
+        }
+    }
+
+    public int ZIndex { get; set; }
+
+    /// <summary>
+    /// Indicates whether this widget is currently part of the widget tree.
+    /// </summary>
+    public bool IsInTree => UiManager != null;
+
+    /// <summary>
+    /// Gets the UI Manager that this widget is attached to.
+    /// </summary>
+    public UiManager? UiManager { get; private set; }
+
     public string Name { get; set; }
 
     // Horizontal position relative to parent
@@ -35,8 +170,35 @@ public class WidgetBase : Styleable, IDisposable
             if (value != _visible)
             {
                 _visible = value;
-                Globals.UiManager.SetVisible(this, value);
+                UiManager?.VisibilityChanged(this);
             }
+        }
+    }
+
+    /// <summary>
+    /// Checks if a widget is really on screen by checking all of it's parents as well for visibility.
+    /// </summary>
+    public bool IsVisibleIncludingParents
+    {
+        get
+        {
+            if (!IsInTree)
+            {
+                return false; // can't be visible when we're not in the UI tree
+            }
+
+            var c = this;
+            while (c != null)
+            {
+                if (!c.Visible)
+                {
+                    return false;
+                }
+
+                c = c.Parent;
+            }
+
+            return true;
         }
     }
 
@@ -47,17 +209,15 @@ public class WidgetBase : Styleable, IDisposable
 
     public Margins Margins
     {
-        get => mMargins;
-        set => mMargins = value;
+        get => _margins;
+        set => _margins = value;
     }
 
-    public WidgetBase([CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1)
+    public WidgetBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
     {
         if (filePath != null)
         {
-            mSourceURI = $"{Path.GetFileName(filePath)}:{lineNumber}";
+            SourceURI = $"{Path.GetFileName(filePath)}:{lineNumber}";
         }
     }
 
@@ -66,7 +226,6 @@ public class WidgetBase : Styleable, IDisposable
         if (disposing)
         {
             _parent?.Remove(this);
-            Globals.UiManager.RemoveWidget(this);
         }
     }
 
@@ -76,29 +235,32 @@ public class WidgetBase : Styleable, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public event Action OnBeforeRender;
-
-    public event Func<Message, bool> OnHandleMessage;
+    public event Action? OnBeforeRender;
 
     /// <summary>
     /// Hit test the content of this widget instead of just checking against the content rectangle.
     /// </summary>
-    public bool PreciseHitTest { get; set; } = false;
+    public HitTestingMode HitTesting { get; set; }
 
-    public virtual bool HitTest(int x, int y)
+    public virtual bool HitTest(float x, float y)
     {
-        var contentArea = GetContentArea();
-        x += contentArea.X - mMargins.Left;
-        y += contentArea.Y - mMargins.Top;
-
-        if (!PreciseHitTest)
+        if (HitTesting == HitTestingMode.Ignore)
         {
-            return contentArea.Contains(x, y);
+            return false;
+        }
+
+        var contentArea = GetContentArea();
+        x += contentArea.X - _margins.Left;
+        y += contentArea.Y - _margins.Top;
+
+        if (HitTesting == HitTestingMode.ContentArea)
+        {
+            return contentArea.Contains((int) x, (int) y);
         }
 
         UpdateLayout();
 
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             if (!content.Visible)
             {
@@ -108,12 +270,11 @@ public class WidgetBase : Styleable, IDisposable
             var contentRect = content.GetBounds();
             contentRect.Intersect(contentArea);
 
-            if (contentRect.Contains(x, y))
+            if (contentRect.Contains((int) x, (int) y))
             {
                 return true;
             }
         }
-
 
         return false;
     }
@@ -131,7 +292,7 @@ public class WidgetBase : Styleable, IDisposable
 
         var contentArea = GetContentArea();
 
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             if (!content.Visible || !content.GetBounds().IntersectsWith(contentArea))
             {
@@ -151,7 +312,7 @@ public class WidgetBase : Styleable, IDisposable
         // Size to content
         if (contentArea.Width == 0 && contentArea.Height == 0)
         {
-            foreach (var content in _content)
+            foreach (var content in Content)
             {
                 var preferred = content.GetPreferredSize();
                 contentArea.Width = Math.Max(contentArea.Width, preferred.Width);
@@ -161,15 +322,15 @@ public class WidgetBase : Styleable, IDisposable
             // set widget size (adding up the margins in addition to the content dimensions, since the overall size should include the margins)
             if (contentArea.Width != 0 && contentArea.Height != 0)
             {
-                Width = contentArea.Width + mMargins.Left + mMargins.Right;
-                Height = contentArea.Height + mMargins.Top + mMargins.Bottom;
+                Width = contentArea.Width + _margins.Left + _margins.Right;
+                Height = contentArea.Height + _margins.Top + _margins.Bottom;
 
                 ApplyAutomaticSizing();
                 contentArea = GetContentArea();
             }
         }
 
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             if (!content.Visible)
             {
@@ -229,35 +390,27 @@ public class WidgetBase : Styleable, IDisposable
 
     protected void ApplyAutomaticSizing()
     {
-        if (mSizeToParent)
+        if (_sizeToParent)
         {
-            int containerWidth = _parent != null
-                ? _parent.Width
-                : Globals.UiManager.CanvasSize.Width;
-            int containerHeight = _parent != null
-                ? _parent.Height
-                : Globals.UiManager.CanvasSize.Height;
-            SetSize(new Size(containerWidth, containerHeight));
+            var containerWidth = _parent?.Width ?? UiManager?.CanvasSize.Width ?? 1;
+            var containerHeight = _parent?.Height ?? UiManager?.CanvasSize.Height ?? 1;
+            Size = new Size(containerWidth, containerHeight);
         }
 
-        if (mCenterHorizontally)
+        if (CenterHorizontally)
         {
-            int containerWidth = _parent != null
-                ? _parent.Width
-                : Globals.UiManager.CanvasSize.Width;
-            int x = (containerWidth - Width) / 2;
+            var containerWidth = _parent?.Width ?? UiManager?.CanvasSize.Width ?? 0;
+            var x = (containerWidth - Width) / 2;
             if (x != X)
             {
                 X = x;
             }
         }
 
-        if (mCenterVertically)
+        if (CenterVertically)
         {
-            int containerHeight = _parent != null
-                ? _parent.Height
-                : Globals.UiManager.CanvasSize.Height;
-            int y = (containerHeight - Height) / 2;
+            var containerHeight = _parent?.Height ?? UiManager?.CanvasSize.Height ?? 0;
+            var y = (containerHeight - Height) / 2;
             if (y != Y)
             {
                 Y = y;
@@ -267,19 +420,7 @@ public class WidgetBase : Styleable, IDisposable
 
     public virtual bool HandleMessage(Message msg)
     {
-        if (OnHandleMessage != null)
-        {
-            if (OnHandleMessage(msg))
-            {
-                return true;
-            }
-        }
-
-        if (msg.type == MessageType.WIDGET && mWidgetMsgHandler != null)
-        {
-            return mWidgetMsgHandler(msg.WidgetArgs);
-        }
-        else if (msg.type == MessageType.KEYSTATECHANGE && mKeyStateChangeHandler != null)
+        if (msg.type == MessageType.KEYSTATECHANGE && mKeyStateChangeHandler != null)
         {
             return mKeyStateChangeHandler(msg.KeyStateChangeArgs);
         }
@@ -287,45 +428,41 @@ public class WidgetBase : Styleable, IDisposable
         {
             return mCharHandler(msg.CharArgs);
         }
-        else if (msg.type == MessageType.MOUSE)
+
+        return false;
+    }
+
+    /// <summary>
+    /// Same as <see cref="PickWidget"/>, but the x and y coordinates
+    /// are global UI coordinates,and not local to this widget. 
+    /// </summary>
+    public WidgetBase? PickWidgetGlobal(float x, float y)
+    {
+        var contentBounds = GetContentArea(true);
+        if (x < contentBounds.X || x >= contentBounds.Right || y < contentBounds.Y || y >= contentBounds.Bottom)
         {
-            return HandleMouseMessage(msg.MouseArgs);
+            return null;
         }
 
-        return false;
+        return PickWidget(x - contentBounds.X, y - contentBounds.Y);
     }
 
-    public virtual bool IsContainer()
-    {
-        return false;
-    }
-
-    public virtual bool IsButton()
-    {
-        return false;
-    }
-
-    public virtual bool IsScrollView()
-    {
-        return false;
-    }
-
-    /**
-         * Picks the widget a the x,y coordinate local to this widget.
-         * Null if the coordinates are outside of this widget. If no
-         * other widget inside is at the given coordinate, will just return this.
-         */
-    public virtual WidgetBase PickWidget(int x, int y)
+    /// <summary>
+    /// Picks the widget a the x,y coordinate local to this widget.
+    /// Null if the coordinates are outside of this widget. If no
+    /// other widget inside is at the given coordinate, will just return this.
+    /// </summary>
+    public virtual WidgetBase? PickWidget(float x, float y)
     {
         if (!Visible)
         {
             return null;
         }
 
-        if (x >= mMargins.Left &
-            y >= mMargins.Bottom &&
-            x < Width - mMargins.Right
-            && y < Height - mMargins.Top
+        if (x >= _margins.Left &
+            y >= _margins.Top &&
+            x - _margins.Left < Width - _margins.Right
+            && y - _margins.Top < Height - _margins.Bottom
             && HitTest(x, y))
         {
             return this;
@@ -337,12 +474,12 @@ public class WidgetBase : Styleable, IDisposable
     public void AddContent(WidgetContent content)
     {
         content.Parent = this;
-        _content.Add(content);
+        Content.Add(content);
     }
 
     public void RemoveContent(WidgetContent content)
     {
-        if (_content.Remove(content))
+        if (Content.Remove(content))
         {
             content.Parent = null;
         }
@@ -350,52 +487,41 @@ public class WidgetBase : Styleable, IDisposable
 
     public void ClearContent()
     {
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             content.Parent = null;
         }
 
-        _content.Clear();
+        Content.Clear();
     }
 
-    public void Show()
+    public void BringToFront()
     {
-        Visible = true;
+        _parent?.BringToFront(this);
     }
 
-    public void Hide()
+    public void MoveToBack()
     {
-        Visible = false;
+        _parent?.MoveToBack(this);
     }
 
-    public virtual void BringToFront()
+    public WidgetContainer? Parent
     {
-        var parent = _parent;
-        if (parent != null)
+        get => _parent;
+        set
         {
-            parent.Remove(this);
-            parent.Add(this);
+            Trace.Assert(_parent == null || _parent == value || value == null);
+            _parent = value;
         }
-    }
-
-    public void SetParent(WidgetContainer parent)
-    {
-        Trace.Assert(_parent == null || _parent == parent || parent == null);
-        _parent = parent;
-    }
-
-    public WidgetContainer GetParent()
-    {
-        return _parent;
     }
 
     public Rectangle Rectangle
     {
-        get => new(GetPos(), GetSize());
+        get => new(Pos, Size);
         set
         {
-            SetPos(value.Location);
-            SetSize(value.Size);
+            Pos = value.Location;
+            Size = value.Size;
         }
     }
 
@@ -405,67 +531,29 @@ public class WidgetBase : Styleable, IDisposable
         Y = y;
     }
 
-    public void SetPos(Point point) => SetPos(point.X, point.Y);
-
-    public Point GetPos()
+    public Point Pos
     {
-        return new Point(X, Y);
+        get => new(X, Y);
+        set => SetPos(value.X, value.Y);
     }
 
-    public void SetSize(Size size)
+    public Size Size
     {
-        if (size.Width != Width || size.Height != Height)
+        get => new(Width, Height);
+        set
         {
-            Width = size.Width;
-            Height = size.Height;
-            OnSizeChanged();
+            if (value.Width != Width || value.Height != Height)
+            {
+                Width = value.Width;
+                Height = value.Height;
+                OnSizeChanged();
+            }
         }
-    }
-
-    public Size GetSize()
-    {
-        return new Size(Width, Height);
-    }
-
-    /**
-         * A unique id for this widget within the source URI (see below).
-         */
-    public string GetId()
-    {
-        return mId;
-    }
-
-    public void SetId(string id)
-    {
-        mId = id;
-    }
-
-    /**
-         * If this widget was loaded from a file, indicates the URI to that file to more easily identify it.
-         */
-    public string GetSourceURI()
-    {
-        return mSourceURI;
-    }
-
-    public void SetSourceURI(string sourceUri)
-    {
-        mSourceURI = sourceUri;
-    }
-
-    public void SetCenterHorizontally(bool enable)
-    {
-        mCenterHorizontally = enable;
-    }
-
-    public void SetCenterVertically(bool enable)
-    {
-        mCenterVertically = enable;
     }
 
     public void SetSizeToParent(bool enable)
     {
-        mSizeToParent = enable;
+        _sizeToParent = enable;
         if (enable)
         {
             SetAutoSizeHeight(false);
@@ -473,25 +561,21 @@ public class WidgetBase : Styleable, IDisposable
         }
     }
 
-    /**
-         *	Basically gets a Rectangle of x,y,w,h.
-         *	Can modify based on parent.
-         */
+    /// <summary>
+    /// Basically gets a Rectangle of x,y,w,h.
+    /// Can modify based on parent.
+    /// </summary>
     private static Rectangle GetContentArea(WidgetBase widget)
     {
-        var bounds = new Rectangle(widget.GetPos(), widget.GetSize());
+        var bounds = new Rectangle(widget.Pos, widget.Size);
 
         // The content of an advanced widget container may be moved
-        int scrollOffsetY = 0;
-        if (widget.GetParent() != null)
+        var container = widget.Parent;
+        if (container != null)
         {
-            var container = widget.GetParent();
-            scrollOffsetY = container.GetScrollOffsetY();
-        }
+            var scrollOffsetY = container.GetScrollOffsetY();
 
-        if (widget.GetParent() != null)
-        {
-            var parentBounds = GetContentArea(widget.GetParent());
+            var parentBounds = GetContentArea(container);
             bounds.X += parentBounds.X;
             bounds.Y += parentBounds.Y - scrollOffsetY;
 
@@ -522,12 +606,12 @@ public class WidgetBase : Styleable, IDisposable
         return bounds;
     }
 
-    /*
-     Returns the {x,y,w,h} rect, but regards modification from parent and subtracts the margins.
-     Content area controls:
-     - Mouse handling active area
-     - Rendering area
-     */
+    /// <summary>
+    /// Returns the {x,y,w,h} rect, but regards modification from parent and subtracts the margins.
+    /// Content area controls:
+    /// - Mouse handling active area
+    /// - Rendering area
+    /// </summary>
     public Rectangle GetContentArea(bool includingMargins = false)
     {
         var res = GetContentArea(this);
@@ -537,10 +621,10 @@ public class WidgetBase : Styleable, IDisposable
         {
             if (res.Width != 0 & res.Height != 0)
             {
-                res.X += mMargins.Left;
-                res.Width -= mMargins.Left + mMargins.Right;
-                res.Y += mMargins.Top;
-                res.Height -= mMargins.Bottom + mMargins.Top;
+                res.X += _margins.Left;
+                res.Width -= _margins.Left + _margins.Right;
+                res.Y += _margins.Top;
+                res.Height -= _margins.Bottom + _margins.Top;
                 if (res.Width < 0) res.Width = 0;
                 if (res.Height < 0) res.Height = 0;
             }
@@ -594,38 +678,27 @@ public class WidgetBase : Styleable, IDisposable
         }
     }
 
-    public void SetMouseMsgHandler(Func<MessageMouseArgs, bool> handler)
-    {
-        mMouseMsgHandler = handler;
-    }
-
-    public void SetWidgetMsgHandler(Func<MessageWidgetArgs, bool> handler)
-    {
-        mWidgetMsgHandler = handler;
-    }
-
+    [Obsolete]
     public void SetKeyStateChangeHandler(Func<MessageKeyStateChangeArgs, bool> handler)
     {
         mKeyStateChangeHandler = handler;
     }
 
+    [Obsolete]
     public void SetCharHandler(Func<MessageCharArgs, bool> handler)
     {
         mCharHandler = handler;
     }
 
-    public virtual bool HandleMouseMessage(MessageMouseArgs msg)
+    public virtual void OnUpdateTime(TimePoint now)
     {
-        if (mMouseMsgHandler != null)
+        foreach (var interval in Intervals)
         {
-            return mMouseMsgHandler(msg);
+            if (interval.NextTrigger <= now)
+            {
+                interval.Trigger();
+            }
         }
-
-        return false;
-    }
-
-    public virtual void OnUpdateTime(TimePoint timeMs)
-    {
     }
 
     protected virtual void OnSizeChanged()
@@ -634,31 +707,13 @@ public class WidgetBase : Styleable, IDisposable
 
     public void SetAutoSizeWidth(bool enable)
     {
-        mAutoSizeWidth = enable;
+        _autoSizeWidth = enable;
     }
 
     public void SetAutoSizeHeight(bool enable)
     {
-        mAutoSizeHeight = enable;
+        _autoSizeHeight = enable;
     }
-
-    protected WidgetContainer? _parent = null;
-    protected string mSourceURI;
-    protected string mId;
-    protected bool mCenterHorizontally = false;
-    protected bool mCenterVertically = false;
-    protected bool mSizeToParent = false;
-    protected bool mAutoSizeWidth = true;
-    protected bool mAutoSizeHeight = true;
-    protected Margins mMargins;
-    protected Func<MessageMouseArgs, bool> mMouseMsgHandler;
-    protected Func<MessageWidgetArgs, bool> mWidgetMsgHandler;
-    protected Func<MessageKeyStateChangeArgs, bool> mKeyStateChangeHandler;
-    protected Func<MessageCharArgs, bool> mCharHandler;
-
-    protected List<WidgetContent> _content = new();
-    private bool _visible = true;
-
 
     public virtual void RenderTooltip(int x, int y)
     {
@@ -671,15 +726,309 @@ public class WidgetBase : Styleable, IDisposable
 
     public override IStyleable? StyleParent => _parent;
 
-    public virtual bool HasPseudoClass(StylingState stylingState) => false;
+    public bool HasPseudoClass(StylingState stylingState)
+    {
+        return stylingState switch
+        {
+            StylingState.Hover => ContainsMouse,
+            StylingState.Pressed => Pressed,
+            StylingState.Disabled => Disabled,
+            _ => false
+        };
+    }
+
+    public override StylingState PseudoClassState
+    {
+        get
+        {
+            StylingState result = default;
+            if (ContainsMouse)
+            {
+                result |= StylingState.Hover;
+            }
+
+            if (Pressed)
+            {
+                result |= StylingState.Pressed;
+            }
+
+            if (Disabled)
+            {
+                result |= StylingState.Disabled;
+            }
+
+            return result;
+        }
+    }
 
     protected override void OnStylesInvalidated()
     {
         base.OnStylesInvalidated();
 
-        foreach (var content in _content)
+        foreach (var content in Content)
         {
             content.InvalidateStyles();
         }
     }
-};
+
+    public void AddHotkey(Hotkey hotkey, Action callback, Func<bool>? condition = null)
+    {
+        condition ??= () => true;
+        _hotkeys.Add(new AvailableHotkey(hotkey, callback, condition));
+    }
+
+    private record AvailableHotkey(Hotkey Hotkey, Action Callback, Func<bool> Condition);
+
+    public IEnumerable<WidgetBase> EnumerateSelfAndAncestors()
+    {
+        var current = this;
+
+        while (current != null)
+        {
+            yield return current;
+            current = current.Parent;
+        }
+    }
+
+    public ImmutableList<DeclaredInterval> Intervals { get; private set; } = ImmutableList<DeclaredInterval>.Empty;
+
+    /// <summary>
+    /// Adds a callback that will be called in regular intervals as long as this widget is part of the UI tree. 
+    /// </summary>
+    public DeclaredInterval AddInterval(Action callback, TimeSpan interval = default)
+    {
+        var declaredInterval = new DeclaredInterval(callback, interval);
+        Intervals = Intervals.Add(declaredInterval);
+        return declaredInterval;
+    }
+
+    public void StopInterval(DeclaredInterval interval)
+    {
+        Intervals = Intervals.Remove(interval);
+    }
+
+    public record DeclaredInterval(Action Callback, TimeSpan Interval)
+    {
+        public TimePoint NextTrigger { get; set; } = GetNextIntervalTrigger(Interval);
+
+        public void Trigger()
+        {
+            NextTrigger = GetNextIntervalTrigger(Interval);
+            Callback();
+        }
+
+        private static TimePoint GetNextIntervalTrigger(TimeSpan interval)
+        {
+            if (interval == default)
+            {
+                interval = DefaultInterval;
+            }
+
+            return TimePoint.Now + interval;
+        }
+    }
+
+    public virtual void AttachToTree(UiManager? manager)
+    {
+        if (UiManager != null && UiManager != manager)
+        {
+            UiManager.RemoveWidget(this);
+        }
+
+        UiManager = manager;
+    }
+
+    public void DetachFromTree() => AttachToTree(null);
+
+    public bool SetMouseCapture()
+    {
+        return UiManager?.CaptureMouse(this) ?? false;
+    }
+
+    public void ReleaseMouseCapture()
+    {
+        UiManager?.ReleaseMouseCapture(this);
+    }
+
+    public void CenterInParent()
+    {
+        if (Parent != null)
+        {
+            var parentSize = Parent.Size;
+            X = (parentSize.Width - Width) / 2;
+            Y = (parentSize.Height - Height) / 2;
+        }
+    }
+
+    public bool HasMouseCapture => UiManager?.MouseCaptureWidget == this;
+
+    #region Tree Navigation
+
+    public virtual WidgetBase? FirstChild => null;
+
+    public virtual WidgetBase? LastChild => null;
+
+    public WidgetBase? PreviousSibling
+    {
+        get
+        {
+            var siblings = (IReadOnlyList<WidgetBase>?) Parent?.Children;
+            if (siblings == null)
+            {
+                return null;
+            }
+
+            // Search for us in the list of children of our parent and return the previous element
+            for (var i = 0; i < siblings.Count; i++)
+            {
+                if (siblings[i] == this)
+                {
+                    return i > 0 ? siblings[i - 1] : null;
+                }
+            }
+
+            throw new InvalidOperationException("Could not find this widget among the children of its parent.");
+        }
+    }
+
+    public WidgetBase? NextSibling
+    {
+        get
+        {
+            var siblings = (IReadOnlyList<WidgetBase>?) Parent?.Children;
+            if (siblings == null)
+            {
+                return null;
+            }
+
+            // Search for us in the list of children of our parent and return the next element
+            for (var i = 0; i < siblings.Count; i++)
+            {
+                if (siblings[i] == this)
+                {
+                    return i + 1 < siblings.Count ? siblings[i + 1] : null;
+                }
+            }
+
+            throw new InvalidOperationException("Could not find this widget among the children of its parent.");
+        }
+    }
+
+    /// <summary>
+    /// Find the preceding object (A) of the given object (B).
+    /// An object A is preceding an object B if A and B are in the same tree
+    ///     and A comes before B in tree order.
+    /// * `O(n)` (worst case)
+    ///     * `O(1)` (amortized when walking the entire tree)
+    /// </summary>
+    /// <param name="root">If set, `root` must be an inclusive ancestor
+    ///      of the return value (or else null is returned). This check _assumes_
+    ///        that `root` is also an inclusive ancestor of the given `object`</param>
+    public WidgetBase? Preceding(WidgetBase? root = null)
+    {
+        if (this == root)
+        {
+            return null;
+        }
+
+        if (PreviousSibling != null)
+        {
+            return PreviousSibling.LastInclusiveDescendant();
+        }
+
+        // if there is no previous sibling return the parent (might be null)
+        return Parent;
+    }
+
+    /// <summary>
+    /// Find the following object (A) of the given object (B).
+    /// An object A is following an object B if A and B are in the same tree
+    /// and A comes after B in tree order.
+    /// 
+    /// `O(n)` (worst case) where `n` is the amount of objects in the entire tree
+    /// `O(1)` (amortized when walking the entire tree)
+    /// </summary>
+    /// <param name="treeRoot">If not null, iteration will stop and return null, when this element is reached.</param>
+    /// <param name="skipChildren">If true, iteration will skip past children of this node.</param>
+    /// <param name="predicate">If not null, skip nodes that do not satisfy this predicate.</param>
+    internal WidgetBase? Following(WidgetBase? treeRoot = null, bool skipChildren = false, Predicate<WidgetBase>? predicate = null)
+    {
+        if (!skipChildren && FirstChild != null && (predicate == null || predicate(FirstChild)))
+        {
+            return FirstChild;
+        }
+
+        var current = this;
+        do
+        {
+            if (current == treeRoot)
+            {
+                return null;
+            }
+
+            for (var nextSibling = current.NextSibling; nextSibling != null; nextSibling = nextSibling.NextSibling)
+            {
+                if (predicate == null || predicate(nextSibling))
+                {
+                    return nextSibling;
+                }
+            }
+
+            current = current.Parent;
+        } while (current != null);
+
+        return null;
+    }
+
+    /// <summary>
+    /// Find the inclusive descendant that is last in tree order of the given object.
+    /// `O(n)` (worst case) where `n` is the depth of the subtree of `object`
+    /// </summary>
+    public WidgetBase LastInclusiveDescendant()
+    {
+        var current = this;
+
+        while (current.LastChild is { } lastChild)
+        {
+            current = lastChild;
+        }
+
+        return current;
+    }
+
+    #endregion
+
+    public override string ToString()
+    {
+        var result = new StringBuilder();
+        if (SourceURI != null)
+        {
+            result.Append(SourceURI);
+            if (Id != null)
+            {
+                result.Append('#').Append(Id);
+            }
+        }
+        else if (Id != null)
+        {
+            result.Append(Id);
+        }
+        else
+        {
+            return GetType().Name;
+        }
+
+        result.Append(" (").Append(GetType().Name).Append(')');
+        return result.ToString();
+    }
+
+    public void Focus()
+    {
+        if (FocusMode == FocusMode.None || HasFocus || UiManager == null)
+        {
+            return;
+        }
+
+        UiManager.Focus(this);
+    }
+}

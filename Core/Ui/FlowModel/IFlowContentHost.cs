@@ -26,6 +26,8 @@ public class FlowContentHost : Styleable, IFlowContentHost
         NotifyStyleChanged();
     }
 
+    public override StylingState PseudoClassState => _styleParent?.PseudoClassState ?? default;
+
     public event Action? OnStyleChanged;
 
     public event Action? OnTextFlowChanged;

@@ -202,8 +202,19 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         _schemesBeforeOverlayScheme = soundState.SchemesSuppressedByOverlay;
         _combatMusicPlaying = soundState.IsCombatMusicPlaying;
         _schemesBeforeCombatMusic = soundState.SchemesSuppressedByCombatMusic;
-
-        SetScheme(soundState.CurrentSchemeIds.Item1, soundState.CurrentSchemeIds.Item2);
+        
+        if (_combatMusicPlaying)
+        {
+            soundscheme_unloadall(0);
+            var scheme = new SoundScheme();
+            LoadSoundScheme(_schemesBeforeCombatMusic.Item1, scheme);
+            scheme.GetCombatMusicFiles(out _, out var loop);
+            _combatMusicLoopStreamId = PlayCombatLoopMusic(loop, 0);
+        }
+        else
+        {
+            SetScheme(soundState.CurrentSchemeIds.Item1, soundState.CurrentSchemeIds.Item2);   
+        }
     }
 
     [TempleDllLocation(0x1003dc50)]
@@ -654,20 +665,24 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         }
 
         var scheme = soundScheme[freeSlot];
+        LoadSoundScheme(sndSchemeIdx, scheme);
+    }
 
+    private void LoadSoundScheme(int id, SoundScheme scheme)
+    {
         scheme.Reset();
-        scheme.schemeId = sndSchemeIdx;
+        scheme.schemeId = id;
 
-        if (!soundSchemeIndexMes.TryGetValue(sndSchemeIdx, out var meslineValue))
+        if (!soundSchemeIndexMes.TryGetValue(id, out var meslineValue))
         {
-            Logger.Warn("Unknown sound scheme: {0}", sndSchemeIdx);
+            Logger.Warn("Unknown sound scheme: {0}", id);
             return;
         }
 
         var indexLineParts = meslineValue.Split('#', 2);
         if (indexLineParts.Length != 2)
         {
-            Logger.Warn("Invalid sound scheme {0}: {1}", sndSchemeIdx, meslineValue);
+            Logger.Warn("Invalid sound scheme {0}: {1}", id, meslineValue);
             return;
         }
 
@@ -780,25 +795,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
                 soundScheme[1].schemelistKey != 0 ? soundScheme[1].schemeId : 0
             );
 
-            string combatIntro;
-            if (soundScheme[0].combatintro != null)
-            {
-                combatIntro = $"sound/{soundScheme[0].combatintro}";
-            }
-            else
-            {
-                combatIntro = "sound/music/combatintro.mp3";
-            }
-
-            string combatLoop;
-            if (soundScheme[0].combatloop != null)
-            {
-                combatLoop = $"sound/{soundScheme[0].combatloop}";
-            }
-            else
-            {
-                combatLoop = "sound/music/combatmusic.mp3";
-            }
+            soundScheme[0].GetCombatMusicFiles(out var combatIntro, out var combatLoop);
 
             soundscheme_unloadall(80);
 
@@ -811,7 +808,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003C8B0)]
     public void StopCombatMusic(GameObject handle)
     {
-        if ( _combatMusicPlaying && handle != null )
+        if (_combatMusicPlaying && handle != null)
         {
             Tig.Sound.FadeOutStream(_combatMusicIntroStreamId, 25);
             Tig.Sound.FadeOutStream(_combatMusicLoopStreamId, 25);
@@ -1058,8 +1055,8 @@ public class SoundScheme
     public int schemelistKey;
     public int schemeId;
     public List<SoundSchemeElement> lines = new();
-    public string combatintro;
-    public string combatloop;
+    public string? combatintro;
+    public string? combatloop;
 
     [TempleDllLocation(0x1003bad0)]
     public void Reset()
@@ -1069,6 +1066,27 @@ public class SoundScheme
         combatintro = null;
         combatloop = null;
         lines.Clear();
+    }
+
+    public void GetCombatMusicFiles(out string combatIntro, out string combatLoop)
+    {
+        if (combatintro != null)
+        {
+            combatIntro = $"sound/{combatintro}";
+        }
+        else
+        {
+            combatIntro = "sound/music/combatintro.mp3";
+        }
+
+        if (combatloop != null)
+        {
+            combatLoop = $"sound/{combatloop}";
+        }
+        else
+        {
+            combatLoop = "sound/music/combatmusic.mp3";
+        }
     }
 }
 

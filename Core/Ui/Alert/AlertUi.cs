@@ -28,15 +28,13 @@ public class AlertUi
         _mainWindow = doc.GetRootContainer();
         _mainWindow.ZIndex = 99800;
         _mainWindow.Name = "alert_main_window";
-        _mainWindow.Visible = false;
 
         _titleLabel = doc.GetTextContent("title");
 
         _okButton = doc.GetButton("alert_ok_button");
         _okButton.Name = "alert_ok_button";
-        _okButton.SetClickHandler(OkButtonClicked);
-        _mainWindow.Add(_okButton);
-
+        _okButton.AddClickListener(OkButtonClicked);
+        
         ScrollBoxSettings settings = new ScrollBoxSettings();
         settings.TextArea = new Rectangle(6, 16, 287, 208);
         settings.ScrollBarPos = new Point(297, 1);
@@ -56,13 +54,10 @@ public class AlertUi
     {
         Hide();
 
-        _mainWindow.Visible = true;
         HelpUi.SetContent(_scrollBox, helpRequest, out var windowTitle);
         _titleLabel.Text = windowTitle;
-        _mainWindow.BringToFront();
-        _mainWindow.CenterOnScreen();
-        Globals.UiManager.Modal = _mainWindow;
         GameSystems.TimeEvent.PauseGameTime();
+        Globals.UiManager.ShowModal(_mainWindow);
 
         _okCallback = callback;
         _okButton.Text = buttonText;
@@ -71,14 +66,10 @@ public class AlertUi
     [TempleDllLocation(0x1019d480)]
     public void Hide()
     {
-        if (_mainWindow.Visible)
+        if (_mainWindow.IsInTree)
         {
             GameSystems.TimeEvent.ResumeGameTime();
-            _mainWindow.Visible = false;
-            if (Globals.UiManager.Modal == _mainWindow)
-            {
-                Globals.UiManager.Modal = null;
-            }
+            Globals.UiManager.RemoveWindow(_mainWindow);
         }
     }
 

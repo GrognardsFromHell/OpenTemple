@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
@@ -10,7 +11,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells;
 
 public class KnownSpellsList : WidgetContainer
 {
-    private readonly WidgetScrollBar _scrollbar;
+    private readonly WidgetScrollBar? _scrollbar;
 
     public event Action<SpellStoreData, MemorizedSpellButton> OnMemorizeSpell;
 
@@ -70,7 +71,7 @@ public class KnownSpellsList : WidgetContainer
             _scrollbar.Height = Height;
 
             // Clip existing items that overlap the scrollbar
-            foreach (var widgetBase in GetChildren())
+            foreach (var widgetBase in Children)
             {
                 if (widgetBase.X + widgetBase.Width >= _scrollbar.X)
                 {
@@ -87,18 +88,11 @@ public class KnownSpellsList : WidgetContainer
                 _scrollbar.Y = value * buttonHeight; // Horrible fakery, moving the scrollbar along
             });
             Add(_scrollbar);
+            
+            OnMouseWheel += e =>
+            {
+                _scrollbar.DispatchMouseWheel(e);
+            };
         }
-    }
-
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        // Forward scroll wheel messages to the scrollbar.
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            _scrollbar.HandleMouseMessage(msg);
-            return true;
-        }
-
-        return base.HandleMouseMessage(msg);
     }
 }

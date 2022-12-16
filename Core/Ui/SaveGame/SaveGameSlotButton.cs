@@ -10,6 +10,7 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui.SaveGame;
 
@@ -174,11 +175,12 @@ public class SaveGameSlotButton : WidgetButtonBase
         SaveGame = null;
     }
 
-    public void AppendNewNameChar(char ch)
+    public void AppendNewName(string text)
     {
-        if (IsOverwritingSave && _selected && !char.IsControl(ch))
+        if (IsOverwritingSave && _selected)
         {
-            NewName = NewName.Insert(CaretPosition++, ch.ToString());
+            NewName = NewName.Insert(CaretPosition, text);
+            CaretPosition += text.Length;
             UpdateNewSaveName();
         }
     }
@@ -193,8 +195,8 @@ public class SaveGameSlotButton : WidgetButtonBase
         // We handle these on key-down because we are interested in key-repeats
         switch (arg.key)
         {
-            case DIK.DIK_LEFT:
-            case DIK.DIK_NUMPAD4:
+            case SDL_Keycode.SDLK_LEFT:
+            case SDL_Keycode.SDLK_KP_4:
                 if (--CaretPosition < 0)
                 {
                     CaretPosition = 0;
@@ -202,8 +204,8 @@ public class SaveGameSlotButton : WidgetButtonBase
 
                 UpdateNewSaveName();
                 break;
-            case DIK.DIK_RIGHT:
-            case DIK.DIK_NUMPAD6:
+            case SDL_Keycode.SDLK_RIGHT:
+            case SDL_Keycode.SDLK_KP_6:
                 if (++CaretPosition > NewName.Length)
                 {
                     CaretPosition = NewName.Length;
@@ -211,16 +213,16 @@ public class SaveGameSlotButton : WidgetButtonBase
 
                 UpdateNewSaveName();
                 break;
-            case DIK.DIK_HOME:
+            case SDL_Keycode.SDLK_HOME:
                 CaretPosition = 0;
                 UpdateNewSaveName();
                 break;
-            case DIK.DIK_END:
+            case SDL_Keycode.SDLK_END:
                 CaretPosition = NewName.Length;
                 UpdateNewSaveName();
                 break;
-            case DIK.DIK_DELETE:
-            case DIK.DIK_DECIMAL:
+            case SDL_Keycode.SDLK_DELETE:
+            case SDL_Keycode.SDLK_KP_DECIMAL:
                 if (CaretPosition < NewName.Length)
                 {
                     NewName = NewName.Remove(CaretPosition, 1);
@@ -228,7 +230,7 @@ public class SaveGameSlotButton : WidgetButtonBase
                 }
 
                 break;
-            case DIK.DIK_BACKSPACE:
+            case SDL_Keycode.SDLK_BACKSPACE:
                 if (CaretPosition > 0)
                 {
                     --CaretPosition;

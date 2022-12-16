@@ -1,7 +1,6 @@
 using System;
-using System.Drawing;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems;
@@ -28,15 +27,16 @@ public class HeightSlider : WidgetButtonBase
         {
             _value = Math.Clamp(value, 0, 1);
             _targetValue = _value;
+            UpdateThumbPosition();
         }
     }
-    public event Action<float> OnValueChanged;
+    public event Action<float>? OnValueChanged;
 
     public int ThumbCenterY => Y + _thumbImage.Y + _thumbHeight / 2;
 
     private readonly int _thumbHeight;
 
-    public override bool HitTest(int x, int y)
+    public override bool HitTest(float x, float y)
     {
         return true;
     }
@@ -58,51 +58,28 @@ public class HeightSlider : WidgetButtonBase
         Height = trackImage.GetPreferredSize().Height;
     }
 
-    public override void Render()
+    protected override void HandleMouseDown(MouseEvent e)
     {
-        var y = (int) (MinThumbY + (MaxThumbY - MinThumbY) * (1.0f - Value));
-        y = Math.Clamp(y, MinThumbY, MaxThumbY);
-        _thumbImage.Y = y;
-
-        base.Render();
-    }
-
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        var localY = msg.Y - GetContentArea().Y;
-
-        if (Globals.UiManager.GetMouseCaptureWidget() == this)
-        {
-            // Reposition the thumb
-            Value = GetValueFromTrackPos(localY);
-            OnValueChanged?.Invoke(Value);
-
-            if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
-            {
-                Globals.UiManager.UnsetMouseCaptureWidget(this);
-            }
-
-            return true;
-        }
-
+        SetMouseCapture();
+        
         // Smoothly animate moving towards the clicked location
+        var localY = (int) (e.Y - GetContentArea().Y);
         if (localY < _thumbImage.Y || localY >= _thumbImage.Y + _thumbHeight)
         {
-            if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
-            {
-                _targetValue = GetValueFromTrackPos(localY);
-                _lastAnimationTime = TimePoint.Now;
-            }
-
-            return true;
+            _targetValue = GetValueFromTrackPos(localY);
+            _lastAnimationTime = TimePoint.Now;
         }
+    }
 
-        if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
+    protected override void HandleMouseMove(MouseEvent e)
+    {
+        // Reposition the thumb immediately while dragging
+        if (HasMouseCapture)
         {
-            Globals.UiManager.SetMouseCaptureWidget(this);
+            var localY = (int) (e.Y - GetContentArea().Y);
+            Value = GetValueFromTrackPos(localY);
+            OnValueChanged?.Invoke(Value);
         }
-
-        return true;
     }
 
     private float GetValueFromTrackPos(int trackPos)
@@ -116,14 +93,14 @@ public class HeightSlider : WidgetButtonBase
         return 1.0f - (trackPos - trackMin) / (float) trackSize;
     }
 
-    public override void OnUpdateTime(TimePoint timeMs)
+    public override void OnUpdateTime(TimePoint now)
     {
         if (Math.Abs(Value - _targetValue) < 0.001f)
         {
             return;
         }
 
-        var elapsed = timeMs - _lastAnimationTime;
+        var elapsed = now - _lastAnimationTime;
         // Ignores moves of less than 1%
         var amountMoved = (float)  elapsed.TotalSeconds;
         if (amountMoved < 0.01f)
@@ -131,9 +108,17 @@ public class HeightSlider : WidgetButtonBase
             return;
         }
 
-        _lastAnimationTime = timeMs;
+        _lastAnimationTime = now;
         var deltaRemaining = _targetValue - Value;
         _value += Math.Sign(deltaRemaining) * Math.Min(amountMoved, Math.Abs(deltaRemaining));
+        UpdateThumbPosition();
         OnValueChanged?.Invoke(_value);
+    }
+
+    private void UpdateThumbPosition()
+    {
+        var y = (int) (MinThumbY + (MaxThumbY - MinThumbY) * (1.0f - Value));
+        y = Math.Clamp(y, MinThumbY, MaxThumbY);
+        _thumbImage.Y = y;
     }
 }

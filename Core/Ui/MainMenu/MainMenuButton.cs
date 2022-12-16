@@ -33,10 +33,10 @@ public class MainMenuButton : WidgetButtonBase
         int lineNumber = -1) : base(filePath, lineNumber)
     {
         var defaultSounds = Globals.WidgetButtonStyles.GetStyle("default-sounds");
-        sndHoverOn = defaultSounds.SoundEnter;
-        sndHoverOff = defaultSounds.SoundLeave;
-        sndDown = defaultSounds.SoundDown;
-        sndClick = defaultSounds.SoundClick;
+        SoundMouseEnter = defaultSounds.SoundEnter;
+        SoundMouseLeave = defaultSounds.SoundLeave;
+        SoundPressed = defaultSounds.SoundDown;
+        SoundClicked = defaultSounds.SoundClick;
 
         _normalStyle = new TigTextStyle()
         {
@@ -82,19 +82,21 @@ public class MainMenuButton : WidgetButtonBase
         );
         Tig.Fonts.PopFont();
 
-        SetSize(metrics.Size);
+        Size = metrics.Size;
     }
 
     public override void Render()
     {
         var extents = GetContentArea();
-        var style = ButtonState switch
+        var style = _normalStyle;
+        if (ContainsPress)
         {
-            LgcyButtonState.Down => _pressedStyle,
-            LgcyButtonState.Hovered => _hoverStyle,
-            LgcyButtonState.Released => _hoverStyle,
-            _ => _normalStyle
-        };
+            style = _pressedStyle;
+        }
+        else if (Pressed || ContainsMouse || HasFocus)
+        {
+            style = _hoverStyle;
+        }
 
         Tig.Fonts.PushFont(PredefinedFont.SCURLOCK_48);
         Tig.Fonts.RenderText(

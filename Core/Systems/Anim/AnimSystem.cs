@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.SaveGames.MapState;
 using OpenTemple.Core.Location;
@@ -188,7 +189,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     }
 
     [TempleDllLocation(0x10016C40)]
-    public AnimSlot GetSlot(AnimSlotId id)
+    public AnimSlot? GetSlot(AnimSlotId id)
     {
         if (id.IsNull)
         {
@@ -387,20 +388,9 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         }
 
         // The animation slot id we're triggered for
-        var triggerId = new AnimSlotId(evt.arg1.int32, evt.arg2.int32, evt.arg3.int32);
+        var slotIndex = evt.arg1.int32;
 
-        Trace.Assert(triggerId.slotIndex >= 0 && triggerId.slotIndex < _slots.Count);
-
-        var slot = _slots[triggerId.slotIndex];
-
-        // This seems like a pretty stupid check since slots cannot "move"
-        // and the first part of their ID must be the slot index
-        // Shouldn't this really check for the unique id of the animation instead?
-        if (slot.id.uniqueId != triggerId.uniqueId)
-        {
-            Logger.Debug("{0} != {1}", slot.id, triggerId);
-            return true;
-        }
+        var slot = _slots[slotIndex];
 
         // Slot did belong to "us", but it was deactivated earlier
         if (!slot.IsActive)
@@ -416,7 +406,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         {
             ProcessActionCallbacks();
 
-            var rescheduleDelay = Math.Max((int)slot.path.PauseTime.TotalMilliseconds, 100);
+            var rescheduleDelay = Math.Max((int) slot.path.PauseTime.TotalMilliseconds, 100);
             return RescheduleEvent(rescheduleDelay, slot, evt);
         }
 
@@ -540,11 +530,11 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             delay = transition.delay;
 
             // Special transitions
-            if ((nextState & (uint)AnimStateTransitionFlags.MASK) != 0)
+            if ((nextState & (uint) AnimStateTransitionFlags.MASK) != 0)
             {
                 var currentStack = new List<AnimSlotGoalStackEntry>(slot.goals);
 
-                var nextStateFlags = (AnimStateTransitionFlags)nextState & AnimStateTransitionFlags.MASK;
+                var nextStateFlags = (AnimStateTransitionFlags) nextState & AnimStateTransitionFlags.MASK;
                 if (nextStateFlags.HasFlag(AnimStateTransitionFlags.REWIND))
                 {
                     slot.currentState = 0;
@@ -585,7 +575,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                     }
                     else
                     {
-                        var newGoalType = (AnimGoalType)(nextState & 0xFFF);
+                        var newGoalType = (AnimGoalType) (nextState & 0xFFF);
                         goal = Goals.GetByType(newGoalType);
 
                         AnimSlotGoalStackEntry stackEntry = new AnimSlotGoalStackEntry(null, newGoalType);
@@ -674,7 +664,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                         slot.currentState, currentGoal.goalType);
                 }
 
-                slot.currentState = (int)nextState;
+                slot.currentState = (int) nextState;
             }
 
             if (delay > 0)
@@ -684,7 +674,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                     case AnimStateTransition.DelaySlot:
                         // Use the delay specified in the slot. Reasoning currently unknown.
                         // NOTE: Could mean that it's waiting for pathing to complete
-                        delay = (int)slot.path.PauseTime.TotalMilliseconds;
+                        delay = (int) slot.path.PauseTime.TotalMilliseconds;
                         break;
                     case AnimStateTransition.DelayCustom:
                         // Used by some goal states to set their desired dynamic delay
@@ -1183,14 +1173,14 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         slot.animObj = slot.pCurrentGoal.self.obj;
 
         slot.stateFlagData = state.flagsData;
-        slot.param1 = GetAnimParam(slot, (AnimGoalProperty)state.argInfo1);
-        slot.param2 = GetAnimParam(slot, (AnimGoalProperty)state.argInfo2);
+        slot.param1 = GetAnimParam(slot, (AnimGoalProperty) state.argInfo1);
+        slot.param2 = GetAnimParam(slot, (AnimGoalProperty) state.argInfo2);
         return true;
     }
 
     private AnimParam GetAnimParam(AnimSlot slot, AnimGoalProperty property)
     {
-        if ((int)property == -1)
+        if ((int) property == -1)
         {
             var result = new AnimParam();
             result.number = 0;
@@ -1498,21 +1488,22 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     }
 
     [TempleDllLocation(0x1001ada0)]
-    private AnimSlot LoadSlot(SavedAnimSlot savedSlot)
+    private AnimSlot? LoadSlot(SavedAnimSlot savedSlot)
     {
         var animSlot = new AnimSlot();
         animSlot.id = savedSlot.Id;
         animSlot.flags = savedSlot.Flags;
         animSlot.currentState = savedSlot.CurrentState;
         animSlot.field_14 = savedSlot.Field14;
-        animSlot.animObj = GameSystems.Object.GetObject(savedSlot.AnimatedObject.guid);
-        if (animSlot.animObj == null)
+        var animObj = GameSystems.Object.GetObject(savedSlot.AnimatedObject.guid);
+        if (animObj == null)
         {
             Logger.Error("Failed to load anim slot because animated object {0} could not be found.",
                 savedSlot.AnimatedObject);
             return null;
         }
-
+        
+        animSlot.animObj = animObj;
         animSlot.currentGoal = savedSlot.Goals.Count - 1;
 
         // Restore the individual goals
@@ -1908,17 +1899,10 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         var isAlwaysRun = Globals.Config.AlwaysRun;
         if (GameSystems.Party.IsInParty(obj))
         {
-            var isCtrlPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL)
-                                || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL);
-            if (isAlwaysRun)
-            {
-                if (isCtrlPressed)
-                    return false;
-            }
-            else if (isCtrlPressed)
-            {
-                return true;
-            }
+            var invertRun = GameSystems.Hotkeys.IsHeld(InGameHotKey.ToggleRun);
+
+            // XOR -> Invert the boolean based on the held key
+            return isAlwaysRun ^ invertRun;
         }
 
         return isAlwaysRun;
@@ -2002,7 +1986,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     }
 
     [TempleDllLocation(0x10055060)]
-    public bool HasAttackAnim(GameObject handle, GameObject target)
+    public bool HasAttackAnim(GameObject handle, GameObject? target)
     {
         if (!IsRunningGoal(handle, AnimGoalType.attack, out var slotId))
         {
@@ -2039,16 +2023,16 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     [TempleDllLocation(0x1001aaf0)]
     public int GetGoalSubslotsInUse(AnimSlotId animSlotId)
     {
-        return GetSlot(animSlotId).currentGoal;
+        return GetSlot(animSlotId)?.currentGoal ?? 0;
     }
 
     [TempleDllLocation(0x1001ab40)]
     public bool IsAnimatingForever(AnimSlotId animSlotId)
     {
         var slot = GetSlot(animSlotId);
-        var currentGoalType = slot.pCurrentGoal.goalType;
+        var currentGoalType = slot?.pCurrentGoal.goalType;
 
-        return currentGoalType == AnimGoalType.anim_fidget || currentGoalType == AnimGoalType.animate_loop;
+        return currentGoalType is AnimGoalType.anim_fidget or AnimGoalType.animate_loop;
     }
 
 
@@ -2204,16 +2188,16 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
     private static readonly Dictionary<DamageType, string> DamageParticleEffectPrefixes =
         new()
         {
-            { DamageType.Acid, "hit-ACID-" },
-            { DamageType.Cold, "hit-COLD-" },
-            { DamageType.Electricity, "hit-SHOCK-" },
-            { DamageType.Fire, "hit-FIRE-" },
-            { DamageType.Sonic, "hit-SONIC-" },
-            { DamageType.NegativeEnergy, "hit-NEGATIVE_ENERGY-" },
-            { DamageType.Subdual, "hit-SUBDUAL-" },
-            { DamageType.Poison, "hit-POISON-" },
-            { DamageType.PositiveEnergy, "hit-POSITIVE_ENERGY-" },
-            { DamageType.Force, "hit-FORCE-" }
+            {DamageType.Acid, "hit-ACID-"},
+            {DamageType.Cold, "hit-COLD-"},
+            {DamageType.Electricity, "hit-SHOCK-"},
+            {DamageType.Fire, "hit-FIRE-"},
+            {DamageType.Sonic, "hit-SONIC-"},
+            {DamageType.NegativeEnergy, "hit-NEGATIVE_ENERGY-"},
+            {DamageType.Subdual, "hit-SUBDUAL-"},
+            {DamageType.Poison, "hit-POISON-"},
+            {DamageType.PositiveEnergy, "hit-POSITIVE_ENERGY-"},
+            {DamageType.Force, "hit-FORCE-"}
         };
 
     [TempleDllLocation(0x10016A90)]
@@ -2284,7 +2268,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         var newgoal = new AnimSlotGoalStackEntry(critter, AnimGoalType.use_skill_on, true);
         newgoal.target.obj = target;
         newgoal.scratch.obj = scratch;
-        newgoal.flagsData.number = (int)skillId;
+        newgoal.flagsData.number = (int) skillId;
 
         if (!PushGoal(newgoal, out _animIdGlobal))
         {
@@ -2459,11 +2443,11 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                 {
                     if (!useSecondaryAnim)
                     {
-                        weaponAnim = (WeaponAnim)(attackAnimIdx + 1);
+                        weaponAnim = (WeaponAnim) (attackAnimIdx + 1);
                     }
                     else
                     {
-                        weaponAnim = (WeaponAnim)(attackAnimIdx + 4);
+                        weaponAnim = (WeaponAnim) (attackAnimIdx + 4);
                     }
                 }
                 else
@@ -2472,7 +2456,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
                     weaponAnim = useSecondaryAnim ? WeaponAnim.LeftCriticalSwing : WeaponAnim.RightCriticalSwing;
                 }
 
-                goalStackEntry.animIdPrevious.number = (int)weaponAnim;
+                goalStackEntry.animIdPrevious.number = (int) weaponAnim;
                 Logger.Info("Attack animation: {0}", weaponAnim);
 
                 if (PushGoal(goalStackEntry, out _animIdGlobal))
@@ -2524,7 +2508,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         GameSystems.SoundGame.StartCombatMusic(attacker);
         goal.scratchVal6.number = scratchVal6;
-        goal.animIdPrevious.number = (int)(secondary ? WeaponAnim.LeftThrow : WeaponAnim.RightThrow);
+        goal.animIdPrevious.number = (int) (secondary ? WeaponAnim.LeftThrow : WeaponAnim.RightThrow);
 
         if (!PushGoal(goal, out _animIdGlobal))
         {
@@ -2878,12 +2862,12 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
     [TempleDllLocation(0x10056350)]
     public void InterruptGoalsByType(GameObject handle, AnimGoalType type,
-        AnimGoalType keep = (AnimGoalType)(-1))
+        AnimGoalType keep = (AnimGoalType) (-1))
     {
         // type is always ag_flee, keep is always -1 where we call it
         AnimGoalPriority interruptPriority;
 
-        if (keep == (AnimGoalType)(-1))
+        if (keep == (AnimGoalType) (-1))
         {
             interruptPriority = AnimGoalPriority.AGP_HIGHEST;
         }

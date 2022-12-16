@@ -24,7 +24,7 @@ public class SpellFileParserTest
             "Level: Luck 5"
         );
 
-        entry.spellLvls.Should().BeEquivalentTo(
+        entry.spellLvls.Should().Equal(
             new SpellEntryLevelSpec(Stat.level_bard, 4),
             new SpellEntryLevelSpec(Stat.level_cleric, 5),
             new SpellEntryLevelSpec(DomainId.Luck, 5)

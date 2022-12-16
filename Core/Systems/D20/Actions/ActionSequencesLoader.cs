@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTemple.Core.IO.SaveGames;
@@ -9,46 +8,41 @@ namespace OpenTemple.Core.Systems.D20.Actions;
 
 internal static class ActionSequencesLoader
 {
-    internal static List<ActionSequence> LoadSequences(SavedD20ActionSequence[] savedSequences)
+    internal static List<ActionSequence?> LoadSequences(SavedD20ActionSequence?[] savedSequences)
     {
-        var result = new List<ActionSequence>(savedSequences.Length);
+        var result = new List<ActionSequence?>(savedSequences.Length);
         foreach (var savedSequence in savedSequences)
         {
-            if (savedSequence == null)
-            {
-                result.Add(null);
-            }
-            else
-            {
-                result.Add(LoadSequence(savedSequence));
-            }
+            result.Add(savedSequence == null ? null : LoadSequence(savedSequence));
         }
 
         // restore previous/interrupted sequence references
         for (var i = 0; i < result.Count; i++)
         {
-            if (savedSequences[i] == null)
+            var resultSequence = result[i];
+            if (resultSequence == null)
             {
                 continue; // Nothing to restore for actions that will be deleted anyway
             }
 
-            var previousSequenceIndex = savedSequences[i].PreviousSequenceIndex;
+            var savedSequence = savedSequences[i]!; // savedSequences[i] cannot be null if result[i] isn't
+            var previousSequenceIndex = savedSequence.PreviousSequenceIndex;
             if (previousSequenceIndex != -1)
             {
-                result[i].prevSeq = result[previousSequenceIndex];
+                resultSequence.prevSeq = result[previousSequenceIndex];
             }
 
-            var interruptedSequenceIndex = savedSequences[i].InterruptedSequenceIndex;
+            var interruptedSequenceIndex = savedSequence.InterruptedSequenceIndex;
             if (interruptedSequenceIndex != -1)
             {
-                result[i].interruptSeq = result[interruptedSequenceIndex];
+                resultSequence.interruptSeq = result[interruptedSequenceIndex];
             }
         }
 
         return result;
     }
 
-    internal static ActionSequence LoadSequence(SavedD20ActionSequence savedSequence)
+    private static ActionSequence LoadSequence(SavedD20ActionSequence savedSequence)
     {
         var sequence = new ActionSequence
         {
@@ -63,12 +57,14 @@ internal static class ActionSequencesLoader
         };
         if (!savedSequence.Performer.IsNull)
         {
-            sequence.performer = GameSystems.Object.GetObject(savedSequence.Performer);
-            if (sequence.performer == null)
+            var performer = GameSystems.Object.GetObject(savedSequence.Performer);
+            if (performer == null)
             {
                 throw new CorruptSaveException(
                     $"Failed to restore action sequence performer {savedSequence.Performer}");
             }
+
+            sequence.performer = performer;
         }
 
         return sequence;
@@ -109,20 +105,24 @@ internal static class ActionSequencesLoader
         };
         if (!savedAction.Performer.IsNull)
         {
-            action.d20APerformer = GameSystems.Object.GetObject(savedAction.Performer);
-            if (action.d20APerformer == null)
+            var performer = GameSystems.Object.GetObject(savedAction.Performer);
+            if (performer == null)
             {
                 throw new CorruptSaveException($"Unable to restore action performer: {savedAction.Performer}");
             }
+
+            action.d20APerformer = performer;
         }
 
         if (!savedAction.Target.IsNull)
         {
-            action.d20ATarget = GameSystems.Object.GetObject(savedAction.Target);
-            if (action.d20ATarget == null)
+            var target = GameSystems.Object.GetObject(savedAction.Target);
+            if (target == null)
             {
                 throw new CorruptSaveException($"Unable to restore action target: {savedAction.Target}");
             }
+
+            action.d20ATarget = target;
         }
 
         return action;

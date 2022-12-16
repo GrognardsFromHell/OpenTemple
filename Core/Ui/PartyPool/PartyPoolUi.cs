@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -38,7 +39,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10163720)]
-    public bool IsVisible => _container.Visible;
+    public bool IsVisible => _container.IsInTree;
 
     private Alignment _alignment;
 
@@ -102,10 +103,8 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     {
         // TODO: Auto-resize to screen size
         _container = new WidgetContainer(Globals.UiManager.CanvasSize);
-        _container.Visible = false;
-        // Eat mouse clicks to prevent "walking around" on the shopmap
-        _container.SetMouseMsgHandler(msg => true);
-
+        _container.PreventsInGameInteraction = true;
+        
         var doc = WidgetDoc.Load("ui/party_pool.json");
         var window = doc.GetRootContainer();
         _container.Add(window);
@@ -114,16 +113,16 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         // ADD button
         // Render: 0x10163800
         // Message: 0x10166020
-        _addRemoveButton.SetClickHandler(AddOrRemovePlayer);
+        _addRemoveButton.AddClickListener(AddOrRemovePlayer);
 
         // Created @ 0x1016610b
         // var @ [TempleDllLocation(0x10bf2398)]
         var createButton = doc.GetButton("createButton");
-        createButton.SetClickHandler(StartCharCreation);
+        createButton.AddClickListener(StartCharCreation);
 
         // Created @ 0x101649ae
         _viewButton = doc.GetButton("viewButton");
-        _viewButton.SetClickHandler(ViewSelected);
+        _viewButton.AddClickListener(ViewSelected);
         // _viewButton.OnBeforeRender += 0x10163aa0;
 
         // Created @ 0x101667fe
@@ -140,11 +139,11 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         var exitButton = doc.GetButton("exitButton");
         // exitButton.OnHandleMessage += 0x10166040;
         // exitButton.OnBeforeRender += 0x10163910;
-        exitButton.SetClickHandler(Cancel);
+        exitButton.AddClickListener(Cancel);
 
         _hidePreGenButton = doc.GetButton("hidePregen");
         // Hide Pregenerated chars, RENDER: 0x10164320, Message: 0x10164460
-        _hidePreGenButton.SetClickHandler(() =>
+        _hidePreGenButton.AddClickListener(() =>
         {
             Globals.Config.PartyPoolHidePreGeneratedChars = !Globals.Config.PartyPoolHidePreGeneratedChars;
             Update();
@@ -152,7 +151,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
         _hideIncompatibleButton = doc.GetButton("hideIncompatible");
         // Hide Pregenerated chars, RENDER: 0x101644a0, Message: 0x101645e0
-        _hideIncompatibleButton.SetClickHandler(() =>
+        _hideIncompatibleButton.AddClickListener(() =>
         {
             Globals.Config.PartyPoolHideIncompatibleChars = !Globals.Config.PartyPoolHideIncompatibleChars;
             Update();
@@ -168,14 +167,14 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         BeginAdventuringButton = new WidgetButton();
         BeginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
         BeginAdventuringButton.Text = "#{pc_creation:408}\n#{pc_creation:409}";
-        BeginAdventuringButton.SetSize(new Size(151, 64));
+        BeginAdventuringButton.Size = new Size(151, 64);
         BeginAdventuringButton.Margins = new Margins(14, 10, 14, 10);
         // TODO: Reposition on screen size change
         BeginAdventuringButton.SetPos(
             _container.Width - BeginAdventuringButton.Width,
             _container.Height - BeginAdventuringButton.Height
         );
-        BeginAdventuringButton.SetClickHandler(BeginAdventuring);
+        BeginAdventuringButton.AddClickListener(BeginAdventuring);
         _container.Add(BeginAdventuringButton);
 
         var scrollBoxSettings = new ScrollBoxSettings
@@ -196,6 +195,11 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         _scrollBar.SetValueChangeHandler(_ => Update());
 
         var slotsContainer = doc.GetContainer("slots");
+        // Forward scrollwheel to the scrollbar
+        slotsContainer.OnMouseWheel += e => {
+            _scrollBar.DispatchMouseWheel(e);
+        };
+        
         _slots = new PartyPoolSlot[7];
         for (var i = 0; i < _slots.Length; i++)
         {
@@ -208,17 +212,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
             slot.Y = i * (slot.Height + padding);
             var slotIdx = i;
-            slot.SetClickHandler(() => SelectAvailable(slot));
-            // Forward scrollwheel to the scrollbar
-            slot.SetMouseMsgHandler(msg =>
-            {
-                if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-                {
-                    return _scrollBar.HandleMouseMessage(msg);
-                }
-
-                return false;
-            });
+            slot.AddClickListener(() => SelectAvailable(slot));
             _slots[i] = slot;
 
             slotsContainer.Add(slot);
@@ -477,8 +471,8 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         AddPcsFromBuffer();
         Update();
 
-        _container.Show();
-        _container.CenterOnScreen();
+        Globals.UiManager.AddWindow(_container);
+        _container.CenterInParent();
 
         UiSystems.Party.Hide();
         UiSystems.UtilityBar.Hide();
@@ -521,7 +515,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             }
         }
 
-        _container.Visible = false;
+        Globals.UiManager.RemoveWindow(_container);
 
         if (!a1)
         {
@@ -629,32 +623,32 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
         _addRemoveButton.SetStyle(AddButtonStyle);
         _addRemoveButton.Text = AddButtonLabel;
-        _addRemoveButton.SetDisabled(true);
-        _viewButton.SetDisabled(true);
-        _renameButton.SetDisabled(true);
-        _deleteButton.SetDisabled(true);
+        _addRemoveButton.Disabled = true;
+        _viewButton.Disabled = true;
+        _renameButton.Disabled = true;
+        _deleteButton.Disabled = true;
 
         var selectedPlayer = _availablePlayers.Find(p => p.Selected);
         if (selectedPlayer != null)
         {
             if (selectedPlayer.state == SlotState.CanJoin)
             {
-                _addRemoveButton.SetDisabled(false);
+                _addRemoveButton.Disabled = false;
             }
 
-            _viewButton.SetDisabled(false);
+            _viewButton.Disabled = false;
             // TODO: where a char is premade or not should be decided based on the storage location, not its content
             if (!selectedPlayer.premade)
             {
-                _renameButton.SetDisabled(false);
-                _deleteButton.SetDisabled(false);
+                _renameButton.Disabled = false;
+                _deleteButton.Disabled = false;
             }
         }
         else if (_portraits.Selected != null)
         {
             _addRemoveButton.SetStyle(RemoveButtonStyle);
             _addRemoveButton.Text = RemoveButtonLabel;
-            _addRemoveButton.SetDisabled(false);
+            _addRemoveButton.Disabled = false;
         }
 
         if (uiPartyCreationNotFromShopmap || GameSystems.Party.PartySize == 0)

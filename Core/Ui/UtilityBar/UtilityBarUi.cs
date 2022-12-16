@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -70,9 +69,9 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
         // Begin top level window
         // Created @ 0x10110f7f
         _container = new WidgetContainer(new Rectangle(0, 0, 179, 81));
-        _container.SetWidgetMsgHandler(OnUtilityBarClick);
+        _container.Id = "utility_bar";
+        _container.AddClickListener(OnUtilityBarClick);
         _container.ZIndex = 100000;
-        _container.Visible = false;
         var background = new WidgetImage("art/interface/utility_bar_ui/background.tga");
         background.SourceRect = new Rectangle(1, 1, 179, 81);
         _container.AddContent(background);
@@ -86,7 +85,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/selectparty_click.tga"
         }.UseDefaultSounds());
         selectAllButton.TooltipText = _translations[10];
-        selectAllButton.SetClickHandler(OnSelectAllButtonClick);
+        selectAllButton.AddClickListener(OnSelectAllButtonClick);
         _container.Add(selectAllButton);
 
         // Created @ 0x101106f9
@@ -98,7 +97,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/formation_click.tga"
         }.UseDefaultSounds());
         formationButton.TooltipText = _translations[0];
-        formationButton.SetClickHandler(OnFormationButtonClick);
+        formationButton.AddClickListener(OnFormationButtonClick);
         _container.Add(formationButton);
 
         // Created @ 0x10110829
@@ -111,7 +110,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/logbook_click.tga"
         }.UseDefaultSounds());
         _logbookButton.TooltipText = _translations[1];
-        _logbookButton.SetClickHandler(OnLogbookButtonClick);
+        _logbookButton.AddClickListener(OnLogbookButtonClick);
         _container.Add(_logbookButton);
 
         // Created @ 0x10110959
@@ -124,7 +123,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/townmap_click.tga"
         }.UseDefaultSounds());
         _mapButton.TooltipText = _translations[2];
-        _mapButton.SetClickHandler(OnMapButtonClick);
+        _mapButton.AddClickListener(OnMapButtonClick);
         _container.Add(_mapButton);
 
         // Created @ 0x10110a89
@@ -135,7 +134,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             HoverImagePath = "art/interface/utility_bar_ui/camp_hover.tga",
             PressedImagePath = "art/interface/utility_bar_ui/camp_click.tga"
         }.UseDefaultSounds());
-        _restButton.SetClickHandler(OnRestButtonClick);
+        _restButton.AddClickListener(OnRestButtonClick);
         UpdateRestButton();
         _container.Add(_restButton);
 
@@ -148,7 +147,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/help_click.tga"
         }.UseDefaultSounds());
         helpButton.TooltipText = _translations[4];
-        helpButton.SetClickHandler(OnHelpButtonClick);
+        helpButton.AddClickListener(OnHelpButtonClick);
         _container.Add(helpButton);
 
         // Created @ 0x10110bbc
@@ -160,7 +159,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
             PressedImagePath = "art/interface/utility_bar_ui/options_click.tga"
         }.UseDefaultSounds());
         optionsButton.TooltipText = _translations[5];
-        optionsButton.SetClickHandler(OnOptionsButtonClick);
+        optionsButton.AddClickListener(OnOptionsButtonClick);
         _container.Add(optionsButton);
 
         // Created @ 0x10110e15
@@ -207,7 +206,7 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
 
         _restButton.SetStyle(style);
         _restButton.TooltipText = tooltip;
-        _restButton.SetDisabled(GameSystems.Combat.IsCombatActive());
+        _restButton.Disabled = GameSystems.Combat.IsCombatActive();
     }
 
     /// <summary>
@@ -288,11 +287,11 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
 
         if (!_enableMapButton || GameSystems.Combat.IsCombatActive())
         {
-            _mapButton.SetDisabled(true);
+            _mapButton.Disabled = true;
         }
         else
         {
-            _mapButton.SetDisabled(false);
+            _mapButton.Disabled = false;
         }
 
         _mapButton.PulseColor = GetPulsingColor(ref _mapButtonPulsing, _mapButtonPulsingStart);
@@ -331,17 +330,12 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
     }
 
     [TempleDllLocation(0x1010f820)]
-    private bool OnUtilityBarClick(MessageWidgetArgs msg)
+    private void OnUtilityBarClick()
     {
-        if (msg.widgetEventType == TigMsgWidgetEvent.MouseReleased)
+        if (UiSystems.HelpManager.IsSelectingHelpTarget)
         {
-            if (UiSystems.HelpManager.IsSelectingHelpTarget)
-            {
-                UiSystems.HelpManager.ShowPredefinedTopic(63);
-            }
+            UiSystems.HelpManager.ShowPredefinedTopic(63);
         }
-
-        return true;
     }
 
     [TempleDllLocation(0x1010f8e0)]
@@ -486,24 +480,24 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
         UiSystems.Options.Show(false);
     }
 
-    [TempleDllLocation(0x1010eec0)]
-    [TemplePlusLocation("ui_utility_bar.cpp:18")]
-    public void Hide()
-    {
-        _container.Visible = false;
-        _historyUi.Hide();
-    }
-
     [TempleDllLocation(0x10bd33f8)]
-    public bool IsVisible() => _container.Visible;
+    public bool IsVisible() => _container.IsInTree;
 
     [TempleDllLocation(0x1010ee80)]
     [TemplePlusLocation("ui_utility_bar.cpp:12")]
     public void Show()
     {
-        _container.Visible = true;
+        Globals.UiManager.AddWindow(_container);
         _container.BringToFront(); // TODO: Fishy
         _historyUi.Show();
+    }
+
+    [TempleDllLocation(0x1010eec0)]
+    [TemplePlusLocation("ui_utility_bar.cpp:18")]
+    public void Hide()
+    {
+        Globals.UiManager.RemoveWindow(_container);
+        _historyUi.Hide();
     }
 
     public void AdvanceTime(TimePoint time)

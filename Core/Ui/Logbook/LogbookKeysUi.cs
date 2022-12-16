@@ -45,6 +45,7 @@ public class LogbookKeysUi : IDisposable
 
         var doc = WidgetDoc.Load("ui/logbook/keys.json");
         Container = doc.GetRootContainer();
+        Container.Visible = false;
         CreateWidgets();
 
         _keyAcquiredPopup = new LogbookKeyAcquiredPopup(_translations);
@@ -61,7 +62,6 @@ public class LogbookKeysUi : IDisposable
         // Created @ 0x10198765
         Container.ZIndex = 100051;
         Container.Name = "logbook_ui_keys_acquired_keys_window";
-        Container.Visible = false;
 
         // Container for the scrollable list on the left
         var listContainer = new WidgetContainer(new Rectangle(0, 20, 283, 313));
@@ -74,7 +74,7 @@ public class LogbookKeysUi : IDisposable
         for (var i = 0; i < 10; i++)
         {
             var row = new LogbookKeyButton(_translations, new Rectangle(2, 3 + 31 * i, 267, 30));
-            row.SetClickHandler(() =>
+            Action handler = () =>
             {
                 foreach (var otherRow in _rows)
                 {
@@ -91,7 +91,8 @@ public class LogbookKeysUi : IDisposable
                 {
                     _details.Key = null;
                 }
-            });
+            };
+            row.AddClickListener(handler);
             row.Name = "logbook_ui_keys_acquired_keys_butn" + i;
             _rows[i] = row;
             listContainer.Add(row);
@@ -109,7 +110,7 @@ public class LogbookKeysUi : IDisposable
         var listOutline = new WidgetRectangle();
         listOutline.X = listContainer.X;
         listOutline.Y = listContainer.Y;
-        listOutline.FixedSize = listContainer.GetSize();
+        listOutline.FixedSize = listContainer.Size;
         listOutline.Pen = new PackedLinearColorA(0xFF909090);
         Container.AddContent(listOutline);
 
@@ -122,7 +123,7 @@ public class LogbookKeysUi : IDisposable
         var detailsOutline = new WidgetRectangle();
         detailsOutline.X = _details.Container.X;
         detailsOutline.Y = _details.Container.Y;
-        detailsOutline.FixedSize = _details.Container.GetSize();
+        detailsOutline.FixedSize = _details.Container.Size;
         detailsOutline.Pen = new PackedLinearColorA(0xFF909090);
         Container.AddContent(detailsOutline);
     }
@@ -232,6 +233,7 @@ public class LogbookKeysUi : IDisposable
 
     public void Dispose()
     {
+        Container.Dispose();
         Stub.TODO();
     }
 

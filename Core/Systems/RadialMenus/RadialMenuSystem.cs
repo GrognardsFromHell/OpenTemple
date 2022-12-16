@@ -43,9 +43,13 @@ public partial class RadialMenuSystem
     [TempleDllLocation(0x115B2060)]
     private readonly List<RadialMenu> _radialMenus = new();
 
+    /// <summary>
+    /// If set, trigger an alternate action for the radial menu node. For example
+    /// spontaneously convert a divine spell in to healing.
+    /// </summary>
     [TempleDllLocation(0x10BD0234)]
     [TempleDllLocation(0x100f0100)]
-    public bool ShiftPressed { get; set; }
+    public bool AlternateActionMode { get; set; }
 
     [TempleDllLocation(0x102E8738)]
     private readonly List<D20RadialMenuDef> _tactialOptions;
@@ -58,11 +62,11 @@ public partial class RadialMenuSystem
 
     // Relative to ActiveMenuWorldPosition
     [TempleDllLocation(0x10be67bc)]
-    public int RelativeMousePosX { get; set; }
+    public float RelativeMousePosX { get; set; }
 
     // Relative to ActiveMenuWorldPosition
     [TempleDllLocation(0x10be6238)]
-    public int RelativeMousePosY { get; set; }
+    public float RelativeMousePosY { get; set; }
 
     public RadialMenuSystem()
     {
@@ -680,7 +684,7 @@ public partial class RadialMenuSystem
     }
 
     [TempleDllLocation(0x100f04d0)]
-    public RadialMenu GetRadialMenu(GameObject obj)
+    public RadialMenu? GetRadialMenu(GameObject obj)
     {
         foreach (var radialMenu in _radialMenus)
         {
@@ -861,7 +865,7 @@ public partial class RadialMenuSystem
         {
             ActiveMenuWorldPosition = worldPosition;
             activeRadialMenuNode = 0;
-            ShiftPressed = false;
+            AlternateActionMode = false;
         }
     }
 
@@ -871,7 +875,7 @@ public partial class RadialMenuSystem
     public int GetRadialActiveMenuNodeChildrenCount(int nodeIdx)
     {
         var actualNodeIdx = nodeIdx;
-        if (ShiftPressed && activeRadialMenu.nodes[nodeIdx].morphsTo != -1)
+        if (AlternateActionMode && activeRadialMenu.nodes[nodeIdx].morphsTo != -1)
         {
             actualNodeIdx = activeRadialMenu.nodes[nodeIdx].morphsTo;
         }
@@ -883,13 +887,13 @@ public partial class RadialMenuSystem
     [TemplePlusLocation("radialmenu.cpp:180")]
     public int RadialMenuGetChild(int nodeId, int childIndex)
     {
-        if (ShiftPressed && activeRadialMenu.nodes[nodeId].morphsTo != -1)
+        if (AlternateActionMode && activeRadialMenu.nodes[nodeId].morphsTo != -1)
         {
             nodeId = activeRadialMenu.nodes[nodeId].morphsTo;
         }
 
         var childNodeIdx = activeRadialMenu.nodes[nodeId].children[childIndex];
-        if (ShiftPressed)
+        if (AlternateActionMode)
         {
             if (activeRadialMenu.nodes[childNodeIdx].morphsTo != -1)
             {
@@ -999,7 +1003,7 @@ public partial class RadialMenuSystem
             return true;
         }
 
-        if (ShiftPressed)
+        if (AlternateActionMode)
         {
             if (parentNode.morphsTo != -1)
             {
@@ -1012,7 +1016,7 @@ public partial class RadialMenuSystem
             return true;
         }
 
-        if (ShiftPressed)
+        if (AlternateActionMode)
         {
             if (activeRadialMenu.nodes[childNodeIdx].morphsTo != -1)
             {
@@ -1034,7 +1038,7 @@ public partial class RadialMenuSystem
     [TempleDllLocation(0x100f08f0)]
     public RadialMenuNode GetActiveRadMenuNodeRegardMorph(int nodeIdx)
     {
-        if (ShiftPressed && activeRadialMenu.nodes[nodeIdx].morphsTo != -1)
+        if (AlternateActionMode && activeRadialMenu.nodes[nodeIdx].morphsTo != -1)
         {
             nodeIdx = activeRadialMenu.nodes[nodeIdx].morphsTo;
         }

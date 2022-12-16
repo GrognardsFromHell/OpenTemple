@@ -11,7 +11,7 @@ public class MdfParser
 	private readonly string mContent;
 
 	// The line last read using GetLine. Is trimmed of whitespace at start and end
-	private string mLine;
+	private string? mLine;
 	private int mLineNo = 0;
 
 	private StringReader mIn;

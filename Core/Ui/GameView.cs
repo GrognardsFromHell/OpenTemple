@@ -1,6 +1,5 @@
 using System;
 using System.Drawing;
-using System.Security.Cryptography.X509Certificates;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
@@ -8,6 +7,7 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -41,7 +41,7 @@ public class GameView : WidgetContainer, IGameViewport
     [Obsolete]
     public GameRenderer GameRenderer => _gameRenderer;
 
-    private event Action _onResize;
+    private event Action? _onResize;
 
     private float _renderScale;
 
@@ -49,7 +49,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     public float Zoom => _zoom;
 
-    public Size Size => GetSize();
+    Size IGameViewport.Size => Size;
 
     event Action IGameViewport.OnResize
     {
@@ -66,6 +66,7 @@ public class GameView : WidgetContainer, IGameViewport
     {
         _device = device;
         _gameRenderer = new GameRenderer(_device, this);
+        HitTesting = HitTestingMode.ContentArea; // The entire area represents the in-game UI
 
         _mainWindow = mainWindow;
 
@@ -79,6 +80,12 @@ public class GameView : WidgetContainer, IGameViewport
         _scrollingController = new GameViewScrollingController(this, this);
 
         Globals.ConfigManager.OnConfigChanged += OnConfigChange;
+
+        // The order of these does matter
+        UiSystems.RadialMenu.AddEventListeners(this);
+        UiSystems.TurnBased.AddEventListeners(this);
+        UiSystems.InGameSelect.AddEventListeners(this);
+        UiSystems.InGame.AddEventListeners(this);
     }
 
     private void OnConfigChange()
@@ -100,7 +107,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     public void RenderScene()
     {
-        if (!Visible)
+        if (!Visible || !IsInTree)
         {
             return;
         }
@@ -192,51 +199,43 @@ public class GameView : WidgetContainer, IGameViewport
         return _gameRenderer.GetMapObjectRenderer();
     }
 
+    protected override void HandleMouseMove(MouseEvent e)
+    {
+        var mousePos = new PointF(e.X, e.Y);
+        _scrollingController.MouseMoved(GetRelativeMousePos(mousePos));
+    }
+    
     public override bool HandleMessage(Message msg)
     {
-        if (UiSystems.TurnBased.HandleMessage(this, msg))
-        {
-            return true;
-        }
-
         UiSystems.InGame.HandleMessage(this, msg);
 
         return base.HandleMessage(msg);
     }
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
+    protected override void HandleMouseDown(MouseEvent e)
     {
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+        if (e.Button == MouseButton.Middle)
         {
-            _zoom = Math.Clamp(_zoom + Math.Sign(msg.wheelDelta) * 0.1f, MinZoom, MaxZoom);
-            UpdateCamera();
-            return true;
-        }
-        else if ((msg.flags & MouseEventFlag.MiddleClick) != 0)
-        {
-            var mousePos = new Point(msg.X, msg.Y);
+            var mousePos = new PointF(e.X, e.Y);
             if (_scrollingController.MiddleMouseDown(GetRelativeMousePos(mousePos)))
             {
-                return true;
+                e.StopImmediatePropagation();
             }
         }
-        else if ((msg.flags & MouseEventFlag.MiddleReleased) != 0)
-        {
-            if (_scrollingController.MiddleMouseUp())
-            {
-                return true;
-            }
-        }
-        else if ((msg.flags & MouseEventFlag.PosChange) != 0)
-        {
-            var mousePos = new Point(msg.X, msg.Y);
-            if (_scrollingController.MouseMoved(GetRelativeMousePos(mousePos)))
-            {
-                return true;
-            }
-        }
+    }
 
-        return base.HandleMouseMessage(msg);
+    protected override void HandleMouseUp(MouseEvent e)
+    {
+        if (e.Button == MouseButton.Middle)
+        {
+            _scrollingController.MiddleMouseUp();
+        }
+    }
+
+    protected override void HandleMouseWheel(WheelEvent e)
+    {
+        _zoom = Math.Clamp(_zoom + Math.Sign(e.DeltaY) * 0.1f, MinZoom, MaxZoom);
+        UpdateCamera();
     }
 
     private void UpdateCamera()
@@ -271,13 +270,13 @@ public class GameView : WidgetContainer, IGameViewport
         }
     }
 
-    public override void OnUpdateTime(TimePoint timeMs)
+    public override void OnUpdateTime(TimePoint now)
     {
-        base.OnUpdateTime(timeMs);
-        _scrollingController.UpdateTime(timeMs, GetRelativeMousePos(Tig.Mouse.GetPos()));
+        base.OnUpdateTime(now);
+        _scrollingController.UpdateTime(now);
     }
 
-    private Point GetRelativeMousePos(Point mousePos)
+    private PointF GetRelativeMousePos(PointF mousePos)
     {
         var contentArea = GetContentArea();
         mousePos.X -= contentArea.X;

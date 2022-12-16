@@ -37,9 +37,9 @@ public struct SectorEnumerator : IDisposable
         _lockSectors = lockSectors;
     }
 
-    /**
-         * The tile rectangle being enumerated.
-         */
+    /// <summary>
+    /// The tile rectangle being enumerated.
+    /// </summary>
     public SectorEnumerator(Rectangle tileRectangle, bool lockSectors = true) : this()
     {
         _tileRectangle = tileRectangle;
@@ -74,7 +74,7 @@ public struct SectorEnumerator : IDisposable
 
         Current = new PartialSector(
             sectorLoc,
-            w < 64 || h < 64,
+            w == 64 && h == 64,
             new Rectangle(remX, remY, w, h),
             _lockedSector
         );

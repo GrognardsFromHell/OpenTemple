@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractTroikaArchive", "Too
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.StyleSystemGenerator", "Core.StyleSystemGenerator\Core.StyleSystemGenerator.csproj", "{09031979-B326-49B2-8C4B-EEAE1C66E5F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.WidgetEventGenerator", "Core.WidgetEventGenerator\Core.WidgetEventGenerator.csproj", "{461DA60E-ADA1-4078-890E-084AD80432BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{09031979-B326-49B2-8C4B-EEAE1C66E5F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09031979-B326-49B2-8C4B-EEAE1C66E5F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09031979-B326-49B2-8C4B-EEAE1C66E5F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{461DA60E-ADA1-4078-890E-084AD80432BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{461DA60E-ADA1-4078-890E-084AD80432BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{461DA60E-ADA1-4078-890E-084AD80432BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{461DA60E-ADA1-4078-890E-084AD80432BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

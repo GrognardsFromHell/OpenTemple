@@ -93,7 +93,7 @@ public class RaycastSystem : IDisposable
 	}
 
 	[TempleDllLocation(0x10022360)]
-	public bool PickObjectOnScreen(IGameViewport viewport, int x, int y, out GameObject pickedHandle, GameRaycastFlags flags)
+	public bool PickObjectOnScreen(IGameViewport viewport, float x, float y, out GameObject? pickedHandle, GameRaycastFlags flags)
 	{
 		if (flags == 0) {
 			flags = GameRaycastFlags.HITTEST_3D;

@@ -45,12 +45,10 @@ public class CampingCheckbox : WidgetButtonBase
         AddContent(_unchecked);
 
         Checked = false;
-        SetClickHandler(OnClick);
-    }
-
-    private void OnClick()
-    {
-        Checked = !Checked;
-        OnCheckedChange?.Invoke(Checked);
+        AddClickListener(() =>
+        {
+            Checked = !Checked;
+            OnCheckedChange?.Invoke(Checked);
+        });
     }
 }

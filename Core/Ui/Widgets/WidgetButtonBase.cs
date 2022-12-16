@@ -5,16 +5,14 @@ using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
-using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
 public class WidgetButtonBase : WidgetBase
 {
     private readonly WidgetTooltipRenderer _tooltipRenderer = new ();
-
-    public bool ClickOnMouseDown { get; set; } = false;
 
     public string TooltipStyle
     {
@@ -33,164 +31,129 @@ public class WidgetButtonBase : WidgetBase
         get => _tooltipRenderer.TooltipContent;
         set => _tooltipRenderer.TooltipContent = value;
     }
+        
+    public int SoundMouseLeave { get; set; } = -1;
 
-    protected bool mDisabled = false;
+    public int SoundMouseEnter { get; set; } = -1;
 
-    protected bool mRepeat = false;
-    protected TimeSpan mRepeatInterval = TimeSpan.FromMilliseconds(200);
-    protected TimePoint mLastClickTriggered;
+    public int SoundPressed { get; set; } = -1;
 
-    public delegate void ClickHandler(int x, int y);
+    public int SoundClicked { get; set; } = -1;
+    
+    /// <summary>
+    /// A repeating button triggers a click event immediately when pressed using the primary mouse button,
+    /// and continuously at regular intervals while the mouse button remains held. Triggering will pause
+    /// while the mouse cursor is not over the button, but will resume when it is moved back onto the button.
+    /// </summary>
+    public bool IsRepeat { get; set; }
+    
+    /// <summary>
+    /// The interval in which repeat events trigger while the mouse is being held.
+    /// </summary>
+    public TimeSpan RepeatInterval { get; set; } = TimeSpan.FromMilliseconds(200);
+    
+    /// <summary>
+    /// The initial mouse-down event that causes the button to repeatedly trigger.
+    /// </summary>
+    private MouseEvent? _repeatingEvent;
+    
+    private TimePoint _repeatingEventTime;
+    
+    // Suppresses sound events. Used to suppress sound events when the button is triggered via repeated events.
+    private bool _suppressSound;
 
-    private ClickHandler? mClickHandler;
-
-    public event ClickHandler? OnRightClick;
-
-    public event Action<MessageWidgetArgs>? OnMouseEnter;
-
-    public event Action<MessageWidgetArgs>? OnMouseExit;
-
-    public WidgetButtonBase([CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1)
-        : base(filePath, lineNumber)
+    public WidgetButtonBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : base(filePath, lineNumber)
     {
+        FocusMode = FocusMode.User;
     }
 
-    public WidgetButtonBase(Rectangle rect, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : this(filePath, lineNumber)
+    public WidgetButtonBase(Rectangle rect, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(filePath, lineNumber)
     {
-        SetPos(rect.Location);
-        SetSize(rect.Size);
+        Pos = rect.Location;
+        Size = rect.Size;
     }
 
-    public override bool HandleMessage(Message msg)
+    protected override void DefaultMouseDownAction(MouseEvent e)
     {
-        if (msg.type == MessageType.WIDGET)
+        if (Disabled)
         {
-            MessageWidgetArgs widgetMsg = msg.WidgetArgs;
-            if (mClickHandler != null
-                && (ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.Clicked
-                    || !ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.MouseReleased))
-            {
-                if (mClickHandler != null && !mDisabled)
-                {
-                    var contentArea = GetContentArea();
-                    int x = widgetMsg.x - contentArea.X;
-                    int y = widgetMsg.y - contentArea.Y;
-                    mClickHandler(x, y);
-                    mLastClickTriggered = TimePoint.Now;
-                }
-            }
-            else if (widgetMsg.widgetEventType == TigMsgWidgetEvent.Entered)
-            {
-                OnMouseEnter?.Invoke(widgetMsg);
-            }
-            else if (widgetMsg.widgetEventType == TigMsgWidgetEvent.Exited)
-            {
-                OnMouseExit?.Invoke(widgetMsg);
-            }
-
-            if (mWidgetMsgHandler != null)
-            {
-                return mWidgetMsgHandler(widgetMsg);
-            }
-
-            return true;
+            e.PreventDefault();
+            return;
         }
 
-        return base.HandleMessage(msg);
-    }
-
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        if (ClickOnMouseDown && (msg.flags & MouseEventFlag.RightClick) != 0
-            || !ClickOnMouseDown && (msg.flags & MouseEventFlag.RightReleased) != 0)
+        if (SoundPressed != -1)
         {
-            var clickHandler = OnRightClick;
-            if (!mDisabled && clickHandler != null)
-            {
-                var contentArea = GetContentArea();
-                var x = msg.X - contentArea.X;
-                var y = msg.Y - contentArea.Y;
-                clickHandler(x, y);
-                return true;
-            }
+            Tig.Sound.PlaySoundEffect(SoundPressed);
         }
-
-        base.HandleMouseMessage(msg);
-        return true; // Always swallow mouse messages by default to prevent buttons from being click-through
-    }
-
-    public LgcyButtonState ButtonState { get; set; }
-
-    public int sndHoverOff { get; set; } = -1;
-
-    public int sndHoverOn { get; set; } = -1;
-
-    public int sndDown { get; set; } = -1;
-
-    public int sndClick { get; set; } = -1;
-
-    public void SetDisabled(bool disabled)
-    {
-        mDisabled = disabled;
-    }
-
-    public bool IsDisabled()
-    {
-        return mDisabled;
-    }
-
-    public void SetClickHandler(Action handler)
-    {
-        mClickHandler = (x, y) => handler();
-    }
-
-    public void SetClickHandler(ClickHandler handler)
-    {
-        mClickHandler = handler;
-    }
-
-    public override bool IsButton()
-    {
-        return true;
-    }
-
-    public bool IsRepeat()
-    {
-        return mRepeat;
-    }
-
-    public void SetRepeat(bool enable)
-    {
-        mRepeat = enable;
-        ClickOnMouseDown = true;
-    }
-
-    public TimeSpan GetRepeatInterval()
-    {
-        return mRepeatInterval;
-    }
-
-    public void SetRepeatInterval(TimeSpan interval)
-    {
-        mRepeatInterval = interval;
-    }
-
-    public override void OnUpdateTime(TimePoint timeMs)
-    {
-        if (mRepeat && ButtonState == LgcyButtonState.Down)
+        
+        if (IsRepeat && e.Button == MouseButton.Left && SetMouseCapture())
         {
-            var pos = Tig.Mouse.GetPos();
-            if (mClickHandler != null && !mDisabled && mLastClickTriggered + mRepeatInterval < timeMs)
+            _repeatingEvent = e;
+            TriggerAction(e);
+            e.PreventDefault(); // Prevent normal click handling                
+        }
+    }
+
+    protected override void DefaultMouseUpAction(MouseEvent e)
+    {
+        if (IsRepeat && e.Button == MouseButton.Left)
+        {
+            ReleaseMouseCapture();
+            _repeatingEvent = null;
+            e.PreventDefault();
+        }
+    }
+    
+    private void TriggerAction(MouseEvent e)
+    {
+        _suppressSound = true;
+        try
+        {
+            DispatchClick(e); // TODO: should translate mouse event here
+        }
+        finally
+        {
+            _suppressSound = false;
+        }
+        _repeatingEventTime = TimePoint.Now;
+    }
+
+    protected override void HandleClick(MouseEvent e)
+    {
+        base.HandleClick(e);
+        if (!_suppressSound && SoundClicked != -1)
+        {
+            Tig.Sound.PlaySoundEffect(SoundClicked);
+        }
+    }
+
+    protected override void HandleMouseEnter(MouseEvent e)
+    {
+        base.HandleMouseEnter(e);
+
+        if (SoundMouseEnter != -1)
+        {
+            Tig.Sound.PlaySoundEffect(SoundMouseEnter);
+        }
+    }
+
+    protected override void HandleMouseLeave(MouseEvent e)
+    {
+        base.HandleMouseLeave(e);
+        
+        if (SoundMouseLeave != -1)
+        {
+            Tig.Sound.PlaySoundEffect(SoundMouseLeave);
+        }
+    }
+
+    public override void OnUpdateTime(TimePoint now)
+    {
+        if (IsRepeat && _repeatingEvent != null && !Disabled)
+        {
+            if (_repeatingEventTime + RepeatInterval < now && ContainsMouse)
             {
-                var contentArea = GetContentArea();
-                int x = pos.X - contentArea.X;
-                int y = pos.Y - contentArea.Y;
-                mClickHandler(x, y);
-                mLastClickTriggered = TimePoint.Now;
+                TriggerAction(_repeatingEvent);
             }
         }
     }
@@ -198,15 +161,5 @@ public class WidgetButtonBase : WidgetBase
     public override void RenderTooltip(int x, int y)
     {
         _tooltipRenderer.Render(x, y);
-    }
-
-    public override bool HasPseudoClass(StylingState stylingState)
-    {
-        if (stylingState == StylingState.Hover)
-        {
-            return ButtonState == LgcyButtonState.Hovered;
-        }
-
-        return base.HasPseudoClass(stylingState);
     }
 }

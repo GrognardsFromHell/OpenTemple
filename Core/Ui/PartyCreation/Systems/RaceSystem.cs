@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -36,7 +37,7 @@ internal class RaceSystem : IChargenSystem
             var buttonIndex = i; // Avoid modified closures
             var button = doc.GetButton("subrace" + i);
             button.Visible = false;
-            button.SetClickHandler(() =>
+            button.AddClickListener(() =>
             {
                 if (buttonIndex < _subraces.Count)
                 {
@@ -52,7 +53,7 @@ internal class RaceSystem : IChargenSystem
                     ShowRaceHelp(_subraces[buttonIndex]);
                 }
             };
-            button.OnMouseExit += msg => { UpdateDescriptionBox(); };
+            button.OnMouseLeave += msg => { UpdateDescriptionBox(); };
             _subraceButtons.Add(button);
         }
 

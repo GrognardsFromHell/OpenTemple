@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using JetBrains.Annotations;
 using OpenTemple.Core.GameObjects;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Location;
@@ -12,12 +13,13 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui.InGame;
 
@@ -27,15 +29,8 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
 
     private Dictionary<int, string> _translations;
 
-    [TempleDllLocation(0x10BD3B50)]
-    private bool partyMembersMoving;
-
-    [TempleDllLocation(0x10BD3B54)]
-    private bool isCombatModeMessage;
-
     // Is set to the widget that we capture input for during drag-selection.
-    [CanBeNull]
-    private WidgetBase _capturedInputWidget;
+    private WidgetBase? _capturedInputWidget;
 
     private static readonly TimeSpan DoubleClickWindow = TimeSpan.FromMilliseconds(200);
 
@@ -60,15 +55,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         UiSystems.InGameSelect.FocusClear();
     }
 
-    [TempleDllLocation(0x10113280)]
-    public void radialmenu_ignore_close_till_move(IGameViewport viewport, int x, int y)
-    {
-        UiSystems.RadialMenu.Spawn(viewport, x, y);
-        UiSystems.RadialMenu.HandleRightMouseClick(x, y);
-        Logger.Info("intgame_radialmenu_ignore_close_till_move()");
-        UiSystems.RadialMenu.dword_10BE6D70 = true;
-    }
-
     public void SaveGame(SavedUiState savedState)
     {
     }
@@ -88,23 +74,12 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     [TempleDllLocation(0x101140b0)]
     public void Reset()
     {
-        partyMembersMoving = false;
     }
 
     [TempleDllLocation(0x10114EF0)]
     public void HandleMessage(IGameViewport viewport, Message msg)
     {
-        if (UiSystems.RadialMenu.HandleMessage(viewport, msg))
-        {
-            return;
-        }
-
-        if (UiSystems.InGameSelect.HandleMessage(viewport, msg))
-        {
-            return;
-        }
-
-        if (GameSystems.D20.RadialMenu.GetCurrentNode() == -1)
+        if (UiSystems.RadialMenu.IsOpen)
         {
             if (UiSystems.Dialog.IsVisible)
             {
@@ -134,14 +109,10 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
 
                 if (GameSystems.Combat.IsCombatActive())
                 {
-                    if (!isCombatModeMessage)
-                        partyMembersMoving = false;
-                    isCombatModeMessage = true;
                     HandleCombatModeMessage(viewport, msg);
                 }
                 else
                 {
-                    isCombatModeMessage = false;
                     HandleNormalModeMessage(viewport, msg);
                 }
             }
@@ -151,16 +122,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     [TempleDllLocation(0x10114eb0)]
     private void HandleCombatModeMessage(IGameViewport viewport, Message msg)
     {
-        if (msg.type == MessageType.MOUSE)
-        {
-            var mouseArgs = msg.MouseArgs;
-            if (mouseArgs.flags.HasFlag(MouseEventFlag.PosChange)
-                || mouseArgs.flags.HasFlag(MouseEventFlag.PosChangeSlow))
-            {
-                HandleMouseMove(viewport, mouseArgs);
-            }
-        }
-        else if (msg.type == MessageType.KEYSTATECHANGE)
+        if (msg.type == MessageType.KEYSTATECHANGE)
         {
             CombatKeyHandler(msg.KeyStateChangeArgs);
         }
@@ -178,7 +140,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             }
 
             // End turn for current player
-            if (args.key == DIK.DIK_RETURN || args.key == DIK.DIK_SPACE)
+            if (args.key is SDL_Keycode.SDLK_RETURN or SDL_Keycode.SDLK_SPACE)
             {
                 var currentActor = GameSystems.D20.Initiative.CurrentActor;
                 UiSystems.CharSheet.CurrentPage = 0;
@@ -242,34 +204,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     [TempleDllLocation(0x10114e30)]
     private void HandleNormalModeMessage(IGameViewport viewport, Message msg)
     {
-        if (msg.type == MessageType.MOUSE)
-        {
-            if (UiSystems.CharSheet.HasCurrentCritter)
-            {
-                return;
-            }
-
-            var args = msg.MouseArgs;
-            var flags = args.flags;
-            if (flags.HasFlag(MouseEventFlag.LeftReleased))
-            {
-                HandleNormalLeftMouseReleased(viewport, args);
-            }
-            else if (flags.HasFlag(MouseEventFlag.LeftClick) ||
-                     (flags & (MouseEventFlag.PosChange | MouseEventFlag.LeftHeld)) != default)
-            {
-                HandleNormalLeftMouseDragHandler(viewport, args);
-            }
-            else if (flags.HasFlag(MouseEventFlag.RightClick))
-            {
-                HandleNormalRightMouseButton(viewport, args);
-            }
-            else if (flags.HasFlag(MouseEventFlag.PosChange) || flags.HasFlag(MouseEventFlag.PosChangeSlow))
-            {
-                HandleMouseMove(viewport, args);
-            }
-        }
-        else if (msg.type == MessageType.KEYSTATECHANGE)
+        if (msg.type == MessageType.KEYSTATECHANGE)
         {
             HandleNormalKeyStateChange(viewport, msg.KeyStateChangeArgs);
         }
@@ -283,30 +218,26 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             return;
         }
 
+        var potentialHotkey = KeyReference.Physical(args.scancode);
+
         var leader = GameSystems.Party.GetConsciousLeader();
         if (leader != null)
         {
-            if (GameSystems.D20.Hotkeys.IsReservedHotkey(args.key))
+            if (GameSystems.D20.Hotkeys.IsReservedHotkey(potentialHotkey))
             {
-                if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL) ||
-                    Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL))
+                if (args.modCtrl)
                 {
                     // trying to assign hotkey to reserved hotkey
-                    GameSystems.D20.Hotkeys.HotkeyReservedPopup(args.key);
+                    GameSystems.D20.Hotkeys.HotkeyReservedPopup(potentialHotkey);
                     return;
                 }
             }
-            else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(args.key))
+            else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey))
             {
-                if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL) ||
-                    Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL))
+                if (args.modCtrl)
                 {
                     // assign hotkey
-                    var leaderLoc = leader.GetLocationFull();
-                    var screenPos = viewport.WorldToScreen(leaderLoc.ToInches3D());
-
-                    UiSystems.RadialMenu.Spawn(viewport, (int)screenPos.X, (int)screenPos.Y);
-                    UiSystems.RadialMenu.HandleKeyMessage(args);
+                    UiSystems.RadialMenu.SpawnFromKeyboard(viewport, leader, args);
                     return;
                 }
 
@@ -316,7 +247,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
                 GameSystems.D20.Actions.CurSeqReset(leader);
 
                 GameSystems.D20.Actions.GlobD20ActnInit();
-                if (GameSystems.D20.Hotkeys.RadmenuHotkeySthg(GameSystems.Party.GetConsciousLeader(), args.key))
+                if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(GameSystems.Party.GetConsciousLeader(), potentialHotkey))
                 {
                     GameSystems.D20.Actions.ActionAddToSeq();
                     GameSystems.D20.Actions.sequencePerform();
@@ -338,7 +269,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     private bool uiDragSelectOn;
 
     [TempleDllLocation(0x10113f30)]
-    private GameObject GetMouseTarget(IGameViewport viewport, int x, int y)
+    private GameObject? GetMouseTarget(IGameViewport viewport, float x, float y)
     {
         // Pick the object using the screen coordinates first
         var mousedOver = PickObject(viewport, x, y, GameRaycastFlags.HITTEST_3D);
@@ -360,7 +291,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         return mousedOver;
     }
 
-    private GameObject PickObject(IGameViewport viewport, int x, int y, GameRaycastFlags flags)
+    private GameObject? PickObject(IGameViewport viewport, float x, float y, GameRaycastFlags flags)
     {
         if (GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var result, flags))
         {
@@ -404,17 +335,17 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     private GameObject qword_10BD3AE0;
 
     [TempleDllLocation(0x10BD3ACC)]
-    private int uiDragSelectXMax = 0;
+    private float uiDragSelectXMax = 0;
 
     [TempleDllLocation(0x10BD3AD0)]
-    private int uiDragSelectYMax = 0;
+    private float uiDragSelectYMax = 0;
 
     private TimePoint _lastMoveCommandTime;
 
-    private Point _lastMoveCommandLocation;
+    private PointF _lastMoveCommandLocation;
 
     [TempleDllLocation(0x10114af0)]
-    private void HandleNormalLeftMouseReleased(IGameViewport viewport, MessageMouseArgs args)
+    private void HandleNormalLeftMouseReleased(IGameViewport viewport, MouseEvent e)
     {
         if (UiSystems.CharSheet.HasCurrentCritter)
         {
@@ -423,30 +354,28 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
 
         GameSystems.Anim.StartFidgetTimer();
         UiSystems.InGameSelect.FocusClear();
-        partyMembersMoving = false;
         if (!_normalLmbClicked)
             return;
         _normalLmbClicked = false;
         if (uiDragSelectOn)
         {
-            if (!Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) &&
-                !Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+            if (!Tig.Keyboard.IsShiftPressed)
             {
                 GameSystems.Party.ClearSelection();
             }
 
-            var left = Math.Min(uiDragSelectXMax, args.X);
-            var top = Math.Min(uiDragSelectYMax, args.Y);
-            var right = Math.Max(uiDragSelectXMax, args.X);
-            var bottom = Math.Max(uiDragSelectYMax, args.Y);
-            var rect = Rectangle.FromLTRB(left, top, right, bottom);
+            var left = Math.Min(uiDragSelectXMax, e.X);
+            var top = Math.Min(uiDragSelectYMax, e.Y);
+            var right = Math.Max(uiDragSelectXMax, e.X);
+            var bottom = Math.Max(uiDragSelectYMax, e.Y);
+            var rect = RectangleF.FromLTRB(left, top, right, bottom);
             UiSystems.InGameSelect.SelectInRectangle(viewport, rect);
             uiDragSelectOn = false;
             ReleaseMouseCapture();
             return;
         }
 
-        var mouseTgt = GetMouseTarget(viewport, args.X, args.Y);
+        var mouseTgt = GetMouseTarget(viewport, e.X, e.Y);
         if (mouseTgt == null)
         {
             if (GameSystems.Party.GetConsciousLeader() == null)
@@ -454,7 +383,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
                 return;
             }
 
-            var worldPos = viewport.ScreenToTile(args.X, args.Y);
+            var worldPos = viewport.ScreenToTile(e.X, e.Y);
 
             // This is a new feature
             var centerScreen = TimePoint.Now - _lastMoveCommandTime < DoubleClickWindow;
@@ -465,14 +394,12 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             }
 
             _lastMoveCommandTime = TimePoint.Now;
-            _lastMoveCommandLocation = new Point(args.X, args.Y);
+            _lastMoveCommandLocation = e.Pos;
 
-            if (!Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) &&
-                !Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+            if (!Tig.Keyboard.IsShiftPressed)
             {
                 var alwaysRun = Globals.Config.AlwaysRun;
                 PartySelectedStandUpAndMoveToPosition(worldPos, !alwaysRun);
-                partyMembersMoving = true;
             }
 
             if (uiDragViewport || mouseDragTgt != null)
@@ -493,7 +420,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
                 UiSystems.CharSheet.ShowInState(state, mouseTgt);
             }
 
-            if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+            if (Tig.Keyboard.IsShiftPressed)
             {
                 if (GameSystems.Party.IsSelected(mouseTgt))
                 {
@@ -518,7 +445,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         // Release previous mouse capture if applicable
         ReleaseMouseCapture();
 
-        if (viewport is WidgetBase widget && Globals.UiManager.SetMouseCaptureWidget(widget))
+        if (viewport is WidgetBase widget && widget.SetMouseCapture())
         {
             _capturedInputWidget = widget;
         }
@@ -526,11 +453,8 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
 
     private void ReleaseMouseCapture()
     {
-        if (_capturedInputWidget != null)
-        {
-            Globals.UiManager.UnsetMouseCaptureWidget(_capturedInputWidget);
-            _capturedInputWidget = null;
-        }
+        _capturedInputWidget?.ReleaseMouseCapture();
+        _capturedInputWidget = null;
     }
 
     [TempleDllLocation(0x101140F0)]
@@ -646,7 +570,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
                         return;
                     }
 
-                    if (Tig.Keyboard.IsPressed(DIK.DIK_LMENU) || Tig.Keyboard.IsPressed(DIK.DIK_RMENU))
+                    if (Tig.Keyboard.IsAltPressed)
                     {
                         MoveCorpseToPlayer(partyLeader, clickedObj);
                         return;
@@ -746,7 +670,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             return (animObj.GetCritterFlags2() & CritterFlag2.ACTION0_PAUSED) != 0;
         }
 
-        if ((animGoalType == AnimGoalType.attack || animGoalType == AnimGoalType.attempt_attack) &&
+        if (animGoalType is AnimGoalType.attack or AnimGoalType.attempt_attack &&
             IsActionPaused())
             return;
 
@@ -755,9 +679,9 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         {
             if (GameSystems.Anim.GetSlotForGoalAndObjs(animObj, goal).IsNull
                 && GameSystems.Anim.Interrupt(animObj, AnimGoalPriority.AGP_3, false)
-                && GameSystems.Anim.PushGoal(goal, out var a3))
+                && GameSystems.Anim.PushGoal(goal, out var slotId))
             {
-                SetGoalFlags(animObj, a3, a11);
+                SetGoalFlags(animObj, slotId, a11);
             }
         }
         else
@@ -832,34 +756,20 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         return true;
     }
 
-    private void SetGoalFlags(GameObject animObj, AnimSlotId a3, bool a11)
+    private void SetGoalFlags(GameObject animObj, AnimSlotId slotId, bool a11)
     {
-        if (Tig.Keyboard.IsPressed(DIK.DIK_LSHIFT) || Tig.Keyboard.IsPressed(DIK.DIK_RSHIFT))
+        if (Tig.Keyboard.IsShiftPressed)
         {
-            GameSystems.Anim.TurnOn100(a3);
+            GameSystems.Anim.TurnOn100(slotId);
         }
-        else if (Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) || Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
+        else if (GameSystems.Anim.ShouldRun(animObj))
         {
-            GameSystems.Anim.TurnOnRunning(a3);
-        }
-        else if (Tig.Keyboard.IsModifierActive(DIK.DIK_NUMLOCK))
-        {
-            if (GameSystems.Anim.ShouldRun(animObj))
-            {
-                if (!Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) && !Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
-                {
-                    GameSystems.Anim.TurnOnRunning(a3);
-                }
-            }
-        }
-        else if (!Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) && !Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
-        {
-            GameSystems.Anim.TurnOnRunning(a3);
+            GameSystems.Anim.TurnOnRunning(slotId);
         }
 
         if (a11)
         {
-            GameSystems.Anim.TurnOn4000(a3);
+            GameSystems.Anim.TurnOn4000(slotId);
         }
     }
 
@@ -877,33 +787,26 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     }
 
     [TempleDllLocation(0x101148b0)]
-    private void HandleNormalLeftMouseDragHandler(IGameViewport viewport, MessageMouseArgs args)
+    private void HandleNormalLeftMouseDragHandler(IGameViewport viewport, MouseEvent e)
     {
-        GameObject target = null;
-        var leftClick = args.flags.HasFlag(MouseEventFlag.LeftClick);
-        var leftDown = args.flags.HasFlag(MouseEventFlag.LeftHeld);
-        if (leftClick || leftDown)
-        {
-            target = GetMouseTarget(viewport, args.X, args.Y);
-        }
+        var target = GetMouseTarget(viewport, e.X, e.Y);
 
-        if (leftClick)
+        if (e.Type == UiEventType.MouseDown)
         {
             if (_normalLmbClicked)
                 return;
             mouseDragTgt = target;
             _normalLmbClicked = true;
-            uiDragSelectXMax = args.X;
-            uiDragSelectYMax = args.Y;
+            uiDragSelectXMax = e.X;
+            uiDragSelectYMax = e.Y;
             qword_10BD3AE0 = target;
             uiDragViewport = target == null;
         }
-
-        if ((args.flags.HasFlag(MouseEventFlag.PosChange) || leftDown) && _normalLmbClicked)
+        else if (e.Type == UiEventType.MouseMove && _normalLmbClicked)
         {
             if (!UiSystems.Dialog.IsConversationOngoing && !UiSystems.RadialMenu.IsOpen)
             {
-                if (GetEstimatedSelectionSize(args.X, args.Y) > 25)
+                if (GetEstimatedSelectionSize(e.X, e.Y) > 25)
                 {
                     uiDragSelectOn = true;
                     CaptureMouse(viewport);
@@ -913,7 +816,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             if (uiDragSelectOn)
             {
                 UiSystems.InGameSelect.FocusClear();
-                UiSystems.InGameSelect.SetFocusToRect(viewport, uiDragSelectXMax, uiDragSelectYMax, args.X, args.Y);
+                UiSystems.InGameSelect.SetFocusToRect(viewport, uiDragSelectXMax, uiDragSelectYMax, e.X, e.Y);
             }
 
             if (target != null
@@ -932,13 +835,13 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     }
 
     [TempleDllLocation(0x10113C80)]
-    private int GetEstimatedSelectionSize(int x, int y)
+    private float GetEstimatedSelectionSize(float x, float y)
     {
-        return Math.Abs(uiDragSelectXMax - x) + Math.Abs(uiDragSelectYMax - y);
+        return MathF.Abs(uiDragSelectXMax - x) + MathF.Abs(uiDragSelectYMax - y);
     }
 
     [TempleDllLocation(0x10114d90)]
-    private void HandleNormalRightMouseButton(IGameViewport viewport, MessageMouseArgs args)
+    private void HandleNormalRightMouseButton(IGameViewport viewport, MouseEvent e)
     {
         var partyLeader = GameSystems.Party.GetConsciousLeader();
         if (GameSystems.Party.IsPlayerControlled(partyLeader))
@@ -950,13 +853,13 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             else
             {
                 Logger.Info("state_default_process_mouse_right_down");
-                radialmenu_ignore_close_till_move(viewport, args.X, args.Y);
+                UiSystems.RadialMenu.SpawnFromMouse(viewport, e);
             }
         }
     }
 
     [TempleDllLocation(0x10114690)]
-    private void HandleMouseMove(IGameViewport viewport, MessageMouseArgs msg)
+    private void HandleMouseMove(IGameViewport viewport, MouseEvent e)
     {
         UiSystems.Party.ForcePressed = null;
         UiSystems.Party.ForceHovered = null;
@@ -968,7 +871,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             return;
         }
 
-        var mouseTarget = GetMouseTarget(viewport, msg.X, msg.Y);
+        var mouseTarget = GetMouseTarget(viewport, e.X, e.Y);
         if (mouseTarget == null)
         {
             return;
@@ -982,6 +885,8 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             return;
         }
 
+        e.StopImmediatePropagation();
+        
         var type = mouseTarget.type;
         if (_normalLmbClicked)
         {
@@ -1051,5 +956,43 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         }
 
         return null;
+    }
+
+    public void AddEventListeners<T>(T viewport) where T : WidgetBase, IGameViewport
+    {
+        viewport.OnMouseMove += e =>
+        {
+            if (!GameSystems.Combat.IsCombatActive() && e.IsLeftButtonHeld)
+            {
+                HandleNormalLeftMouseDragHandler(viewport, e);
+                e.StopImmediatePropagation();
+                return;
+            }
+            
+            HandleMouseMove(viewport, e);
+        };
+        viewport.OnMouseDown += e =>
+        {
+            if (!GameSystems.Combat.IsCombatActive())
+            {
+                if (e.Button == MouseButton.Left)
+                {
+                    HandleNormalLeftMouseDragHandler(viewport, e);
+                    e.StopImmediatePropagation();
+                }
+                else if (e.Button == MouseButton.Right)
+                {
+                    HandleNormalRightMouseButton(viewport, e);
+                }
+            }
+        };
+        viewport.OnMouseUp += e =>
+        {
+            if (!GameSystems.Combat.IsCombatActive() && e.Button == MouseButton.Left)
+            {
+                e.StopImmediatePropagation();
+                HandleNormalLeftMouseReleased(viewport, e);
+            }
+        };
     }
 }

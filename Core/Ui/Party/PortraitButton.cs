@@ -52,7 +52,7 @@ internal class PortraitButton : WidgetButtonBase
         }
         else
         {
-            if (ButtonState == LgcyButtonState.Disabled)
+            if (Disabled)
             {
                 imageToUse = _greyPortrait;
             }
@@ -89,22 +89,22 @@ internal class PortraitButton : WidgetButtonBase
             AddContent(_highlight);
         }
 
-        if (ButtonState == LgcyButtonState.Hovered || UiSystems.Party.ForceHovered == _obj)
-        {
-            AddContent(_highlightHover);
-
-            if (!UiSystems.CharSheet.HasCurrentCritter && !UiSystems.Logbook.IsVisible)
-            {
-                UiSystems.InGameSelect.Focus = _obj;
-            }
-        }
-        else if (ButtonState == LgcyButtonState.Down || UiSystems.Party.ForcePressed == _obj)
+        if (ContainsPress || UiSystems.Party.ForcePressed == _obj)
         {
             AddContent(_highlightPressed);
 
             if (!UiSystems.CharSheet.HasCurrentCritter)
             {
                 UiSystems.InGameSelect.AddToFocusGroup(_obj);
+            }
+        }
+        else if (ContainsMouse || UiSystems.Party.ForceHovered == _obj)
+        {
+            AddContent(_highlightHover);
+
+            if (!UiSystems.CharSheet.HasCurrentCritter && !UiSystems.Logbook.IsVisible)
+            {
+                UiSystems.InGameSelect.Focus = _obj;
             }
         }
 

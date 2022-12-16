@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.IO.MapMarkers;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
@@ -22,7 +22,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     private bool _isAvailable;
 
     [TempleDllLocation(0x10128b60)]
-    public bool IsVisible => _mainWindow.Visible;
+    public bool IsVisible => _mainWindow.IsInTree;
 
     private readonly WidgetContainer _mainWindow;
 
@@ -54,7 +54,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     // Stores which predefined markers have been revealed for the user
     private readonly HashSet<PredefinedMarkerId> _revealedMarkers = new();
 
-    private string _currentCursor;
+    private string? _currentCursor;
 
     private readonly WidgetButton _placeMarkerButton;
 
@@ -67,21 +67,20 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         var doc = WidgetDoc.Load("ui/townmap_ui.json");
 
         _mainWindow = doc.GetRootContainer();
-        _mainWindow.Visible = false;
-        _mainWindow.SetKeyStateChangeHandler(HandleShortcut);
+        _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
 
         var exit = doc.GetButton("exit");
-        exit.SetClickHandler(Hide);
+        exit.AddClickListener(Hide);
 
         _worldMapButton = doc.GetButton("worldMapButton");
-        _worldMapButton.SetClickHandler(OpenWorldMap);
+        _worldMapButton.AddClickListener(OpenWorldMap);
 
         // Since we're on the worldmap, this button switches to the townmap
         var currentMapButton = doc.GetButton("currentMapButton");
-        currentMapButton.SetClickHandler(SwitchToCurrentMap);
+        currentMapButton.AddClickListener(SwitchToCurrentMap);
 
         var contentContainer = doc.GetContainer("mapContent");
-        _mapContent = new TownMapContent(new Rectangle(Point.Empty, contentContainer.GetSize()));
+        _mapContent = new TownMapContent(new Rectangle(Point.Empty, contentContainer.Size));
         contentContainer.Add(_mapContent);
         _mapContent.OnCursorChanged += ChangeCursor;
         _mapContent.OnControlModeChange += UpdateModeButtons;
@@ -90,16 +89,16 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         _mapContent.OnMarkerRemoved += MarkerRemoved;
 
         var centerOnPartyButton = doc.GetButton("centerOnPartyButton");
-        centerOnPartyButton.SetClickHandler(CenterOnPartyClicked);
+        centerOnPartyButton.AddClickListener(CenterOnPartyClicked);
 
         _placeMarkerButton = doc.GetButton("placeMarkerButton");
-        _placeMarkerButton.SetClickHandler(EnterPlaceMarkerMode);
+        _placeMarkerButton.AddClickListener(EnterPlaceMarkerMode);
 
         _removeMarkerButton = doc.GetButton("removeMarkerButton");
-        _removeMarkerButton.SetClickHandler(EnterDeleteMarkerMode);
+        _removeMarkerButton.AddClickListener(EnterDeleteMarkerMode);
 
         _zoomButton = doc.GetButton("zoomButton");
-        _zoomButton.SetClickHandler(EnterZoomMode);
+        _zoomButton.AddClickListener(EnterZoomMode);
 
         _visitedMapsList = doc.GetScrollView("visitedMapsList");
     }
@@ -133,25 +132,13 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         if (UiSystems.WorldMap.IsWorldMapAccessible)
         {
             _worldMapButton.TooltipText = null;
-            _worldMapButton.SetDisabled(false);
+            _worldMapButton.Disabled = false;
         }
         else
         {
-            _worldMapButton.SetDisabled(true);
+            _worldMapButton.Disabled = true;
             _worldMapButton.TooltipText = "#{townmap:200}";
         }
-    }
-
-    private bool HandleShortcut(MessageKeyStateChangeArgs msg)
-    {
-        // Allow closing the townmap with escapep
-        if (!msg.down && msg.key == DIK.DIK_ESCAPE)
-        {
-            Hide();
-            return true;
-        }
-
-        return false;
     }
 
     [TempleDllLocation(0x1012c6a0)]
@@ -181,13 +168,13 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             return;
         }
 
-        if (!_mainWindow.Visible)
+        if (!IsVisible)
         {
             GameSystems.TimeEvent.PauseGameTime();
         }
 
         UiSystems.HideOpenedWindows(true);
-        _mainWindow.Visible = true;
+        Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
         UpdateWorldMapButton();
 
@@ -203,12 +190,11 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x1012bcb0)]
     public void Hide()
     {
-        if (!_mainWindow.Visible)
+        if (!Globals.UiManager.RemoveWindow(_mainWindow))
         {
             return;
         }
 
-        _mainWindow.Visible = false;
         _mapContent.Reset();
 
         if (UiSystems.TextEntry.IsVisible)
@@ -234,7 +220,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             ));
             visitedMapButton.SetStyle("visitedMapButton");
             visitedMapButton.Text = GameSystems.Map.GetMapDescription(visitedMap);
-            visitedMapButton.SetClickHandler(() =>
+            visitedMapButton.AddClickListener(() =>
             {
                 if (_currentMapId != visitedMap)
                 {
@@ -339,7 +325,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     {
         // Load markers
         var markersFile = $"{GameSystems.Map.GetDataDir(mapId)}/map_markers.json";
-        var markers = new List<TownMapMarker>();
+        var markers = ImmutableList.CreateBuilder<TownMapMarker>();
         if (Tig.FS.FileExists(markersFile))
         {
             var predefinedMarkers = MapMarkersReader.Load(Tig.FS, markersFile);
@@ -367,7 +353,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             Logger.Info("Loaded {0} user-defined map-markers", userMarkers.Count);
         }
 
-        _mapContent.Markers = markers;
+        _mapContent.Markers = markers.ToImmutable();
     }
 
     [TempleDllLocation(0x10128420)]
@@ -534,7 +520,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
 
     [TempleDllLocation(0x1012bae0)]
     [TempleDllLocation(0x1012bb20)]
-    private void ChangeCursor(string path)
+    private void ChangeCursor(string? path)
     {
         if (_currentCursor != path)
         {
@@ -583,7 +569,6 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             userMarkers.Remove(marker);
         }
     }
-
 }
 
 public class TownMapMarker

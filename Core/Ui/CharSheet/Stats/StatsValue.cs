@@ -41,16 +41,9 @@ public class StatsValue : WidgetButtonBase
         _valueSupplier = valueSupplier;
 
         _label = new WidgetText("", "char-ui-stat-value");
-        SetWidgetMsgHandler(msg =>
-        {
-            if (msg.widgetEventType == TigMsgWidgetEvent.Exited)
-            {
-                UiSystems.CharSheet.Help.ClearHelpText();
-                return true;
-            }
-
-            return false;
-        });
+        OnMouseLeave += _ => {
+            UiSystems.CharSheet.Help.ClearHelpText();
+        };
 
         TooltipText = UiSystems.Tooltip.GetString(6044);
     }
@@ -68,13 +61,13 @@ public class StatsValue : WidgetButtonBase
     public override void Render()
     {
         WidgetImage renderImage = null;
-        if (ButtonState == LgcyButtonState.Hovered)
-        {
-            renderImage = _hoverImage;
-        }
-        else if (ButtonState == LgcyButtonState.Down)
+        if (ContainsPress)
         {
             renderImage = _downImage;
+        }
+        else if (ContainsMouse)
+        {
+            renderImage = _hoverImage;
         }
 
         var contentArea = GetContentArea();

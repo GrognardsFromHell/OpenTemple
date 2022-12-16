@@ -112,7 +112,7 @@ public class GameObject : IDisposable
 
     public bool IsCritter()
     {
-        return type == ObjectType.npc || type == ObjectType.pc;
+        return type is ObjectType.npc or ObjectType.pc;
     }
 
     public bool IsPC()

@@ -39,7 +39,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
     [TempleDllLocation(0x10bef7dc)]
     [TempleDllLocation(0x10159b10)]
-    public bool IsVisible => _mainWindow.Visible;
+    public bool IsVisible => _mainWindow.IsInTree;
 
     [TempleDllLocation(0x11ea2406)]
     private readonly WorldMapPath[] _paths;
@@ -67,10 +67,12 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x10bef818)]
     private bool _randomEncounterTriggered;
 
-    [TempleDllLocation(0x102fb3d4)] [TempleDllLocation(0x102fb3d8)]
+    [TempleDllLocation(0x102fb3d4)]
+    [TempleDllLocation(0x102fb3d8)]
     private Point _randomEncounterPoint;
 
-    [TempleDllLocation(0x10beee60)] [TempleDllLocation(0x10bef788)]
+    [TempleDllLocation(0x10beee60)]
+    [TempleDllLocation(0x10bef788)]
     private Point _lastTrailPos;
 
     [TempleDllLocation(0x10bef814)]
@@ -138,17 +140,9 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
         var doc = WidgetDoc.Load("ui/worldmap_ui.json");
         _mainWindow = doc.GetRootContainer();
-        _mainWindow.Visible = false;
-        _mainWindow.SetKeyStateChangeHandler(HandleShortcut);
-        _mainWindow.OnHandleMessage += message =>
-        {
-            if (message.type == MessageType.UPDATE_TIME)
-            {
-                UpdateTime();
-            }
-
-            return false;
-        };
+        // Allow closing the window while no trip is taking place
+        _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide, () => !IsMakingTrip);
+        _mainWindow.AddInterval(UpdateTime);
 
         // This is the container that is sized exactly as the actual map in the window
         _mapContent = doc.GetContainer("mapContent");
@@ -165,7 +159,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
 
         var exit = doc.GetButton("exit");
-        exit.SetClickHandler(() =>
+        exit.AddClickListener(() =>
         {
             if (!IsMakingTrip)
             {
@@ -179,10 +173,10 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
         // Since we're on the worldmap, this button switches to the townmap
         _currentMapButton = doc.GetButton("currentMapButton");
-        _currentMapButton.SetClickHandler(SwitchToTownMap);
+        _currentMapButton.AddClickListener(SwitchToTownMap);
 
         var centerOnParty = doc.GetButton("centerOnPartyButton");
-        centerOnParty.SetClickHandler(() =>
+        centerOnParty.AddClickListener(() =>
         {
             // TODO: This is ... weird. The renderer will swap in a greyed out texture, but the message
             // handler will still react ?!
@@ -196,7 +190,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         });
 
         // This is placed on top of the other map widgets to show the trail dots above the location icons
-        _trailDotsContainer = new WidgetContainer(_mapContent.GetSize());
+        _trailDotsContainer = new WidgetContainer(_mapContent.Size);
         _mapContent.Add(_trailDotsContainer);
 
         _youAreHereWidget = new YouAreHereWidget();
@@ -483,23 +477,11 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         return _locationWidgets.Where(widgets => widgets.Location.AreaIds.Contains(areaId));
     }
 
-    private bool HandleShortcut(MessageKeyStateChangeArgs msg)
-    {
-        // Allow closing the worldmap with escapep
-        if (!msg.down && msg.key == DIK.DIK_ESCAPE && !IsMakingTrip)
-        {
-            Hide();
-            return true;
-        }
-
-        return false;
-    }
-
     [TempleDllLocation(0x1015f140)]
     public void Show(WorldMapMode mode = WorldMapMode.Travel)
     {
         UiSystems.HideOpenedWindows(true);
-        if (!_mainWindow.Visible)
+        if (_mainWindow.IsInTree)
         {
             GameViews.DisableDrawing();
             UiSystems.Party.Hide();
@@ -512,17 +494,17 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
 
         _mode = mode;
-        _mainWindow.Visible = true;
+        Globals.UiManager.AddWindow(_mainWindow);
 
         // TODO: Honestly, this should just use whether a townmap is available or not
         if (mode == WorldMapMode.LeaveRandomEncounter)
         {
-            _currentMapButton.SetDisabled(true);
+            _currentMapButton.Disabled = true;
             _currentMapButton.TooltipText = "#{townmap:13}";
         }
         else
         {
-            _currentMapButton.SetDisabled(false);
+            _currentMapButton.Disabled = false;
             _currentMapButton.TooltipText = null;
         }
 
@@ -882,10 +864,9 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x1015e210)]
     public void Hide()
     {
-        if (_mainWindow.Visible)
+        if (Globals.UiManager.RemoveWindow(_mainWindow))
         {
             Tig.Sound.EffectVolume = _originalVolume;
-            _mainWindow.Visible = false;
 
             if (!Tig.Sound.IsStreamPlaying(_soundStream1))
             {

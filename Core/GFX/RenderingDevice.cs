@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -7,7 +6,6 @@ using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Security;
 using JetBrains.Annotations;
 using SharpDX;
 using SharpDX.Direct3D;
@@ -57,13 +55,13 @@ public class RenderingDevice : IDisposable
 
         // Find the adapter selected by the user, although we might fall back to the
         // default one if the user didn't select one or the adapter selection changed
-        _adapter = GetAdapter(adapterIdx);
-        if (_adapter == null)
+        var adapter = GetAdapter(adapterIdx);
+        if (adapter == null)
         {
             // Fall back to default
             Logger.Error("Couldn't retrieve adapter #{0}. Falling back to default", 0);
-            _adapter = GetAdapter(displayDevices[0].id);
-            if (_adapter == null)
+            adapter = GetAdapter(displayDevices[0].id);
+            if (adapter == null)
             {
                 throw new GfxException(
                     "Couldn't retrieve your configured graphics adapter, but also couldn't fall back to the default adapter.");
@@ -98,8 +96,8 @@ public class RenderingDevice : IDisposable
             }
             else
             {
-                Logger.Info("Creating D3D11 device on {0}", _adapter.Description1.Description);
-                Device = new D3D11Device(_adapter, deviceFlags, requestedLevels);
+                Logger.Info("Creating D3D11 device on {0}", adapter.Description1.Description);
+                Device = new D3D11Device(adapter, deviceFlags, requestedLevels);
             }
         }
         catch (SharpDXException e)
@@ -142,7 +140,7 @@ public class RenderingDevice : IDisposable
         {
             _outputSurface = new WindowOutputSurface(Device, outputWindow.NativeHandle);
         }
-        else if (mainWindow is HeadlessMainWindow headlessMainWindow)
+        else if (mainWindow is HeadlessMainWindow)
         {
             _outputSurface = new OffScreenOutputSurface();
         }
@@ -340,8 +338,7 @@ public class RenderingDevice : IDisposable
         return mDisplayDevices;
     }
 
-    [DllImport("OpenTemple.Native")]
-    [SuppressUnmanagedCodeSecurity]
+    [DllImport(OpenTempleLib.Path)]
     private static extern unsafe bool Win32_GetMonitorName(IntPtr monitorHandle, char* name, ref int nameSize);
 
     // Resize the back buffer
@@ -655,8 +652,8 @@ public class RenderingDevice : IDisposable
 
         var left = (int)(x * hFactor);
         var top = (int)(y * vFactor);
-        var right = (int)((x + width) * hFactor);
-        var bottom = (int)((y + height) * vFactor);
+        var right = (int) (Math.Ceiling((x + width) * hFactor));
+        var bottom = (int)(Math.Ceiling((y + height) * vFactor));
 
         _context.Rasterizer.SetScissorRectangle(left, top, right, bottom);
 
@@ -1808,7 +1805,7 @@ public class RenderingDevice : IDisposable
         return m;
     }
 
-    private Adapter1 GetAdapter(int index)
+    private Adapter1? GetAdapter(int index)
     {
         return _dxgiFactory.GetAdapter1(index);
     }
@@ -1816,9 +1813,6 @@ public class RenderingDevice : IDisposable
     private int _drawDepth = 0;
 
     private Factory1 _dxgiFactory;
-
-    // The DXGI adapter we use
-    private Adapter1 _adapter;
 
     // D3D11 device and related
     public D3D11Device Device { get; private set; }
@@ -1920,7 +1914,7 @@ public class RenderingDevice : IDisposable
         /// </summary>
         public IntPtr WindowHandle { get; }
 
-        private SwapChain _swapChain;
+        private SwapChain? _swapChain;
 
         public WindowOutputSurface(D3D11Device device, IntPtr windowHandle)
         {
@@ -1938,8 +1932,12 @@ public class RenderingDevice : IDisposable
                 swapChainDesc.OutputHandle = WindowHandle;
                 swapChainDesc.SampleDescription.Count = 1;
                 swapChainDesc.IsWindowed = true; // As per the recommendation, we always create windowed
-
+                
                 _swapChain = new SwapChain(device._dxgiFactory, device.Device, swapChainDesc);
+                
+                // Disable Alt+Enter handling in DXGI itself. We need to handle this in our Main Window
+                // to properly save the associated settings change.
+                device._dxgiFactory.MakeWindowAssociation(WindowHandle, WindowAssociationFlags.IgnoreAltEnter);
             } else { 
                 _swapChain.ResizeBuffers(0, 0, 0, Format.Unknown, 0);
             }
@@ -1972,7 +1970,7 @@ public class RenderingDevice : IDisposable
 
         public void Present(RenderingDevice device)
         {
-            _swapChain.Present(0, 0);
+            _swapChain?.Present(0, 0);
         }
 
         public void Dispose()

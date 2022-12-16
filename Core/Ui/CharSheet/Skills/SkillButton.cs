@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.Globalization;
 using OpenTemple.Core.GFX;
@@ -39,7 +40,7 @@ public class SkillButton : WidgetButtonBase
         _skillBonusLabel.AddStyle("char-ui-skill-value");
         AddContent(_skillBonusLabel);
 
-        SetClickHandler(ShowBonusDetails);
+        AddClickListener(ShowBonusDetails);
     }
 
     [TempleDllLocation(0x101bd7a0)]
@@ -118,7 +119,7 @@ public class SkillButton : WidgetButtonBase
     [TempleDllLocation(0x101bd850)]
     public override void Render()
     {
-        var hovered = ButtonState is LgcyButtonState.Hovered or LgcyButtonState.Down;
+        var hovered = ContainsMouse;
         _skillNameLabel.ToggleStyle("char-ui-skill-button-hover", hovered);
         _skillBonusLabel.ToggleStyle("char-ui-skill-button-hover", hovered);
 

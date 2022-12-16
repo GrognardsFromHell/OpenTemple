@@ -57,18 +57,12 @@ public class CharSheetSkillsUi : IDisposable
         var detailsDoc = WidgetDoc.Load("ui/char_skills.json");
 
         Container = detailsDoc.GetRootContainer();
-        Container.SetMouseMsgHandler(msg =>
+        Container.OnMouseWheel += e =>
         {
             // Forward mouse wheel messages to the scrollbar
-            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-            {
-                _scrollbar.HandleMouseMessage(msg);
-            }
-
-            return true;
-        });
+            _scrollbar.DispatchMouseWheel(e);
+        };
         Container.Name = "char_skills_ui_main_window";
-        Container.Visible = false;
 
         _skillRanks = detailsDoc.GetTextContent("skill-ranks-label");
         _attributeBonus = detailsDoc.GetTextContent("skill-attribute-bonus-label");
@@ -81,16 +75,8 @@ public class CharSheetSkillsUi : IDisposable
         {
             var button = new SkillButton(new Rectangle(1, 1 + 13 * i, 156, 13));
             button.OnMouseEnter += _ => ShowSkillDetails(button);
-            button.OnMouseExit += _ => HideSkillDetails();
-            button.SetMouseMsgHandler(msg =>
-            {
-                if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-                {
-                    return _scrollbar.HandleMouseMessage(msg);
-                }
+            button.OnMouseLeave += _ => HideSkillDetails();
 
-                return false;
-            });
             Container.Add(button);
             _skillButtons[i] = button;
         }

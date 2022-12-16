@@ -66,7 +66,7 @@ public struct RadialMenuEntry
     // see RadialMenuEntryFlags
     public RadialMenuEntryFlags flags;
     // String hash for the help topic associated with this entry
-    public string helpSystemHashkey;
+    public string? helpSystemHashkey;
 
     public int
         spellIdMaybe; // used for stuff like Break Free / Dismiss Spell, and it also puts the id in the d20ActionData1 field

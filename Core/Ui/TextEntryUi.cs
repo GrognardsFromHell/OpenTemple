@@ -1,13 +1,15 @@
 using System;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui;
 
 public class TextEntryUi
 {
     [TempleDllLocation(0x1014e8e0)]
-    public bool IsVisible => _dialog.Visible;
+    public bool IsVisible => _dialog.IsInTree;
 
     [TempleDllLocation(0x10bec3a0)]
     private readonly WidgetContainer _dialog;
@@ -36,16 +38,22 @@ public class TextEntryUi
         var doc = WidgetDoc.Load("ui/text_entry_ui.json");
 
         _dialog = doc.GetRootContainer();
-        _dialog.Visible = false;
         _dialog.SetKeyStateChangeHandler(HandleShortcut);
-        _dialog.OnHandleMessage += HandleMessage;
+        _dialog.OnTextInput += HandleTextInput;
 
         _okButton = doc.GetButton("okButton");
-        _okButton.SetClickHandler(Confirm);
+        _okButton.AddClickListener(Confirm);
         _cancelButton = doc.GetButton("cancelButton");
-        _cancelButton.SetClickHandler(Cancel);
+        _cancelButton.AddClickListener(Cancel);
         _titleLabel = doc.GetTextContent("titleLabel");
         _currentInputLabel = doc.GetTextContent("currentInputLabel");
+    }
+
+    private void HandleTextInput(TextInputEvent e)
+    {
+        var newText = _currentInput.Insert(_caretPosition, e.Text);
+        _caretPosition += e.Text.Length;
+        UpdateInput(newText);
     }
 
     private bool HandleShortcut(MessageKeyStateChangeArgs arg)
@@ -55,8 +63,8 @@ public class TextEntryUi
             // We handle these on key-down because we are interested in key-repeats
             switch (arg.key)
             {
-                case DIK.DIK_LEFT:
-                case DIK.DIK_NUMPAD4:
+                case SDL_Keycode.SDLK_LEFT:
+                case SDL_Keycode.SDLK_KP_4:
                     if (--_caretPosition < 0)
                     {
                         _caretPosition = 0;
@@ -64,31 +72,32 @@ public class TextEntryUi
 
                     UpdateInput(_currentInput);
                     break;
-                case DIK.DIK_RIGHT:
-                case DIK.DIK_NUMPAD6:
+                case SDL_Keycode.SDLK_RIGHT:
+                case SDL_Keycode.SDLK_KP_6:
                     if (++_caretPosition > _currentInput.Length)
                     {
                         _caretPosition = _currentInput.Length;
                     }
+
                     UpdateInput(_currentInput);
                     break;
-                case DIK.DIK_HOME:
+                case SDL_Keycode.SDLK_HOME:
                     _caretPosition = 0;
                     UpdateInput(_currentInput);
                     break;
-                case DIK.DIK_END:
+                case SDL_Keycode.SDLK_END:
                     _caretPosition = _currentInput.Length;
                     UpdateInput(_currentInput);
                     break;
-                case DIK.DIK_DELETE:
-                case DIK.DIK_DECIMAL:
+                case SDL_Keycode.SDLK_DELETE:
+                case SDL_Keycode.SDLK_KP_DECIMAL:
                     if (_caretPosition < _currentInput.Length)
                     {
                         UpdateInput(_currentInput.Remove(_caretPosition, 1));
                     }
 
                     break;
-                case DIK.DIK_BACKSPACE:
+                case SDL_Keycode.SDLK_BACKSPACE:
                     if (_caretPosition > 0)
                     {
                         --_caretPosition;
@@ -102,10 +111,10 @@ public class TextEntryUi
         {
             switch (arg.key)
             {
-                case DIK.DIK_RETURN:
+                case SDL_Keycode.SDLK_RETURN:
                     Confirm();
                     break;
-                case DIK.DIK_ESCAPE:
+                case SDL_Keycode.SDLK_ESCAPE:
                     Cancel();
                     break;
             }
@@ -113,34 +122,19 @@ public class TextEntryUi
 
         return true;
     }
-
-    private bool HandleMessage(Message arg)
-    {
-        if (arg.type == MessageType.CHAR)
-        {
-            if (!char.IsControl(arg.CharArgs.Character))
-            {
-                var newText = _currentInput.Insert(_caretPosition++, arg.CharArgs.Character.ToString());
-                UpdateInput(newText);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
+    
     [TempleDllLocation(0x1014e670)]
     [TempleDllLocation(0x1014e8a0)]
     public void ShowTextEntry(UiCreateNamePacket crNamePkt)
     {
-        _dialog.SetPos(crNamePkt.DialogX, crNamePkt.DialogY);
 
         UpdateInput(crNamePkt.InitialValue ?? "");
         _titleLabel.Text = crNamePkt.DialogTitle ?? "";
         _okButton.Text = crNamePkt.OkButtonLabel ?? "";
         _cancelButton.Text = crNamePkt.CancelButtonLabel ?? "";
         _callback = crNamePkt.Callback;
+
+        Globals.UiManager.AddWindow(_dialog);
 
         if (crNamePkt.DialogX != 0 || crNamePkt.DialogY != 0)
         {
@@ -149,10 +143,8 @@ public class TextEntryUi
         }
         else
         {
-            _dialog.CenterOnScreen();
+            _dialog.CenterInParent();
         }
-
-        _dialog.Visible = true;
         _dialog.BringToFront();
     }
 
@@ -188,7 +180,7 @@ public class TextEntryUi
 
     private void Reset()
     {
-        _dialog.Visible = false;
+        Globals.UiManager.RemoveWindow(_dialog);
         _currentInput = "";
         _callback = null;
         _caretPosition = 0;
@@ -199,9 +191,9 @@ public class UiCreateNamePacket
 {
     public int DialogX;
     public int DialogY;
-    public string OkButtonLabel;
-    public string CancelButtonLabel;
-    public string DialogTitle;
-    public string InitialValue;
+    public string? OkButtonLabel;
+    public string? CancelButtonLabel;
+    public string? DialogTitle;
+    public string? InitialValue;
     public Action<string, bool> Callback;
 }

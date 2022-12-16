@@ -6,6 +6,7 @@ using System.Numerics;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -17,9 +18,12 @@ using OpenTemple.Core.Systems.RadialMenus;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Styles;
+using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
+using static SDL2.SDL;
 using Vector3 = System.Numerics.Vector3;
 
 namespace OpenTemple.Core.Ui.RadialMenu;
@@ -29,6 +33,8 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     private RadialMenuSystem RadialMenus => GameSystems.D20.RadialMenu;
+    
+    private const double Epsilon = 0.1f;
 
     // Keep the delegate around so we can compare against it later
     private readonly CursorDrawCallback _hotkeyAssignCursorDrawDelegate;
@@ -118,7 +124,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     private bool _assigningHotkey; // TODO: probably bool
 
     [TempleDllLocation(0x10be6da0)]
-    private DIK _dikToBeHotkeyed;
+    private KeyReference _keyToBeHotkeyed;
 
     [TempleDllLocation(0x10BE6D70)]
     public bool dword_10BE6D70;
@@ -127,10 +133,10 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     private bool _ignoreClose;
 
     [TempleDllLocation(0x10be67ac)]
-    private int _lastRmbClickX;
+    private float _lastRmbClickX;
 
     [TempleDllLocation(0x10be6d30)]
-    private int _lastRmbClickY;
+    private float _lastRmbClickY;
 
     [TempleDllLocation(0x10be67c8)]
     private LocAndOffsets _openedAtLocation;
@@ -165,11 +171,9 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     [TemplePlusLocation("radialmenu.cpp:128")]
     public bool HandleMessage(IGameViewport viewport, Message message)
     {
-        var shiftPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT)
-                           || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT);
-        RadialMenus.ShiftPressed = shiftPressed;
+        RadialMenus.AlternateActionMode = Tig.Keyboard.IsShiftPressed;
 
-        if (RadialMenus.GetCurrentNode() == -1)
+        if (!IsOpen)
         {
             return false;
         }
@@ -178,85 +182,10 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
         {
             return HandleKeyMessage(message.KeyStateChangeArgs);
         }
-        else if (message.type == MessageType.MOUSE)
-        {
-            return HandleMouseMessage(viewport, message.MouseArgs);
-        }
         else
         {
             return false;
         }
-    }
-
-    [TempleDllLocation(0x1013dc90)]
-    [TemplePlusLocation("radialmenu.cpp:128")]
-    private bool HandleMouseMessage(IGameViewport viewport, MessageMouseArgs msg)
-    {
-        if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
-        {
-            var clickedNodeIdx = UiRadialGetNodeClick(msg.X, msg.Y);
-            if (clickedNodeIdx == -1)
-            {
-                _assigningHotkey = false;
-                if (Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
-                {
-                    Tig.Mouse.SetCursorDrawCallback(null);
-                }
-
-                RadialMenus.ClearActiveRadialMenu();
-                return true;
-            }
-
-            var clickedNode = RadialMenus.GetActiveRadMenuNodeRegardMorph(clickedNodeIdx);
-            if (_assigningHotkey
-                && GameSystems.D20.Hotkeys.HotkeyAssignCreatePopupUi(ref clickedNode.entry, _dikToBeHotkeyed))
-            {
-                _assigningHotkey = false;
-                RadialMenus.ClearActiveRadialMenu();
-                if (Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
-                {
-                    Tig.Mouse.SetCursorDrawCallback(null);
-                }
-
-                return true;
-            }
-
-            if (UiSystems.HelpManager.IsSelectingHelpTarget)
-            {
-                var helpTopic = clickedNode.entry.helpSystemHashkey;
-                if (helpTopic != null)
-                {
-                    UiSystems.HelpManager.ClickForHelpCallback(helpTopic);
-                }
-
-                return true;
-            }
-
-            if (RadialMenus.RadialMenuSetActiveNode(clickedNodeIdx))
-            {
-                ActivateActiveNode();
-                return true;
-            }
-
-            return false;
-        }
-
-        if ((msg.flags & MouseEventFlag.RightReleased) != 0)
-        {
-            return UiRadialMenuRmbReleased(viewport, msg);
-        }
-
-        if ((msg.flags & MouseEventFlag.RightClick) != 0)
-        {
-            return HandleRightMouseClick(msg.X, msg.Y);
-        }
-
-        if ((msg.flags & MouseEventFlag.PosChange) != 0)
-        {
-            return HandleMouseMove(msg.X, msg.Y);
-        }
-
-        return false;
     }
 
     private void ActivateActiveNode()
@@ -267,32 +196,37 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             GameSystems.D20.Actions.ActionAddToSeq();
             GameSystems.D20.Actions.sequencePerform();
 
-            // Play a confirm voice line
-            var leader = GameSystems.Party.GetConsciousLeader();
-            var listener = GameSystems.Dialog.GetListeningPartyMember(leader);
-            GameSystems.Dialog.TryGetOkayVoiceLine(leader, listener, out var text, out var soundId);
-            GameSystems.Dialog.PlayCritterVoiceLine(leader, listener, text, soundId);
+            PlayConfirmVoiceLine();
         }
     }
 
+    private static void PlayConfirmVoiceLine()
+    {
+        // Play a confirm voice line
+        var leader = GameSystems.Party.GetConsciousLeader();
+        var listener = GameSystems.Dialog.GetListeningPartyMember(leader);
+        GameSystems.Dialog.TryGetOkayVoiceLine(leader, listener, out var text, out var soundId);
+        GameSystems.Dialog.PlayCritterVoiceLine(leader, listener, text, soundId);
+    }
+
     [TempleDllLocation(0x1013d910)]
-    private bool UiRadialMenuRmbReleased(IGameViewport viewport, MessageMouseArgs msg)
+    private bool UiRadialMenuRmbReleased(IGameViewport viewport, MouseEvent e)
     {
         if (_ignoreClose)
         {
             if (!dword_10BE6D70)
             {
-                if (msg.X != _lastRmbClickX || msg.Y != _lastRmbClickY)
+                if (Math.Abs(e.X - _lastRmbClickX) > Epsilon || Math.Abs(e.Y - _lastRmbClickY) > Epsilon)
                 {
                     // NOTE: Vanilla previously didn't check whether the target was untargetable here...
-                    UpdateRadialMenuTarget(viewport, msg.X, msg.Y);
+                    UpdateRadialMenuTarget(viewport, e.X, e.Y);
                 }
                 else
                 {
                     // Clear the active menu when we're in the smack center of the menu (within the portrait)
                     var currentMenuPos = CurrentMenuCenterOnScreen;
-                    var deltaX = msg.X - currentMenuPos.X;
-                    var deltaY = msg.Y - currentMenuPos.Y;
+                    var deltaX = e.X - currentMenuPos.X;
+                    var deltaY = e.Y - currentMenuPos.Y;
                     var distanceFromCenter = MathF.Sqrt(deltaX * deltaX + deltaY * deltaY);
 
                     if (distanceFromCenter < 32.0)
@@ -308,7 +242,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             return true;
         }
 
-        var nodeIdxClicked = UiRadialGetNodeClick(msg.X, msg.Y);
+        var nodeIdxClicked = UiRadialGetNodeClick(e.X, e.Y);
         if (nodeIdxClicked == -1)
         {
             if (_assigningHotkey)
@@ -337,10 +271,11 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     {
         if (_assigningHotkey)
         {
-            var keyName = GameSystems.D20.Hotkeys.GetKeyDisplayName(_dikToBeHotkeyed);
+            var keyName = _keyToBeHotkeyed.Text;
             var assignText = GameSystems.D20.Combat.GetCombatMesLine(191);
 
-            var paragraph = new Paragraph() {
+            var paragraph = new Paragraph()
+            {
                 Host = UiSystems.InGameSelect.TextHost
             };
             paragraph.AddStyle("radialmenu-hotkey");
@@ -357,12 +292,105 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     [TempleDllLocation(0x1013c9c0)]
     public bool HandleKeyMessage(MessageKeyStateChangeArgs args)
     {
-        Stub.TODO();
+        if (args.down)
+        {
+            return false;
+        }
+
+        var key = args.key;
+        if (key == SDL_Keycode.SDLK_ESCAPE)
+        {
+            // Cancels hotkey assignment or closes the menu
+            if (UiSystems.RadialMenu._assigningHotkey)
+            {
+                if (Tig.Mouse.CursorDrawCallback == UiSystems.RadialMenu.HotkeyAssignMouseTextCreate)
+                {
+                    Tig.Mouse.SetCursorDrawCallback(null);
+                }
+
+                UiSystems.RadialMenu._assigningHotkey = false;
+            }
+            else
+            {
+                GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
+            }
+
+            return true;
+        }
+
+        if (key == SDL_Keycode.SDLK_h)
+        {
+            UiSystems.HelpManager.ClickForHelpToggle();
+            return true;
+        }
+
+        var potentialHotkey = KeyReference.Physical(args.scancode);
+        if (GameSystems.D20.Hotkeys.IsReservedHotkey(potentialHotkey))
+        {
+            if (args.modCtrl)
+            {
+                GameSystems.D20.Hotkeys.HotkeyReservedPopup(potentialHotkey);
+                return true;
+            }
+        }
+        else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey))
+        {
+            if (args.modCtrl)
+            {
+                UiSystems.RadialMenu._assigningHotkey = true;
+                UiSystems.RadialMenu._keyToBeHotkeyed = potentialHotkey;
+                Tig.Mouse.SetCursorDrawCallback(UiSystems.RadialMenu.HotkeyAssignMouseTextCreate);
+                return true;
+            }
+
+            if (UiSystems.RadialMenu._assigningHotkey)
+            {
+                UiSystems.RadialMenu._assigningHotkey = false;
+                if (Tig.Mouse.CursorDrawCallback == UiSystems.RadialMenu.HotkeyAssignMouseTextCreate)
+                {
+                    Tig.Mouse.SetCursorDrawCallback(null);
+                }
+            }
+
+            var leader = GameSystems.Party.GetConsciousLeader();
+            GameSystems.D20.Actions.TurnBasedStatusInit(leader);
+            GameSystems.D20.Actions.ActSeqSpellReset();
+            Logger.Info("Radial menu: Reseting sequence");
+            GameSystems.D20.Actions.CurSeqReset(leader);
+            GameSystems.D20.Actions.GlobD20ActnInit();
+            if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(leader, potentialHotkey))
+            {
+                GameSystems.D20.Actions.ActionAddToSeq();
+                GameSystems.D20.Actions.sequencePerform();
+                PlayConfirmVoiceLine();
+                GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
+                return true;
+            }
+        }
+
         return false;
     }
 
+    [TempleDllLocation(0x10113280)]
+    public void SpawnFromMouse(IGameViewport viewport, MouseEvent e)
+    {
+        Spawn(viewport, e.X, e.Y);
+        HandleRightMouseClick(e);
+        Logger.Info("intgame_radialmenu_ignore_close_till_move()");
+        dword_10BE6D70 = true;
+    }
+
+    public void SpawnFromKeyboard(IGameViewport viewport, GameObject leader, MessageKeyStateChangeArgs args)
+    {
+        var leaderLoc = leader.GetLocationFull();
+        var screenPos = viewport.WorldToScreen(leaderLoc.ToInches3D());
+
+        UiSystems.RadialMenu.Spawn(viewport, (int) screenPos.X, (int) screenPos.Y);
+        UiSystems.RadialMenu.HandleKeyMessage(args);
+    }
+
     [TempleDllLocation(0x1013b250)]
-    public void Spawn(IGameViewport viewport, int screenX, int screenY)
+    public void Spawn(IGameViewport viewport, float screenX, float screenY)
     {
         UiSystems.InGame.ResetInput();
         if (RadialMenus.GetCurrentNode() != -1 /* Already opened */
@@ -391,7 +419,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
         UiSystems.Party.ForceHovered = null;
     }
 
-    private void UpdateRadialMenuTarget(IGameViewport viewport, int screenX, int screenY)
+    private void UpdateRadialMenuTarget(IGameViewport viewport, float screenX, float screenY)
     {
         // Remember where we're opening the radial menu at / on which object, to auto-target chosen abilities
         if (GameSystems.Raycast.PickObjectOnScreen(viewport, screenX, screenY, out var objUnderMouse,
@@ -425,31 +453,29 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
 
     [TempleDllLocation(0x1013dd10)]
     [TempleDllLocation(0x1013dad0)]
-    public bool HandleRightMouseClick(int x, int y)
+    private void HandleRightMouseClick(MouseEvent e)
     {
         if (!_ignoreClose || dword_10BE6D70)
         {
-            if (UiRadialGetNodeClick(x, y) != -1 || IsWithin25PixelsOfCenter(x, y))
+            if (UiRadialGetNodeClick(e.X, e.Y) != -1 || IsWithin25PixelsOfCenter(e.X, e.Y))
             {
                 var screenPos = CurrentMenuCenterOnScreen;
 
-                _lastRmbClickX = x;
-                _lastRmbClickY = y;
-                RadialMenus.RelativeMousePosX = screenPos.X - x;
-                RadialMenus.RelativeMousePosY = screenPos.Y - y;
+                _lastRmbClickX = e.X;
+                _lastRmbClickY = e.Y;
+                RadialMenus.RelativeMousePosX = screenPos.X - e.X;
+                RadialMenus.RelativeMousePosY = screenPos.Y - e.Y;
                 _ignoreClose = true;
             }
-
-            return true;
         }
         else
         {
-            return HandleMouseMove(x, y);
+            HandleMouseMove(e);
         }
     }
 
     [TempleDllLocation(0x1013aee0)]
-    private bool IsWithin25PixelsOfCenter(int x, int y)
+    private bool IsWithin25PixelsOfCenter(float x, float y)
     {
         var screenCenter = CurrentMenuCenterOnScreen;
         var deltaX = screenCenter.X - x;
@@ -459,20 +485,20 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     }
 
     [TempleDllLocation(0x1013d640)]
-    private bool HandleMouseMove(int x, int y)
+    private void HandleMouseMove(MouseEvent e)
     {
         if (_ignoreClose)
         {
             Logger.Info("intgame_radialmenu: _mouse_moved: ignore_close = 0");
-            var screenX = x + RadialMenus.RelativeMousePosX;
-            var screenY = y + RadialMenus.RelativeMousePosY;
+            var screenX = e.X + RadialMenus.RelativeMousePosX;
+            var screenY = e.Y + RadialMenus.RelativeMousePosY;
             dword_10BE6D70 = false;
             var mouseLoc = _openedAtViewport.ScreenToTile(screenX, screenY);
             RadialMenus.ActiveMenuWorldPosition = mouseLoc.ToInches2D();
-            return false;
+            return;
         }
 
-        _mouseOverNodeIdx = UiRadialGetNodeClick(x, y);
+        _mouseOverNodeIdx = UiRadialGetNodeClick(e.X, e.Y);
         // TODO: This condition seems fucked, shouldn't it only activate when the node has NO children???
         if (!Globals.Config.RadialMenuClickToActivate
             && _mouseOverNodeIdx != -1
@@ -481,12 +507,10 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
         {
             ActivateActiveNode();
         }
-
-        return true;
     }
 
     [TempleDllLocation(0x1013c790)]
-    private int UiRadialGetNodeClick(int mouseX, int mouseY)
+    private int UiRadialGetNodeClick(float mouseX, float mouseY)
     {
         var activeRootNodeIdx = -1;
         var activeRootNodeAngle = 0.0f;
@@ -555,7 +579,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     // TODO: Clean this up / refactor
     [TempleDllLocation(0x1013af70)]
     public int sub_1013AF70 /*0x1013af70*/(int parentNodeIdx, float parentNodeAngle, int menuDepth, float width1pad,
-        float width2pad, int mouseX, int mouseY)
+        float width2pad, float mouseX, float mouseY)
     {
         int result;
 
@@ -1573,5 +1597,88 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
         _checkboxChecked.Dispose();
         _standardNodeIcons.Values.DisposeAll();
         _standardNodeIcons.Clear();
+    }
+
+    [TempleDllLocation(0x1013dc90)]
+    [TemplePlusLocation("radialmenu.cpp:128")]
+    public void AddEventListeners<T>(T viewport) where T : WidgetBase, IGameViewport
+    {
+        viewport.OnMouseDown += e =>
+        {
+            if (IsOpen)
+            {
+                e.StopImmediatePropagation();
+                if (e.Button == MouseButton.Right)
+                {
+                    HandleRightMouseClick(e);
+                }
+            }
+        };
+        viewport.OnMouseUp += e =>
+        {
+            if (!IsOpen)
+            {
+                return;
+            }
+            
+            e.StopImmediatePropagation();
+            if (e.Button == MouseButton.Left)
+            {
+                var clickedNodeIdx = UiRadialGetNodeClick(e.X, e.Y);
+                if (clickedNodeIdx == -1)
+                {
+                    _assigningHotkey = false;
+                    if (Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
+                    {
+                        Tig.Mouse.SetCursorDrawCallback(null);
+                    }
+
+                    RadialMenus.ClearActiveRadialMenu();
+                    return;
+                }
+
+                var clickedNode = RadialMenus.GetActiveRadMenuNodeRegardMorph(clickedNodeIdx);
+                if (_assigningHotkey
+                    && GameSystems.D20.Hotkeys.HotkeyAssignCreatePopupUi(ref clickedNode.entry, _keyToBeHotkeyed))
+                {
+                    _assigningHotkey = false;
+                    RadialMenus.ClearActiveRadialMenu();
+                    if (Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
+                    {
+                        Tig.Mouse.SetCursorDrawCallback(null);
+                    }
+
+                    return;
+                }
+
+                if (UiSystems.HelpManager.IsSelectingHelpTarget)
+                {
+                    var helpTopic = clickedNode.entry.helpSystemHashkey;
+                    if (helpTopic != null)
+                    {
+                        UiSystems.HelpManager.ClickForHelpCallback(helpTopic);
+                    }
+
+                    return;
+                }
+
+                if (RadialMenus.RadialMenuSetActiveNode(clickedNodeIdx))
+                {
+                    ActivateActiveNode();
+                }
+            }
+            else if (e.Button == MouseButton.Right) 
+            {
+                UiRadialMenuRmbReleased(viewport, e);
+            }
+        };
+        viewport.OnMouseMove += e =>
+        {
+            if (IsOpen)
+            {
+                HandleMouseMove(e);
+                e.StopImmediatePropagation();
+            }
+        };
     }
 }

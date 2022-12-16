@@ -138,7 +138,7 @@ public class WidgetTabBar : WidgetContainer
             Add(button);
 
             var index = _tabs.Count - 1;
-            button.SetClickHandler(() => ActiveTabIndex = index);
+            button.AddClickListener(() => ActiveTabIndex = index);
 
             x += button.Width + _spacing;
         }
@@ -167,8 +167,8 @@ public class WidgetTabButton : WidgetButtonBase
     public WidgetTabButton(string label, WidgetTabStyle style)
     {
         _style = style;
-        sndClick = WidgetButtonStyle.DefaultUpSound;
-        sndDown = WidgetButtonStyle.DefaultDownSound;
+        SoundClicked = WidgetButtonStyle.DefaultUpSound;
+        SoundPressed = WidgetButtonStyle.DefaultDownSound;
 
         if (style == WidgetTabStyle.Large)
         {
@@ -196,7 +196,7 @@ public class WidgetTabButton : WidgetButtonBase
         // Layout the content items
         LayoutContent(_selectedLeft, _selectedBg, _selectedRight, _label);
         var size = LayoutContent(_normalLeft, _normalBg, _normalRight, _label);
-        SetSize(size);
+        Size = size;
 
         UpdateSelectedState();
     }
@@ -236,7 +236,7 @@ public class WidgetTabButton : WidgetButtonBase
 
     private void UpdateSelectedState()
     {
-        _content.Clear();
+        Content.Clear();
         if (Active)
         {
             AddContent(_selectedLeft);

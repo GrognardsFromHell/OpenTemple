@@ -132,11 +132,6 @@ public static class UiSystems
 
     public static void Startup(GameConfig config)
     {
-        GameView = Startup(new GameView(
-            Tig.MainWindow,
-            Tig.RenderingDevice,
-            Globals.Config.Rendering
-        ));
         Tooltip = Startup<TooltipUi>();
         SaveGame = Startup<SaveGameUi>();
         UtilityBar = Startup<UtilityBarUi>();
@@ -170,6 +165,13 @@ public static class UiSystems
         Camping = Startup<CampingUi>();
         Formation = Startup<FormationUi>();
         RandomEncounter = Startup<RandomEncounterUi>();
+        GameView = Startup(new GameView(
+            Tig.MainWindow,
+            Tig.RenderingDevice,
+            Globals.Config.Rendering
+        ));
+        Globals.UiManager.AddWindow(GameView);
+        GameView.SendToBack();
     }
 
     private static T Startup<T>() where T : new()

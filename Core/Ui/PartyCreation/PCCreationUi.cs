@@ -124,7 +124,6 @@ public class PCCreationUi : IDisposable
 
         var doc = WidgetDoc.Load("ui/pc_creation/pc_creation_ui.json");
         _mainWindow = doc.GetRootContainer();
-        _mainWindow.Visible = false;
         _mainWindow.OnBeforeRender += BeforeRenderMainWindow;
         uiPcCreationScrollBox = new ScrollBox(new Rectangle(219, 295, 433, 148), new ScrollBoxSettings
         {
@@ -181,7 +180,7 @@ public class PCCreationUi : IDisposable
 
         var modelPreviewContainer = doc.GetContainer("modelPreview");
         _modelPreview = new MiniatureWidget();
-        _modelPreview.SetSize(modelPreviewContainer.GetSize());
+        _modelPreview.Size = modelPreviewContainer.Size;
         modelPreviewContainer.Add(_modelPreview);
     }
 
@@ -193,7 +192,7 @@ public class PCCreationUi : IDisposable
         stageButton.OnBeforeRender += () =>
         {
             stageButton.SetActive(uiPcCreationActiveStageIdx == system.Stage);
-            stageButton.SetDisabled(uiPcCreationStagesCompleted < system.Stage);
+            stageButton.Disabled = uiPcCreationStagesCompleted < system.Stage;
 
             // Render the blue outline for the active stage
             if (stageButton.IsActive())
@@ -203,9 +202,9 @@ public class PCCreationUi : IDisposable
                 _activeButtonBorder.Render();
             }
         };
-        stageButton.SetClickHandler(() => ShowStage(system.Stage));
+        stageButton.AddClickListener(() => ShowStage(system.Stage));
         stageButton.OnMouseEnter += msg => { ShowHelpTopic(system.HelpTopic); };
-        stageButton.OnMouseExit += msg => { system.ButtonExited(); };
+        stageButton.OnMouseLeave += msg => { system.ButtonExited(); };
         return stageButton;
     }
 
@@ -586,7 +585,7 @@ public class PCCreationUi : IDisposable
     {
         // TODO: This seems weird and kills encapsulation
         UiSystems.PartyPool.BeginAdventuringButton.Visible = true;
-        UiSystems.PartyPool.BeginAdventuringButton.SetDisabled(false);
+        UiSystems.PartyPool.BeginAdventuringButton.Disabled = false;
 
         StartNewParty();
         uiPcCreationActiveStageIdx = 0;
@@ -599,7 +598,7 @@ public class PCCreationUi : IDisposable
         }
 
         UiSystems.PCCreation._partyAlignmentUi.Hide();
-        _mainWindow.Show();
+        Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
 
         ShowStage(ChargenStages.CG_Stage_Stats);
@@ -843,14 +842,14 @@ public interface IChargenSystem : IDisposable
     {
     }
 
-    void Hide()
-    {
-        Container.Visible = false;
-    }
-
     void Show()
     {
         Container.Visible = true;
+    }
+
+    void Hide()
+    {
+        Container.Visible = false;
     }
 
     // checks if the char editing stage is complete (thus allowing you to move on to the next stage). This is checked at every render call.

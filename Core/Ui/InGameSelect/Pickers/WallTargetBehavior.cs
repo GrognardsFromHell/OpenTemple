@@ -5,6 +5,7 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
@@ -46,14 +47,14 @@ internal class WallTargetBehavior : PickerBehavior
         }
     }
 
-    internal override bool LeftMouseButtonClicked(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonClicked(IGameViewport viewport, MouseEvent e)
     {
         return true;
     }
 
-    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
-        MouseMoved(viewport, args);
+        MouseMoved(viewport, e);
 
         if (WallState == WallState.StartPoint)
         {
@@ -63,7 +64,7 @@ internal class WallTargetBehavior : PickerBehavior
 
         else if (WallState == WallState.EndPoint)
         {
-            var mouseLoc = GameViews.Primary.ScreenToTile(args.X, args.Y);
+            var mouseLoc = GameViews.Primary.ScreenToTile(e.X, e.Y);
             var mouseLocTrim =
                 GameSystems.Location.TrimToLength(Result.location, mouseLoc, Picker.trimmedRangeInches);
             _wallEndPoint = mouseLocTrim;
@@ -84,18 +85,18 @@ internal class WallTargetBehavior : PickerBehavior
         return true;
     }
 
-    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool MouseMoved(IGameViewport viewport, MouseEvent e)
     {
         ClearResults();
 
         if (WallState == WallState.StartPoint || WallState == WallState.CenterPoint)
         {
             // get startpoint location from mouse
-            SetResultLocationFromMouse(args);
+            SetResultLocationFromMouse(e);
             return true;
         }
 
-        var mouseLoc = GameViews.Primary.ScreenToTile(args.X, args.Y);
+        var mouseLoc = GameViews.Primary.ScreenToTile(e.X, e.Y);
         Trace.Assert(Result.HasLocation);
 
         var maxRange = (float) (Picker.range * locXY.INCH_PER_FEET);
@@ -126,7 +127,7 @@ internal class WallTargetBehavior : PickerBehavior
         return false;
     }
 
-    internal override bool RightMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool RightMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
         ClearResults();
 

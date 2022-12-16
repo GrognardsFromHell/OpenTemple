@@ -18,14 +18,14 @@ public class ActionSequence
     public List<D20Action> d20ActArray = new();
     public int d20ActArrayNum => d20ActArray.Count;
     public int d20aCurIdx; // inited to -1
-    public ActionSequence prevSeq;
-    public ActionSequence interruptSeq;
+    public ActionSequence? prevSeq;
+    public ActionSequence? interruptSeq;
     public TurnBasedStatus tbStatus = new();
     public GameObject performer;
     public LocAndOffsets performerLoc;
     public GameObject targetObj;
     public SpellPacketBody spellPktBody = new();
-    public D20Action castSpellAction;
+    public D20Action? castSpellAction;
     public bool ignoreLos;
 
     public ActionSequence Copy()

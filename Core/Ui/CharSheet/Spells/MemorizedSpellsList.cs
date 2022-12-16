@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using JetBrains.Annotations;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -15,13 +12,13 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells;
 
 public class MemorizedSpellsList : WidgetContainer
 {
-    [CanBeNull] private readonly WidgetScrollBar _scrollbar;
+    private readonly WidgetScrollBar? _scrollbar;
 
     private readonly GameObject _caster;
 
     private readonly SpellsPerDay _spellsPerDay;
 
-    public event Action OnChange;
+    public event Action? OnChange;
 
     /// <summary>
     /// Key is the spell-level, Value is the list of slots for that level.
@@ -83,7 +80,7 @@ public class MemorizedSpellsList : WidgetContainer
             _scrollbar.Height = Height;
 
             // Clip existing items that overlap the scrollbar
-            foreach (var childWidget in GetChildren())
+            foreach (var childWidget in Children)
             {
                 if (childWidget.X + childWidget.Width >= _scrollbar.X)
                 {
@@ -100,6 +97,11 @@ public class MemorizedSpellsList : WidgetContainer
                 _scrollbar.Y = value * buttonHeight; // Horrible fakery, moving the scrollbar along
             });
             Add(_scrollbar);
+            
+            OnMouseWheel += e =>
+            {
+                _scrollbar?.DispatchMouseWheel(e);
+            };
         }
     }
 
@@ -109,30 +111,19 @@ public class MemorizedSpellsList : WidgetContainer
             ? slots : Enumerable.Empty<MemorizedSpellButton>();
     }
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        // Forward scroll wheel messages to the scrollbar
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            _scrollbar?.HandleMouseMessage(msg);
-            return true;
-        }
-        return base.HandleMouseMessage(msg);
-    }
-
     private TimePoint _lastScrollTick;
     private static readonly TimeSpan ScrollInterval = TimeSpan.FromMilliseconds(100);
     private const int ScrollBandHeight = 15; // How high is the area that will auto-scroll the container
 
-    public override void OnUpdateTime(TimePoint timeMs)
+    public override void OnUpdateTime(TimePoint now)
     {
-        if (_scrollbar == null)
+        if (_scrollbar == null || UiManager == null)
         {
             return;
         }
         
-        var pos = Tig.Mouse.GetPos();
-        if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < timeMs)
+        var pos = UiManager.MousePos;
+        if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < now)
         {
             var contentArea = GetContentArea();
             // Scroll if the cursor is within the scroll-sensitive band

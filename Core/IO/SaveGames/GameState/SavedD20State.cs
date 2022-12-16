@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using OpenTemple.Core.GameObjects;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState;
 
@@ -116,7 +118,7 @@ public class SavedD20State
 
         return result;
     }
-        
+
     [TempleDllLocation(0x1004fb70)]
     public void Write(BinaryWriter writer, BinaryWriter spellsWriter)
     {
@@ -140,6 +142,7 @@ public class SavedD20State
         {
             actionSequence.Save(writer);
         }
+
         // Pad out the 32 entry array with empty action sequences
         var dummySequence = new SavedD20ActionSequence
         {
@@ -190,7 +193,7 @@ public class SavedD20State
         // This might have been added later in development.
         SaveSpellPackets(spellsWriter);
 
-        // The D20 system also contained the hotkeys :|
+        // The D20 system previously contained the hotkeys, but we save them separately
         Hotkeys.Save(writer);
 
         // Save encounters for which no XP has been awarded yet. Key is the challenge rating.
@@ -259,6 +262,7 @@ public class SavedD20State
         {
             writer.WriteObjectId(objectId);
         }
+
         writer.WriteInt32(CurrentTurnIndex);
     }
 }
@@ -268,7 +272,6 @@ public class SavedD20State
 /// </summary>
 public class SavedBrawlState
 {
-
     public bool InProgress { get; set; }
 
     public int Status { get; set; }
@@ -395,6 +398,7 @@ public class SavedProjectile
             {
                 writer.WriteInt64(0);
             }
+
             writer.WriteInt64(0); // The object handle of the ammo item
         }
 
@@ -405,6 +409,7 @@ public class SavedProjectile
             {
                 continue;
             }
+
             writer.WriteObjectId(projectile.ProjectileId);
             writer.WriteInt32(projectile.SequenceIndex);
             writer.WriteInt32(projectile.ActionIndex);
@@ -470,7 +475,7 @@ public class SavedD20Action
     {
         writer.WriteInt32((int) Type); // TODO: Think about action type
         writer.WriteInt32(Data);
-        writer.WriteInt32((int )Flags);
+        writer.WriteInt32((int) Flags);
         writer.WriteInt32(0); // Padding
         writer.WriteInt64(0); // Performer handle is transient
         writer.WriteInt64(0); // Target handle is transient
@@ -677,6 +682,7 @@ public class SavedD20ActionSequence
         {
             flags |= 2;
         }
+
         writer.WriteInt32(flags);
 
         TurnStatus.Save(writer);
@@ -696,7 +702,7 @@ public class SavedD20ActionSequence
 
 public class SavedHotkey
 {
-    public DIK Key { get; set; }
+    public KeyReference Key { get; set; }
 
     // ELF32 hash of the radial menu entry's text that is triggered by this hotkey
     public int TextHash { get; set; }
@@ -715,7 +721,7 @@ public class SavedHotkeys
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    public Dictionary<DIK, SavedHotkey> Hotkeys { get; set; } = new();
+    public List<SavedHotkey> Hotkeys { get; } = new();
 
     public static SavedHotkeys Load(BinaryReader reader)
     {
@@ -759,6 +765,7 @@ public class SavedHotkeys
                 throw new CorruptSaveException($"Hotkey table contains key which is outside range: {keyIndex}");
             }
 
+            // Remap to scancode
             hotkey.Key = AssignableKeys[keyIndex];
 
             if (hotkeyActionType == -2)
@@ -768,10 +775,12 @@ public class SavedHotkeys
 
             hotkey.ActionType = (D20ActionType) hotkeyActionType;
 
-            if (!hotkeys.Hotkeys.TryAdd(hotkey.Key, hotkey))
+            if (hotkeys.Hotkeys.Any(hk => hk.Key == hotkey.Key))
             {
                 throw new CorruptSaveException($"Duplicate assignment to key {hotkey.Key}");
             }
+
+            hotkeys.Hotkeys.Add(hotkey);
         }
 
         return hotkeys;
@@ -779,12 +788,13 @@ public class SavedHotkeys
 
     public void Save(BinaryWriter writer)
     {
-        foreach (var (key, hotkey) in Hotkeys)
+        foreach (var hotkey in Hotkeys)
         {
-            var keyIndex = Array.IndexOf(AssignableKeys, key);
+            var keyIndex = Array.IndexOf(AssignableKeys, hotkey.Key);
             if (keyIndex == -1)
             {
-                Logger.Error("Cannot save hotkey assigned to {0} because the save format doesn't support it.", key);
+                Logger.Error("Cannot save hotkey assigned to {0} because the save format doesn't support it.", hotkey.Key);
+                continue;
             }
 
             // Originally it just read the radial menu entry, but that contains so much
@@ -825,13 +835,46 @@ public class SavedHotkeys
     /// the index of the assigned action in the hotkey table.
     /// </summary>
     [TempleDllLocation(0x102E8B78)]
-    private static readonly DIK[] AssignableKeys =
+    private static readonly KeyReference[] AssignableKeys =
     {
-        DIK.DIK_Q, DIK.DIK_W, DIK.DIK_E, DIK.DIK_R, DIK.DIK_T, DIK.DIK_Y, DIK.DIK_U, DIK.DIK_I, DIK.DIK_O,
-        DIK.DIK_P, DIK.DIK_LBRACKET, DIK.DIK_RBRACKET, DIK.DIK_A, DIK.DIK_S, DIK.DIK_D, DIK.DIK_F, DIK.DIK_G,
-        DIK.DIK_H,
-        DIK.DIK_J, DIK.DIK_K, DIK.DIK_L, DIK.DIK_SEMICOLON, DIK.DIK_APOSTROPHE, DIK.DIK_BACKSLASH,
-        DIK.DIK_Z, DIK.DIK_X, DIK.DIK_C, DIK.DIK_V, DIK.DIK_B, DIK.DIK_N, DIK.DIK_M, DIK.DIK_COMMA, DIK.DIK_PERIOD,
-        DIK.DIK_SLASH, DIK.DIK_F11, DIK.DIK_F12, DIK.DIK_F13, DIK.DIK_F14, DIK.DIK_F15
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_Q),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_W),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_E),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_R),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_T),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_Y),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_U),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_I),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_O),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_P),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_LEFTBRACKET),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_RIGHTBRACKET),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_A),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_S),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_D),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_G),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_H),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_J),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_K),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_L),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_SEMICOLON),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_APOSTROPHE),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_BACKSLASH),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_Z),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_X),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_C),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_V),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_B),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_N),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_M),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_COMMA),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_PERIOD),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_SLASH),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F11),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F12),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F13),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F14),
+        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F15),
     };
 }

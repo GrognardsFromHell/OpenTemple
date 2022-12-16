@@ -15,7 +15,7 @@ public static class ItemTooltipBuilder
         }
     }
 
-    public static string BuildItemTooltip(GameObject observer, GameObject item)
+    public static string? BuildItemTooltip(GameObject observer, GameObject item)
     {
         var tooltipBuilder = new StringBuilder();
 

@@ -44,10 +44,9 @@ public class PopupUi : IDisposable, IResetAwareSystem
     private void CreatePopupWidget(UiPromptListEntry uiPopup)
     {
         var window = new WidgetContainer(new Rectangle(0, 0, 0, 0));
-// popup_ui_main_window1.OnBeforeRender += 0x10170a90;
+        // popup_ui_main_window1.OnBeforeRender += 0x10170a90;
         window.Name = "popup_ui_main_window";
-        window.Visible = false;
-        window.SetMouseMsgHandler(msg => true); // Swallow mouse clicks and such
+        window.PreventsInGameInteraction = true;        
         uiPopup.wnd = window;
 
         uiPopup.background = new WidgetImage();
@@ -71,7 +70,7 @@ public class PopupUi : IDisposable, IResetAwareSystem
         okButton.Visible = false;
         window.Add(okButton);
         uiPopup.btn1 = okButton;
-        okButton.SetClickHandler(() => OnClickButton(uiPopup, 0));
+        okButton.AddClickListener(() => OnClickButton(uiPopup, 0));
 
         var cancelButton = new WidgetButton(new Rectangle(0, 0, 0, 0));
 // popup_ui_button2.OnHandleMessage += 0x10171b50;
@@ -81,7 +80,7 @@ public class PopupUi : IDisposable, IResetAwareSystem
         cancelButton.Visible = false;
         window.Add(cancelButton);
         uiPopup.btn2 = cancelButton;
-        cancelButton.SetClickHandler(() => OnClickButton(uiPopup, 1));
+        cancelButton.AddClickListener(() => OnClickButton(uiPopup, 1));
 
         var popup_ui_button3 = new WidgetButton(new Rectangle(0, 0, 0, 0));
 // popup_ui_button3.OnHandleMessage += 0x10171b50;
@@ -105,7 +104,7 @@ public class PopupUi : IDisposable, IResetAwareSystem
 
         popup.isActive = false;
         uiPopupCurrent = -1;
-        popup.wnd.Visible = false;
+        Globals.UiManager.RemoveWindow(popup.wnd);
 
         popup.prompt.onPopupHide?.Invoke();
         popup.wnd.Rectangle = Rectangle.Empty;
@@ -254,9 +253,9 @@ public class PopupUi : IDisposable, IResetAwareSystem
             throw new NotImplementedException();
         }
 
-        popup.wnd.Visible = true;
+        Globals.UiManager.AddWindow(popup.wnd);
         popup.wnd.BringToFront();
-        popup.wnd.CenterOnScreen();
+        popup.wnd.CenterInParent();
 
         popup.prompt.onPopupShow?.Invoke();
     }

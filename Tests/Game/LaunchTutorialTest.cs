@@ -36,7 +36,7 @@ public class LaunchTutorialTest : HeadlessGameTest
             .Where(o => !o.HasFlag(ObjectFlag.DYNAMIC))
             .Select(obj => obj.ProtoId);
 
-        objectsOnMap.Should().BeEquivalentTo(
+        objectsOnMap.Should().Equal(
             1048, // Tutorial Chest A (container)
             14433, // Giant Rat (npc)
             14434, // Tutorial Room1 (npc)
@@ -63,7 +63,7 @@ public class LaunchTutorialTest : HeadlessGameTest
 
         var playerCharacter = partyObjects[0];
         playerCharacter.ProtoId.Should().Be(13105);
-        GameSystems.Party.PartyMembers.Should().BeEquivalentTo(playerCharacter);
+        GameSystems.Party.PartyMembers.Should().Equal(playerCharacter);
     }
 
     [Test]
@@ -72,7 +72,7 @@ public class LaunchTutorialTest : HeadlessGameTest
         var pc = GameSystems.Party.PartyMembers.First();
         pc.EnumerateEquipment()
             .Select(kvp => (kvp.Key, kvp.Value.ProtoId))
-            .Should().BeEquivalentTo(
+            .Should().Equal(
                 (EquipSlot.Helmet, 6032),
                 (EquipSlot.Gloves, 6012),
                 (EquipSlot.Armor, 6047),

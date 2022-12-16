@@ -9,13 +9,13 @@ public class WidgetButton : WidgetButtonBase
 {
     private readonly WidgetText _label;
 
-    private WidgetImage _activatedImage;
-    private WidgetImage _disabledImage;
-    private WidgetImage _frameImage;
-    private WidgetImage _hoverImage;
+    private WidgetImage? _activatedImage;
+    private WidgetImage? _disabledImage;
+    private WidgetImage? _frameImage;
+    private WidgetImage? _hoverImage;
 
-    protected WidgetImage _normalImage;
-    private WidgetImage _pressedImage;
+    protected WidgetImage? _normalImage;
+    private WidgetImage? _pressedImage;
 
     private WidgetButtonStyle _style;
 
@@ -39,8 +39,8 @@ public class WidgetButton : WidgetButtonBase
 
     public WidgetButton(Rectangle rect) : this()
     {
-        SetPos(rect.Location);
-        SetSize(rect.Size);
+        Pos = rect.Location;
+        Size = rect.Size;
     }
 
     /*
@@ -50,10 +50,10 @@ public class WidgetButton : WidgetButtonBase
     public void SetStyle(WidgetButtonStyle style)
     {
         _style = style;
-        sndHoverOn = style.SoundEnter;
-        sndHoverOff = style.SoundLeave;
-        sndDown = style.SoundDown;
-        sndClick = style.SoundClick;
+        SoundMouseEnter = style.SoundEnter;
+        SoundMouseLeave = style.SoundLeave;
+        SoundPressed = style.SoundDown;
+        SoundClicked = style.SoundClick;
         UpdateContent();
     }
 
@@ -81,7 +81,7 @@ public class WidgetButton : WidgetButtonBase
 
         string? labelStyle = null;
 
-        if (mDisabled)
+        if (Disabled)
         {
             if (_style.DisabledTextStyleId != null)
             {
@@ -94,7 +94,7 @@ public class WidgetButton : WidgetButtonBase
         }
         else
         {
-            if (ButtonState == LgcyButtonState.Down)
+            if (ContainsPress)
             {
                 if (_style.PressedTextStyleId != null)
                 {
@@ -111,8 +111,7 @@ public class WidgetButton : WidgetButtonBase
             }
             else if (IsActive())
             {
-                if (ButtonState == LgcyButtonState.Hovered
-                    || ButtonState == LgcyButtonState.Released)
+                if (ContainsMouse || Pressed)
                 {
                     if (_style.HoverTextStyleId != null)
                     {
@@ -128,8 +127,7 @@ public class WidgetButton : WidgetButtonBase
                     labelStyle = _style.TextStyleId;
                 }
             }
-            else if (ButtonState == LgcyButtonState.Hovered
-                     || ButtonState == LgcyButtonState.Released)
+            else if (ContainsMouse || Pressed)
             {
                 if (_style.HoverTextStyleId != null)
                 {
@@ -167,25 +165,18 @@ public class WidgetButton : WidgetButtonBase
         _label.Render();
     }
 
-    protected virtual WidgetImage GetCurrentImage()
+    protected virtual WidgetImage? GetCurrentImage()
     {
         // Always fall back to the default
         var image = _normalImage;
 
-        if (mDisabled)
+        if (Disabled)
         {
-            if (_disabledImage != null)
-            {
-                image = _disabledImage;
-            }
-            else
-            {
-                image = _normalImage;
-            }
+            image = _disabledImage ?? _normalImage;
         }
         else
         {
-            if (ButtonState == LgcyButtonState.Down)
+            if (ContainsPress)
             {
                 if (_pressedImage != null)
                 {
@@ -216,17 +207,9 @@ public class WidgetButton : WidgetButtonBase
                     image = _hoverImage;
                 }
             }
-            else if (ButtonState == LgcyButtonState.Hovered
-                     || ButtonState == LgcyButtonState.Released)
+            else if (ContainsMouse || Pressed)
             {
-                if (_hoverImage != null)
-                {
-                    image = _hoverImage;
-                }
-                else
-                {
-                    image = _normalImage;
-                }
+                image = _hoverImage ?? _normalImage;
             }
             else
             {
@@ -324,7 +307,7 @@ public class WidgetButton : WidgetButtonBase
     private void UpdateAutoSize()
     {
         // Try to var-size
-        if (mAutoSizeWidth || mAutoSizeHeight)
+        if (_autoSizeWidth || _autoSizeHeight)
         {
             Size prefSize;
             if (_normalImage != null)
@@ -344,29 +327,29 @@ public class WidgetButton : WidgetButtonBase
                 var marginH = framePrefSize.Height - prefSize.Height;
                 if (marginW > 0)
                 {
-                    mMargins.Right = marginW / 2;
-                    mMargins.Left = marginW - mMargins.Right;
+                    _margins.Right = marginW / 2;
+                    _margins.Left = marginW - _margins.Right;
                 }
 
                 if (marginH > 0)
                 {
-                    mMargins.Bottom = marginH / 2;
-                    mMargins.Top = marginH - mMargins.Bottom;
+                    _margins.Bottom = marginH / 2;
+                    _margins.Top = marginH - _margins.Bottom;
                 }
             }
 
-            prefSize.Height += mMargins.Bottom + mMargins.Top;
-            prefSize.Width += mMargins.Left + mMargins.Right;
+            prefSize.Height += _margins.Bottom + _margins.Top;
+            prefSize.Width += _margins.Left + _margins.Right;
 
-            if (mAutoSizeWidth && mAutoSizeHeight)
+            if (_autoSizeWidth && _autoSizeHeight)
             {
-                SetSize(prefSize);
+                Size = prefSize;
             }
-            else if (mAutoSizeWidth)
+            else if (_autoSizeWidth)
             {
                 Width = prefSize.Width;
             }
-            else if (mAutoSizeHeight)
+            else if (_autoSizeHeight)
             {
                 Height = prefSize.Height;
             }

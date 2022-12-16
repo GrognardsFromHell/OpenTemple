@@ -1,86 +1,120 @@
 using System;
 using System.Drawing;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
-public class WidgetScrollBar : WidgetContainer
+public sealed class WidgetScrollBar : WidgetContainer
 {
-    public WidgetScrollBar(Rectangle rectangle) : this()
-    {
-        SetPos(rectangle.Location);
-        Height = rectangle.Height;
-    }
+    /// <summary>
+    /// How often will the scrollbar move into the designated direction when a user is holding the
+    /// mouse on the scrollbar track (above or below the handle).
+    /// </summary>
+    private static readonly TimeSpan RepeatedScrollingTimeSpan = TimeSpan.FromMilliseconds(250);  
+    
+    private readonly WidgetButton _upButton;
+    private readonly WidgetButton _downButton;
+    private readonly WidgetScrollBarHandle _handle;
+    private readonly WidgetButton _track;
 
     public int Quantum { get; set; } = 1;
+
+    private DeclaredInterval? _repeatedScrolling;
+    
+    private Action<int>? _valueChanged;
+
+    private int _value;
+    private int _min;
+    private int _max = 150;
+
+    public WidgetScrollBar(Rectangle rectangle) : this()
+    {
+        Pos = rectangle.Location;
+        Height = rectangle.Height;
+    }
 
     public WidgetScrollBar() : base(0, 0)
     {
         var upButton = new WidgetButton();
-        upButton.SetParent(this);
         upButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-up"));
-        upButton.SetClickHandler(() => { SetValue(GetValue() - 1); });
-        upButton.SetRepeat(true);
+        upButton.AddClickListener(() => { SetValue(GetValue() - 1); });
+        upButton.IsRepeat = true;
 
         var downButton = new WidgetButton();
-        downButton.SetParent(this);
         downButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-down"));
-        downButton.SetClickHandler(() => { SetValue(GetValue() + 1); });
-        downButton.SetRepeat(true);
+        downButton.AddClickListener(() => { SetValue(GetValue() + 1); });
+        downButton.IsRepeat = true;
 
         var track = new WidgetButton();
-        track.SetParent(this);
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-track"));
-        track.SetClickHandler((x, y) =>
-        {
-            // The y value is in relation to the track, we need to add it's own Y value,
-            // and compare against the current position of the handle
-            y += mTrack.Y;
-            if (y < mHandleButton.Y)
-            {
-                SetValue(GetValue() - 5);
-            }
-            else if (y >= mHandleButton.Y + mHandleButton.Height)
-            {
-                SetValue(GetValue() + 5);
-            }
-        });
-        track.SetRepeat(true);
+        track.IsRepeat = true;
 
         var handle = new WidgetScrollBarHandle(this);
-        handle.SetParent(this);
         handle.Height = 100;
 
         Width = Math.Max(upButton.Width, downButton.Width);
 
-        mUpButton = upButton;
-        mDownButton = downButton;
-        mTrack = track;
-        mHandleButton = handle;
+        _track = track;
+        _upButton = upButton;
+        _downButton = downButton;
+        _handle = handle;
 
         Add(track);
         Add(upButton);
         Add(downButton);
         Add(handle);
+        
+        // Scroll up or down repeatedly if the mouse is held on the track above/below the handle
+        OnMouseDown += e => {
+            if (e.Button == MouseButton.Left && e.InitialTarget == track && SetMouseCapture())
+            {
+                if (_repeatedScrolling != null)
+                {
+                    StopInterval(_repeatedScrolling);
+                    _repeatedScrolling = null;
+                }
+                var handleArea = _handle.GetContentArea();
+                if (e.Y < handleArea.Top)
+                {
+                    SetValue(GetValue() - 5);
+                    _repeatedScrolling = AddInterval(() => SetValue(GetValue() - 5), RepeatedScrollingTimeSpan);
+                }
+                else if (e.Y >= handleArea.Bottom)
+                {
+                    SetValue(GetValue() + 5);
+                    _repeatedScrolling = AddInterval(() => SetValue(GetValue() + 5), RepeatedScrollingTimeSpan);
+                }
+            }
+        };
+    }
+
+    protected override void HandleLostMouseCapture(MouseEvent e)
+    {
+        if (_repeatedScrolling != null)
+        {
+            StopInterval(_repeatedScrolling);
+            _repeatedScrolling = null;
+        }
     }
 
     public int GetMin()
     {
-        return mMin;
+        return _min;
     }
 
     [TempleDllLocation(0x101f9d80)]
     public void SetMin(int value)
     {
-        mMin = value;
-        if (mMin > _max)
+        _min = value;
+        if (_min > _max)
         {
-            mMin = _max;
+            _min = _max;
         }
 
-        if (mValue < mMin)
+        if (_value < _min)
         {
-            SetValue(mMin);
+            SetValue(_min);
         }
     }
 
@@ -91,12 +125,12 @@ public class WidgetScrollBar : WidgetContainer
         set
         {
             _max = value;
-            if (_max < mMin)
+            if (_max < _min)
             {
-                _max = mMin;
+                _max = _min;
             }
 
-            if (mValue > _max)
+            if (_value > _max)
             {
                 SetValue(_max);
             }
@@ -105,15 +139,15 @@ public class WidgetScrollBar : WidgetContainer
 
     public int GetValue()
     {
-        return mValue;
+        return _value;
     }
 
     [TempleDllLocation(0x101f9e20)]
     public void SetValue(int value)
     {
-        if (value < mMin)
+        if (value < _min)
         {
-            value = mMin;
+            value = _min;
         }
 
         if (value > _max)
@@ -121,45 +155,34 @@ public class WidgetScrollBar : WidgetContainer
             value = _max;
         }
 
-        if (value != mValue)
+        if (value != _value)
         {
-            mValue = value;
-            mValueChanged?.Invoke(mValue);
+            _value = value;
+            _valueChanged?.Invoke(_value);
         }
     }
 
     public override void Render()
     {
-        mDownButton.Y = Height - mDownButton.Height;
+        _downButton.Y = Height - _downButton.Height;
 
         // Update the track position
-        mTrack.Width = Width;
-        mTrack.Y = mUpButton.Height;
-        mTrack.Height = Height - mUpButton.Height - mDownButton.Height;
+        _track.Width = Width;
+        _track.Y = _upButton.Height;
+        _track.Height = Height - _upButton.Height - _downButton.Height;
 
         var scrollRange = GetScrollRange();
-        int handleOffset = (int) (((mValue - mMin) / (float) _max) * scrollRange);
-        mHandleButton.Y = mUpButton.Height + handleOffset;
-        mHandleButton.Height = GetHandleHeight();
+        int handleOffset = (int) (((_value - _min) / (float) _max) * scrollRange);
+        _handle.Y = _upButton.Height + handleOffset;
+        _handle.Height = GetHandleHeight();
 
         base.Render();
     }
 
     public void SetValueChangeHandler(Action<int> handler)
     {
-        mValueChanged = handler;
+        _valueChanged = handler;
     }
-
-    private Action<int> mValueChanged;
-
-    private int mValue = 0;
-    private int mMin = 0;
-    private int _max = 150;
-
-    private WidgetButton mUpButton;
-    private WidgetButton mDownButton;
-    private WidgetButton mTrack;
-    private WidgetScrollBarHandle mHandleButton;
 
     private int GetHandleHeight()
     {
@@ -175,40 +198,46 @@ public class WidgetScrollBar : WidgetContainer
 
     private int GetTrackHeight()
     {
-        return Height - mUpButton.Height - mDownButton.Height;
+        return Height - _upButton.Height - _downButton.Height;
     } // gets height of track area
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
+    protected override void HandleMouseWheel(WheelEvent e)
     {
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+        if (e.DeltaY > 0)
         {
-            if (msg.wheelDelta > 0)
-            {
-                SetValue(GetValue() - Quantum);
-            }
-            else if (msg.wheelDelta < 0)
-            {
-                SetValue(GetValue() + Quantum);
-            }
-
-            return true;
+            SetValue(GetValue() - Quantum);
+        }
+        else if (e.DeltaY < 0)
+        {
+            SetValue(GetValue() + Quantum);
         }
 
-        return base.HandleMouseMessage(msg);
+        e.StopPropagation();
     }
 
     private class WidgetScrollBarHandle : WidgetButtonBase
     {
+        private readonly WidgetScrollBar _scrollBar;
+        private readonly WidgetImage _top;
+        private readonly WidgetImage _topClicked;
+        private readonly WidgetImage _handle;
+        private readonly WidgetImage _handleClicked;
+        private readonly WidgetImage _bottom;
+        private readonly WidgetImage _bottomClicked;
+
+        private int _dragY;
+        private int _dragGrabPoint;
+        
         public WidgetScrollBarHandle(WidgetScrollBar scrollBar)
         {
-            mScrollBar = scrollBar;
-            mTop = new WidgetImage("art/scrollbar/top.tga");
-            mTopClicked = new WidgetImage("art/scrollbar/top_click.tga");
-            mHandle = new WidgetImage("art/scrollbar/fill.tga");
-            mHandleClicked = new WidgetImage("art/scrollbar/fill_click.tga");
-            mBottom = new WidgetImage("art/scrollbar/bottom.tga");
-            mBottomClicked = new WidgetImage("art/scrollbar/bottom_click.tga");
-            Width = mHandle.GetPreferredSize().Width;
+            _scrollBar = scrollBar;
+            _top = new WidgetImage("art/scrollbar/top.tga");
+            _topClicked = new WidgetImage("art/scrollbar/top_click.tga");
+            _handle = new WidgetImage("art/scrollbar/fill.tga");
+            _handleClicked = new WidgetImage("art/scrollbar/fill_click.tga");
+            _bottom = new WidgetImage("art/scrollbar/bottom.tga");
+            _bottomClicked = new WidgetImage("art/scrollbar/bottom_click.tga");
+            Width = _handle.GetPreferredSize().Width;
         }
 
         public override void Render()
@@ -216,17 +245,17 @@ public class WidgetScrollBar : WidgetContainer
             var contentArea = GetContentArea();
 
             WidgetImage top, handle, bottom;
-            if (Globals.UiManager.GetMouseCaptureWidget() == this)
+            if (Globals.UiManager.MouseCaptureWidget == this)
             {
-                top = mTopClicked;
-                handle = mHandleClicked;
-                bottom = mBottomClicked;
+                top = _topClicked;
+                handle = _handleClicked;
+                bottom = _bottomClicked;
             }
             else
             {
-                top = mTop;
-                handle = mHandle;
-                bottom = mBottom;
+                top = _top;
+                handle = _handle;
+                bottom = _bottom;
             }
             
             var topArea = contentArea;
@@ -254,62 +283,37 @@ public class WidgetScrollBar : WidgetContainer
             }
         }
 
-        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        protected override void HandleMouseDown(MouseEvent e)
         {
-            if (Globals.UiManager.GetMouseCaptureWidget() == this)
+            if (e.Button == MouseButton.Left)
             {
-                if (msg.flags.HasFlag(MouseEventFlag.PosChange))
-                {
-                    int curY = mDragY + msg.Y - mDragGrabPoint;
-
-                    int scrollRange = mScrollBar.GetScrollRange();
-                    var vPercent = (curY - mScrollBar.mUpButton.Height) / (float) scrollRange;
-                    if (vPercent < 0)
-                    {
-                        vPercent = 0;
-                    }
-                    else if (vPercent > 1)
-                    {
-                        vPercent = 1;
-                    }
-
-                    var newVal = mScrollBar.mMin + (mScrollBar._max - mScrollBar.mMin) * vPercent;
-
-                    mScrollBar.SetValue((int) newVal);
-                }
-
-                if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
-                {
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
-                }
+                SetMouseCapture();
+                _dragGrabPoint = (int) e.Y;
+                _dragY = Y;
             }
-            else
-            {
-                if (msg.flags.HasFlag(MouseEventFlag.LeftClick))
-                {
-                    Globals.UiManager.SetMouseCaptureWidget(this);
-                    mDragGrabPoint = msg.Y;
-                    mDragY = Y;
-                }
-                else if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-                {
-                    // Forward scroll wheel message to parent
-                    mScrollBar.HandleMouseMessage(msg);
-                }
-            }
-
-            return true;
         }
 
-        private WidgetScrollBar mScrollBar;
-        private WidgetImage mTop;
-        private WidgetImage mTopClicked;
-        private WidgetImage mHandle;
-        private WidgetImage mHandleClicked;
-        private WidgetImage mBottom;
-        private WidgetImage mBottomClicked;
+        protected override void HandleMouseMove(MouseEvent e)
+        {
+            if (HasMouseCapture)
+            {
+                int curY = _dragY + (int) e.Y - _dragGrabPoint;
 
-        private int mDragY = 0;
-        private int mDragGrabPoint = 0;
+                int scrollRange = _scrollBar.GetScrollRange();
+                var vPercent = (curY - _scrollBar._upButton.Height) / (float) scrollRange;
+                if (vPercent < 0)
+                {
+                    vPercent = 0;
+                }
+                else if (vPercent > 1)
+                {
+                    vPercent = 1;
+                }
+
+                var newVal = _scrollBar._min + (_scrollBar._max - _scrollBar._min) * vPercent;
+
+                _scrollBar.SetValue((int) newVal);
+            }
+        }
     };
 };

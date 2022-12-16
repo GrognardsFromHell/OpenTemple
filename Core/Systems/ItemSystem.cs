@@ -217,7 +217,7 @@ public class ItemSystem : IGameSystem
     }
 
     [TempleDllLocation(0x100651B0)]
-    public GameObject GetItemAtInvIdx(GameObject container, int index)
+    public GameObject? GetItemAtInvIdx(GameObject container, int index)
     {
         if (container.IsCritter() && GameSystems.D20.D20Query(container, D20DispatcherKey.QUE_Polymorphed))
         {
@@ -3278,7 +3278,7 @@ public class ItemSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10069970)]
-    public int GetAppraisedWorth(GameObject item, GameObject appraise, GameObject seller, int a4 = 0)
+    public int GetAppraisedWorth(GameObject item, GameObject appraise, GameObject? seller, int a4 = 0)
     {
         // TODO: a4 was always zero
         Stub.TODO();

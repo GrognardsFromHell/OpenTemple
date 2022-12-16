@@ -4,6 +4,8 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
+using SDL2;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
 
@@ -170,7 +172,7 @@ internal class MultiTargetBehavior : PickerBehavior
     internal override void DrawTextAtCursor(int x, int y)
     {
         // This dirty hack will render tooltips and THEN the text over them...
-        var widget = Globals.UiManager.GetWidgetAt(x, y);
+        var widget = Globals.UiManager.PickWidget(x, y);
         widget?.RenderTooltip(x, y);
 
         Tig.RenderingDevice.TextEngine.RenderText(
@@ -184,7 +186,7 @@ internal class MultiTargetBehavior : PickerBehavior
     internal override bool KeyStateChanged(MessageKeyStateChangeArgs args)
     {
         // Releasing space bar will end the picker
-        if (args.key == DIK.DIK_SPACE && !args.down)
+        if (args.key == SDL.SDL_Keycode.SDLK_SPACE && !args.down)
         {
             return ForceEnd();
         }
@@ -209,15 +211,15 @@ internal class MultiTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x10137a70)]
-    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
-        if (HandleClickInUnexploredArea(args.X, args.Y, false))
+        if (HandleClickInUnexploredArea(e.X, e.Y, false))
         {
             return false;
         }
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions();
-        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var objFound, raycastFlags))
+        var raycastFlags = PickerState.GetFlagsFromExclusions(e);
+        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, e.X, e.Y, out var objFound, raycastFlags))
         {
             return true;
         }
@@ -246,16 +248,16 @@ internal class MultiTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x10138170)]
-    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool MouseMoved(IGameViewport viewport, MouseEvent e)
     {
-        if (HandleClickInUnexploredArea(args.X, args.Y, false))
+        if (HandleClickInUnexploredArea(e.X, e.Y, false))
         {
             // Not resetting targets here is a change vs. vanilla
             return false;
         }
 
-        var raycastFlags = PickerState.GetFlagsFromExclusions();
-        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags))
+        var raycastFlags = PickerState.GetFlagsFromExclusions(e);
+        if (!GameSystems.Raycast.PickObjectOnScreen(viewport, e.X, e.Y, out var target, raycastFlags))
         {
             PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);
             PickerState.Target = null;
@@ -297,7 +299,7 @@ internal class MultiTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x10136790)]
-    internal override bool RightMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool RightMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
         if (PickerState.tgtIdx != 0)
         {
@@ -309,6 +311,6 @@ internal class MultiTargetBehavior : PickerBehavior
             return true;
         }
 
-        return base.RightMouseButtonReleased(viewport, args);
+        return base.RightMouseButtonReleased(viewport, e);
     }
 }

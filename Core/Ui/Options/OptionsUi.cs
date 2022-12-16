@@ -20,7 +20,7 @@ public class OptionsUi
     private const int OptionRows = 11;
 
     [TempleDllLocation(0x101177d0)]
-    public bool IsVisible => _container.Visible;
+    public bool IsVisible => _container.IsInTree;
 
     [TempleDllLocation(0x10bda724)]
     private bool _fromMainMenu; // Prolly means shown from utility bar
@@ -43,16 +43,15 @@ public class OptionsUi
     {
         var doc = WidgetDoc.Load("ui/options_ui.json");
         _container = doc.GetRootContainer();
-        _container.Visible = false;
         _optionsContainer = doc.GetContainer("options");
 
         _scrollbar = doc.GetScrollBar("scrollbar");
 
         var accept = doc.GetButton("accept");
-        accept.SetClickHandler(ApplySettings);
+        accept.AddClickListener(ApplySettings);
 
         var cancel = doc.GetButton("cancel");
-        cancel.SetClickHandler(Cancel);
+        cancel.AddClickListener(Cancel);
 
         CreatePages();
 
@@ -62,16 +61,9 @@ public class OptionsUi
         _tabBar.ActiveTabIndex = 0;
 
         // Forward otherwise unhandled mouse-wheel messages to the scrollbar
-        _container.SetMouseMsgHandler(msg =>
-        {
-            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-            {
-                _scrollbar.HandleMouseMessage(msg);
-                return true;
-            }
-
-            return false;
-        });
+        _container.OnMouseWheel += e => {
+            _scrollbar.DispatchMouseWheel(e);
+        };
     }
 
     private void CreatePages()
@@ -194,8 +186,7 @@ public class OptionsUi
 
         UiSystems.HideOpenedWindows(true);
         GameSystems.TimeEvent.PauseGameTime();
-        _container.Visible = true;
-        Globals.UiManager.Modal = _container;
+        Globals.UiManager.ShowModal(_container);
 
         if (fromMainMenu)
         {
@@ -217,13 +208,10 @@ public class OptionsUi
     [TempleDllLocation(0x10117780)]
     public void Hide()
     {
-        if (_container.Visible)
+        if (Globals.UiManager.RemoveWindow(_container))
         {
             GameSystems.TimeEvent.ResumeGameTime();
-            Globals.UiManager.Modal = null;
         }
-
-        _container.Visible = false;
 
         if (_fromMainMenu)
         {

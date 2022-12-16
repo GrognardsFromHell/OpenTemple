@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Diagnostics;
+
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Ui.Widgets;
@@ -24,7 +23,7 @@ public class HairColorButton : WidgetButtonBase
         }
     }
 
-    public string HairStyleTexture
+    public string? HairStyleTexture
     {
         set
         {
@@ -53,13 +52,21 @@ public class HairColorButton : WidgetButtonBase
 
     public override void Render()
     {
-        _colorRect.Pen = ButtonState switch
+        var pen = OutlineDefault;
+        if (ContainsPress)
         {
-            LgcyButtonState.Down => OutlinePressed,
-            LgcyButtonState.Hovered => OutlineHovered,
-            _ when Selected => OutlineSelected,
-            _ => OutlineDefault
-        };
+            pen = OutlinePressed;
+        }
+        else if (ContainsMouse)
+        {
+            pen = OutlineHovered;
+        }
+        else if (Selected)
+        {
+            pen = OutlineSelected;
+        }
+
+        _colorRect.Pen = pen;
 
         base.Render();
     }

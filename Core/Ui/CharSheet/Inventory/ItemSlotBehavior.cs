@@ -10,6 +10,7 @@ using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet.Portrait;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Inventory;
@@ -20,10 +21,12 @@ public enum ItemSlotMode
     /// A slot belonging to one's own inventory.
     /// </summary>
     Inventory,
+
     /// <summary>
     /// A slot belonging to a container or corpse that is being looted.
     /// </summary>
     Looting,
+
     /// <summary>
     /// A slot belonging to a vendor's inventory who is being bartered with.
     /// </summary>
@@ -36,76 +39,107 @@ public class ItemSlotBehavior
 
     private readonly WidgetBase _slotWidget;
 
-    private readonly Func<GameObject> _currentItemSupplier;
+    private readonly Func<GameObject?> _currentItemSupplier;
 
-    private readonly Func<GameObject> _actingCritterSupplier;
+    private readonly Func<GameObject?> _actingCritterSupplier;
 
-    private GameObject CurrentItem => _currentItemSupplier();
+    private GameObject? CurrentItem => _currentItemSupplier();
 
-    private GameObject ActingCritter => _actingCritterSupplier();
+    private GameObject? ActingCritter => _actingCritterSupplier();
 
     public bool AllowShowInfo { get; set; }
 
     public ItemSlotMode Mode { get; set; } = ItemSlotMode.Inventory;
 
+    private bool _dragging;
+
     public ItemSlotBehavior(WidgetBase slotWidget,
-        Func<GameObject> currentItemSupplier,
-        Func<GameObject> actingCritterSupplier)
+        Func<GameObject?> currentItemSupplier,
+        Func<GameObject?> actingCritterSupplier)
     {
         _slotWidget = slotWidget;
         _currentItemSupplier = currentItemSupplier;
         _actingCritterSupplier = actingCritterSupplier;
 
-        slotWidget.SetMouseMsgHandler(HandleMouseMessage);
-        slotWidget.SetWidgetMsgHandler(HandleWidgetMessage);
+        slotWidget.OnMouseDown += HandleMouseDown;
+        slotWidget.OnMouseMove += e =>
+        {
+            if (e.IsLeftButtonHeld)
+            {
+                _dragging = true;
+            }
+        };
+        slotWidget.OnMouseUp += HandleMouseUp;
+        slotWidget.OnMouseLeave += _ => UiSystems.CharSheet.Help.ClearHelpText();
     }
 
-    private bool HandleWidgetMessage(MessageWidgetArgs msg)
+    private void HandleMouseDown(MouseEvent e)
     {
-        // Determine where inside the widget the user clicked.
-        var contentArea = _slotWidget.GetContentArea();
-        var relPos = new Point(msg.x - contentArea.X, msg.y - contentArea.Y);
-
-        var currentItem = CurrentItem;
-
-        switch (msg.widgetEventType)
+        if (e.Button == MouseButton.Left)
         {
-            case TigMsgWidgetEvent.Exited:
-                UiSystems.CharSheet.Help.ClearHelpText();
-                break;
-            case TigMsgWidgetEvent.Clicked:
+            var currentItem = CurrentItem;
+
+            // Other operations are in progress, or this slot is empty
+            if (currentItem == null
+                || UiSystems.CharSheet.Looting.IsIdentifying
+                || UiSystems.CharSheet.State == CharInventoryState.CastingSpell)
             {
-                if (currentItem == null)
-                {
-                    return false;
-                }
-
-                if (UiSystems.CharSheet.Looting.IsIdentifying)
-                {
-                    return false;
-                }
-
-                if (UiSystems.CharSheet.State == CharInventoryState.CastingSpell)
-                {
-                    return false;
-                }
-
-                UiSystems.CharSheet.Inventory.DraggedObject = currentItem;
-                var texturePath = currentItem.GetInventoryIconPath();
-                var iconSize = _slotWidget.GetSize();
-                iconSize.Height -= 4;
-                iconSize.Width -= 4;
-                Tig.Mouse.SetDraggedIcon(texturePath, new Point(-relPos.X + 4, -relPos.Y + 4), iconSize);
-                return false;
+                return;
             }
 
-            case TigMsgWidgetEvent.MouseReleased:
+            // Determine where inside the widget the user clicked.
+            var contentArea = _slotWidget.GetContentArea();
+            var relPos = new PointF(e.X - contentArea.X, e.Y - contentArea.Y);
+
+            UiSystems.CharSheet.Inventory.DraggedObject = currentItem;
+            var texturePath = currentItem.GetInventoryIconPath();
+            var iconSize = _slotWidget.Size;
+            iconSize.Height -= 4;
+            iconSize.Width -= 4;
+            Tig.Mouse.SetDraggedIcon(texturePath, Point.Round(new PointF(-relPos.X + 4, -relPos.Y + 4)), iconSize);
+
+            _slotWidget.SetMouseCapture();
+            _dragging = false;
+        }
+    }
+    
+    private void HandleMouseUp(MouseEvent e)
+    {
+        _slotWidget.ReleaseMouseCapture();
+        
+        var currentItem = CurrentItem;
+
+        if (e.Button == MouseButton.Left)
+        {
+            if (_dragging)
+            {
+                var droppedOn = Globals.UiManager.PickWidget(e.X, e.Y);
+                var item = UiSystems.CharSheet.Inventory.DraggedObject;
+
+                UiSystems.CharSheet.Inventory.DraggedObject = null;
+                Tig.Mouse.ClearDraggedIcon();
+
+                if (item == null || droppedOn == _slotWidget)
+                {
+                    return;
+                }
+
+                DropOn(droppedOn);
+            }
+            else
+            {
+                if (UiSystems.CharSheet.State == CharInventoryState.CastingSpell)
+                {
+                    UiSystems.CharSheet.CallItemPickCallback(CurrentItem);
+                    return;
+                }
+
                 if (UiSystems.CharSheet.Looting.IsIdentifying)
                 {
                     if (currentItem == null || GameSystems.Item.IsIdentified(currentItem) ||
                         GameSystems.Party.GetPartyMoney() < 10000)
                     {
-                        return false;
+                        return;
                     }
 
                     GameSystems.Party.RemovePartyMoney(0, 100, 0, 0);
@@ -115,8 +149,7 @@ public class ItemSlotBehavior
                 {
                     // Shift+Click will show extra info about an item
                     if (AllowShowInfo
-                        && (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT)
-                            || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+                        && (Tig.Keyboard.IsShiftPressed)
                         && GameSystems.MapObject.HasLongDescription(currentItem))
                     {
                         UiSystems.CharSheet.ShowItemDetailsPopup(currentItem, ActingCritter);
@@ -125,104 +158,64 @@ public class ItemSlotBehavior
                     UiSystems.CharSheet.Inventory.DraggedObject = null;
                     Tig.Mouse.ClearDraggedIcon();
                 }
-
-                return false;
-            case TigMsgWidgetEvent.MouseReleasedAtDifferentButton:
-                var droppedOn = Globals.UiManager.GetWidgetAt(msg.x, msg.y);
-                if (droppedOn != null)
-                {
-                    var mouseMsg = new Message(new MessageMouseArgs(msg.x, msg.y, 0, MouseEventFlag.LeftReleased));
-                    _slotWidget.HandleMessage(mouseMsg);
-                }
-
-                UiSystems.CharSheet.Inventory.DraggedObject = null;
-                Tig.Mouse.ClearDraggedIcon();
-                break;
+            }
         }
-
-        return true;
-    }
-
-    private bool HandleMouseMessage(MessageMouseArgs msg)
-    {
-        if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
-        {
-            if (UiSystems.CharSheet.State == CharInventoryState.CastingSpell)
-            {
-                UiSystems.CharSheet.CallItemPickCallback(CurrentItem);
-                return true;
-            }
-
-            var droppedOn = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
-            var item = UiSystems.CharSheet.Inventory.DraggedObject;
-            if (item == null || droppedOn == _slotWidget)
-            {
-                return true;
-            }
-
-            if (droppedOn is PaperdollSlotWidget targetSlotWidget)
-            {
-                Insert(ActingCritter, CurrentItem, targetSlotWidget);
-            }
-            else if (droppedOn == UiSystems.CharSheet.Inventory.UseItemWidget)
-            {
-                UseItem(ActingCritter, CurrentItem);
-            }
-            else if (droppedOn == UiSystems.CharSheet.Inventory.DropItemWidget)
-            {
-                DropItem(ActingCritter, CurrentItem);
-            }
-            else if (UiSystems.CharSheet.State == CharInventoryState.Looting &&
-                     UiSystems.CharSheet.Looting.TryGetInventoryIdxForWidget(droppedOn, out var lootingInvIdx))
-            {
-                InsertIntoLootContainer(ActingCritter, CurrentItem, lootingInvIdx);
-            }
-            else if (UiSystems.CharSheet.State == CharInventoryState.Bartering &&
-                     UiSystems.CharSheet.Looting.TryGetInventoryIdxForWidget(droppedOn, out var barterInvIdx))
-            {
-                InsertIntoBarterContainer(ActingCritter, CurrentItem, barterInvIdx);
-            }
-            else if (UiSystems.Party.TryGetPartyMemberByWidget(droppedOn, out var partyMember))
-            {
-                InsertIntoPartyPortrait(ActingCritter, CurrentItem, partyMember);
-            }
-            else if (UiSystems.CharSheet.Inventory.TryGetInventoryIdxForWidget(droppedOn, out var invIdx))
-            {
-                InsertIntoInventorySlot(ActingCritter, CurrentItem, invIdx);
-            }
-
-            UiSystems.CharSheet.Inventory.DraggedObject = null;
-            Tig.Mouse.ClearDraggedIcon();
-        }
-        else if (msg.flags.HasFlag(MouseEventFlag.RightReleased))
+        else if (e.Button == MouseButton.Right)
         {
             var critter = ActingCritter;
-            var item = CurrentItem;
-            if (item != null)
+            if (currentItem != null)
             {
                 // If the item is in another container, then we'll simply try to take it
-                if (GameSystems.Item.GetParent(item) != critter)
+                if (GameSystems.Item.GetParent(currentItem) != critter)
                 {
-
                 }
                 // If the item is currently equipped, unequip it,
-                else if (GameSystems.Item.IsEquipped(item))
+                else if (GameSystems.Item.IsEquipped(currentItem))
                 {
-                    UnequipItem(item, critter);
+                    UnequipItem(currentItem, critter);
                 }
                 // otherwise equip it
                 else
                 {
-                    EquipItem(item, critter);
+                    EquipItem(currentItem, critter);
                 }
             }
-
-            return true;
         }
-
-        return true;
     }
 
+    private void DropOn(WidgetBase? droppedOn)
+    {
+        if (droppedOn is PaperdollSlotWidget targetSlotWidget)
+        {
+            Insert(ActingCritter, CurrentItem, targetSlotWidget);
+        }
+        else if (droppedOn == UiSystems.CharSheet.Inventory.UseItemWidget)
+        {
+            UseItem(ActingCritter, CurrentItem);
+        }
+        else if (droppedOn == UiSystems.CharSheet.Inventory.DropItemWidget)
+        {
+            DropItem(ActingCritter, CurrentItem);
+        }
+        else if (UiSystems.CharSheet.State == CharInventoryState.Looting &&
+                 UiSystems.CharSheet.Looting.TryGetInventoryIdxForWidget(droppedOn, out var lootingInvIdx))
+        {
+            InsertIntoLootContainer(ActingCritter, CurrentItem, lootingInvIdx);
+        }
+        else if (UiSystems.CharSheet.State == CharInventoryState.Bartering &&
+                 UiSystems.CharSheet.Looting.TryGetInventoryIdxForWidget(droppedOn, out var barterInvIdx))
+        {
+            InsertIntoBarterContainer(ActingCritter, CurrentItem, barterInvIdx);
+        }
+        else if (UiSystems.Party.TryGetPartyMemberByWidget(droppedOn, out var partyMember))
+        {
+            InsertIntoPartyPortrait(ActingCritter, CurrentItem, partyMember);
+        }
+        else if (UiSystems.CharSheet.Inventory.TryGetInventoryIdxForWidget(droppedOn, out var invIdx))
+        {
+            InsertIntoInventorySlot(ActingCritter, CurrentItem, invIdx);
+        }
+    }
 
     private static bool IsSplittable(GameObject item, out int quantity)
     {
@@ -349,11 +342,11 @@ public class ItemSlotBehavior
     {
         var target = UiSystems.CharSheet.Looting.LootingContainer;
         ItemInsertFlag insertFlags;
-        if (target.IsCritter())
+        if (target != null && target.IsCritter())
         {
             insertFlags = ItemInsertFlag.Unk4;
         }
-        else if (target.type == ObjectType.container)
+        else if (target?.type == ObjectType.container)
         {
             insertFlags = ItemInsertFlag.Unk4 | ItemInsertFlag.Use_Max_Idx_200;
         }
@@ -395,7 +388,7 @@ public class ItemSlotBehavior
     private void InsertIntoBarterContainer(GameObject critter, GameObject item, int msg)
     {
         var buyer = UiSystems.CharSheet.Looting.LootingContainer;
-        if (!buyer.IsCritter())
+        if (buyer == null || !buyer.IsCritter())
         {
             buyer = UiSystems.CharSheet.Looting.Vendor;
         }

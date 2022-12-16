@@ -634,7 +634,7 @@ public class CritterSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10080430)]
-    public GameObject GetLeaderRecursive(GameObject obj)
+    public GameObject? GetLeaderRecursive(GameObject obj)
     {
         if (!obj.IsNPC())
         {
@@ -655,7 +655,7 @@ public class CritterSystem : IGameSystem
     }
 
     [TempleDllLocation(0x1007ea70)]
-    public GameObject GetLeader(GameObject obj)
+    public GameObject? GetLeader(GameObject obj)
     {
         if (obj.IsNPC())
         {
@@ -1848,10 +1848,10 @@ public class CritterSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10AB73E0)]
-    private GameObject _critterCurrentlyDying;
+    private GameObject? _critterCurrentlyDying;
 
     [TempleDllLocation(0x100810a0)]
-    public void HandleDeath(GameObject critter, GameObject killer, EncodedAnimId deathAnim)
+    public void HandleDeath(GameObject critter, GameObject? killer, EncodedAnimId deathAnim)
     {
         GameSystems.TextFloater.CritterDied(critter);
         if (_critterCurrentlyDying != critter)
@@ -1988,7 +1988,7 @@ public class CritterSystem : IGameSystem
         return Dice.Unpack(critter.GetUInt32(obj_f.critter_damage_idx, damageIndex));
     }
 
-    private static readonly Dictionary<NaturalAttackType, DamageType> _naturalAttackDamageTypes =
+    private static readonly Dictionary<NaturalAttackType, DamageType> NaturalAttackDamageTypes =
         new()
         {
             {NaturalAttackType.Bite, DamageType.SlashingAndBludgeoningAndPiercing},
@@ -2011,7 +2011,7 @@ public class CritterSystem : IGameSystem
     public DamageType GetCritterAttackDamageType(GameObject critter, int attackIndex)
     {
         var attackType = GetCritterAttackType(critter, attackIndex);
-        return _naturalAttackDamageTypes[attackType];
+        return NaturalAttackDamageTypes[attackType];
     }
 
     public bool HasDomain(GameObject caster, DomainId domain)
@@ -2490,7 +2490,7 @@ public static class CritterExtensions
     }
 
     [TempleDllLocation(0x1007f5b0)]
-    public static GameObject GetSubstituteInventory(this GameObject npc)
+    public static GameObject? GetSubstituteInventory(this GameObject npc)
     {
         if (npc == null || !npc.IsNPC() || GameSystems.Critter.GetLeader(npc) != null)
         {

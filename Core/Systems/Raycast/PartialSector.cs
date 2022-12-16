@@ -18,6 +18,9 @@ public readonly struct PartialSectorObjectEnumerable
 public readonly struct PartialSector
 {
     public readonly SectorLoc SectorLoc;
+    /// <summary>
+    /// Indicates that <see cref="TileRectangle"/> encompasses the entire area of <see cref="Sector"/>.
+    /// </summary>
     public readonly bool FullSector;
     public readonly Rectangle TileRectangle;
     public readonly LockedMapSector Sector;

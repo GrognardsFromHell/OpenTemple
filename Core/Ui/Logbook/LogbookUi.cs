@@ -72,12 +72,10 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
     private void CreateWidgets()
     {
         _window = new WidgetContainer(new Rectangle(27, 40, 750, 445));
-        _window.SetKeyStateChangeHandler(OnKeyStateChange);
+        _window.AddHotkey(UiHotkeys.CloseWindow, Hide);
         _window.ZIndex = 100050;
         _window.Name = "logbook_ui_main_window";
-        // Eat window and click messages
-        _window.SetMouseMsgHandler(msg => true);
-        _window.Visible = false;
+        _window.PreventsInGameInteraction = true;
 
         var background = new WidgetImage("art/interface/logbook_ui/whole_book.img");
         background.Y = 25;
@@ -91,7 +89,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
             HoverImagePath = "art/interface/logbook_ui/exit_hover.tga",
             PressedImagePath = "art/interface/logbook_ui/exit_click.tga"
         }.UseDefaultSounds());
-        exitButton.SetClickHandler(Hide);
+        exitButton.AddClickListener(Hide);
         exitButton.Name = "logbook_ui_main_exit_butn";
         _window.Add(exitButton);
 
@@ -122,7 +120,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
 
             // Activate the corresponding tab on click
             var tabToActivate = index;
-            tabButton.SetClickHandler(() =>
+            tabButton.AddClickListener(() =>
             {
                 _currentTab = tabToActivate;
                 Show(_showingQuotes);
@@ -138,19 +136,6 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
         // Add the tab containers
         _window.Add(Keys.Container);
     }
-
-    [TempleDllLocation(0x10126ba0)]
-    private bool OnKeyStateChange(MessageKeyStateChangeArgs arg)
-    {
-        if (arg.key == DIK.DIK_ESCAPE && arg.down == false)
-        {
-            Hide();
-            return true;
-        }
-
-        return false;
-    }
-
 
     [TempleDllLocation(0x101ccde0)]
     public void RecordSkillUse(GameObject critter, SkillId skill)
@@ -228,9 +213,9 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x10128310)]
     public void Show()
     {
-        _window.CenterOnScreen();
+        _window.CenterInParent();
 
-        if (_canShowQuotes && (Tig.Keyboard.IsPressed(DIK.DIK_LMENU) || Tig.Keyboard.IsPressed(DIK.DIK_RMENU)))
+        if (_canShowQuotes && Tig.Keyboard.IsAltPressed)
         {
             Show(true);
         }
@@ -244,14 +229,14 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
             Show(false);
         }
     }
-        
+
     [TempleDllLocation(0x10126030)]
     public void Hide()
     {
         if (IsVisible)
         {
             IsVisible = false;
-            _window.Visible = false;
+            Globals.UiManager.RemoveWindow(_window);
 
             Quests.Hide();
             Ego.Hide();
@@ -284,7 +269,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
         Rumors.Hide();
         Quotes.Hide();
 
-        _window.Visible = true;
+        Globals.UiManager.AddWindow(_window);
         _window.BringToFront();
 
         _showingQuotes = showQuotes;

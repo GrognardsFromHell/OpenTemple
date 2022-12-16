@@ -15,5 +15,7 @@
     <BuildRoslynVersion>3.8.0</BuildRoslynVersion>
     
     <IronPythonVersion>2.7.11</IronPythonVersion>
+    
+    <ScribanVersion>5.5.0</ScribanVersion>
   </PropertyGroup>
 </Project>

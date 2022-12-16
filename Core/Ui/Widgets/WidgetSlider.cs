@@ -1,7 +1,7 @@
 using System;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
@@ -23,33 +23,22 @@ public class WidgetSlider : WidgetContainer
 
         var leftButton = new WidgetButton();
         leftButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-left"));
-        leftButton.SetClickHandler(() => { SetValue(GetValue() - 1); });
-        leftButton.SetRepeat(true);
+        leftButton.AddClickListener(() => { SetValue(GetValue() - 1); });
+        leftButton.IsRepeat = true;
         leftButton.Width = 27;
         leftButton.Height = 27;
 
         var rightButton = new WidgetButton();
         rightButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-right"));
-        rightButton.SetClickHandler(() => { SetValue(GetValue() + 1); });
-        rightButton.SetRepeat(true);
+        rightButton.AddClickListener(() => { SetValue(GetValue() + 1); });
+        rightButton.IsRepeat = true;
         rightButton.Width = 27;
         rightButton.Height = 27;
         rightButton.X = Width - rightButton.Width;
 
         var track = new WidgetButton();
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-track"));
-        track.SetClickHandler((x, y) =>
-        {
-            if (x < _handleButton.X)
-            {
-                SetValue(GetValue() - Quantum);
-            }
-            else if (x >= _handleButton.X + _handleButton.Width)
-            {
-                SetValue(GetValue() + Quantum);
-            }
-        });
-        track.SetRepeat(true);
+        track.IsRepeat = true;
 
         var handle = new WidgetSliderHandle(this);
         handle.Y = 2;
@@ -63,6 +52,19 @@ public class WidgetSlider : WidgetContainer
         Add(leftButton);
         Add(rightButton);
         Add(handle);
+        
+        track.OnClick += e =>
+        {
+            var handleArea = _handleButton.GetContentArea();
+            if (e.X < handleArea.Left)
+            {
+                SetValue(GetValue() - Quantum);
+            }
+            else if (e.X >= handleArea.Right)
+            {
+                SetValue(GetValue() + Quantum);
+            }
+        };
     }
 
     public int GetMin()
@@ -160,23 +162,17 @@ public class WidgetSlider : WidgetContainer
         return 116;
     } // gets width of usable track area
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
+    protected override void HandleMouseWheel(WheelEvent e)
     {
-        if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+        if (e.DeltaY > 0)
         {
-            if (msg.wheelDelta > 0)
-            {
-                SetValue(GetValue() - Quantum);
-            }
-            else if (msg.wheelDelta < 0)
-            {
-                SetValue(GetValue() + Quantum);
-            }
-
-            return true;
+            SetValue(GetValue() - Quantum);
         }
-
-        return base.HandleMouseMessage(msg);
+        else if (e.DeltaY < 0)
+        {
+            SetValue(GetValue() + Quantum);
+        }
+        e.StopPropagation();
     }
 
     private class WidgetSliderHandle : WidgetButton
@@ -187,50 +183,33 @@ public class WidgetSlider : WidgetContainer
             _slider = slider;
         }
 
-        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        protected override void HandleMouseDown(MouseEvent e)
         {
-            if (Globals.UiManager.GetMouseCaptureWidget() == this)
+            SetMouseCapture();
+            _dragGrabPoint = (int) e.X;
+            _dragX = X;
+        }
+
+        protected override void HandleMouseMove(MouseEvent e)
+        {
+            if (HasMouseCapture)
             {
-                if (msg.flags.HasFlag(MouseEventFlag.PosChange))
+                int curX = _dragX + (int) e.X - _dragGrabPoint;
+
+                var hPercent = (curX - TrackStart) / (float) _slider.GetTrackWidth();
+                if (hPercent < 0)
                 {
-                    int curX = _dragX + msg.X - _dragGrabPoint;
-
-                    var hPercent = (curX - TrackStart) / (float) _slider.GetTrackWidth();
-                    if (hPercent < 0)
-                    {
-                        hPercent = 0;
-                    }
-                    else if (hPercent > 1)
-                    {
-                        hPercent = 1;
-                    }
-
-                    var newVal = _slider.mMin + (_slider.mMax - _slider.mMin) * hPercent;
-
-                    _slider.SetValue((int) Math.Round(newVal));
+                    hPercent = 0;
+                }
+                else if (hPercent > 1)
+                {
+                    hPercent = 1;
                 }
 
-                if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
-                {
-                    Globals.UiManager.UnsetMouseCaptureWidget(this);
-                }
+                var newVal = _slider.mMin + (_slider.mMax - _slider.mMin) * hPercent;
+
+                _slider.SetValue((int) Math.Round(newVal));
             }
-            else
-            {
-                if (msg.flags.HasFlag(MouseEventFlag.LeftHeld))
-                {
-                    Globals.UiManager.SetMouseCaptureWidget(this);
-                    _dragGrabPoint = msg.X;
-                    _dragX = X;
-                }
-                else if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-                {
-                    // Forward scroll wheel message to parent
-                    _slider.HandleMouseMessage(msg);
-                }
-            }
-
-            return true;
         }
 
         private readonly WidgetSlider _slider;

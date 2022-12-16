@@ -83,7 +83,8 @@ public abstract class WidgetContent : Styleable
 
     public override Styleable? StyleParent => Parent;
 
-    public bool HasPseudoClass(StylingState stylingState) => Parent?.HasPseudoClass(stylingState) == true;
+    // Widget content does not have its own pseudo-class state
+    public override StylingState PseudoClassState => default;
 
     protected virtual void OnUpdateFixedSize()
     {

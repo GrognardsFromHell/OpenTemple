@@ -1,8 +1,9 @@
+
 using System.Drawing;
 using System.Text;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Feats;
@@ -32,9 +33,9 @@ public class FeatButton : WidgetButtonBase
     {
         _label = new WidgetText();
         AddContent(_label);
-        SetClickHandler(ShowFeatHelp);
+        AddClickListener(ShowFeatHelp);
         OnMouseEnter += ShowShortFeatDescription;
-        OnMouseExit += HideShortFeatDescription;
+        OnMouseLeave += HideShortFeatDescription;
 
         AddStyle("char-ui-feat-button");
     }
@@ -48,7 +49,7 @@ public class FeatButton : WidgetButtonBase
         }
     }
 
-    private void ShowShortFeatDescription(MessageWidgetArgs obj)
+    private void ShowShortFeatDescription(MouseEvent e)
     {
         var helpText = new StringBuilder();
         if (GameSystems.Feat.TryGetFeatDescription(_featId, out var description))
@@ -61,14 +62,14 @@ public class FeatButton : WidgetButtonBase
         UiSystems.CharSheet.Help.SetHelpText(helpText.ToString());
     }
 
-    private void HideShortFeatDescription(MessageWidgetArgs obj)
+    private void HideShortFeatDescription(MouseEvent e)
     {
         UiSystems.CharSheet.Help.ClearHelpText();
     }
 
     public override void Render()
     {
-        var hover = ButtonState == LgcyButtonState.Hovered || ButtonState == LgcyButtonState.Down;
+        var hover = ContainsMouse;
         ToggleStyle("char-ui-feat-button-hover", hover);
 
         base.Render();

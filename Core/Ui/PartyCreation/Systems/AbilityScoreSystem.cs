@@ -7,6 +7,7 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -70,36 +71,36 @@ class AbilityScoreSystem : IChargenSystem
 
         _titleLabel = doc.GetTextContent("title");
         _rerollButton = doc.GetButton("reroll");
-        _rerollButton.SetClickHandler(RerollStats);
+        _rerollButton.AddClickListener(RerollStats);
         _rerollsLabel = doc.GetTextContent("rerollsLabel");
 
         _togglePointBuyButton = doc.GetButton("togglePointBuy");
-        _togglePointBuyButton.SetClickHandler(TogglePointBuy);
+        _togglePointBuyButton.AddClickListener(TogglePointBuy);
         _increaseButtons = new WidgetButton[6];
         _decreaseButtons = new WidgetButton[6];
         for (var i = 0; i < 6; i++)
         {
             var abilityIndex = i;
             _increaseButtons[i] = doc.GetButton($"increase-{AttributeIdSuffixes[i]}");
-            _increaseButtons[i].SetClickHandler(() => IncreaseStat(abilityIndex));
+            _increaseButtons[i].AddClickListener(() => IncreaseStat(abilityIndex));
 
             _decreaseButtons[i] = doc.GetButton($"decrease-{AttributeIdSuffixes[i]}");
-            _decreaseButtons[i].SetClickHandler(() => DecreaseStat(abilityIndex));
+            _decreaseButtons[i].AddClickListener(() => DecreaseStat(abilityIndex));
 
             var assignedValContainer = doc.GetContainer($"assigned-val-{AttributeIdSuffixes[i]}");
             var assignedVal = new AbilityScoreValueWidget(
-                assignedValContainer.GetSize(),
+                assignedValContainer.Size,
                 () => _pkt.abilityStats[abilityIndex],
                 value => _pkt.abilityStats[abilityIndex] = value,
                 true
             );
             assignedValContainer.Add(assignedVal);
-            assignedVal.SetMouseMsgHandler(msg => AbilityScoreMouseHandler(msg, assignedVal));
+            InstallAbilityScoreBehavior(assignedVal);
 
             // Displays the modifier for the assigned attribute
             var assignedModContainer = doc.GetContainer($"assigned-mod-{AttributeIdSuffixes[i]}");
             var assignedMod = new AbilityScoreModifierWidget(
-                assignedValContainer.GetSize(),
+                assignedValContainer.Size,
                 () => _pkt.abilityStats[abilityIndex]
             );
             assignedModContainer.Add(assignedMod);
@@ -113,28 +114,75 @@ class AbilityScoreSystem : IChargenSystem
             var index = i;
             var rolledStatContainer = doc.GetContainer("rolledAttribute" + i);
             var rolledStatWidget = new AbilityScoreValueWidget(
-                rolledStatContainer.GetSize(),
+                rolledStatContainer.Size,
                 () => charGenRolledStats[index],
                 value => charGenRolledStats[index] = value,
                 false
             );
             charGenRolledStatsWidgets[i] = rolledStatWidget;
             rolledStatContainer.Add(rolledStatWidget);
-            rolledStatWidget.SetMouseMsgHandler(msg => AbilityScoreMouseHandler(msg, rolledStatWidget));
+            InstallAbilityScoreBehavior(rolledStatWidget);
         }
     }
-
-    private bool AbilityScoreMouseHandler(MessageMouseArgs msg, AbilityScoreValueWidget widget)
+    
+    private void InstallAbilityScoreBehavior(AbilityScoreValueWidget widget)
     {
-        if (Globals.UiManager.GetMouseCaptureWidget() == widget)
+        
+        widget.OnMouseDown += e =>
         {
-            if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
+            if (widget.Value == -1)
+            {
+                // Do not allow interaction with unassigned ability scores
+                return;
+            }
+
+            // Allow quickly swapping values between the two columns, but only when we actually have rolled values
+            // (not in point buy mode)
+            if (!_pkt.isPointbuy && e.Button == MouseButton.Right)
+            {
+                var destinationPool = widget.IsAssigned ? charGenRolledStats : _pkt.abilityStats;
+                for (var i = 0; i < destinationPool.Length; i++)
+                {
+                    if (destinationPool[i] == -1)
+                    {
+                        destinationPool[i] = widget.Value;
+                        widget.Value = -1;
+                        OnAbilityScoresChanged();
+                        return;
+                    }
+                }
+            }
+            else if (e.Button == MouseButton.Left && widget.SetMouseCapture())
+            {
+                // Figure out where in the widget we got clicked so we can draw the dragged text with the proper offset
+                var globalContentArea = widget.GetContentArea(true);
+                var localX = (int) (e.X - globalContentArea.X);
+                var localY = (int) (e.Y - globalContentArea.Y);
+                _draggedAbilityScoreLabel.Text = widget.Value.ToString();
+                widget.IsDragging = true;
+
+                // This will draw the ability score being dragged under the mouse cursor
+                Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
+                {
+                    var point = new Point(x, y);
+                    point.Offset(-localX, -localY);
+                    var contentArea = new Rectangle(point, widget.Size);
+
+                    _draggedAbilityScoreLabel.SetBounds(contentArea);
+                    _draggedAbilityScoreLabel.Render();
+                });
+            }
+        };
+        
+        widget.OnMouseUp += e =>
+        {
+            if (widget.HasMouseCapture && e.Button == MouseButton.Left)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
-                Globals.UiManager.UnsetMouseCaptureWidget(widget);
+                widget.ReleaseMouseCapture();
                 widget.IsDragging = false;
 
-                var widgetUnderCursor = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
+                var widgetUnderCursor = Globals.UiManager.PickWidget(e.X, e.Y);
                 if (widgetUnderCursor is AbilityScoreValueWidget otherAbilityScoreValue)
                 {
                     // Swap the two values
@@ -145,60 +193,7 @@ class AbilityScoreSystem : IChargenSystem
                     OnAbilityScoresChanged();
                 }
             }
-
-            return true;
-        }
-
-        if (widget.Value == -1)
-        {
-            // Do not allow interaction with unassigned ability scores
-            return true;
-        }
-
-        // Allow quickly swapping values between the two columns, but only when we actually have rolled values
-        // (not in point buy mode)
-        if (!_pkt.isPointbuy && (msg.flags & MouseEventFlag.RightClick) != 0)
-        {
-            var destinationPool = widget.IsAssigned ? charGenRolledStats : _pkt.abilityStats;
-            for (var i = 0; i < destinationPool.Length; i++)
-            {
-                if (destinationPool[i] == -1)
-                {
-                    destinationPool[i] = widget.Value;
-                    widget.Value = -1;
-                    OnAbilityScoresChanged();
-                    return true;
-                }
-            }
-        }
-        else if ((msg.flags & MouseEventFlag.LeftHeld) != 0)
-        {
-            if (!Globals.UiManager.SetMouseCaptureWidget(widget))
-            {
-                // Something else has the mouse capture right now (how are we getting this message then...?)
-                return true;
-            }
-
-            // Figure out where in the widget we got clicked so we can draw the dragged text with the proper offset
-            var globalContentArea = widget.GetContentArea(true);
-            var localX = msg.X - globalContentArea.X;
-            var localY = msg.Y - globalContentArea.Y;
-            _draggedAbilityScoreLabel.Text = widget.Value.ToString();
-            widget.IsDragging = true;
-
-            // This will draw the ability score being dragged under the mouse cursor
-            Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
-            {
-                var point = new Point(x, y);
-                point.Offset(-localX, -localY);
-                var contentArea = new Rectangle(point, widget.GetSize());
-
-                _draggedAbilityScoreLabel.SetBounds(contentArea);
-                _draggedAbilityScoreLabel.Render();
-            });
-        }
-
-        return true;
+        };
     }
 
     private void OnAbilityScoresChanged()
@@ -238,7 +233,7 @@ class AbilityScoreSystem : IChargenSystem
             {
                 if (Globals.GameLib.IsIronmanGame)
                 {
-                    _rerollButton.SetDisabled(true);
+                    _rerollButton.Disabled = true;
                     RollIronmanStats();
                 }
                 else
@@ -350,7 +345,7 @@ class AbilityScoreSystem : IChargenSystem
             pkt.abilityStats[i] = -1;
         }
 
-        _rerollButton.SetDisabled(false);
+        _rerollButton.Disabled = false;
         UiPcCreationStatSetPointbuyState(false);
     }
 
@@ -449,9 +444,9 @@ class AbilityScoreSystem : IChargenSystem
                 else if (abLvl >= 14)
                     cost = 2;
                 if (pointBuyPoints < cost || (abLvl == 18 && !Globals.Config.laxRules))
-                    incBtnId.SetDisabled(true);
+                    incBtnId.Disabled = true;
                 else
-                    incBtnId.SetDisabled(false);
+                    incBtnId.Disabled = false;
                 incBtnId.Visible = isPointBuyMode;
             }
 
@@ -466,9 +461,9 @@ class AbilityScoreSystem : IChargenSystem
 
                 if (pointBuyPoints >= Globals.Config.PointBuyBudget || (abLvl == 8 && !Globals.Config.laxRules) ||
                     abLvl <= 5)
-                    decBtnId.SetDisabled(true);
+                    decBtnId.Disabled = true;
                 else
-                    decBtnId.SetDisabled(false);
+                    decBtnId.Disabled = false;
                 decBtnId.Visible = isPointBuyMode;
             }
         }

@@ -1,43 +1,27 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.GFX.TextRendering;
-using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Styles;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui;
 
-public enum LgcyWindowMouseState
+public class UiManager : IUiRoot
 {
-    Outside = 0,
-    Hovered = 6,
+    private static readonly TimeSpan TooltipDelay = TimeSpan.FromMilliseconds(250);
 
-    // I have not actually found any place where this is ever set
-    Pressed = 7,
-    PressedOutside = 8
-}
+    public RootWidget Root { get; }
 
-public enum LgcyButtonState
-{
-    Normal = 0,
-    Hovered = 1,
-    Down = 2,
-    Released = 3,
-    Disabled = 4
-}
+    // Is the mouse currently in the main window?
+    private bool _mouseOverUi;
 
-public class UiManager
-{
-    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+    //  Last reported mouse position
+    private PointF _mousePos = PointF.Empty;
 
-    private List<WidgetContainer> _topLevelWidgets = new();
-
-    private int maxZIndex = 0;
+    private TimePoint _mousePosLastChanged = TimePoint.Now;
 
     /// <summary>
     /// The size in "virtual pixels" of the UI canvas.
@@ -47,681 +31,708 @@ public class UiManager
         (int) _mainWindow.UiCanvasSize.Height
     );
 
-    public event Action<Size> OnCanvasSizeChanged;
+    /// <summary>
+    /// Tracking information about the last mouse down event to facilitate click events.
+    /// </summary>
+    private MouseDownState? _mouseDownState;
 
-    public IEnumerable<WidgetContainer> ActiveWindows => _topLevelWidgets;
+    /// <summary>
+    /// Tracking information about the last click event to facilitate double click events.
+    /// </summary>
+    private ClickState? _clickState;
+
+    public event Action<Size>? OnCanvasSizeChanged;
 
     public UiManagerDebug Debug { get; }
 
     [TempleDllLocation(0x11E74384)]
-    private WidgetBase _mouseCaptureWidget;
+    public WidgetBase? MouseCaptureWidget { get; private set; }
+
+    [TempleDllLocation(0x11E74384)]
+    private WidgetBase? _pendingMouseCaptureWidget;
 
     [TempleDllLocation(0x10301324)]
-    private WidgetBase _currentMouseOverWidget;
-
-    public WidgetBase CurrentMouseOverWidget => _currentMouseOverWidget;
-
-    [TempleDllLocation(0x10301328)]
-    private WidgetBase mMouseButtonId; // TODO = temple.GetRef<int>(0x10301328);
+    public WidgetBase? CurrentMouseOverWidget { get; private set; }
 
     // Hang on to the delegate
     private readonly CursorDrawCallback _renderTooltipCallback;
+
+    private WidgetBase? _renderingTooltipFor;
 
     [TempleDllLocation(0x10EF97C4)]
     [TempleDllLocation(0x101f97d0)]
     [TempleDllLocation(0x101f97e0)]
     public bool IsDragging => DraggedObject != null;
-    
+
     /// <summary>
     /// Represents an arbitrary object that is currently dragged by the user with their mouse.
     /// </summary>
-    public object DraggedObject { get; set; }
+    public object? DraggedObject { get; set; }
 
-    public WidgetContainer Modal { get; set; }
+    public WidgetBase? Modal { get; set; }
+
+    public PointF MousePos => _mousePos;
+
+    /// <summary>
+    /// The widget that is the keyboard focus.
+    /// </summary>
+    public WidgetBase? KeyboardFocus => _keyboardFocusManager.KeyboardFocus;
+
+    private readonly KeyboardFocusManager _keyboardFocusManager;
 
     private readonly IMainWindow _mainWindow;
 
     public UiManager(IMainWindow mainWindow)
     {
         _mainWindow = mainWindow;
+        _mainWindow.UiRoot = this;
         _renderTooltipCallback = RenderTooltip;
         Debug = new UiManagerDebug(this);
-        mainWindow.UiCanvasSizeChanged += () => OnCanvasSizeChanged?.Invoke(CanvasSize);
+        mainWindow.UiCanvasSizeChanged += ResizeCanvas;
 
-        _mainWindow.OnInput += HandleInputEvent;
+        Root = new RootWidget();
+        Root.AttachToTree(this);
+        Root.Size = CanvasSize;
+        _keyboardFocusManager = new KeyboardFocusManager(Root);
     }
 
-    /*
-    Add something to the list of active windows on top of all existing windows.
-    */
-    public void AddWindow(WidgetContainer window)
+    private void ResizeCanvas()
     {
-        if (_topLevelWidgets.Contains(window))
+        // Resize the root element
+        Root.Size = CanvasSize;
+
+        OnCanvasSizeChanged?.Invoke(CanvasSize);
+    }
+
+    /// <summary>
+    /// Add something to the list of active windows on top of all existing windows.
+    /// </summary>
+    public void AddWindow(WidgetBase widget) => Root.Add(widget);
+
+    public bool RemoveWindow(WidgetBase widget) => Root.Remove(widget);
+
+    public void ShowModal(WidgetBase widget, bool centerOnScreen = true)
+    {
+        Root.Add(widget);
+        Modal = widget;
+        widget.BringToFront();
+        if (centerOnScreen)
         {
-            // Window is already in the list
-            return;
+            widget.CenterInParent();
         }
 
-        // Don't add it, if it's hidden
-        if (!window.Visible)
+        // Move keyboard focus to the first focusable element in Modal
+        if (KeyboardFocus != null)
         {
-            return;
+            _keyboardFocusManager.FocusFirstFocusableChild(Modal);
         }
-
-        _topLevelWidgets.Add(window);
-    }
-
-    public void RemoveWindow(WidgetContainer window)
-    {
-        _topLevelWidgets.Remove(window);
-        SortWindows();
-    }
-
-    public void BringToFront(WidgetContainer window)
-    {
-        window.ZIndex = _topLevelWidgets
-            .Where(otherWindow => otherWindow != window)
-            .Max(otherWindow => otherWindow.ZIndex) + 1;
-        SortWindows();
-    }
-
-    public void SendToBack(WidgetContainer window)
-    {
-        window.ZIndex = int.MinValue;
-        SortWindows();
-    }
-
-    public void SetVisible(WidgetBase widget, bool visible)
-    {
-        if (widget is WidgetContainer container && container.GetParent() == null)
-        {
-            if (visible)
-            {
-                AddWindow(container);
-            }
-            else
-            {
-                RemoveWindow(container);
-            }
-        }
-        RefreshMouseOverState();
-    }
-
-    private static bool IsAncestor(WidgetBase widget, WidgetBase parent)
-    {
-        while (widget != null)
-        {
-            if (widget == parent)
-            {
-                return true;
-            }
-            widget = widget.GetParent();
-        }
-
-        return false;
     }
 
     public void RemoveWidget(WidgetBase widget)
     {
-        if (widget is WidgetContainer container)
+        var refreshMouseOverState = false;
+
+        if (widget.IsInclusiveAncestorOf(MouseCaptureWidget))
         {
-            RemoveWindow(container);
+            ReleaseMouseCapture(MouseCaptureWidget);
+            refreshMouseOverState = true;
         }
 
-        // Invalidate any fields that may still hold a reference to the now invalid widget id
-        if (IsAncestor(mMouseButtonId, widget))
+        if (widget.IsInclusiveAncestorOf(CurrentMouseOverWidget))
         {
-            mMouseButtonId = null;
+            refreshMouseOverState = true;
+        }
+
+        if (refreshMouseOverState)
+        {
             RefreshMouseOverState();
         }
 
-        if (IsAncestor(_mouseCaptureWidget, widget))
+        if (Modal != null && widget.IsInclusiveAncestorOf(Modal))
         {
-            _mouseCaptureWidget = null;
-            RefreshMouseOverState();
-        }
-
-        if (IsAncestor(_currentMouseOverWidget, widget))
-        {
-            if (_currentMouseOverWidget is WidgetButton button && !button.IsDisabled())
-            {
-                button.ButtonState = LgcyButtonState.Normal;
-            }
-            _currentMouseOverWidget = null;
-            RefreshMouseOverState();
+            Modal = null;
         }
     }
 
     [TempleDllLocation(0x101F8D10)]
     public void Render()
     {
-        // Make a copy here since some vanilla logic will show/hide windows in their render callbacks
-        var activeWindows = _topLevelWidgets;
-
-        foreach (var windowId in activeWindows)
-        {
-            // Our new widget system handles rendering itself
-            windowId.Render();
-        }
+        Root.Render();
 
         Debug.AfterRenderWidgets();
+
+        Tig.Mouse.DrawTooltip(_mousePos);
+        Tig.Mouse.DrawItemUnderCursor(_mousePos);
     }
 
-    public WidgetBase GetWidgetAt(int x, int y)
+    public WidgetBase? PickWidget(float x, float y)
     {
-        WidgetBase result = null;
-
-        // Backwards because of render order (rendered last is really on top)
-        for (int i = _topLevelWidgets.Count - 1; i >= 0; --i)
-        {
-            var window = _topLevelWidgets[i];
-
-            if (Modal != null && Modal != window)
-            {
-                continue;
-            }
-
-            if (window.Visible && DoesWidgetContain(window, x, y))
-            {
-                result = window;
-
-                int localX = x - window.X;
-                int localY = y - window.Y;
-
-                var widgetIn = window.PickWidget(localX, localY);
-                if (widgetIn != null)
-                {
-                    return widgetIn;
-                }
-            }
-        }
-
-        return result;
+        return Modal != null ? Modal.PickWidgetGlobal(x, y) : Root.PickWidgetGlobal(x, y);
     }
 
-    private static bool DoesWidgetContain(WidgetBase widget, int x, int y)
-    {
-        var rect = widget.GetContentArea();
-        return x >= rect.X
-               && y >= rect.Y
-               && x < rect.X + rect.Width
-               && y < rect.Y + rect.Height;
-    }
-
-    /**
-        * Uses the current mouse position to refresh which widget is being moused over.
-        * Useful if a widget is hidden, shown or added to update the mouse-over state
-        * without actually moving the mouse.
-        */
+    /// <summary>
+    /// Uses the current mouse position to refresh which widget is being moused over.
+    /// Useful if a widget is hidden, shown or added to update the mouse-over state
+    /// without actually moving the mouse.
+    /// </summary>
     public void RefreshMouseOverState()
     {
-        Tig.Mouse.GetState(out var state);
-
-        var args = new MessageMouseArgs
-        {
-            X = state.x,
-            Y = state.y,
-            flags = MouseEventFlag.PosChange|MouseEventFlag.PosChangeSlow
-        };
-        TranslateMouseMessage(args);
+        UpdateMouseOver();
     }
 
-    public WidgetBase GetMouseCaptureWidget()
+    /// <summary>
+    /// Notifies the UI manager that the visibility of a widget has changed.
+    /// </summary>
+    public void VisibilityChanged(WidgetBase widget)
     {
-        return _mouseCaptureWidget;
+        if (Modal == widget && !widget.Visible)
+        {
+            Modal = null;
+        }
+
+        UpdateMouseOver();
     }
 
     [TempleDllLocation(0x101f9830)]
-    public bool SetMouseCaptureWidget(WidgetBase widget)
+    public bool CaptureMouse(WidgetBase widget)
     {
-        if (_mouseCaptureWidget == null)
+        if (widget.UiManager != this)
         {
-            _mouseCaptureWidget = widget;
-            return true;
+            throw new ArgumentException("Widget cannot capture pointer because it's not part of the UI tree.");
         }
 
-        return false;
+        // Capturing is only possible while a button is held
+        if (_mouseDownState == null)
+        {
+            return false;
+        }
+
+        _pendingMouseCaptureWidget = widget;
+        return true;
     }
 
     [TempleDllLocation(0x101f9850)]
-    public void UnsetMouseCaptureWidget(WidgetBase widget)
+    public void ReleaseMouseCapture(WidgetBase? widget)
     {
-        if (_mouseCaptureWidget == widget)
+        if (_pendingMouseCaptureWidget == widget)
         {
-            _mouseCaptureWidget = null;
-        }
-    }
-
-    /*
-    This will sort the windows using their z-order in the order in which
-    they should be rendered.
-    */
-    private void SortWindows()
-    {
-        // Sort Windows by Z-Index
-        _topLevelWidgets.Sort((windowA, windowB) =>
-        {
-            return windowA.ZIndex.CompareTo(windowB.ZIndex);
-        });
-
-        // Reassign a zindex in monotonous order to those windows that dont have one
-        for (var i = 0; i < _topLevelWidgets.Count; ++i)
-        {
-            var window = _topLevelWidgets[i];
-            if (window.ZIndex == 0)
-            {
-                window.ZIndex = i * 100;
-            }
+            _pendingMouseCaptureWidget = null;
         }
     }
 
     private void RenderTooltip(int x, int y, object userArg)
     {
-        _currentMouseOverWidget?.RenderTooltip(x, y);
+        CurrentMouseOverWidget?.RenderTooltip(x, y);
     }
 
-    /// <summary>
-    /// Handles a mouse message and produces higher level mouse messages based on it.
-    /// </summary>
-    [TempleDllLocation(0x101f9970)]
-    public bool TranslateMouseMessage(MessageMouseArgs mouseMsg)
+    public void MouseEnter()
     {
-        var flags = mouseMsg.flags;
-        var x = mouseMsg.X;
-        var y = mouseMsg.Y;
+        ProcessPendingMouseCapture();
+        Tig.Mouse.IsMouseOutsideWindow = false;
 
-        var newTigMsg = new MessageWidgetArgs();
-        newTigMsg.x = x;
-        newTigMsg.y = y;
-
-        var widAtCursor = GetWidgetAt(x, y);
-
-        var globalWid = _currentMouseOverWidget;
-
-        // moused widget changed
-        if ((flags & MouseEventFlag.PosChange) != 0 && widAtCursor != globalWid)
-        {
-            if (widAtCursor != null && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
-            {
-                Tig.Mouse.SetCursorDrawCallback(null, 0);
-            }
-
-            if (globalWid != null)
-            {
-                bool enqueueExited = false;
-                // if window
-                if (globalWid is WidgetContainer prevHoveredWindow)
-                {
-                    if (prevHoveredWindow.MouseState == LgcyWindowMouseState.Pressed)
-                    {
-                        prevHoveredWindow.MouseState = LgcyWindowMouseState.PressedOutside;
-                    }
-                    else if (prevHoveredWindow.MouseState != LgcyWindowMouseState.PressedOutside)
-                    {
-                        prevHoveredWindow.MouseState = LgcyWindowMouseState.Outside;
-                    }
-                }
-                // button
-                else if (globalWid is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
-                {
-                    switch (buttonWid.ButtonState)
-                    {
-                        case LgcyButtonState.Hovered:
-                            // Unhover
-                            buttonWid.ButtonState = LgcyButtonState.Normal;
-                            Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
-                            break;
-                        case LgcyButtonState.Down:
-                            // Down . Released without click event
-                            buttonWid.ButtonState = LgcyButtonState.Released;
-                            break;
-                    }
-                }
-
-                if (IsVisible(globalWid))
-                {
-                    newTigMsg.widgetId = globalWid;
-                    newTigMsg.widgetEventType = TigMsgWidgetEvent.Exited;
-                    Tig.MessageQueue.Enqueue(new Message(newTigMsg));
-                }
-            }
-
-            if (widAtCursor != null)
-            {
-                if (widAtCursor is WidgetContainer widAtCursorWindow)
-                {
-                    if (widAtCursorWindow.MouseState == LgcyWindowMouseState.PressedOutside)
-                    {
-                        widAtCursorWindow.MouseState = LgcyWindowMouseState.Pressed;
-                    }
-                    else if (widAtCursorWindow.MouseState != LgcyWindowMouseState.Pressed)
-                    {
-                        widAtCursorWindow.MouseState = LgcyWindowMouseState.Hovered;
-                    }
-                }
-                else if (widAtCursor is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
-                {
-                    if (buttonWid.ButtonState != LgcyButtonState.Normal)
-                    {
-                        if (buttonWid.ButtonState == LgcyButtonState.Released)
-                        {
-                            buttonWid.ButtonState = LgcyButtonState.Down;
-                        }
-                    }
-                    else
-                    {
-                        buttonWid.ButtonState = LgcyButtonState.Hovered;
-                        Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
-                    }
-                }
-
-                newTigMsg.widgetId = widAtCursor;
-                newTigMsg.widgetEventType = TigMsgWidgetEvent.Entered;
-                Tig.MessageQueue.Enqueue(new Message(newTigMsg));
-            }
-
-            globalWid = _currentMouseOverWidget = widAtCursor;
-        }
-
-        if ((mouseMsg.flags & MouseEventFlag.PosChangeSlow) != 0
-            && globalWid != null
-            && Tig.Mouse.CursorDrawCallback == null)
-        {
-            Tig.Mouse.SetCursorDrawCallback(_renderTooltipCallback);
-        }
-
-        if ((mouseMsg.flags & MouseEventFlag.LeftClick) != 0)
-        {
-            // probably redundant to do again, but just to be safe...
-            var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
-            if (widIdAtCursor2 != null)
-            {
-                if (widIdAtCursor2 is WidgetButtonBase button && !button.IsDisabled())
-                {
-                    switch (button.ButtonState)
-                    {
-                        case LgcyButtonState.Hovered:
-                            button.ButtonState = LgcyButtonState.Down;
-                            Tig.Sound.PlaySoundEffect(button.sndDown);
-                            break;
-                        case LgcyButtonState.Disabled:
-                            return false;
-                    }
-                }
-
-                newTigMsg.widgetEventType = TigMsgWidgetEvent.Clicked;
-                newTigMsg.widgetId = widIdAtCursor2;
-                mMouseButtonId = widIdAtCursor2;
-                Tig.MessageQueue.Enqueue(new Message(newTigMsg));
-            }
-        }
-
-        if ((mouseMsg.flags & MouseEventFlag.LeftReleased) != 0 && mMouseButtonId != null)
-        {
-            if (mMouseButtonId is WidgetButtonBase button && !button.IsDisabled())
-            {
-                switch (button.ButtonState)
-                {
-                    case LgcyButtonState.Down:
-                        button.ButtonState = LgcyButtonState.Hovered;
-                        Tig.Sound.PlaySoundEffect(button.sndClick);
-                        break;
-                    case LgcyButtonState.Released:
-                        button.ButtonState = LgcyButtonState.Normal;
-                        Tig.Sound.PlaySoundEffect(button.sndClick);
-                        break;
-                    case LgcyButtonState.Disabled:
-                        return false;
-                }
-            }
-
-            // probably redundant to do again, but just to be safe...
-            var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
-            newTigMsg.widgetId = mMouseButtonId;
-            newTigMsg.widgetEventType = (widIdAtCursor2 != mMouseButtonId)
-                ? TigMsgWidgetEvent.MouseReleasedAtDifferentButton
-                : TigMsgWidgetEvent.MouseReleased;
-            Tig.MessageQueue.Enqueue(new Message(newTigMsg));
-            mMouseButtonId = null;
-        }
-
-        return false;
+        _mouseOverUi = true;
+        UpdateMouseOver();
     }
 
-    /// <summary>
-    /// Checks if a widget is really on screen by checking all of it's parents as well for visibility.
-    /// </summary>
-    public bool IsVisible(WidgetBase widget)
+    public void MouseLeave()
     {
-        while (true)
-        {
-            if (!widget.Visible)
-            {
-                return false;
-            }
+        ProcessPendingMouseCapture();
+        Tig.Mouse.IsMouseOutsideWindow = true;
 
-            if (widget.GetParent() == null)
-            {
-                // It must be a top-level window to be visible
-                return ActiveWindows.Contains(widget);
-            }
-            else
-            {
-                widget = widget.GetParent();
-            }
+        _mouseOverUi = false;
+        UpdateMouseOver();
+    }
+
+    private void UpdateMousePosition(PointF uiPos)
+    {
+        if (_mousePos != uiPos)
+        {
+            _mousePos = uiPos;
+            _mousePosLastChanged = TimePoint.Now;
+            UpdateMouseOver();
         }
     }
 
-    [TempleDllLocation(0x101f8a80)]
-    public bool ProcessMessage(Message msg)
+    private void UpdateMouseOver()
     {
-        // Dispatch time update messages continuously to all advanced widgets
-        if (msg.type == MessageType.UPDATE_TIME)
+        ProcessPendingMouseCapture();
+
+        WidgetBase? mouseOver;
+        if (MouseCaptureWidget != null)
         {
-            foreach (var entry in _topLevelWidgets)
-            {
-                entry.OnUpdateTime(msg.created);
-            }
+            // Force the mouse-over widget to be the capture target
+            mouseOver = MouseCaptureWidget;
+        }
+        else
+        {
+            mouseOver = _mouseOverUi ? PickWidget(_mousePos.X, _mousePos.Y) : null;
         }
 
-        switch (msg.type)
+        var prevMouseOver = CurrentMouseOverWidget;
+
+        if (mouseOver == prevMouseOver)
         {
-            case MessageType.MOUSE:
-                return ProcessMouseMessage(msg);
-            case MessageType.WIDGET:
-                return ProcessWidgetMessage(msg);
-            default:
-                // In order from top to bottom (back is top)
-                for (var i = _topLevelWidgets.Count - 1; i >= 0; i--)
-                {
-                    var window = _topLevelWidgets[i];
+            return; // Current mouse over widget has not changed
+        }
 
-                    // Skip the top-level window if there's a modal and the modal is a different window
-                    if (Modal != null && Modal != window)
-                    {
-                        continue;
-                    }
+        if (mouseOver != null && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
+        {
+            Tig.Mouse.SetCursorDrawCallback(null, 0);
+        }
 
-                    if (window.HandleMessage(msg))
-                    {
-                        return true;
-                    }
-                }
+        // When mouse over changes from one widget to another, we only need to propagate
+        // this change up until the first common ancestor of both.
+        WidgetBase? commonAncestor = null;
+        if (prevMouseOver != null && mouseOver != null)
+        {
+            commonAncestor = prevMouseOver.GetCommonAncestor(mouseOver);
+        }
 
-                return false;
+        if (prevMouseOver != null)
+        {
+            DispatchMouseLeave(prevMouseOver, commonAncestor);
+        }
+
+        if (mouseOver != null)
+        {
+            DispatchMouseEnter(mouseOver, commonAncestor);
+        }
+
+        // Set the ContainsMouse state until we reach a potential common ancestor
+        for (var node = mouseOver; node != null && node != commonAncestor; node = node.Parent)
+        {
+            node.ContainsMouse = true;
+        }
+
+        // Unset the ContainsMouse state until we reach a potential common ancestor
+        for (var node = prevMouseOver; node != null && node != commonAncestor; node = node.Parent)
+        {
+            node.ContainsMouse = false;
+        }
+
+        CurrentMouseOverWidget = mouseOver;
+    }
+
+    public void MouseMove(Point windowPos, PointF uiPos)
+    {
+        ProcessPendingMouseCapture();
+        UpdateMousePosition(uiPos);
+
+        if (CurrentMouseOverWidget != null)
+        {
+            var e = CreateMouseEvent(UiEventType.MouseMove, CurrentMouseOverWidget);
+            CurrentMouseOverWidget.DispatchMouseMove(e);
         }
     }
 
-    private bool ProcessWidgetMessage(Message msg)
+    private void DispatchMouseLeave(WidgetBase target, WidgetBase? stopAtParent)
     {
-        var widgetArgs = msg.WidgetArgs;
-
-        var dispatchTo = widgetArgs.widgetId;
-        while (dispatchTo != null)
+        for (var node = target; node != null && node != stopAtParent; node = node.Parent)
         {
-            var parent = dispatchTo.GetParent();
-            if ((parent == null || parent.Visible) && dispatchTo.Visible)
-            {
-                if (dispatchTo.HandleMessage(msg))
-                {
-                    return true;
-                }
-            }
-
-            // Bubble up the msg if the widget didn't handle it
-            dispatchTo = dispatchTo.GetParent();
-        }
-
-        return false;
-    }
-
-    private bool ProcessMouseMessage(Message msg)
-    {
-
-        // Handle if a widget requested mouse capture
-        if (_mouseCaptureWidget != null)
-        {
-            _mouseCaptureWidget.HandleMessage(msg);
-            return true;
-        }
-
-        var mouseArgs = msg.MouseArgs;
-
-        for (var i = _topLevelWidgets.Count - 1; i >= 0; i--)
-        {
-            var window = _topLevelWidgets[i];
-
-            // Skip the top-level window if there's a modal and the modal is a different window
-            if (Modal != null && Modal != window)
-            {
-                continue;
-            }
-
-            if (window == null || !window.Visible || !DoesWidgetContain(window, mouseArgs.X, mouseArgs.Y))
-            {
-                continue;
-            }
-
-            // Try dispatching the msg to all children of the window that are also under the mouse cursor, in reverse order of their
-            // own insertion into the children list
-            for (var j = window.GetChildren().Count - 1; j >= 0; j--)
-            {
-                var childWidget = window.GetChildren()[j];
-
-                if (DoesWidgetContain(childWidget, mouseArgs.X, mouseArgs.Y))
-                {
-                    if (childWidget.Visible && childWidget.HandleMouseMessage(mouseArgs))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            // After checking with all children, dispatch the msg to the window itself
-            if (window.Visible && window.HandleMessage(msg))
-            {
-                return true;
-            }
-        }
-
-        if (Modal != null)
-        {
-            // Always swallow mouse messages when a modal is visible
-            return true;
-        }
-
-        return false;
-    }
-
-    private void HandleInputEvent(WindowEvent e)
-    {
-        switch (e.Type)
-        {
-            case WindowEventType.MouseEnter:
-                Tig.Mouse.IsMouseOutsideWindow = false;
-                break;
-            case WindowEventType.MouseLeave:
-                Tig.Mouse.IsMouseOutsideWindow = true;
-                break;
-            case WindowEventType.MouseMove:
-                HandleMouseMoveEvent((MouseWindowEvent) e);
-                break;
-            case WindowEventType.MouseDown:
-            case WindowEventType.MouseUp:
-                HandleMouseButtonEvent((MouseWindowEvent) e);
-                break;
-            case WindowEventType.Wheel:
-                HandleMouseWheelEvent((MouseWheelWindowEvent) e);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            var e = new MouseEvent {InitialTarget = target};
+            node.DispatchMouseLeave(e);
         }
     }
 
-    private void HandleMouseMoveEvent(MouseWindowEvent evt)
+    private void DispatchMouseEnter(WidgetBase target, WidgetBase? stopAtParent)
     {
-        Tig.Mouse.SetPos((int) evt.UiPos.X, (int) evt.UiPos.Y, 0);
-    }
-
-    private void HandleMouseButtonEvent(MouseWindowEvent evt)
-    {
-        // Otherwise we might not get the actual position that was clicked if we use the last mouse move position..
-        if (evt.Type == WindowEventType.MouseDown)
+        for (var node = target; node != null && node != stopAtParent; node = node.Parent)
         {
-            HandleMouseMoveEvent(evt);
+            var e = new MouseEvent {InitialTarget = target};
+            node.DispatchMouseEnter(e);
         }
-
-        Tig.Mouse.SetButtonState(evt.Button, evt.Type == WindowEventType.MouseDown);
     }
 
-    private void HandleMouseWheelEvent(MouseWheelWindowEvent evt)
+    public void MouseDown(Point windowPos, PointF uiPos, MouseButton button)
     {
-        Tig.Mouse.SetPos((int) evt.UiPos.X, (int) evt.UiPos.Y, (int) (evt.Delta * 120));
-    }
+        ProcessPendingMouseCapture();
+        UpdateMousePosition(uiPos);
 
-    private void OnMouseMove(PointF pos, int wheelDelta)
-    {
-        var x = pos.X;
-        var y = pos.Y;
-        var width = CanvasSize.Width;
-        var height = CanvasSize.Height;
-
-        // Account for a resized screen
-        if (x < 0 || y < 0 || x >= width || y >= height)
+        if (_mouseDownState != null)
         {
-            if (Globals.Config.Window.Windowed)
-            {
-                if ((x > -7 && x < width + 7 && x > -7 && y < height + 7))
-                {
-                    if (x < 0)
-                        x = 0;
-                    else if (x > width)
-                        x = width;
-                    if (y < 0)
-                        y = 0;
-                    else if (y > height)
-                        y = height;
-                    Tig.Mouse.IsMouseOutsideWindow = false;
-                    // TODO: Switch all mouse positioning to floats
-                    Tig.Mouse.SetPos((int) x, (int) y, wheelDelta);
-                    return;
-                }
-                else
-                {
-                    Tig.Mouse.IsMouseOutsideWindow = true;
-                }
-            }
-            else
-            {
-                Logger.Info("Mouse outside resized window: {0},{1}, wheel: {2}", x, y, wheelDelta);
-            }
-
+            // We do not dispatch additional mouse down events if a button is already held
+            _mouseDownState.Buttons |= GetMouseButtons(button);
             return;
         }
 
-        Tig.Mouse.IsMouseOutsideWindow = false;
-        // TODO: Switch all mouse positioning to floats
-        Tig.Mouse.SetPos((int) pos.X, (int) pos.Y, wheelDelta);
+        // This should not really happen since capturing the mouse should only be allowed
+        // if the mouse was already down, and it should be released, when the mouse button
+        // is released. We'll handle it anyway.
+        var dispatchTo = MouseCaptureWidget ?? PickWidget(uiPos.X, uiPos.Y);
+
+        _mouseDownState = new MouseDownState
+        {
+            Timestamp = TimePoint.Now,
+            Button = button,
+            Buttons = GetMouseButtons(button),
+            Pos = uiPos,
+            Target = dispatchTo
+        };
+
+        if (dispatchTo != null)
+        {
+            SetPressed(dispatchTo, true);
+
+            var e = CreateMouseEvent(UiEventType.MouseDown, dispatchTo);
+            dispatchTo.DispatchMouseDown(e);
+
+            if (e is {Button: MouseButton.Left, IsDefaultPrevented: false})
+            {
+                // Handle focus movement via mouse
+                _keyboardFocusManager.MoveFocusByMouseDown(dispatchTo);
+            }
+        }
     }
 
+    public void MouseUp(Point windowPos, PointF uiPos, MouseButton button)
+    {
+        ProcessPendingMouseCapture();
+        UpdateMousePosition(uiPos);
+
+        if (_mouseDownState == null)
+        {
+            // Ignore spurious mouse up event. Might happen if a secondary button is released 
+            // after the initial mouse-down button was already released.
+            return;
+        }
+
+        // Only emit a mouse up event if the initially pressed button is released
+        if (_mouseDownState.Button != button)
+        {
+            _mouseDownState.Buttons &= ~GetMouseButtons(button);
+            return;
+        }
+
+        var lastMouseDownAt = _mouseDownState.Target;
+
+        // Unset the Pressed visual state
+        if (lastMouseDownAt != null)
+        {
+            SetPressed(lastMouseDownAt, false);
+        }
+
+        var target = PickWidget(uiPos.X, uiPos.Y);
+
+        var dispatchTo = MouseCaptureWidget ?? target;
+        if (dispatchTo == null)
+        {
+            // Release the mouse down state here so that the mouse up event cannot recapture the mouse
+            _mouseDownState = null;
+            // Implicitly release mouse capture
+            _pendingMouseCaptureWidget = null;
+            return;
+        }
+
+        var e = CreateMouseEvent(UiEventType.MouseUp, dispatchTo);
+
+        // Release the mouse down state here so that the mouse up event cannot recapture the mouse
+        var lastMouseDownState = _mouseDownState;
+        _mouseDownState = null;
+        // Implicitly release mouse capture
+        _pendingMouseCaptureWidget = null;
+
+        dispatchTo.DispatchMouseUp(e);
+
+        // We emit click events on the first common ancestor of the mouse-down target
+        // and the mouse-up target.
+        if (!e.IsDefaultPrevented && lastMouseDownAt != null)
+        {
+            var clickState = _clickState;
+            _clickState = null; // Reset click state to avoid triple-clicks registering as a second double-clicks
+
+            var clickTarget = lastMouseDownAt.GetCommonAncestor(dispatchTo);
+            if (clickTarget != null)
+            {
+                if (button == MouseButton.Left)
+                {
+                    clickTarget.DispatchClick(CreateMouseEvent(UiEventType.Click, clickTarget));
+
+                    // Check for a potential double-click
+                    if (IsDoubleClick(clickState, lastMouseDownState, clickTarget))
+                    {
+                        clickTarget.DispatchDoubleClick(CreateMouseEvent(UiEventType.DoubleClick, clickTarget));
+                    }
+                    else
+                    {
+                        _clickState = new ClickState
+                        {
+                            MouseDownState = lastMouseDownState,
+                            Target = clickTarget
+                        };
+                    }
+                }
+                else
+                {
+                    clickTarget.DispatchOtherClick(CreateMouseEvent(UiEventType.OtherClick, clickTarget));
+                }
+            }
+        }
+
+        ProcessPendingMouseCapture();
+    }
+
+    private bool IsDoubleClick(ClickState? clickState, MouseDownState mouseDownState, WidgetBase clickTarget)
+    {
+        if (clickState == null)
+        {
+            return false;
+        }
+
+        if (clickState.Target != clickTarget)
+        {
+            return false; // Click event targets a different element
+        }
+
+        // The deciding factor for emitting a double click event is the time between the mouse down events
+        var elapsedMsSinceMouseDown = mouseDownState.Timestamp.Milliseconds - clickState.MouseDownState.Timestamp.Milliseconds;
+        if (elapsedMsSinceMouseDown > 500)
+        {
+            return false; // Too much time between the mouse down events
+        }
+
+        // This is not quite correct. The mouse should not have moved outside of this rectangle, but we only
+        // check the position at the times of the mouse down events.
+        var firstMouseDownPos = clickState.MouseDownState.Pos;
+        var mouseDownPos = mouseDownState.Pos;
+        var distSq = MathF.Abs(firstMouseDownPos.X - mouseDownPos.X) + MathF.Abs(firstMouseDownPos.Y - mouseDownPos.Y);
+        // We use 5 virtual pixels as the radius, but consider the user moves in physical pixels, convert it
+        if (distSq > 5 * 5 * _mainWindow.UiScale * _mainWindow.UiScale)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void SetPressed(WidgetBase widget, bool value)
+    {
+        foreach (var node in widget.EnumerateSelfAndAncestors())
+        {
+            node.Pressed = value;
+        }
+    }
+
+    public void MouseWheel(Point windowPos, PointF uiPos, float units)
+    {
+        UpdateMousePosition(uiPos);
+
+        var target = MouseCaptureWidget ?? CurrentMouseOverWidget;
+        if (target != null)
+        {
+            // Old code assumes the wheel units to be windows wheel units, which usually are 120 * increments of the wheel
+            var e = CreateWheelEvent(UiEventType.MouseWheel, target, 0, units * 120.0f, 0);
+            target.DispatchMouseWheel(e);
+        }
+    }
+
+    private MouseEvent CreateMouseEvent(UiEventType type, WidgetBase target)
+    {
+        var button = MouseButton.Unchanged;
+        MouseButtons buttons = default;
+        if (_mouseDownState != null)
+        {
+            // Only on mouse down do we actually get the button set 
+            if (type is UiEventType.MouseDown or UiEventType.MouseUp)
+            {
+                button = _mouseDownState.Button;
+            }
+
+            buttons = _mouseDownState.Buttons;
+        }
+
+        return new MouseEvent
+        {
+            Type = type,
+            InitialTarget = target,
+            MouseOverWidget = PickWidget(_mousePos.X, _mousePos.Y),
+            Button = button,
+            Buttons = buttons,
+            X = _mousePos.X,
+            Y = _mousePos.Y,
+            IsAltHeld = Tig.Keyboard.IsAltPressed,
+            IsCtrlHeld = Tig.Keyboard.IsCtrlPressed,
+            IsShiftHeld = Tig.Keyboard.IsShiftPressed,
+            IsMetaHeld = Tig.Keyboard.IsMetaHeld
+        };
+    }
+
+    private WheelEvent CreateWheelEvent(UiEventType type, WidgetBase target, float deltaX, float deltaY, float deltaZ)
+    {
+        return new WheelEvent
+        {
+            Type = type,
+            InitialTarget = target,
+            MouseOverWidget = PickWidget(_mousePos.X, _mousePos.Y),
+            Button = MouseButton.Unchanged,
+            Buttons = _mouseDownState?.Buttons ?? default,
+            X = _mousePos.X,
+            Y = _mousePos.Y,
+            IsAltHeld = Tig.Keyboard.IsAltPressed,
+            IsCtrlHeld = Tig.Keyboard.IsCtrlPressed,
+            IsShiftHeld = Tig.Keyboard.IsShiftPressed,
+            IsMetaHeld = Tig.Keyboard.IsMetaHeld,
+            DeltaX = deltaX,
+            DeltaY = deltaY,
+            DeltaZ = deltaZ,
+        };
+    }
+
+    public void KeyDown(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
+    {
+        var initialTarget = KeyboardFocus ?? Root;
+
+        var e = CreateKeyboardEvent(UiEventType.KeyDown, initialTarget, virtualKey, physicalKey, modifiers, repeat);
+
+        initialTarget.DispatchKeyDown(e);
+
+        if (!e.IsDefaultPrevented && virtualKey == SDL_Keycode.SDLK_TAB)
+        {
+            _keyboardFocusManager.MoveFocusByKeyboard((modifiers & KeyModifier.Shift) != 0);
+        }
+    }
+
+    public void KeyUp(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers)
+    {
+        var initialTarget = KeyboardFocus ?? Root;
+
+        var e = CreateKeyboardEvent(UiEventType.KeyUp, initialTarget, virtualKey, physicalKey, modifiers, false);
+
+        initialTarget.DispatchKeyUp(e);
+    }
+
+    private static KeyboardEvent CreateKeyboardEvent(UiEventType type, WidgetBase target, SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
+    {
+        return new KeyboardEvent
+        {
+            Type = type,
+            InitialTarget = target,
+            VirtualKey = virtualKey,
+            PhysicalKey = physicalKey,
+            IsAltHeld = (modifiers & KeyModifier.Alt) != 0,
+            IsCtrlHeld = (modifiers & KeyModifier.Ctrl) != 0,
+            IsShiftHeld = (modifiers & KeyModifier.Shift) != 0,
+            IsMetaHeld = (modifiers & KeyModifier.Meta) != 0,
+            IsRepeat = repeat
+        };
+    }
+
+    public void TextInput(string text)
+    {
+        var initialTarget = KeyboardFocus ?? Root;
+
+        var e = new TextInputEvent
+        {
+            Type = UiEventType.TextInput,
+            InitialTarget = initialTarget,
+            Text = text
+        };
+
+        initialTarget.DispatchTextInput(e);
+    }
+
+    public void Tick()
+    {
+        // handle any queued tasks
+        ProcessPendingMouseCapture();
+
+        var now = TimePoint.Now;
+        if (Tig.Mouse.CursorDrawCallback == null && now - _mousePosLastChanged >= TooltipDelay)
+        {
+            Tig.Mouse.SetCursorDrawCallback(_renderTooltipCallback);
+            _renderingTooltipFor = CurrentMouseOverWidget;
+        }
+        // If the mouse over widget changes, reset tooltip
+        else if (_renderingTooltipFor != null
+                 && _renderingTooltipFor != CurrentMouseOverWidget
+                 && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
+        {
+            Tig.Mouse.SetCursorDrawCallback(null);
+            _renderingTooltipFor = null;
+        }
+
+        Root.OnUpdateTime(now);
+    }
+
+    // See https://w3c.github.io/pointerevents/#process-pending-pointer-capture
+    private void ProcessPendingMouseCapture()
+    {
+        if (_pendingMouseCaptureWidget != MouseCaptureWidget && MouseCaptureWidget != null)
+        {
+            MouseCaptureWidget.DispatchLostMouseCapture(CreateMouseEvent(UiEventType.LostMouseCapture, MouseCaptureWidget));
+        }
+
+        if (_pendingMouseCaptureWidget != MouseCaptureWidget && _pendingMouseCaptureWidget != null)
+        {
+            _pendingMouseCaptureWidget.DispatchGotMouseCapture(CreateMouseEvent(UiEventType.GotMouseCapture, _pendingMouseCaptureWidget));
+        }
+
+        if (MouseCaptureWidget != _pendingMouseCaptureWidget)
+        {
+            MouseCaptureWidget = _pendingMouseCaptureWidget;
+            UpdateMouseOver();
+        }
+    }
+
+    private static MouseButtons GetMouseButtons(MouseButton button)
+    {
+        return button switch
+        {
+            MouseButton.Left => MouseButtons.Left,
+            MouseButton.Right => MouseButtons.Right,
+            MouseButton.Middle => MouseButtons.Middle,
+            MouseButton.Extra1 => MouseButtons.Extra1,
+            MouseButton.Extra2 => MouseButtons.Extra2,
+            _ => throw new ArgumentOutOfRangeException(nameof(button), button, null)
+        };
+    }
+
+    // Tracks the state of the last click that occured to facilitate double click tracking.
+    private class ClickState
+    {
+        // A copy of the mouse down state that led to the click
+        public MouseDownState MouseDownState { get; init; }
+        
+        // The element that received the click event
+        public WidgetBase? Target { get; init; }
+    }
+
+    // Tracks the state of the first button that caused a mouse-down event,
+    // which has not been released yet.
+    private class MouseDownState
+    {
+        // When the event occured (using a monotonic clock)
+        public TimePoint Timestamp { get; init; }
+
+        // The first button that was pressed
+        public MouseButton Button { get; init; }
+
+        // The element it was pressed on
+        public WidgetBase? Target { get; init; }
+
+        // The UI position it was pressed at
+        public PointF Pos { get; init; }
+
+        // A bit-field with the buttons that are held, which might change
+        // between the mouse down and mouse up event. Buttons pressed
+        // after the first but before the first is released do not trigger
+        // mouse down / up events.
+        public MouseButtons Buttons { get; set; }
+    }
+
+    public void Focus(WidgetBase widget)
+    {
+        _keyboardFocusManager.MoveFocus(widget);
+    }
+
+    public void SnapToPhysicalPixelGrid(ref RectangleF rect)
+    {
+        var scale = _mainWindow.UiScale;
+        var right = rect.Right;
+        var bottom = rect.Bottom;
+
+        rect.X = MathF.Round(rect.X * scale) / scale;
+        rect.Y = MathF.Round(rect.Y * scale) / scale;
+        rect.Width = MathF.Round(right * scale) / scale - rect.X;
+        rect.Height = MathF.Round(bottom * scale) / scale - rect.Y;
+    }
 }

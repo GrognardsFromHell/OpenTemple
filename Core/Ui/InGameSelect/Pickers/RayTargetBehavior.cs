@@ -3,6 +3,7 @@ using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
 
@@ -16,18 +17,18 @@ internal class RayTargetBehavior : PickerBehavior
     public override string Name => "SP_M_RAY";
 
     [TempleDllLocation(0x10136ad0)]
-    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
-        MouseMoved(viewport, args);
+        MouseMoved(viewport, e);
         return FinalizePicker();
     }
 
     [TempleDllLocation(0x10136860)]
-    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool MouseMoved(IGameViewport viewport, MouseEvent e)
     {
         ClearResults();
 
-        SetResultLocationFromMouse(args);
+        SetResultLocationFromMouse(e);
         if (Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.Radius))
         {
             TrimRangeOfPicker(Result.location);

@@ -7,12 +7,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GameObjects;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.TabFiles;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.ActionBar;
 using OpenTemple.Core.Systems.AI;
 using OpenTemple.Core.Systems.Anim;
@@ -40,6 +40,7 @@ using OpenTemple.Core.Systems.Waypoints;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Utils;
+using HotkeySystem = OpenTemple.Core.Hotkeys.HotkeySystem;
 
 namespace OpenTemple.Core.Systems;
 
@@ -54,6 +55,7 @@ public static class GameSystems
     private static string mModuleDirPath;
 
     public static VagrantSystem Vagrant { get; private set; }
+    public static HotkeySystem Hotkeys { get; private set; }
     public static DescriptionSystem Description { get; private set; }
     public static ItemEffectSystem ItemEffect { get; private set; }
     public static TeleportSystem Teleport { get; private set; }
@@ -163,7 +165,8 @@ public static class GameSystems
     public static IEnumerable<IResetAwareSystem> ResetAwareSystems
         => _initializedSystems.OfType<IResetAwareSystem>();
 
-    [TempleDllLocation(0x10307054)] public static bool ModuleLoaded { get; private set; }
+    [TempleDllLocation(0x10307054)]
+    public static bool ModuleLoaded { get; private set; }
 
     public static void Init()
     {
@@ -385,6 +388,7 @@ public static class GameSystems
         Proto?.Dispose();
         Proto = null;
         AAS = null;
+        Hotkeys = null;
 
         mResetting = default;
         mModuleGuid = default;
@@ -412,7 +416,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         throw new NotImplementedException();
     }
 
-    [TempleDllLocation(0x11E726AC)] public static TimePoint LastAdvanceTime { get; private set; }
+    [TempleDllLocation(0x11E726AC)]
+    public static TimePoint LastAdvanceTime { get; private set; }
 
     public static void AdvanceTime()
     {
@@ -540,6 +545,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         // Loading Screen ID: 2
         loadingScreen.Progress = 1 / 79.0f;
         Vagrant = InitializeSystem(loadingScreen, () => new VagrantSystem());
+        Hotkeys = InitializeSystem(loadingScreen, () => new HotkeySystem());
         // Loading Screen ID: 2
         loadingScreen.Progress = 2 / 79.0f;
         Description = InitializeSystem(loadingScreen, () => new DescriptionSystem());
@@ -826,9 +832,11 @@ public class ItemEffectSystem : IGameSystem, IModuleAwareSystem
 
 public class SectorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
 {
-    [TempleDllLocation(0x10AB7470)] public int SectorLimitX { get; private set; }
+    [TempleDllLocation(0x10AB7470)]
+    public int SectorLimitX { get; private set; }
 
-    [TempleDllLocation(0x10AB7448)] public int SectorLimitY { get; private set; }
+    [TempleDllLocation(0x10AB7448)]
+    public int SectorLimitY { get; private set; }
 
     [TempleDllLocation(0x10081bc0)]
     public void Dispose()
@@ -1306,9 +1314,11 @@ public class GMeshSystem : IGameSystem
 
 public class PlayerSystem : IGameSystem, IResetAwareSystem
 {
-    [TempleDllLocation(0x10aa9508)] private GameObject _player;
+    [TempleDllLocation(0x10aa9508)]
+    private GameObject _player;
 
-    [TempleDllLocation(0x10aa94e8)] private ObjectId _playerId;
+    [TempleDllLocation(0x10aa94e8)]
+    private ObjectId _playerId;
 
     [TempleDllLocation(0x1006ede0)]
     public PlayerSystem()
@@ -1437,13 +1447,17 @@ public class SectorScriptSystem : IGameSystem
 
 public class TownMapSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
 {
-    [TempleDllLocation(0x10AA3340)] private byte[] dword_10AA3340;
+    [TempleDllLocation(0x10AA3340)]
+    private byte[] dword_10AA3340;
 
-    [TempleDllLocation(0x10aa3344)] private int numTimesToRead;
+    [TempleDllLocation(0x10aa3344)]
+    private int numTimesToRead;
 
-    [TempleDllLocation(0x10aa32f0)] private int dword_10AA32F0;
+    [TempleDllLocation(0x10aa32f0)]
+    private int dword_10AA32F0;
 
-    [TempleDllLocation(0x10aa32fc)] private int dword_10AA32FC;
+    [TempleDllLocation(0x10aa32fc)]
+    private int dword_10AA32FC;
 
     public void Dispose()
     {
@@ -1726,7 +1740,6 @@ public class ItemHighlightSystem : IGameSystem, IResetAwareSystem, ITimeAwareSys
 
     public ItemHighlightSystem()
     {
-        Reset();
     }
 
     public void Dispose()
@@ -1742,13 +1755,6 @@ public class ItemHighlightSystem : IGameSystem, IResetAwareSystem, ITimeAwareSys
     [TempleDllLocation(0x100431f0)]
     public void AdvanceTime(TimePoint time)
     {
-        if (ShowHighlights && !Tig.Keyboard.IsPressed(DIK.DIK_TAB))
-        {
-            ShowHighlights = false;
-        }
-        else if (!ShowHighlights && Tig.Keyboard.IsPressed(DIK.DIK_TAB))
-        {
-            ShowHighlights = true;
-        }
+        ShowHighlights = GameSystems.Hotkeys.IsHeld(InGameHotKey.ObjectHighlight);
     }
 }

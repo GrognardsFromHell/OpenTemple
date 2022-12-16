@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -39,8 +40,8 @@ internal class DeitySystem : IChargenSystem
             button.SetStyle("deity-button");
             button.Text = GameSystems.Deity.GetName(deityId).ToUpper();
             button.OnMouseEnter += msg => ShowDeityHelp(deityId);
-            button.OnMouseExit += msg => UpdateDescriptionBox();
-            button.SetClickHandler(() => SelectDeity(deityId));
+            button.OnMouseLeave += msg => UpdateDescriptionBox();
+            button.AddClickListener(() => SelectDeity(deityId));
             Container.Add(button);
             _deityButtons[deityId] = button;
         }
@@ -92,12 +93,12 @@ internal class DeitySystem : IChargenSystem
         {
             if (GameSystems.Deity.CanSelect(UiSystems.PCCreation.EditedChar, deityId))
             {
-                button.SetDisabled(false);
+                button.Disabled = false;
                 button.SetActive(_pkt.deityId == deityId);
             }
             else
             {
-                button.SetDisabled(true);
+                button.Disabled = true;
                 button.SetActive(false);
             }
         }
@@ -127,7 +128,7 @@ internal class DeitySystem : IChargenSystem
         var candidates = new List<DeityId>();
         foreach (var (deityId, button) in _deityButtons)
         {
-            if (!button.IsDisabled())
+            if (!button.Disabled)
             {
                 candidates.Add(deityId);
             }

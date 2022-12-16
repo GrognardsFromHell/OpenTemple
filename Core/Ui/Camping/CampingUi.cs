@@ -28,7 +28,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
     private readonly Dictionary<int, string> _translations;
 
     [TempleDllLocation(0x1012e440)]
-    public bool IsHidden => !_mainWindow.Visible;
+    public bool IsHidden => !_mainWindow.IsInTree;
 
     public bool IsVisible => !IsHidden;
 
@@ -120,11 +120,9 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         // Created @ 0x1012f29f
         _mainWindow = doc.GetRootContainer();
         // _mainWindow.OnBeforeRender += 0x1012e4d0;
-        // Swallow mouse events (to prevent click through)
-        _mainWindow.SetMouseMsgHandler(msg => true);
-        _mainWindow.SetKeyStateChangeHandler(OnKeyStateChange);
+        _mainWindow.PreventsInGameInteraction = true;
+        _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
         _mainWindow.ZIndex = 100000;
-        _mainWindow.Visible = false;
         _mainWindow.OnBeforeRender += UpdateCheckboxes;
 
         var titleLabel = new WidgetText(WindowTitle, "camping-button-text");
@@ -145,27 +143,27 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         _mainWindow.AddContent(_hoursToRestText);
 
         _restButton = doc.GetButton("restButton");
-        _restButton.SetClickHandler(OnRestClicked);
+        _restButton.AddClickListener(OnRestClicked);
 
         _cancelButton = doc.GetButton("cancelButton");
         _cancelButton.Text = ButtonLabelCancel;
-        _cancelButton.SetClickHandler(Hide);
+        _cancelButton.AddClickListener(Hide);
 
         _incrementDaysButton = doc.GetButton("incDaysButton");
-        _incrementDaysButton.SetRepeat(true);
-        _incrementDaysButton.SetClickHandler(OnIncrementDays);
+        _incrementDaysButton.IsRepeat = true;
+        _incrementDaysButton.AddClickListener(OnIncrementDays);
 
         _decrementDaysButton = doc.GetButton("decDaysButton");
-        _decrementDaysButton.SetRepeat(true);
-        _decrementDaysButton.SetClickHandler(OnDecrementDays);
+        _decrementDaysButton.IsRepeat = true;
+        _decrementDaysButton.AddClickListener(OnDecrementDays);
 
         _incrementHoursButton = doc.GetButton("incHoursButton");
-        _incrementHoursButton.SetRepeat(true);
-        _incrementHoursButton.SetClickHandler(OnIncrementHours);
+        _incrementHoursButton.IsRepeat = true;
+        _incrementHoursButton.AddClickListener(OnIncrementHours);
 
         _decrementHoursButton = doc.GetButton("decHoursButton");
-        _decrementHoursButton.SetRepeat(true);
-        _decrementHoursButton.SetClickHandler(OnDecrementHours);
+        _decrementHoursButton.IsRepeat = true;
+        _decrementHoursButton.AddClickListener(OnDecrementHours);
 
         _restUntilHealedCheckbox = new CampingCheckbox(new Rectangle(86, 96, 113, 15), UntilHealedLabel,
             "camping-checkbox-labels");
@@ -190,7 +188,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         // sticky_ui_main_window1.OnBeforeRender += 0x1019a9a0;
         sticky_ui_main_window1.ZIndex = 0;
         sticky_ui_main_window1.Name = "sticky_ui_main_window";
-        sticky_ui_main_window1.Visible = false;
+        sticky_ui_main_window1.Visible = false; // TODO
         // Created @ 0x1019b39a
         // var @ [TempleDllLocation(0x11e7277c)]
         var radialmenuslideracceptbutton1 = new WidgetButton(new Rectangle(328, 370, 112, 22));
@@ -375,21 +373,6 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         UiCampingTimeToRestTextUpdate();
     }
 
-    private bool OnKeyStateChange(MessageKeyStateChangeArgs arg)
-    {
-        if (arg.key == DIK.DIK_ESCAPE)
-        {
-            if (!arg.down)
-            {
-                Hide();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     [TempleDllLocation(0x1012e310)]
     public void Reset()
     {
@@ -407,12 +390,10 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
     [TempleDllLocation(0x1012eef0)]
     public void Hide()
     {
-        if (_mainWindow.Visible)
+        if (Globals.UiManager.RemoveWindow(_mainWindow))
         {
             GameSystems.TimeEvent.ResumeGameTime();
         }
-
-        _mainWindow.Visible = false;
     }
 
     [TempleDllLocation(0x1012f0c0)]
@@ -427,9 +408,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         GameSystems.TimeEvent.PauseGameTime();
         UiSystems.HideOpenedWindows(true);
 
-        _mainWindow.Visible = true;
-        _mainWindow.BringToFront();
-        _mainWindow.CenterOnScreen();
+        Globals.UiManager.ShowModal(_mainWindow);
 
         if (sleepStatus == SleepStatus.PassTimeOnly)
         {
@@ -537,11 +516,11 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         _hoursToRestLabelText.X = hoursLeft + hoursSize.Width + 153;
         _hoursToRestLabelText.Y = 85 - hoursLabelSize.Height;
 
-        _incrementDaysButton.SetDisabled(uiCampingDaysToRest >= 99);
-        _decrementDaysButton.SetDisabled(uiCampingDaysToRest <= 0);
+        _incrementDaysButton.Disabled = uiCampingDaysToRest >= 99;
+        _decrementDaysButton.Disabled = uiCampingDaysToRest <= 0;
 
-        _incrementHoursButton.SetDisabled(uiCampingHoursToRest >= 99);
-        _decrementHoursButton.SetDisabled(uiCampingHoursToRest <= 0);
+        _incrementHoursButton.Disabled = uiCampingHoursToRest >= 99;
+        _decrementHoursButton.Disabled = uiCampingHoursToRest <= 0;
     }
 
     [TempleDllLocation(0x1012ed50)]

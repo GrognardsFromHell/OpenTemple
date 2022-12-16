@@ -2,6 +2,7 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers;
 
@@ -16,11 +17,11 @@ internal class LocationTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x101363c0)]
-    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool LeftMouseButtonReleased(IGameViewport viewport, MouseEvent e)
     {
         ClearResults();
 
-        var targetLocation = GameViews.Primary.ScreenToTile(args.X, args.Y);
+        var targetLocation = GameViews.Primary.ScreenToTile(e.X, e.Y);
 
         var distance = Picker.caster.GetLocationFull().DistanceTo(targetLocation);
 
@@ -65,11 +66,11 @@ internal class LocationTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x101365d0)]
-    internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
+    internal override bool MouseMoved(IGameViewport viewport, MouseEvent e)
     {
         var sourceLocation = Picker.caster.GetLocationFull();
         var radius = Picker.caster.GetRadius();
-        var targetLocation = GameViews.Primary.ScreenToTile(args.X, args.Y);
+        var targetLocation = GameViews.Primary.ScreenToTile(e.X, e.Y);
 
         PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);
 

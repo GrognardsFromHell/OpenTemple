@@ -200,7 +200,7 @@ public class D20ActionSystem : IDisposable
     [TempleDllLocation(0x10097be0)]
     public void ActionSequencesResetOnCombatEnd()
     {
-        Stub.TODO();
+        ResetAll(null);
     }
 
     [TempleDllLocation(0x10095fd0)]
@@ -2006,7 +2006,7 @@ public class D20ActionSystem : IDisposable
         {
             ActionBroadcastAndSignalMoved();
             ActionPerform();
-            while (IsCurrentlyPerforming(CurrentSequence.performer) && actSeqOkToPerform())
+            while (CurrentSequence != null && IsCurrentlyPerforming(CurrentSequence.performer) && actSeqOkToPerform())
             {
                 ActionPerform();
             }
@@ -2227,7 +2227,7 @@ public class D20ActionSystem : IDisposable
     }
 
     [TempleDllLocation(0x10092e50)]
-    public ActionErrorCode GlobD20ActnSetTarget(GameObject target, LocAndOffsets? location)
+    public ActionErrorCode GlobD20ActnSetTarget(GameObject? target, LocAndOffsets? location)
     {
         switch (TargetClassification(globD20Action))
         {
@@ -2300,6 +2300,7 @@ public class D20ActionSystem : IDisposable
         var target = action.d20ATarget;
 
         var curSeq = CurrentSequence;
+        Debug.Assert(curSeq != null);
         switch (TargetClassification(action))
         {
             case D20TargetClassification.SingleExcSelf:
@@ -2380,7 +2381,7 @@ public class D20ActionSystem : IDisposable
         }
     }
 
-    public void ActionTypeAutomatedSelection(GameObject obj)
+    public void ActionTypeAutomatedSelection(GameObject? obj)
     {
         void SetGlobD20Action(D20ActionType actType, int data1)
         {
@@ -2511,9 +2512,9 @@ public class D20ActionSystem : IDisposable
     [TempleDllLocation(0x10B3D5C4)] private bool performedDefaultAction;
 
     [TempleDllLocation(0x1008B1E0)]
-    public bool ProjectileAppend(D20Action action, GameObject projHndl, GameObject thrownItem)
+    public bool ProjectileAppend(D20Action action, GameObject? projectile, GameObject thrownItem)
     {
-        if (projHndl == null)
+        if (projectile == null)
         {
             return false;
         }
@@ -2522,7 +2523,7 @@ public class D20ActionSystem : IDisposable
         {
             d20a = action,
             ammoItem = thrownItem,
-            projectile = projHndl
+            projectile = projectile
         });
 
         return true;
@@ -2588,46 +2589,35 @@ public class D20ActionSystem : IDisposable
         }
 
         // if not, add a move sequence
-        var d20aCopy = action.Copy();
-        d20aCopy.d20ActType = D20ActionType.UNSPECIFIED_MOVE;
-        d20aCopy.destLoc = target.GetLocationFull();
-        var result = MoveSequenceParse(d20aCopy, sequence, tbStatus, 0.0f, reach, true);
+        var actionCopy = action.Copy();
+        actionCopy.d20ActType = D20ActionType.UNSPECIFIED_MOVE;
+        actionCopy.destLoc = target.GetLocationFull();
+        var result = MoveSequenceParse(actionCopy, sequence, tbStatus, 0.0f, reach, true);
         if (result == ActionErrorCode.AEC_OK)
         {
             var tbStatusCopy = tbStatus.Copy();
             sequence.d20ActArray.Add(action);
-            if (actNum < sequence.d20ActArrayNum)
+            
+            for (; actNum < sequence.d20ActArrayNum; actNum++)
             {
-                for (; actNum < sequence.d20ActArrayNum; actNum++)
+                var otherAction = sequence.d20ActArray[actNum];
+                result = TurnBasedStatusUpdate(otherAction, tbStatusCopy);
+                if (result != ActionErrorCode.AEC_OK)
                 {
-                    var otherAction = sequence.d20ActArray[actNum];
-                    result = TurnBasedStatusUpdate(otherAction, tbStatusCopy);
-                    if (result != ActionErrorCode.AEC_OK)
-                    {
-                        tbStatusCopy.errCode = result;
-                        return result;
-                    }
-
-                    var actionType = otherAction.d20ActType;
-                    var actionCheckFunc = D20ActionDefs.GetActionDef(actionType).actionCheckFunc;
-                    if (actionCheckFunc != null)
-                    {
-                        result = actionCheckFunc(otherAction, tbStatusCopy);
-                        if (result != ActionErrorCode.AEC_OK)
-                        {
-                            return result;
-                        }
-                    }
+                    tbStatusCopy.errCode = result;
+                    return result;
                 }
 
-                if (actNum >= sequence.d20ActArrayNum)
-                    return ActionErrorCode.AEC_OK;
-                tbStatusCopy.errCode = result;
+                var actionType = otherAction.d20ActType;
+                var actionCheckFunc = D20ActionDefs.GetActionDef(actionType).actionCheckFunc;
+                result = actionCheckFunc(otherAction, tbStatusCopy);
                 if (result != ActionErrorCode.AEC_OK)
+                {
                     return result;
+                }
             }
 
-            return ActionErrorCode.AEC_OK;
+            tbStatusCopy.errCode = result;
         }
 
         return result;
@@ -2937,7 +2927,7 @@ public class D20ActionSystem : IDisposable
     private const float InterruptSearchIncrement = 4.0f;
 
     [TempleDllLocation(0x100939d0)]
-    private void ProcessPathForReadiedActions(D20Action action, out ReadiedActionPacket triggeredReadiedAction)
+    private void ProcessPathForReadiedActions(D20Action action, out ReadiedActionPacket? triggeredReadiedAction)
     {
         Span<int> actionIndices = stackalloc int[_readiedActions.Count];
         FindHostileReadyVsMoveActions(action.d20APerformer, ref actionIndices);
@@ -3086,7 +3076,7 @@ public class D20ActionSystem : IDisposable
     }
 
     [TempleDllLocation(0x10091650)]
-    private ReadiedActionPacket ReadiedActionGetNext(ReadiedActionPacket prevReadiedAction, D20Action d20a)
+    private ReadiedActionPacket? ReadiedActionGetNext(ReadiedActionPacket? prevReadiedAction, D20Action action)
     {
         int i0 = 0;
 
@@ -3114,17 +3104,17 @@ public class D20ActionSystem : IDisposable
             {
                 case ReadyVsTypeEnum.RV_Spell:
                 case ReadyVsTypeEnum.RV_Counterspell:
-                    if (GameSystems.Critter.IsFriendly(d20a.d20APerformer, _readiedActions[i].interrupter))
+                    if (GameSystems.Critter.IsFriendly(action.d20APerformer, _readiedActions[i].interrupter))
                         continue;
-                    if (d20a.d20ActType == D20ActionType.CAST_SPELL)
+                    if (action.d20ActType == D20ActionType.CAST_SPELL)
                         return _readiedActions[i];
                     break;
                 case ReadyVsTypeEnum.RV_Approach:
                 case ReadyVsTypeEnum.RV_Withdrawal:
                 default:
-                    if (d20a.d20ActType != D20ActionType.READIED_INTERRUPT)
+                    if (action.d20ActType != D20ActionType.READIED_INTERRUPT)
                         continue;
-                    if (d20a.d20APerformer != _readiedActions[i].interrupter)
+                    if (action.d20APerformer != _readiedActions[i].interrupter)
                         continue;
                     return _readiedActions[i];
             }
@@ -3134,28 +3124,28 @@ public class D20ActionSystem : IDisposable
     }
 
     [TempleDllLocation(0x1008B9A0)]
-    private void TrimPathToRemainingMoveLength(D20Action d20a, float remainingMoveLength, PathQuery pathQ)
+    private void TrimPathToRemainingMoveLength(D20Action action, float remainingMoveLength, PathQuery pathQ)
     {
         var pathLengthTrimmed = remainingMoveLength - 0.1f;
 
-        GameSystems.PathX.GetPartialPath(d20a.path, out var pqrTrimmed, 0.0f, pathLengthTrimmed);
+        GameSystems.PathX.GetPartialPath(action.path, out var pqrTrimmed, 0.0f, pathLengthTrimmed);
 
-        ReleasePooledPathQueryResult(ref d20a.path);
-        d20a.path = pqrTrimmed;
+        ReleasePooledPathQueryResult(ref action.path);
+        action.path = pqrTrimmed;
         var destination = pqrTrimmed.to;
-        if (!GameSystems.PathX.PathDestIsClear(pathQ, d20a.d20APerformer, destination))
+        if (!GameSystems.PathX.PathDestIsClear(pathQ, action.d20APerformer, destination))
         {
-            d20a.d20Caf |= D20CAF.ALTERNATE;
+            action.d20Caf |= D20CAF.ALTERNATE;
         }
 
-        d20a.d20Caf |= D20CAF.TRUNCATED;
+        action.d20Caf |= D20CAF.TRUNCATED;
     }
 
-    internal bool GetRemainingMaxMoveLength(D20Action d20a, TurnBasedStatus tbStat, out float moveLen)
+    internal bool GetRemainingMaxMoveLength(D20Action action, TurnBasedStatus tbStat, out float moveLen)
     {
         var surplusMoves = tbStat.surplusMoveDistance;
-        var moveSpeed = d20a.d20APerformer.Dispatch41GetMoveSpeed(out _);
-        if (d20a.d20ActType == D20ActionType.UNSPECIFIED_MOVE)
+        var moveSpeed = action.d20APerformer.Dispatch41GetMoveSpeed(out _);
+        if (action.d20ActType == D20ActionType.UNSPECIFIED_MOVE)
         {
             if (tbStat.hourglassState >= HourglassState.FULL)
             {
@@ -3173,7 +3163,7 @@ public class D20ActionSystem : IDisposable
             return true;
         }
 
-        if (d20a.d20ActType == D20ActionType.FIVEFOOTSTEP
+        if (action.d20ActType == D20ActionType.FIVEFOOTSTEP
             && (tbStat.tbsFlags & (TurnBasedStatusFlags.Moved | TurnBasedStatusFlags.Moved5FootStep)) == default)
         {
             if (surplusMoves <= 0.001f)
@@ -3186,13 +3176,13 @@ public class D20ActionSystem : IDisposable
             return true;
         }
 
-        if (d20a.d20ActType == D20ActionType.MOVE)
+        if (action.d20ActType == D20ActionType.MOVE)
         {
             moveLen = moveSpeed + surplusMoves;
             return true;
         }
 
-        if (d20a.d20ActType == D20ActionType.DOUBLE_MOVE)
+        if (action.d20ActType == D20ActionType.DOUBLE_MOVE)
         {
             moveLen = 2 * moveSpeed + surplusMoves;
             return true;
@@ -3203,15 +3193,10 @@ public class D20ActionSystem : IDisposable
     }
 
     [TempleDllLocation(0x1008b850)]
-    public void ReleasePooledPathQueryResult(ref PathQueryResult result)
+    public void ReleasePooledPathQueryResult(ref PathQueryResult? result)
     {
-        if (result == null)
-        {
-            return;
-        }
-
-        result = null;
         // Will not be implemented either, but we might use it as markers to pool the query in another way
+        result = null;
     }
 
     [TempleDllLocation(0x1008b810)]
@@ -3223,7 +3208,7 @@ public class D20ActionSystem : IDisposable
     [TempleDllLocation(0x10094ca0)]
     public ActionErrorCode seqCheckFuncs(out TurnBasedStatus tbStatus)
     {
-        Trace.Assert(CurrentSequence != null);
+        Debug.Assert(CurrentSequence != null);
         var curSeq = CurrentSequence;
         var result = ActionErrorCode.AEC_OK;
 
@@ -3232,41 +3217,37 @@ public class D20ActionSystem : IDisposable
 
         for (int i = 0; i < curSeq.d20ActArray.Count; i++)
         {
-            var d20a = curSeq.d20ActArray[i];
+            var action = curSeq.d20ActArray[i];
             if (curSeq.d20ActArrayNum <= 0) return 0;
 
-            var d20Def = D20ActionDefs.GetActionDef(d20a.d20ActType);
+            var d20Def = D20ActionDefs.GetActionDef(action.d20ActType);
             var tgtCheckFunc = d20Def.tgtCheckFunc;
             if (tgtCheckFunc != null)
             {
-                result = (ActionErrorCode) tgtCheckFunc(d20a, tbStatus);
+                result = tgtCheckFunc(action, tbStatus);
                 if (result != ActionErrorCode.AEC_OK)
                 {
                     break;
                 }
             }
 
-            result = TurnBasedStatusUpdate(d20a, tbStatus);
+            result = TurnBasedStatusUpdate(action, tbStatus);
             if (result != ActionErrorCode.AEC_OK)
             {
                 tbStatus.errCode = result;
                 break;
             }
 
-            var actCheckFunc = d20Def.actionCheckFunc;
-            if (actCheckFunc != null)
+            result = d20Def.actionCheckFunc(action, tbStatus);
+            if (result != ActionErrorCode.AEC_OK)
             {
-                result = actCheckFunc(d20a, tbStatus);
-                if (result != ActionErrorCode.AEC_OK)
-                {
-                    break;
-                }
+                break;
             }
 
             var locCheckFunc = d20Def.locCheckFunc;
             if (locCheckFunc != null)
             {
-                result = locCheckFunc(d20a, tbStatus, seqPerfLoc);
+                result = locCheckFunc(action, tbStatus, seqPerfLoc);
                 if (result != 0)
                 {
                     break;
@@ -3392,27 +3373,22 @@ public class D20ActionSystem : IDisposable
     [TempleDllLocation(0x10094c60)]
     public ActionErrorCode seqCheckAction(D20Action action, TurnBasedStatus tbStat)
     {
-        ActionErrorCode errorCode = TurnBasedStatusUpdate(action, tbStat);
+        var errorCode = TurnBasedStatusUpdate(action, tbStat);
         if (errorCode != ActionErrorCode.AEC_OK)
         {
             tbStat.errCode = errorCode;
             return errorCode;
         }
 
-        var actionCheckFunc = D20ActionDefs.GetActionDef(action.d20ActType).actionCheckFunc;
-        if (actionCheckFunc != null)
-        {
-            return actionCheckFunc(action, tbStat);
-        }
-
-        return ActionErrorCode.AEC_OK;
+        var actionDef = D20ActionDefs.GetActionDef(action.d20ActType);
+        return actionDef.actionCheckFunc(action, tbStat);
     }
 
     [TempleDllLocation(0x1008c580)]
-    public void FullAttackCostCalculate(D20Action d20a, TurnBasedStatus tbStatus, out int baseAttackNumCode,
+    public void FullAttackCostCalculate(D20Action action, TurnBasedStatus tbStatus, out int baseAttackNumCode,
         out int bonusAttacks, out int numAttacks, out int attackModeCode)
     {
-        GameObject performer = d20a.d20APerformer;
+        GameObject performer = action.d20APerformer;
         int usingOffhand = 0;
         int _attackTypeCodeHigh = 1;
         int _attackTypeCodeLow = 0;
@@ -3439,13 +3415,13 @@ public class D20ActionSystem : IDisposable
 
         if (mainWeapon != null && GameSystems.Item.IsRangedWeapon(mainWeapon))
         {
-            d20a.d20Caf |= D20CAF.RANGED;
+            action.d20Caf |= D20CAF.RANGED;
         }
 
         // if unarmed check natural attacks (for monsters)
         if (mainWeapon == null && offhand == null)
         {
-            numAttacksBase = DispatchD20ActionCheck(d20a, tbStatus, DispatcherType.GetCritterNaturalAttacksNum);
+            numAttacksBase = DispatchD20ActionCheck(action, tbStatus, DispatcherType.GetCritterNaturalAttacksNum);
 
             if (numAttacksBase > 0)
             {
@@ -3456,22 +3432,22 @@ public class D20ActionSystem : IDisposable
 
         if (numAttacksBase <= 0)
         {
-            numAttacksBase = DispatchD20ActionCheck(d20a, tbStatus, DispatcherType.GetNumAttacksBase);
+            numAttacksBase = DispatchD20ActionCheck(action, tbStatus, DispatcherType.GetNumAttacksBase);
         }
 
-        bonusAttacks = DispatchD20ActionCheck(d20a, tbStatus, DispatcherType.GetBonusAttacks);
+        bonusAttacks = DispatchD20ActionCheck(action, tbStatus, DispatcherType.GetBonusAttacks);
         numAttacks = usingOffhand + numAttacksBase + bonusAttacks;
         attackModeCode = _attackTypeCodeLow;
         baseAttackNumCode = numAttacksBase + _attackTypeCodeHigh - 1 + usingOffhand;
     }
 
-    public bool UsingSecondaryWeapon(D20Action d20a)
+    public bool UsingSecondaryWeapon(D20Action action)
     {
-        return GameSystems.D20.UsingSecondaryWeapon(d20a.d20APerformer, d20a.data1);
+        return GameSystems.D20.UsingSecondaryWeapon(action.d20APerformer, action.data1);
     }
 
     [TempleDllLocation(0x10092da0)]
-    public void ResetAll(GameObject critter)
+    public void ResetAll(GameObject? critter)
     {
         // resets the readied action cache
         // Clear TBUiIntgameFocus
@@ -3496,7 +3472,7 @@ public class D20ActionSystem : IDisposable
         GameSystems.D20.Initiative.RewindCurrentActor();
         SeqPickerTargetingTypeReset();
     }
-
+    
     [TempleDllLocation(0x10099430)]
     public void TurnStart(GameObject obj)
     {
@@ -3526,18 +3502,18 @@ public class D20ActionSystem : IDisposable
                 GameSystems.MapObject.GetDisplayName(actSeq.performer));
             if (curIdx < actSeq.d20ActArrayNum)
             {
-                var d20a = actSeq.d20ActArray[curIdx];
+                var action = actSeq.d20ActArray[curIdx];
 
-                if (InterruptNonCounterspell(d20a))
+                if (InterruptNonCounterspell(action))
                     return;
 
-                if (d20a.d20ActType == D20ActionType.CAST_SPELL)
+                if (action.d20ActType == D20ActionType.CAST_SPELL)
                 {
-                    var d20SpellData = d20a.d20SpellData;
+                    var d20SpellData = action.d20SpellData;
                     if (GameSystems.D20.D20QueryWithObject(actSeq.performer, D20DispatcherKey.QUE_SpellInterrupted,
                             d20SpellData) != 0)
                     {
-                        d20a.d20Caf &= ~D20CAF.NEED_ANIM_COMPLETED;
+                        action.d20Caf &= ~D20CAF.NEED_ANIM_COMPLETED;
                         GameSystems.Anim.Interrupt(actSeq.performer, AnimGoalPriority.AGP_5);
                     }
                 }
@@ -3623,11 +3599,6 @@ public class D20ActionSystem : IDisposable
 
     private static bool HasCustomCombatScript(GameObject obj)
     {
-        if (obj == null)
-        {
-            return false;
-        }
-
         var combatStartScript = obj.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.StartCombat);
         return combatStartScript.scriptId != 0;
     }
@@ -4285,9 +4256,9 @@ public class D20ActionSystem : IDisposable
         float totalMoveLength = 0.0f;
         var actSeq = CurrentSequence;
         float moveSpeed = 0.0f;
-        D20ActionType d20aType = globD20Action.d20ActType;
+        var actionType = globD20Action.d20ActType;
 
-        if (d20aType != D20ActionType.NONE && d20aType >= D20ActionType.UNSPECIFIED_MOVE &&
+        if (actionType != D20ActionType.NONE && actionType >= D20ActionType.UNSPECIFIED_MOVE &&
             (globD20Action.GetActionDefinitionFlags() & D20ADF.D20ADF_DrawPathByDefault) != default)
         {
             showPathPreview = true;
@@ -4395,15 +4366,15 @@ public class D20ActionSystem : IDisposable
                 }
             }
 
-            d20aType = globD20Action.d20ActType;
-            if (d20aType != D20ActionType.NONE && d20aType >= D20ActionType.UNSPECIFIED_MOVE &&
+            actionType = globD20Action.d20ActType;
+            if (actionType != D20ActionType.NONE && actionType >= D20ActionType.UNSPECIFIED_MOVE &&
                 (globD20Action.GetActionDefinitionFlags() & D20ADF.D20ADF_DrawPathByDefault) != 0)
             {
                 var tbStat1 = new TurnBasedStatus();
                 tbStat1.tbsFlags = tbStat.tbsFlags;
                 tbStat1.surplusMoveDistance = tbStat.surplusMoveDistance;
-                var d20ActionDef = D20ActionDefs.GetActionDef(d20aType);
-                if (d20aType != D20ActionType.NONE && d20aType >= D20ActionType.UNSPECIFIED_MOVE &&
+                var d20ActionDef = D20ActionDefs.GetActionDef(actionType);
+                if (actionType != D20ActionType.NONE && actionType >= D20ActionType.UNSPECIFIED_MOVE &&
                     d20ActionDef.turnBasedStatusCheck != null)
                 {
                     if (d20ActionDef.turnBasedStatusCheck(globD20Action, tbStat1) != ActionErrorCode.AEC_OK)
@@ -4428,7 +4399,7 @@ public class D20ActionSystem : IDisposable
                 }
             }
 
-            if ((d20aType == D20ActionType.RUN || d20aType == D20ActionType.CHARGE) && actSeq.d20ActArrayNum > 0)
+            if ((actionType == D20ActionType.RUN || actionType == D20ActionType.CHARGE) && actSeq.d20ActArrayNum > 0)
             {
                 for (int i = 0; i < actSeq.d20ActArrayNum; i++)
                 {
@@ -4859,10 +4830,10 @@ public class D20ActionSystem : IDisposable
     {
         // TODO: I am doubtful it's sensible to restore the global action
         globD20Action = ActionSequencesLoader.LoadAction(savedD20State.GlobalAction);
-        actSeqArray = ActionSequencesLoader.LoadSequences(savedD20State.ActionSequences);
+        var sequences = ActionSequencesLoader.LoadSequences(savedD20State.ActionSequences);
         if (savedD20State.CurrentSequenceIndex != -1)
         {
-            CurrentSequence = actSeqArray[savedD20State.CurrentSequenceIndex];
+            CurrentSequence = sequences[savedD20State.CurrentSequenceIndex];
         }
         else
         {
@@ -4873,7 +4844,20 @@ public class D20ActionSystem : IDisposable
         LoadReadiedActions(savedD20State.ReadiedActions);
 
         // Now filter out the null sequences which are an artifact of the index based references
-        actSeqArray.RemoveAll(x => x == null);
+        sequences.RemoveAll(x => x == null);
+        actSeqArray = sequences!;
+        
+        // Ensure current sequence is populated if we're in combat and there's an actor
+        // We're not loading action sequences that aren't performing so for us, current sequence would be null,
+        // while the rest of the system depends on it being not-null
+        if (CurrentSequence == null && GameSystems.Combat.IsCombatActive() && GameSystems.D20.Initiative.CurrentActor != null)
+        {
+            AllocSeq(GameSystems.D20.Initiative.CurrentActor);
+        }
+        
+        actSeqPickerActive = false;
+        actnProcState = 0;
+        GameSystems.Combat.OnAfterActionsLoaded();
     }
 
     private void LoadProjectiles(ICollection<SavedProjectile> savedProjectiles)
@@ -4986,5 +4970,17 @@ public class D20ActionSystem : IDisposable
             Type = readiedAction.readyType,
             IsActive = (readiedAction.flags & 1) != 0
         };
+    }
+
+    [TempleDllLocation(0x10092a50)]
+    public void ResetTurnBased()
+    {
+        rollbackSequenceFlag = false;
+        globD20Action.d20APerformer = null;
+        actSeqArray.Clear();
+        actSeqTargets.Clear();
+        CurrentSequence = null;
+        actSeqSpellLoc = default;
+        SeqPickerTargetingTypeReset();
     }
 }

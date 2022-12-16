@@ -23,7 +23,7 @@ public class TigSound : IDisposable
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private Soloud _soloud;
+    private Soloud? _soloud;
 
     [TempleDllLocation(0x10ee7570)]
     private bool sound_initialized => _soloud != null;
@@ -343,15 +343,17 @@ public class TigSound : IDisposable
         {
             return;
         }
+        
+        var now = TimePoint.Now;
 
-        if (Tig.SystemEventPump.system_events_processed_time < _nextAudioTick - OneSecond)
+        if (now < _nextAudioTick - OneSecond)
         {
-            _nextAudioTick = Tig.SystemEventPump.system_events_processed_time;
+            _nextAudioTick = now;
         }
 
-        if (Tig.SystemEventPump.system_events_processed_time <= _nextAudioTick + OneSecond)
+        if (now <= _nextAudioTick + OneSecond)
         {
-            if (Tig.SystemEventPump.system_events_processed_time < _nextAudioTick)
+            if (now < _nextAudioTick)
             {
                 return;
             }
@@ -360,7 +362,7 @@ public class TigSound : IDisposable
         }
         else
         {
-            _nextAudioTick = Tig.SystemEventPump.system_events_processed_time + HundredMs;
+            _nextAudioTick = now + HundredMs;
         }
 
         UpdateSoundStreams();
@@ -625,7 +627,7 @@ public class TigSound : IDisposable
 
     [TempleDllLocation(0x101e3660)]
     [TempleDllLocation(0x101e36c0)]
-    public void FadeOutStream(int streamId, int a2)
+    public void FadeOutStream(int streamId, int fadeOutTime)
     {
         if (!sound_initialized || streamId < 0 || streamId >= 70)
         {
@@ -638,7 +640,7 @@ public class TigSound : IDisposable
         if ((stream.flags & 4) == 0)
         {
             stream.flags |= 4;
-            stream.field8 = Math.Abs(a2);
+            stream.field8 = Math.Abs(fadeOutTime);
             stream.fieldC = 0;
         }
     }

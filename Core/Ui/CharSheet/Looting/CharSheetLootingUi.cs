@@ -21,7 +21,7 @@ public class CharSheetLootingUi : IDisposable
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10BE6EE8)]
-    internal bool IsVisible => _mainWindow.Visible;
+    internal bool IsVisible => _mainWindow.IsInTree;
 
     [TempleDllLocation(0x10BE6EB8)]
     private int dword_10BE6EB8;
@@ -31,11 +31,11 @@ public class CharSheetLootingUi : IDisposable
 
     [TempleDllLocation(0x1013de30)]
     [TempleDllLocation(0x10BE6EC0)]
-    public GameObject LootingContainer { get; private set; }
+    public GameObject? LootingContainer { get; private set; }
 
     [TempleDllLocation(0x10BE6EC8)]
     [TempleDllLocation(0x1013de20)]
-    public GameObject Vendor { get; private set; }
+    public GameObject? Vendor { get; private set; }
 
     [TempleDllLocation(0x10be6e9c)] [TempleDllLocation(0x10be6eb4)]
     private readonly LootingSlotWidget[] _lootingSlots = new LootingSlotWidget[12];
@@ -78,14 +78,11 @@ public class CharSheetLootingUi : IDisposable
     [TempleDllLocation(0x101412a0)]
     public CharSheetLootingUi()
     {
-        var doc = WidgetDoc.Load("ui/char_looting.json");
-        var root = doc.GetRootContainer();
-        root.Visible = false;
+        WidgetDoc.Load("ui/char_looting.json");
 
         _translations = Tig.FS.ReadMesFile("mes/6_char_looting_ui_text.mes");
 
         _mainWindow = new WidgetContainer(new Rectangle(7, 77, 137, 464));
-        _mainWindow.Visible = false;
         _mainWindow.ZIndex = 100050;
         _mainWindow.Name = "char_looting_ui_main_window";
         _mainWindow.AddContent(new WidgetImage("art/interface/char_ui/char_looting_ui/looting_background.img"));
@@ -112,8 +109,8 @@ public class CharSheetLootingUi : IDisposable
             var slotsOrigin = new Point(12, 128);
             var slotPos = slotsOrigin;
             slotPos.Offset(
-                slotX * (LootingSlotWidget.Size.Width + LootingSlotWidget.MarginRight),
-                slotY * (LootingSlotWidget.Size.Height + LootingSlotWidget.MarginBottom)
+                slotX * (LootingSlotWidget.SlotSize.Width + LootingSlotWidget.MarginRight),
+                slotY * (LootingSlotWidget.SlotSize.Height + LootingSlotWidget.MarginBottom)
             );
 
             var slotWidget = new LootingSlotWidget(i, slotPos);
@@ -125,7 +122,7 @@ public class CharSheetLootingUi : IDisposable
         _takeAllButton = new WidgetButton(new Rectangle(9, 97, 120, 30));
         _takeAllButton.Name = "char_looting_ui_take_all_button";
         _takeAllButton.SetStyle("charLootingIdentify");
-        _takeAllButton.SetClickHandler(OnClickTakeAllButton);
+        _takeAllButton.AddClickListener(OnClickTakeAllButton);
         _mainWindow.Add(_takeAllButton);
 
         _containerIconButton = new WidgetButtonBase(new Rectangle(41, 32, 53, 47));
@@ -384,7 +381,7 @@ public class CharSheetLootingUi : IDisposable
         }
 
         UpdateLabels();
-        _mainWindow.Visible = true;
+        Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
     }
 
@@ -405,7 +402,7 @@ public class CharSheetLootingUi : IDisposable
         }
 
         Reset();
-        _mainWindow.Visible = false;
+        Globals.UiManager.RemoveWindow(_mainWindow);
     }
 
     [TempleDllLocation(0x1013f9c0)]

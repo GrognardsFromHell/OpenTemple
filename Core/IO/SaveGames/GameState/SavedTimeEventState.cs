@@ -150,8 +150,9 @@ public class SavedTimeEvent
                 return reader.ReadSingle();
             case TimeEventArgType.Object:
                 return reader.ReadFrozenObjRef();
-//                case TimeEventArgType.PythonObject:
-//                    break; TODO
+            case TimeEventArgType.PythonObject:
+                Stub.TODO();
+                throw new NotImplementedException();
             case TimeEventArgType.Location:
                 // TODO: Note that vanilla only saves locx,locy, but we now allow for precise locs
                 return new LocAndOffsets(reader.ReadTileLocation());
@@ -173,8 +174,9 @@ public class SavedTimeEvent
             case TimeEventArgType.Object:
                 writer.WriteFrozenObjRef((FrozenObjRef) value);
                 break;
-//                case TimeEventArgType.PythonObject:
-//                    break; TODO
+            case TimeEventArgType.PythonObject:
+                Stub.TODO();
+                break;
             case TimeEventArgType.Location:
                 // TODO: Note that vanilla only saves locx,locy, but we now allow for precise locs
                 writer.WriteTileLocation(((LocAndOffsets) value).location);

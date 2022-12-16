@@ -10,8 +10,10 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Widgets;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui.SaveGame;
 
@@ -20,7 +22,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10176b00)]
-    public bool IsVisible => _window.Visible;
+    public bool IsVisible => _window.IsInTree;
 
     [TempleDllLocation(0x10c07ca0)]
     private readonly WidgetContainer _window;
@@ -41,7 +43,8 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
 
     private readonly WidgetImage _largeScreenshot;
 
-    [TempleDllLocation(0x10c0a49c)] [TempleDllLocation(0x10c073b4)]
+    [TempleDllLocation(0x10c0a49c)]
+    [TempleDllLocation(0x10c073b4)]
     private bool _pendingConfirmation;
 
     /// <summary>
@@ -55,7 +58,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
     [TempleDllLocation(0x10c0a44c)]
     private List<SaveGameInfo> _saves = new();
 
-    private SaveGameInfo _selectedSave;
+    private SaveGameInfo? _selectedSave;
 
     private readonly SaveGameSlotButton[] _slots = new SaveGameSlotButton[8];
 
@@ -67,20 +70,19 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         var doc = WidgetDoc.Load("ui/save_game_ui.json");
 
         _window = doc.GetRootContainer();
-        _window.Visible = false;
         _window.SetCharHandler(OnCharEntered);
 
         _loadButton = doc.GetButton("load");
-        _loadButton.SetClickHandler(OnLoadClick);
+        _loadButton.AddClickListener(OnLoadClick);
         _loadTitle = doc.GetTextContent("loadTitle");
 
         _saveButton = doc.GetButton("save");
-        _saveButton.SetClickHandler(OnSaveClick);
+        _saveButton.AddClickListener(OnSaveClick);
         _saveTitle = doc.GetTextContent("saveTitle");
 
         _deleteButton = doc.GetButton("delete");
-        _deleteButton.SetClickHandler(OnDeleteClick);
-        doc.GetButton("close").SetClickHandler(OnCloseClick);
+        _deleteButton.AddClickListener(OnDeleteClick);
+        doc.GetButton("close").AddClickListener(OnCloseClick);
 
         _scrollBar = doc.GetScrollBar("scrollbar");
         _scrollBar.SetValueChangeHandler(value => UpdateSlots());
@@ -91,18 +93,19 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         // Forward mouse events on the window to the savegame list
         _window.SetKeyStateChangeHandler(OnKeyPress);
 
+        _window.OnMouseWheel += ForwardScrollWheelMessage;
+
         for (var i = 0; i < _slots.Length; i++)
         {
             // Size is determined by the border image
             var rect = new Rectangle(26, 34 + 53 * i, 318, 54);
 
             var slot = new SaveGameSlotButton(rect);
-            slot.SetClickHandler(() =>
+            slot.AddClickListener(() =>
             {
                 _selectedSave = slot.SaveGame;
                 UpdateSlots();
             });
-            slot.SetMouseMsgHandler(ForwardScrollWheelMessage);
             _slots[i] = slot;
             _window.Add(slot);
         }
@@ -120,21 +123,16 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         {
             if (slot.Selected)
             {
-                slot.AppendNewNameChar(arg.Character);
+                slot.AppendNewName(arg.Text);
             }
         }
 
         return true;
     }
 
-    private bool ForwardScrollWheelMessage(MessageMouseArgs args)
+    private void ForwardScrollWheelMessage(WheelEvent e)
     {
-        if ((args.flags & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            return _scrollBar.HandleMouseMessage(args);
-        }
-
-        return false;
+        _scrollBar.DispatchMouseWheel(e);
     }
 
     private bool OnKeyPress(MessageKeyStateChangeArgs arg)
@@ -155,10 +153,10 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
 
         switch (arg.key)
         {
-            case DIK.DIK_ESCAPE:
+            case SDL_Keycode.SDLK_ESCAPE:
                 OnCloseClick();
                 return true;
-            case DIK.DIK_RETURN:
+            case SDL_Keycode.SDLK_RETURN:
                 if (_mode == Mode.Loading)
                 {
                     OnLoadClick();
@@ -169,15 +167,15 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
                 }
 
                 return true;
-            case DIK.DIK_DELETE:
+            case SDL_Keycode.SDLK_DELETE:
                 OnDeleteClick();
                 return true;
-            case DIK.DIK_UP:
-            case DIK.DIK_NUMPAD8:
+            case SDL_Keycode.SDLK_UP:
+            case SDL_Keycode.SDLK_KP_8:
                 SelectPreviousSave();
                 return true;
-            case DIK.DIK_DOWN:
-            case DIK.DIK_NUMPAD2:
+            case SDL_Keycode.SDLK_DOWN:
+            case SDL_Keycode.SDLK_KP_2:
                 SelectNextSave();
                 return true;
             default:
@@ -415,8 +413,8 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         LoadSaveList();
         UpdateUi();
 
-        _window.Visible = true;
-        _window.CenterOnScreen();
+        Globals.UiManager.AddWindow(_window);
+        _window.CenterInParent();
         _window.BringToFront();
         _openedFromMainMenu = fromMainMenu;
         UiSystems.UtilityBar.Hide();
@@ -462,7 +460,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
 
         _saves.Clear();
         _selectedSave = null;
-        _window.Visible = false;
+        Globals.UiManager.RemoveWindow(_window);
         if (_mode == Mode.Loading)
         {
             if (!_openedFromMainMenu)
@@ -506,14 +504,14 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
             || _selectedSave.Type == SaveGameType.AutoSave
             || _selectedSave.Type == SaveGameType.QuickSave)
         {
-            _deleteButton.SetDisabled(true);
+            _deleteButton.Disabled = true;
         }
         else
         {
-            _deleteButton.SetDisabled(false);
+            _deleteButton.Disabled = false;
         }
 
-        _loadButton.SetDisabled(_selectedSave == null);
+        _loadButton.Disabled = _selectedSave == null;
     }
 
     private void ShowSaveDetails(SaveGameInfo save)

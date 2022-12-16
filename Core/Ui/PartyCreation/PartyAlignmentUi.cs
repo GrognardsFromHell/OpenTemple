@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;
@@ -32,20 +31,10 @@ public class PartyAlignmentUi : IDisposable
         var doc = WidgetDoc.Load("ui/party_creation/party_alignment.json");
 
         _container = doc.GetRootContainer();
-        _container.Visible = false;
 
         // RENDER: 0x1011be20
         // MESSAGE: 0x1011ed20
-        _container.SetKeyStateChangeHandler(evt =>
-        {
-            if (evt.key == DIK.DIK_ESCAPE && evt.down)
-            {
-                Cancel();
-                return true;
-            }
-
-            return false;
-        });
+        _container.AddHotkey(UiHotkeys.CloseWindow, Cancel);
 
         // Alignment buttons:
         // MESSAGE: 0x1011e5c0
@@ -67,14 +56,14 @@ public class PartyAlignmentUi : IDisposable
             var alignmentName = GameSystems.Stat.GetAlignmentName(alignment).ToUpper();
             button.Text = alignmentName;
 
-            button.SetClickHandler(() => SelectAlignment(alignment));
+            button.AddClickListener(() => SelectAlignment(alignment));
         }
 
         // OK Button:
         // MESSAGE: 0x1011bf70
         // RENDER: 0x1011beb0
         _okButton = doc.GetButton("ok");
-        _okButton.SetClickHandler(() =>
+        _okButton.AddClickListener(() =>
         {
             var alignment = _alignment;
             if (alignment.HasValue)
@@ -88,7 +77,7 @@ public class PartyAlignmentUi : IDisposable
         // MESSAGE: 0x1011ed50
         // RENDER: 0x1011bfa0
         var cancelButton = doc.GetButton("cancel");
-        cancelButton.SetClickHandler(Cancel);
+        cancelButton.AddClickListener(Cancel);
 
         _selectionRect = doc.GetImageContent("selected");
     }
@@ -111,12 +100,12 @@ public class PartyAlignmentUi : IDisposable
         if (!_alignment.HasValue)
         {
             _selectionRect.Visible = false;
-            _okButton.SetDisabled(true);
+            _okButton.Disabled = true;
         }
         else
         {
             _selectionRect.Visible = true;
-            _okButton.SetDisabled(false);
+            _okButton.Disabled = false;
 
             // Center the rectangle on the button that is the selected alignment
             var button = _alignmentButtons[_alignment.Value];
@@ -160,8 +149,8 @@ public class PartyAlignmentUi : IDisposable
 
     public void Show()
     {
-        _container.CenterOnScreen();
-        _container.Visible = true;
+        Globals.UiManager.AddWindow(_container);
+        _container.CenterInParent();
         _container.BringToFront();
 
 //            dword_10BDC430/*0x10bdc430*/ = (string )uiPcCreationText_SelectAPartyAlignment/*0x10bdb018*/;
@@ -171,6 +160,6 @@ public class PartyAlignmentUi : IDisposable
 
     public void Hide()
     {
-        _container.Visible = false;
+        Globals.UiManager.RemoveWindow(_container);
     }
 }

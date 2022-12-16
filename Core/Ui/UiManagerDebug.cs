@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
@@ -50,8 +51,11 @@ public class UiManagerDebug
             return;
         }
 
-        if (ImGui.Begin("UI Debug Menu"))
+        var open = DebugMenuVisible;
+        if (ImGui.Begin("UI Debug Menu", ref open, ImGuiWindowFlags.NoCollapse))
         {
+            DebugMenuVisible = open;
+
             var enabled = RenderHoveredWidgetOutline;
             if (ImGui.Checkbox("Render Outline on Hover", ref enabled))
             {
@@ -59,18 +63,32 @@ public class UiManagerDebug
             }
 
             var currentMouseOver = _uiManager.CurrentMouseOverWidget;
+            ImGui.Text("Mouse Over");
             if (currentMouseOver != null)
             {
-                ImGui.Text("Source URI: " + currentMouseOver.GetSourceURI());
-                ImGui.Text("ID: " + currentMouseOver.GetId());
+                ImGui.Text("Source URI: " + currentMouseOver.SourceURI);
+                ImGui.Text("ID: " + currentMouseOver.Id);
+            }
+
+            var mouseCapture = _uiManager.MouseCaptureWidget;
+            if (mouseCapture != null)
+            {
+                ImGui.Text("Mouse Capture");
+                ImGui.Text("Source URI: " + mouseCapture.SourceURI);
+                ImGui.Text("ID: " + mouseCapture.Id);
+            }
+
+            var focus = _uiManager.KeyboardFocus;
+            if (focus != null)
+            {
+                ImGui.Text("Keyboard Focus:");
+                ImGui.Text("Source URI: " + focus.SourceURI);
+                ImGui.Text("ID: " + focus.Id);
             }
 
             if (ImGui.CollapsingHeader("Widgets"))
             {
-                foreach (var window in _uiManager.ActiveWindows)
-                {
-                    RenderWidgetTreeNode(window);
-                }
+                RenderWidgetTreeNode(_uiManager.Root);
             }
 
             ImGui.End();
@@ -80,12 +98,9 @@ public class UiManagerDebug
     private static void RenderWidgetTreeNode(WidgetBase widget)
     {
         ImGui.PushID($"widget${widget.GetHashCode()}");
-        var zIndex = "";
-        if (widget is WidgetContainer window && window.GetParent() == null)
-        {
-            zIndex = $" Z:{window.ZIndex}";
-        }
-        if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
+        var zIndex = $" Z:{widget.ZIndex}";
+
+        if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.Id} ({widget.SourceURI}){zIndex}"))
         {
             if (ImGui.IsItemHovered())
             {
@@ -94,7 +109,7 @@ public class UiManagerDebug
 
             if (widget is WidgetContainer container)
             {
-                foreach (var child in container.GetChildren())
+                foreach (var child in container.Children)
                 {
                     RenderWidgetTreeNode(child);
                 }

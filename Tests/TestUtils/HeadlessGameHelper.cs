@@ -10,6 +10,8 @@ using OpenTemple.Core.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Ui.Events;
+using SDL2;
 using SixLabors.ImageSharp.Advanced;
 using Point = System.Drawing.Point;
 using PointF = System.Drawing.PointF;
@@ -33,7 +35,7 @@ public class HeadlessGameHelper : IDisposable
 
     public event Action OnRenderFrame;
 
-    public HeadlessGameHelper()
+    public HeadlessGameHelper(bool withGameSystems = true, bool withUserInterface = true)
     {
         if (_activeInstance != null)
         {
@@ -58,7 +60,8 @@ public class HeadlessGameHelper : IDisposable
         var options = new HeadlessGameOptions(toeeDir)
         {
             UserDataFolder = _userData.Path,
-            WithUserInterface = true
+            WithGameSystems = withGameSystems,
+            WithUserInterface = withUserInterface
         };
 
         Game = HeadlessGame.Start(options);
@@ -66,7 +69,7 @@ public class HeadlessGameHelper : IDisposable
         Window = (HeadlessMainWindow)Tig.MainWindow;
 
         Globals.GameLoop = new GameLoop(
-            Tig.MessageQueue,
+            Tig.EventLoop,
             Tig.RenderingDevice,
             Tig.DebugUI
         );
@@ -194,26 +197,31 @@ public class HeadlessGameHelper : IDisposable
         (int)(uiPoint.Y * Window.UiScale)
     );
 
-    public void SendMouseEvent(WindowEventType type, Point screenPoint, MouseButton button)
+    public void SendMouseDown(Point screenPoint, MouseButton button)
     {
-        Window.SendInput(new MouseWindowEvent(
-            type,
-            Window,
+        Window.UiRoot?.MouseDown(
             screenPoint,
-            ToUiCanvas(screenPoint)
-        )
-        {
-            Button = button
-        });
+            ToUiCanvas(screenPoint),
+            button
+        );
     }
 
-    public void Click(Point screenPoint, MouseButton button = MouseButton.LEFT)
+    public void SendMouseUp(Point screenPoint, MouseButton button)
     {
-        SendMouseEvent(WindowEventType.MouseDown, screenPoint, button);
-        SendMouseEvent(WindowEventType.MouseUp, screenPoint, button);
+        Window.UiRoot?.MouseUp(
+            screenPoint,
+            ToUiCanvas(screenPoint),
+            button
+        );
     }
 
-    public void ClickUi(float x, float y, MouseButton button = MouseButton.LEFT)
+    public void Click(Point screenPoint, MouseButton button = MouseButton.Left)
+    {
+        SendMouseDown(screenPoint, button);
+        SendMouseUp(screenPoint, button);
+    }
+
+    public void ClickUi(float x, float y, MouseButton button = MouseButton.Left)
     {
         Click(FromUiCanvas(new PointF(x, y)), button);
     }

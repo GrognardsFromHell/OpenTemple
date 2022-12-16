@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.Platform;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -15,19 +15,20 @@ public class GameViewScrollingController
     private TimePoint _lastScrolling;
     private static readonly TimeSpan ScrollButterDelay = TimeSpan.FromMilliseconds(16);
     private bool _grabMoving;
-    private Point _grabMoveRef;
+    private PointF _grabMoveRef;
+    private PointF? _lastMousePos;
     private bool _mouseHasMoved;
     public bool IsMouseScrolling { get; set; } = true;
-    
+
     public GameViewScrollingController(WidgetContainer widget, IGameViewport viewport)
     {
         _widget = widget;
         _viewport = viewport;
     }
 
-    public bool MiddleMouseDown(Point pos)
+    public bool MiddleMouseDown(PointF pos)
     {
-        _grabMoving = Globals.UiManager.SetMouseCaptureWidget(_widget);
+        _grabMoving = _widget.SetMouseCapture();
         _grabMoveRef = pos;
         return true;
     }
@@ -36,7 +37,7 @@ public class GameViewScrollingController
     {
         if (_grabMoving)
         {
-            Globals.UiManager.UnsetMouseCaptureWidget(_widget);
+            _widget.ReleaseMouseCapture();
             _grabMoving = false;
             _grabMoveRef = Point.Empty;
             return true;
@@ -45,8 +46,10 @@ public class GameViewScrollingController
         return false;
     }
 
-    public bool MouseMoved(Point pos)
+    public bool MouseMoved(PointF pos)
     {
+        _lastMousePos = pos;
+        
         if (!_grabMoving)
         {
             return false;
@@ -59,7 +62,7 @@ public class GameViewScrollingController
         dx = (int) (dx / _viewport.Zoom);
         dy = (int) (dy / _viewport.Zoom);
 
-        GameSystems.Scroll.ScrollBy(_viewport, dx, dy);
+        GameSystems.Scroll.ScrollBy(_viewport, (int) dx, (int) dy);
 
         _grabMoveRef = pos;
         return true;
@@ -74,13 +77,13 @@ public class GameViewScrollingController
             return;
         }
 
-        if (Tig.Keyboard.IsPressed(DIK.DIK_UP))
+        if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollUp))
         {
-            if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
+            if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_LEFT);
             }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
+            else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_RIGHT);
             }
@@ -89,13 +92,13 @@ public class GameViewScrollingController
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP);
             }
         }
-        else if (Tig.Keyboard.IsPressed(DIK.DIK_DOWN))
+        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollDown))
         {
-            if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
+            if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_LEFT);
             }
-            else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
+            else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_RIGHT);
             }
@@ -104,18 +107,18 @@ public class GameViewScrollingController
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN);
             }
         }
-        else if (Tig.Keyboard.IsPressed(DIK.DIK_LEFT))
+        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
         {
             GameSystems.Scroll.SetScrollDirection(ScrollDirection.LEFT);
         }
-        else if (Tig.Keyboard.IsPressed(DIK.DIK_RIGHT))
+        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
         {
             GameSystems.Scroll.SetScrollDirection(ScrollDirection.RIGHT);
         }
     }
 
     [TempleDllLocation(0x10001010)]
-    public void UpdateTime(TimePoint time, Point mousePos)
+    public void UpdateTime(TimePoint time)
     {
         DoKeyboardScrolling();
 
@@ -127,10 +130,12 @@ public class GameViewScrollingController
 
         // Wait until the mouse has moved at least once to avoid the issue of the mouse at 0,0
         // causing the screen to move directly on startup.
-        if (!_mouseHasMoved)
+        if (_lastMousePos == null)
         {
             return;
         }
+
+        var mousePos = _lastMousePos.Value;
 
         if (!IsMouseScrolling)
         {
@@ -162,7 +167,7 @@ public class GameViewScrollingController
         }
 
         // TODO This should be the size of the game view
-        var size = _widget.GetSize();
+        var size = _widget.Size;
         var renderWidth = size.Width;
         var renderHeight = size.Height;
 

@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
 using System.Numerics;
-using System.Text;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
@@ -13,11 +11,11 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.InGameSelect.Pickers;
 using OpenTemple.Core.Ui.Styles;
@@ -47,10 +45,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     [TempleDllLocation(0x10BD2C50)]
     private ResourceRef<IMdfRenderMaterial> _spellPointerMaterial;
 
-    public IFlowContentHost TextHost { get; } = new FlowContentHost()
-    {
-
-    };
+    public IFlowContentHost TextHost { get; } = new FlowContentHost();
 
     [TempleDllLocation(0x10BD2CD8)]
     private readonly Dictionary<GameObject, string> intgameselTexts = new();
@@ -58,7 +53,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     [TempleDllLocation(0x102F920C)]
     private int _activePickerIndex = -1; // TODO: Just replace with _activePickers
 
-    private PickerState ActivePicker
+    private PickerState? ActivePicker
     {
         get
         {
@@ -175,7 +170,6 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     private void InitConfirmSelectionButton()
     {
         _confirmSelectionButtonContainer = new WidgetContainer(0, 0, 30, 30);
-        _confirmSelectionButtonContainer.Visible = false;
         _confirmSelectionButtonContainer.ZIndex = 999999;
 
         var confirmSelectionButton = new WidgetButton(new Rectangle(0, 0, 30, 30));
@@ -205,94 +199,8 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
             _activePickers[_activePickerIndex].Behavior.CancelPicker();
             _activePickerIndex--;
         }
+
         _activePickers.Clear();
-    }
-
-    [TempleDllLocation(0x101375e0)]
-    [TemplePlusLocation("ui_picker.cpp:144")]
-    [TempleDllLocation(0x10135f00)]
-    public bool HandleMessage(IGameViewport viewport, Message msg)
-    {
-        if (!IsPicking)
-        {
-            return false;
-        }
-
-        var pickerSpec = ActivePicker.Behavior;
-
-        if (msg.type == MessageType.MOUSE)
-        {
-            return HandleMouseMessage(viewport, msg.MouseArgs);
-        }
-        else if (msg.type == MessageType.KEYSTATECHANGE)
-        {
-            return pickerSpec.KeyStateChanged(msg.KeyStateChangeArgs);
-        }
-        else if (msg.type == MessageType.CHAR)
-        {
-            return pickerSpec.CharacterTyped(msg.CharArgs);
-        }
-
-        return false;
-    }
-
-    private bool HandleMouseMessage(IGameViewport viewport, MessageMouseArgs msgMouse)
-    {
-        var picker = ActivePicker;
-        var pickerSpec = picker.Behavior;
-
-        // update x/y position
-        picker.MouseX = msgMouse.X;
-        picker.MouseY = msgMouse.Y;
-
-        var msf = msgMouse.flags;
-
-        if ((msf & MouseEventFlag.LeftClick) != 0)
-        {
-            return pickerSpec.LeftMouseButtonClicked(viewport, msgMouse);
-        }
-
-        if ((msf & MouseEventFlag.LeftReleased) != 0)
-        {
-            return pickerSpec.LeftMouseButtonReleased(viewport, msgMouse);
-        }
-
-        if ((msf & MouseEventFlag.RightClick) != 0)
-        {
-            return pickerSpec.RightMouseButtonClicked(viewport, msgMouse);
-        }
-
-        if ((msf & MouseEventFlag.RightReleased) != 0)
-        {
-            return pickerSpec.RightMouseButtonReleased(viewport, msgMouse);
-        }
-
-        if ((msf & MouseEventFlag.MiddleClick) != 0)
-        {
-            return pickerSpec.MiddleMouseButtonClicked(viewport, msgMouse);
-        }
-
-        if ((msf & MouseEventFlag.MiddleReleased) != 0)
-        {
-            return pickerSpec.MiddleMouseButtonReleased(viewport, msgMouse);
-        }
-
-        if ((msf & MouseEventFlag.PosChange) != 0)
-        {
-            return pickerSpec.MouseMoved(viewport, msgMouse);
-        }
-
-        if ((msf & MouseEventFlag.PosChangeSlow) != 0)
-        {
-            return pickerSpec.AfterMouseMoved(viewport, msgMouse);
-        }
-
-        if ((msf & MouseEventFlag.ScrollWheelChange) != 0)
-        {
-            return pickerSpec.MouseWheelScrolled(viewport, msgMouse);
-        }
-
-        return false;
     }
 
     [TempleDllLocation(0x10BE60E0)]
@@ -395,11 +303,9 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     }
 
     [TempleDllLocation(0x10139CE0)]
-    public void SelectInRectangle(IGameViewport viewport, Rectangle rectangle)
+    public void SelectInRectangle(IGameViewport viewport, RectangleF rectangle)
     {
-        var screenRect = new RectangleF(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height);
-
-        var partyMembers = FindPartyMembersInRect(viewport, screenRect);
+        var partyMembers = FindPartyMembersInRect(viewport, rectangle);
         foreach (var obj in partyMembers)
         {
             GameSystems.Party.AddToSelection(obj);
@@ -424,12 +330,13 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     private Vector2 uiIntgameBoxSelectUL;
 
     [TempleDllLocation(0x10139c20)]
-    public void SetFocusToRect(IGameViewport viewport, int x1, int y1, int x2, int y2)
+    public void SetFocusToRect(IGameViewport viewport, float x1, float y1, float x2, float y2)
     {
         if (x1 > x2)
         {
             (x2, x1) = (x1, x2);
         }
+
         if (y1 > y2)
         {
             (y2, y1) = (y1, y2);
@@ -476,12 +383,12 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
             }
         }
 
-        Tig.Mouse.GetState(out var mouseState);
+        var mousePos = Globals.UiManager.MousePos;
         var activePicker = new PickerState
         {
             Picker = picker,
-            MouseX = mouseState.x,
-            MouseY = mouseState.y,
+            MouseX = mousePos.X,
+            MouseY = mousePos.Y,
             CallbackArgs = callbackArgs
         };
         _activePickers.Add(activePicker);
@@ -758,7 +665,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
         {
             if (!UiSystems.Party.TryGetPartyMemberRect(caster, out var rectangle))
             {
-                _confirmSelectionButtonContainer.Visible = false;
+                Globals.UiManager.RemoveWindow(_confirmSelectionButtonContainer);
                 return;
             }
 
@@ -768,16 +675,16 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
             var x = rectangle.X + (rectangle.Width - buttonWidth) / 2;
             var y = rectangle.Y - 12; // TODO: I believe this rectangle might differ from vanilla and this height adjustment needs to be changed
             _confirmSelectionButtonContainer.SetPos(x, y);
-            _confirmSelectionButtonContainer.Visible = true;
+            Globals.UiManager.AddWindow(_confirmSelectionButtonContainer);
             return;
         }
 
-        _confirmSelectionButtonContainer.Visible = false;
+        Globals.UiManager.RemoveWindow(_confirmSelectionButtonContainer);
     }
 
     public void HideConfirmSelectionButton()
     {
-        _confirmSelectionButtonContainer.Visible = false;
+        Globals.UiManager.RemoveWindow(_confirmSelectionButtonContainer);
     }
 
     [TempleDllLocation(0x101350f0)]
@@ -1195,15 +1102,102 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     {
         ActivePicker?.Behavior.CancelPicker();
     }
+
+    // TODO
+    public bool HandleMessage(IGameViewport viewport, Message msg)
+    {
+        if (!IsPicking)
+        {
+            return false;
+        }
+
+        var pickerSpec = ActivePicker.Behavior;
+
+        if (msg.type == MessageType.KEYSTATECHANGE)
+        {
+            return pickerSpec.KeyStateChanged(msg.KeyStateChangeArgs);
+        }
+        else if (msg.type == MessageType.CHAR)
+        {
+            return pickerSpec.CharacterTyped(msg.CharArgs);
+        }
+
+        return false;
+    }
+
+    
+    [TempleDllLocation(0x101375e0)]
+    [TemplePlusLocation("ui_picker.cpp:144")]
+    [TempleDllLocation(0x10135f00)]
+    public void AddEventListeners<T>(T viewport) where T : WidgetBase, IGameViewport
+    {
+        WidgetBase.EventHandler<MouseEvent> MakeHandler(Action<PickerBehavior, MouseEvent> pickerHandler)
+        {
+            return e =>
+            {
+                var picker = ActivePicker;
+                if (picker != null)
+                {
+                    e.StopImmediatePropagation();
+                
+                    // update x/y position
+                    picker.MouseX = (int) e.X;
+                    picker.MouseY = (int) e.Y;
+                
+                    var pickerSpec = picker.Behavior;
+                    pickerHandler(pickerSpec, e);
+                }
+            };
+        }
+
+        viewport.OnMouseDown += MakeHandler((behavior, e) =>
+        {
+            switch (e.Button)
+            {
+                case MouseButton.Left:
+                    behavior.LeftMouseButtonClicked(viewport, e);
+                    break;
+                case MouseButton.Right:
+                    behavior.RightMouseButtonClicked(viewport, e);
+                    break;
+                case MouseButton.Middle:
+                    behavior.MiddleMouseButtonClicked(viewport, e);
+                    break;
+            }
+        });
+        viewport.OnMouseUp += MakeHandler((behavior, e) =>
+        {
+            switch (e.Button)
+            {
+                case MouseButton.Left:
+                    behavior.LeftMouseButtonReleased(viewport, e);
+                    break;
+                case MouseButton.Right:
+                    behavior.RightMouseButtonReleased(viewport, e);
+                    break;
+                case MouseButton.Middle:
+                    behavior.MiddleMouseButtonReleased(viewport, e);
+                    break;
+            }
+        });
+        viewport.OnMouseMove += MakeHandler((behavior, e) =>
+        {
+            behavior.MouseMoved(viewport, e);
+        });
+        viewport.OnMouseWheel += MakeHandler((behavior, e) =>
+        {
+            behavior.MouseWheelScrolled(viewport, e);
+        });
+    }
 }
 
 internal class PickerState
 {
     public PickerArgs Picker;
 
-    public int MouseX;
+    public float MouseX;
 
-    public int MouseY;
+    public float MouseY;
 
     public object CallbackArgs;
 
@@ -1215,10 +1209,10 @@ internal class PickerState
 
     public GameObject Target { get; set; }
 
-    public GameRaycastFlags GetFlagsFromExclusions()
+    public GameRaycastFlags GetFlagsFromExclusions(MouseEvent e)
     {
         GameRaycastFlags result = GameRaycastFlags.HITTEST_3D;
-        if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
+        if (e.IsAltHeld)
         {
             result = GameRaycastFlags.HITTEST_SEL_CIRCLE;
         }

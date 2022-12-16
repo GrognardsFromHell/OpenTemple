@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Numerics;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
@@ -14,7 +12,9 @@ using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
+using SDL2;
 
 namespace OpenTemple.Core.Ui;
 
@@ -30,7 +30,7 @@ public class TurnBasedUi : IResetAwareSystem
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10c040e8)]
-    public GameObject intgameTargetFromRaycast { get; private set; }
+    public GameObject? intgameTargetFromRaycast { get; private set; }
 
     [TempleDllLocation(0x102fc640)]
     public bool uiIntgameWidgetEnteredForRender { get; private set; }
@@ -54,10 +54,10 @@ public class TurnBasedUi : IResetAwareSystem
     private bool uiIntgameSelectionConfirmed;
 
     [TempleDllLocation(0x10c040f0)]
-    private int screenXfromMouseEvent;
+    private float screenXfromMouseEvent;
 
     [TempleDllLocation(0x10c040e0)]
-    private int screenYfromMouseEvent;
+    private float screenYfromMouseEvent;
 
     [TempleDllLocation(0x10C040F8)]
     private LocAndOffsets uiIntgameWaypointLoc;
@@ -77,7 +77,7 @@ public class TurnBasedUi : IResetAwareSystem
         if (UiSystems.InGameSelect.IsPicking)
         {
             var flags = uiIntgameWaypointMode;
-            if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
+            if (Tig.Keyboard.IsAltPressed)
             {
                 flags = true;
             }
@@ -90,7 +90,7 @@ public class TurnBasedUi : IResetAwareSystem
         if (widEntered)
         {
             var showPreview = uiIntgameWaypointMode;
-            if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
+            if (Tig.Keyboard.IsAltPressed)
             {
                 showPreview = true;
             }
@@ -110,7 +110,7 @@ public class TurnBasedUi : IResetAwareSystem
                     var y = screenYfromMouseEvent;
 
                     _tooltipRenderer.TooltipText = tooltipText;
-                    _tooltipRenderer.Render(x, y);
+                    _tooltipRenderer.Render((int) x, (int) y);
                 }
 
                 RenderThreatRanges(viewport); // TODO: This shit needs to be moved into a scene-render-only method querying this state
@@ -135,29 +135,18 @@ public class TurnBasedUi : IResetAwareSystem
     }
 
     [TempleDllLocation(0x10C04118)]
-    private GameObject intgameActor;
+    private GameObject? intgameActor;
 
     private int _panicKeys = 0;
 
-    [TempleDllLocation(0x10174A30)]
-    public bool HandleMessage(IGameViewport viewport, Message msg)
+    private bool ShouldHandleEvent(IGameViewport viewport)
     {
-        // TODO: DM System
-
-        var initialSeq = GameSystems.D20.Actions.CurrentSequence;
-        var result = false;
-
-        if (msg.type == MessageType.MOUSE)
-        {
-            screenXfromMouseEvent = msg.MouseArgs.X;
-            screenYfromMouseEvent = msg.MouseArgs.Y;
-        }
-
         if (!GameSystems.Combat.IsCombatActive() || UiSystems.RadialMenu.IsOpen)
         {
             intgameActor = null;
             uiIntgameAcquireByRaycastOn = false;
             uiIntgameSelectionConfirmed = false;
+            return false;
         }
         else
         {
@@ -174,148 +163,180 @@ public class TurnBasedUi : IResetAwareSystem
                 }
             }
 
-            if (GameSystems.Party.IsPlayerControlled(intgameActor))
+            return GameSystems.Party.IsPlayerControlled(intgameActor);
+        }
+    }
+
+    [TempleDllLocation(0x10174A30)]
+    private void HandleMouseMove(IGameViewport viewport, MouseEvent e)
+    {
+        screenXfromMouseEvent = e.X;
+        screenYfromMouseEvent = e.Y;
+        
+        if (ShouldHandleEvent(viewport))
+        {
+            IntgameValidateMouseSelection(viewport, e.X, e.Y);
+        }
+    }
+    
+    [TempleDllLocation(0x10174A30)]
+    private void HandleMouseDown(IGameViewport viewport, MouseEvent e)
+    {
+        screenXfromMouseEvent = e.X;
+        screenYfromMouseEvent = e.Y;
+        
+        if (ShouldHandleEvent(viewport))
+        {
+            var initialSeq = GameSystems.D20.Actions.CurrentSequence;
+
+            if (e.Button == MouseButton.Left)
             {
-                var tigMsgType = msg.type;
-                if (tigMsgType == MessageType.MOUSE)
+                if (ToggleAcquisition(viewport, e))
+                    e.StopImmediatePropagation();
+            } 
+            else if (e.Button == MouseButton.Right)
+            {
+                if (HandleRightMousePressed(viewport, e))
+                    e.StopImmediatePropagation();
+            }
+            
+            if (GameSystems.D20.Actions.CurrentSequence != initialSeq)
+            {
+                Logger.Info("Turn-Based UI switched sequence to {0} via mousedown-handler",
+                    GameSystems.D20.Actions.CurrentSequence);
+            }
+        }
+    }
+    
+    [TempleDllLocation(0x10174A30)]
+    private void HandleMouseUp(IGameViewport viewport, MouseEvent e)
+    {
+        screenXfromMouseEvent = e.X;
+        screenYfromMouseEvent = e.Y;
+        
+        if (ShouldHandleEvent(viewport))
+        {
+            var initialSeq = GameSystems.D20.Actions.CurrentSequence;
+            
+            if (e.Button == MouseButton.Left)
+            {
+                if (UiIntgamePathSequenceHandler(viewport, e.X, e.Y))
+                    e.StopImmediatePropagation();
+            } 
+            else if (e.Button == MouseButton.Right)
+            {
+                if (ResetViaRmb(viewport, e))
+                    e.StopImmediatePropagation();
+            }
+            
+            if (GameSystems.D20.Actions.CurrentSequence != initialSeq)
+            {
+                Logger.Info("Turn-Based UI switched sequence to {0} via mouseup-handler",
+                    GameSystems.D20.Actions.CurrentSequence);
+            }
+        }
+    }
+
+    private void HandleMouseEntered(IGameViewport viewport, MouseEvent e)
+    {
+        if (ShouldHandleEvent(viewport))
+        {
+            WidgetEnteredForGameplay = true;
+        }
+        
+        uiIntgameWidgetEnteredForRender = true;
+    }
+    
+    private void HandleMouseLeave(IGameViewport viewport, MouseEvent e)
+    {
+        if (ShouldHandleEvent(viewport))
+        {
+            uiIntgameAcquireByRaycastOn = false;
+            uiIntgameSelectionConfirmed = false;
+            intgameTargetFromRaycast = null;
+            WidgetEnteredForGameplay = false;
+        }
+        
+        uiIntgameWidgetEnteredForRender = false;
+    }
+
+    public bool HandleMessage(IGameViewport viewport, Message msg)
+    {
+        // TODO: DM System
+
+        var initialSeq = GameSystems.D20.Actions.CurrentSequence;
+        var result = false;
+
+        if (ShouldHandleEvent(viewport))
+        {
+            // widget or keyboard msg
+            if (msg.type == MessageType.KEYSTATECHANGE && !msg.KeyStateChangeArgs.down)
+            {
+                var keyArgs = msg.KeyStateChangeArgs;
+                Logger.Debug("UiIntgameMsgHandler (KEYSTATECHANGE): msg key={0} down={1}", keyArgs.key,
+                    keyArgs.down);
+                var leader = GameSystems.Party.GetConsciousLeader();
+                if (GameSystems.D20.Actions.IsCurrentlyPerforming(leader))
                 {
-                    var mouseArgs = msg.MouseArgs;
-
-                    if ((mouseArgs.flags & MouseEventFlag.LeftClick) != 0)
+                    if (keyArgs.key == SDL.SDL_Keycode.SDLK_t)
                     {
-                        if (ToggleAcquisition(viewport, msg.MouseArgs))
-                            result = true;
+                        _panicKeys++;
                     }
 
-                    if ((mouseArgs.flags & MouseEventFlag.LeftReleased) != 0)
+                    if (_panicKeys >= 4)
                     {
-                        if (UiIntgamePathSequenceHandler(viewport, msg.MouseArgs))
-                            result = true;
+                        GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_HIGHEST, true);
+                        GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_1, true);
+                        GameSystems.D20.Actions.CurrentSequence.IsPerforming = false;
                     }
 
-                    if ((mouseArgs.flags & MouseEventFlag.RightClick) != 0)
-                    {
-                        if (HandleRightMousePressed(viewport, mouseArgs))
-                            result = true;
-                    }
-
-                    if ((mouseArgs.flags & MouseEventFlag.RightReleased) != 0)
-                    {
-                        if (ResetViaRmb(viewport, mouseArgs))
-                            result = true;
-                    }
-
-                    if ((mouseArgs.flags & MouseEventFlag.PosChange) != 0)
-                    {
-                        IntgameValidateMouseSelection(viewport, mouseArgs);
-                    }
+                    return true;
                 }
                 else
                 {
-                    // widget or keyboard msg
-                    if (tigMsgType == MessageType.KEYSTATECHANGE && !msg.KeyStateChangeArgs.down)
-                    {
-                        var keyArgs = msg.KeyStateChangeArgs;
-                        Logger.Debug("UiIntgameMsgHandler (KEYSTATECHANGE): msg key={0} down={1}", keyArgs.key,
-                            keyArgs.down);
-                        var leader = GameSystems.Party.GetConsciousLeader();
-                        if (GameSystems.D20.Actions.IsCurrentlyPerforming(leader))
-                        {
-                            if (keyArgs.key == DIK.DIK_T)
-                            {
-                                _panicKeys++;
-                            }
-
-                            if (_panicKeys >= 4)
-                            {
-                                GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_HIGHEST, true);
-                                GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_1, true);
-                                GameSystems.D20.Actions.CurrentSequence.IsPerforming = false;
-                            }
-
-                            return true;
-                        }
-                        else
-                        {
-                            _panicKeys = 0;
-                        }
-
-                        // bind hotkey
-                        if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(keyArgs.key)
-                            && (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL) ||
-                                Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL)))
-                        {
-                            var leaderLoc = leader.GetLocationFull();
-
-                            var pnt = leaderLoc.ToInches3D();
-                            var screenPos = viewport.Camera.WorldToScreen(pnt);
-                            UiSystems.RadialMenu.Spawn(viewport, (int) screenPos.X, (int) screenPos.Y);
-                            return UiSystems.RadialMenu.HandleMessage(viewport, msg);
-                        }
-
-                        GameSystems.D20.Actions.TurnBasedStatusInit(leader);
-                        if (uiIntgameWaypointMode)
-                        {
-                            UiIntgameRestoreSeqBackup();
-                        }
-                        else
-                        {
-                            Logger.Info("Intgame: Resetting sequence.");
-                            GameSystems.D20.Actions.CurSeqReset(leader);
-                        }
-
-                        GameSystems.D20.Actions.GlobD20ActnInit();
-                        if (GameSystems.D20.Hotkeys.RadmenuHotkeySthg(leader, keyArgs.key))
-                        {
-                            GameSystems.D20.Actions.ActionAddToSeq();
-                            GameSystems.D20.Actions.sequencePerform();
-
-                            var comrade = GameSystems.Dialog.GetListeningPartyMember(leader);
-                            if (GameSystems.Dialog.TryGetOkayVoiceLine(actor, comrade, out var text, out var soundId))
-                            {
-                                GameSystems.Dialog.PlayCritterVoiceLine(actor, comrade, text, soundId);
-                            }
-
-                            result = true;
-                        }
-                    }
-                    else if (tigMsgType == MessageType.WIDGET)
-                    {
-                        var widgetArgs = msg.WidgetArgs;
-                        if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Exited)
-                        {
-                            uiIntgameAcquireByRaycastOn = false;
-                            uiIntgameSelectionConfirmed = false;
-                            intgameTargetFromRaycast = null;
-                            WidgetEnteredForGameplay = false;
-                        }
-                        else if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Entered)
-                        {
-                            WidgetEnteredForGameplay = true;
-                        }
-                    }
+                    _panicKeys = 0;
                 }
-            }
-        }
 
-        if (msg.type == MessageType.WIDGET)
-        {
-            var widgetArgs = msg.WidgetArgs;
-            if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Exited)
-            {
-                uiIntgameWidgetEnteredForRender = false;
-                return result;
-            }
+                var potentialHotkey = KeyReference.Physical(keyArgs.scancode);
 
-            if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Entered)
-            {
-                uiIntgameWidgetEnteredForRender = true;
+                // bind hotkey
+                if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey) && Tig.Keyboard.IsCtrlPressed)
+                {
+                    UiSystems.RadialMenu.SpawnFromKeyboard(viewport, leader, keyArgs);
+                    return true;
+                }
+
+                GameSystems.D20.Actions.TurnBasedStatusInit(leader);
+                if (uiIntgameWaypointMode)
+                {
+                    UiIntgameRestoreSeqBackup();
+                }
+                else
+                {
+                    Logger.Info("Intgame: Resetting sequence.");
+                    GameSystems.D20.Actions.CurSeqReset(leader);
+                }
+
+                GameSystems.D20.Actions.GlobD20ActnInit();
+                if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(leader, potentialHotkey))
+                {
+                    GameSystems.D20.Actions.ActionAddToSeq();
+                    GameSystems.D20.Actions.sequencePerform();
+
+                    var comrade = GameSystems.Dialog.GetListeningPartyMember(leader);
+                    if (GameSystems.Dialog.TryGetOkayVoiceLine(intgameActor, comrade, out var text, out var soundId))
+                    {
+                        GameSystems.Dialog.PlayCritterVoiceLine(intgameActor, comrade, text, soundId);
+                    }
+
+                    result = true;
+                }
             }
         }
 
         if (GameSystems.D20.Actions.CurrentSequence != initialSeq)
         {
-            Logger.Info("Sequence switch from Ui Intgame Msg Handler to {0}",
+            Logger.Info("Turn-Based UI switched sequence to {0} via key-handler",
                 GameSystems.D20.Actions.CurrentSequence);
         }
 
@@ -323,7 +344,7 @@ public class TurnBasedUi : IResetAwareSystem
     }
 
     [TempleDllLocation(0x10174930)]
-    private bool ResetViaRmb(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    private bool ResetViaRmb(IGameViewport viewport, MouseEvent e)
     {
         if (UiSystems.InGameSelect.IsPicking)
         {
@@ -333,7 +354,7 @@ public class TurnBasedUi : IResetAwareSystem
         if (uiIntgameWaypointMode)
         {
             uiIntgameWaypointMode = false;
-            IntgameValidateMouseSelection(viewport, mouseArgs);
+            IntgameValidateMouseSelection(viewport, e.X, e.Y);
             return true;
         }
 
@@ -347,11 +368,13 @@ public class TurnBasedUi : IResetAwareSystem
     }
 
     [TempleDllLocation(0x101745e0)]
-    private void IntgameValidateMouseSelection(IGameViewport viewport, MessageMouseArgs mouseArgs) {
+    private void IntgameValidateMouseSelection(IGameViewport viewport, float x, float y)
+    {
         if (UiSystems.InGameSelect.IsPicking || UiSystems.RadialMenu.IsOpen)
         {
             return;
         }
+
         var actor = GameSystems.D20.Initiative.CurrentActor;
         var actorRadiusSqr = actor.GetRadius();
         actorRadiusSqr *= actorRadiusSqr;
@@ -364,24 +387,27 @@ public class TurnBasedUi : IResetAwareSystem
         }
 
         float distSqr = 0;
-        if (!UiIntgameRaycast(viewport, mouseArgs.X, mouseArgs.Y, GameRaycastFlags.HITTEST_3D, out var objFromRaycast)) {
+        if (!UiIntgameRaycast(viewport, x, y, GameRaycastFlags.HITTEST_3D, out var objFromRaycast))
+        {
             // TODO: This should be moved to the event handlers of an actual game view widget
-            var mouseTile = viewport.ScreenToTile(mouseArgs.X, mouseArgs.Y);
+            var mouseTile = viewport.ScreenToTile(x, y);
             var prevPntNode = locFromScreenLoc.ToInches2D();
             var pntNode = mouseTile.ToInches2D();
             objFromRaycast = null;
             distSqr = (prevPntNode - pntNode).LengthSquared();
         }
 
-        if (uiIntgameSelectionConfirmed) {
+        if (uiIntgameSelectionConfirmed)
+        {
             if (objFromRaycast != intgameTargetFromRaycast
                 || intgameTargetFromRaycast == null && distSqr > actorRadiusSqr)
             {
                 uiIntgameSelectionConfirmed = false;
                 return;
             }
-        } else if (objFromRaycast == intgameTargetFromRaycast
-                   && (intgameTargetFromRaycast != null || distSqr < actorRadiusSqr))
+        }
+        else if (objFromRaycast == intgameTargetFromRaycast
+                 && (intgameTargetFromRaycast != null || distSqr < actorRadiusSqr))
         {
             uiIntgameSelectionConfirmed = true;
             return;
@@ -389,9 +415,9 @@ public class TurnBasedUi : IResetAwareSystem
     }
 
     [TempleDllLocation(0x10173f30)]
-    private bool UiIntgameRaycast(IGameViewport viewport, int screenX, int screenY, GameRaycastFlags flags, out GameObject obj)
+    private bool UiIntgameRaycast(IGameViewport viewport, float screenX, float screenY, GameRaycastFlags flags, out GameObject? obj)
     {
-        if ( uiIntgameTargetObjFromPortraits != null )
+        if (uiIntgameTargetObjFromPortraits != null)
         {
             obj = uiIntgameTargetObjFromPortraits;
             return true;
@@ -402,7 +428,7 @@ public class TurnBasedUi : IResetAwareSystem
 
     [TempleDllLocation(0x10174790)]
     [TemplePlusLocation("ui_intgame_turnbased.cpp:180")]
-    private bool UiIntgamePathSequenceHandler(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    private bool UiIntgamePathSequenceHandler(IGameViewport viewport, float x, float y)
     {
         if (UiSystems.InGameSelect.IsPicking)
         {
@@ -417,10 +443,7 @@ public class TurnBasedUi : IResetAwareSystem
             if (uiIntgameSelectionConfirmed &&
                 !GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
             {
-                var altIsPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) ||
-                                   Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU);
-
-                if ((altIsPressed || uiIntgameWaypointMode) && intgameTargetFromRaycast == null)
+                if ((Tig.Keyboard.IsAltPressed || uiIntgameWaypointMode) && intgameTargetFromRaycast == null)
                 {
                     GameSystems.D20.Actions.GetPathTargetLocFromCurD20Action(out var curd20aTgtLoc);
                     if (curd20aTgtLoc.DistanceTo(locFromScreenLoc) >= 24.0f)
@@ -463,7 +486,7 @@ public class TurnBasedUi : IResetAwareSystem
 
         uiIntgameAcquireByRaycastOn = false;
         intgameTargetFromRaycast = null;
-        IntgameValidateMouseSelection(viewport, mouseArgs);
+        IntgameValidateMouseSelection(viewport, x, y);
         return true;
     }
 
@@ -475,10 +498,10 @@ public class TurnBasedUi : IResetAwareSystem
     }
 
     [TempleDllLocation(0x10c04120)]
-    private GameObject uiIntgameTargetObjFromPortraits;
+    private GameObject? uiIntgameTargetObjFromPortraits;
 
     [TempleDllLocation(0x10174750)]
-    private bool ToggleAcquisition(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    private bool ToggleAcquisition(IGameViewport viewport, MouseEvent? e)
     {
         if (UiSystems.InGameSelect.IsPicking)
         {
@@ -487,9 +510,9 @@ public class TurnBasedUi : IResetAwareSystem
 
         if (uiIntgameAcquireByRaycastOn)
         {
-            if (mouseArgs.flags == (MouseEventFlag.PosChange | MouseEventFlag.LeftHeld))
+            if (e is {IsLeftButtonHeld: true})
             {
-                IntgameValidateMouseSelection(viewport, mouseArgs);
+                IntgameValidateMouseSelection(viewport, e.X, e.Y);
             }
 
             return true;
@@ -519,9 +542,6 @@ public class TurnBasedUi : IResetAwareSystem
 
         CurSeqBackup();
 
-        var altIsPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) ||
-                           Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU);
-
         var isWaypointMode = uiIntgameWaypointMode;
 
         var tgtFromPortraits = uiIntgameTargetObjFromPortraits;
@@ -531,7 +551,7 @@ public class TurnBasedUi : IResetAwareSystem
 
         var actionLoc = locFromScreenLoc; //
 
-        if (isWaypointMode || altIsPressed)
+        if (isWaypointMode || Tig.Keyboard.IsAltPressed)
         {
             if (tgtFromPortraits != null)
             {
@@ -784,7 +804,7 @@ public class TurnBasedUi : IResetAwareSystem
     }
 
     [TempleDllLocation(0x10173d70)]
-    private bool HandleRightMousePressed(IGameViewport viewport, MessageMouseArgs mouseArgs)
+    private bool HandleRightMousePressed(IGameViewport viewport, MouseEvent e)
     {
         if (UiSystems.InGameSelect.IsPicking)
         {
@@ -812,7 +832,7 @@ public class TurnBasedUi : IResetAwareSystem
                 }
 
                 Logger.Info("intgame_turnbased: _mouse_right_down");
-                UiSystems.InGame.radialmenu_ignore_close_till_move(viewport, mouseArgs.X, mouseArgs.Y);
+                UiSystems.RadialMenu.SpawnFromMouse(viewport, e);
             }
         }
 
@@ -870,7 +890,6 @@ public class TurnBasedUi : IResetAwareSystem
         var isFocus = obj == UiSystems.InGameSelect.Focus;
         if (isFocus)
         {
-
             if (GameSystems.D20.D20QueryWithObject(obj, D20DispatcherKey.QUE_AOOPossible, obj) == 0)
             {
                 return false;
@@ -884,9 +903,7 @@ public class TurnBasedUi : IResetAwareSystem
             return false;
         }
 
-        var showPreview = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU)
-                          || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU)
-                          || uiIntgameWaypointMode;
+        var showPreview = Tig.Keyboard.IsAltPressed || uiIntgameWaypointMode;
         if (!showPreview && (!uiIntgameAcquireByRaycastOn || !uiIntgameSelectionConfirmed))
         {
             return false;
@@ -909,9 +926,8 @@ public class TurnBasedUi : IResetAwareSystem
             var actor = GameSystems.D20.Initiative.CurrentActor;
             if (GameSystems.Party.IsPlayerControlled(actor))
             {
-                var mouseArgs = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
-                UiSystems.TurnBased.ToggleAcquisition(GameViews.Primary, mouseArgs);
-                UiSystems.TurnBased.UiIntgamePathSequenceHandler(GameViews.Primary, mouseArgs);
+                ToggleAcquisition(GameViews.Primary, null);
+                UiIntgamePathSequenceHandler(GameViews.Primary, 0, 0);
             }
         }
     }
@@ -919,14 +935,13 @@ public class TurnBasedUi : IResetAwareSystem
     [TempleDllLocation(0x10174970)]
     public void TargetFromPortrait(GameObject obj)
     {
-        if ( GameSystems.D20.Actions.SeqPickerHasTargetingType() )
+        if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
         {
-            UiSystems.TurnBased.uiIntgameTargetObjFromPortraits = obj;
-            if ( obj != null )
+            uiIntgameTargetObjFromPortraits = obj;
+            if (obj != null)
             {
                 UiSystems.InGameSelect.Focus = obj;
-                var msg = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
-                UiSystems.TurnBased.IntgameValidateMouseSelection(GameViews.Primary, msg);
+                IntgameValidateMouseSelection(GameViews.Primary, 0, 0);
             }
         }
     }
@@ -935,5 +950,14 @@ public class TurnBasedUi : IResetAwareSystem
     public void Reset()
     {
         uiIntgameTargetObjFromPortraits = null;
+    }
+    
+    public void AddEventListeners<T>(T viewport) where T : WidgetBase, IGameViewport
+    {
+        viewport.OnMouseDown += e => HandleMouseDown(viewport, e);
+        viewport.OnMouseUp += e => HandleMouseUp(viewport, e);
+        viewport.OnMouseEnter += e => HandleMouseEntered(viewport, e);
+        viewport.OnMouseLeave += e => HandleMouseLeave(viewport, e);
+        viewport.OnMouseMove += e => HandleMouseMove(viewport, e);
     }
 }

@@ -1,11 +1,11 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
@@ -16,6 +16,8 @@ namespace OpenTemple.Core.DebugUI;
 
 public class DebugUiSystem : IDebugUI, IDisposable
 {
+    private readonly ImGuiBackend? _backend;
+
     private readonly ImGuiRenderer _renderer;
 
     private readonly RenderingDevice _device;
@@ -34,13 +36,6 @@ public class DebugUiSystem : IDebugUI, IDisposable
     {
         _device = device;
 
-        // This is used for IME only.
-        var hwnd = IntPtr.Zero;
-        if (mainWindow is MainWindow realMainWindow)
-        {
-            hwnd = realMainWindow.NativeHandle;
-        }
-
         var context = device.Device.ImmediateContext;
 
         var guiContext = ImGui.CreateContext();
@@ -50,12 +45,17 @@ public class DebugUiSystem : IDebugUI, IDisposable
         AddRobotoFonts();
 
         _renderer = new ImGuiRenderer();
-        if (!_renderer.ImGui_ImplDX11_Init(hwnd, device.Device, context))
+        if (!_renderer.Init(device.Device, context))
         {
-            throw new Exception("Unable to initialize IMGui!");
+            throw new Exception("Unable to initialize imgui!");
         }
 
-        mainWindow.SetWindowMsgFilter(HandleMessage);
+        // This is used for IME only.
+        if (mainWindow is MainWindow realMainWindow)
+        {
+            _backend = new ImGuiBackend(realMainWindow);
+            mainWindow.SetWindowMsgFilter(_backend.ProcessEvent);
+        }
     }
 
     public void PushSmallFont()
@@ -75,13 +75,16 @@ public class DebugUiSystem : IDebugUI, IDisposable
 
     public void Dispose()
     {
-        _renderer.ImGui_ImplDX11_Shutdown();
+        _renderer.Dispose();
+        _backend?.Dispose();
     }
 
     public void NewFrame()
     {
+        _backend?.NewFrame();
+        
         var size = _device.GetBackBufferSize();
-        _renderer.ImGui_ImplDX11_NewFrame(size.Width, size.Height);
+        _renderer.NewFrame(size.Width, size.Height);
         ImGui.PushFont(_normalFont);
     }
 
@@ -340,64 +343,4 @@ public class DebugUiSystem : IDebugUI, IDisposable
             _forceMainMenu = true;
         }
     }
-
-    private bool HandleMessage(uint message, nuint wParam, nint lParam)
-    {
-        var io = ImGui.GetIO();
-        switch (message)
-        {
-            case WM_LBUTTONDOWN:
-                io.MouseDown[0] = true;
-                return io.WantCaptureMouse;
-            case WM_LBUTTONUP:
-                io.MouseDown[0] = false;
-                return io.WantCaptureMouse;
-            case WM_RBUTTONDOWN:
-                io.MouseDown[1] = true;
-                return io.WantCaptureMouse;
-            case WM_RBUTTONUP:
-                io.MouseDown[1] = false;
-                return io.WantCaptureMouse;
-            case WM_MBUTTONDOWN:
-                io.MouseDown[2] = true;
-                return io.WantCaptureMouse;
-            case WM_MBUTTONUP:
-                io.MouseDown[2] = false;
-                return io.WantCaptureMouse;
-            case WM_MOUSEWHEEL:
-                io.MouseWheel += ((short) (wParam >> 16)) > 0 ? +1.0f : -1.0f;
-                return io.WantCaptureMouse;
-            case WM_MOUSEMOVE:
-                io.MousePos.X = (short) (lParam);
-                io.MousePos.Y = (short) (lParam >> 16);
-                return false; // Always update, never take it
-            case WM_KEYDOWN:
-                if (wParam < 256)
-                    io.KeysDown[(int) wParam] = true;
-                return io.WantCaptureKeyboard;
-            case WM_KEYUP:
-                if (wParam < 256)
-                    io.KeysDown[(int) wParam] = false;
-                return io.WantCaptureKeyboard;
-            case WM_CHAR:
-                // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-                if (wParam > 0 && wParam < 0x10000)
-                    io.AddInputCharacter((ushort) wParam);
-                return io.WantCaptureKeyboard;
-            default:
-                return false;
-        }
-    }
-
-    private const uint WM_CHAR = 0x0102;
-    private const uint WM_KEYDOWN = 0x0100;
-    private const uint WM_KEYUP = 0x0101;
-    private const uint WM_LBUTTONDOWN = 0x0201;
-    private const uint WM_LBUTTONUP = 0x0202;
-    private const uint WM_MBUTTONDOWN = 0x0207;
-    private const uint WM_MBUTTONUP = 0x0208;
-    private const uint WM_MOUSEMOVE = 0x0200;
-    private const uint WM_MOUSEWHEEL = 0x020A;
-    private const uint WM_RBUTTONDOWN = 0x0204;
-    private const uint WM_RBUTTONUP = 0x0205;
 }

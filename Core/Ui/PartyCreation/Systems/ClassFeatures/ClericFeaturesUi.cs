@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GameObjects;
@@ -5,6 +6,7 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures;
@@ -49,9 +51,8 @@ internal class ClericFeaturesUi : IChargenSystem
 
         for (var i = 0; i < 5; i++)
         {
-            var index = i;
             var button = doc.GetButton($"deityDomain{i + 1}");
-            button.SetMouseMsgHandler(msg => DeityDomainMouseHandler(msg, button, index));
+            InstallDeityDomainBehavior(button, i);
             _availableDomainButtons.Add(button);
         }
 
@@ -62,13 +63,13 @@ internal class ClericFeaturesUi : IChargenSystem
         _channelingTypeContainer = doc.GetContainer("channelingTypeContainer");
         _channelingTypeLabel = doc.GetTextContent("channelingTypeLabel");
         _channelingPositiveButton = doc.GetButton("channelingPositiveButton");
-        _channelingPositiveButton.SetClickHandler(() =>
+        _channelingPositiveButton.AddClickListener(() =>
         {
             _pkt.alignmentChoice = AlignmentChoice.Positive;
             OnAlignmentChoiceChanged();
         });
         _channelingNegativeButton = doc.GetButton("channelingNegativeButton");
-        _channelingNegativeButton.SetClickHandler(() =>
+        _channelingNegativeButton.AddClickListener(() =>
         {
             _pkt.alignmentChoice = AlignmentChoice.Negative;
             OnAlignmentChoiceChanged();
@@ -123,19 +124,19 @@ internal class ClericFeaturesUi : IChargenSystem
         playerObj.SetInt32(obj_f.critter_alignment_choice, (int) charSpec.alignmentChoice);
     }
 
-    private bool DeityDomainMouseHandler(MessageMouseArgs msg, WidgetButton widget, int index)
+    private void InstallDeityDomainBehavior(WidgetButton button, int index)
     {
-        var domain = _selectableDomains[index];
-
-        if (Globals.UiManager.GetMouseCaptureWidget() == widget)
+        button.OnMouseUp += e =>
         {
-            if ((msg.flags & MouseEventFlag.LeftReleased) != 0)
+            var domain = _selectableDomains[index];
+
+            if (button.HasMouseCapture && e.Button == MouseButton.Left)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
-                Globals.UiManager.UnsetMouseCaptureWidget(widget);
-                widget.Visible = true;
+                button.ReleaseMouseCapture();
+                button.Visible = true;
 
-                var widgetUnderCursor = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
+                var widgetUnderCursor = Globals.UiManager.PickWidget(e.X, e.Y);
                 if (widgetUnderCursor == _selectedDomain1)
                 {
                     RemoveSelectedDomain(domain);
@@ -149,62 +150,57 @@ internal class ClericFeaturesUi : IChargenSystem
                     OnDomainsChanged();
                 }
             }
-
-            return true;
-        }
-
-        if (IsDomainSelected(domain))
+        };
+        button.OnMouseDown += e =>
         {
-            // Do not allow interaction with unassigned ability scores
-            return true;
-        }
+            var domain = _selectableDomains[index];
 
-        // Allow quickly swapping values between the two columns, but only when we actually have rolled values
-        // (not in point buy mode)
-        if ((msg.flags & MouseEventFlag.RightClick) != 0)
-        {
-            if (_pkt.domain1 == DomainId.None)
+            if (IsDomainSelected(domain))
             {
-                _pkt.domain1 = domain;
-                OnDomainsChanged();
-                return true;
+                // Do not allow interaction with already selected domains
+                e.StopPropagation();
+                e.PreventDefault();
+                return;
             }
 
-            if (_pkt.domain2 == DomainId.None)
+            // Allow quickly swapping values between the two columns
+            if (e.Button == MouseButton.Right)
             {
-                _pkt.domain2 = domain;
-                OnDomainsChanged();
-                return true;
+                if (_pkt.domain1 == DomainId.None)
+                {
+                    _pkt.domain1 = domain;
+                    OnDomainsChanged();
+                    return;
+                }
+
+                if (_pkt.domain2 == DomainId.None)
+                {
+                    _pkt.domain2 = domain;
+                    OnDomainsChanged();
+                    return;
+                }
             }
-        }
-        else if ((msg.flags & MouseEventFlag.LeftClick) != 0)
-        {
-            if (!Globals.UiManager.SetMouseCaptureWidget(widget))
+            else if (e.Button == MouseButton.Left && button.SetMouseCapture())
             {
-                // Something else has the mouse capture right now (how are we getting this message then...?)
-                return true;
+                // Figure out where in the widget we got clicked so we can draw the dragged text with the proper offset
+                var globalContentArea = button.GetContentArea(true);
+                var localX = (int) (e.X - globalContentArea.X);
+                var localY = (int) (e.Y - globalContentArea.Y);
+                _draggedDomainLabel.Text = button.Text;
+                button.Visible = false;
+
+                // This will draw the ability score being dragged under the mouse cursor
+                Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
+                {
+                    var point = new Point(x, y);
+                    point.Offset(-localX, -localY);
+                    var contentArea = new Rectangle(point, button.Size);
+
+                    _draggedDomainLabel.SetBounds(contentArea);
+                    _draggedDomainLabel.Render();
+                });
             }
-
-            // Figure out where in the widget we got clicked so we can draw the dragged text with the proper offset
-            var globalContentArea = widget.GetContentArea(true);
-            var localX = msg.X - globalContentArea.X;
-            var localY = msg.Y - globalContentArea.Y;
-            _draggedDomainLabel.Text = widget.Text;
-            widget.Visible = false;
-
-            // This will draw the ability score being dragged under the mouse cursor
-            Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
-            {
-                var point = new Point(x, y);
-                point.Offset(-localX, -localY);
-                var contentArea = new Rectangle(point, widget.GetSize());
-
-                _draggedDomainLabel.SetBounds(contentArea);
-                _draggedDomainLabel.Render();
-            });
-        }
-
-        return true;
+        };
     }
 
     private bool IsDomainSelected(DomainId domain)

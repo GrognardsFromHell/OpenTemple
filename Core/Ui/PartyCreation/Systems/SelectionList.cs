@@ -52,13 +52,13 @@ public class SelectionList<T>
         Container = doc.GetRootContainer();
 
         _nextPageButton = doc.GetButton("nextPage");
-        _nextPageButton.SetClickHandler(() =>
+        _nextPageButton.AddClickListener(() =>
         {
             _currentPage++;
             UpdateOptions();
         });
         _prevPageButton = doc.GetButton("prevPage");
-        _prevPageButton.SetClickHandler(() =>
+        _prevPageButton.AddClickListener(() =>
         {
             _currentPage--;
             UpdateOptions();
@@ -75,7 +75,7 @@ public class SelectionList<T>
             }
 
             var button = doc.GetButton(id);
-            button.SetClickHandler(() =>
+            button.AddClickListener(() =>
             {
                 var value = GetValueForIndexOnPage(index);
                 if (!_equality.Equals(_selectedItem, value))
@@ -87,7 +87,7 @@ public class SelectionList<T>
             });
             // Allows the caller to display tooltips in the help-box if items are hovered
             button.OnMouseEnter += msg => OnItemHovered?.Invoke(GetValueForIndexOnPage(index));
-            button.OnMouseExit += msg => OnItemHovered?.Invoke(default);
+            button.OnMouseLeave += msg => OnItemHovered?.Invoke(default);
             _selectionButtons.Add(button);
         }
 
@@ -122,8 +122,8 @@ public class SelectionList<T>
 
         _nextPageButton.Visible = _pages > 1;
         _prevPageButton.Visible = _pages > 1;
-        _nextPageButton.SetDisabled(_currentPage + 1 == _pages);
-        _prevPageButton.SetDisabled(_currentPage == 0);
+        _nextPageButton.Disabled = _currentPage + 1 == _pages;
+        _prevPageButton.Disabled = _currentPage == 0;
 
         // Update the selection buttons
         var itemsOnPage = CurrentPageSize;
@@ -136,7 +136,7 @@ public class SelectionList<T>
                 var button = _selectionButtons[i];
                 button.Text = item.Label;
                 button.SetActive(_equality.Equals(item.Value, _selectedItem));
-                button.SetDisabled(item.IsDisabled);
+                button.Disabled = item.IsDisabled;
                 button.TooltipText = item.Tooltip;
             }
         }

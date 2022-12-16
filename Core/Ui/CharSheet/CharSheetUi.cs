@@ -115,7 +115,6 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         Globals.UiStyles.LoadStylesFile("ui/char_ui_styles.json");
 
         _mainWidget = new CharUiMainWidget(_uiParams);
-        _mainWidget.Visible = false; // Initially invisible
 
         char_ui_main_nav_editor_window = new WidgetContainer(_uiParams.CharUiMainNavEditorWindow);
         _mainWidget.Add(char_ui_main_nav_editor_window);
@@ -163,7 +162,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             var button = new CharInventoryButton(_uiParams, i);
             if (i == 0)
             {
-                button.SetClickHandler(() => SelectInventoryTab(0));
+                button.AddClickListener(() => SelectInventoryTab(0));
                 // TODO: Click handlers for the other bags were never implemented apparently
             }
 
@@ -171,25 +170,28 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         }
 
         var skillsButton = new CharUiTopButton(_uiParams, 5);
-        skillsButton.SetClickHandler(SelectSkillsTab);
+        skillsButton.AddClickListener(SelectSkillsTab);
         _mainWidget.Add(skillsButton);
 
         var featsButton = new CharUiTopButton(_uiParams, 6);
-        featsButton.SetClickHandler(SelectFeatsTab);
+        featsButton.AddClickListener(SelectFeatsTab);
         _mainWidget.Add(featsButton);
 
         var spellsButton = new CharUiTopButton(_uiParams, 7);
-        spellsButton.SetClickHandler(SelectSpellsTab);
+        spellsButton.AddClickListener(SelectSpellsTab);
         _mainWidget.Add(spellsButton);
 
         Skills = new CharSheetSkillsUi();
         _mainWidget.Add(Skills.Container);
+        Skills.Hide();
         Inventory = new CharSheetInventoryUi();
         _mainWidget.Add(Inventory.Widget);
         Feats = new CharSheetFeatsUi();
         _mainWidget.Add(Feats.Container);
+        Feats.Hide();
         Spells = new CharSheetSpellsUi();
         _mainWidget.Add(Spells.Container);
+        Spells.Hide();
         Looting = new CharSheetLootingUi();
         Stats = new CharSheetStatsUi(_uiParams.CharUiMainWindow);
         _mainWidget.Add(Stats.Container);
@@ -377,7 +379,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             NormalImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverOff],
             PressedImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverPressed]
         });
-        exitButton.SetClickHandler(ExitClicked);
+        exitButton.AddClickListener(ExitClicked);
         _mainWidget.Add(exitButton);
     }
 
@@ -464,7 +466,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
 
         CurrentCritter = obj;
         Inventory.Container = obj;
-        _mainWidget.Visible = true;
+        Globals.UiManager.AddWindow(_mainWidget);
         _mainWidget.BringToFront();
         Stats.Show();
         Portrait.Show(obj);
@@ -540,7 +542,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         }
         else
         {
-            _mainWidget.CenterOnScreen();
+            _mainWidget.CenterInParent();
         }
     }
 
@@ -640,7 +642,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
             Tig.Mouse.ClearDraggedIcon();
         }
 
-        _mainWidget.Hide();
+        Globals.UiManager.RemoveWindow(_mainWidget);
         Stats.Hide();
         Portrait.Hide();
         Inventory.Hide();

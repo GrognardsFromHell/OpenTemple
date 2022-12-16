@@ -1,87 +1,77 @@
-using OpenTemple.Core.Platform;
+using System.Collections.Generic;
+using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
 public class WidgetScrollView : WidgetContainer
 {
+    private readonly WidgetContainer _container;
+    private readonly WidgetScrollBar _scrollBar;
+    private int _padding = 5;
+    
     public WidgetScrollView(int width, int height) : base(width, height)
     {
         var scrollBar = new WidgetScrollBar();
         scrollBar.Height = height;
         scrollBar.X = width - scrollBar.Width;
-        scrollBar.SetValueChangeHandler(newValue => { mContainer.SetScrollOffsetY(newValue); });
-        mScrollBar = scrollBar;
+        _scrollBar = scrollBar;
         base.Add(scrollBar);
 
         var scrollView = new WidgetContainer(GetInnerWidth(), height);
-        mContainer = scrollView;
+        _container = scrollView;
         base.Add(scrollView);
 
+        scrollBar.SetValueChangeHandler(newValue => { _container.SetScrollOffsetY(newValue); });
+        
         UpdateInnerContainer();
     }
 
     public override void Add(WidgetBase childWidget)
     {
-        mContainer.Add(childWidget);
+        _container.Add(childWidget);
         UpdateInnerHeight();
     }
 
     public override void Clear(bool disposeChildren = false)
     {
-        mContainer.Clear(disposeChildren);
+        _container.Clear(disposeChildren);
         UpdateInnerHeight();
     }
 
     public int GetInnerWidth()
     {
-        return Width - mScrollBar.Width - 2 * mPadding;
+        return Width - _scrollBar.Width - 2 * _padding;
     }
 
     public int GetInnerHeight()
     {
-        return Height - 2 * mPadding;
-    }
-
-    public override bool IsScrollView()
-    {
-        return true;
+        return Height - 2 * _padding;
     }
 
     public void SetPadding(int padding)
     {
-        mPadding = padding;
+        _padding = padding;
 
         UpdateInnerContainer();
     }
 
     public int GetPadding()
     {
-        return mPadding;
+        return _padding;
     }
 
-    public override bool HandleMouseMessage(MessageMouseArgs msg)
+    protected override void HandleMouseWheel(WheelEvent e)
     {
-        if (base.HandleMouseMessage(msg))
-            return true;
-
-        if (msg.flags.HasFlag(MouseEventFlag.ScrollWheelChange))
-        {
-            var curPos = mScrollBar.GetValue();
-            var newPos = curPos - msg.wheelDelta / 10;
-            mScrollBar.SetValue(newPos);
-        }
-
-        return true;
+        var curPos = _scrollBar.GetValue();
+        var newPos = curPos - (int) (e.DeltaY / 10);
+        _scrollBar.SetValue(newPos);
+        e.StopPropagation();
     }
-
-    private WidgetContainer mContainer;
-    private WidgetScrollBar mScrollBar;
-    private int mPadding = 5;
 
     private void UpdateInnerHeight()
     {
         int innerHeight = 0;
-        foreach (var child in mContainer.GetChildren())
+        foreach (var child in _container.Children)
         {
             var childY = child.Y;
             var childH = child.Height;
@@ -92,15 +82,15 @@ public class WidgetScrollView : WidgetContainer
             }
         }
 
-        mScrollBar.Max = innerHeight;
+        _scrollBar.Max = innerHeight;
     }
 
     private void UpdateInnerContainer()
     {
-        mContainer.X = mPadding;
-        mContainer.Width = GetInnerWidth();
+        _container.X = _padding;
+        _container.Width = GetInnerWidth();
 
-        mContainer.Y = mPadding;
-        mContainer.Height = GetInnerHeight();
+        _container.Y = _padding;
+        _container.Height = GetInnerHeight();
     }
 };

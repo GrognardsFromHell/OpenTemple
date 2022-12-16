@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -60,6 +58,20 @@ public class PartyUi : IResetAwareSystem, IDisposable
 
     [TempleDllLocation(0x10BE33EC)]
     private bool _isDraggingPartyMember;
+
+    [TempleDllLocation(0x10134bf0)]
+    public PartyUi()
+    {
+        _uiParams = new PartyUiParams();
+        CreateWidgets();
+        ui_party_widgets_need_refresh = true;
+
+        UiSystems.InGameSelect.LoadSelectionShaders();
+
+        Globals.UiManager.OnCanvasSizeChanged += ResizeViewport;
+        ResizeViewport(Globals.UiManager.CanvasSize);
+        Globals.UiManager.AddWindow(_container);
+    }
 
     // Related to target picking
     [TempleDllLocation(0x10131950)]
@@ -117,19 +129,6 @@ public class PartyUi : IResetAwareSystem, IDisposable
         _targetOnExitCallback?.Invoke(null);
     }
 
-    [TempleDllLocation(0x10134bf0)]
-    public PartyUi()
-    {
-        _uiParams = new PartyUiParams();
-        CreateWidgets();
-        ui_party_widgets_need_refresh = true;
-
-        UiSystems.InGameSelect.LoadSelectionShaders();
-
-        Globals.UiManager.OnCanvasSizeChanged += ResizeViewport;
-        ResizeViewport(Globals.UiManager.CanvasSize);
-    }
-
     [TempleDllLocation(0x10133800)]
     private void CreateWidgets()
     {
@@ -143,7 +142,6 @@ public class PartyUi : IResetAwareSystem, IDisposable
     {
         var availablePortraits = _portraits;
         _portraits = new List<PartyUiPortrait>(GameSystems.Party.PartySize);
-        _container.Clear();
 
         foreach (var partyMember in GameSystems.Party.PartyMembers)
         {
@@ -158,14 +156,18 @@ public class PartyUi : IResetAwareSystem, IDisposable
                 var portrait = availablePortraits[existingIdx];
                 portrait.Update();
                 _portraits.Add(portrait);
-                _container.Add(portrait.Widget);
                 availablePortraits.RemoveAt(existingIdx);
             }
             else
             {
                 var portrait = new PartyUiPortrait(partyMember, _uiParams);
-                portrait.OnPortraitMouseMsg += HandlePortraitMouseMessage;
-                portrait.OnPortraitWidgetMsg += HandlePortraitWidgetMessage;
+                var widget = portrait.Widget;
+                widget.OnMouseDown += e => PortraitMouseDown(portrait, e);
+                widget.OnMouseUp += e => PortraitMouseUp(portrait, e);
+                widget.OnMouseMove += PortraitMouseMove;
+                widget.OnMouseEnter += e => PortraitMouseEnter(portrait, e);
+                widget.OnMouseLeave += PortraitMouseLeave;
+                widget.AddOtherClickListener(() => PortraitRightClicked(portrait));
                 _portraits.Add(portrait);
                 _container.Add(portrait.Widget);
             }
@@ -178,10 +180,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
         }
 
         // Free any remaining unused portraits
-        foreach (var portrait in availablePortraits)
-        {
-            portrait.Dispose();
-        }
+        availablePortraits.DisposeAll();
     }
 
     [TempleDllLocation(0x10135000)]
@@ -198,191 +197,202 @@ public class PartyUi : IResetAwareSystem, IDisposable
     }
 
     [TempleDllLocation(0x101331e0)]
-    private void HandlePortraitMouseMessage(PartyUiPortrait portrait, MessageMouseArgs msg)
+    private void PortraitRightClicked(PartyUiPortrait portrait)
     {
-        if (msg.flags.HasFlag(MouseEventFlag.LeftHeld))
-        {
-            if (dword_10BE33E8 && !_canSwapPartyMembers)
-            {
-                _canSwapPartyMembers = true;
-                return;
-            }
-        }
-
         var partyMember = portrait.PartyMember;
-        if (msg.flags.HasFlag(MouseEventFlag.RightReleased))
+        if (UiSystems.CharSheet.State != CharInventoryState.LevelUp)
         {
-            if (UiSystems.CharSheet.State != CharInventoryState.LevelUp)
+            if (!GameSystems.Combat.IsCombatActive() || GameSystems.D20.Initiative.CurrentActor == partyMember)
             {
-                if (!GameSystems.Combat.IsCombatActive() || GameSystems.D20.Initiative.CurrentActor == partyMember)
+                if (UiSystems.CharSheet.HasCurrentCritter
+                    && UiSystems.CharSheet.State != CharInventoryState.LevelUp)
                 {
-                    if (UiSystems.CharSheet.HasCurrentCritter
-                        && UiSystems.CharSheet.State != CharInventoryState.LevelUp)
+                    if (UiSystems.CharSheet.CurrentCritter == partyMember)
                     {
-                        if (UiSystems.CharSheet.CurrentCritter == partyMember)
-                        {
-                            UiSystems.CharSheet.CurrentPage = 0;
-                            UiSystems.CharSheet.Hide(CharInventoryState.Closed);
-                        }
-                        else
-                        {
-                            UiSystems.CharSheet.ShowInState(0, partyMember);
-                        }
+                        UiSystems.CharSheet.CurrentPage = 0;
+                        UiSystems.CharSheet.Hide(CharInventoryState.Closed);
                     }
                     else
                     {
-                        UiSystems.HideOpenedWindows(true);
-                        UiSystems.CharSheet.State = 0;
-                        UiSystems.CharSheet.Show(partyMember);
+                        UiSystems.CharSheet.ShowInState(0, partyMember);
                     }
+                }
+                else
+                {
+                    UiSystems.HideOpenedWindows(true);
+                    UiSystems.CharSheet.State = 0;
+                    UiSystems.CharSheet.Show(partyMember);
                 }
             }
         }
     }
+    
+    [TempleDllLocation(0x101331e0)]
+    private void PortraitMouseDown(PartyUiPortrait portrait, MouseEvent e)
+    {
+        if (e.Button == MouseButton.Left && !dword_10BE33E8)
+        {
+            var partyMember = portrait.PartyMember;
+            var partyIdx = GameSystems.Party.PartyMembers.ToList().IndexOf(partyMember);
+            
+            Logger.Info("pressed");
+            dword_102F8EB0 = partyIdx;
+            _isDraggingPartyMember = false;
+            _canSwapPartyMembers = false;
+            dword_102F8EB4 = partyIdx;
+            dword_10BE33E8 = true;
+            portrait.Widget.SetMouseCapture();
+        }
+    }
 
     [TempleDllLocation(0x101331e0)]
-    private void HandlePortraitWidgetMessage(PartyUiPortrait portrait, MessageWidgetArgs msg)
+    private void PortraitMouseUp(PartyUiPortrait portrait, MouseEvent e)
     {
-        var partyMember = portrait.PartyMember;
-        var partyIdx = GameSystems.Party.PartyMembers.ToList().IndexOf(partyMember);
-
-        switch (msg.widgetEventType)
+        if (e.Button != MouseButton.Left)
         {
-            case TigMsgWidgetEvent.Clicked:
-                Logger.Info("pressed");
-                if (!dword_10BE33E8)
+            return;
+        }
+        
+        var partyMember = portrait.PartyMember;
+
+        if (!portrait.Widget.ContainsMouse)
+        {
+            goto LABEL_14;
+        }
+    
+        if (UiSystems.HelpManager.IsSelectingHelpTarget)
+        {
+            dword_10BE33E8 = false;
+            _isDraggingPartyMember = false;
+            UiSystems.HelpManager.ShowPredefinedTopic(40);
+            return;
+        }
+
+        if (InvokeTargetClickCallback(partyMember))
+        {
+            dword_10BE33E8 = false;
+            _isDraggingPartyMember = false;
+            _canSwapPartyMembers = false;
+            return;
+        }
+
+        if (GameSystems.Combat.IsCombatActive())
+        {
+            UiSystems.TurnBased.sub_101749D0();
+        }
+
+        LABEL_14:
+        Logger.Info("released");
+        if (dword_10BE33E8)
+        {
+            _canSwapPartyMembers = false;
+            dword_10BE33E8 = false;
+        }
+
+        if (_isDraggingPartyMember)
+        {
+            _isDraggingPartyMember = false;
+            GameSystems.Party.Swap(dword_102F8EB0, dword_102F8EB4);
+            return;
+        }
+
+        if (GameSystems.Combat.IsCombatActive() ||
+            UiSystems.CharSheet.State == CharInventoryState.LevelUp)
+            return;
+
+        if (!UiSystems.CharSheet.Inventory.IsVisible)
+        {
+            var v10 = partyMember.GetLocation();
+            GameSystems.Location.GetTranslation(v10.locx, v10.locy, out var xTranslationOut,
+                out var yTranslationOut);
+            if (xTranslationOut < 20
+                || yTranslationOut < 20
+                || xTranslationOut > Globals.UiManager.CanvasSize.Width - 20
+                || yTranslationOut > Globals.UiManager.CanvasSize.Height - 20)
+            {
+                GameSystems.Scroll.CenterOnSmooth(v10.locx, v10.locy);
+            }
+        }
+
+        var v11 = UiSystems.CharSheet.CurrentCritter;
+        if (v11 == null)
+        {
+            if (UiSystems.RadialMenu.IsOpen)
+                return;
+
+            if (Tig.Keyboard.IsShiftPressed)
+            {
+                // Multi-select
+                if (GameSystems.Party.IsSelected(partyMember))
                 {
-                    dword_102F8EB0 = partyIdx;
-                    _isDraggingPartyMember = false;
-                    _canSwapPartyMembers = false;
-                    dword_102F8EB4 = partyIdx;
-                    dword_10BE33E8 = true;
-                }
-                break;
-            case TigMsgWidgetEvent.MouseReleased:
-                if (UiSystems.HelpManager.IsSelectingHelpTarget)
-                {
-                    dword_10BE33E8 = false;
-                    _isDraggingPartyMember = false;
-                    UiSystems.HelpManager.ShowPredefinedTopic(40);
-                    break;
-                }
-
-                if (InvokeTargetClickCallback(partyMember))
-                {
-                    dword_10BE33E8 = false;
-                    _isDraggingPartyMember = false;
-                    _canSwapPartyMembers = false;
-                    break;
-                }
-
-                if (GameSystems.Combat.IsCombatActive())
-                {
-                    UiSystems.TurnBased.sub_101749D0();
-                }
-
-                LABEL_14:
-                Logger.Info("released");
-                if (dword_10BE33E8)
-                {
-                    _canSwapPartyMembers = false;
-                    dword_10BE33E8 = false;
-                }
-
-                if (_isDraggingPartyMember)
-                {
-                    _isDraggingPartyMember = false;
-                    GameSystems.Party.Swap(dword_102F8EB0, dword_102F8EB4);
-                    break;
-                }
-
-                if (GameSystems.Combat.IsCombatActive() ||
-                    UiSystems.CharSheet.State == CharInventoryState.LevelUp)
-                    break;
-
-                if (!UiSystems.CharSheet.Inventory.IsVisible)
-                {
-                    var v10 = partyMember.GetLocation();
-                    GameSystems.Location.GetTranslation(v10.locx, v10.locy, out var xTranslationOut,
-                        out var yTranslationOut);
-                    if (xTranslationOut < 20
-                        || yTranslationOut < 20
-                        || xTranslationOut > Globals.UiManager.CanvasSize.Width - 20
-                        || yTranslationOut > Globals.UiManager.CanvasSize.Height - 20)
-                    {
-                        GameSystems.Scroll.CenterOnSmooth(v10.locx, v10.locy);
-                    }
-                }
-
-                var v11 = UiSystems.CharSheet.CurrentCritter;
-                if (v11 == null)
-                {
-                    if (UiSystems.RadialMenu.IsOpen)
-                        break;
-
-                    if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) ||
-                        Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
-                    {
-                        // Multi-select
-                        if (GameSystems.Party.IsSelected(partyMember))
-                        {
-                            GameSystems.Party.RemoveFromSelection(partyMember);
-                        }
-                        else
-                        {
-                            GameSystems.Party.AddToSelection(partyMember);
-                        }
-                    }
-                    else
-                    {
-                        GameSystems.Party.ClearSelection();
-                        GameSystems.Party.AddToSelection(partyMember);
-                    }
-
-                    break;
-                }
-
-                if (partyMember == v11 || UiSystems.CharSheet.State == CharInventoryState.LevelUp)
-                {
-                    Logger.Info("[popup-window]: YOU CANNOT PRESS THIS BUTTON WHILE LEVELLING UP");
+                    GameSystems.Party.RemoveFromSelection(partyMember);
                 }
                 else
                 {
-                    var state = (CharInventoryState) UiSystems.CharSheet.Looting.GetLootingState();
-                    UiSystems.CharSheet.ShowInState(state, partyMember);
+                    GameSystems.Party.AddToSelection(partyMember);
                 }
+            }
+            else
+            {
+                GameSystems.Party.ClearSelection();
+                GameSystems.Party.AddToSelection(partyMember);
+            }
 
-                break;
-            case TigMsgWidgetEvent.MouseReleasedAtDifferentButton:
-                goto LABEL_14;
-            case TigMsgWidgetEvent.Entered:
-                InvokeTargetOnEnterCallback(partyMember);
-
-                if (dword_10BE33E8)
-                {
-                    dword_102F8EB4 = partyIdx;
-                    if (dword_102F8EB4 != dword_102F8EB0)
-                    {
-                        _isDraggingPartyMember = true;
-                    }
-                }
-                else if (GameSystems.Combat.IsCombatActive())
-                {
-                    UiSystems.TurnBased.TargetFromPortrait(partyMember);
-                }
-
-                break;
-            case TigMsgWidgetEvent.Exited:
-                InvokeTargetOnExitCallback();
-                if (dword_10BE33E8)
-                {
-                    dword_102F8EB4 = dword_102F8EB0;
-                    _isDraggingPartyMember = false;
-                }
-
-                UiSystems.TurnBased.TargetFromPortrait(null);
-                break;
+            return;
         }
+
+        if (partyMember == v11 || UiSystems.CharSheet.State == CharInventoryState.LevelUp)
+        {
+            Logger.Info("[popup-window]: YOU CANNOT PRESS THIS BUTTON WHILE LEVELLING UP");
+        }
+        else
+        {
+            var state = (CharInventoryState) UiSystems.CharSheet.Looting.GetLootingState();
+            UiSystems.CharSheet.ShowInState(state, partyMember);
+        }
+    }
+
+    private void PortraitMouseMove(MouseEvent e)
+    {
+        if (e.IsLeftButtonHeld && dword_10BE33E8 && !_canSwapPartyMembers)
+        {
+            _canSwapPartyMembers = true;
+        }
+    }
+
+    [TempleDllLocation(0x101331e0)]
+    private void PortraitMouseEnter(PartyUiPortrait portrait, MouseEvent e)
+    {
+        var partyMember = portrait.PartyMember;
+        var partyIdx = GameSystems.Party.PartyMembers.ToList().IndexOf(partyMember);
+    
+        InvokeTargetOnEnterCallback(partyMember);
+
+        if (dword_10BE33E8)
+        {
+            dword_102F8EB4 = partyIdx;
+            if (dword_102F8EB4 != dword_102F8EB0)
+            {
+                _isDraggingPartyMember = true;
+            }
+        }
+        else if (GameSystems.Combat.IsCombatActive())
+        {
+            UiSystems.TurnBased.TargetFromPortrait(partyMember);
+        }
+    }
+    
+    [TempleDllLocation(0x101331e0)]
+    private void PortraitMouseLeave(MouseEvent e)
+    {
+        InvokeTargetOnExitCallback();
+        if (dword_10BE33E8)
+        {
+            dword_102F8EB4 = dword_102F8EB0;
+            _isDraggingPartyMember = false;
+        }
+
+        UiSystems.TurnBased.TargetFromPortrait(null);
     }
 
     [TempleDllLocation(0x10132760)]
@@ -431,13 +441,13 @@ public class PartyUi : IResetAwareSystem, IDisposable
         ui_party_widgets_need_refresh = true;
     }
 
-    public void Hide()
-    {
-        _container.Visible = false;
-    }
-
     public void Show()
     {
-        _container.Visible = true;
+        Globals.UiManager.AddWindow(_container);
+    }
+
+    public void Hide()
+    {
+        Globals.UiManager.RemoveWindow(_container);
     }
 }

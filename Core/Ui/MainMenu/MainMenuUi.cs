@@ -14,7 +14,9 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.Widgets.TextField;
 
 namespace OpenTemple.Core.Ui.MainMenu;
 
@@ -33,7 +35,8 @@ public class MainMenuUi : IDisposable
     {
         var mmLocalization = Tig.FS.ReadMesFile("mes/mainmenu.mes");
 
-        var widgetDoc = WidgetDoc.Load("ui/main_menu.json", (type, definition) => {
+        var widgetDoc = WidgetDoc.Load("ui/main_menu.json", (type, definition) =>
+        {
             if (type == "mainMenuButton")
             {
                 return CreateMainMenuButton(definition);
@@ -43,36 +46,23 @@ public class MainMenuUi : IDisposable
                 throw new ArgumentException("Unknown custom widget type: " + type);
             }
         });
-        mMainWidget = widgetDoc.GetRootContainer();
+        _mainWidget = widgetDoc.GetRootContainer();
 
         mViewCinematicsDialog = new ViewCinematicsDialog(this, mmLocalization);
         mSetPiecesDialog = new SetPiecesDialog(this);
 
-        // This eats all mouse messages that reach the full-screen main menu
-        mMainWidget.SetMouseMsgHandler(msg => { return true; });
-        mMainWidget.SetWidgetMsgHandler(msg => { return true; });
+        _mainWidget.PreventsInGameInteraction = true;
+        
+        // Close the menu if it's the ingame menu
+        _mainWidget.AddHotkey(UiHotkeys.CloseWindow, Hide, () => _currentPage is MainMenuPage.InGameNormal or MainMenuPage.InGameIronman);
 
-        mMainWidget.SetKeyStateChangeHandler(msg =>
-        {
-            // Close the menu if it's the ingame menu
-            if (msg.key == DIK.DIK_ESCAPE && !msg.down)
-            {
-                if (mCurrentPage == MainMenuPage.InGameNormal || mCurrentPage == MainMenuPage.InGameIronman)
-                {
-                    Hide();
-                }
-            }
+        _pagesWidget = widgetDoc.GetContainer("pages");
 
-            return true;
-        });
-
-        mPagesWidget = widgetDoc.GetContainer("pages");
-
-        mPageWidgets[MainMenuPage.MainMenu] = widgetDoc.GetContainer("page-main-menu");
-        mPageWidgets[MainMenuPage.Difficulty] = widgetDoc.GetContainer("page-difficulty");
-        mPageWidgets[MainMenuPage.InGameNormal] = widgetDoc.GetContainer("page-ingame-normal");
-        mPageWidgets[MainMenuPage.InGameIronman] = widgetDoc.GetContainer("page-ingame-ironman");
-        mPageWidgets[MainMenuPage.Options] = widgetDoc.GetContainer("page-options");
+        _pageWidgets[MainMenuPage.MainMenu] = widgetDoc.GetContainer("page-main-menu");
+        _pageWidgets[MainMenuPage.Difficulty] = widgetDoc.GetContainer("page-difficulty");
+        _pageWidgets[MainMenuPage.InGameNormal] = widgetDoc.GetContainer("page-ingame-normal");
+        _pageWidgets[MainMenuPage.InGameIronman] = widgetDoc.GetContainer("page-ingame-ironman");
+        _pageWidgets[MainMenuPage.Options] = widgetDoc.GetContainer("page-options");
         //mPageWidgets[MainMenuPage.SetPieces] = widgetDoc.GetWindow("page-set-pieces");
 
         MainMenuButton GetButton(string id)
@@ -81,47 +71,44 @@ public class MainMenuUi : IDisposable
         }
 
         // Wire up buttons on the main menu
-        GetButton("new-game").SetClickHandler(() => { Show(MainMenuPage.Difficulty); });
-        GetButton("load-game").SetClickHandler(() =>
+        GetButton("new-game").AddClickListener(() => { Show(MainMenuPage.Difficulty); });
+        GetButton("load-game").AddClickListener(() =>
         {
             Hide();
             UiSystems.SaveGame.ShowLoad(true);
         });
-        GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
-        GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
-        GetButton("quit-game").SetClickHandler(() =>
-        {
-            Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT));
-        });
+        GetButton("tutorial").AddClickListener(() => LaunchTutorial());
+        GetButton("options").AddClickListener(() => { Show(MainMenuPage.Options); });
+        GetButton("quit-game").AddClickListener(() => { Tig.EventLoop.Stop(); });
 
         // Wire up buttons on the difficulty selection page
-        GetButton("difficulty-normal").SetClickHandler(() =>
+        GetButton("difficulty-normal").AddClickListener(() =>
         {
             Globals.GameLib.IsIronmanGame = false;
             Hide();
             UiSystems.PCCreation.Start();
         });
-        GetButton("difficulty-ironman").SetClickHandler(() =>
+        GetButton("difficulty-ironman").AddClickListener(() =>
         {
             Globals.GameLib.IsIronmanGame = true;
             Hide();
             UiSystems.PCCreation.Start();
         });
-        GetButton("difficulty-exit").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
+        GetButton("difficulty-exit").AddClickListener(() => { Show(MainMenuPage.MainMenu); });
 
         // Wire up buttons on the ingame menu (normal difficulty)
-        GetButton("ingame-normal-load").SetClickHandler(() =>
+        GetButton("ingame-normal-load").AddClickListener(() =>
         {
             Hide();
             UiSystems.SaveGame.ShowLoad(false);
         });
-        GetButton("ingame-normal-save").SetClickHandler(() =>
+        GetButton("ingame-normal-save").AddClickListener(() =>
         {
             Hide();
             UiSystems.SaveGame.ShowSave(true);
         });
-        GetButton("ingame-normal-close").SetClickHandler(Hide);
-        GetButton("ingame-normal-quit").SetClickHandler(() =>
+        GetButton("ingame-normal-close").AddClickListener(Hide);
+        GetButton("ingame-normal-quit").AddClickListener(() =>
         {
             Hide();
             GameSystems.ResetGame();
@@ -130,8 +117,8 @@ public class MainMenuUi : IDisposable
         });
 
         // Wire up buttons on the ingame menu (ironman difficulty)
-        GetButton("ingame-ironman-close").SetClickHandler(Hide);
-        GetButton("ingame-ironman-save-quit").SetClickHandler(() =>
+        GetButton("ingame-ironman-close").AddClickListener(Hide);
+        GetButton("ingame-ironman-save-quit").AddClickListener(() =>
         {
             Globals.GameLib.IronmanSave();
             Globals.GameLib.Reset();
@@ -140,19 +127,19 @@ public class MainMenuUi : IDisposable
         });
 
         // Wire up buttons on the ingame menu (ironman difficulty)
-        GetButton("options-show").SetClickHandler(() =>
+        GetButton("options-show").AddClickListener(() =>
         {
             Hide();
             UiSystems.Options.Show(true);
         });
-        GetButton("options-view-cinematics").SetClickHandler(() =>
+        GetButton("options-view-cinematics").AddClickListener(() =>
         {
             Hide();
             UiSystems.UtilityBar.Hide();
             // TODO ui_mm_msg_ui4();
             mViewCinematicsDialog.Show();
         });
-        GetButton("options-credits").SetClickHandler(() =>
+        Action handler = () =>
         {
             Hide();
 
@@ -165,8 +152,9 @@ public class MainMenuUi : IDisposable
             GameSystems.Movies.MovieQueuePlay();
 
             Show(MainMenuPage.Options);
-        });
-        GetButton("options-back").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
+        };
+        GetButton("options-credits").AddClickListener(handler);
+        GetButton("options-back").AddClickListener(() => { Show(MainMenuPage.MainMenu); });
 
         RepositionWidgets(Globals.UiManager.CanvasSize);
         Globals.UiManager.OnCanvasSizeChanged += RepositionWidgets;
@@ -226,16 +214,7 @@ public class MainMenuUi : IDisposable
     [TempleDllLocation(0x101157f0)]
     public bool IsVisible()
     {
-        // The main menu is defined as visible, if any of the pages is visible
-        foreach (var entry in mPageWidgets)
-        {
-            if (entry.Value.Visible)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return _mainWidget.IsInTree;
     }
 
     [TempleDllLocation(0x10116500)]
@@ -251,17 +230,17 @@ public class MainMenuUi : IDisposable
         }
 
         // TODO: This seems wrong actually... This should come after hide()
-        mCurrentPage = page;
+        _currentPage = page;
         Hide();
 
         UiSystems.SaveGame.Hide();
         UiSystems.HideOpenedWindows(false);
         UiSystems.CharSheet.Hide();
 
-        mMainWidget.Show();
-        mMainWidget.BringToFront();
+        Globals.UiManager.AddWindow(_mainWidget);
+        _mainWidget.BringToFront();
 
-        foreach (var entry in mPageWidgets)
+        foreach (var entry in _pageWidgets)
         {
             entry.Value.Visible = entry.Key == page;
         }
@@ -282,20 +261,20 @@ public class MainMenuUi : IDisposable
     {
         if (IsVisible())
         {
-            if (mCurrentPage == MainMenuPage.InGameNormal || mCurrentPage == MainMenuPage.InGameIronman)
+            if (_currentPage == MainMenuPage.InGameNormal || _currentPage == MainMenuPage.InGameIronman)
             {
                 GameSystems.TimeEvent.ResumeGameTime();
             }
         }
 
-        foreach (var entry in mPageWidgets)
+        Globals.UiManager.RemoveWindow(_mainWidget);
+
+        foreach (var entry in _pageWidgets)
         {
             entry.Value.Visible = false;
         }
 
-        mMainWidget.Hide();
-
-        if (mCurrentPage != MainMenuPage.InGameNormal)
+        if (_currentPage != MainMenuPage.InGameNormal)
         {
             UiSystems.UtilityBar.Show();
         }
@@ -304,23 +283,23 @@ public class MainMenuUi : IDisposable
         //	UiSystems.DungeonMaster.Show();
     }
 
-    private MainMenuPage mCurrentPage = MainMenuPage.MainMenu;
+    private MainMenuPage _currentPage = MainMenuPage.MainMenu;
 
     private ViewCinematicsDialog mViewCinematicsDialog;
     private SetPiecesDialog mSetPiecesDialog;
 
-    private WidgetContainer mMainWidget;
+    private readonly WidgetContainer _mainWidget;
 
-    private Dictionary<MainMenuPage, WidgetContainer>
-        mPageWidgets = new();
+    private readonly Dictionary<MainMenuPage, WidgetContainer>
+        _pageWidgets = new();
 
     // The widget that contains all pages
-    private WidgetContainer mPagesWidget;
+    private readonly WidgetContainer _pagesWidget;
 
     private void RepositionWidgets(Size size)
     {
         // Attach the pages to the bottom of the screen
-        mPagesWidget.Y = size.Height - mPagesWidget.Height;
+        _pagesWidget.Y = size.Height - _pagesWidget.Height;
     }
 
     [TempleDllLocation(0x10116170)]
@@ -395,18 +374,14 @@ public class MainMenuUi : IDisposable
     }
 }
 
-
 class ViewCinematicsDialog
 {
-    private readonly MainMenuUi _mainMenu;
-
     public ViewCinematicsDialog(MainMenuUi mainMenu, IDictionary<int, string> mmMes)
     {
-        _mainMenu = mainMenu;
+        var doc = WidgetDoc.Load("ui/main_menu_cinematics.json");
+        _widget = doc.GetRootContainer();
 
-        WidgetDoc doc = WidgetDoc.Load("ui/main_menu_cinematics.json");
-
-        doc.GetButton("view").SetClickHandler(() =>
+        doc.GetButton("view").AddClickListener(() =>
         {
             if (mSelection < 0 || mSelection >= seenIndices.Count)
                 return;
@@ -416,26 +391,23 @@ class ViewCinematicsDialog
             var movieId = movieIds[movieIdx];
             GameSystems.Movies.PlayMovieId(movieId, 0);
         });
-        doc.GetButton("cancel").SetClickHandler(() =>
+        doc.GetButton("cancel").AddClickListener(() =>
         {
-            mWidget.Hide();
-            _mainMenu.Show(MainMenuPage.Options);
+            Globals.UiManager.RemoveWindow(_widget);
+            mainMenu.Show(MainMenuPage.Options);
         });
 
-        mListBox = doc.GetScrollView("cinematicsList");
-
-        mWidget = doc.GetRootContainer();
-        mWidget.Hide();
+        _listBox = doc.GetScrollView("cinematicsList");
 
         for (var i = 0; i < 24; i++)
         {
-            mMovieNames[i] = mmMes[2000 + i];
+            _movieNames[i] = mmMes[2000 + i];
         }
     }
 
     public void Show()
     {
-        mListBox.Clear();
+        _listBox.Clear();
         btnIds.Clear();
         seenIndices.Clear();
 
@@ -454,9 +426,9 @@ class ViewCinematicsDialog
             var movieInd = seenIndices[i];
 
             var button = new WidgetButton();
-            button.Text = mMovieNames[movieInd];
-            button.SetId(mMovieNames[movieInd]);
-            var innerWidth = mListBox.GetInnerWidth();
+            button.Text = _movieNames[movieInd];
+            button.Id = _movieNames[movieInd];
+            var innerWidth = _listBox.GetInnerWidth();
             button.Width = innerWidth;
             button.SetAutoSizeWidth(false);
             button.SetStyle("mm-cinematics-list-button");
@@ -464,12 +436,12 @@ class ViewCinematicsDialog
             //var pBtn = button.get();
             btnIds.Add(button);
             var selectIdx = i;
-            button.SetClickHandler(() => Select(selectIdx));
+            button.AddClickListener(() => Select(selectIdx));
             y += button.Height;
-            mListBox.Add(button);
+            _listBox.Add(button);
         }
 
-        mWidget.Show();
+        Globals.UiManager.AddWindow(_widget);
     }
 
     public void Select(int idx)
@@ -492,9 +464,9 @@ class ViewCinematicsDialog
     }
 
     private int mSelection = 0;
-    private WidgetContainer mWidget;
-    private Dictionary<int, string> mMovieNames = new();
-    private WidgetScrollView mListBox;
+    private WidgetContainer _widget;
+    private Dictionary<int, string> _movieNames = new();
+    private WidgetScrollView _listBox;
     private List<WidgetButton> btnIds = new();
     private List<int> seenIndices = new(); // indices into movieIds / mMovieNames
 
@@ -519,23 +491,20 @@ class SetPiecesDialog
     {
         _mainMenuUi = mainMenuUi;
 
-        WidgetDoc doc = WidgetDoc.Load("ui/main_menu_setpieces.json");
+        var doc = WidgetDoc.Load("ui/main_menu_setpieces.json");
+        _listBox = doc.GetScrollView("scenariosList");
+        _widget = doc.GetRootContainer();        
 
-        doc.GetButton("go").SetClickHandler(() =>
+        doc.GetButton("go").AddClickListener(() =>
         {
-            mWidget.Hide();
+            Globals.UiManager.RemoveWindow(_widget);
             LaunchScenario();
         });
-        doc.GetButton("cancel").SetClickHandler(() =>
+        doc.GetButton("cancel").AddClickListener(() =>
         {
-            mWidget.Hide();
+            Globals.UiManager.RemoveWindow(_widget);
             _mainMenuUi.Show(MainMenuPage.MainMenu);
         });
-
-        mListBox = doc.GetScrollView("scenariosList");
-
-        mWidget = doc.GetRootContainer();
-        mWidget.Hide();
     }
 
     public void Select(int i)
@@ -545,7 +514,7 @@ class SetPiecesDialog
 
     public void Show()
     {
-        mListBox.Clear();
+        _listBox.Clear();
 
         int y = 0;
         const int NUM_SCENARIOS = 0;
@@ -553,20 +522,20 @@ class SetPiecesDialog
         {
             var button = new WidgetButton();
             button.Text = "Arena";
-            button.SetId("Arena");
-            var innerWidth = mListBox.GetInnerWidth();
+            button.Id = "Arena";
+            var innerWidth = _listBox.GetInnerWidth();
             button.Width = innerWidth;
             button.SetAutoSizeWidth(false);
             button.SetStyle("mm-setpieces-list-button");
             button.Y = y;
             btnIds.Add(button);
             var idx = i;
-            button.SetClickHandler(() => Select(idx));
+            button.AddClickListener(() => Select(idx));
             y += button.Height;
-            mListBox.Add(button);
+            _listBox.Add(button);
         }
 
-        mWidget.Show();
+        Globals.UiManager.AddWindow(_widget);
     }
 
     public void LaunchScenario()
@@ -592,7 +561,7 @@ class SetPiecesDialog
     }
 
     private int mSelection = 0;
-    private WidgetContainer mWidget;
-    private WidgetScrollView mListBox;
+    private WidgetContainer _widget;
+    private WidgetScrollView _listBox;
     private List<WidgetButton> btnIds;
 }

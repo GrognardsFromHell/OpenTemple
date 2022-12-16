@@ -95,7 +95,7 @@ public sealed class AudioSliderOption : SliderOption
         _valueLabel.Text = newValue + "%";
 
         // Immediately apply the volume change
-        if (Globals.UiManager.IsVisible(_slider))
+        if (_slider.IsVisibleIncludingParents)
         {
             SetVolume(_type, newValue);
         }

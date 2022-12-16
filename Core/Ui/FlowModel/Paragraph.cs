@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.FlowModel;
 
@@ -104,4 +105,7 @@ public class Paragraph : Block, IInlineContainer
             child.InvalidateStyles();
         }
     }
+    
+    // TODO: This is incorrect. Paragraphs should have their own pseudo-class state.
+    public override StylingState PseudoClassState => default;
 }

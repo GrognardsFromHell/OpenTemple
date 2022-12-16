@@ -18,10 +18,6 @@ public class PartyUiPortrait : IDisposable
 
     private readonly List<BuffDebuffButton> _buffDebuffIcons = new();
 
-    public event Action<PartyUiPortrait, MessageWidgetArgs> OnPortraitWidgetMsg;
-
-    public event Action<PartyUiPortrait, MessageMouseArgs> OnPortraitMouseMsg;
-
     public PartyUiPortrait(GameObject partyMember, PartyUiParams uiParams)
     {
         PartyMember = partyMember;
@@ -37,18 +33,8 @@ public class PartyUiPortrait : IDisposable
         container.AddContent(image);
 
         var portraitButton = new PortraitButton(partyMember);
-        portraitButton.SetSize(uiParams.party_ui_portrait_button.Size);
-        portraitButton.SetPos(uiParams.party_ui_portrait_button.Location);
-        portraitButton.SetWidgetMsgHandler(args =>
-        {
-            OnPortraitWidgetMsg?.Invoke(this, args);
-            return true;
-        });
-        portraitButton.SetMouseMsgHandler(args =>
-        {
-            OnPortraitMouseMsg?.Invoke(this, args);
-            return true;
-        });
+        portraitButton.Size = uiParams.party_ui_portrait_button.Size;
+        portraitButton.Pos = uiParams.party_ui_portrait_button.Location;
         container.Add(portraitButton);
 
         var healthBar = new PortraitHealthBar(
@@ -66,7 +52,7 @@ public class PartyUiPortrait : IDisposable
             HoverImagePath = uiParams.Textures[PartyUiTexture.DismissBtnHover],
             PressedImagePath = uiParams.Textures[PartyUiTexture.DismissBtnPressed],
         });
-        DismissButton.SetClickHandler(OnDismissClick);
+        DismissButton.AddClickListener(OnDismissClick);
         container.Add(DismissButton);
 
         // Level Up icon
@@ -78,7 +64,7 @@ public class PartyUiPortrait : IDisposable
             HoverImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnHovered],
             PressedImagePath = uiParams.Textures[PartyUiTexture.LevelUpBtnPressed],
         });
-        LevelUpButton.SetClickHandler(OnLevelUpClick);
+        LevelUpButton.AddClickListener(OnLevelUpClick);
         container.Add(LevelUpButton);
 
         for (var i = 0; i < 8; i++)
@@ -176,11 +162,11 @@ public class PartyUiPortrait : IDisposable
             LevelUpButton.Visible = true;
             if (GameSystems.Combat.IsCombatActive() || disableLevelUp)
             {
-                LevelUpButton.SetDisabled(true);
+                LevelUpButton.Disabled = true;
             }
             else
             {
-                LevelUpButton.SetDisabled(false);
+                LevelUpButton.Disabled = false;
             }
         }
         else

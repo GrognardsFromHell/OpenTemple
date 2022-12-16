@@ -9,7 +9,7 @@ public class GameViews
 
     public static event PrimaryChangeEvent OnPrimaryChange;
 
-    public static IGameViewport Primary { get; private set; }
+    public static IGameViewport? Primary { get; private set; }
 
     private static readonly ISet<IGameViewport> VisibleGameViews = new HashSet<IGameViewport>();
 

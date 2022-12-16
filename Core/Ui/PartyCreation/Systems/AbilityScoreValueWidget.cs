@@ -31,7 +31,7 @@ public class AbilityScoreValueWidget : WidgetBase
         _valueSetter = valueSetter;
         IsAssigned = assigned;
 
-        SetSize(size);
+        Size = size;
         AddContent(new WidgetRectangle
         {
             Pen = new PackedLinearColorA(assigned ? 0xFF43586E : 0xFFF6FF04)

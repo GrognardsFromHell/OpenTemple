@@ -200,7 +200,7 @@ internal class WidgetDocLoader
             StyleJsonDeserializer.DeserializeProperties(localStylesNode, widget.LocalStyles);
         }
 
-        var size = widget.GetSize();
+        var size = widget.Size;
         if (jsonObj.TryGetProperty("width", out var widthNode))
         {
             size.Width = widthNode.GetInt32();
@@ -213,16 +213,16 @@ internal class WidgetDocLoader
             widget.SetAutoSizeHeight(false);
         }
 
-        widget.SetSize(size);
+        widget.Size = size;
 
         if (jsonObj.TryGetProperty("centerHorizontally", out var centerHorizontallyNode))
         {
-            widget.SetCenterHorizontally(centerHorizontallyNode.GetBoolean());
+            widget.CenterHorizontally = centerHorizontallyNode.GetBoolean();
         }
 
         if (jsonObj.TryGetProperty("centerVertically", out var centerVerticallyNode))
         {
-            widget.SetCenterVertically(centerVerticallyNode.GetBoolean());
+            widget.CenterVertically = centerVerticallyNode.GetBoolean();
         }
 
         if (jsonObj.TryGetProperty("sizeToParent", out var sizeToParentNode))
@@ -235,9 +235,7 @@ internal class WidgetDocLoader
     {
         foreach (var childJson in jsonObj.EnumerateArray())
         {
-            var childWidget = LoadWidgetTree(childJson);
-            childWidget.SetParent(container);
-            container.Add(childWidget);
+            container.Add(LoadWidgetTree(childJson));
         }
     }
 
@@ -438,7 +436,7 @@ internal class WidgetDocLoader
                 throw new Exception($"Cannot process unknown widget type: '{type}'");
         }
 
-        widget.SetSourceURI(_path);
+        widget.SourceURI = _path;
 
         // If the widget had an ID, put it into the registry
         if (jsonObj.TryGetProperty("id", out var idNode))
@@ -450,7 +448,7 @@ internal class WidgetDocLoader
             }
 
             Registry[id] = widget;
-            widget.SetId(id);
+            widget.Id = id;
         }
 
         return widget;
@@ -511,21 +509,20 @@ public class WidgetDoc
         return _rootWidget;
     }
 
-    /**
-          * Returns the root widget defined in the widget doc, assuming it is a container widget.
-         * If the root widget is NOT a container, this method will throw an exception.
-         * The caller takes ownership of the widget.
-         * This function can only be called once per widget doc instance!
-         */
+    /// <summary>
+    /// Returns the root widget defined in the widget doc, assuming it is a container widget.
+    /// If the root widget is NOT a container, this method will throw an exception.
+    /// The caller takes ownership of the widget.
+    /// This function can only be called once per widget doc instance!
+    /// </summary>
     public WidgetContainer GetRootContainer()
     {
-        Trace.Assert(_rootWidget != null);
-        if (!_rootWidget.IsContainer())
+        if (_rootWidget is not WidgetContainer container)
         {
             throw new Exception($"Expected root widget in '{_path}' to be a container.");
         }
 
-        return (WidgetContainer) _rootWidget;
+        return container;
     }
 
     public bool HasWidget(string id) => _widgetsById.ContainsKey(id);
@@ -543,23 +540,23 @@ public class WidgetDoc
     public WidgetContainer GetContainer(string id)
     {
         var widget = GetWidget(id);
-        if (!widget.IsContainer())
+        if (widget is not WidgetContainer container)
         {
             throw new Exception($"Expected widget with id '{id}' in doc '{_path}' to be a container!");
         }
 
-        return (WidgetContainer) widget;
+        return container;
     }
 
     public WidgetButton GetButton(string id)
     {
         var widget = GetWidget(id);
-        if (!widget.IsButton())
+        if (widget is not WidgetButton button)
         {
             throw new Exception($"Expected widget with id '{id}' in doc '{_path}' to be a button!");
         }
 
-        return (WidgetButton) widget;
+        return button;
     }
 
     public WidgetTabBar GetTabBar(string id)
@@ -576,12 +573,12 @@ public class WidgetDoc
     public WidgetScrollView GetScrollView(string id)
     {
         var widget = GetWidget(id);
-        if (!widget.IsScrollView())
+        if (widget is not WidgetScrollView scrollView)
         {
             throw new Exception($"Expected widget with id '{id}' in doc '{_path}' to be a scroll view!");
         }
 
-        return (WidgetScrollView) widget;
+        return scrollView;
     }
 
     public WidgetScrollBar GetScrollBar(string id)

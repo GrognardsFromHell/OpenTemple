@@ -7,15 +7,15 @@ namespace OpenTemple.Core.TigSubsystems;
 
 public class HeadlessMainWindow : IMainWindow
 {
-    public void SetWindowMsgFilter(WindowMsgFilter filter)
+    public void SetWindowMsgFilter(SDLEventFilter filter)
     {
     }
-
-    public event Action<WindowEvent> OnInput;
 
     public event Action<Size> Resized;
 
     public event Action Closed;
+    
+    public IUiRoot? UiRoot { get; set; }
 
     public Size OffScreenSize { get; set; } = new(1024, 768);
 
@@ -37,13 +37,12 @@ public class HeadlessMainWindow : IMainWindow
     }
 
     public bool IsCursorVisible { get; set; }
-
-    public void Dispose()
+    
+    public void ProcessEvents()
     {
     }
 
-    public void SendInput(WindowEvent obj)
+    public void Dispose()
     {
-        OnInput?.Invoke(obj);
     }
 }

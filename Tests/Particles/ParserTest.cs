@@ -208,7 +208,7 @@ public class PartSysParserTest : IDisposable
                 $"Sys: '{partSysName}' Emitter: '{emitter.GetName()}' Param: {paramIdx} (Lifespan: {lifespan})";
 
             param.Should().NotBeNull(msg);
-            param.Type.Should().BeEquivalentTo(PartSysParamType.PSPT_KEYFRAMES, msg);
+            param.Type.Should().Be(PartSysParamType.PSPT_KEYFRAMES, msg);
             var frameParam = (PartSysParamKeyframes)param;
 
             var frameCount = int.Parse(parts[3]);

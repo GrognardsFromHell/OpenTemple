@@ -15,6 +15,7 @@ using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
+using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui.Dialog;
 
@@ -28,10 +29,10 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     private const string NPCLineTextStyle = "dialog-ui-line-npc";
 
     [TempleDllLocation(0x10bea290)]
-    private const string  PcLineTextStyle = "dialog-ui-line-player";
+    private const string PcLineTextStyle = "dialog-ui-line-player";
 
     [TempleDllLocation(0x1014bb50)]
-    public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.Visible;
+    public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.IsInTree;
 
     [TempleDllLocation(0x1014bac0)]
     [TempleDllLocation(0x10BEC348)]
@@ -110,7 +111,6 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         // uiDialogWndId.OnHandleMessage += 0x1014bd00;
         // uiDialogWndId.OnBeforeRender += 0x1014bbb0;
         _mainWindow.OnBeforeRender += UpdateLayout;
-        _mainWindow.Visible = false;
         _mainWindow.SetKeyStateChangeHandler(OnKeyPressed);
 
         // This renders the NPC's dialog lines
@@ -138,7 +138,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
 
         _showHistoryButton = new WidgetButton(new Rectangle(581, 1, 23, 18));
         _showHistoryButton.SetStyle(HeadButtonStyle);
-        _showHistoryButton.SetClickHandler(OnHeadButtonClicked);
+        _showHistoryButton.AddClickListener(OnHeadButtonClicked);
         // uiDialogButton1Id.OnBeforeRender += 0x1014be30;
         // uiDialogButton1Id.OnRenderTooltip += 0x100027f0;
         _mainWindow.Add(_showHistoryButton);
@@ -158,7 +158,6 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
 
         uiDialogWnd2Id = new WidgetContainer(new Rectangle(0, 0, 1024, 768));
         // uiDialogWnd2Id.OnHandleMessage += 0x1014bdc0;
-        uiDialogWnd2Id.Visible = false;
     }
 
     private void UpdatePosition(Size screenSize)
@@ -215,31 +214,31 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         // Allows selecting PC responses by pressing the associated number
         switch (arg.key)
         {
-            case DIK.DIK_1:
+            case SDL_Keycode.SDLK_1:
                 SelectResponse(0);
                 return true;
-            case DIK.DIK_2:
+            case SDL_Keycode.SDLK_2:
                 SelectResponse(1);
                 return true;
-            case DIK.DIK_3:
+            case SDL_Keycode.SDLK_3:
                 SelectResponse(2);
                 return true;
-            case DIK.DIK_4:
+            case SDL_Keycode.SDLK_4:
                 SelectResponse(3);
                 return true;
-            case DIK.DIK_5:
+            case SDL_Keycode.SDLK_5:
                 SelectResponse(4);
                 return true;
-            case DIK.DIK_6:
+            case SDL_Keycode.SDLK_6:
                 SelectResponse(5);
                 return true;
-            case DIK.DIK_7:
+            case SDL_Keycode.SDLK_7:
                 SelectResponse(6);
                 return true;
-            case DIK.DIK_8:
+            case SDL_Keycode.SDLK_8:
                 SelectResponse(7);
                 return true;
-            case DIK.DIK_9:
+            case SDL_Keycode.SDLK_9:
                 SelectResponse(8);
                 return true;
             default:
@@ -364,8 +363,8 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         }
 
         uiDialogFlags = 1;
-        uiDialogWnd2Id.Visible = false;
-        _mainWindow.Visible = false;
+        Globals.UiManager.RemoveWindow(uiDialogWnd2Id);
+        Globals.UiManager.RemoveWindow(_mainWindow);
         UiSystems.UtilityBar.HistoryUi.UpdateWidgetVisibility(); // Show the dialog history button again
     }
 
@@ -452,7 +451,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         if (!ShowDialogHistory)
         {
             UiDialogBegin();
-            uiDialogWnd2Id.Visible = false;
+            Globals.UiManager.RemoveWindow(uiDialogWnd2Id);
             ShowDialogHistory = true;
             UpdateLayout();
             return;
@@ -655,10 +654,10 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     public void UiDialogWidgetsShow()
     {
         UiSystems.InGame.ResetInput();
-        uiDialogWnd2Id.Visible = true;
+        Globals.UiManager.AddWindow(uiDialogWnd2Id);
         uiDialogWnd2Id.BringToFront();
 
-        _mainWindow.Visible = true;
+        Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
 
         UpdateLayout();

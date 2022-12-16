@@ -30,7 +30,7 @@ public class UtilityBarTimeBar : WidgetContainer
         _tooltipRenderer.AlignLeft = true;
 
         // We draw the background in a custom render, so there's no content to hit test
-        PreciseHitTest = false;
+        HitTesting = HitTestingMode.ContentArea;
     }
 
     protected override void Dispose(bool disposing)
