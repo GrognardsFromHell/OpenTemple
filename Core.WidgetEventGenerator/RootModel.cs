@@ -21,6 +21,7 @@ public class RootModel
         new EventDefinition("MouseWheel", "OpenTemple.Core.Ui.Events.WheelEvent", true, true, true),
         new EventDefinition("Click", "OpenTemple.Core.Ui.Events.MouseEvent", true, true, true),
         new EventDefinition("OtherClick", "OpenTemple.Core.Ui.Events.MouseEvent", true, true, true),
+        new EventDefinition("DoubleClick", "OpenTemple.Core.Ui.Events.MouseEvent", true, true, true),        
         new EventDefinition("TextInput", "OpenTemple.Core.Ui.Events.TextInputEvent", true, true, true),
         new EventDefinition("KeyDown", "OpenTemple.Core.Ui.Events.KeyboardEvent", true, true, true),
         new EventDefinition("KeyUp", "OpenTemple.Core.Ui.Events.KeyboardEvent", true, true, true),

@@ -32,9 +32,14 @@ public class UiManager : IUiRoot
     );
 
     /// <summary>
-    /// The last widget to receive a mouse down event (separate for each button).
+    /// Tracking information about the last mouse down event to facilitate click events.
     /// </summary>
     private MouseDownState? _mouseDownState;
+
+    /// <summary>
+    /// Tracking information about the last click event to facilitate double click events.
+    /// </summary>
+    private ClickState? _clickState;
 
     public event Action<Size>? OnCanvasSizeChanged;
 
@@ -357,6 +362,7 @@ public class UiManager : IUiRoot
 
         _mouseDownState = new MouseDownState
         {
+            Timestamp = TimePoint.Now,
             Button = button,
             Buttons = GetMouseButtons(button),
             Pos = uiPos,
@@ -420,6 +426,7 @@ public class UiManager : IUiRoot
         var e = CreateMouseEvent(UiEventType.MouseUp, dispatchTo);
 
         // Release the mouse down state here so that the mouse up event cannot recapture the mouse
+        var lastMouseDownState = _mouseDownState;
         _mouseDownState = null;
         // Implicitly release mouse capture
         _pendingMouseCaptureWidget = null;
@@ -430,21 +437,71 @@ public class UiManager : IUiRoot
         // and the mouse-up target.
         if (!e.IsDefaultPrevented && lastMouseDownAt != null)
         {
+            var clickState = _clickState;
+            _clickState = null; // Reset click state to avoid triple-clicks registering as a second double-clicks
+
             var clickTarget = lastMouseDownAt.GetCommonAncestor(dispatchTo);
             if (clickTarget != null)
             {
                 if (button == MouseButton.Left)
                 {
-                    clickTarget.DispatchClick(e);
+                    clickTarget.DispatchClick(CreateMouseEvent(UiEventType.Click, clickTarget));
+
+                    // Check for a potential double-click
+                    if (IsDoubleClick(clickState, lastMouseDownState, clickTarget))
+                    {
+                        clickTarget.DispatchDoubleClick(CreateMouseEvent(UiEventType.DoubleClick, clickTarget));
+                    }
+                    else
+                    {
+                        _clickState = new ClickState
+                        {
+                            MouseDownState = lastMouseDownState,
+                            Target = clickTarget
+                        };
+                    }
                 }
                 else
                 {
-                    clickTarget.DispatchOtherClick(e);
+                    clickTarget.DispatchOtherClick(CreateMouseEvent(UiEventType.OtherClick, clickTarget));
                 }
             }
         }
 
         ProcessPendingMouseCapture();
+    }
+
+    private bool IsDoubleClick(ClickState? clickState, MouseDownState mouseDownState, WidgetBase clickTarget)
+    {
+        if (clickState == null)
+        {
+            return false;
+        }
+
+        if (clickState.Target != clickTarget)
+        {
+            return false; // Click event targets a different element
+        }
+
+        // The deciding factor for emitting a double click event is the time between the mouse down events
+        var elapsedMsSinceMouseDown = mouseDownState.Timestamp.Milliseconds - clickState.MouseDownState.Timestamp.Milliseconds;
+        if (elapsedMsSinceMouseDown > 500)
+        {
+            return false; // Too much time between the mouse down events
+        }
+
+        // This is not quite correct. The mouse should not have moved outside of this rectangle, but we only
+        // check the position at the times of the mouse down events.
+        var firstMouseDownPos = clickState.MouseDownState.Pos;
+        var mouseDownPos = mouseDownState.Pos;
+        var distSq = MathF.Abs(firstMouseDownPos.X - mouseDownPos.X) + MathF.Abs(firstMouseDownPos.Y - mouseDownPos.Y);
+        // We use 5 virtual pixels as the radius, but consider the user moves in physical pixels, convert it
+        if (distSq > 5 * 5 * _mainWindow.UiScale * _mainWindow.UiScale)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static void SetPressed(WidgetBase widget, bool value)
@@ -629,10 +686,23 @@ public class UiManager : IUiRoot
         };
     }
 
+    // Tracks the state of the last click that occured to facilitate double click tracking.
+    private class ClickState
+    {
+        // A copy of the mouse down state that led to the click
+        public MouseDownState MouseDownState { get; init; }
+        
+        // The element that received the click event
+        public WidgetBase? Target { get; init; }
+    }
+
     // Tracks the state of the first button that caused a mouse-down event,
     // which has not been released yet.
     private class MouseDownState
     {
+        // When the event occured (using a monotonic clock)
+        public TimePoint Timestamp { get; init; }
+
         // The first button that was pressed
         public MouseButton Button { get; init; }
 
@@ -659,7 +729,7 @@ public class UiManager : IUiRoot
         var scale = _mainWindow.UiScale;
         var right = rect.Right;
         var bottom = rect.Bottom;
-        
+
         rect.X = MathF.Round(rect.X * scale) / scale;
         rect.Y = MathF.Round(rect.Y * scale) / scale;
         rect.Width = MathF.Round(right * scale) / scale - rect.X;

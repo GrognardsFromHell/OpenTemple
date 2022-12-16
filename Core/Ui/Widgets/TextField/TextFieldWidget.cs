@@ -354,6 +354,11 @@ public class TextFieldWidget : WidgetBase
         }
     }
 
+    protected override void DefaultDoubleClickAction(MouseEvent e)
+    {
+        _caret.SelectAll();
+    }
+
     private void TransformToTextArea(ref PointF pos)
     {
         pos.X -= _innerTextAreaRect.X;

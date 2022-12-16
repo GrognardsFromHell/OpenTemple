@@ -5,7 +5,7 @@ using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-09-02T23:16:32.2621007Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-16T10:54:23.3617290Z")]
 public partial class WidgetBase
 {
     public delegate void EventHandler<in T>(T e) where T : UiEvent;
@@ -630,6 +630,87 @@ public partial class WidgetBase
     }
     #endregion
     
+    #region DoubleClick
+
+    private ImmutableList<RegisteredListener<MouseEvent>> _listenersDoubleClick = ImmutableList<RegisteredListener<MouseEvent>>.Empty;
+    
+    public event EventHandler<MouseEvent>? OnDoubleClick 
+    {
+        add => AddDoubleClickListener(value);
+        remove => RemoveDoubleClickListener(value);
+    }
+    
+    public void AddDoubleClickListener(EventHandler<MouseEvent> handler)
+    {
+        _listenersDoubleClick = _listenersDoubleClick.Add(new (handler));
+    }
+    
+    public void AddDoubleClickListener(Action handler)
+    {
+        _listenersDoubleClick = _listenersDoubleClick.Add(new (e => handler()));
+    }
+    
+    public void RemoveDoubleClickListener(EventHandler<MouseEvent> handler)
+    {
+        _listenersDoubleClick = _listenersDoubleClick.Remove(new (handler));
+    }
+    
+    /// <summary>
+    /// Allows a class to handle events of this type without registering an event listener.
+    /// These handlers always run after additional event handlers registered using AddDoubleClickListener.
+    /// </summary>
+    protected virtual void HandleDoubleClick(MouseEvent e)
+    {
+    }
+
+    /// <summary>
+    /// Allows widgets to implement the default action associated with an event type.
+    /// </summary>
+    protected virtual void DefaultDoubleClickAction(MouseEvent e)
+    {
+    }
+    
+    /// <summary>
+    /// Allows a class to implicitly handle the event, without having to overwrite it.
+    /// These handlers always run after additional event handlers registered using OnDoubleClick
+    /// </summary>
+    internal void DispatchDoubleClick(MouseEvent e)
+    {
+
+        // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
+        for (var target = this; target != null && !e.IsPropagationStopped; target = target.Parent)
+        {
+            // Dispatch to additional registered handlers first
+            var listeners = target._listenersDoubleClick;
+            foreach (var listener in listeners)
+            {
+                // We need to remove once-listeners now, since they may re-add themselves as a once-listener and we would immediately
+                // remove it again.
+                if (listener.Once)
+                {
+                    target._listenersDoubleClick = target._listenersDoubleClick.Remove(listener); 
+                }
+                listener.Listener(e);
+                if (e.IsImmediatePropagationStopped)
+                {
+                    break;
+                }
+            }
+            
+            // Call the implicitly registered event listener if propagation wasn't stopped
+            if (!e.IsImmediatePropagationStopped)
+            {
+                target.HandleDoubleClick(e);
+            }
+        }
+        
+        if (!e.IsDefaultPrevented)
+        {
+            DefaultDoubleClickAction(e);
+        }
+    }
+    #endregion
+    
     #region TextInput
 
     private ImmutableList<RegisteredListener<TextInputEvent>> _listenersTextInput = ImmutableList<RegisteredListener<TextInputEvent>>.Empty;
@@ -1019,7 +1100,7 @@ public partial class WidgetBase
     private readonly record struct RegisteredListener<T>(EventHandler<T> Listener, bool Once = false) where T : UiEvent;
 }
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-09-02T23:16:32.2621007Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-16T10:54:23.3617290Z")]
 public enum UiEventType
 {
     MouseDown,
@@ -1030,6 +1111,7 @@ public enum UiEventType
     MouseWheel,
     Click,
     OtherClick,
+    DoubleClick,
     TextInput,
     KeyDown,
     KeyUp,
