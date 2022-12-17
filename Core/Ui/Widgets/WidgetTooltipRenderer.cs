@@ -7,7 +7,8 @@ namespace OpenTemple.Core.Ui.Widgets;
 
 public class WidgetTooltipRenderer
 {
-    private string _tooltipStyleId = "default-tooltip";
+    public const string DefaultStyle = "default-tooltip";
+    private string _tooltipStyleId = DefaultStyle;
     private InlineElement? _tooltipContent;
     private WidgetText? _tooltipLabel;
 

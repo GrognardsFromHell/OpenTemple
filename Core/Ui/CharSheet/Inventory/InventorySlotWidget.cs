@@ -5,6 +5,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Inventory;
@@ -24,8 +25,6 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
     private readonly PackedLinearColorA _slotPressedColor;
 
     private readonly WidgetText _quantityLabel;
-
-    private readonly WidgetTooltipRenderer _tooltipRenderer = new();
 
     private readonly WidgetRectangle _background;
 
@@ -181,7 +180,16 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
         }
     }
 
-    public override void RenderTooltip(int x, int y)
+    protected override void HandleMouseEnter(MouseEvent e)
+    {
+        var itemInSlot = CurrentItem;
+        if (itemInSlot != null)
+        {
+            UiSystems.CharSheet.Help.ShowItemDescription(itemInSlot, Inventory);
+        }
+    }
+
+    protected override void HandleTooltip(TooltipEvent e)
     {
         if (Pressed)
         {
@@ -194,13 +202,6 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
             return;
         }
 
-        UiSystems.CharSheet.Help.ShowItemDescription(itemInSlot, Inventory);
-
-        var tooltip = ItemTooltipBuilder.BuildItemTooltip(UiSystems.CharSheet.CurrentCritter, itemInSlot);
-        if (tooltip != null)
-        {
-            _tooltipRenderer.TooltipText = tooltip;
-            _tooltipRenderer.Render(x, y);
-        }
+        e.TextContent = ItemTooltipBuilder.BuildItemTooltip(UiSystems.CharSheet.CurrentCritter, itemInSlot);
     }
 }

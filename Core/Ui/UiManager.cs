@@ -82,6 +82,8 @@ public class UiManager : IUiRoot
 
     private readonly IMainWindow _mainWindow;
 
+    private readonly WidgetTooltipRenderer _tooltipRenderer = new();
+
     public UiManager(IMainWindow mainWindow)
     {
         _mainWindow = mainWindow;
@@ -222,7 +224,10 @@ public class UiManager : IUiRoot
 
     private void RenderTooltip(int x, int y, object userArg)
     {
-        CurrentMouseOverWidget?.RenderTooltip(x, y);
+        if (CurrentMouseOverWidget != null)
+        {
+            DrawTooltip(CurrentMouseOverWidget, x, y);
+        }
     }
 
     public void MouseEnter()
@@ -691,7 +696,7 @@ public class UiManager : IUiRoot
     {
         // A copy of the mouse down state that led to the click
         public MouseDownState MouseDownState { get; init; }
-        
+
         // The element that received the click event
         public WidgetBase? Target { get; init; }
     }
@@ -734,5 +739,30 @@ public class UiManager : IUiRoot
         rect.Y = MathF.Round(rect.Y * scale) / scale;
         rect.Width = MathF.Round(right * scale) / scale - rect.X;
         rect.Height = MathF.Round(bottom * scale) / scale - rect.Y;
+    }
+
+    public void DrawTooltip(WidgetBase? widget, int x, int y)
+    {
+        if (widget == null)
+        {
+            return;
+        }
+        
+        var e = new TooltipEvent
+        {
+            Type = UiEventType.Tooltip,
+            InitialTarget = widget
+        };
+
+        widget.DispatchTooltip(e);
+
+        if (!e.IsDefaultPrevented)
+        {
+            // TODO Introduce caching since this will be done every frame
+            _tooltipRenderer.TooltipContent = e.Content;
+            _tooltipRenderer.TooltipStyle = e.StyleId ?? WidgetTooltipRenderer.DefaultStyle;
+            _tooltipRenderer.AlignLeft = e.AlignLeft;
+            _tooltipRenderer.Render(x, y);
+        }
     }
 }

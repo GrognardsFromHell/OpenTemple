@@ -4,6 +4,7 @@ using System.Globalization;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.CharSheet.Inventory;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Looting;
@@ -28,8 +29,6 @@ public class LootingSlotWidget : WidgetContainer
     private readonly WidgetImage _icon;
 
     private readonly WidgetText _quantityLabel;
-
-    private readonly WidgetTooltipRenderer _tooltipRenderer = new();
 
     private readonly ItemSlotBehavior _behavior;
 
@@ -116,7 +115,7 @@ public class LootingSlotWidget : WidgetContainer
         }
     }
 
-    public override void RenderTooltip(int x, int y)
+    protected override void HandleTooltip(TooltipEvent e)
     {
         if (Pressed)
         {
@@ -133,8 +132,7 @@ public class LootingSlotWidget : WidgetContainer
         var tooltip = ItemTooltipBuilder.BuildItemTooltip(UiSystems.CharSheet.CurrentCritter, _item);
         if (tooltip != null)
         {
-            _tooltipRenderer.TooltipText = tooltip;
-            _tooltipRenderer.Render(x, y);
+            e.TextContent = tooltip;
         }
     }
 }

@@ -715,10 +715,6 @@ public partial class WidgetBase : Styleable, IDisposable
         _autoSizeHeight = enable;
     }
 
-    public virtual void RenderTooltip(int x, int y)
-    {
-    }
-
     protected virtual void InvokeOnBeforeRender()
     {
         OnBeforeRender?.Invoke();

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Drawing;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Ui.Widgets;
-using OpenTemple.Core.Ui.Widgets.TextField;
 
 namespace OpenTemple.Core.Ui.Events;
 

@@ -3,6 +3,7 @@ using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Stats;
@@ -106,7 +107,7 @@ public class StatsCurrencyLabel : WidgetButtonBase
         }
     }
 
-    public override void RenderTooltip(int x, int y)
+    protected override void HandleTooltip(TooltipEvent e)
     {
         if (ContainsPress)
         {
@@ -114,6 +115,6 @@ public class StatsCurrencyLabel : WidgetButtonBase
         }
 
         TooltipText = GetMoneyTooltip();
-        base.RenderTooltip(x, y);
+        base.HandleTooltip(e);
     }
 }

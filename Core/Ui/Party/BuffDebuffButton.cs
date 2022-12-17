@@ -4,6 +4,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Party;
@@ -12,16 +13,9 @@ public class BuffDebuffButton : WidgetButtonBase
 {
     private readonly WidgetImage _image;
 
-    private readonly WidgetTooltipRenderer _tooltipRenderer = new ();
-
     public BuffDebuffType Type { get; }
 
     public int Index { get; }
-
-    public string Tooltip
-    {
-        set => _tooltipRenderer.TooltipText = value;
-    }
 
     public string HelpTopic { get; set; }
 
@@ -39,7 +33,7 @@ public class BuffDebuffButton : WidgetButtonBase
         Index = index;
         AddClickListener(ShowHelpTopic);
 
-        _tooltipRenderer.TooltipStyle = "buffdebuff-tooltip";
+        TooltipStyle = "buffdebuff-tooltip";
     }
 
     [TempleDllLocation(0x101323d0)]
@@ -52,13 +46,13 @@ public class BuffDebuffButton : WidgetButtonBase
     }
 
     [TempleDllLocation(0x10131ea0)]
-    public override void RenderTooltip(int x, int y)
+    protected override void HandleTooltip(TooltipEvent e)
     {
         if (Disabled)
         {
             return;
         }
 
-        _tooltipRenderer.Render(x, y);
+        base.HandleTooltip(e);
     }
 }

@@ -5,6 +5,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.UtilityBar;
@@ -13,8 +14,6 @@ public class UtilityBarTimeBar : WidgetContainer
 {
 
     private ResourceRef<ITexture> _timeBarTexture;
-
-    private WidgetTooltipRenderer _tooltipRenderer = new();
 
     public UtilityBarTimeBar(Rectangle rect) : base(rect)
     {
@@ -26,8 +25,6 @@ public class UtilityBarTimeBar : WidgetContainer
         arrow.SourceRect = new Rectangle(1, 1, 12, 11);
         arrow.FixedSize = new Size(12, 11);
         AddContent(arrow);
-
-        _tooltipRenderer.AlignLeft = true;
 
         // We draw the background in a custom render, so there's no content to hit test
         HitTesting = HitTestingMode.ContentArea;
@@ -68,12 +65,12 @@ public class UtilityBarTimeBar : WidgetContainer
     }
 
     [TempleDllLocation(0x101104a0)]
-    public override void RenderTooltip(int x, int y)
+    protected override void HandleTooltip(TooltipEvent e)
     {
         var builder = new StringBuilder();
         GameSystems.TimeEvent.FormatGameTime(GameSystems.TimeEvent.GameTime, builder);
 
-        _tooltipRenderer.TooltipText = builder.ToString();
-        _tooltipRenderer.Render(x, y);
+        e.AlignLeft = true;
+        e.TextContent = builder.ToString();
     }
 }

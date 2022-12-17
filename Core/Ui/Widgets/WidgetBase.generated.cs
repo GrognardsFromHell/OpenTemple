@@ -5,7 +5,7 @@ using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-16T10:54:23.3617290Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-17T00:49:04.5856679Z")]
 public partial class WidgetBase
 {
     public delegate void EventHandler<in T>(T e) where T : UiEvent;
@@ -1096,11 +1096,82 @@ public partial class WidgetBase
     }
     #endregion
     
+    #region Tooltip
+
+    private ImmutableList<RegisteredListener<TooltipEvent>> _listenersTooltip = ImmutableList<RegisteredListener<TooltipEvent>>.Empty;
+    
+    public event EventHandler<TooltipEvent>? OnTooltip 
+    {
+        add => AddTooltipListener(value);
+        remove => RemoveTooltipListener(value);
+    }
+    
+    public void AddTooltipListener(EventHandler<TooltipEvent> handler)
+    {
+        _listenersTooltip = _listenersTooltip.Add(new (handler));
+    }
+    
+    public void AddTooltipListener(Action handler)
+    {
+        _listenersTooltip = _listenersTooltip.Add(new (e => handler()));
+    }
+    
+    public void RemoveTooltipListener(EventHandler<TooltipEvent> handler)
+    {
+        _listenersTooltip = _listenersTooltip.Remove(new (handler));
+    }
+    
+    /// <summary>
+    /// Allows a class to handle events of this type without registering an event listener.
+    /// These handlers always run after additional event handlers registered using AddTooltipListener.
+    /// </summary>
+    protected virtual void HandleTooltip(TooltipEvent e)
+    {
+    }
+
+    
+    /// <summary>
+    /// Allows a class to implicitly handle the event, without having to overwrite it.
+    /// These handlers always run after additional event handlers registered using OnTooltip
+    /// </summary>
+    internal void DispatchTooltip(TooltipEvent e)
+    {
+
+        // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
+        for (var target = this; target != null && !e.IsPropagationStopped; target = target.Parent)
+        {
+            // Dispatch to additional registered handlers first
+            var listeners = target._listenersTooltip;
+            foreach (var listener in listeners)
+            {
+                // We need to remove once-listeners now, since they may re-add themselves as a once-listener and we would immediately
+                // remove it again.
+                if (listener.Once)
+                {
+                    target._listenersTooltip = target._listenersTooltip.Remove(listener); 
+                }
+                listener.Listener(e);
+                if (e.IsImmediatePropagationStopped)
+                {
+                    break;
+                }
+            }
+            
+            // Call the implicitly registered event listener if propagation wasn't stopped
+            if (!e.IsImmediatePropagationStopped)
+            {
+                target.HandleTooltip(e);
+            }
+        }
+        
+    }
+    #endregion
+    
     
     private readonly record struct RegisteredListener<T>(EventHandler<T> Listener, bool Once = false) where T : UiEvent;
 }
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-16T10:54:23.3617290Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-17T00:49:04.5856679Z")]
 public enum UiEventType
 {
     MouseDown,
@@ -1117,4 +1188,5 @@ public enum UiEventType
     KeyUp,
     GotMouseCapture,
     LostMouseCapture,
+    Tooltip,
 }

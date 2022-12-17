@@ -7,6 +7,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet.Inventory;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -23,8 +24,6 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
     private readonly WidgetText _quantityLabel;
 
     private readonly List<ResourceRef<ITexture>> _weaponSlotHighlights;
-
-    private readonly WidgetTooltipRenderer _tooltipRenderer = new ();
 
     public GameObject? CurrentItem
     {
@@ -239,7 +238,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         Tig.ShapeRenderer2d.DrawRectangle(ref arg);
     }
 
-    public override void RenderTooltip(int x, int y)
+    protected override void HandleTooltip(TooltipEvent e)
     {
         if (Pressed)
         {
@@ -258,8 +257,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
 
         if (tooltip != null)
         {
-            _tooltipRenderer.TooltipText = tooltip;
-            _tooltipRenderer.Render(x, y);
+            e.TextContent = tooltip;
         }
     }
 

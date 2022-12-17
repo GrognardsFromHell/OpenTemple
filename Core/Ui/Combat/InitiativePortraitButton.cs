@@ -67,7 +67,7 @@ public class InitiativePortraitButton : WidgetButtonBase
     }
 
     [TempleDllLocation(0x10141a50)]
-    public override void RenderTooltip(int x, int y)
+    protected override void HandleTooltip(TooltipEvent e)
     {
         if (Disabled)
         {
@@ -75,7 +75,7 @@ public class InitiativePortraitButton : WidgetButtonBase
         }
 
         TooltipContent = UiSystems.Tooltip.GetObjectDescriptionContent(_combatant, null);
-        base.RenderTooltip(x, y);
+        base.HandleTooltip(e);
     }
 
     [TempleDllLocation(0x10141810)]

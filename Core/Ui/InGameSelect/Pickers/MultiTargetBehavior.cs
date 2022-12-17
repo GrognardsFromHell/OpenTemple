@@ -173,7 +173,7 @@ internal class MultiTargetBehavior : PickerBehavior
     {
         // This dirty hack will render tooltips and THEN the text over them...
         var widget = Globals.UiManager.PickWidget(x, y);
-        widget?.RenderTooltip(x, y);
+        Globals.UiManager.DrawTooltip(widget, x, y);
 
         Tig.RenderingDevice.TextEngine.RenderText(
             new RectangleF(x + 32, y + 32, 100, 13),

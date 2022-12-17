@@ -137,7 +137,7 @@ public class PartyUiPortrait : IDisposable
             {
                 icon.Visible = true;
                 icon.IconPath = GameSystems.D20.BuffDebuff.GetIconPath(entry);
-                icon.Tooltip = GameSystems.D20.BuffDebuff.GetTooltip(entry);
+                icon.TooltipText = GameSystems.D20.BuffDebuff.GetTooltip(entry);
                 icon.HelpTopic = GameSystems.D20.BuffDebuff.GetHelpTopic(entry);
             }
             else

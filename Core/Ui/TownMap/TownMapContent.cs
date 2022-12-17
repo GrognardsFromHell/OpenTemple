@@ -595,19 +595,17 @@ public class TownMapContent : WidgetButtonBase
         }
     }
 
-    private readonly WidgetTooltipRenderer _tooltipRenderer = new();
     private TownMapControlMode _controlMode = TownMapControlMode.Pan;
 
     [TempleDllLocation(0x1012c180)]
-    public override void RenderTooltip(int x, int y)
+    protected override void HandleTooltip(TooltipEvent e)
     {
         if (!UiSystems.TextEntry.IsVisible)
         {
-            var marker = GetHoveredFlagWidgetIdx(x, y);
+            var marker = GetHoveredFlagWidgetIdx(e.Pos.X, e.Pos.Y);
             if (marker != null)
             {
-                _tooltipRenderer.TooltipText = marker.Text;
-                _tooltipRenderer.Render(x, y);
+                e.TextContent = marker.Text;
             }
         }
     }
