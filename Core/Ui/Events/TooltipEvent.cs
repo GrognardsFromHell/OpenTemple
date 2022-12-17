@@ -18,5 +18,5 @@ public class TooltipEvent : MouseEvent
         set => Content = value == null ? null : new SimpleInlineElement(value);
     }
 
-    public string? StyleId { get; set; } = null;
+    public string? StyleId { get; set; }
 }

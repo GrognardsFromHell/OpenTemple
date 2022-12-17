@@ -26,7 +26,8 @@ public class RootModel
         new EventDefinition("KeyDown", "OpenTemple.Core.Ui.Events.KeyboardEvent", true, true, true),
         new EventDefinition("KeyUp", "OpenTemple.Core.Ui.Events.KeyboardEvent", true, true, true),
         new EventDefinition("GotMouseCapture", "OpenTemple.Core.Ui.Events.MouseEvent", false, true, false),
-        new EventDefinition("LostMouseCapture", "OpenTemple.Core.Ui.Events.MouseEvent", false, true, false)
+        new EventDefinition("LostMouseCapture", "OpenTemple.Core.Ui.Events.MouseEvent", false, true, false),
+        new EventDefinition("Tooltip", "OpenTemple.Core.Ui.Events.TooltipEvent", true, true, false),
     };
 
     public ImmutableSortedSet<string> AdditionalNamespaces;
