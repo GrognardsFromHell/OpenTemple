@@ -46,7 +46,7 @@ public class D20ActionDef
     public ActionFrameCallback? actionFrameFunc;
     public ProjectileHitCallback? projectileHitFunc;
     public ActionCostCallback actionCost;
-    public Func<D20Action, CursorType?> getCursor = action => null;
+    public Func<D20Action, ActionCursor?> getCursor = action => null;
     public SeqRenderFuncCallback? seqRenderFunc;
     public D20ADF flags;
 }
@@ -225,7 +225,7 @@ public static class D20ActionDefs
             performFunc = D20ActionVanillaCallbacks.HealPerform,
             actionFrameFunc = D20ActionVanillaCallbacks.HealActionFrame,
             actionCost = D20ActionCallbacks.ActionCostStandardAction,
-            getCursor = action => CursorType.UseSkill,
+            getCursor = action => ActionCursor.UseSkill,
             seqRenderFunc = D20ActionVanillaCallbacks.HealSequenceRender,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_SimulsCompatible
         };
@@ -399,7 +399,7 @@ public static class D20ActionDefs
             performFunc = D20ActionVanillaCallbacks.CoupDeGracePerform,
             actionFrameFunc = D20ActionVanillaCallbacks.CoupDeGraceActionFrame,
             actionCost = D20ActionCallbacks.ActionCostFullRound,
-            getCursor = action => CursorType.Sword,
+            getCursor = action => ActionCursor.Sword,
             seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_QueryForAoO | D20ADF.D20ADF_TriggersCombat |
                     D20ADF.D20ADF_Unk4000 | D20ADF.D20ADF_UseCursorForPicking
@@ -493,7 +493,7 @@ public static class D20ActionDefs
             performFunc = D20ActionCallbacks.TripPerform,
             actionFrameFunc = D20ActionCallbacks.TripActionFrame,
             actionCost = D20ActionCallbacks.StandardAttackActionCost,
-            getCursor = action => CursorType.Sword,
+            getCursor = action => ActionCursor.Sword,
             seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersAoO | D20ADF.D20ADF_TriggersCombat |
                     D20ADF.D20ADF_UseCursorForPicking | D20ADF.D20ADF_SimulsCompatible
@@ -649,7 +649,7 @@ public static class D20ActionDefs
             actionCheckFunc = D20ActionVanillaCallbacks.TalkActionCheck,
             performFunc = D20ActionVanillaCallbacks.TalkPerform,
             actionCost = D20ActionCallbacks.ActionCostFullRound,
-            getCursor = action => CursorType.Talk,
+            getCursor = action => ActionCursor.Talk,
             flags = D20ADF.D20ADF_TargetSingleExcSelf
         };
 
@@ -695,7 +695,7 @@ public static class D20ActionDefs
             actionFrameFunc = D20ActionVanillaCallbacks.RangedAttackActionFrame,
             projectileHitFunc = D20ActionVanillaCallbacks.RangedAttackProjectileHit,
             actionCost = D20ActionCallbacks.StandardAttackActionCost,
-            getCursor = action => CursorType.Arrow,
+            getCursor = action => ActionCursor.Arrow,
             seqRenderFunc = D20ActionVanillaCallbacks.ThrowSequenceRender,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_Unk20 | D20ADF.D20ADF_QueryForAoO |
                     D20ADF.D20ADF_TriggersCombat
@@ -711,7 +711,7 @@ public static class D20ActionDefs
             actionFrameFunc = D20ActionVanillaCallbacks.ThrowGrenadeActionFrame,
             projectileHitFunc = D20ActionVanillaCallbacks.ThrowGrenadeProjectileHit,
             actionCost = D20ActionCallbacks.StandardAttackActionCost,
-            getCursor = action => CursorType.Arrow,
+            getCursor = action => ActionCursor.Arrow,
             seqRenderFunc = D20ActionVanillaCallbacks.ThrowSequenceRender,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_Unk20 | D20ADF.D20ADF_QueryForAoO |
                     D20ADF.D20ADF_TriggersCombat
@@ -725,7 +725,7 @@ public static class D20ActionDefs
             performFunc = D20ActionVanillaCallbacks.FeintPerform,
             actionFrameFunc = D20ActionVanillaCallbacks.FeintActionFrame,
             actionCost = D20ActionVanillaCallbacks.FeintActionCost,
-            getCursor = action => CursorType.Sword,
+            getCursor = action => ActionCursor.Sword,
             seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersCombat |
                     D20ADF.D20ADF_UseCursorForPicking
@@ -897,7 +897,7 @@ public static class D20ActionDefs
             performFunc = D20ActionCallbacks.PerformDisarm,
             actionFrameFunc = D20ActionCallbacks.ActionFrameDisarm,
             actionCost = D20ActionCallbacks.StandardAttackActionCost,
-            getCursor = action => CursorType.Sword,
+            getCursor = action => ActionCursor.Sword,
             seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersAoO | D20ADF.D20ADF_QueryForAoO |
                     D20ADF.D20ADF_TriggersCombat | D20ADF.D20ADF_UseCursorForPicking |
@@ -929,7 +929,7 @@ public static class D20ActionDefs
             performFunc = D20ActionCallbacks.PerformDisarm,
             actionFrameFunc = D20ActionCallbacks.ActionFrameSunder,
             actionCost = D20ActionCallbacks.StandardAttackActionCost,
-            getCursor = action => CursorType.Sword,
+            getCursor = action => ActionCursor.Sword,
             seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersAoO |
                     D20ADF.D20ADF_TriggersCombat | D20ADF.D20ADF_UseCursorForPicking |
@@ -946,7 +946,7 @@ public static class D20ActionDefs
             performFunc = D20ActionCallbacks.PerformAidAnotherWakeUp,
             actionFrameFunc = D20ActionCallbacks.ActionFrameAidAnotherWakeUp,
             actionCost = D20ActionCallbacks.StandardAttackActionCost,
-            getCursor = action => CursorType.Sword,
+            getCursor = action => ActionCursor.Sword,
             seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_UseCursorForPicking |
                     D20ADF.D20ADF_SimulsCompatible
@@ -970,7 +970,7 @@ public static class D20ActionDefs
             performFunc = D20ActionCallbacks.PerformQuiveringPalm,
             actionFrameFunc = D20ActionCallbacks.ActionFrameQuiveringPalm,
             actionCost = D20ActionCallbacks.StandardAttackActionCost,
-            getCursor = action => CursorType.Sword,
+            getCursor = action => ActionCursor.Sword,
             seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
             flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersCombat |
                     D20ADF.D20ADF_UseCursorForPicking

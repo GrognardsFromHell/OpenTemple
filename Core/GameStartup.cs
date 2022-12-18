@@ -49,7 +49,7 @@ public class GameStartup : IDisposable
         Tig.Startup(config, new TigSettings {DataFolder = DataFolder});
         Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
-        Globals.UiManager = new UiManager(Tig.MainWindow);
+        Globals.UiManager = new UiManager(Tig.MainWindow, Tig.FS);
 
         // Hides the cursor during loading
 #if !DEBUG
@@ -64,8 +64,6 @@ public class GameStartup : IDisposable
         Tig.MainWindow.Closed += Globals.GameLoop.Stop;
 
         GameSystems.Init();
-
-        Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga");
 
         Globals.UiAssets = new UiAssets();
         Globals.UiStyles = new UiStyles();
@@ -155,7 +153,6 @@ public class GameStartup : IDisposable
             MovieSystem.PlayMovie("movies/introcinematic.bik", null);
         }
 
-        Tig.Mouse.ShowCursor();
         UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
     }
 }

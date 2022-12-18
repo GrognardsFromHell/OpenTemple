@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Cursors;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
@@ -204,7 +207,7 @@ public class GameView : WidgetContainer, IGameViewport
         var mousePos = new PointF(e.X, e.Y);
         _scrollingController.MouseMoved(GetRelativeMousePos(mousePos));
     }
-    
+
     public override bool HandleMessage(Message msg)
     {
         UiSystems.InGame.HandleMessage(this, msg);
@@ -241,8 +244,8 @@ public class GameView : WidgetContainer, IGameViewport
     private void UpdateCamera()
     {
         var size = new Size(
-            (int)(Width / _zoom),
-            (int)(Height / _zoom)
+            (int) (Width / _zoom),
+            (int) (Height / _zoom)
         );
 
         if (size != Camera.ViewportSize)
@@ -282,5 +285,58 @@ public class GameView : WidgetContainer, IGameViewport
         mousePos.X -= contentArea.X;
         mousePos.Y -= contentArea.Y;
         return mousePos;
+    }
+
+    private static readonly Dictionary<ActionCursor, string> CursorPaths = new()
+    {
+        {ActionCursor.AttackOfOpportunity, CursorIds.AttackOfOpportunity},
+        {ActionCursor.AttackOfOpportunityGrey, CursorIds.AttackOfOpportunityGrey},
+        {ActionCursor.Sword, CursorIds.Sword},
+        {ActionCursor.Arrow, CursorIds.Arrow},
+        {ActionCursor.FeetGreen, CursorIds.MoveGreen},
+        {ActionCursor.FeetYellow, CursorIds.MoveYellow},
+        {ActionCursor.SlidePortraits, CursorIds.SlideHorizontal},
+        {ActionCursor.Locked, CursorIds.Locked},
+        {ActionCursor.HaveKey, CursorIds.UseKey},
+        {ActionCursor.UseSkill, CursorIds.UseSkill},
+        {ActionCursor.UsePotion, CursorIds.UsePotion},
+        {ActionCursor.UseSpell, CursorIds.UseSpell},
+        {ActionCursor.UseTeleportIcon, CursorIds.OpenHand},
+        {ActionCursor.HotKeySelection, CursorIds.AssignHotkey},
+        {ActionCursor.Talk, CursorIds.Talk},
+        {ActionCursor.IdentifyCursor, CursorIds.Identify},
+        {ActionCursor.IdentifyCursor2, CursorIds.Identify},
+        {ActionCursor.ArrowInvalid, CursorIds.ArrowInvalid},
+        {ActionCursor.SwordInvalid, CursorIds.SwordInvalid},
+        {ActionCursor.ArrowInvalid2, CursorIds.ArrowInvalid},
+        {ActionCursor.FeetRed, CursorIds.MoveRed},
+        {ActionCursor.FeetRed2, CursorIds.MoveRed},
+        {ActionCursor.InvalidSelection, CursorIds.InvalidSelection},
+        {ActionCursor.Locked2, CursorIds.Locked},
+        {ActionCursor.HaveKey2, CursorIds.UseKey},
+        {ActionCursor.UseSkillInvalid, CursorIds.UseSkillInvalid},
+        {ActionCursor.UsePotionInvalid, CursorIds.UsePotionInvalid},
+        {ActionCursor.UseSpellInvalid, CursorIds.UseSpellInvalid},
+        {ActionCursor.PlaceFlag, CursorIds.PlaceFlag},
+        {ActionCursor.HotKeySelectionInvalid, CursorIds.AssignHotkeyInvalid},
+        {ActionCursor.InvalidSelection2, CursorIds.InvalidSelection},
+        {ActionCursor.InvalidSelection3, CursorIds.InvalidSelection},
+        {ActionCursor.InvalidSelection4, CursorIds.InvalidSelection},
+    };
+
+    protected override void HandleGetCursor(GetCursorEvent e)
+    {
+        var actionCursor = GameSystems.D20.Actions.CurrentCursor;
+        if (actionCursor != ActionCursor.Undefined)
+        {
+            if (CursorPaths.TryGetValue(actionCursor, out var cursorId))
+            {
+                e.Cursor = cursorId;
+            }
+            else
+            {
+                Logger.Error("Unknown D20 action cursor: {0}", actionCursor);
+            }
+        }
     }
 }

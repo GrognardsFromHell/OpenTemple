@@ -9,6 +9,7 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Ui.WorldMap;
 
@@ -54,8 +55,6 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     // Stores which predefined markers have been revealed for the user
     private readonly HashSet<PredefinedMarkerId> _revealedMarkers = new();
 
-    private string? _currentCursor;
-
     private readonly WidgetButton _placeMarkerButton;
 
     private readonly WidgetButton _removeMarkerButton;
@@ -82,7 +81,6 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         var contentContainer = doc.GetContainer("mapContent");
         _mapContent = new TownMapContent(new Rectangle(Point.Empty, contentContainer.Size));
         contentContainer.Add(_mapContent);
-        _mapContent.OnCursorChanged += ChangeCursor;
         _mapContent.OnControlModeChange += UpdateModeButtons;
         _mapContent.OnBeforeRender += UpdateCurrentMapData;
         _mapContent.OnMarkerCreated += MarkerCreated;
@@ -203,7 +201,6 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             UiSystems.TextEntry.Cancel();
         }
 
-        ChangeCursor(null);
         GameSystems.TimeEvent.ResumeGameTime();
     }
 
@@ -516,26 +513,6 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         public float XOffset { get; set; }
         public float YOffset { get; set; }
         public float Zoom { get; set; }
-    }
-
-    [TempleDllLocation(0x1012bae0)]
-    [TempleDllLocation(0x1012bb20)]
-    private void ChangeCursor(string? path)
-    {
-        if (_currentCursor != path)
-        {
-            if (_currentCursor != null)
-            {
-                Tig.Mouse.ResetCursor();
-            }
-
-            if (path != null)
-            {
-                Tig.Mouse.SetCursor(path);
-            }
-
-            _currentCursor = path;
-        }
     }
 
     [TempleDllLocation(0x10128360)]

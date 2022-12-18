@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using OpenTemple.Core.IO.MesFiles;
 using OpenTemple.Core.Logging;
 
@@ -15,7 +17,20 @@ public static class FileSystemExtensions
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private static readonly char[] DirSeparators = { '/', '\\' };
+    private static readonly char[] DirSeparators = {'/', '\\'};
+
+    public static T ReadJsonFile<T>(this IFileSystem vfs, string path, JsonTypeInfo<T> jsonTypeInfo)
+    {
+        using var owner = vfs.ReadFile(path);
+
+        var result = JsonSerializer.Deserialize(owner.Memory.Span, jsonTypeInfo);
+        if (result == null)
+        {
+            throw new InvalidDataException("The contents of JSON file " + path + " must not be a null literal");
+        }
+
+        return result;
+    }
 
     public static Dictionary<int, string> ReadMesFile(this IFileSystem vfs, string path, bool withPatches = true)
     {

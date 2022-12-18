@@ -127,11 +127,11 @@ public class HelpManagerUi : IResetAwareSystem, ISaveGameAwareUi
     }
 
     [TempleDllLocation(0x101249d0)]
-    public CursorType? GetCursor()
+    public ActionCursor? GetCursor()
     {
         if (IsSelectingHelpTarget)
         {
-            return CursorType.IdentifyCursor2;
+            return ActionCursor.IdentifyCursor2;
         }
         else
         {

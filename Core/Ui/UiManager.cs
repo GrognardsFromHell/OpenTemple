@@ -1,8 +1,11 @@
 using System;
 using System.Drawing;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Cursors;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using static SDL2.SDL;
@@ -11,6 +14,8 @@ namespace OpenTemple.Core.Ui;
 
 public class UiManager : IUiRoot
 {
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
     private static readonly TimeSpan TooltipDelay = TimeSpan.FromMilliseconds(250);
 
     public RootWidget Root { get; }
@@ -84,7 +89,9 @@ public class UiManager : IUiRoot
 
     private readonly WidgetTooltipRenderer _tooltipRenderer = new();
 
-    public UiManager(IMainWindow mainWindow)
+    private readonly CursorRegistry _cursorRegistry;
+
+    public UiManager(IMainWindow mainWindow, IFileSystem fs)
     {
         _mainWindow = mainWindow;
         _mainWindow.UiRoot = this;
@@ -96,6 +103,8 @@ public class UiManager : IUiRoot
         Root.AttachToTree(this);
         Root.Size = CanvasSize;
         _keyboardFocusManager = new KeyboardFocusManager(Root);
+
+        _cursorRegistry = new CursorRegistry(fs);
     }
 
     private void ResizeCanvas()
@@ -159,12 +168,50 @@ public class UiManager : IUiRoot
     [TempleDllLocation(0x101F8D10)]
     public void Render()
     {
+        UpdateCursor();
+
         Root.Render();
 
         Debug.AfterRenderWidgets();
 
         Tig.Mouse.DrawTooltip(_mousePos);
         Tig.Mouse.DrawItemUnderCursor(_mousePos);
+    }
+
+    private void UpdateCursor()
+    {
+        var visible = true;
+        var cursor = Cursors.CursorIds.Default;
+
+        var target = MouseCaptureWidget ?? CurrentMouseOverWidget;
+        
+        if (target != null)
+        {
+            // Dispatch event to get the default cursor
+            var e = new GetCursorEvent
+            {
+                InitialTarget = target,
+                // TODO
+            };
+
+            target.DispatchGetCursor(e);
+
+            visible = e.Visible;
+            cursor = e.Cursor ?? cursor;
+        }
+
+        _mainWindow.IsCursorVisible = visible;
+        if (visible)
+        {
+            if (_cursorRegistry.TryGetValue(cursor, out var cursorDefinition))
+            {
+                _mainWindow.SetCursor(cursorDefinition.HotspotX, cursorDefinition.HotspotY, cursorDefinition.TexturePath);
+            }
+            else
+            {
+                Logger.Error("Cursor {0} could not be found", cursor);
+            }
+        }
     }
 
     public WidgetBase? PickWidget(float x, float y)
@@ -747,8 +794,8 @@ public class UiManager : IUiRoot
         {
             return;
         }
-        
-        var e = new TooltipEvent
+
+        var e = new TooltipEvent // TODO
         {
             Type = UiEventType.Tooltip,
             InitialTarget = widget

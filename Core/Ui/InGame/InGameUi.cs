@@ -923,7 +923,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     }
 
     [TempleDllLocation(0x10112fc0)]
-    public CursorType? GetCursor()
+    public ActionCursor? GetCursor()
     {
         var cursor = UiSystems.Combat.Initiative.GetCursor();
         if (cursor.HasValue)

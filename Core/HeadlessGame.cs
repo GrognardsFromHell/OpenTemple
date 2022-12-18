@@ -53,7 +53,7 @@ public sealed class HeadlessGame : IDisposable
 
         if (options.WithUserInterface)
         {
-            Globals.UiManager = new UiManager(Tig.MainWindow);
+            Globals.UiManager = new UiManager(Tig.MainWindow, Tig.FS);
             Globals.UiAssets = new UiAssets();
             Globals.UiStyles = new UiStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();

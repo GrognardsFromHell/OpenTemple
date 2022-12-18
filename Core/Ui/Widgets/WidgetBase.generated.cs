@@ -5,7 +5,7 @@ using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-17T00:49:04.5856679Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-17T14:17:52.8515230Z")]
 public partial class WidgetBase
 {
     public delegate void EventHandler<in T>(T e) where T : UiEvent;
@@ -1167,11 +1167,82 @@ public partial class WidgetBase
     }
     #endregion
     
+    #region GetCursor
+
+    private ImmutableList<RegisteredListener<GetCursorEvent>> _listenersGetCursor = ImmutableList<RegisteredListener<GetCursorEvent>>.Empty;
+    
+    public event EventHandler<GetCursorEvent>? OnGetCursor 
+    {
+        add => AddGetCursorListener(value);
+        remove => RemoveGetCursorListener(value);
+    }
+    
+    public void AddGetCursorListener(EventHandler<GetCursorEvent> handler)
+    {
+        _listenersGetCursor = _listenersGetCursor.Add(new (handler));
+    }
+    
+    public void AddGetCursorListener(Action handler)
+    {
+        _listenersGetCursor = _listenersGetCursor.Add(new (e => handler()));
+    }
+    
+    public void RemoveGetCursorListener(EventHandler<GetCursorEvent> handler)
+    {
+        _listenersGetCursor = _listenersGetCursor.Remove(new (handler));
+    }
+    
+    /// <summary>
+    /// Allows a class to handle events of this type without registering an event listener.
+    /// These handlers always run after additional event handlers registered using AddGetCursorListener.
+    /// </summary>
+    protected virtual void HandleGetCursor(GetCursorEvent e)
+    {
+    }
+
+    
+    /// <summary>
+    /// Allows a class to implicitly handle the event, without having to overwrite it.
+    /// These handlers always run after additional event handlers registered using OnGetCursor
+    /// </summary>
+    internal void DispatchGetCursor(GetCursorEvent e)
+    {
+
+        // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
+        for (var target = this; target != null && !e.IsPropagationStopped; target = target.Parent)
+        {
+            // Dispatch to additional registered handlers first
+            var listeners = target._listenersGetCursor;
+            foreach (var listener in listeners)
+            {
+                // We need to remove once-listeners now, since they may re-add themselves as a once-listener and we would immediately
+                // remove it again.
+                if (listener.Once)
+                {
+                    target._listenersGetCursor = target._listenersGetCursor.Remove(listener); 
+                }
+                listener.Listener(e);
+                if (e.IsImmediatePropagationStopped)
+                {
+                    break;
+                }
+            }
+            
+            // Call the implicitly registered event listener if propagation wasn't stopped
+            if (!e.IsImmediatePropagationStopped)
+            {
+                target.HandleGetCursor(e);
+            }
+        }
+        
+    }
+    #endregion
+    
     
     private readonly record struct RegisteredListener<T>(EventHandler<T> Listener, bool Once = false) where T : UiEvent;
 }
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-17T00:49:04.5856679Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-17T14:17:52.8515230Z")]
 public enum UiEventType
 {
     MouseDown,
@@ -1189,4 +1260,5 @@ public enum UiEventType
     GotMouseCapture,
     LostMouseCapture,
     Tooltip,
+    GetCursor,
 }

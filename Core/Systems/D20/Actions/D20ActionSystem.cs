@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text.Json;
-using SharpDX.Multimedia;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -30,8 +27,9 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.D20.Actions;
 
-public enum CursorType
+public enum ActionCursor
 {
+    Undefined = 0,
     Sword = 1,
     Arrow = 2,
     FeetGreen = 3,
@@ -74,43 +72,6 @@ public class D20ActionSystem : IDisposable
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     private AooIndicatorRenderer _aooIndicatorRenderer = new();
-
-    private static readonly Dictionary<CursorType, string> CursorPaths = new()
-    {
-        {CursorType.AttackOfOpportunity, "art/interface/combat_ui/attack-of-opportunity.tga"},
-        {CursorType.AttackOfOpportunityGrey, "art/interface/combat_ui/attack-of-opportunity-grey.tga"},
-        {CursorType.Sword, "art/interface/cursors/sword.tga"},
-        {CursorType.Arrow, "art/interface/cursors/arrow.tga"},
-        {CursorType.FeetGreen, "art/interface/cursors/feet_green.tga"},
-        {CursorType.FeetYellow, "art/interface/cursors/feet_yellow.tga"},
-        {CursorType.SlidePortraits, "art/interface/cursors/SlidePortraits.tga"},
-        {CursorType.Locked, "art/interface/cursors/Locked.tga"},
-        {CursorType.HaveKey, "art/interface/cursors/havekey.tga"},
-        {CursorType.UseSkill, "art/interface/cursors/useskill.tga"},
-        {CursorType.UsePotion, "art/interface/cursors/usepotion.tga"},
-        {CursorType.UseSpell, "art/interface/cursors/usespell.tga"},
-        {CursorType.UseTeleportIcon, "art/interface/cursors/useteleporticon.tga"},
-        {CursorType.HotKeySelection, "art/interface/cursors/hotkeyselection.tga"},
-        {CursorType.Talk, "art/interface/cursors/talk.tga"},
-        {CursorType.IdentifyCursor, "art/interface/cursors/IdentifyCursor.tga"},
-        {CursorType.IdentifyCursor2, "art/interface/cursors/IdentifyCursor.tga"},
-        {CursorType.ArrowInvalid, "art/interface/cursors/arrow_invalid.tga"},
-        {CursorType.SwordInvalid, "art/interface/cursors/sword_invalid.tga"},
-        {CursorType.ArrowInvalid2, "art/interface/cursors/arrow_invalid.tga"},
-        {CursorType.FeetRed, "art/interface/cursors/feet_red.tga"},
-        {CursorType.FeetRed2, "art/interface/cursors/feet_red.tga"},
-        {CursorType.InvalidSelection, "art/interface/cursors/InvalidSelection.tga"},
-        {CursorType.Locked2, "art/interface/cursors/locked.tga"},
-        {CursorType.HaveKey2, "art/interface/cursors/havekey.tga"},
-        {CursorType.UseSkillInvalid, "art/interface/cursors/useskill_invalid.tga"},
-        {CursorType.UsePotionInvalid, "art/interface/cursors/usepotion_invalid.tga"},
-        {CursorType.UseSpellInvalid, "art/interface/cursors/usespell_invalid.tga"},
-        {CursorType.PlaceFlag, "art/interface/cursors/placeflagcursor.tga"},
-        {CursorType.HotKeySelectionInvalid, "art/interface/cursors/hotkeyselection_invalid.tga"},
-        {CursorType.InvalidSelection2, "art/interface/cursors/invalidSelection.tga"},
-        {CursorType.InvalidSelection3, "art/interface/cursors/invalidSelection.tga"},
-        {CursorType.InvalidSelection4, "art/interface/cursors/invalidSelection.tga"},
-    };
 
     /// <summary>
     /// Callback to listen to actions as they're being performed. For testing purposes to listen to
@@ -4101,7 +4062,9 @@ public class D20ActionSystem : IDisposable
 
     #region Cursor management
 
-    [TempleDllLocation(0x10B3D5A8)] private CursorType _currentCursor;
+    public ActionCursor CurrentCursor => _currentCursor;
+
+    [TempleDllLocation(0x10B3D5A8)] private ActionCursor _currentCursor;
 
     [TempleDllLocation(0x11869244)] [TempleDllLocation(0x11869294)] [TempleDllLocation(0x1186926c)]
     private readonly List<string> _currentSequenceTooltips = new();
@@ -4484,7 +4447,7 @@ public class D20ActionSystem : IDisposable
     [TemplePlusLocation("ui_intgame_turnbased.cpp:952")]
     public void CursorRenderUpdate()
     {
-        CursorType cursorState = 0;
+        ActionCursor cursorState = 0;
 
         var intGameCursor = CursorHandleIntgameFocusObj();
         if (intGameCursor.HasValue)
@@ -4515,9 +4478,9 @@ public class D20ActionSystem : IDisposable
 
             // TODO: Using the hourglass depletion here sucks ass and we should instead check the actual
             // distance traveled via the sequence, preferrably in the GetCursor function
-            if (cursorState == CursorType.FeetGreen && GameSystems.PathXRender.HourglassDepletionState == 1)
+            if (cursorState == ActionCursor.FeetGreen && GameSystems.PathXRender.HourglassDepletionState == 1)
             {
-                cursorState = CursorType.FeetYellow;
+                cursorState = ActionCursor.FeetYellow;
             }
         }
 
@@ -4563,11 +4526,11 @@ public class D20ActionSystem : IDisposable
                 _uiIntgameActionErrorCode = seqResultCheck;
                 _movementFeet = 0;
                 _currentSequenceTooltips.Clear();
-                if (cursorState < CursorType.ArrowInvalid)
+                if (cursorState < ActionCursor.ArrowInvalid)
                 {
                     cursorState += 16; // Makes it an icon for an invalid action
-                    if (cursorState >= CursorType.AttackOfOpportunity)
-                        cursorState = CursorType.InvalidSelection4;
+                    if (cursorState >= ActionCursor.AttackOfOpportunity)
+                        cursorState = ActionCursor.InvalidSelection4;
                 }
             }
         }
@@ -4582,16 +4545,6 @@ public class D20ActionSystem : IDisposable
         if (cursorState != _currentCursor)
         {
             Logger.Debug("Changing cursor from {0} to {1}", cursorState, _currentCursor);
-            if (_currentCursor != 0)
-            {
-                Tig.Mouse.ResetCursor();
-            }
-
-            if (CursorPaths.TryGetValue(cursorState, out var cursorPath))
-            {
-                Tig.Mouse.SetCursor(cursorPath);
-            }
-
             _currentCursor = cursorState;
         }
 
@@ -4626,7 +4579,7 @@ public class D20ActionSystem : IDisposable
 
     [TempleDllLocation(0x10b3d5b0)]
     [TempleDllLocation(0x100936d0)]
-    private CursorType? CursorHandleIntgameFocusObj()
+    private ActionCursor? CursorHandleIntgameFocusObj()
     {
         var focus = GameUiBridge.GetUiFocus();
         var partyLeader = GameSystems.Party.GetConsciousLeader();
@@ -4643,26 +4596,26 @@ public class D20ActionSystem : IDisposable
                 {
                     var locked = GameSystems.AI.DryRunAttemptOpenContainer(partyLeader, focus) ==
                                  LockStatus.PLS_OPEN;
-                    return locked ? CursorType.HaveKey : CursorType.Locked;
+                    return locked ? ActionCursor.HaveKey : ActionCursor.Locked;
                 }
 
-                return CursorType.UseTeleportIcon;
+                return ActionCursor.UseTeleportIcon;
             }
             case ObjectType.portal:
                 return null;
             case ObjectType.container when focus.NeedsToBeUnlocked():
             {
                 var locked = GameSystems.AI.DryRunAttemptOpenContainer(partyLeader, focus) == LockStatus.PLS_OPEN;
-                return locked ? CursorType.HaveKey : CursorType.Locked;
+                return locked ? ActionCursor.HaveKey : ActionCursor.Locked;
             }
             case ObjectType.container:
-                return CursorType.UseTeleportIcon;
+                return ActionCursor.UseTeleportIcon;
             case ObjectType.scenery:
             {
                 var teleportTo = focus.GetInt32(obj_f.scenery_teleport_to);
                 if (teleportTo != 0 || focus.ProtoId == WellKnownProtos.GuestBook)
                 {
-                    return CursorType.UseTeleportIcon;
+                    return ActionCursor.UseTeleportIcon;
                 }
 
                 return null;
@@ -4673,7 +4626,7 @@ public class D20ActionSystem : IDisposable
                 {
                     if (!GameSystems.Party.IsInParty(focus))
                     {
-                        return CursorType.Talk;
+                        return ActionCursor.Talk;
                     }
                 }
 

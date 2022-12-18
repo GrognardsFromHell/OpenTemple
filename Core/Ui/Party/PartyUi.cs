@@ -403,11 +403,11 @@ public class PartyUi : IResetAwareSystem, IDisposable
     }
 
     [TempleDllLocation(0x10132500)]
-    public CursorType? GetCursor()
+    public ActionCursor? GetCursor()
     {
         if (_canSwapPartyMembers)
         {
-            return CursorType.SlidePortraits;
+            return ActionCursor.SlidePortraits;
         }
 
         return null;

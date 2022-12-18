@@ -439,11 +439,11 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     }
 
     [TempleDllLocation(0x10139e60)]
-    public CursorType? GetCursor()
+    public ActionCursor? GetCursor()
     {
         if (_assigningHotkey)
         {
-            return CursorType.HotKeySelection;
+            return ActionCursor.HotKeySelection;
         }
         else
         {

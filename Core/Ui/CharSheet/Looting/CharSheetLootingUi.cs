@@ -435,11 +435,11 @@ public class CharSheetLootingUi : IDisposable
     }
 
     [TempleDllLocation(0x1013ddf0)]
-    public CursorType? GetCursor()
+    public ActionCursor? GetCursor()
     {
         if (dword_10BE6EB8 != 0)
         {
-            return CursorType.IdentifyCursor;
+            return ActionCursor.IdentifyCursor;
         }
 
         else

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GFX;
 using static SDL2.SDL;
@@ -9,74 +8,12 @@ public delegate void CursorDrawCallback(int x, int y, object userArg);
 
 public class TigMouse
 {
-    private readonly Stack<string> _cursorStash = new();
-
     [TempleDllLocation(0x10D2558C)]
     private ResourceRef<ITexture> _iconUnderCursor;
 
     private Point _iconUnderCursorCenter;
 
     private Size _iconUnderCursorSize;
-
-    public void ShowCursor()
-    {
-        Tig.MainWindow.IsCursorVisible = true;
-    }
-
-    public void HideCursor()
-    {
-        Tig.MainWindow.IsCursorVisible = false;
-    }
-
-    public void SetCursor(string cursorPath)
-    {
-        _cursorStash.Push(cursorPath);
-        SetCursorInternal(cursorPath);
-    }
-
-    private void SetCursorInternal(string cursorPath)
-    {
-        int hotspotX = 0;
-        int hotspotY = 0;
-
-        // TODO: Introduce special "cursor" file type that includes hotspot info to remove these hardcoded values
-        // Special handling for cursors that don't have their hotspot on 0,0
-        if (cursorPath.Contains("Map_GrabHand_Closed.tga")
-            || cursorPath.Contains("Map_GrabHand_Open.tga")
-            || cursorPath.Contains("SlidePortraits.tga"))
-        {
-            var data = Tig.FS.ReadBinaryFile(cursorPath);
-            var info = IO.Images.ImageIO.DetectImageFormat(data);
-
-            hotspotX = info.width / 2;
-            hotspotY = info.height / 2;
-        }
-        else if (cursorPath.Contains("ZoomCursor.tga"))
-        {
-            // This was previously set from the townmap UI via function @ 0x101dd4a0
-            hotspotX = 10;
-            hotspotY = 11;
-        }
-
-        Tig.MainWindow.SetCursor(hotspotX, hotspotY, cursorPath);
-    }
-
-    [TempleDllLocation(0x101DD770)]
-    [TemplePlusLocation("tig_mouse.cpp:180")]
-    public void ResetCursor()
-    {
-        // The back is the one on screen
-        if (_cursorStash.Count > 0)
-        {
-            _cursorStash.Pop();
-        }
-
-        // The back is the one on screen
-        if (_cursorStash.TryPeek(out var texturePath))
-        {
-            SetCursorInternal(texturePath);
-        }
-    }
 
     [TempleDllLocation(0x101dd500)]
     public void SetDraggedIcon(string texturePath, Point center, Size size = default)

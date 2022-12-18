@@ -92,17 +92,17 @@ public static class D20ActionVanillaCallbacks
         return ActionErrorCode.AEC_OK;
     }
 
-    public static CursorType? AttackSequenceGetCursor(D20Action action)
+    public static ActionCursor? AttackSequenceGetCursor(D20Action action)
     {
         // TODO: Why not use CAF RANGED?
         var weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
         if (weapon != null && GameSystems.Item.IsRangedWeapon(weapon))
         {
-            return CursorType.Arrow;
+            return ActionCursor.Arrow;
         }
         else
         {
-            return CursorType.Sword;
+            return ActionCursor.Sword;
         }
     }
 
@@ -576,13 +576,13 @@ public static class D20ActionVanillaCallbacks
         return ActionErrorCode.AEC_OK;
     }
 
-    public static CursorType? MovementGetCursor(D20Action action)
+    public static ActionCursor? MovementGetCursor(D20Action action)
     {
         if (action.d20Caf.HasFlag(D20CAF.TRUNCATED))
         {
-            return CursorType.FeetRed;
+            return ActionCursor.FeetRed;
         }
-        return CursorType.FeetGreen;
+        return ActionCursor.FeetGreen;
     }
 
     [TempleDllLocation(0x1008d090)]
@@ -1043,10 +1043,10 @@ public static class D20ActionVanillaCallbacks
         return spellPkt.Targets.Length > 0;
     }
 
-    public static CursorType? CastSpellGetCursor(D20Action action)
+    public static ActionCursor? CastSpellGetCursor(D20Action action)
     {
         var targetInvalid = GameUiBridge.IsPickerTargetInvalid();
-        return targetInvalid ? CursorType.UseSpellInvalid : CursorType.UseSpell;
+        return targetInvalid ? ActionCursor.UseSpellInvalid : ActionCursor.UseSpell;
     }
 
     [TempleDllLocation(0x10092020)]
@@ -1465,7 +1465,7 @@ public static class D20ActionVanillaCallbacks
     }
 
     [TempleDllLocation(0x10091fb0)]
-    public static CursorType? UseItemGetCursor(D20Action action)
+    public static ActionCursor? UseItemGetCursor(D20Action action)
     {
         if (action.d20SpellData.HasItem)
         {
@@ -1474,7 +1474,7 @@ public static class D20ActionVanillaCallbacks
             if (item != null)
             {
                 var isPotion = item.type == ObjectType.food;
-                return isPotion ? CursorType.UsePotion : CursorType.UseSpell;
+                return isPotion ? ActionCursor.UsePotion : ActionCursor.UseSpell;
             }
         }
 
@@ -1806,7 +1806,7 @@ public static class D20ActionVanillaCallbacks
     }
 
     [TempleDllLocation(0x10092040)]
-    public static CursorType? OpenContainerGetCursor(D20Action action)
+    public static ActionCursor? OpenContainerGetCursor(D20Action action)
     {
         if (action.d20ATarget != null)
         {
@@ -1815,16 +1815,16 @@ public static class D20ActionVanillaCallbacks
                 var cannotOpen =
                     GameSystems.AI.DryRunAttemptOpenContainer(action.d20APerformer, action.d20ATarget) !=
                     LockStatus.PLS_OPEN;
-                return cannotOpen ? CursorType.Locked : CursorType.HaveKey;
+                return cannotOpen ? ActionCursor.Locked : ActionCursor.HaveKey;
             }
             else
             {
-                return CursorType.UseTeleportIcon;
+                return ActionCursor.UseTeleportIcon;
             }
         }
         else
         {
-            return CursorType.ArrowInvalid;
+            return ActionCursor.ArrowInvalid;
         }
     }
 

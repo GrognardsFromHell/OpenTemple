@@ -156,11 +156,11 @@ public class InitiativeUi
     }
 
     [TempleDllLocation(0x10141760)]
-    public CursorType? GetCursor()
+    public ActionCursor? GetCursor()
     {
         if (draggingPortrait)
         {
-            return actorCanChangeInitiative ? CursorType.SlidePortraits : CursorType.InvalidSelection;
+            return actorCanChangeInitiative ? ActionCursor.SlidePortraits : ActionCursor.InvalidSelection;
         }
         else
         {

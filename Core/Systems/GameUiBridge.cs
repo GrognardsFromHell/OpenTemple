@@ -137,7 +137,7 @@ public static class GameUiBridge
 
     [TempleDllLocation(0x1009ac00)]
     [TempleDllLocation(0x10112fc0)]
-    public static CursorType? GetCursor()
+    public static ActionCursor? GetCursor()
     {
         return UiSystems.InGame.GetCursor();
     }

@@ -92,7 +92,7 @@ public class MainWindow : IMainWindow
             }
         }
     }
-    
+
     public bool IsInForeground { get; set; } = true;
 
     public event Action<bool>? IsInForegroundChanged;
@@ -104,9 +104,9 @@ public class MainWindow : IMainWindow
     public SizeF UiCanvasSize { get; private set; }
 
     private Size _uiCanvasTargetSize = new(1024, 768);
-    
+
     private IUiRoot? _uiRoot;
-    
+
     public Size UiCanvasTargetSize
     {
         get => _uiCanvasTargetSize;

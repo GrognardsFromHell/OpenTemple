@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using NUnit.Framework;
+using OpenTemple.Core.IO.TroikaArchives;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Widgets;
@@ -19,7 +20,7 @@ public abstract class BaseWidgetTest
     [SetUp]
     public void SetUpWidgets()
     {
-        UiManager = new UiManager(new HeadlessMainWindow());
+        UiManager = new UiManager(new HeadlessMainWindow(), new TroikaVfs());
         WidgetsById = new Dictionary<string, WidgetContainer>();
     }
 
