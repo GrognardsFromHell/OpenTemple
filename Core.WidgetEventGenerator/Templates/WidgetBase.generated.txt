@@ -59,7 +59,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using On{{event.name}}
     /// </summary>
-    internal void Dispatch{{ event.name }}({{ event.event_class_short }} e)
+    internal void Dispatch{{ event.name }}({{ event.event_class_short }} e{{~ if event.bubbles ~}}, bool localOnly = false{{~ end ~}})
     {
 {{~ ## The dispatch logic for dispatching an event only to listeners in this instance without capture/bubble phase ## ~}}
 {{~ func dispatch_local(event, target) ~}}
@@ -92,6 +92,11 @@ if (!e.IsImmediatePropagationStopped)
         for (var target = this; target != null && !e.IsPropagationStopped; target = target.Parent)
         {
             {{ dispatch_local event "target" ~}}
+            
+            if (localOnly)
+            {
+                break;
+            }
         }
         {{~ else ~}}
         {{ dispatch_local event "this" ~}}

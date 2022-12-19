@@ -1,5 +1,6 @@
 using System;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using static SDL2.SDL;
@@ -38,7 +39,13 @@ public class TextEntryUi
         var doc = WidgetDoc.Load("ui/text_entry_ui.json");
 
         _dialog = doc.GetRootContainer();
-        _dialog.SetKeyStateChangeHandler(HandleShortcut);
+        Globals.UiManager.Root.OnKeyUp += e =>
+        {
+            if (_dialog.Visible && HandleKeyUp(e))
+            {
+                e.StopImmediatePropagation();
+            }
+        };
         _dialog.OnTextInput += HandleTextInput;
 
         _okButton = doc.GetButton("okButton");
@@ -56,78 +63,25 @@ public class TextEntryUi
         UpdateInput(newText);
     }
 
-    private bool HandleShortcut(MessageKeyStateChangeArgs arg)
+    private bool HandleKeyUp(KeyboardEvent e)
     {
-        if (arg.down)
+        switch (e.VirtualKey)
         {
-            // We handle these on key-down because we are interested in key-repeats
-            switch (arg.key)
-            {
-                case SDL_Keycode.SDLK_LEFT:
-                case SDL_Keycode.SDLK_KP_4:
-                    if (--_caretPosition < 0)
-                    {
-                        _caretPosition = 0;
-                    }
-
-                    UpdateInput(_currentInput);
-                    break;
-                case SDL_Keycode.SDLK_RIGHT:
-                case SDL_Keycode.SDLK_KP_6:
-                    if (++_caretPosition > _currentInput.Length)
-                    {
-                        _caretPosition = _currentInput.Length;
-                    }
-
-                    UpdateInput(_currentInput);
-                    break;
-                case SDL_Keycode.SDLK_HOME:
-                    _caretPosition = 0;
-                    UpdateInput(_currentInput);
-                    break;
-                case SDL_Keycode.SDLK_END:
-                    _caretPosition = _currentInput.Length;
-                    UpdateInput(_currentInput);
-                    break;
-                case SDL_Keycode.SDLK_DELETE:
-                case SDL_Keycode.SDLK_KP_DECIMAL:
-                    if (_caretPosition < _currentInput.Length)
-                    {
-                        UpdateInput(_currentInput.Remove(_caretPosition, 1));
-                    }
-
-                    break;
-                case SDL_Keycode.SDLK_BACKSPACE:
-                    if (_caretPosition > 0)
-                    {
-                        --_caretPosition;
-                        UpdateInput(_currentInput.Remove(_caretPosition, 1));
-                    }
-
-                    break;
-            }
+            case SDL_Keycode.SDLK_RETURN:
+                Confirm();
+                return true;
+            case SDL_Keycode.SDLK_ESCAPE:
+                Cancel();
+                return true;
+            default:
+                return false;
         }
-        else
-        {
-            switch (arg.key)
-            {
-                case SDL_Keycode.SDLK_RETURN:
-                    Confirm();
-                    break;
-                case SDL_Keycode.SDLK_ESCAPE:
-                    Cancel();
-                    break;
-            }
-        }
-
-        return true;
     }
-    
+
     [TempleDllLocation(0x1014e670)]
     [TempleDllLocation(0x1014e8a0)]
     public void ShowTextEntry(UiCreateNamePacket crNamePkt)
     {
-
         UpdateInput(crNamePkt.InitialValue ?? "");
         _titleLabel.Text = crNamePkt.DialogTitle ?? "";
         _okButton.Text = crNamePkt.OkButtonLabel ?? "";
@@ -145,6 +99,7 @@ public class TextEntryUi
         {
             _dialog.CenterInParent();
         }
+
         _dialog.BringToFront();
     }
 

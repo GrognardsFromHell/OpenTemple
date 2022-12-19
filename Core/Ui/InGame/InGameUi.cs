@@ -77,88 +77,122 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     }
 
     [TempleDllLocation(0x10114EF0)]
-    public void HandleMessage(IGameViewport viewport, Message msg)
+    public void HandleKeyDown(IGameViewport viewport, KeyboardEvent e)
     {
-        if (UiSystems.RadialMenu.IsOpen)
-        {
-            if (UiSystems.Dialog.IsVisible)
-            {
-                if (msg.type == MessageType.KEYSTATECHANGE)
-                {
-                    UiSystems.KeyManager.InputState = 0;
-                    UiSystems.KeyManager.HandleKeyEvent(msg.KeyStateChangeArgs);
-                }
-            }
-            else
-            {
-                if (UiSystems.CharSheet.Inventory.DraggedObject != null)
-                {
-                    Stub.TODO();
-                    // TODO: Check if this is actually needed!!!
-                    /*if (msg.type == MessageType.MOUSE)
-                    {
-                        var flags = msg.MouseArgs.flags;
-                        if (flags.HasFlag(MouseEventFlag.LeftReleased) ||
-                            flags.HasFlag(MouseEventFlag.RightReleased))
-                        {
-                            UiSystems.CharSheet.Inventory.DraggedObject = null;
-                            Tig.Mouse.ClearDraggedIcon();
-                        }
-                    }*/
-                }
-
-                if (GameSystems.Combat.IsCombatActive())
-                {
-                    HandleCombatModeMessage(viewport, msg);
-                }
-                else
-                {
-                    HandleNormalModeMessage(viewport, msg);
-                }
-            }
-        }
-    }
-
-    [TempleDllLocation(0x10114eb0)]
-    private void HandleCombatModeMessage(IGameViewport viewport, Message msg)
-    {
-        if (msg.type == MessageType.KEYSTATECHANGE)
-        {
-            CombatKeyHandler(msg.KeyStateChangeArgs);
-        }
-    }
-
-    [TempleDllLocation(0x101132b0)]
-    private void CombatKeyHandler(MessageKeyStateChangeArgs args)
-    {
-        if (!args.down)
+        if (UiSystems.Dialog.IsVisible)
         {
             UiSystems.KeyManager.InputState = 0;
-            if (UiSystems.KeyManager.HandleKeyEvent(args))
-            {
-                return; // TODO: This is new, previously it fell through here
-            }
+            UiSystems.KeyManager.HandleKeyUp(e);
+        }
+    }
+    
+    [TempleDllLocation(0x10114EF0)]
+    public void HandleKeyUp(IGameViewport viewport, KeyboardEvent e)
+    {
+        if (UiSystems.Dialog.IsVisible)
+        {
+            UiSystems.KeyManager.InputState = 0;
+            UiSystems.KeyManager.HandleKeyUp(e);
+        }
+        else if (GameSystems.Combat.IsCombatActive())
+        {
+            HandleKeyUpInCombat(viewport, e);
+        }
+        else
+        {
+            HandleKeyUpOutOfCombat(viewport, e);
+        }
+    }
+    
+    [TempleDllLocation(0x10114eb0)]
+    [TempleDllLocation(0x101132b0)]
+    private void HandleKeyUpInCombat(IGameViewport viewport, KeyboardEvent e)
+    {
+        UiSystems.KeyManager.InputState = 0;
+        UiSystems.KeyManager.HandleKeyUp(e);
+        if (e.IsPropagationStopped)
+        {
+            return; // TODO: This is new, previously it fell through here
+        }
 
-            // End turn for current player
-            if (args.key is SDL_Keycode.SDLK_RETURN or SDL_Keycode.SDLK_SPACE)
-            {
-                var currentActor = GameSystems.D20.Initiative.CurrentActor;
-                UiSystems.CharSheet.CurrentPage = 0;
-                UiSystems.CharSheet.Hide(UiSystems.CharSheet.State);
+        // End turn for current player
+        if (e.VirtualKey is SDL_Keycode.SDLK_RETURN or SDL_Keycode.SDLK_SPACE)
+        {
+            var currentActor = GameSystems.D20.Initiative.CurrentActor;
+            UiSystems.CharSheet.CurrentPage = 0;
+            UiSystems.CharSheet.Hide(UiSystems.CharSheet.State);
 
-                if (GameSystems.Party.IsInParty(currentActor))
+            if (GameSystems.Party.IsInParty(currentActor))
+            {
+                if (!GameSystems.D20.Actions.IsCurrentlyPerforming(currentActor))
                 {
-                    if (!GameSystems.D20.Actions.IsCurrentlyPerforming(currentActor))
+                    if (!UiSystems.InGameSelect.IsPicking && !UiSystems.RadialMenu.IsOpen)
                     {
-                        if (!UiSystems.InGameSelect.IsPicking && !UiSystems.RadialMenu.IsOpen)
-                        {
-                            GameSystems.Combat.AdvanceTurn(currentActor);
-                            Logger.Info("Advancing turn for {0}", currentActor);
-                        }
+                        GameSystems.Combat.AdvanceTurn(currentActor);
+                        Logger.Info("Advancing turn for {0}", currentActor);
                     }
                 }
             }
         }
+    }
+
+    [TempleDllLocation(0x10113ce0)]
+    public void CenterOnPartyLeader()
+    {
+        var leader = GameSystems.Party.GetConsciousLeader();
+        if (leader != null)
+        {
+            var location = leader.GetLocation();
+            GameSystems.Location.CenterOn(location.locx, location.locy);
+        }
+    }
+
+    [TempleDllLocation(0x10114e30)]
+    [TempleDllLocation(0x101130B0)]
+    private void HandleKeyUpOutOfCombat(IGameViewport viewport, KeyboardEvent e)
+    {
+        var potentialHotkey = KeyReference.Physical(e.PhysicalKey);
+
+        var leader = GameSystems.Party.GetConsciousLeader();
+        if (leader != null)
+        {
+            if (GameSystems.D20.Hotkeys.IsReservedHotkey(potentialHotkey))
+            {
+                if (e.IsCtrlHeld)
+                {
+                    // trying to assign hotkey to reserved hotkey
+                    GameSystems.D20.Hotkeys.HotkeyReservedPopup(potentialHotkey);
+                    return;
+                }
+            }
+            else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey))
+            {
+                if (e.IsCtrlHeld)
+                {
+                    // assign hotkey
+                    UiSystems.RadialMenu.SpawnFromKeyboard(viewport, leader, e);
+                    return;
+                }
+
+                GameSystems.D20.Actions.TurnBasedStatusInit(leader);
+                leader = GameSystems.Party.GetConsciousLeader(); // in case the leader changes somehow...
+                Logger.Info("Intgame: Resetting sequence.");
+                GameSystems.D20.Actions.CurSeqReset(leader);
+
+                GameSystems.D20.Actions.GlobD20ActnInit();
+                if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(GameSystems.Party.GetConsciousLeader(), potentialHotkey))
+                {
+                    GameSystems.D20.Actions.ActionAddToSeq();
+                    GameSystems.D20.Actions.sequencePerform();
+                    PlayVoiceConfirmationSound(leader);
+                    GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
+                    return;
+                }
+            }
+        }
+
+        UiSystems.KeyManager.InputState = 0;
+        UiSystems.KeyManager.HandleKeyUp(e);
     }
 
     [TempleDllLocation(0x10113370)]
@@ -188,78 +222,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
 
         var loc = centerOn.GetLocation();
         GameSystems.Scroll.CenterOnSmooth(loc.locx, loc.locy);
-    }
-
-    [TempleDllLocation(0x10113ce0)]
-    public void CenterOnPartyLeader()
-    {
-        var leader = GameSystems.Party.GetConsciousLeader();
-        if (leader != null)
-        {
-            var location = leader.GetLocation();
-            GameSystems.Location.CenterOn(location.locx, location.locy);
-        }
-    }
-
-    [TempleDllLocation(0x10114e30)]
-    private void HandleNormalModeMessage(IGameViewport viewport, Message msg)
-    {
-        if (msg.type == MessageType.KEYSTATECHANGE)
-        {
-            HandleNormalKeyStateChange(viewport, msg.KeyStateChangeArgs);
-        }
-    }
-
-    [TempleDllLocation(0x101130B0)]
-    private void HandleNormalKeyStateChange(IGameViewport viewport, MessageKeyStateChangeArgs args)
-    {
-        if (args.down)
-        {
-            return;
-        }
-
-        var potentialHotkey = KeyReference.Physical(args.scancode);
-
-        var leader = GameSystems.Party.GetConsciousLeader();
-        if (leader != null)
-        {
-            if (GameSystems.D20.Hotkeys.IsReservedHotkey(potentialHotkey))
-            {
-                if (args.modCtrl)
-                {
-                    // trying to assign hotkey to reserved hotkey
-                    GameSystems.D20.Hotkeys.HotkeyReservedPopup(potentialHotkey);
-                    return;
-                }
-            }
-            else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey))
-            {
-                if (args.modCtrl)
-                {
-                    // assign hotkey
-                    UiSystems.RadialMenu.SpawnFromKeyboard(viewport, leader, args);
-                    return;
-                }
-
-                GameSystems.D20.Actions.TurnBasedStatusInit(leader);
-                leader = GameSystems.Party.GetConsciousLeader(); // in case the leader changes somehow...
-                Logger.Info("Intgame: Resetting sequence.");
-                GameSystems.D20.Actions.CurSeqReset(leader);
-
-                GameSystems.D20.Actions.GlobD20ActnInit();
-                if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(GameSystems.Party.GetConsciousLeader(), potentialHotkey))
-                {
-                    GameSystems.D20.Actions.ActionAddToSeq();
-                    GameSystems.D20.Actions.sequencePerform();
-                    PlayVoiceConfirmationSound(leader);
-                    GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
-                    return;
-                }
-            }
-        }
-
-        UiSystems.KeyManager.InputState = 0;
-        UiSystems.KeyManager.HandleKeyEvent(args);
     }
 
     [TempleDllLocation(0x10BD3B5C)]

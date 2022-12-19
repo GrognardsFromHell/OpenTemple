@@ -38,8 +38,6 @@ public partial class WidgetBase : Styleable, IDisposable
     protected bool _autoSizeWidth = true;
     protected bool _autoSizeHeight = true;
     protected Margins _margins;
-    protected Func<MessageKeyStateChangeArgs, bool>? mKeyStateChangeHandler;
-    protected Func<MessageCharArgs, bool>? mCharHandler;
     protected readonly List<WidgetContent> Content = new();
     private readonly List<AvailableHotkey> _hotkeys = new();
     private bool _visible = true;
@@ -418,20 +416,6 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    public virtual bool HandleMessage(Message msg)
-    {
-        if (msg.type == MessageType.KEYSTATECHANGE && mKeyStateChangeHandler != null)
-        {
-            return mKeyStateChangeHandler(msg.KeyStateChangeArgs);
-        }
-        else if (msg.type == MessageType.CHAR && mCharHandler != null)
-        {
-            return mCharHandler(msg.CharArgs);
-        }
-
-        return false;
-    }
-
     /// <summary>
     /// Same as <see cref="PickWidget"/>, but the x and y coordinates
     /// are global UI coordinates,and not local to this widget. 
@@ -676,18 +660,6 @@ public partial class WidgetBase : Styleable, IDisposable
         {
             return new Rectangle(X, Y, Width, Height);
         }
-    }
-
-    [Obsolete]
-    public void SetKeyStateChangeHandler(Func<MessageKeyStateChangeArgs, bool> handler)
-    {
-        mKeyStateChangeHandler = handler;
-    }
-
-    [Obsolete]
-    public void SetCharHandler(Func<MessageCharArgs, bool> handler)
-    {
-        mCharHandler = handler;
     }
 
     public virtual void OnUpdateTime(TimePoint now)

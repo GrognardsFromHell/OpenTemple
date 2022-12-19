@@ -12,6 +12,7 @@ using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
@@ -111,7 +112,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         // uiDialogWndId.OnHandleMessage += 0x1014bd00;
         // uiDialogWndId.OnBeforeRender += 0x1014bbb0;
         _mainWindow.OnBeforeRender += UpdateLayout;
-        _mainWindow.SetKeyStateChangeHandler(OnKeyPressed);
+        _mainWindow.OnKeyUp += SelectResponseByKey;
 
         // This renders the NPC's dialog lines
         _dialogLinesContainer = new WidgetContainer(14, 0, ContentWidth, 0);
@@ -196,53 +197,54 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     }
 
     [TempleDllLocation(0x1014d510)]
-    private bool OnKeyPressed(MessageKeyStateChangeArgs arg)
+    private void SelectResponseByKey(KeyboardEvent e)
     {
         if (!IsConversationOngoing)
         {
-            return false;
+            return;
         }
 
         void SelectResponse(int responseIdx)
         {
-            if (!arg.down && responseIdx < dialog_slot_idx.pcLineText.Length)
+            if (responseIdx < dialog_slot_idx.pcLineText.Length)
             {
                 UiDialogPcReplyLineExecute(dialog_slot_idx, responseIdx);
+                e.StopPropagation();
             }
         }
 
         // Allows selecting PC responses by pressing the associated number
-        switch (arg.key)
+        switch (e.VirtualKey)
         {
             case SDL_Keycode.SDLK_1:
                 SelectResponse(0);
-                return true;
+                break;
             case SDL_Keycode.SDLK_2:
                 SelectResponse(1);
-                return true;
+                break;
             case SDL_Keycode.SDLK_3:
                 SelectResponse(2);
-                return true;
+                break;
             case SDL_Keycode.SDLK_4:
                 SelectResponse(3);
-                return true;
+                break;
             case SDL_Keycode.SDLK_5:
                 SelectResponse(4);
-                return true;
+                break;
             case SDL_Keycode.SDLK_6:
                 SelectResponse(5);
-                return true;
+                break;
             case SDL_Keycode.SDLK_7:
                 SelectResponse(6);
-                return true;
+                break;
             case SDL_Keycode.SDLK_8:
                 SelectResponse(7);
-                return true;
+                break;
             case SDL_Keycode.SDLK_9:
                 SelectResponse(8);
-                return true;
+                break;
             default:
-                return false;
+                break;
         }
     }
 

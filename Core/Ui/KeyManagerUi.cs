@@ -6,6 +6,7 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.MainMenu;
 
 namespace OpenTemple.Core.Ui
@@ -48,9 +49,15 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10143d60)]
-        public bool HandleKeyEvent(MessageKeyStateChangeArgs kbMsg)
+        public void HandleKeyDown(KeyboardEvent e)
         {
-            return false;
+            Stub.TODO();
+        }
+        
+        [TempleDllLocation(0x10143d60)]
+        public void HandleKeyUp(KeyboardEvent e)
+        {
+            Stub.TODO();
 
             // var modifier = GetKeyEventFromModifier();
             // var evt = GetKeyEvent(kbMsg, modifier);
@@ -140,7 +147,7 @@ namespace OpenTemple.Core.Ui
             //         return true;
             //     default:
             //         return false;
-            // }
+            // }            
         }
 
         [TempleDllLocation(0x101435b0)]

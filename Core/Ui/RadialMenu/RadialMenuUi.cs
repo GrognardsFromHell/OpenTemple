@@ -169,25 +169,11 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
 
     [TempleDllLocation(0x1013dc90)]
     [TemplePlusLocation("radialmenu.cpp:128")]
-    public bool HandleMessage(IGameViewport viewport, Message message)
+    private void HandleKeyDown(KeyboardEvent e)
     {
         RadialMenus.AlternateActionMode = Tig.Keyboard.IsShiftPressed;
-
-        if (!IsOpen)
-        {
-            return false;
-        }
-
-        if (message.type == MessageType.KEYSTATECHANGE)
-        {
-            return HandleKeyMessage(message.KeyStateChangeArgs);
-        }
-        else
-        {
-            return false;
-        }
     }
-
+    
     private void ActivateActiveNode()
     {
         if (RadialMenus.RadialMenuActiveNodeExecuteCallback())
@@ -290,14 +276,12 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     public bool IsOpen => RadialMenus.GetCurrentNode() != -1;
 
     [TempleDllLocation(0x1013c9c0)]
-    public bool HandleKeyMessage(MessageKeyStateChangeArgs args)
+    [TempleDllLocation(0x1013dc90)]
+    [TemplePlusLocation("radialmenu.cpp:128")]
+    private bool HandleKeyUp(KeyboardEvent e)
     {
-        if (args.down)
-        {
-            return false;
-        }
-
-        var key = args.key;
+        RadialMenus.AlternateActionMode = Tig.Keyboard.IsShiftPressed;
+        var key = e.VirtualKey;
         if (key == SDL_Keycode.SDLK_ESCAPE)
         {
             // Cancels hotkey assignment or closes the menu
@@ -314,7 +298,6 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             {
                 GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
             }
-
             return true;
         }
 
@@ -324,10 +307,10 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             return true;
         }
 
-        var potentialHotkey = KeyReference.Physical(args.scancode);
+        var potentialHotkey = KeyReference.Physical(e.PhysicalKey);
         if (GameSystems.D20.Hotkeys.IsReservedHotkey(potentialHotkey))
         {
-            if (args.modCtrl)
+            if (e.IsCtrlHeld)
             {
                 GameSystems.D20.Hotkeys.HotkeyReservedPopup(potentialHotkey);
                 return true;
@@ -335,7 +318,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
         }
         else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey))
         {
-            if (args.modCtrl)
+            if (e.IsCtrlHeld)
             {
                 UiSystems.RadialMenu._assigningHotkey = true;
                 UiSystems.RadialMenu._keyToBeHotkeyed = potentialHotkey;
@@ -380,13 +363,13 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
         dword_10BE6D70 = true;
     }
 
-    public void SpawnFromKeyboard(IGameViewport viewport, GameObject leader, MessageKeyStateChangeArgs args)
+    public void SpawnFromKeyboard(IGameViewport viewport, GameObject leader, KeyboardEvent e)
     {
         var leaderLoc = leader.GetLocationFull();
         var screenPos = viewport.WorldToScreen(leaderLoc.ToInches3D());
 
         UiSystems.RadialMenu.Spawn(viewport, (int) screenPos.X, (int) screenPos.Y);
-        UiSystems.RadialMenu.HandleKeyMessage(args);
+        UiSystems.RadialMenu.HandleKeyUp(e);
     }
 
     [TempleDllLocation(0x1013b250)]
@@ -1678,6 +1661,23 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
             {
                 HandleMouseMove(e);
                 e.StopImmediatePropagation();
+            }
+        };
+        viewport.OnKeyDown += e =>
+        {
+            if (IsOpen)
+            {
+                HandleKeyDown(e);
+            }
+        };
+        viewport.OnKeyUp += e =>
+        {
+            if (IsOpen)
+            {
+                if (HandleKeyUp(e))
+                {
+                    e.StopImmediatePropagation();
+                }
             }
         };
     }

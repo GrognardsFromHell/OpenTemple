@@ -5,7 +5,7 @@ using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-17T14:17:52.8515230Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-18T23:12:11.8606690Z")]
 public partial class WidgetBase
 {
     public delegate void EventHandler<in T>(T e) where T : UiEvent;
@@ -54,7 +54,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnMouseDown
     /// </summary>
-    internal void DispatchMouseDown(MouseEvent e)
+    internal void DispatchMouseDown(MouseEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -81,6 +81,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleMouseDown(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -135,7 +140,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnMouseUp
     /// </summary>
-    internal void DispatchMouseUp(MouseEvent e)
+    internal void DispatchMouseUp(MouseEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -162,6 +167,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleMouseUp(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -350,7 +360,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnMouseMove
     /// </summary>
-    internal void DispatchMouseMove(MouseEvent e)
+    internal void DispatchMouseMove(MouseEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -377,6 +387,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleMouseMove(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -431,7 +446,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnMouseWheel
     /// </summary>
-    internal void DispatchMouseWheel(WheelEvent e)
+    internal void DispatchMouseWheel(WheelEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -458,6 +473,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleMouseWheel(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -512,7 +532,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnClick
     /// </summary>
-    internal void DispatchClick(MouseEvent e)
+    internal void DispatchClick(MouseEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -539,6 +559,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleClick(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -593,7 +618,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnOtherClick
     /// </summary>
-    internal void DispatchOtherClick(MouseEvent e)
+    internal void DispatchOtherClick(MouseEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -620,6 +645,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleOtherClick(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -674,7 +704,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnDoubleClick
     /// </summary>
-    internal void DispatchDoubleClick(MouseEvent e)
+    internal void DispatchDoubleClick(MouseEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -701,6 +731,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleDoubleClick(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -755,7 +790,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnTextInput
     /// </summary>
-    internal void DispatchTextInput(TextInputEvent e)
+    internal void DispatchTextInput(TextInputEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -782,6 +817,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleTextInput(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -836,7 +876,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnKeyDown
     /// </summary>
-    internal void DispatchKeyDown(KeyboardEvent e)
+    internal void DispatchKeyDown(KeyboardEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -863,6 +903,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleKeyDown(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -917,7 +962,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnKeyUp
     /// </summary>
-    internal void DispatchKeyUp(KeyboardEvent e)
+    internal void DispatchKeyUp(KeyboardEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -944,6 +989,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleKeyUp(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -992,7 +1042,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnGotMouseCapture
     /// </summary>
-    internal void DispatchGotMouseCapture(MouseEvent e)
+    internal void DispatchGotMouseCapture(MouseEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -1019,6 +1069,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleGotMouseCapture(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -1063,7 +1118,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnLostMouseCapture
     /// </summary>
-    internal void DispatchLostMouseCapture(MouseEvent e)
+    internal void DispatchLostMouseCapture(MouseEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -1090,6 +1145,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleLostMouseCapture(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -1134,7 +1194,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnTooltip
     /// </summary>
-    internal void DispatchTooltip(TooltipEvent e)
+    internal void DispatchTooltip(TooltipEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -1161,6 +1221,11 @@ public partial class WidgetBase
             if (!e.IsImmediatePropagationStopped)
             {
                 target.HandleTooltip(e);
+            }
+            
+            if (localOnly)
+            {
+                break;
             }
         }
         
@@ -1205,7 +1270,7 @@ public partial class WidgetBase
     /// Allows a class to implicitly handle the event, without having to overwrite it.
     /// These handlers always run after additional event handlers registered using OnGetCursor
     /// </summary>
-    internal void DispatchGetCursor(GetCursorEvent e)
+    internal void DispatchGetCursor(GetCursorEvent e, bool localOnly = false)
     {
 
         // Dispatch the event to this element, and then to all of its ancestors or until propagation is stopped
@@ -1233,6 +1298,11 @@ public partial class WidgetBase
             {
                 target.HandleGetCursor(e);
             }
+            
+            if (localOnly)
+            {
+                break;
+            }
         }
         
     }
@@ -1242,7 +1312,7 @@ public partial class WidgetBase
     private readonly record struct RegisteredListener<T>(EventHandler<T> Listener, bool Once = false) where T : UiEvent;
 }
 
-[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-17T14:17:52.8515230Z")]
+[global::System.CodeDom.Compiler.GeneratedCode("Core.WidgetEventGenerator", "2022-12-18T23:12:11.8606690Z")]
 public enum UiEventType
 {
     MouseDown,

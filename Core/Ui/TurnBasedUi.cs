@@ -260,7 +260,7 @@ public class TurnBasedUi : IResetAwareSystem
         uiIntgameWidgetEnteredForRender = false;
     }
 
-    public bool HandleMessage(IGameViewport viewport, Message msg)
+    private bool HandleKeyUp(IGameViewport viewport, KeyboardEvent e)
     {
         // TODO: DM System
 
@@ -270,67 +270,62 @@ public class TurnBasedUi : IResetAwareSystem
         if (ShouldHandleEvent(viewport))
         {
             // widget or keyboard msg
-            if (msg.type == MessageType.KEYSTATECHANGE && !msg.KeyStateChangeArgs.down)
+            Logger.Debug("TurnBasedUi.HandleKeyUp key={0}", e.VirtualKey);
+            var leader = GameSystems.Party.GetConsciousLeader();
+            if (GameSystems.D20.Actions.IsCurrentlyPerforming(leader))
             {
-                var keyArgs = msg.KeyStateChangeArgs;
-                Logger.Debug("UiIntgameMsgHandler (KEYSTATECHANGE): msg key={0} down={1}", keyArgs.key,
-                    keyArgs.down);
-                var leader = GameSystems.Party.GetConsciousLeader();
-                if (GameSystems.D20.Actions.IsCurrentlyPerforming(leader))
+                if (e.VirtualKey == SDL.SDL_Keycode.SDLK_t)
                 {
-                    if (keyArgs.key == SDL.SDL_Keycode.SDLK_t)
-                    {
-                        _panicKeys++;
-                    }
-
-                    if (_panicKeys >= 4)
-                    {
-                        GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_HIGHEST, true);
-                        GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_1, true);
-                        GameSystems.D20.Actions.CurrentSequence.IsPerforming = false;
-                    }
-
-                    return true;
-                }
-                else
-                {
-                    _panicKeys = 0;
+                    _panicKeys++;
                 }
 
-                var potentialHotkey = KeyReference.Physical(keyArgs.scancode);
-
-                // bind hotkey
-                if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey) && Tig.Keyboard.IsCtrlPressed)
+                if (_panicKeys >= 4)
                 {
-                    UiSystems.RadialMenu.SpawnFromKeyboard(viewport, leader, keyArgs);
-                    return true;
+                    GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_HIGHEST, true);
+                    GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_1, true);
+                    GameSystems.D20.Actions.CurrentSequence.IsPerforming = false;
                 }
 
-                GameSystems.D20.Actions.TurnBasedStatusInit(leader);
-                if (uiIntgameWaypointMode)
+                return true;
+            }
+            else
+            {
+                _panicKeys = 0;
+            }
+
+            var potentialHotkey = KeyReference.Physical(e.PhysicalKey);
+
+            // bind hotkey
+            if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey) && Tig.Keyboard.IsCtrlPressed)
+            {
+                UiSystems.RadialMenu.SpawnFromKeyboard(viewport, leader, e);
+                return true;
+            }
+
+            GameSystems.D20.Actions.TurnBasedStatusInit(leader);
+            if (uiIntgameWaypointMode)
+            {
+                UiIntgameRestoreSeqBackup();
+            }
+            else
+            {
+                Logger.Info("Intgame: Resetting sequence.");
+                GameSystems.D20.Actions.CurSeqReset(leader);
+            }
+
+            GameSystems.D20.Actions.GlobD20ActnInit();
+            if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(leader, potentialHotkey))
+            {
+                GameSystems.D20.Actions.ActionAddToSeq();
+                GameSystems.D20.Actions.sequencePerform();
+
+                var comrade = GameSystems.Dialog.GetListeningPartyMember(leader);
+                if (GameSystems.Dialog.TryGetOkayVoiceLine(intgameActor, comrade, out var text, out var soundId))
                 {
-                    UiIntgameRestoreSeqBackup();
-                }
-                else
-                {
-                    Logger.Info("Intgame: Resetting sequence.");
-                    GameSystems.D20.Actions.CurSeqReset(leader);
+                    GameSystems.Dialog.PlayCritterVoiceLine(intgameActor, comrade, text, soundId);
                 }
 
-                GameSystems.D20.Actions.GlobD20ActnInit();
-                if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(leader, potentialHotkey))
-                {
-                    GameSystems.D20.Actions.ActionAddToSeq();
-                    GameSystems.D20.Actions.sequencePerform();
-
-                    var comrade = GameSystems.Dialog.GetListeningPartyMember(leader);
-                    if (GameSystems.Dialog.TryGetOkayVoiceLine(intgameActor, comrade, out var text, out var soundId))
-                    {
-                        GameSystems.Dialog.PlayCritterVoiceLine(intgameActor, comrade, text, soundId);
-                    }
-
-                    result = true;
-                }
+                result = true;
             }
         }
 
@@ -959,5 +954,12 @@ public class TurnBasedUi : IResetAwareSystem
         viewport.OnMouseEnter += e => HandleMouseEntered(viewport, e);
         viewport.OnMouseLeave += e => HandleMouseLeave(viewport, e);
         viewport.OnMouseMove += e => HandleMouseMove(viewport, e);
+        viewport.OnKeyUp += e =>
+        {
+            if (HandleKeyUp(viewport, e))
+            {
+                e.StopImmediatePropagation();
+            }
+        };
     }
 }

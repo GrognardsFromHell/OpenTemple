@@ -1102,29 +1102,6 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     {
         ActivePicker?.Behavior.CancelPicker();
     }
-
-    // TODO
-    public bool HandleMessage(IGameViewport viewport, Message msg)
-    {
-        if (!IsPicking)
-        {
-            return false;
-        }
-
-        var pickerSpec = ActivePicker.Behavior;
-
-        if (msg.type == MessageType.KEYSTATECHANGE)
-        {
-            return pickerSpec.KeyStateChanged(msg.KeyStateChangeArgs);
-        }
-        else if (msg.type == MessageType.CHAR)
-        {
-            return pickerSpec.CharacterTyped(msg.CharArgs);
-        }
-
-        return false;
-    }
-
     
     [TempleDllLocation(0x101375e0)]
     [TemplePlusLocation("ui_picker.cpp:144")]
@@ -1143,6 +1120,20 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
                     // update x/y position
                     picker.MouseX = (int) e.X;
                     picker.MouseY = (int) e.Y;
+                
+                    var pickerSpec = picker.Behavior;
+                    pickerHandler(pickerSpec, e);
+                }
+            };
+        }
+        WidgetBase.EventHandler<KeyboardEvent> MakeKeyHandler(Action<PickerBehavior, KeyboardEvent> pickerHandler)
+        {
+            return e =>
+            {
+                var picker = ActivePicker;
+                if (picker != null)
+                {
+                    e.StopImmediatePropagation();
                 
                     var pickerSpec = picker.Behavior;
                     pickerHandler(pickerSpec, e);
@@ -1187,6 +1178,14 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
         viewport.OnMouseWheel += MakeHandler((behavior, e) =>
         {
             behavior.MouseWheelScrolled(viewport, e);
+        });
+        viewport.OnKeyDown += MakeKeyHandler((behavior, e) =>
+        {
+            behavior.KeyDown(viewport, e);
+        });
+        viewport.OnKeyUp += MakeKeyHandler((behavior, e) =>
+        {
+            behavior.KeyUp(viewport, e);
         });
     }
 }

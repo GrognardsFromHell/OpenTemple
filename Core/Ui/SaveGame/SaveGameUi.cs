@@ -70,7 +70,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         var doc = WidgetDoc.Load("ui/save_game_ui.json");
 
         _window = doc.GetRootContainer();
-        _window.SetCharHandler(OnCharEntered);
+        _window.OnTextInput += OnCharEntered; // TODO Replace with text fields
 
         _loadButton = doc.GetButton("load");
         _loadButton.AddClickListener(OnLoadClick);
@@ -91,7 +91,13 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         _largeScreenshot.Visible = false;
 
         // Forward mouse events on the window to the savegame list
-        _window.SetKeyStateChangeHandler(OnKeyPress);
+        Globals.UiManager.Root.OnKeyUp += e =>
+        {
+            if (KeyUp(e))
+            {
+                e.StopImmediatePropagation();
+            }
+        };
 
         _window.OnMouseWheel += ForwardScrollWheelMessage;
 
@@ -111,11 +117,11 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         }
     }
 
-    private bool OnCharEntered(MessageCharArgs arg)
+    private void OnCharEntered(TextInputEvent e)
     {
         if (_selectedSave == null || _mode != Mode.Saving)
         {
-            return false;
+            return;
         }
 
         // Find the button that is currently showing the selected save
@@ -123,11 +129,11 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         {
             if (slot.Selected)
             {
-                slot.AppendNewName(arg.Text);
+                slot.AppendNewName(e.Text);
+                e.StopImmediatePropagation();
+                return;
             }
         }
-
-        return true;
     }
 
     private void ForwardScrollWheelMessage(WheelEvent e)
@@ -135,23 +141,8 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         _scrollBar.DispatchMouseWheel(e);
     }
 
-    private bool OnKeyPress(MessageKeyStateChangeArgs arg)
-    {
-        if (arg.down)
-        {
-            // If a save game is selected (usually the case), and we're in save game mode
-            // that means there's a text entry field that needs these...
-            if (_mode != Mode.Saving)
-            {
-                return false;
-            }
-
-            var selectedSlot = _slots.FirstOrDefault(s => s.Selected);
-
-            return selectedSlot?.HandleKey(arg) ?? false;
-        }
-
-        switch (arg.key)
+    private bool KeyUp(KeyboardEvent e) {
+        switch (e.VirtualKey)
         {
             case SDL_Keycode.SDLK_ESCAPE:
                 OnCloseClick();

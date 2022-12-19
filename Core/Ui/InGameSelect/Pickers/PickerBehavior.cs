@@ -183,12 +183,12 @@ internal abstract class PickerBehavior
         return true;
     }
 
-    internal virtual bool KeyStateChanged(MessageKeyStateChangeArgs args)
+    internal virtual bool KeyDown(IGameViewport viewport, KeyboardEvent e)
     {
         return true;
     }
 
-    internal virtual bool CharacterTyped(MessageCharArgs args)
+    internal virtual bool KeyUp(IGameViewport viewport, KeyboardEvent e)
     {
         return true;
     }

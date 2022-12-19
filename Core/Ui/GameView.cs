@@ -208,13 +208,6 @@ public class GameView : WidgetContainer, IGameViewport
         _scrollingController.MouseMoved(GetRelativeMousePos(mousePos));
     }
 
-    public override bool HandleMessage(Message msg)
-    {
-        UiSystems.InGame.HandleMessage(this, msg);
-
-        return base.HandleMessage(msg);
-    }
-
     protected override void HandleMouseDown(MouseEvent e)
     {
         if (e.Button == MouseButton.Middle)
@@ -339,4 +332,28 @@ public class GameView : WidgetContainer, IGameViewport
             }
         }
     }
+
+    public override void AttachToTree(UiManager? manager)
+    {
+        // Uninstall / Install fallback key handlers to capture in-game keyboard shortcuts
+        var oldRoot = UiManager?.Root;
+        if (oldRoot != null)
+        {
+            oldRoot.OnKeyDown -= HandleGlobalKeyDown;
+            oldRoot.OnKeyUp -= HandleGlobalKeyUp;
+        }
+
+        var newRoot = manager?.Root;
+        if (newRoot != null)
+        {
+            newRoot.OnKeyDown += HandleGlobalKeyDown;
+            newRoot.OnKeyUp += HandleGlobalKeyUp;
+        }
+
+        base.AttachToTree(manager);
+    }
+
+    private void HandleGlobalKeyDown(KeyboardEvent e) => DispatchKeyDown(e, true);
+
+    private void HandleGlobalKeyUp(KeyboardEvent e) => DispatchKeyUp(e, true);
 }

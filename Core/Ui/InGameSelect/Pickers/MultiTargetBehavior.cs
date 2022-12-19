@@ -183,10 +183,10 @@ internal class MultiTargetBehavior : PickerBehavior
     }
 
     [TempleDllLocation(0x10137da0)]
-    internal override bool KeyStateChanged(MessageKeyStateChangeArgs args)
+    internal override bool KeyUp(IGameViewport viewport, KeyboardEvent e)
     {
         // Releasing space bar will end the picker
-        if (args.key == SDL.SDL_Keycode.SDLK_SPACE && !args.down)
+        if (e.VirtualKey == SDL.SDL_Keycode.SDLK_SPACE)
         {
             return ForceEnd();
         }
