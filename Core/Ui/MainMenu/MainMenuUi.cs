@@ -54,7 +54,7 @@ public class MainMenuUi : IDisposable
         _mainWidget.PreventsInGameInteraction = true;
         
         // Close the menu if it's the ingame menu
-        _mainWidget.AddHotkey(UiHotkeys.CloseWindow, Hide, () => _currentPage is MainMenuPage.InGameNormal or MainMenuPage.InGameIronman);
+        _mainWidget.AddHotkey(UiHotkeys.Cancel, Hide, () => _currentPage is MainMenuPage.InGameNormal or MainMenuPage.InGameIronman);
 
         _pagesWidget = widgetDoc.GetContainer("pages");
 

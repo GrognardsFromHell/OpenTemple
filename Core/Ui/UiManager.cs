@@ -180,8 +180,13 @@ public class UiManager : IUiRoot
 
     private void UpdateCursor()
     {
+        if (!_mouseOverUi)
+        {
+            return;
+        }
+        
         var visible = true;
-        var cursor = Cursors.CursorIds.Default;
+        var cursor = CursorIds.Default;
 
         var target = MouseCaptureWidget ?? CurrentMouseOverWidget;
         

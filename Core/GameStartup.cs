@@ -128,8 +128,12 @@ public class GameStartup : IDisposable
     {
         _singleInstanceCheck.Dispose();
 
-        GameSystems.Shutdown();
+        // We reset first since this should destroy any pending objects.
+        // After this, the UI Bridge should not get any more calls
+        GameSystems.GameInit.EnableStartMap = false; // Otherwise it'll just open the start again
+        GameSystems.ResetGame();
         UiSystems.DisposeAll();
+        GameSystems.Shutdown();
         Tig.Shutdown();
 
         Globals.ConfigManager = null;

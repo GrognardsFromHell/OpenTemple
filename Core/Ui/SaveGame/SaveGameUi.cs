@@ -7,13 +7,11 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Widgets;
-using static SDL2.SDL;
 
 namespace OpenTemple.Core.Ui.SaveGame;
 
@@ -91,13 +89,21 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         _largeScreenshot.Visible = false;
 
         // Forward mouse events on the window to the savegame list
-        Globals.UiManager.Root.OnKeyUp += e =>
+        _window.AddHotkey(UiHotkeys.Cancel, OnCloseClick);
+        _window.AddHotkey(UiHotkeys.Confirm, () =>
         {
-            if (KeyUp(e))
+            if (_mode == Mode.Loading)
             {
-                e.StopImmediatePropagation();
+                OnLoadClick();
             }
-        };
+            else
+            {
+                OnSaveClick();
+            }
+        });
+        _window.AddHotkey(UiHotkeys.NavigateUp, SelectPreviousSave);
+        _window.AddHotkey(UiHotkeys.NavigateUp, SelectNextSave);
+        _window.AddHotkey(UiHotkeys.Delete, OnDeleteClick);
 
         _window.OnMouseWheel += ForwardScrollWheelMessage;
 
@@ -139,39 +145,6 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
     private void ForwardScrollWheelMessage(WheelEvent e)
     {
         _scrollBar.DispatchMouseWheel(e);
-    }
-
-    private bool KeyUp(KeyboardEvent e) {
-        switch (e.VirtualKey)
-        {
-            case SDL_Keycode.SDLK_ESCAPE:
-                OnCloseClick();
-                return true;
-            case SDL_Keycode.SDLK_RETURN:
-                if (_mode == Mode.Loading)
-                {
-                    OnLoadClick();
-                }
-                else
-                {
-                    OnSaveClick();
-                }
-
-                return true;
-            case SDL_Keycode.SDLK_DELETE:
-                OnDeleteClick();
-                return true;
-            case SDL_Keycode.SDLK_UP:
-            case SDL_Keycode.SDLK_KP_8:
-                SelectPreviousSave();
-                return true;
-            case SDL_Keycode.SDLK_DOWN:
-            case SDL_Keycode.SDLK_KP_2:
-                SelectNextSave();
-                return true;
-            default:
-                return false;
-        }
     }
 
     [TempleDllLocation(0x10177530)]

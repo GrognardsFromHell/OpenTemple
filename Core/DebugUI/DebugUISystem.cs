@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
@@ -11,6 +10,7 @@ using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
+using SDL2;
 
 namespace OpenTemple.Core.DebugUI;
 
@@ -31,6 +31,9 @@ public class DebugUiSystem : IDebugUI, IDisposable
     private ImFontPtr _smallFont;
 
     private ImFontPtr _normalFont;
+
+    // Used to keep the main menu visible even when the mouse is out of range, used if the mouse is on a submenu
+    private bool _forceMainMenu;
 
     public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device)
     {
@@ -54,7 +57,21 @@ public class DebugUiSystem : IDebugUI, IDisposable
         if (mainWindow is MainWindow realMainWindow)
         {
             _backend = new ImGuiBackend(realMainWindow);
-            mainWindow.SetWindowMsgFilter(_backend.ProcessEvent);
+            mainWindow.SetWindowMsgFilter((ref SDL.SDL_Event e) =>
+            {
+                var processed = _backend.ProcessEvent(ref e);
+                // Disable/Enable interaction with the main UI when the cursor is captured by imgui
+                if (_backend.HasMouseCapture)
+                {
+                    mainWindow.UiRoot?.MouseLeave();
+                }
+                else
+                {
+                    mainWindow.UiRoot?.MouseEnter();
+                }
+
+                return processed;
+            });
         }
     }
 
@@ -135,9 +152,6 @@ public class DebugUiSystem : IDebugUI, IDisposable
         var drawData = ImGui.GetDrawData();
         _renderer.ImGui_ImplDX11_RenderDrawLists(drawData);
     }
-
-    // Used to keep the main menu visible even when the mouse is out of range, used if the mouse is on a submenu
-    private bool _forceMainMenu;
 
     private void RenderMainMenuBar(out int height)
     {

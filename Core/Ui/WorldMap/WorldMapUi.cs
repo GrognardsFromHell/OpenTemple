@@ -141,7 +141,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         var doc = WidgetDoc.Load("ui/worldmap_ui.json");
         _mainWindow = doc.GetRootContainer();
         // Allow closing the window while no trip is taking place
-        _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide, () => !IsMakingTrip);
+        _mainWindow.AddHotkey(UiHotkeys.Cancel, Hide, () => !IsMakingTrip);
         _mainWindow.AddInterval(UpdateTime);
 
         // This is the container that is sized exactly as the actual map in the window

@@ -20,18 +20,21 @@ public class ImGuiBackend : IDisposable
     private readonly IntPtr _window;
     private readonly bool _mouseCanUseGlobalState;
     private readonly Dictionary<ImGuiMouseCursor, IntPtr> _mouseCursors = new();
+    private ImGuiIOPtr io;
     private int _mouseButtonsDown;
     private int _pendingMouseLeaveFrame;
     private IntPtr _clipboardTextData;
     private GCHandle _gcHandle;
     private bool _cursorOverridden;
 
+    public bool HasMouseCapture => io.WantCaptureMouse;
+
     public ImGuiBackend(MainWindow mainWindow)
     {
+        io = ImGui.GetIO();
         _mainWindow = mainWindow;
         _window = mainWindow.SDLWindow;
 
-        var io = ImGui.GetIO();
         Trace.Assert(io.BackendPlatformUserData == IntPtr.Zero, "Already initialized a platform backend!");
 
         // Check and store if we are on a SDL backend that supports global mouse position
@@ -78,9 +81,8 @@ public class ImGuiBackend : IDisposable
         SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
     }
 
-    static void ImGui_ImplSDL2_UpdateKeyModifiers(SDL_Keymod keyMods)
+    private void ImGui_ImplSDL2_UpdateKeyModifiers(SDL_Keymod keyMods)
     {
-        var io = ImGui.GetIO();
         io.AddKeyEvent(ImGuiKey.ModCtrl, (keyMods & SDL_Keymod.KMOD_CTRL) != 0);
         io.AddKeyEvent(ImGuiKey.ModShift, (keyMods & SDL_Keymod.KMOD_SHIFT) != 0);
         io.AddKeyEvent(ImGuiKey.ModAlt, (keyMods & SDL_Keymod.KMOD_ALT) != 0);
@@ -94,8 +96,6 @@ public class ImGuiBackend : IDisposable
     // If you have multiple SDL events and some of them are not meant to be used by dear imgui, you may need to filter events based on their windowID field.
     public bool ProcessEvent(ref SDL_Event e)
     {
-        var io = ImGui.GetIO();
-
         switch (e.type)
         {
             case SDL_EventType.SDL_MOUSEMOTION:
@@ -227,8 +227,6 @@ public class ImGuiBackend : IDisposable
 
     private void UpdateMouseData()
     {
-        var io = ImGui.GetIO();
-
         // We forward mouse input when hovered or captured (via SDL_MOUSEMOTION) or when focused (below)
         // SDL_CaptureMouse() let the OS know e.g. that our imgui drag outside the SDL window boundaries shouldn't e.g. trigger other operations outside
         SDL_CaptureMouse(_mouseButtonsDown != 0 ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
@@ -253,7 +251,6 @@ public class ImGuiBackend : IDisposable
 
     private void UpdateMouseCursor()
     {
-        var io = ImGui.GetIO();
         if ((io.ConfigFlags & ImGuiConfigFlags.NoMouseCursorChange) != 0)
             return;
 
@@ -280,9 +277,8 @@ public class ImGuiBackend : IDisposable
         }
     }
 
-    private static void UpdateGamepads()
+    private void UpdateGamepads()
     {
-        var io = ImGui.GetIO();
         // FIXME: Technically feeding gamepad shouldn't depend on this now that they are regular inputs.
         if ((io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) == 0)
             return;
@@ -341,8 +337,6 @@ public class ImGuiBackend : IDisposable
 
     public void NewFrame()
     {
-        var io = ImGui.GetIO();
-
         if (_pendingMouseLeaveFrame != 0 && _pendingMouseLeaveFrame >= ImGui.GetFrameCount() && _mouseButtonsDown == 0)
         {
             io.AddMousePosEvent(-float.MaxValue, -float.MaxValue);
@@ -487,7 +481,6 @@ public class ImGuiBackend : IDisposable
 
         _mouseCursors.Clear();
 
-        var io = ImGui.GetIO();
         if (io.BackendPlatformUserData == new IntPtr(1))
         {
             io.SetClipboardTextFn = IntPtr.Zero;

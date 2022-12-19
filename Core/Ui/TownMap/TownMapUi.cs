@@ -66,7 +66,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         var doc = WidgetDoc.Load("ui/townmap_ui.json");
 
         _mainWindow = doc.GetRootContainer();
-        _mainWindow.AddHotkey(UiHotkeys.CloseWindow, Hide);
+        _mainWindow.AddHotkey(UiHotkeys.Cancel, Hide);
 
         var exit = doc.GetButton("exit");
         exit.AddClickListener(Hide);
