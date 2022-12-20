@@ -53,7 +53,7 @@ public class GameStartup : IDisposable
 
         // Hides the cursor during loading
 #if !DEBUG
-            Tig.Mouse.HideCursor();
+        Tig.MainWindow.IsCursorVisible = false;
 #endif
         
         Globals.GameLoop = new GameLoop(
