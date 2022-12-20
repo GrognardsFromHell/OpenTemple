@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Styles;
+using OpenTemple.Core.Ui.Widgets.TextField;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
@@ -325,6 +326,17 @@ internal class WidgetDocLoader
         return result;
     }
 
+    private WidgetBase LoadWidgetTextField(JsonElement jsonObj)
+    {
+        var result = new TextFieldWidget();
+
+        LoadWidgetBase(jsonObj, result);
+
+        result.Undecorated = jsonObj.GetBoolProp("undecorated", false);
+
+        return result;
+    }
+
     private WidgetBase LoadWidgetButton(JsonElement jsonObj)
     {
         var result = new WidgetButton();
@@ -421,6 +433,9 @@ internal class WidgetDocLoader
                 break;
             case "tabBar":
                 widget = LoadWidgetTabBar(jsonObj);
+                break;
+            case "textField":
+                widget = LoadWidgetTextField(jsonObj);
                 break;
             case "custom":
                 if (CustomFactory == null)
@@ -562,12 +577,23 @@ public class WidgetDoc
     public WidgetTabBar GetTabBar(string id)
     {
         var widget = GetWidget(id);
-        if (!(widget is WidgetTabBar tabBar))
+        if (widget is not WidgetTabBar tabBar)
         {
             throw new Exception($"Expected widget with id '{id}' in doc '{_path}' to be a tab bar!");
         }
 
         return tabBar;
+    }
+
+    public TextFieldWidget GetTextField(string id)
+    {
+        var widget = GetWidget(id);
+        if (widget is not TextFieldWidget textField)
+        {
+            throw new Exception($"Expected widget with id '{id}' in doc '{_path}' to be a text field!");
+        }
+
+        return textField;
     }
 
     public WidgetScrollView GetScrollView(string id)
@@ -594,7 +620,7 @@ public class WidgetDoc
             throw new Exception($"Couldn't find widget content with id '{id}'");
         }
 
-        if (!(content is T t))
+        if (content is not T t)
         {
             throw new Exception($"Expected widget content with id '{id}' to be of type {typeof(T)}, but " +
                                 $"was {content.GetType()}");

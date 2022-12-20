@@ -91,7 +91,35 @@ public class UiManagerDebug
                 RenderWidgetTreeNode(_uiManager.Root);
             }
 
+            if (ImGui.CollapsingHeader("Active Hotkeys"))
+            {
+                RenderActiveHotkeyList(_uiManager.ActiveHotkeys);
+            }
+
+            if (ImGui.CollapsingHeader("Focus Chain"))
+            {
+                RenderFocusChain(_uiManager.Root);
+            }
+
             ImGui.End();
+        }
+    }
+
+    private void RenderFocusChain(WidgetBase widget)
+    {
+        if (!widget.Visible)
+        {
+            return;
+        }
+
+        if (widget.FocusMode is FocusMode.User or FocusMode.Code)
+        {
+            ImGui.Text($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.Id} ({widget.SourceURI})");
+        }
+
+        for (var w = widget.FirstChild; w != null; w = w.NextSibling)
+        {
+            RenderFocusChain(w);
         }
     }
 
@@ -123,6 +151,28 @@ public class UiManagerDebug
             if (ImGui.IsItemHovered())
             {
                 RenderWidgetOutline(widget);
+            }
+        }
+    }
+
+    private void RenderActiveHotkeyList(IReadOnlyList<ActiveUiHotkey> activeHotkeys)
+    {
+        for (var i = 0; i < activeHotkeys.Count; i++)
+        {
+            ImGui.PushID($"hotkey${i}");
+            var activeHotkey = activeHotkeys[i];
+
+            ImGui.Text(activeHotkey.Hotkey.ToString());
+            ImGui.SameLine();
+            if (ImGui.SmallButton("Trigger"))
+            {
+                activeHotkey.Trigger();
+            }
+
+            if (!activeHotkey.ActiveCondition())
+            {
+                ImGui.SameLine();
+                ImGui.TextColored(new Vector4(1, 0, 0, 1), "[disabled]");
             }
         }
     }

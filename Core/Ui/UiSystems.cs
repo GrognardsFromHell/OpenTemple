@@ -305,6 +305,10 @@ public static class UiSystems
         Camping = null;
         Formation = null;
         RandomEncounter = null;
+        
+        // Reset all widget loading
+        Globals.UiStyles.Clear();
+        Globals.WidgetButtonStyles.Clear();
     }
 }
 

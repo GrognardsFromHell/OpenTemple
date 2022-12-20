@@ -71,12 +71,6 @@ public class GameViewScrollingController
     [TempleDllLocation(0x10113fb0)]
     private void DoKeyboardScrolling()
     {
-        // TODO: This is very stupid...
-        if (Tig.Console.IsVisible || UiSystems.ItemCreation.IsVisible || UiSystems.TextEntry.IsVisible)
-        {
-            return;
-        }
-
         if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollUp))
         {
             if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))

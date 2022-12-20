@@ -385,6 +385,22 @@
           "additionalProperties": true
         }
       ]
+    },
+    "textField": {
+      "$id": "#textField",
+      "allOf": [
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "textField"
+            }
+          },
+          "required": ["type"]
+        }
+      ]
     }
   },
   "type": "object",
@@ -410,6 +426,9 @@
     },
     {
       "$ref": "#custom"
+    },
+    {
+      "$ref": "#textField"
     }
   ]
 }

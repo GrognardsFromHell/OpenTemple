@@ -82,6 +82,14 @@ public class KeyboardFocusManager
         KeyboardFocus = widget;
     }
     
+    /// <summary>
+    /// Removes the current keyboard focus.
+    /// </summary>
+    public void Blur()
+    {
+        KeyboardFocus = null;
+    }
+    
     private static WidgetBase? FindFocusCandidate(WidgetBase? candidate, bool backwards, WidgetBase treeRoot)
     {
         while (candidate != null)
@@ -106,4 +114,5 @@ public class KeyboardFocusManager
     }
 
     private static bool CanContainFocus(WidgetBase widget) => widget is {Visible: true, Disabled: false};
+
 }

@@ -34,7 +34,7 @@ public class TextFieldWidget : WidgetBase
 
     private readonly Caret _caret;
 
-    private PackedLinearColorA _selectionColor = new PackedLinearColorA(255, 255, 255, 64);
+    private PackedLinearColorA _selectionColor = new (255, 255, 255, 64);
 
     private PackedLinearColorA _caretColor = PackedLinearColorA.White;
 
@@ -248,8 +248,10 @@ public class TextFieldWidget : WidgetBase
         UpdateIfNeeded();
 
         var textAreaRect = _innerTextAreaRect;
-        textAreaRect.Offset(GetContentArea().Location);
+        var contentArea = GetContentArea();
+        textAreaRect.Offset(contentArea.Location);
 
+        // We use the full content rectangle vertically because the baseline / caret doesn't include the descend below the baseline
         Tig.RenderingDevice.SetScissorRect(textAreaRect.X, textAreaRect.Y, textAreaRect.Width, textAreaRect.Height);
 
         if (!HasFocus && _buffer.Length == 0)
@@ -433,8 +435,8 @@ public class TextFieldWidget : WidgetBase
         _lineXShift = Math.Clamp(_lineXShift, 0, overflowingWidth);
 
         // Vertically center the text line
-        var lineYOffset = (int) MathF.Ceiling((_innerTextAreaRect.Height - _caretRect.Height) / 2);
-        _innerTextAreaRect.Inflate(0, lineYOffset);
+        var lineYOffset = (int) MathF.Floor((_innerTextAreaRect.Height - _caretRect.Height) / 2);
+        _innerTextAreaRect.Inflate(0, - lineYOffset);
 
         _needsCaretUpdate = false;
     }

@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Cursors;
@@ -91,6 +94,10 @@ public class UiManager : IUiRoot
 
     private readonly CursorRegistry _cursorRegistry;
 
+    private readonly List<ActiveUiHotkey> _activeHotkeys = new();
+
+    public IReadOnlyList<ActiveUiHotkey> ActiveHotkeys => _activeHotkeys;
+
     public UiManager(IMainWindow mainWindow, IFileSystem fs)
     {
         _mainWindow = mainWindow;
@@ -139,8 +146,23 @@ public class UiManager : IUiRoot
         }
     }
 
-    public void RemoveWidget(WidgetBase widget)
+    public void OnAddedToTree(WidgetBase widget)
     {
+        foreach (var hotkey in widget.Hotkeys)
+        {
+            _activeHotkeys.Add(new ActiveUiHotkey(
+                hotkey.Hotkey,
+                hotkey.Callback,
+                hotkey.Condition,
+                widget
+            ));
+        }
+    }
+
+    public void OnRemovedFromTree(WidgetBase widget)
+    {
+        _activeHotkeys.RemoveAll(h => ReferenceEquals(h.Owner, widget));
+
         var refreshMouseOverState = false;
 
         if (widget.IsInclusiveAncestorOf(MouseCaptureWidget))
@@ -157,6 +179,11 @@ public class UiManager : IUiRoot
         if (refreshMouseOverState)
         {
             RefreshMouseOverState();
+        }
+
+        if (KeyboardFocus != null && widget.IsInclusiveAncestorOf(KeyboardFocus))
+        {
+            _keyboardFocusManager.Blur();
         }
 
         if (Modal != null && widget.IsInclusiveAncestorOf(Modal))
@@ -184,20 +211,16 @@ public class UiManager : IUiRoot
         {
             return;
         }
-        
+
         var visible = true;
         var cursor = CursorIds.Default;
 
         var target = MouseCaptureWidget ?? CurrentMouseOverWidget;
-        
+
         if (target != null)
         {
             // Dispatch event to get the default cursor
-            var e = new GetCursorEvent
-            {
-                InitialTarget = target,
-                // TODO
-            };
+            var e = CreateGetCursorEvent(UiEventType.GetCursor, target);
 
             target.DispatchGetCursor(e);
 
@@ -242,6 +265,12 @@ public class UiManager : IUiRoot
         if (Modal == widget && !widget.Visible)
         {
             Modal = null;
+        }
+
+        // Handle the keyboard focus becoming invisible
+        if (!widget.Visible && KeyboardFocus != null && widget.IsInclusiveAncestorOf(KeyboardFocus))
+        {
+            _keyboardFocusManager.Blur();
         }
 
         UpdateMouseOver();
@@ -613,6 +642,54 @@ public class UiManager : IUiRoot
         };
     }
 
+    private GetCursorEvent CreateGetCursorEvent(UiEventType type, WidgetBase target)
+    {
+        MouseButtons buttons = default;
+        if (_mouseDownState != null)
+        {
+            buttons = _mouseDownState.Buttons;
+        }
+
+        return new GetCursorEvent
+        {
+            Type = type,
+            InitialTarget = target,
+            MouseOverWidget = PickWidget(_mousePos.X, _mousePos.Y),
+            Button = MouseButton.Unchanged,
+            Buttons = buttons,
+            X = _mousePos.X,
+            Y = _mousePos.Y,
+            IsAltHeld = Tig.Keyboard.IsAltPressed,
+            IsCtrlHeld = Tig.Keyboard.IsCtrlPressed,
+            IsShiftHeld = Tig.Keyboard.IsShiftPressed,
+            IsMetaHeld = Tig.Keyboard.IsMetaHeld
+        };
+    }
+
+    private TooltipEvent CreateTooltipEvent(UiEventType type, WidgetBase target)
+    {
+        MouseButtons buttons = default;
+        if (_mouseDownState != null)
+        {
+            buttons = _mouseDownState.Buttons;
+        }
+
+        return new TooltipEvent
+        {
+            Type = type,
+            InitialTarget = target,
+            MouseOverWidget = PickWidget(_mousePos.X, _mousePos.Y),
+            Button = MouseButton.Unchanged,
+            Buttons = buttons,
+            X = _mousePos.X,
+            Y = _mousePos.Y,
+            IsAltHeld = Tig.Keyboard.IsAltPressed,
+            IsCtrlHeld = Tig.Keyboard.IsCtrlPressed,
+            IsShiftHeld = Tig.Keyboard.IsShiftPressed,
+            IsMetaHeld = Tig.Keyboard.IsMetaHeld
+        };
+    }
+
     private WheelEvent CreateWheelEvent(UiEventType type, WidgetBase target, float deltaX, float deltaY, float deltaZ)
     {
         return new WheelEvent
@@ -646,6 +723,10 @@ public class UiManager : IUiRoot
         {
             _keyboardFocusManager.MoveFocusByKeyboard((modifiers & KeyModifier.Shift) != 0);
         }
+        else
+        {
+            HandleHotkeyEvent(e);
+        }
     }
 
     public void KeyUp(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers)
@@ -655,6 +736,84 @@ public class UiManager : IUiRoot
         var e = CreateKeyboardEvent(UiEventType.KeyUp, initialTarget, virtualKey, physicalKey, modifiers, false);
 
         initialTarget.DispatchKeyUp(e);
+
+        HandleHotkeyEvent(e);
+    }
+
+    private bool HandleHotkeyEvent(KeyboardEvent e)
+    {
+        // If there's a focused element, we disable hotkeys
+        // We also ignore hotkeys from keyboard events if the event has been handled in some way
+        if (e.IsPropagationStopped || e.IsImmediatePropagationStopped || e.IsDefaultPrevented)
+        {
+            return false;
+        }
+        
+        foreach (var activeHotkey in _activeHotkeys)
+        {
+            // If any widget has the keyboard focus, only process hotkeys defined by that widget or one of its children
+            if (e.InitialTarget != Root && !e.InitialTarget.IsInclusiveAncestorOf(activeHotkey.Owner))
+            {
+                continue;
+            }
+            
+            // "Held" hotkeys are handled differently
+            if (activeHotkey.Hotkey.Trigger == HotkeyTrigger.Held)
+            {
+                continue;
+            }
+
+            if (!HotkeyMatchesEvent(activeHotkey.Hotkey, e) || !activeHotkey.ActiveCondition())
+            {
+                continue;
+            }
+
+            Logger.Debug("Triggering hotkey {0}", activeHotkey.Hotkey);
+            activeHotkey.Trigger();
+            return true; // Avoids triggering more than one
+        }
+
+        return false;
+    }
+
+    private static bool HotkeyMatchesEvent(Hotkey hotkey, KeyboardEvent e)
+    {
+        switch (hotkey.Trigger)
+        {
+            case HotkeyTrigger.Held:
+                if (!(e is {Type: UiEventType.KeyDown, IsRepeat: false}
+                      || e.Type == UiEventType.KeyUp))
+                {
+                    return false;
+                }
+
+                break;
+            case HotkeyTrigger.KeyDown:
+                if (e.Type != UiEventType.KeyDown || e.IsRepeat)
+                {
+                    return false;
+                }
+
+                break;
+            case HotkeyTrigger.KeyUp:
+                if (e.Type != UiEventType.KeyUp)
+                {
+                    return false;
+                }
+
+                break;
+            case HotkeyTrigger.KeyDownAndRepeat:
+                if (e.Type != UiEventType.KeyDown)
+                {
+                    return false;
+                }
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        return hotkey.Matches(e.VirtualKey, e.PhysicalKey, e.IsAltHeld, e.IsShiftHeld, e.IsCtrlHeld, e.IsMetaHeld);
     }
 
     private static KeyboardEvent CreateKeyboardEvent(UiEventType type, WidgetBase target, SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
@@ -800,11 +959,7 @@ public class UiManager : IUiRoot
             return;
         }
 
-        var e = new TooltipEvent // TODO
-        {
-            Type = UiEventType.Tooltip,
-            InitialTarget = widget
-        };
+        var e = CreateTooltipEvent(UiEventType.Tooltip, widget);
 
         widget.DispatchTooltip(e);
 

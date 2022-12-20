@@ -1,9 +1,6 @@
 using System;
-using OpenTemple.Core.Platform;
-using OpenTemple.Core.Systems.MapSector;
-using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
-using static SDL2.SDL;
+using OpenTemple.Core.Ui.Widgets.TextField;
 
 namespace OpenTemple.Core.Ui;
 
@@ -23,72 +20,43 @@ public class TextEntryUi
 
     private readonly WidgetText _titleLabel;
 
-    private readonly WidgetText _currentInputLabel;
-
-    [TempleDllLocation(0x10bec960)]
-    private string _currentInput;
+    private readonly TextFieldWidget _textField;
 
     [TempleDllLocation(0x10bec7c4)]
-    private Action<string, bool> _callback;
-
-    [TempleDllLocation(0x10bec768)]
-    private int _caretPosition;
+    private Action<string, bool>? _callback;
 
     public TextEntryUi()
     {
         var doc = WidgetDoc.Load("ui/text_entry_ui.json");
 
         _dialog = doc.GetRootContainer();
-        Globals.UiManager.Root.OnKeyUp += e =>
-        {
-            if (_dialog.Visible && HandleKeyUp(e))
-            {
-                e.StopImmediatePropagation();
-            }
-        };
-        _dialog.OnTextInput += HandleTextInput;
 
         _okButton = doc.GetButton("okButton");
         _okButton.AddClickListener(Confirm);
         _cancelButton = doc.GetButton("cancelButton");
         _cancelButton.AddClickListener(Cancel);
         _titleLabel = doc.GetTextContent("titleLabel");
-        _currentInputLabel = doc.GetTextContent("currentInputLabel");
-    }
+        _textField = doc.GetTextField("input");
 
-    private void HandleTextInput(TextInputEvent e)
-    {
-        var newText = _currentInput.Insert(_caretPosition, e.Text);
-        _caretPosition += e.Text.Length;
-        UpdateInput(newText);
-    }
-
-    private bool HandleKeyUp(KeyboardEvent e)
-    {
-        switch (e.VirtualKey)
-        {
-            case SDL_Keycode.SDLK_RETURN:
-                Confirm();
-                return true;
-            case SDL_Keycode.SDLK_ESCAPE:
-                Cancel();
-                return true;
-            default:
-                return false;
-        }
+        // Hotkeys for confirm / cancel, even if the text box is focused
+        _dialog.AddHotkey(UiHotkeys.Confirm, Confirm);
+        _dialog.AddHotkey(UiHotkeys.Cancel, Cancel);
+        _textField.AddHotkey(UiHotkeys.Confirm, Confirm, () => _textField.HasFocus);
+        _textField.AddHotkey(UiHotkeys.Cancel, Cancel, () => _textField.HasFocus);
     }
 
     [TempleDllLocation(0x1014e670)]
     [TempleDllLocation(0x1014e8a0)]
     public void ShowTextEntry(UiCreateNamePacket crNamePkt)
     {
-        UpdateInput(crNamePkt.InitialValue ?? "");
+        _textField.Text = crNamePkt.InitialValue ?? "";
         _titleLabel.Text = crNamePkt.DialogTitle ?? "";
         _okButton.Text = crNamePkt.OkButtonLabel ?? "";
         _cancelButton.Text = crNamePkt.CancelButtonLabel ?? "";
         _callback = crNamePkt.Callback;
 
         Globals.UiManager.AddWindow(_dialog);
+        _textField.Focus();
 
         if (crNamePkt.DialogX != 0 || crNamePkt.DialogY != 0)
         {
@@ -103,42 +71,23 @@ public class TextEntryUi
         _dialog.BringToFront();
     }
 
-    [TempleDllLocation(0x1014e900)]
-    private void UpdateInput(string text)
-    {
-        _currentInput = text;
-        _caretPosition = Math.Clamp(_caretPosition, 0, _currentInput.Length);
-
-        // Insert the caret
-        var displayedText = text.Insert(_caretPosition, "|");
-        _currentInputLabel.Text = displayedText;
-
-        // This is _incredibly_ bad, but it's what vanilla ToEE did :-(
-        while (_currentInputLabel.GetPreferredSize().Width >= _currentInputLabel.FixedWidth)
-        {
-            displayedText = displayedText.Substring(1);
-            _currentInputLabel.Text = displayedText;
-        }
-    }
-
     public void Confirm()
     {
-        _callback?.Invoke(_currentInput, true);
+        _callback?.Invoke(_textField.Text, true);
         Reset();
     }
 
     public void Cancel()
     {
-        _callback?.Invoke(_currentInput, false);
+        _callback?.Invoke(_textField.Text, false);
         Reset();
     }
 
     private void Reset()
     {
         Globals.UiManager.RemoveWindow(_dialog);
-        _currentInput = "";
+        _textField.Text = "";
         _callback = null;
-        _caretPosition = 0;
     }
 }
 

@@ -27,18 +27,11 @@ public sealed class UiStyles
 
     private readonly Dictionary<string, List<(StylingState, IStyleDefinition)>> _pseudoClassRules = new();
 
-    public StyleResolver StyleResolver { get; }
+    public StyleResolver StyleResolver { get; private set; }
 
     public UiStyles()
     {
-        LoadStylesFile(DefaultFile);
-
-        if (!_styles.TryGetValue("default", out var defaultStyle))
-        {
-            throw new Exception("Missing required UI style 'default'");
-        }
-
-        StyleResolver = new StyleResolver(defaultStyle);
+        Reload();
     }
 
     private void AddStyle(string id, IStyleDefinition style)
@@ -61,7 +54,7 @@ public sealed class UiStyles
 
             return;
         }
-        
+
         if (!_styles.TryAdd(id, style))
         {
             throw new Exception($"Duplicate style defined: {id}");
@@ -227,5 +220,23 @@ public sealed class UiStyles
             style.MarginLeft = margin;
         }
     }
-    
+
+    public void Clear()
+    {
+        _styles.Clear();
+        _pseudoClassRules.Clear();
+        Reload();
+    }
+
+    private void Reload()
+    {
+        LoadStylesFile(DefaultFile);
+
+        if (!_styles.TryGetValue("default", out var defaultStyle))
+        {
+            throw new Exception("Missing required UI style 'default'");
+        }
+
+        StyleResolver = new StyleResolver(defaultStyle);
+    }
 }

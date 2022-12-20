@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Text;
 using OpenTemple.Core.Platform;
 using static SDL2.SDL;
@@ -39,7 +40,43 @@ public readonly struct KeyReference
     public KeyModifier Modifiers { get; init; }
 
     public string Text => ToString();
+    
+    [Pure]
+    public bool Matches(SDL_Keycode virtualKey, SDL_Scancode physicalKey, bool altHeld, bool shiftHeld, bool ctrlHeld, bool metaHeld)
+    {
+        if (VirtualKey != default && virtualKey != VirtualKey)
+        {
+            return false;
+        }
+        
+        if (PhysicalKey != default && physicalKey != PhysicalKey)
+        {
+            return false;
+        }
 
+        if ((Modifiers & KeyModifier.Alt) != 0 && !altHeld)
+        {
+            return false;
+        }
+
+        if ((Modifiers & KeyModifier.Shift) != 0 && !shiftHeld)
+        {
+            return false;
+        }
+
+        if ((Modifiers & KeyModifier.Ctrl) != 0 && !ctrlHeld)
+        {
+            return false;
+        }
+
+        if ((Modifiers & KeyModifier.Meta) != 0 && !metaHeld)
+        {
+            return false;
+        }
+
+        return true;
+    }
+    
     public bool Equals(KeyReference other)
     {
         return PhysicalKey == other.PhysicalKey && VirtualKey == other.VirtualKey && Modifiers == other.Modifiers;

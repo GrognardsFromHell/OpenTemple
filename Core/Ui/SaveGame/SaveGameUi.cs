@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -102,7 +103,7 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
             }
         });
         _window.AddHotkey(UiHotkeys.NavigateUp, SelectPreviousSave);
-        _window.AddHotkey(UiHotkeys.NavigateUp, SelectNextSave);
+        _window.AddHotkey(UiHotkeys.NavigateDown, SelectNextSave);
         _window.AddHotkey(UiHotkeys.Delete, OnDeleteClick);
 
         _window.OnMouseWheel += ForwardScrollWheelMessage;

@@ -1,4 +1,4 @@
-﻿using System.Dynamic;
+﻿using System.Text;
 using OpenTemple.Core.Platform;
 using static SDL2.SDL;
 
@@ -11,8 +11,44 @@ public class Hotkey
     public KeyReference PrimaryKey { get; init; }
     public KeyReference SecondaryKey { get; init; }
     public HotkeyTrigger Trigger { get; init; }
-    
+
     public static HotkeyBuilder Build(string id) => new(id);
+
+    public bool Matches(SDL_Keycode virtualKey, SDL_Scancode physicalKey, bool altHeld, bool shiftHeld, bool ctrlHeld, bool metaHeld)
+    {
+        return PrimaryKey != default && PrimaryKey.Matches(virtualKey, physicalKey, altHeld, shiftHeld, ctrlHeld, metaHeld)
+               || SecondaryKey != default && SecondaryKey.Matches(virtualKey, physicalKey, altHeld, shiftHeld, ctrlHeld, metaHeld);
+    }
+
+    public override string ToString()
+    {
+        var result = new StringBuilder();
+
+        result.Append(EnglishName ?? Id);
+
+        if (PrimaryKey != KeyReference.None || SecondaryKey != KeyReference.None)
+        {
+            result.Append(" (");
+            if (PrimaryKey != KeyReference.None)
+            {
+                result.Append(PrimaryKey.ToString());
+            }
+
+            if (SecondaryKey != KeyReference.None)
+            {
+                if (PrimaryKey != KeyReference.None)
+                {
+                    result.Append(", ");
+                }
+
+                result.Append(SecondaryKey.ToString());
+            }
+
+            result.Append(')');
+        }
+
+        return result.ToString();
+    }
 }
 
 public class HotkeyBuilder
@@ -20,7 +56,7 @@ public class HotkeyBuilder
     private readonly string _id;
     private KeyReference _primaryKey;
     private KeyReference _secondaryKey;
-    private HotkeyTrigger _trigger;
+    private HotkeyTrigger _trigger = HotkeyTrigger.KeyDown;
     private string? _englishName;
 
     public HotkeyBuilder(string id)
@@ -33,7 +69,7 @@ public class HotkeyBuilder
         _englishName = name;
         return this;
     }
-    
+
     public HotkeyBuilder Primary(SDL_Scancode scancode, KeyModifier modifiers = default)
     {
         _primaryKey = new KeyReference
@@ -43,7 +79,7 @@ public class HotkeyBuilder
         };
         return this;
     }
-    
+
     public HotkeyBuilder Primary(KeyModifier modifiers = default)
     {
         _primaryKey = new KeyReference
@@ -69,6 +105,18 @@ public class HotkeyBuilder
         return this;
     }
 
+    public HotkeyBuilder OnKeyDownAndRepeat()
+    {
+        _trigger = HotkeyTrigger.KeyDownAndRepeat;
+        return this;
+    }
+
+    public HotkeyBuilder OnKeyUp()
+    {
+        _trigger = HotkeyTrigger.KeyUp;
+        return this;
+    }
+
     public HotkeyBuilder Held()
     {
         _trigger = HotkeyTrigger.Held;
@@ -77,11 +125,13 @@ public class HotkeyBuilder
 
     public Hotkey Build()
     {
-        return new Hotkey()
+        return new Hotkey
         {
             Id = _id,
             PrimaryKey = _primaryKey,
             SecondaryKey = _secondaryKey,
+            Trigger = _trigger,
+            EnglishName = _englishName
         };
     }
 }

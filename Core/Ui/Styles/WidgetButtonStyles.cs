@@ -16,16 +16,11 @@ public sealed class WidgetButtonStyles
 
     private const string DefaultFile = "templeplus/button_styles.json";
 
+    private readonly Dictionary<string, WidgetButtonStyle> _styles = new();
+
     public WidgetButtonStyles()
     {
-        if (Tig.FS.FileExists(DefaultFile))
-        {
-            LoadStylesFile(DefaultFile);
-        }
-        else
-        {
-            Logger.Warn("Failed to load widget button styles file '{0}'", DefaultFile);
-        }
+        Reload();
     }
 
     public void AddStyle(string id, WidgetButtonStyle textStyle)
@@ -192,5 +187,21 @@ public sealed class WidgetButtonStyles
         }
     }
 
-    private readonly Dictionary<string, WidgetButtonStyle> _styles = new();
+    public void Clear()
+    {
+        _styles.Clear();
+        Reload();
+    }
+
+    private void Reload()
+    {
+        if (Tig.FS.FileExists(DefaultFile))
+        {
+            LoadStylesFile(DefaultFile);
+        }
+        else
+        {
+            Logger.Warn("Failed to load widget button styles file '{0}'", DefaultFile);
+        }
+    }
 }

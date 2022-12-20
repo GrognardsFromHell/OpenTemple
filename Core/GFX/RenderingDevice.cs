@@ -652,7 +652,7 @@ public class RenderingDevice : IDisposable
 
         var left = (int)(x * hFactor);
         var top = (int)(y * vFactor);
-        var right = (int) (Math.Ceiling((x + width) * hFactor));
+        var right = (int)(Math.Ceiling((x + width) * hFactor));
         var bottom = (int)(Math.Ceiling((y + height) * vFactor));
 
         _context.Rasterizer.SetScissorRectangle(left, top, right, bottom);

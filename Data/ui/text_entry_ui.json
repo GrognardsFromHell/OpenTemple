@@ -5,22 +5,6 @@
   "height": 131,
   "zIndex": 200000,
   "__styles": [
-    {
-      "id": "textEntryTitle",
-      "fontFamily": "arial-12",
-      "color": "#ffffff",
-      "legacyTracking": 3,
-      "legacyKerning": 1,
-      "paragraphAlignment": "center",
-      "textAlignment": "center"
-    },
-    {
-      "id": "textEntryInput",
-      "fontFamily": "arial-12",
-      "color": "#ffffff",
-      "legacyTracking": 3,
-      "legacyKerning": 1
-    }
   ],
   "__buttonStyles": [
   ],
@@ -32,22 +16,22 @@
     {
       "id": "titleLabel",
       "type": "text",
-      "style": "textEntryTitle",
+      "style": "dialog-title",
       "text": "",
-      "y": 12
-    },
-    {
-      "id": "currentInputLabel",
-      "type": "text",
-      "style": "textEntryInput",
-      "text": "",
-      "x": 23,
-      "y": 50,
-      "width": 354,
-      "height": 18
+      "y": 12,
+      "height": 15
     }
   ],
   "children": [
+    {
+      "id": "input",
+      "type": "textField",
+      "x": 25,
+      "y": 50,
+      "width": 352,
+      "height": 18,
+      "undecorated": true
+    },
     {
       "id": "okButton",
       "type": "button",

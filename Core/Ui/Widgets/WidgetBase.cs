@@ -40,6 +40,7 @@ public partial class WidgetBase : Styleable, IDisposable
     protected Margins _margins;
     protected readonly List<WidgetContent> Content = new();
     private readonly List<AvailableHotkey> _hotkeys = new();
+    public IReadOnlyList<AvailableHotkey> Hotkeys => _hotkeys;
     private bool _visible = true;
     private bool _containsMouse;
     private bool _pressed;
@@ -745,7 +746,7 @@ public partial class WidgetBase : Styleable, IDisposable
         _hotkeys.Add(new AvailableHotkey(hotkey, callback, condition));
     }
 
-    private record AvailableHotkey(Hotkey Hotkey, Action Callback, Func<bool> Condition);
+    public record AvailableHotkey(Hotkey Hotkey, Action Callback, Func<bool> Condition);
 
     public IEnumerable<WidgetBase> EnumerateSelfAndAncestors()
     {
@@ -800,10 +801,12 @@ public partial class WidgetBase : Styleable, IDisposable
     {
         if (UiManager != null && UiManager != manager)
         {
-            UiManager.RemoveWidget(this);
+            UiManager.OnRemovedFromTree(this);
         }
 
         UiManager = manager;
+
+        UiManager?.OnAddedToTree(this);
     }
 
     public void DetachFromTree() => AttachToTree(null);

@@ -291,6 +291,12 @@ public class DebugUiSystem : IDebugUI, IDisposable
                 ImGui.EndMenu();
             }
 
+            if (ImGui.MenuItem("Reload UI"))
+            {
+                UiSystems.DisposeAll();
+                UiSystems.Startup(Globals.Config);
+            }
+
             if (anyMenuOpen)
             {
                 _forceMainMenu = true;

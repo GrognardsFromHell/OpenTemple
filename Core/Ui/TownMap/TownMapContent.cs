@@ -263,32 +263,29 @@ public class TownMapContent : WidgetButtonBase
         }
         else if (ControlMode == TownMapControlMode.PlaceMarker)
         {
-            if (!UiSystems.TextEntry.IsVisible)
+            if (Markers.Count >= 20)
             {
-                if (Markers.Count >= 20)
-                {
-                    return;
-                }
-
-                // The mouse message x,y coordinates need to be mapped into the widget's coordinates
-                var contentArea = GetContentArea();
-                var worldLoc = ProjectViewToWorld(new Point(
-                    (int) e.X - contentArea.X,
-                    (int) e.Y - contentArea.Y
-                ));
-                var marker = new TownMapMarker(worldLoc)
-                {
-                    IsUserMarker = true,
-                    Text = " "
-                };
-                Markers = Markers.Add(marker);
-
-                CreateOrEditMarker(marker, true);
+                return;
             }
+
+            // The mouse message x,y coordinates need to be mapped into the widget's coordinates
+            var contentArea = GetContentArea();
+            var worldLoc = ProjectViewToWorld(new Point(
+                (int) e.X - contentArea.X,
+                (int) e.Y - contentArea.Y
+            ));
+            var marker = new TownMapMarker(worldLoc)
+            {
+                IsUserMarker = true,
+                Text = " "
+            };
+            Markers = Markers.Add(marker);
+
+            CreateOrEditMarker(marker, true);
         }
         else if (ControlMode is TownMapControlMode.RemoveMarker or TownMapControlMode.Pan)
         {
-            var marker = GetHoveredFlagWidgetIdx(e.X, e.Y);
+            var marker = GetMarkerAt(e.X, e.Y);
             if (marker is {IsUserMarker: true})
             {
                 // Only allows user-defined markers to be removed, essentially
@@ -407,7 +404,7 @@ public class TownMapContent : WidgetButtonBase
     }
 
     [TempleDllLocation(0x1012ba10)]
-    private TownMapMarker? GetHoveredFlagWidgetIdx(float x, float y)
+    private TownMapMarker? GetMarkerAt(float x, float y)
     {
         var contentArea = GetContentArea();
         x -= contentArea.X;
@@ -541,13 +538,10 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x1012c180)]
     protected override void HandleTooltip(TooltipEvent e)
     {
-        if (!UiSystems.TextEntry.IsVisible)
+        var marker = GetMarkerAt(e.Pos.X, e.Pos.Y);
+        if (marker != null)
         {
-            var marker = GetHoveredFlagWidgetIdx(e.Pos.X, e.Pos.Y);
-            if (marker != null)
-            {
-                e.TextContent = marker.Text;
-            }
+            e.TextContent = marker.Text;
         }
     }
 

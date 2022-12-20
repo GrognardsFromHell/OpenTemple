@@ -6,6 +6,7 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.FlowModel;
+using SDL2;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
@@ -67,7 +68,6 @@ public class WidgetButtonBase : WidgetBase
 
     public WidgetButtonBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : base(filePath, lineNumber)
     {
-        FocusMode = FocusMode.User;
     }
 
     public WidgetButtonBase(Rectangle rect, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(filePath, lineNumber)
