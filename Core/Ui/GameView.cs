@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Drawing;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
@@ -53,6 +54,8 @@ public class GameView : WidgetContainer, IGameViewport
     public float Zoom => _zoom;
 
     Size IGameViewport.Size => Size;
+
+    public bool IsInteractive => true;
 
     event Action IGameViewport.OnResize
     {

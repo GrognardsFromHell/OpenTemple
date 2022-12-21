@@ -8,7 +8,7 @@ using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Interop.Drawing;
 using RectangleF = System.Drawing.RectangleF;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.GFX.TextRendering;
 

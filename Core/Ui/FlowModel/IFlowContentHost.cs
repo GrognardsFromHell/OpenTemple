@@ -1,4 +1,4 @@
-#nullable enable
+
 using System;
 using OpenTemple.Core.Ui.Styles;
 

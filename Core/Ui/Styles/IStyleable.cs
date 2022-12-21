@@ -1,5 +1,5 @@
 
-#nullable enable
+
 namespace OpenTemple.Core.Ui.Styles;
 
 public interface IStyleable

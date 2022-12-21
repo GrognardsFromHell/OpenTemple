@@ -1,4 +1,4 @@
-﻿#nullable enable
+﻿
 using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;

@@ -11,7 +11,7 @@ using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Systems.D20;
 

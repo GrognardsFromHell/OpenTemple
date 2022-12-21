@@ -23,7 +23,7 @@ using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.InGameSelect;
 using OpenTemple.Core.Utils;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Systems.D20.Actions;
 

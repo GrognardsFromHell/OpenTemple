@@ -9,7 +9,7 @@ using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
 using OpenTemple.Core.Ui.Styles;
 
-#nullable enable
+
 
 namespace OpenTemple.Core;
 

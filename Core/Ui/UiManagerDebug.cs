@@ -155,7 +155,7 @@ public class UiManagerDebug
         }
     }
 
-    private void RenderActiveHotkeyList(IReadOnlyList<ActiveUiHotkey> activeHotkeys)
+    private void RenderActiveHotkeyList(IReadOnlyList<ActiveActionHotkey> activeHotkeys)
     {
         for (var i = 0; i < activeHotkeys.Count; i++)
         {

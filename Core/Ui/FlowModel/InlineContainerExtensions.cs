@@ -1,4 +1,4 @@
-#nullable enable
+
 using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.FlowModel;

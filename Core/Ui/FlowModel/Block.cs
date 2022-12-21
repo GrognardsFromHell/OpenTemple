@@ -1,6 +1,6 @@
 using OpenTemple.Core.Ui.Styles;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Ui.FlowModel;
 

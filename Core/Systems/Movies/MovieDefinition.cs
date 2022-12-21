@@ -1,7 +1,7 @@
 using System.IO;
 using OpenTemple.Core.Logging;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Systems.Movies;
 

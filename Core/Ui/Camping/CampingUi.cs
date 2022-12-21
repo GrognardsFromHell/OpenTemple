@@ -121,7 +121,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         _mainWindow = doc.GetRootContainer();
         // _mainWindow.OnBeforeRender += 0x1012e4d0;
         _mainWindow.PreventsInGameInteraction = true;
-        _mainWindow.AddHotkey(UiHotkeys.Cancel, Hide);
+        _mainWindow.AddActionHotkey(UiHotkeys.Cancel, Hide);
         _mainWindow.ZIndex = 100000;
         _mainWindow.OnBeforeRender += UpdateCheckboxes;
 

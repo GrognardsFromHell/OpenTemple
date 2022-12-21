@@ -5,7 +5,7 @@ using System.Security;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Utils;
 using OpenTemple.Interop;
-#nullable enable
+
 
 namespace OpenTemple.Core.Config;
 

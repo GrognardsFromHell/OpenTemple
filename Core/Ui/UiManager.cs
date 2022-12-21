@@ -5,7 +5,6 @@ using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Cursors;
@@ -94,9 +93,10 @@ public class UiManager : IUiRoot
 
     private readonly CursorRegistry _cursorRegistry;
 
-    private readonly List<ActiveUiHotkey> _activeHotkeys = new();
+    private readonly List<ActiveActionHotkey> _actionHotkeys = new();
+    private readonly List<(WidgetBase Owner, WidgetBase.HeldHotkeyState State)> _heldHotkeys = new();
 
-    public IReadOnlyList<ActiveUiHotkey> ActiveHotkeys => _activeHotkeys;
+    public IReadOnlyList<ActiveActionHotkey> ActiveHotkeys => _actionHotkeys;
 
     public UiManager(IMainWindow mainWindow, IFileSystem fs)
     {
@@ -148,20 +148,39 @@ public class UiManager : IUiRoot
 
     public void OnAddedToTree(WidgetBase widget)
     {
-        foreach (var hotkey in widget.Hotkeys)
+        foreach (var hotkey in widget.ActionHotkeys)
         {
-            _activeHotkeys.Add(new ActiveUiHotkey(
+            _actionHotkeys.Add(new ActiveActionHotkey(
                 hotkey.Hotkey,
                 hotkey.Callback,
                 hotkey.Condition,
                 widget
             ));
         }
+
+        foreach (var state in widget.HeldHotkeys)
+        {
+            _heldHotkeys.Add((widget, state));
+        }
     }
 
     public void OnRemovedFromTree(WidgetBase widget)
     {
-        _activeHotkeys.RemoveAll(h => ReferenceEquals(h.Owner, widget));
+        _actionHotkeys.RemoveAll(h => ReferenceEquals(h.Owner, widget));
+        for (var i = _heldHotkeys.Count - 1; i >= 0; i--)
+        {
+            var (owner, state) = _heldHotkeys[i];
+            if (owner == widget)
+            {
+                if (state.Held)
+                {
+                    state.Held = false;
+                    state.Callback(false);
+                }
+
+                _heldHotkeys.RemoveAt(i);
+            }
+        }
 
         var refreshMouseOverState = false;
 
@@ -713,7 +732,7 @@ public class UiManager : IUiRoot
 
     public void KeyDown(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
     {
-        var initialTarget = KeyboardFocus ?? Root;
+        var initialTarget = KeyboardFocus ?? Modal ?? Root;
 
         var e = CreateKeyboardEvent(UiEventType.KeyDown, initialTarget, virtualKey, physicalKey, modifiers, repeat);
 
@@ -731,13 +750,23 @@ public class UiManager : IUiRoot
 
     public void KeyUp(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers)
     {
-        var initialTarget = KeyboardFocus ?? Root;
+        var initialTarget = KeyboardFocus ?? Modal ?? Root;
 
         var e = CreateKeyboardEvent(UiEventType.KeyUp, initialTarget, virtualKey, physicalKey, modifiers, false);
 
         initialTarget.DispatchKeyUp(e);
 
         HandleHotkeyEvent(e);
+
+        // Clear any held hotkeys matching the key
+        foreach (var (_, state) in _heldHotkeys)
+        {
+            if (state.Held && HotkeyMatchesEvent(state.Hotkey, e))
+            {
+                state.Held = false;
+                state.Callback(false);
+            }
+        }
     }
 
     private bool HandleHotkeyEvent(KeyboardEvent e)
@@ -748,15 +777,15 @@ public class UiManager : IUiRoot
         {
             return false;
         }
-        
-        foreach (var activeHotkey in _activeHotkeys)
+
+        foreach (var activeHotkey in _actionHotkeys)
         {
             // If any widget has the keyboard focus, only process hotkeys defined by that widget or one of its children
-            if (e.InitialTarget != Root && !e.InitialTarget.IsInclusiveAncestorOf(activeHotkey.Owner))
+            if (!e.InitialTarget.IsInclusiveAncestorOf(activeHotkey.Owner))
             {
                 continue;
             }
-            
+
             // "Held" hotkeys are handled differently
             if (activeHotkey.Hotkey.Trigger == HotkeyTrigger.Held)
             {
@@ -771,6 +800,20 @@ public class UiManager : IUiRoot
             Logger.Debug("Triggering hotkey {0}", activeHotkey.Hotkey);
             activeHotkey.Trigger();
             return true; // Avoids triggering more than one
+        }
+
+        // Look for widgets reacting to "held hotkeys" if the hotkey was not handled by anything else
+        if (e.Type == UiEventType.KeyDown)
+        {
+            foreach (var (_, state) in _heldHotkeys)
+            {
+                if (HotkeyMatchesEvent(state.Hotkey, e))
+                {
+                    state.Held = true;
+                    state.Callback(true);
+                    return true;
+                }
+            }
         }
 
         return false;

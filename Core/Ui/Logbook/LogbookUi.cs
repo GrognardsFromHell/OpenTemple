@@ -72,7 +72,7 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
     private void CreateWidgets()
     {
         _window = new WidgetContainer(new Rectangle(27, 40, 750, 445));
-        _window.AddHotkey(UiHotkeys.Cancel, Hide);
+        _window.AddActionHotkey(UiHotkeys.Cancel, Hide);
         _window.ZIndex = 100050;
         _window.Name = "logbook_ui_main_window";
         _window.PreventsInGameInteraction = true;

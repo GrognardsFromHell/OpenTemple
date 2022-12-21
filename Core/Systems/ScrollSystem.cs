@@ -11,7 +11,7 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Systems;
 

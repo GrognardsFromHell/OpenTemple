@@ -4,7 +4,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Styles;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Systems.Movies;
 

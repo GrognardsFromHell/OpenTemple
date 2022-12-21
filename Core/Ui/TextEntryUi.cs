@@ -39,10 +39,10 @@ public class TextEntryUi
         _textField = doc.GetTextField("input");
 
         // Hotkeys for confirm / cancel, even if the text box is focused
-        _dialog.AddHotkey(UiHotkeys.Confirm, Confirm);
-        _dialog.AddHotkey(UiHotkeys.Cancel, Cancel);
-        _textField.AddHotkey(UiHotkeys.Confirm, Confirm, () => _textField.HasFocus);
-        _textField.AddHotkey(UiHotkeys.Cancel, Cancel, () => _textField.HasFocus);
+        _dialog.AddActionHotkey(UiHotkeys.Confirm, Confirm);
+        _dialog.AddActionHotkey(UiHotkeys.Cancel, Cancel);
+        _textField.AddActionHotkey(UiHotkeys.Confirm, Confirm, () => _textField.HasFocus);
+        _textField.AddActionHotkey(UiHotkeys.Cancel, Cancel, () => _textField.HasFocus);
     }
 
     [TempleDllLocation(0x1014e670)]

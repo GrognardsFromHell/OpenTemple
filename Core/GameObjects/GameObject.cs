@@ -15,7 +15,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.GameObjects;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.GameObjects;
 

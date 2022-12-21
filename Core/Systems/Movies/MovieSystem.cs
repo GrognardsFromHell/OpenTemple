@@ -5,7 +5,7 @@ using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Systems.Movies;
 

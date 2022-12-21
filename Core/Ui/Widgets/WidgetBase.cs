@@ -1,14 +1,13 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using OpenTemple.Core.Hotkeys;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Styles;
 using Size = System.Drawing.Size;
@@ -39,8 +38,10 @@ public partial class WidgetBase : Styleable, IDisposable
     protected bool _autoSizeHeight = true;
     protected Margins _margins;
     protected readonly List<WidgetContent> Content = new();
-    private readonly List<AvailableHotkey> _hotkeys = new();
-    public IReadOnlyList<AvailableHotkey> Hotkeys => _hotkeys;
+    private readonly List<ActionHotkeyRegistration> _actionHotkeys = new();
+    private readonly Dictionary<Hotkey, HeldHotkeyState> _heldHotkeys = new();
+    public IReadOnlyList<ActionHotkeyRegistration> ActionHotkeys => _actionHotkeys;
+    public IReadOnlyCollection<HeldHotkeyState> HeldHotkeys => _heldHotkeys.Values;
     private bool _visible = true;
     private bool _containsMouse;
     private bool _pressed;
@@ -740,13 +741,66 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    public void AddHotkey(Hotkey hotkey, Action callback, Func<bool>? condition = null)
+    /// <summary>
+    /// Associates a hotkey with an action to be triggered when the hotkey is triggered.
+    /// An additional condition may be specified that needs to be true in order for the action to be triggered.
+    /// </summary>
+    public void AddActionHotkey(Hotkey hotkey, Action callback, Func<bool>? condition = null)
     {
+        if (hotkey.Trigger == HotkeyTrigger.Held)
+        {
+            throw new ArgumentException("Cannot register a hotkey that is triggered by holding as an action hotkey.");
+        }
+
         condition ??= () => true;
-        _hotkeys.Add(new AvailableHotkey(hotkey, callback, condition));
+        _actionHotkeys.Add(new ActionHotkeyRegistration(hotkey, callback, condition));
     }
 
-    public record AvailableHotkey(Hotkey Hotkey, Action Callback, Func<bool> Condition);
+    /// <summary>
+    /// Declares that this widget reacts to a hotkey being held. The UI system ensures that the hotkey is reported as not being
+    /// held, if the user input is redirect to another widget.
+    /// An additional condition may be specified that needs to be true in order for the button to be held.
+    /// </summary>
+    /// <param name="callback">Called when the hold-state of the hotkey changes.</param>
+    /// <param name="condition">If given, the hotkey will only be reported as being held, when this function returns true. The state change function will NOT be called when this function changes its return value.</param>
+    public void AddHeldHotkey(Hotkey hotkey, Action<bool>? callback = null, Func<bool>? condition = null)
+    {
+        if (hotkey.Trigger != HotkeyTrigger.Held)
+        {
+            throw new ArgumentException("Cannot register an action hotkey as a held hotkey. Use AddActionHotkey instead. Trigger type was: " + hotkey.Trigger);
+        }
+
+        callback ??= _ => { };
+        condition ??= () => true;
+        if (!_heldHotkeys.TryAdd(hotkey, new HeldHotkeyState(hotkey, callback, condition)))
+        {
+            throw new ArgumentException("Held hotkey " + hotkey + " is already registered");
+        }
+    }
+
+    /// <summary>
+    /// Checks if a hotkey previously registered on this widget using <see cref="AddHeldHotkey"/> is currently held given the rules
+    /// outlined in that method. 
+    /// </summary>
+    public bool IsHeldHotkeyPressed(Hotkey hotkey)
+    {
+        if (!_heldHotkeys.TryGetValue(hotkey, out var state))
+        {
+            throw new ArgumentException("Cannot get the hold-state of a hotkey that was not registered with AddHeldHotkey first: " + hotkey);
+        }
+
+        return state.Held && state.Condition();
+    }
+
+    public record ActionHotkeyRegistration(Hotkey Hotkey, Action Callback, Func<bool> Condition);
+
+    /// <summary>
+    /// Registration for a hotkey that causes the widget to be notified when the hotkey is being held.
+    /// </summary>
+    public record HeldHotkeyState(Hotkey Hotkey, Action<bool> Callback, Func<bool> Condition)
+    {
+        public bool Held { get; set; }
+    }
 
     public IEnumerable<WidgetBase> EnumerateSelfAndAncestors()
     {

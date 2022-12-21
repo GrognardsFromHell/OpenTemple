@@ -90,8 +90,8 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
         _largeScreenshot.Visible = false;
 
         // Forward mouse events on the window to the savegame list
-        _window.AddHotkey(UiHotkeys.Cancel, OnCloseClick);
-        _window.AddHotkey(UiHotkeys.Confirm, () =>
+        _window.AddActionHotkey(UiHotkeys.Cancel, OnCloseClick);
+        _window.AddActionHotkey(UiHotkeys.Confirm, () =>
         {
             if (_mode == Mode.Loading)
             {
@@ -102,9 +102,9 @@ public class SaveGameUi : IDisposable, IViewportAwareUi
                 OnSaveClick();
             }
         });
-        _window.AddHotkey(UiHotkeys.NavigateUp, SelectPreviousSave);
-        _window.AddHotkey(UiHotkeys.NavigateDown, SelectNextSave);
-        _window.AddHotkey(UiHotkeys.Delete, OnDeleteClick);
+        _window.AddActionHotkey(UiHotkeys.NavigateUp, SelectPreviousSave);
+        _window.AddActionHotkey(UiHotkeys.NavigateDown, SelectNextSave);
+        _window.AddActionHotkey(UiHotkeys.Delete, OnDeleteClick);
 
         _window.OnMouseWheel += ForwardScrollWheelMessage;
 

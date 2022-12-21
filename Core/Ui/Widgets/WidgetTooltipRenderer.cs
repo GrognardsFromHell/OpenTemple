@@ -1,4 +1,4 @@
-#nullable enable
+
 using System.Collections.Immutable;
 using System.Drawing;
 using OpenTemple.Core.Ui.FlowModel;

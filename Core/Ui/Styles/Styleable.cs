@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-#nullable enable
+
 namespace OpenTemple.Core.Ui.Styles;
 
 public abstract class Styleable : IStyleable

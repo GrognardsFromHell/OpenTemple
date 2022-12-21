@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using OpenTemple.Interop.Drawing;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.GFX.TextRendering;
 

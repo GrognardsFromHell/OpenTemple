@@ -1,4 +1,4 @@
-#nullable enable
+
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;

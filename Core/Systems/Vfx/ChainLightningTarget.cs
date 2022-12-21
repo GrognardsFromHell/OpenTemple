@@ -1,7 +1,7 @@
 using System.Numerics;
 using OpenTemple.Core.GameObjects;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Systems.Vfx;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using OpenTemple.Core.Ui.Styles;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Ui.FlowModel;
 

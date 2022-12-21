@@ -63,7 +63,7 @@ public class HelpUi : IResetAwareSystem
         uiHelpWnd = new WidgetContainer(new Rectangle(92, 7, 462, 507));
         uiHelpWnd.ZIndex = 99800;
         uiHelpWnd.Name = "help_main_window";
-        uiHelpWnd.AddHotkey(UiHotkeys.Cancel, Hide);
+        uiHelpWnd.AddActionHotkey(UiHotkeys.Cancel, Hide);
         uiHelpWnd.PreventsInGameInteraction = true;
         
         var background = new WidgetImage("art/interface/HELP_UI/helpmenu_background.img");

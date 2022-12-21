@@ -24,6 +24,11 @@ public class GameViewScrollingController
     {
         _widget = widget;
         _viewport = viewport;
+
+        widget.AddHeldHotkey(InGameHotKey.ScrollLeft, condition: () => viewport.IsInteractive);
+        widget.AddHeldHotkey(InGameHotKey.ScrollUp, condition:() => viewport.IsInteractive);
+        widget.AddHeldHotkey(InGameHotKey.ScrollRight, condition:() => viewport.IsInteractive);
+        widget.AddHeldHotkey(InGameHotKey.ScrollDown, condition:() => viewport.IsInteractive);
     }
 
     public bool MiddleMouseDown(PointF pos)
@@ -49,7 +54,7 @@ public class GameViewScrollingController
     public bool MouseMoved(PointF pos)
     {
         _lastMousePos = pos;
-        
+
         if (!_grabMoving)
         {
             return false;
@@ -71,13 +76,13 @@ public class GameViewScrollingController
     [TempleDllLocation(0x10113fb0)]
     private void DoKeyboardScrolling()
     {
-        if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollUp))
+        if (_widget.IsHeldHotkeyPressed(InGameHotKey.ScrollUp))
         {
-            if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
+            if (_widget.IsHeldHotkeyPressed(InGameHotKey.ScrollLeft))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_LEFT);
             }
-            else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
+            else if (_widget.IsHeldHotkeyPressed(InGameHotKey.ScrollRight))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP_RIGHT);
             }
@@ -86,13 +91,13 @@ public class GameViewScrollingController
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.UP);
             }
         }
-        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollDown))
+        else if (_widget.IsHeldHotkeyPressed(InGameHotKey.ScrollDown))
         {
-            if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
+            if (_widget.IsHeldHotkeyPressed(InGameHotKey.ScrollLeft))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_LEFT);
             }
-            else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
+            else if (_widget.IsHeldHotkeyPressed(InGameHotKey.ScrollRight))
             {
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN_RIGHT);
             }
@@ -101,11 +106,11 @@ public class GameViewScrollingController
                 GameSystems.Scroll.SetScrollDirection(ScrollDirection.DOWN);
             }
         }
-        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollLeft))
+        else if (_widget.IsHeldHotkeyPressed(InGameHotKey.ScrollLeft))
         {
             GameSystems.Scroll.SetScrollDirection(ScrollDirection.LEFT);
         }
-        else if (GameSystems.Hotkeys.IsHeld(InGameHotKey.ScrollRight))
+        else if (_widget.IsHeldHotkeyPressed(InGameHotKey.ScrollRight))
         {
             GameSystems.Scroll.SetScrollDirection(ScrollDirection.RIGHT);
         }

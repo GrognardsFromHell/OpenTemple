@@ -4,6 +4,7 @@
         <AssemblyName>OpenTemple.Tests</AssemblyName>
         <RootNamespace>OpenTemple.Tests</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Nullable>annotations</Nullable>
     </PropertyGroup>
 
     <ItemGroup>

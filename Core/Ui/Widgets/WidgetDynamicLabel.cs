@@ -2,7 +2,7 @@
 using System;
 using OpenTemple.Core.Ui.FlowModel;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Ui.Widgets;
 

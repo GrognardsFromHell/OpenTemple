@@ -6,7 +6,7 @@ using System.IO;
 using System.Text;
 using OpenTemple.Core.Utils;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.IO.TroikaArchives;
 

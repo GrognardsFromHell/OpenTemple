@@ -3,7 +3,7 @@ using System.Numerics;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 
-#nullable enable
+
 
 namespace OpenTemple.Core.Systems.Vfx;
 

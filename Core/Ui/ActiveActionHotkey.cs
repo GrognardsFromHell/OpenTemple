@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Ui;
 /// A hotkey that is currently being listened for by some widget in the
 /// UI tree.
 /// </summary>
-public readonly record struct ActiveUiHotkey(
+public readonly record struct ActiveActionHotkey(
     Hotkey Hotkey,
     Action Trigger,
     Func<bool> ActiveCondition,

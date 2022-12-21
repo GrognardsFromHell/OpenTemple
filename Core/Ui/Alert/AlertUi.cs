@@ -28,8 +28,8 @@ public class AlertUi
         _mainWindow = doc.GetRootContainer();
         _mainWindow.ZIndex = 99800;
         _mainWindow.Name = "alert_main_window";
-        _mainWindow.AddHotkey(UiHotkeys.Confirm, OkButtonClicked);
-        _mainWindow.AddHotkey(UiHotkeys.Cancel, OkButtonClicked);
+        _mainWindow.AddActionHotkey(UiHotkeys.Confirm, OkButtonClicked);
+        _mainWindow.AddActionHotkey(UiHotkeys.Cancel, OkButtonClicked);
 
         _titleLabel = doc.GetTextContent("title");
 

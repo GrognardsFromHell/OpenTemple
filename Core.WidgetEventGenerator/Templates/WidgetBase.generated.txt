@@ -1,4 +1,4 @@
-#nullable enable
+
 using System;
 using System.Collections.Immutable;
 {{~ for namespace in additional_namespaces ~}}

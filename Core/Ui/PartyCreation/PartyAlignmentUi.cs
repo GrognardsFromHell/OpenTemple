@@ -34,7 +34,7 @@ public class PartyAlignmentUi : IDisposable
 
         // RENDER: 0x1011be20
         // MESSAGE: 0x1011ed20
-        _container.AddHotkey(UiHotkeys.Cancel, Cancel);
+        _container.AddActionHotkey(UiHotkeys.Cancel, Cancel);
 
         // Alignment buttons:
         // MESSAGE: 0x1011e5c0
