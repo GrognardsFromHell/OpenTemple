@@ -3,8 +3,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.IO.MemoryMappedFiles;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 using OpenTemple.Interop;
@@ -138,7 +136,7 @@ public sealed class TroikaArchive : IDisposable
     {
         // Read the 12 byte footer at the end of the file
         Span<byte> fileFooter = stackalloc byte[12];
-        if (RandomAccess.Read(_fileHandle, fileFooter, _fileLength - fileFooter.Length) < fileFooter.Length)
+        if (RandomAccess.Read(handle, fileFooter, _fileLength - fileFooter.Length) < fileFooter.Length)
         {
             throw new InvalidDataException("Couldn't read file footer");
         }
@@ -309,7 +307,11 @@ public sealed class TroikaArchive : IDisposable
         }
 
         Span<byte> nameRaw = stackalloc byte[nameLength];
-        reader.Read(nameRaw);
+        var nameBytesRead = reader.Read(nameRaw);
+        if (nameBytesRead != nameLength)
+        {
+            throw new Exception($"Read fewer bytes than length of name entry: {nameBytesRead} != {nameLength}");
+        }
         if (_stringHeap.Length - _stringHeapUsed < nameLength)
         {
             throw new Exception("Not enough space left in string heap!");
@@ -341,14 +343,9 @@ public sealed class TroikaArchive : IDisposable
         entry.NextSiblingEntry = reader.ReadInt32();
     }
 
-    public IMemoryOwner<byte> ReadFile(string path)
+    public IMemoryOwner<byte>? ReadFile(string path)
     {
-        if (!FindEntry(0, path, out var entry))
-        {
-            return null;
-        }
-
-        return ReadFile(in entry);
+        return !FindEntry(0, path, out var entry) ? null : ReadFile(in entry);
     }
 
     public IMemoryOwner<byte> ReadFile(in ArchiveEntry entry)

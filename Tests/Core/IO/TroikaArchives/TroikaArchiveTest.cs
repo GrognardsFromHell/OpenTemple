@@ -74,7 +74,7 @@ public class TroikaArchiveTest
         ReadAscii(archive, "subfolder/TEST.txt").Should().BeNull();
     }
 
-    private static string ReadAscii(TroikaArchive archive, string path)
+    private static string? ReadAscii(TroikaArchive archive, string path)
     {
         using var memory = archive.ReadFile(path);
         return memory != null ? Encoding.ASCII.GetString(memory.Memory.Span) : null;

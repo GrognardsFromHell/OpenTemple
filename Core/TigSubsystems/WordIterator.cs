@@ -105,7 +105,7 @@ internal ref struct LayoutRunIterator
                 if (extents.Y + 2 * font.FontFace.LargestHeight > extents.Y + extents.Height)
                 {
                     lastLine = true;
-                    if ((style.flags & TigTextStyleFlag.TTSF_TRUNCATE) != 0)
+                    if ((style.flags & TigTextStyleFlag.Truncate) != 0)
                     {
                         linePadding = -ellipsisWidth;
                     }
@@ -132,7 +132,7 @@ internal ref struct LayoutRunIterator
                 }
 
                 (wordsOnLine, lineWidth) = TextLayouter.MeasureCharRun(
-                    text.Slice(startOfWord),
+                    text[startOfWord..],
                     style,
                     extents,
                     extents.Width,
@@ -141,10 +141,10 @@ internal ref struct LayoutRunIterator
                     lastLine);
 
                 // There's just one word left and it wont fit. Remove restriction on width.
-                if (wordsOnLine == 0 && (style.flags & TigTextStyleFlag.TTSF_TRUNCATE) == 0)
+                if (wordsOnLine == 0 && (style.flags & TigTextStyleFlag.Truncate) == 0)
                 {
                     (wordsOnLine, lineWidth) = TextLayouter.MeasureCharRun(
-                        text.Slice(startOfWord),
+                        text[startOfWord..],
                         style,
                         extents,
                         9999999,
@@ -166,7 +166,7 @@ internal ref struct LayoutRunIterator
                     if (currentY + 2 * font.FontFace.LargestHeight > extents.Y + extents.Height)
                     {
                         lastLine = true;
-                        if (style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
+                        if (style.flags.HasFlag(TigTextStyleFlag.Truncate))
                         {
                             linePadding = ellipsisWidth;
                         }
@@ -190,7 +190,7 @@ internal ref struct LayoutRunIterator
                 var lastIdx = wordInfo.lastIdx;
                 wordWidth = wordInfo.Width;
 
-                if (lastLine && (style.flags & TigTextStyleFlag.TTSF_TRUNCATE) != 0)
+                if (lastLine && (style.flags & TigTextStyleFlag.Truncate) != 0)
                 {
                     if (currentX + wordInfo.fullWidth > extents.Width)
                     {
@@ -198,7 +198,7 @@ internal ref struct LayoutRunIterator
                     }
                     else
                     {
-                        if (!TextLayouter.HasMoreText(text.Slice(lastIdx), style.tabStop > 0))
+                        if (!TextLayouter.HasMoreText(text[lastIdx..]))
                         {
                             wordInfo.drawEllipsis = false;
                             wordWidth = wordInfo.fullWidth;
@@ -207,13 +207,7 @@ internal ref struct LayoutRunIterator
                 }
 
                 startOfWord = lastIdx;
-                if (startOfWord + 1 < text.Length && text[startOfWord] == '@' && text[startOfWord + 1] == 't')
-                {
-                    // Extend the word with by the amount needed to move to the tabstop
-                    wordWidth += Math.Max(0, style.tabStop - (currentX + wordWidth));
-                    // Skip the "t" of "@t"
-                    startOfWord++;
-                } else if (startOfWord < text.Length && text[startOfWord] >= 0 &&
+                if (startOfWord < text.Length && text[startOfWord] >= 0 &&
                            char.IsWhiteSpace(text[startOfWord]))
                 {
                     wordWidth += style.tracking;
@@ -227,7 +221,7 @@ internal ref struct LayoutRunIterator
 
                 // Draw the word
                 var x = extents.X + currentX;
-                if ((style.flags & TigTextStyleFlag.TTSF_CENTER) != 0)
+                if ((style.flags & TigTextStyleFlag.Center) != 0)
                 {
                     x += (extents.Width - lineWidth) / 2;
                 }
@@ -256,7 +250,7 @@ internal ref struct LayoutRunIterator
                 currentX += wordWidth;
 
                 // We're on the last line, the word has been truncated, ellipsis needs to be drawn
-                if (lastLine && style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE) &&
+                if (lastLine && style.flags.HasFlag(TigTextStyleFlag.Truncate) &&
                     wordInfo.drawEllipsis)
                 {
                     nextRun = new LayoutRun(

@@ -42,7 +42,7 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
         throw new NotImplementedException();
     }
 
-    public ITexture GetPrimaryTexture()
+    public ITexture? GetPrimaryTexture()
     {
         var samplers = mDeviceMaterial.Resource.Samplers;
         if (samplers.Count == 0)
@@ -55,7 +55,7 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
 
     public MdfMaterial GetSpec() => mSpec;
 
-    public void Bind([MaybeNull] WorldCamera camera, RenderingDevice device, IList<Light3d> lights,
+    public void Bind(WorldCamera? camera, RenderingDevice device, IList<Light3d> lights,
         MdfRenderOverrides? overrides = null)
     {
         device.SetMaterial(mDeviceMaterial);
@@ -63,7 +63,7 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
         BindShader(camera, device, lights, overrides);
     }
 
-    private void BindShader([MaybeNull] WorldCamera camera,
+    private void BindShader(WorldCamera? camera,
         RenderingDevice device,
         IList<Light3d> lights,
         MdfRenderOverrides? overrides)

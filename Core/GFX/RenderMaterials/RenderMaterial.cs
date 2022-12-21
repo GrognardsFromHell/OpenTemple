@@ -40,16 +40,16 @@ public interface IMdfRenderMaterial : IRefCounted
 
     string GetName();
 
-    ITexture GetPrimaryTexture();
+    ITexture? GetPrimaryTexture();
 
     MdfMaterial GetSpec();
 
-    void Bind([MaybeNull] WorldCamera camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides? overrides = null);
+    void Bind(WorldCamera? camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides? overrides = null);
 
-    void Bind([MaybeNull] IGameViewport viewport, RenderingDevice g, IList<Light3d> lights,
+    void Bind(IGameViewport? viewport, RenderingDevice g, IList<Light3d> lights,
         MdfRenderOverrides? overrides = null)
     {
-        Bind(viewport.Camera, g, lights, overrides);
+        Bind(viewport?.Camera, g, lights, overrides);
     }
 
 }

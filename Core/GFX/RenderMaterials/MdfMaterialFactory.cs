@@ -316,7 +316,7 @@ internal class InvalidMdfRenderMaterial : IMdfRenderMaterial
 
 	public MdfMaterial GetSpec() => _spec;
 
-	public void Bind([MaybeNull] WorldCamera camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides? overrides = null)
+	public void Bind(WorldCamera? camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides? overrides = null)
 	{
 		// Simply do nothing
 	}

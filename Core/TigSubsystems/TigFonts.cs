@@ -184,11 +184,7 @@ public sealed class TigFonts : IDisposable
         if (!_fontStack.TryPeek(out var font))
             return false;
 
-        // Some places in ToEE will not correctly set the text color before calling into this ...
-        var textStyleFixed = style.Copy();
-        textStyleFixed.textColor = null;
-
-        Tig.TextLayouter.Measure(font, textStyleFixed, text, ref metrics);
+        Tig.TextLayouter.Measure(font, style, text, ref metrics);
         return true;
     }
 

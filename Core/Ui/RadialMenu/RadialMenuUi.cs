@@ -142,7 +142,7 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     private LocAndOffsets _openedAtLocation;
 
     [TempleDllLocation(0x10be6d78)]
-    private GameObject _openedAtTarget;
+    private GameObject? _openedAtTarget;
 
     /// <summary>
     /// On which viewport has the radial menu been opened. See <see cref="RadialMenuSystem.ActiveMenuWorldPosition"/> for
@@ -802,18 +802,6 @@ public class RadialMenuUi : IDisposable, IViewportAwareUi
     public void RadialMenuGetNodeWidth(int activeNodeIdx, int _280, float width1pad, float width2pad, out float widthout1,
         out float widthout2, float widthfactor)
     {
-        var style = new TigTextStyle();
-        style.textColor = new ColorRect(PackedLinearColorA.White);
-        style.shadowColor = new ColorRect(PackedLinearColorA.White);
-        style.colors4 = new ColorRect(PackedLinearColorA.White);
-        style.colors2 = new ColorRect(PackedLinearColorA.White);
-        style.flags = 0;
-        style.field2c = -1;
-        style.field0 = 0;
-        style.kerning = 2;
-        style.leading = 0;
-        style.tracking = 5;
-
         // Default values apparently
         widthout1 = width1pad + 15;
         widthout2 = width2pad;

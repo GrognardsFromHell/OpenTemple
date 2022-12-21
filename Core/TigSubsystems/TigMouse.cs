@@ -59,10 +59,10 @@ public class TigMouse
     public CursorDrawCallback? CursorDrawCallback { get; private set; }
 
     // Extra argument passed to cursor draw callback.
-    public object CursorDrawCallbackArg { get; private set; }
+    public object? CursorDrawCallbackArg { get; private set; }
 
     [TempleDllLocation(0x101DD5C0)]
-    public void SetCursorDrawCallback(CursorDrawCallback callback, object arg = null)
+    public void SetCursorDrawCallback(CursorDrawCallback? callback, object? arg = null)
     {
         CursorDrawCallback = callback;
         CursorDrawCallbackArg = arg;

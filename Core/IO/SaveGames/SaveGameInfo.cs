@@ -44,8 +44,8 @@ public class SaveGameInfo
 
     public locXY LeaderLoc { get; set; }
 
-    public string SmallScreenshotPath { get; set; }
+    public string? SmallScreenshotPath { get; set; }
 
-    public string LargeScreenshotPath { get; set; }
+    public string? LargeScreenshotPath { get; set; }
 
 }

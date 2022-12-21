@@ -31,13 +31,6 @@ public class CharUiMainWidget : WidgetContainer
         var rerollsLabel = pcCreationMes[10001];
         _pointBuyLabel = pcCreationMes[10015];
 
-        var attributeModeStyle = new TigTextStyle(new ColorRect(new PackedLinearColorA(0xFF5A7390)));
-        attributeModeStyle.kerning = 1;
-        attributeModeStyle.tracking = 3;
-
-        var attributeCountStyle = attributeModeStyle.Copy();
-        attributeCountStyle.textColor = new ColorRect(PackedLinearColorA.White);
-
         _attributeRollModeLabel = new WidgetText(rerollsLabel, "char-ui-attribute-mode");
         _attributeRollCountLabel = new WidgetText("", "char-ui-attribute-rerolls");
     }

@@ -6,7 +6,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
 
-        <NoWarn>CS8625,CS8618,CS8600,CS8604</NoWarn>
+        <NoWarn>CS8618,CS8600,CS8604</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

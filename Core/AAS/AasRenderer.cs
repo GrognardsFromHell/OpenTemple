@@ -13,50 +13,51 @@ namespace OpenTemple.Core.AAS;
 
 public class AasRenderer : IAnimatedModelRenderer, IDisposable
 {
-    private RenderingDevice mDevice;
-    private ShapeRenderer2d mShapeRenderer2d;
-    private ShapeRenderer3d mShapeRenderer3d;
+    private readonly RenderingDevice _device;
+    private readonly ShapeRenderer2d _shapeRenderer2d;
+    private readonly ShapeRenderer3d _shapeRenderer3d;
 
-    private ResourceRef<Material> mGeometryShadowMaterial;
+    private ResourceRef<Material> _geometryShadowMaterial;
 
     // Shadow map related state
-    private ResourceRef<RenderTargetTexture> mShadowTarget; // Shadow map texture
-    private ResourceRef<RenderTargetTexture> mShadowTargetTmp; // Temp buffer for gauss blur
-    private ResourceRef<Material> mShadowMapMaterial;
-    private ResourceRef<Material> mGaussBlurHor; // Material for horizontal pass of gauss blur
-    private ResourceRef<Material> mGaussBlurVer; // Material for vertical pass of gauss blur
+    private ResourceRef<RenderTargetTexture> _shadowTarget; // Shadow map texture
+    private ResourceRef<RenderTargetTexture> _shadowTargetTmp; // Temp buffer for gauss blur
+    private ResourceRef<Material> _shadowMapMaterial;
+    private ResourceRef<Material> _gaussBlurHor; // Material for horizontal pass of gauss blur
+    private ResourceRef<Material> _gaussBlurVer; // Material for vertical pass of gauss blur
 
     public AasRenderer(RenderingDevice device, ShapeRenderer2d shapeRenderer2d, ShapeRenderer3d shapeRenderer3d)
     {
-        mDevice = device;
-        mShapeRenderer2d = shapeRenderer2d;
-        mShapeRenderer3d = shapeRenderer3d;
-        mGeometryShadowMaterial = CreateGeometryShadowMaterial(device);
-        mShadowTarget = device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, ShadowMapWidth, ShadowMapHeight,
+        _device = device;
+        _shapeRenderer2d = shapeRenderer2d;
+        _shapeRenderer3d = shapeRenderer3d;
+        _geometryShadowMaterial = CreateGeometryShadowMaterial(device);
+        _shadowTarget = device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, ShadowMapWidth, ShadowMapHeight,
             debugName: "AASShadowTarget");
-        mShadowTargetTmp = device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, ShadowMapWidth, ShadowMapHeight,
+        _shadowTargetTmp = device.CreateRenderTargetTexture(BufferFormat.A8R8G8B8, ShadowMapWidth, ShadowMapHeight,
             debugName: "AASShadowTargetTmp");
-        mShadowMapMaterial = CreateShadowMapMaterial(device);
-        mGaussBlurHor = CreateGaussBlurMaterial(device, mShadowTarget, true);
-        mGaussBlurVer = CreateGaussBlurMaterial(device, mShadowTargetTmp, false);
+        _shadowMapMaterial = CreateShadowMapMaterial(device);
+        _gaussBlurHor = CreateGaussBlurMaterial(device, _shadowTarget, true);
+        _gaussBlurVer = CreateGaussBlurMaterial(device, _shadowTargetTmp, false);
     }
 
     private AasRenderSubmeshData GetSubmeshData(AasRenderData renderData,
         int submeshId,
         ISubmesh submesh)
     {
-        if (renderData.submeshes[submeshId] == null)
-        {
-            renderData.submeshes[submeshId] = new AasRenderSubmeshData(mDevice);
-        }
-
         var submeshData = renderData.submeshes[submeshId];
+        if (submeshData == null)
+        {
+            submeshData = new AasRenderSubmeshData(_device);
+            renderData.submeshes[submeshId] = submeshData;
+        }
+        
         if (!submeshData.created)
         {
-            submeshData.posBuffer = mDevice.CreateVertexBuffer(submesh.Positions, false, "AasSubmeshPositions");
-            submeshData.normalsBuffer = mDevice.CreateVertexBuffer<Vector4>(submesh.Normals, false, "AasSubmeshNormals");
-            submeshData.uvBuffer = mDevice.CreateVertexBuffer(submesh.UV, debugName:"AasSubmeshUV");
-            submeshData.idxBuffer = mDevice.CreateIndexBuffer(submesh.Indices);
+            submeshData.posBuffer = _device.CreateVertexBuffer(submesh.Positions, false, "AasSubmeshPositions");
+            submeshData.normalsBuffer = _device.CreateVertexBuffer<Vector4>(submesh.Normals, false, "AasSubmeshNormals");
+            submeshData.uvBuffer = _device.CreateVertexBuffer(submesh.UV, debugName:"AasSubmeshUV");
+            submeshData.idxBuffer = _device.CreateIndexBuffer(submesh.Indices);
 
             var binding = submeshData.binding.Resource;
             binding.AddBuffer<Vector4>(submeshData.posBuffer, 0)
@@ -190,7 +191,7 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
 
     private AasRenderData GetOrCreateState(IAnimatedModel model)
     {
-        var state = (AasRenderData) model.RenderState;
+        var state = (AasRenderData?) model.RenderState;
         if (state == null)
         {
             state = new AasRenderData();
@@ -216,7 +217,7 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
                 continue;
             }
 
-            material.Bind(viewport, mDevice, lights, materialOverrides);
+            material.Bind(viewport, _device, lights, materialOverrides);
 
             // Do we have to recalculate the normals?
             if (material.GetSpec().recalculateNormals) {
@@ -232,8 +233,8 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
             var submeshData = GetSubmeshData(renderData, i, submesh);
             submeshData.binding.Resource.Bind();
 
-            mDevice.SetIndexBuffer(submeshData.idxBuffer);
-            mDevice.DrawIndexed(PrimitiveType.TriangleList,
+            _device.SetIndexBuffer(submeshData.idxBuffer);
+            _device.DrawIndexed(PrimitiveType.TriangleList,
                 submesh.VertexCount,
                 submesh.PrimitiveCount * 3);
         }
@@ -252,8 +253,8 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
             var submeshData = GetSubmeshData(renderData, i, submesh);
             submeshData.binding.Resource.Bind();
 
-            mDevice.SetIndexBuffer(submeshData.idxBuffer);
-            mDevice.DrawIndexed(
+            _device.SetIndexBuffer(submeshData.idxBuffer);
+            _device.DrawIndexed(
                 PrimitiveType.TriangleList,
                 submesh.VertexCount,
                 submesh.PrimitiveCount * 3
@@ -279,14 +280,14 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
 
         var renderData = GetOrCreateState(model);
 
-        mDevice.SetMaterial(mGeometryShadowMaterial);
+        _device.SetMaterial(_geometryShadowMaterial);
 
         var globals = new ShadowGlobals();
         globals.projMatrix = camera.GetViewProj();
         globals.globalLightDir = globalLight.dir;
         globals.offsetZ = new Vector4(animParams.offsetZ, 0, 0, 0);
         globals.alpha = new Vector4( alpha, 0, 0, 0 );
-        mDevice.SetVertexShaderConstants(0, ref globals);
+        _device.SetVertexShaderConstants(0, ref globals);
 
         var materialIds = model.GetSubmeshes();
         for (var i = 0; i < materialIds.Length; ++i) {
@@ -295,8 +296,8 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
             var submeshData = GetSubmeshData(renderData, i, submesh);
             submeshData.binding.Resource.Bind();
 
-            mDevice.SetIndexBuffer(submeshData.idxBuffer);
-            mDevice.DrawIndexed(PrimitiveType.TriangleList,
+            _device.SetIndexBuffer(submeshData.idxBuffer);
+            _device.DrawIndexed(PrimitiveType.TriangleList,
                 submesh.VertexCount,
                 submesh.PrimitiveCount * 3
             );
@@ -344,9 +345,9 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
             shadowMapWorldHeight = lightDir.Z + height + 4 * radius;
         }
 
-        mDevice.PushRenderTarget(mShadowTarget, null);
+        _device.PushRenderTarget(_shadowTarget, null);
 
-        mDevice.SetMaterial(mShadowMapMaterial);
+        _device.SetMaterial(_shadowMapMaterial);
 
         // Set shader params
         ShadowShaderGlobals globals = new ShadowShaderGlobals();
@@ -359,29 +360,29 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
         globals.lightDir = lightDir;
         globals.height.X = center.Y;
         globals.color = new Vector4(0, 0, 0, 0.5f);
-        mDevice.SetVertexShaderConstants(0, ref globals);
+        _device.SetVertexShaderConstants(0, ref globals);
 
-        mDevice.ClearCurrentColorTarget(new LinearColorA(0, 0, 0, 0));
+        _device.ClearCurrentColorTarget(new LinearColorA(0, 0, 0, 0));
 
         for (int i = 0; i < models.Count; ++i) {
             RenderWithoutMaterial(models[i], modelParams[i]);
         }
 		        
         if (softShadows) {
-            mDevice.PushRenderTarget(mShadowTargetTmp, null);
-            mDevice.SetMaterial(mGaussBlurHor);
-            mShapeRenderer2d.DrawFullScreenQuad();
+            _device.PushRenderTarget(_shadowTargetTmp, null);
+            _device.SetMaterial(_gaussBlurHor);
+            _shapeRenderer2d.DrawFullScreenQuad();
             // Explicitly unbind the input texture because it'll be briefly restored to the output by PopRenderTarget
-            mDevice.SetTexture(0, Textures.InvalidTexture);
-            mDevice.PopRenderTarget();
+            _device.SetTexture(0, Textures.InvalidTexture);
+            _device.PopRenderTarget();
 
-            mDevice.PushRenderTarget(mShadowTarget, null);
-            mDevice.SetMaterial(mGaussBlurVer);
-            mShapeRenderer2d.DrawFullScreenQuad();
-            mDevice.PopRenderTarget();
+            _device.PushRenderTarget(_shadowTarget, null);
+            _device.SetMaterial(_gaussBlurVer);
+            _shapeRenderer2d.DrawFullScreenQuad();
+            _device.PopRenderTarget();
         }
 	        
-        mDevice.PopRenderTarget();
+        _device.PopRenderTarget();
 
         var shadowMapWorldBottom = shadowMapWorldZ + shadowMapWorldHeight;
         var shadowMapWorldRight = shadowMapWorldX + shadowMapWorldWidth;
@@ -396,7 +397,7 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
         corners[2].uv = new Vector2( 1, 1 );
         corners[3].uv = new Vector2( 1, 0 );
 
-        mShapeRenderer3d.DrawQuad(viewport, corners, new PackedLinearColorA( 0xFFFFFFFF), mShadowTarget.Resource);
+        _shapeRenderer3d.DrawQuad(viewport, corners, new PackedLinearColorA( 0xFFFFFFFF), _shadowTarget.Resource);
     }
 
     // Data to be stored for an AAS model so it can be rendered
@@ -427,7 +428,7 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
 
     private class AasRenderData : IRenderState
     {
-        public readonly AasRenderSubmeshData[] submeshes = new AasRenderSubmeshData[16];
+        public readonly AasRenderSubmeshData?[] submeshes = new AasRenderSubmeshData[16];
 
         public void Dispose()
         {
@@ -438,12 +439,12 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
 
     public void Dispose()
     {
-        mGeometryShadowMaterial.Dispose();
-        mShadowTarget.Dispose();
-        mShadowTargetTmp.Dispose();
-        mShadowMapMaterial.Dispose();
-        mGaussBlurHor.Dispose();
-        mGaussBlurVer.Dispose();
+        _geometryShadowMaterial.Dispose();
+        _shadowTarget.Dispose();
+        _shadowTargetTmp.Dispose();
+        _shadowMapMaterial.Dispose();
+        _gaussBlurHor.Dispose();
+        _gaussBlurVer.Dispose();
     }
 }
 

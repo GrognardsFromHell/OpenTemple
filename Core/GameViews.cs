@@ -3,11 +3,11 @@ using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core;
 
-public class GameViews
+public static class GameViews
 {
-    public delegate void PrimaryChangeEvent(IGameViewport previous, IGameViewport current);
+    public delegate void PrimaryChangeEvent(IGameViewport? previous, IGameViewport? current);
 
-    public static event PrimaryChangeEvent OnPrimaryChange;
+    public static event PrimaryChangeEvent? OnPrimaryChange;
 
     public static IGameViewport? Primary { get; private set; }
 

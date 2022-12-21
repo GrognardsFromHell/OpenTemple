@@ -39,11 +39,11 @@ public class AnimEvents
 
 public struct AasMaterial
 {
-    private object _material;
+    private object? _material;
 
     public MaterialPlaceholderSlot? Slot { get; }
 
-    public object Material
+    public object? Material
     {
         get => _material;
         set

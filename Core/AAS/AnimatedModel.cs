@@ -1273,7 +1273,7 @@ internal class AnimatedModel : IDisposable
         }
     }
 
-    public IRenderState RenderState
+    public IRenderState? RenderState
     {
         get => _renderState;
         set

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Numerics;
@@ -42,6 +41,86 @@ public class RenderingDevice : IDisposable
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     private readonly IOutputSurface _outputSurface;
+
+    private SizeF _uiCanvasSize;
+
+    private Matrix4x4 _uiProjection;
+
+    public ref Matrix4x4 UiProjection => ref _uiProjection;
+
+    /// <summary>
+    /// Sets the UI canvas size that will be used as the coordinate system by drawing operations that
+    /// refer to UI coordinates.
+    /// </summary>
+    public SizeF UiCanvasSize
+    {
+        get => _uiCanvasSize;
+        set
+        {
+            _uiCanvasSize = value;
+            _uiProjection = CreateUIProjection(value.Width, value.Height);
+            _textEngine.CanvasSize = value;
+        }
+    }
+
+    private int _drawDepth = 0;
+
+    private readonly Factory1 _dxgiFactory;
+
+    // D3D11 device and related
+    public D3D11Device Device { get; private set; }
+
+    private SharpDX.Direct3D11.Device1? _d3d11Device1;
+
+    private readonly DeviceContext _context;
+    private ResourceRef<RenderTargetTexture> _backBuffer;
+    private ResourceRef<RenderTargetDepthStencil> _backBufferDepthStencil;
+
+    internal DeviceContext Context => _context;
+
+    private readonly Shaders _shaders;
+    private readonly Textures _textures;
+    private readonly Stack<RenderTarget> _renderTargetStack = new(16);
+
+    private List<DisplayDevice>? _displayDevices;
+
+    private readonly Buffer _vsConstantBuffer;
+    private readonly Buffer _psConstantBuffer;
+
+    private readonly Dictionary<int, ResizeListener> _resizeListeners = new();
+    private int _resizeListenersKey = 0;
+
+    private readonly List<IResourceLifecycleListener> _resourcesListeners = new();
+    private bool _resourcesCreated = false;
+
+    private TimePoint _lastFrameStart = TimePoint.Now;
+    private readonly TimePoint _deviceCreated = TimePoint.Now;
+
+    private int _usedSamplers = 0;
+
+    // Caches for created device states
+    private readonly SamplerState[] _currentSamplerState = new SamplerState[4];
+
+    private readonly Dictionary<SamplerSpec, ResourceRef<SamplerState>> _samplerStates = new();
+
+    private DepthStencilState _currentDepthStencilState;
+
+    private readonly Dictionary<DepthStencilSpec, ResourceRef<DepthStencilState>> _depthStencilStates = new();
+
+    private BlendState _currentBlendState;
+
+    private readonly Dictionary<BlendSpec, ResourceRef<BlendState>> _blendStates = new();
+
+    private RasterizerState _currentRasterizerState;
+
+    private readonly Dictionary<RasterizerSpec, ResourceRef<RasterizerState>> _rasterizerStates = new();
+
+    // Debugging related
+    private readonly bool _debugDevice;
+    private readonly UserDefinedAnnotation? _annotation;
+
+    // Text rendering (Direct2D integration)
+    private readonly TextEngine _textEngine;
 
     public RenderingDevice(IFileSystem fs, IMainWindow mainWindow, int adapterIdx = 0, bool debugDevice = false)
     {
@@ -112,15 +191,14 @@ public class RenderingDevice : IDisposable
             throw new GfxException("Unable to create a Direct3D 11 device.", e);
         }
 
-        _featureLevel = Device.FeatureLevel;
         _context = Device.ImmediateContext;
 
-        Logger.Info("Created D3D11 device with feature level {0}", _featureLevel);
+        Logger.Info("Created D3D11 device with feature level {0}", Device.FeatureLevel);
 
         if (debugDevice)
         {
             // Retrieve the interface used to emit event groupings for debugging
-            annotation = _context.QueryInterfaceOrNull<UserDefinedAnnotation>();
+            _annotation = _context.QueryInterfaceOrNull<UserDefinedAnnotation>();
         }
 
         // Retrieve DXGI device
@@ -157,19 +235,19 @@ public class RenderingDevice : IDisposable
         PushBackBufferRenderTarget();
 
         // Create centralized constant buffers for the vertex and pixel shader stages
-        mVsConstantBuffer = CreateEmptyConstantBuffer(MaxVsConstantBufferSize);
-        SetDebugName(mVsConstantBuffer, "VsConstantBuffer");
-        mPsConstantBuffer = CreateEmptyConstantBuffer(MaxPsConstantBufferSize);
-        SetDebugName(mPsConstantBuffer, "PsConstantBuffer");
+        _vsConstantBuffer = CreateEmptyConstantBuffer(MaxVsConstantBufferSize);
+        SetDebugName(_vsConstantBuffer, "VsConstantBuffer");
+        _psConstantBuffer = CreateEmptyConstantBuffer(MaxPsConstantBufferSize);
+        SetDebugName(_psConstantBuffer, "PsConstantBuffer");
 
         // TODO: color bullshit is not yet done (tig_d3d_init_handleformat et al)
 
-        foreach (var listener in mResourcesListeners)
+        foreach (var listener in _resourcesListeners)
         {
             listener.CreateResources(this);
         }
 
-        mResourcesCreated = true;
+        _resourcesCreated = true;
 
         // This is only relevant if we are in windowed mode
         mainWindow.Resized += size => ResizeBuffers();
@@ -226,7 +304,10 @@ public class RenderingDevice : IDisposable
         var target = GetCurrentRenderTargetColorBuffer();
 
         // Clear the current render target view
-        _context.ClearRenderTargetView(target.RenderTargetView, color);
+        if (target != null)
+        {
+            _context.ClearRenderTargetView(target.RenderTargetView, color);
+        }
     }
 
     public void ClearCurrentDepthTarget(bool clearDepth = true,
@@ -268,15 +349,15 @@ public class RenderingDevice : IDisposable
     public List<DisplayDevice> GetDisplayDevices()
     {
         // Recreate the DXGI factory if we want to enumerate a new list of devices
-        if (mDisplayDevices != null && _dxgiFactory.IsCurrent)
+        if (_displayDevices != null && _dxgiFactory.IsCurrent)
         {
-            return mDisplayDevices;
+            return _displayDevices;
         }
 
         // Enumerate devices
         Logger.Info("Enumerating DXGI display devices...");
 
-        mDisplayDevices = new List<DisplayDevice>();
+        _displayDevices = new List<DisplayDevice>();
 
         int adapterCount = _dxgiFactory.GetAdapterCount1();
         for (int adapterIdx = 0; adapterIdx < adapterCount; adapterIdx++)
@@ -302,24 +383,11 @@ public class RenderingDevice : IDisposable
 
                 var deviceName = outputDesc.DeviceName;
 
-                Span<char> monitorName = stackalloc char[128];
-                int monitorNameSize = monitorName.Length;
-                unsafe
-                {
-                    fixed (char* monitorNamePtr = monitorName)
-                    {
-                        if (!Win32_GetMonitorName(outputDesc.MonitorHandle, monitorNamePtr, ref monitorNameSize))
-                        {
-                            Logger.Warn("Failed to determine monitor name.");
-                        }
-                    }
-                }
-
-                monitorName = monitorName.Slice(0, monitorNameSize);
+                var monitorName = GetMonitorName(ref outputDesc);
 
                 DisplayDeviceOutput displayOutput = new DisplayDeviceOutput();
                 displayOutput.id = deviceName;
-                displayOutput.name = new string(monitorName);
+                displayOutput.name = monitorName;
                 Logger.Info("  Output #{0} Device '{1}' Monitor '{2}'", outputIdx,
                     deviceName, displayOutput.name);
                 displayDevice.outputs.Add(displayOutput);
@@ -327,7 +395,7 @@ public class RenderingDevice : IDisposable
 
             if (displayDevice.outputs.Count > 0)
             {
-                mDisplayDevices.Add(displayDevice);
+                _displayDevices.Add(displayDevice);
             }
             else
             {
@@ -335,7 +403,25 @@ public class RenderingDevice : IDisposable
             }
         }
 
-        return mDisplayDevices;
+        return _displayDevices;
+    }
+
+    private static string GetMonitorName(ref OutputDescription outputDesc)
+    {
+        Span<char> monitorName = stackalloc char[128];
+        int monitorNameSize = monitorName.Length;
+        unsafe
+        {
+            fixed (char* monitorNamePtr = monitorName)
+            {
+                if (!Win32_GetMonitorName(outputDesc.MonitorHandle, monitorNamePtr, ref monitorNameSize))
+                {
+                    Logger.Warn("Failed to determine monitor name.");
+                }
+            }
+        }
+
+        return new string(monitorName[..monitorNameSize]);
     }
 
     [DllImport(OpenTempleLib.Path)]
@@ -366,32 +452,31 @@ public class RenderingDevice : IDisposable
         var size = _backBuffer.Resource.GetSize();
 
         // Notice listeners about changed backbuffer size
-        foreach (var entry in mResizeListeners)
+        foreach (var entry in _resizeListeners)
         {
             entry.Value(size.Width, size.Height);
         }
     }
 
     public Material CreateMaterial(
-        BlendSpec blendSpec,
-        DepthStencilSpec depthStencilSpec,
-        RasterizerSpec rasterizerSpec,
-        MaterialSamplerSpec[] samplerSpecs,
+        BlendSpec? blendSpec,
+        DepthStencilSpec? depthStencilSpec,
+        RasterizerSpec? rasterizerSpec,
+        MaterialSamplerSpec[]? samplerSpecs,
         VertexShader vs,
         PixelShader ps
     )
     {
-        blendSpec = blendSpec ?? new BlendSpec();
-        depthStencilSpec = depthStencilSpec ?? new DepthStencilSpec();
-        rasterizerSpec = rasterizerSpec ?? new RasterizerSpec();
-        samplerSpecs = samplerSpecs ?? Array.Empty<MaterialSamplerSpec>();
+        blendSpec ??= new BlendSpec();
+        depthStencilSpec ??= new DepthStencilSpec();
+        rasterizerSpec ??= new RasterizerSpec();
+        samplerSpecs ??= Array.Empty<MaterialSamplerSpec>();
 
         var blendState = CreateBlendState(blendSpec);
         var depthStencilState = CreateDepthStencilState(depthStencilSpec);
         var rasterizerState = CreateRasterizerState(rasterizerSpec);
 
-        List<ResourceRef<MaterialSamplerBinding>> samplerBindings =
-            new List<ResourceRef<MaterialSamplerBinding>>(samplerSpecs.Length);
+        var samplerBindings = new List<ResourceRef<MaterialSamplerBinding>>(samplerSpecs.Length);
         foreach (var samplerSpec in samplerSpecs)
         {
             using var samplerState = CreateSamplerState(samplerSpec.samplerSpec);
@@ -1117,13 +1202,13 @@ public class RenderingDevice : IDisposable
 
     public void SetSamplerState(int samplerIdx, SamplerState state)
     {
-        var curSampler = currentSamplerState[samplerIdx];
+        var curSampler = _currentSamplerState[samplerIdx];
         if (curSampler == state)
         {
             return; // Already set
         }
 
-        currentSamplerState[samplerIdx] = state;
+        _currentSamplerState[samplerIdx] = state;
 
         _context.PixelShader.SetSampler(samplerIdx, state.GpuState);
     }
@@ -1265,7 +1350,7 @@ public class RenderingDevice : IDisposable
     public void ReadRenderTarget(RenderTargetTexture renderTarget, RenderTargetReader reader,
         int width = 0, int height = 0)
     {
-        annotation?.SetMarker("ReadRenderTarget");
+        _annotation?.SetMarker("ReadRenderTarget");
 
         var targetSize = renderTarget.GetSize();
 
@@ -1349,7 +1434,7 @@ public class RenderingDevice : IDisposable
 
             PopRenderTarget();
 
-            // Copy our stretchted RT to the staging resource
+            // Copy our stretched RT to the staging resource
             _context.CopyResource(stretchedRt.Resource.Texture, stagingTex);
         }
         else
@@ -1501,8 +1586,8 @@ public class RenderingDevice : IDisposable
         ReadOnlySpan<byte> rawSpan = MemoryMarshal.Cast<T, byte>(span);
 
         Trace.Assert(rawSpan.Length <= MaxVsConstantBufferSize, "Constant buffer exceeds maximum size");
-        UpdateResource(mVsConstantBuffer, rawSpan);
-        VSSetConstantBuffer(slot, mVsConstantBuffer);
+        UpdateResource(_vsConstantBuffer, rawSpan);
+        VSSetConstantBuffer(slot, _vsConstantBuffer);
     }
 
     public const int MaxPsConstantBufferSize = 512;
@@ -1511,8 +1596,8 @@ public class RenderingDevice : IDisposable
     {
         var rawSpan = MemoryMarshal.Cast<T, byte>(buffer);
         Trace.Assert(rawSpan.Length <= MaxPsConstantBufferSize, "Constant buffer exceeds maximum size");
-        UpdateResource(mPsConstantBuffer, rawSpan);
-        PSSetConstantBuffer(slot, mPsConstantBuffer);
+        UpdateResource(_psConstantBuffer, rawSpan);
+        PSSetConstantBuffer(slot, _psConstantBuffer);
     }
 
     public Size GetBackBufferSize() => _backBuffer.Resource.GetSize();
@@ -1525,7 +1610,7 @@ public class RenderingDevice : IDisposable
 
     public void PushRenderTarget(
         RenderTargetTexture colorBuffer,
-        RenderTargetDepthStencil depthStencilBuffer
+        RenderTargetDepthStencil? depthStencilBuffer
     )
     {
         // If a depth stencil surface is to be used, it HAS to be the same size
@@ -1562,15 +1647,15 @@ public class RenderingDevice : IDisposable
 
     public void PopRenderTarget()
     {
-        // The last targt should NOT be popped, if the backbuffer was auto-pushed
+        // The last target should NOT be popped, if the backbuffer was auto-pushed
         if (_backBuffer.Resource != null)
         {
             Trace.Assert(_renderTargetStack.Count > 1);
         }
 
         var poppedTarget = _renderTargetStack.Pop();
-        poppedTarget.colorBuffer.Dispose();
-        poppedTarget.depthStencilBuffer.Dispose();
+        poppedTarget.ColorBuffer.Dispose();
+        poppedTarget.DepthStencilBuffer.Dispose();
 
         if (_renderTargetStack.Count == 0)
         {
@@ -1582,43 +1667,45 @@ public class RenderingDevice : IDisposable
         var newTarget = _renderTargetStack.Peek();
 
         // Activate the render target on the device
-        var rtv = newTarget.colorBuffer.Resource.RenderTargetView;
+        var rtv = newTarget.ColorBuffer.Resource?.RenderTargetView;
         DepthStencilView depthStencilView = null; // Optional!
-        if (newTarget.depthStencilBuffer.Resource != null)
+        if (newTarget.DepthStencilBuffer.Resource != null)
         {
-            depthStencilView = newTarget.depthStencilBuffer.Resource.DsView;
+            depthStencilView = newTarget.DepthStencilBuffer.Resource.DsView;
         }
 
         _context.OutputMerger.SetRenderTargets(depthStencilView, rtv);
-        _textEngine.SetRenderTarget(newTarget.colorBuffer.Resource.Texture.NativePointer);
+        _textEngine.SetRenderTarget(newTarget.ColorBuffer.Resource?.Texture?.NativePointer ?? IntPtr.Zero);
 
         // Set the viewport accordingly
         var size = newTarget.Size;
-        var viewport = new RawViewportF();
-        viewport.Width = size.Width;
-        viewport.Height = size.Height;
-        viewport.MinDepth = 0.0f;
-        viewport.MaxDepth = 1.0f;
+        var viewport = new RawViewportF
+        {
+            Width = size.Width,
+            Height = size.Height,
+            MinDepth = 0.0f,
+            MaxDepth = 1.0f
+        };
         _context.Rasterizer.SetViewports(new[] { viewport }, 1);
 
         ResetScissorRect();
         SetGpuRasterizerState();
     }
 
-    public RenderTargetTexture GetCurrentRenderTargetColorBuffer()
+    public RenderTargetTexture? GetCurrentRenderTargetColorBuffer()
     {
-        return _renderTargetStack.Peek().colorBuffer.Resource;
+        return _renderTargetStack.Peek().ColorBuffer.Resource;
     }
 
-    public RenderTargetDepthStencil GetCurrentRenderTargetDepthStencilBuffer()
+    public RenderTargetDepthStencil? GetCurrentRenderTargetDepthStencilBuffer()
     {
-        return _renderTargetStack.Peek().depthStencilBuffer.Resource;
+        return _renderTargetStack.Peek().DepthStencilBuffer.Resource;
     }
 
     public int AddResizeListener(ResizeListener listener)
     {
-        var newKey = ++mResizeListenersKey;
-        mResizeListeners[newKey] = listener;
+        var newKey = ++_resizeListenersKey;
+        _resizeListeners[newKey] = listener;
         return newKey;
     }
 
@@ -1651,7 +1738,7 @@ public class RenderingDevice : IDisposable
     {
         if (_debugDevice)
         {
-            annotation?.EndEvent();
+            _annotation?.EndEvent();
         }
     }
 
@@ -1659,32 +1746,29 @@ public class RenderingDevice : IDisposable
 
     public void Dispose()
     {
-        _textEngine?.Dispose();
+        _textEngine.Dispose();
 
         _d3d11Device1?.Dispose();
         _d3d11Device1 = null;
 
-        Device?.Dispose();
-        Device = null;
-
-        _dxgiFactory?.Dispose();
-        _dxgiFactory = null;
+        Device.Dispose();
+        _dxgiFactory.Dispose();
     }
 
     private void BeginPerfGroupInternal(string message)
     {
-        annotation?.BeginEvent(message);
+        _annotation?.BeginEvent(message);
     }
 
     internal void RemoveResizeListener(int key)
     {
-        mResizeListeners.Remove(key);
+        _resizeListeners.Remove(key);
     }
 
     internal void AddResourceListener(IResourceLifecycleListener listener)
     {
-        mResourcesListeners.Add(listener);
-        if (mResourcesCreated)
+        _resourcesListeners.Add(listener);
+        if (_resourcesCreated)
         {
             listener.CreateResources(this);
         }
@@ -1692,8 +1776,8 @@ public class RenderingDevice : IDisposable
 
     internal void RemoveResourceListener(IResourceLifecycleListener listener)
     {
-        mResourcesListeners.Remove(listener);
-        if (mResourcesCreated)
+        _resourcesListeners.Remove(listener);
+        if (_resourcesCreated)
         {
             listener.FreeResources(this);
         }
@@ -1770,27 +1854,6 @@ public class RenderingDevice : IDisposable
         return new Span<byte>((void*)mapped.DataPointer, bufferSize);
     }
 
-    private SizeF _uiCanvasSize;
-
-    private Matrix4x4 _uiProjection;
-
-    public ref Matrix4x4 UiProjection => ref _uiProjection;
-
-    /// <summary>
-    /// Sets the UI canvas size that will be used as the coordinate system by drawing operations that
-    /// refer to UI coordinates.
-    /// </summary>
-    public SizeF UiCanvasSize
-    {
-        get => _uiCanvasSize;
-        set
-        {
-            _uiCanvasSize = value;
-            _uiProjection = CreateUIProjection(value.Width, value.Height);
-            _textEngine.CanvasSize = value;
-        }
-    }
-
     // Ported from XMMatrixOrthographicOffCenterLH
     private static Matrix4x4 CreateUIProjection(float width, float height)
     {
@@ -1809,96 +1872,6 @@ public class RenderingDevice : IDisposable
     {
         return _dxgiFactory.GetAdapter1(index);
     }
-
-    private int _drawDepth = 0;
-
-    private Factory1 _dxgiFactory;
-
-    // D3D11 device and related
-    public D3D11Device Device { get; private set; }
-
-    [MaybeNull]
-    private SharpDX.Direct3D11.Device1 _d3d11Device1;
-
-    private DeviceContext _context;
-    private ResourceRef<RenderTargetTexture> _backBuffer;
-    private ResourceRef<RenderTargetDepthStencil> _backBufferDepthStencil;
-
-    internal DeviceContext Context => _context;
-
-    struct RenderTarget
-    {
-        public ResourceRef<RenderTargetTexture> colorBuffer;
-        public ResourceRef<RenderTargetDepthStencil> depthStencilBuffer;
-        public bool IsMultiSampled { get; }
-        public Size Size => colorBuffer.Resource.GetSize();
-
-        public RenderTarget(RenderTargetTexture colorBuffer, RenderTargetDepthStencil depthStencilBuffer)
-        {
-            this.colorBuffer = default;
-            this.depthStencilBuffer = default;
-            IsMultiSampled = false;
-
-            if (colorBuffer != null)
-            {
-                this.colorBuffer = new ResourceRef<RenderTargetTexture>(colorBuffer);
-                IsMultiSampled = colorBuffer.IsMultiSampled;
-            }
-
-            if (depthStencilBuffer != null)
-            {
-                this.depthStencilBuffer = new ResourceRef<RenderTargetDepthStencil>(depthStencilBuffer);
-            }
-        }
-    };
-
-    private Stack<RenderTarget> _renderTargetStack = new(16);
-
-    private FeatureLevel _featureLevel = FeatureLevel.Level_9_1;
-
-    private List<DisplayDevice> mDisplayDevices;
-
-    private Buffer mVsConstantBuffer;
-    private Buffer mPsConstantBuffer;
-
-    private Dictionary<int, ResizeListener> mResizeListeners = new();
-    private int mResizeListenersKey = 0;
-
-    private List<IResourceLifecycleListener> mResourcesListeners = new();
-    private bool mResourcesCreated = false;
-
-
-    private TimePoint _lastFrameStart = TimePoint.Now;
-    private TimePoint _deviceCreated = TimePoint.Now;
-
-    private int _usedSamplers = 0;
-
-    private Shaders _shaders;
-    private Textures _textures;
-
-    // Caches for created device states
-    private SamplerState[] currentSamplerState = new SamplerState[4];
-
-    private readonly Dictionary<SamplerSpec, ResourceRef<SamplerState>> _samplerStates = new();
-
-    private DepthStencilState _currentDepthStencilState;
-
-    private readonly Dictionary<DepthStencilSpec, ResourceRef<DepthStencilState>> _depthStencilStates = new();
-
-    private BlendState _currentBlendState;
-
-    private readonly Dictionary<BlendSpec, ResourceRef<BlendState>> _blendStates = new();
-
-    private RasterizerState _currentRasterizerState;
-
-    private readonly Dictionary<RasterizerSpec, ResourceRef<RasterizerState>> _rasterizerStates = new();
-
-    // Debugging related
-    private readonly bool _debugDevice;
-    private UserDefinedAnnotation annotation;
-
-    // Text rendering (Direct2D integration)
-    private readonly TextEngine _textEngine;
 
     private interface IOutputSurface : IDisposable
     {
@@ -1998,16 +1971,55 @@ public class RenderingDevice : IDisposable
             device.Context.Flush();
         }
     }
+    
+    struct RenderTarget
+    {
+        public OptionalResourceRef<RenderTargetTexture> ColorBuffer;
+        public OptionalResourceRef<RenderTargetDepthStencil> DepthStencilBuffer;
+        public bool IsMultiSampled { get; }
+        public Size Size
+        {
+            get
+            {
+                if (ColorBuffer.Resource != null)
+                {
+                    return ColorBuffer.Resource.GetSize();
+                }
+
+                if (DepthStencilBuffer.Resource != null)
+                {
+                    return DepthStencilBuffer.Resource.Size;
+                }
+
+                return Size.Empty;
+            }
+        }
+
+        public RenderTarget(RenderTargetTexture? colorBuffer, RenderTargetDepthStencil? depthStencilBuffer)
+        {
+            ColorBuffer = default;
+            DepthStencilBuffer = default;
+            IsMultiSampled = false;
+
+            if (colorBuffer != null)
+            {
+                ColorBuffer = new OptionalResourceRef<RenderTargetTexture>(colorBuffer);
+                IsMultiSampled = colorBuffer.IsMultiSampled;
+            }
+
+            DepthStencilBuffer = new OptionalResourceRef<RenderTargetDepthStencil>(depthStencilBuffer);
+        }
+    }
 }
 
 public delegate void ResizeListener(int w, int h);
 
 public class MaterialSamplerSpec
 {
-    public ResourceRef<ITexture> texture;
+    public OptionalResourceRef<ITexture> texture;
     public SamplerSpec samplerSpec;
 
-    public MaterialSamplerSpec(ResourceRef<ITexture> texture, SamplerSpec samplerSpec)
+    public MaterialSamplerSpec(OptionalResourceRef<ITexture> texture, SamplerSpec samplerSpec)
     {
         this.texture = texture;
         this.samplerSpec = samplerSpec;

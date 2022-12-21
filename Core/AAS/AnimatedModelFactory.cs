@@ -187,15 +187,16 @@ internal class AnimatedModelAdapter : IAnimatedModel
         model_.SetClothFlagSth();
     }
 
-    public IMdfRenderMaterial[] GetSubmeshes()
+    public IMdfRenderMaterial?[] GetSubmeshes()
     {
         var materials = model_.GetSubmeshes();
-        IMdfRenderMaterial[] result = new IMdfRenderMaterial[materials.Count];
+        var result = new IMdfRenderMaterial[materials.Count];
         for (var i = 0; i < materials.Count; i++)
         {
-            if (materials[i].Material != null)
+            var material = materials[i].Material;
+            if (material != null)
             {
-                result[i] = ((ResourceRef<IMdfRenderMaterial>) materials[i].Material).Resource;
+                result[i] = ((ResourceRef<IMdfRenderMaterial>) material).Resource;
             }
         }
 

@@ -20,7 +20,7 @@ public sealed class FileLogger : LoggerBase
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
     }
 
-    private void OnProcessExit(object sender, EventArgs e)
+    private void OnProcessExit(object? sender, EventArgs e)
     {
         _writer.Close();
     }

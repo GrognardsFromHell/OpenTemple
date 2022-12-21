@@ -7,263 +7,263 @@ public class PartSysEmitterSpec
 {
     public PartSysEmitterSpec(PartSysSpec parent, string name)
     {
-        mParent = parent;
-        mName = name;
-        mParams = new IPartSysParam[(int) PartSysParamId.part_attractorBlend + 1];
+        _parent = parent;
+        _name = name;
+        _params = new IPartSysParam[(int) PartSysParamId.part_attractorBlend + 1];
     }
 
     public string GetName()
     {
-        return mName;
+        return _name;
     }
 
     public PartSysSpec GetParent()
     {
-        return mParent;
+        return _parent;
     }
 
     public float GetDelay()
     {
-        return mDelay;
+        return _delay;
     }
 
     public void SetDelay(float delay)
     {
-        mDelay = delay;
+        _delay = delay;
     }
 
     public bool IsPermanent()
     {
-        return mPermanent;
+        return _permanent;
     }
 
     public void SetPermanent(bool enable)
     {
-        mPermanent = enable;
+        _permanent = enable;
     }
 
     public float GetLifespan()
     {
-        return mLifespan;
+        return _lifespan;
     }
 
     public void SetLifespan(float lifespan)
     {
-        mLifespan = lifespan;
+        _lifespan = lifespan;
     }
 
     public bool IsPermanentParticles()
     {
-        return mPermanentParticles;
+        return _permanentParticles;
     }
 
     public void SetPermanentParticles(bool permanentParticles)
     {
-        mPermanentParticles = permanentParticles;
+        _permanentParticles = permanentParticles;
     }
 
     public float GetParticleLifespan()
     {
-        return mParticleLifespan;
+        return _particleLifespan;
     }
 
     public void SetParticleLifespan(float particleLifespan)
     {
-        mParticleLifespan = particleLifespan;
+        _particleLifespan = particleLifespan;
     }
 
     public int GetMaxParticles()
     {
-        return mMaxParticles;
+        return _maxParticles;
     }
 
     public void SetMaxParticles(int maxParticles)
     {
-        mMaxParticles = maxParticles;
+        _maxParticles = maxParticles;
     }
 
     public float GetParticleRate()
     {
-        return mParticleRate;
+        return _particleRate;
     }
 
     public void SetParticleRate(float particleRate)
     {
-        mParticleRate = particleRate;
+        _particleRate = particleRate;
     }
 
     // This is the minimal particle spawn rate when fidelity is 0
     public float GetParticleRateMin()
     {
-        return mParticleRateMin;
+        return _particleRateMin;
     }
 
     // This is the minimal particle spawn rate when fidelity is 0
     public void SetParticleRateMin(float particleRateSecondary)
     {
-        mParticleRateMin = particleRateSecondary;
+        _particleRateMin = particleRateSecondary;
     }
 
     public float GetEffectiveParticleRate(float fidelity)
     {
-        return mParticleRateMin + (mParticleRate - mParticleRateMin) * fidelity;
+        return _particleRateMin + (_particleRate - _particleRateMin) * fidelity;
     }
 
     public bool IsInstant()
     {
-        return mInstant;
+        return _instant;
     }
 
     public void SetInstant(bool instant)
     {
-        mInstant = instant;
+        _instant = instant;
     }
 
     public PartSysEmitterSpace GetSpace()
     {
-        return mSpace;
+        return _space;
     }
 
     public void SetSpace(PartSysEmitterSpace space)
     {
-        mSpace = space;
+        _space = space;
     }
 
     public string GetNodeName()
     {
-        return mNodeName;
+        return _nodeName;
     }
 
     public void SetNodeName(string nodeName)
     {
-        mNodeName = nodeName;
+        _nodeName = nodeName;
     }
 
     public PartSysCoordSys GetCoordSys()
     {
-        return mCoordSys;
+        return _coordSys;
     }
 
     public void SetCoordSys(PartSysCoordSys coordSys)
     {
-        mCoordSys = coordSys;
+        _coordSys = coordSys;
     }
 
     public PartSysCoordSys GetOffsetCoordSys()
     {
-        return mOffsetCoordSys;
+        return _offsetCoordSys;
     }
 
     public void SetOffsetCoordSys(PartSysCoordSys offsetCoordSys)
     {
-        mOffsetCoordSys = offsetCoordSys;
+        _offsetCoordSys = offsetCoordSys;
     }
 
     public PartSysBlendMode GetBlendMode()
     {
-        return mBlendMode;
+        return _blendMode;
     }
 
     public void SetBlendMode(PartSysBlendMode blendMode)
     {
-        mBlendMode = blendMode;
+        _blendMode = blendMode;
     }
 
     public string GetTextureName()
     {
-        return mTextureName;
+        return _textureName;
     }
 
     public void SetTextureName(string texture)
     {
-        mTextureName = texture;
+        _textureName = texture;
     }
 
     public PartSysCoordSys GetParticlePosCoordSys()
     {
-        return mParticlePosCoordSys;
+        return _particlePosCoordSys;
     }
 
     public void SetParticlePosCoordSys(PartSysCoordSys particlePosCoordSys)
     {
-        mParticlePosCoordSys = particlePosCoordSys;
+        _particlePosCoordSys = particlePosCoordSys;
     }
 
     public PartSysCoordSys GetParticleVelocityCoordSys()
     {
-        return mParticleVelocityCoordSys;
+        return _particleVelocityCoordSys;
     }
 
     public void SetParticleVelocityCoordSys(PartSysCoordSys particleVelocityCoordSys)
     {
-        mParticleVelocityCoordSys = particleVelocityCoordSys;
+        _particleVelocityCoordSys = particleVelocityCoordSys;
     }
 
     public PartSysParticleSpace GetParticleSpace()
     {
-        return mParticleSpace;
+        return _particleSpace;
     }
 
     public void SetParticleSpace(PartSysParticleSpace particleSpace)
     {
-        mParticleSpace = particleSpace;
+        _particleSpace = particleSpace;
     }
 
     public string GetMeshName()
     {
-        return mMeshName;
+        return _meshName;
     }
 
     public void SetMeshName(string meshName)
     {
-        mMeshName = meshName;
+        _meshName = meshName;
     }
 
     public float GetBoxLeft()
     {
-        return mBoxLeft;
+        return _boxLeft;
     }
 
     public void SetBoxLeft(float boxLeft)
     {
-        mBoxLeft = boxLeft;
+        _boxLeft = boxLeft;
     }
 
     public float GetBoxTop()
     {
-        return mBoxTop;
+        return _boxTop;
     }
 
     public void SetBoxTop(float boxTop)
     {
-        mBoxTop = boxTop;
+        _boxTop = boxTop;
     }
 
     public float GetBoxRight()
     {
-        return mBoxRight;
+        return _boxRight;
     }
 
     public void SetBoxRight(float boxRight)
     {
-        mBoxRight = boxRight;
+        _boxRight = boxRight;
     }
 
     public float GetBoxBottom()
     {
-        return mBoxBottom;
+        return _boxBottom;
     }
 
     public void SetBoxBottom(float boxBottom)
     {
-        mBoxBottom = boxBottom;
+        _boxBottom = boxBottom;
     }
 
-    public IPartSysParam GetParam(PartSysParamId id)
+    public IPartSysParam? GetParam(PartSysParamId id)
     {
-        if ((int) id < mParams.Length)
+        if ((int) id < _params.Length)
         {
-            return mParams[(int) id];
+            return _params[(int) id];
         }
         else
         {
@@ -273,19 +273,19 @@ public class PartSysEmitterSpec
 
     public PartSysParticleType GetParticleType()
     {
-        return mParticleType;
+        return _particleType;
     }
 
     public void SetParticleType(PartSysParticleType particleType)
     {
-        mParticleType = particleType;
+        _particleType = particleType;
     }
 
     public void SetParam(PartSysParamId id, IPartSysParam param)
     {
-        if ((int) id < mParams.Length)
+        if ((int) id < _params.Length)
         {
-            mParams[(int) id] = param;
+            _params[(int) id] = param;
         }
         else
         {
@@ -293,31 +293,31 @@ public class PartSysEmitterSpec
         }
     }
 
-    private PartSysSpec mParent;
-    private string mName;
-    private bool mInstant = false;
-    private bool mPermanent = false;
-    private bool mPermanentParticles = false;
-    private float mLifespan = 1.0f;
-    private float mParticleLifespan = 1.0f;
-    private int mMaxParticles = 1;
-    private float mParticleRate = 1.0f;
-    private float mParticleRateMin = 0.0f;
-    private PartSysEmitterSpace mSpace = PartSysEmitterSpace.World;
-    private string mNodeName;
-    private PartSysCoordSys mCoordSys = PartSysCoordSys.Cartesian;
-    private PartSysCoordSys mOffsetCoordSys = PartSysCoordSys.Cartesian;
-    private PartSysBlendMode mBlendMode = PartSysBlendMode.Add;
-    private string mTextureName;
-    private PartSysCoordSys mParticlePosCoordSys = PartSysCoordSys.Cartesian;
-    private PartSysCoordSys mParticleVelocityCoordSys = PartSysCoordSys.Cartesian;
-    private PartSysParticleSpace mParticleSpace = PartSysParticleSpace.World;
-    private string mMeshName;
-    private float mBoxLeft = -399.0f;
-    private float mBoxTop = -299.0f;
-    private float mBoxRight = 399.0f;
-    private float mBoxBottom = 299.0f;
-    private IPartSysParam[] mParams;
-    private PartSysParticleType mParticleType = PartSysParticleType.Point;
-    private float mDelay = 0.0f;
+    private PartSysSpec _parent;
+    private string _name;
+    private bool _instant = false;
+    private bool _permanent = false;
+    private bool _permanentParticles = false;
+    private float _lifespan = 1.0f;
+    private float _particleLifespan = 1.0f;
+    private int _maxParticles = 1;
+    private float _particleRate = 1.0f;
+    private float _particleRateMin = 0.0f;
+    private PartSysEmitterSpace _space = PartSysEmitterSpace.World;
+    private string _nodeName;
+    private PartSysCoordSys _coordSys = PartSysCoordSys.Cartesian;
+    private PartSysCoordSys _offsetCoordSys = PartSysCoordSys.Cartesian;
+    private PartSysBlendMode _blendMode = PartSysBlendMode.Add;
+    private string _textureName;
+    private PartSysCoordSys _particlePosCoordSys = PartSysCoordSys.Cartesian;
+    private PartSysCoordSys _particleVelocityCoordSys = PartSysCoordSys.Cartesian;
+    private PartSysParticleSpace _particleSpace = PartSysParticleSpace.World;
+    private string _meshName;
+    private float _boxLeft = -399.0f;
+    private float _boxTop = -299.0f;
+    private float _boxRight = 399.0f;
+    private float _boxBottom = 299.0f;
+    private IPartSysParam[] _params;
+    private PartSysParticleType _particleType = PartSysParticleType.Point;
+    private float _delay = 0.0f;
 }

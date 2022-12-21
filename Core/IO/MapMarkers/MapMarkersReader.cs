@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using OpenTemple.Core.Ui.TownMap;
 
 namespace OpenTemple.Core.IO.MapMarkers;
 
@@ -10,7 +10,12 @@ public class MapMarkersReader
     public static PredefinedMapMarkers Load(IFileSystem fs, string path)
     {
         using var memory = fs.ReadFile(path);
-        return JsonSerializer.Deserialize<PredefinedMapMarkers>(memory.Memory.Span);
+        var markers = JsonSerializer.Deserialize<PredefinedMapMarkers>(memory.Memory.Span);
+        if (markers == null)
+        {
+            throw new InvalidDataException($"Content of file {path} was a literal 'null' value. Expected: map markers");
+        }
+        return markers;
     }
 }
 

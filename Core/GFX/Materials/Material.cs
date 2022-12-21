@@ -22,7 +22,7 @@ public class Material : GpuResource<Material>
         ResourceRef<RasterizerState> rasterizerState,
         List<ResourceRef<MaterialSamplerBinding>> samplers,
         ResourceRef<VertexShader> vertexShader,
-        ResourceRef<PixelShader> pixelShader) : base()
+        ResourceRef<PixelShader> pixelShader)
     {
         BlendState = blendState;
         DepthStencilState = depthStencilState;

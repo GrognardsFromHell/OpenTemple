@@ -13,7 +13,7 @@ internal class CollisionSphere
     public float radius;
     public Matrix3x4 worldMatrix;
     public Matrix3x4 worldMatrixInverse;
-    public CollisionSphere next;
+    public CollisionSphere? next;
 };
 
 /**
@@ -26,25 +26,25 @@ internal class CollisionCylinder
     public float height;
     public Matrix3x4 worldMatrix;
     public Matrix3x4 worldMatrixInverse;
-    public CollisionCylinder next;
+    public CollisionCylinder? next;
 };
 
 internal class CollisionGeometry
 {
-    public CollisionSphere firstSphere;
-    public CollisionCylinder firstCylinder;
+    public CollisionSphere? firstSphere;
+    public CollisionCylinder? firstCylinder;
 
-    /**
-         * Extract the cloth collision information from a list of bones.
-         * The information is parsed from the bone names.
-         */
+    /// <summary>
+    /// Extract the cloth collision information from a list of bones.
+    /// The information is parsed from the bone names.
+    /// </summary>
     public static CollisionGeometry Find(List<SkeletonBone> bones)
     {
         CollisionGeometry result = new CollisionGeometry();
 
         // Tails of the linked lists		
-        CollisionSphere spheresTail = null;
-        CollisionCylinder cylindersTail = null;
+        CollisionSphere? spheresTail = null;
+        CollisionCylinder? cylindersTail = null;
 
         // Parse cloth bone state from Skeleton
         for (var i = 0; i < bones.Count; i++)

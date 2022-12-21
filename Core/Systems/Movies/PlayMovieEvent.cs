@@ -17,7 +17,7 @@ public class PlayMovieEvent
         SoundtrackId = soundtrackId;
     }
 
-    public void Cancel([CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = -1)
+    public void Cancel([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
     {
         Cancelled = true;
         CancelledFilePath = filePath;

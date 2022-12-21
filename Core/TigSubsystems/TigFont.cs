@@ -10,30 +10,27 @@ namespace OpenTemple.Core.TigSubsystems;
 [Flags]
 public enum TigTextStyleFlag
 {
-    TTSF_DROP_SHADOW = 0x8,
-    TTSF_CENTER = 0x10,
-    TTSF_CONTINUATION_INDENT = 0x200,
-    TTSF_BACKGROUND = 0x400,
-    TTSF_BORDER = 0x800,
-    TTSF_TRUNCATE = 0x4000,
-    TTSF_ROTATE = 0x8000,
-    TTSF_ROTATE_OFF_CENTER = 0x10000
+    DropShadow = 0x8,
+    Center = 0x10,
+    ContinuationIndent = 0x200,
+    Background = 0x400,
+    Border = 0x800,
+    Truncate = 0x4000,
+    Rotate = 0x8000,
+    RotateOffCenter = 0x10000
 }
 
-public struct ColorRect
+public readonly record struct ColorRect(PackedLinearColorA TopLeft, PackedLinearColorA TopRight, PackedLinearColorA BottomLeft, PackedLinearColorA BottomRight)
 {
-    public PackedLinearColorA topLeft;
-    public PackedLinearColorA topRight;
-    public PackedLinearColorA bottomLeft;
-    public PackedLinearColorA bottomRight;
+    public static readonly ColorRect White = new(PackedLinearColorA.White);
 
-    public ColorRect(PackedLinearColorA fill)
+    public ColorRect(PackedLinearColorA fill) : this(fill, fill, fill, fill)
     {
-        topLeft = fill;
-        topRight = fill;
-        bottomLeft = fill;
-        bottomRight = fill;
     }
+
+    public static ColorRect GradientV(string topHex, string bottomHex) => GradientV(PackedLinearColorA.FromHex(topHex), PackedLinearColorA.FromHex(bottomHex));
+
+    public static ColorRect GradientV(PackedLinearColorA top, PackedLinearColorA bottom) => new(top, top, bottom, bottom);
 }
 
 /**
@@ -41,17 +38,11 @@ public struct ColorRect
  */
 public class TigTextStyle
 {
-    public int field0 = 0;
     public int tracking = 0;
     public int kerning = 1; // Anything less than this doesn't render properly
-    public int leading = 0;
-    public int field10 = 0;
-    public int field14 = 0;
     public float rotation = 0;
     public float rotationCenterX = 0;
     public float rotationCenterY = 0;
-
-    public int field24 = 0;
 
     /*
         8 seems to be drop shadow
@@ -67,38 +58,26 @@ public class TigTextStyle
         0x8000 seems to rotate
         0x10000 offset for rotation is set
     */
-    public TigTextStyleFlag flags = 0;
-    public int field2c = 0;
+    public TigTextStyleFlag flags;
     public int colorSlot = 0;
-    public ColorRect? textColor = null; // array of text colors for use with the @n text color modifiers
-    public ColorRect[] additionalTextColors = null;
+
+    public ColorRect textColor = ColorRect.White;
+
+    // array of text colors for use with the @n text color modifiers
+    public ColorRect[]? additionalTextColors = null;
 
     public ColorRect GetTextColor(int idx)
     {
         if (idx == 0 || additionalTextColors == null)
         {
-            return textColor.Value;
+            return textColor;
         }
 
         return additionalTextColors[idx - 1];
     }
-    public ColorRect? colors2 = null;
-    public ColorRect? shadowColor = null; // Use with flags |= 0x8
-    public ColorRect? colors4 = null;
-    public ColorRect? bgColor = null; // Use with flags |= 0x400
-    public int field48 = 0;
-    public int tabStop = 0; /* TODO tabstop */
 
-    public static TigTextStyle standardWhite => new(new ColorRect(PackedLinearColorA.White));
-
-    public TigTextStyle()
-    {
-    }
-
-    public TigTextStyle(ColorRect? color)
-    {
-        textColor = color;
-    }
+    public PackedLinearColorA shadowColor = PackedLinearColorA.Black; // Use with flags |= 0x8
+    public ColorRect bgColor = ColorRect.White; // Use with flags |= 0x400
 
     public TigTextStyle Copy() => (TigTextStyle) MemberwiseClone();
 }
@@ -191,6 +170,4 @@ public class TigFont : IDisposable
 
         return true;
     }
-
-
 }

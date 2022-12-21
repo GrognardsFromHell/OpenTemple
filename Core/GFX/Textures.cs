@@ -41,7 +41,7 @@ public interface ITexture : IRefCounted
     // Unloads the device texture (does't prevent it from being loaded again later)
     void FreeDeviceTexture();
 
-    ShaderResourceView GetResourceView();
+    ShaderResourceView? GetResourceView();
 
     TextureType Type { get; }
 }
@@ -60,7 +60,7 @@ internal class InvalidTexture : ITexture
     {
     }
 
-    public ShaderResourceView GetResourceView() => null;
+    public ShaderResourceView? GetResourceView() => null;
 
     public TextureType Type => TextureType.Invalid;
 
@@ -79,14 +79,24 @@ internal class TextureLoader
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
+    public FileTexture? LeastRecentlyUsed;
+    public FileTexture? MostRecentlyUsed;
+
+    public RenderingDevice Device { get; }
+
+    private int _loaded;
+    private uint _estimatedUsage;
+    private uint _memoryBudget;
+    private readonly IFileSystem _fs;
+    
     public TextureLoader(IFileSystem fs, RenderingDevice device, uint memoryBudget)
     {
         Device = device;
-        mMemoryBudget = memoryBudget;
+        _memoryBudget = memoryBudget;
         _fs = fs;
     }
 
-    public ShaderResourceView Load(string filename, out Rectangle contentRectOut, out Size sizeOut)
+    public ShaderResourceView? Load(string filename, out Rectangle contentRectOut, out Size sizeOut)
     {
         Debug.Assert(filename != null);
 
@@ -146,8 +156,8 @@ internal class TextureLoader
             resourceViewDesc.Texture2D.MipLevels = 1;
             resourceViewDesc.Dimension = ShaderResourceViewDimension.Texture2D;
 
-            mLoaded++;
-            mEstimatedUsage += (uint) (texWidth * texHeight * 4);
+            _loaded++;
+            _estimatedUsage += (uint) (texWidth * texHeight * 4);
 
             return new ShaderResourceView(Device.Device, texture, resourceViewDesc);
         }
@@ -162,33 +172,33 @@ internal class TextureLoader
 
     public void Unload(Size size)
     {
-        mLoaded--;
+        _loaded--;
 
-        mEstimatedUsage -= (uint) (size.Width * size.Height * 4);
+        _estimatedUsage -= (uint) (size.Width * size.Height * 4);
     }
 
-    public int GetLoaded() => mLoaded;
+    public int GetLoaded() => _loaded;
 
-    public uint GetEstimatedUsage() => mEstimatedUsage;
+    public uint GetEstimatedUsage() => _estimatedUsage;
 
-    public uint GetMemoryBudget() => mMemoryBudget;
+    public uint GetMemoryBudget() => _memoryBudget;
 
     public void FreeUnusedTextures()
     {
         // Start with the least recently used texture
-        var texture = mLeastRecentlyUsed;
+        var texture = LeastRecentlyUsed;
         while (texture != null)
         {
-            if (texture.mUsedThisFrame)
+            if (texture.UsedThisFrame)
             {
                 break;
             }
 
             var aboutToDelete = texture;
 
-            texture = texture.mNextMoreRecentlyUsed;
+            texture = texture._nextMoreRecentlyUsed;
 
-            if (mEstimatedUsage > mMemoryBudget)
+            if (_estimatedUsage > _memoryBudget)
             {
                 aboutToDelete.FreeDeviceTexture();
             }
@@ -197,92 +207,92 @@ internal class TextureLoader
         // Reset the rest of the textures to not be used this frame
         while (texture != null)
         {
-            texture.mUsedThisFrame = false;
-            texture = texture.mNextMoreRecentlyUsed;
+            texture.UsedThisFrame = false;
+            texture = texture._nextMoreRecentlyUsed;
         }
     }
-
-    public FileTexture mLeastRecentlyUsed = null;
-    public FileTexture mMostRecentlyUsed = null;
-
-    public RenderingDevice Device { get; }
-
-    private int mLoaded = 0;
-    private uint mEstimatedUsage = 0;
-    private uint mMemoryBudget;
-    private readonly IFileSystem _fs;
 }
 
 internal class FileTexture : GpuResource<FileTexture>, ITexture
 {
-    public FileTexture(TextureLoader loader, int id, string filename) : base()
+    private readonly TextureLoader _loader;
+    private readonly int _id;
+    private readonly string _filename;
+    
+    internal bool UsedThisFrame;
+    private bool _metadataValid;
+    private bool _loadFailed;
+    private Rectangle _contentRect;
+    private Size _size;
+    private ShaderResourceView? _resourceView;
+
+    internal FileTexture? _nextMoreRecentlyUsed;
+    private FileTexture? _nextLessRecentlyUsed;
+    
+    public FileTexture(TextureLoader loader, int id, string filename)
     {
-        mLoader = loader;
-        mFilename = filename;
-        mId = id;
+        _loader = loader;
+        _id = id;
+        _filename = filename;
     }
 
     protected override void FreeResource() => FreeDeviceTexture();
 
-    public int GetId() => mId;
+    public int GetId() => _id;
 
-    public string GetName() => mFilename;
+    public string GetName() => _filename;
 
     public Rectangle GetContentRect()
     {
-        if (!mMetadataValid)
+        if (!_metadataValid)
         {
             Load();
         }
 
-        return mContentRect;
+        return _contentRect;
     }
 
     public Size GetSize()
     {
-        if (!mMetadataValid)
+        if (!_metadataValid)
         {
             Load();
         }
 
-        return mSize;
+        return _size;
     }
 
     public void FreeDeviceTexture()
     {
-        if (mResourceView != null)
+        if (_resourceView != null)
         {
-            mResourceView.Dispose();
-            mResourceView = null;
-            mLoader.Unload(mSize);
+            _resourceView.Dispose();
+            _resourceView = null;
+            _loader.Unload(_size);
             DisconnectMru();
         }
     }
 
-    public ShaderResourceView GetResourceView()
+    public ShaderResourceView? GetResourceView()
     {
-        if (mResourceView == null)
+        if (_resourceView == null)
         {
             Load();
         }
 
         MarkUsed();
-        return mResourceView;
+        return _resourceView;
     }
 
     public TextureType Type => TextureType.File;
 
     public bool IsValid() => true;
 
-    private TextureLoader mLoader;
-    private int mId;
-    private string mFilename;
-
     private void MarkUsed()
     {
-        mUsedThisFrame = true;
+        UsedThisFrame = true;
 
-        if (mLoader.mMostRecentlyUsed == this)
+        if (_loader.MostRecentlyUsed == this)
             return; // Already MRU
 
         // Disconnect from current position of MRU list
@@ -294,100 +304,94 @@ internal class FileTexture : GpuResource<FileTexture>, ITexture
 
     private void Load()
     {
-        if (mLoadFailed)
+        if (_loadFailed)
         {
             return;
         }
 
-        Trace.Assert(mResourceView == null);
-        mResourceView = mLoader.Load(mFilename, out mContentRect, out mSize);
+        Trace.Assert(_resourceView == null);
+        _resourceView = _loader.Load(_filename, out _contentRect, out _size);
 
-        if (mResourceView != null)
+        if (_resourceView != null)
         {
-            mMetadataValid = true;
+            _metadataValid = true;
 
             // The texture should not be in the MRU cache at this point
-            Trace.Assert(mNextMoreRecentlyUsed == null);
-            Trace.Assert(mNextLessRecentlyUsed == null);
+            Trace.Assert(_nextMoreRecentlyUsed == null);
+            Trace.Assert(_nextLessRecentlyUsed == null);
             MakeMru();
         }
         else
         {
-            mLoadFailed = true;
+            _loadFailed = true;
         }
     }
 
     private void MakeMru()
     {
-        if (mLoader.mMostRecentlyUsed != null)
+        if (_loader.MostRecentlyUsed != null)
         {
-            Trace.Assert(mLoader.mMostRecentlyUsed.mNextMoreRecentlyUsed == null);
-            mLoader.mMostRecentlyUsed.mNextMoreRecentlyUsed = this;
+            Trace.Assert(_loader.MostRecentlyUsed._nextMoreRecentlyUsed == null);
+            _loader.MostRecentlyUsed._nextMoreRecentlyUsed = this;
         }
 
-        mNextLessRecentlyUsed = mLoader.mMostRecentlyUsed;
+        _nextLessRecentlyUsed = _loader.MostRecentlyUsed;
 
-        mLoader.mMostRecentlyUsed = this;
+        _loader.MostRecentlyUsed = this;
 
-        if (mLoader.mLeastRecentlyUsed == null)
+        if (_loader.LeastRecentlyUsed == null)
         {
-            mLoader.mLeastRecentlyUsed = this;
+            _loader.LeastRecentlyUsed = this;
         }
     }
 
     private void DisconnectMru()
     {
-        if (mNextLessRecentlyUsed != null)
+        if (_nextLessRecentlyUsed != null)
         {
-            Trace.Assert(mNextLessRecentlyUsed.mNextMoreRecentlyUsed == this);
-            mNextLessRecentlyUsed.mNextMoreRecentlyUsed = mNextMoreRecentlyUsed;
+            Trace.Assert(_nextLessRecentlyUsed._nextMoreRecentlyUsed == this);
+            _nextLessRecentlyUsed._nextMoreRecentlyUsed = _nextMoreRecentlyUsed;
         }
 
-        if (mNextMoreRecentlyUsed != null)
+        if (_nextMoreRecentlyUsed != null)
         {
-            Trace.Assert(mNextMoreRecentlyUsed.mNextLessRecentlyUsed == this);
-            mNextMoreRecentlyUsed.mNextLessRecentlyUsed = mNextLessRecentlyUsed;
+            Trace.Assert(_nextMoreRecentlyUsed._nextLessRecentlyUsed == this);
+            _nextMoreRecentlyUsed._nextLessRecentlyUsed = _nextLessRecentlyUsed;
         }
 
-        if (mLoader.mLeastRecentlyUsed == this)
+        if (_loader.LeastRecentlyUsed == this)
         {
-            mLoader.mLeastRecentlyUsed = mNextMoreRecentlyUsed;
-            Trace.Assert(mNextMoreRecentlyUsed == null
-                         || mLoader.mLeastRecentlyUsed.mNextLessRecentlyUsed == null);
+            _loader.LeastRecentlyUsed = _nextMoreRecentlyUsed;
+            Trace.Assert(_nextMoreRecentlyUsed == null
+                         || _loader.LeastRecentlyUsed?._nextLessRecentlyUsed == null);
         }
 
-        if (mLoader.mMostRecentlyUsed == this)
+        if (_loader.MostRecentlyUsed == this)
         {
-            mLoader.mMostRecentlyUsed = mNextLessRecentlyUsed;
-            Trace.Assert(mNextLessRecentlyUsed == null
-                         || mLoader.mMostRecentlyUsed.mNextMoreRecentlyUsed == null);
+            _loader.MostRecentlyUsed = _nextLessRecentlyUsed;
+            Trace.Assert(_nextLessRecentlyUsed == null
+                         || _loader.MostRecentlyUsed?._nextMoreRecentlyUsed == null);
         }
 
-        mNextLessRecentlyUsed = null;
-        mNextMoreRecentlyUsed = null;
+        _nextLessRecentlyUsed = null;
+        _nextMoreRecentlyUsed = null;
     }
-
-    internal bool mUsedThisFrame;
-    private bool mMetadataValid;
-    private bool mLoadFailed;
-    private Rectangle mContentRect;
-    private Size mSize;
-    private ShaderResourceView mResourceView;
-
-    internal FileTexture mNextMoreRecentlyUsed = null;
-    private FileTexture mNextLessRecentlyUsed = null;
 }
 
 public class Textures
 {
-    private readonly IFileSystem _fs;
-
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
-
+    
+    private readonly IFileSystem _fs;
+    private readonly TextureLoader _loader;
+    private readonly Dictionary<int, ResourceRef<ITexture>> _texturesById = new();
+    private readonly Dictionary<string, ResourceRef<ITexture>> _texturesByName = new();
+    private int _nextFreeId = 1;
+    
     public Textures(IFileSystem fs, RenderingDevice device, uint memoryBudget)
     {
         _fs = fs;
-        mLoader = new TextureLoader(fs, device, memoryBudget);
+        _loader = new TextureLoader(fs, device, memoryBudget);
     }
 
     /*
@@ -396,13 +400,13 @@ public class Textures
     */
     public void FreeUnusedTextures()
     {
-        mLoader.FreeUnusedTextures();
+        _loader.FreeUnusedTextures();
     }
 
     // Frees all GPU texture memory i.e. after a device reset
     public void FreeAllTextures()
     {
-        foreach (var entry in mTexturesByName.Values)
+        foreach (var entry in _texturesByName.Values)
         {
             entry.Resource.FreeDeviceTexture();
         }
@@ -412,7 +416,7 @@ public class Textures
     {
         var filenameLower = filename.ToLowerInvariant();
 
-        if (mTexturesByName.TryGetValue(filenameLower, out var textureRef))
+        if (_texturesByName.TryGetValue(filenameLower, out var textureRef))
         {
             return textureRef.Resource.Ref();
         }
@@ -422,18 +426,18 @@ public class Textures
         {
             Logger.Error("Cannot register texture '{0}', because it does not exist.", filename);
             var result = InvalidTexture.Ref();
-            mTexturesByName[filenameLower] = result;
+            _texturesByName[filenameLower] = result;
             return result.CloneRef();
         }
 
-        var id = mNextFreeId++;
+        var id = _nextFreeId++;
 
-        var texture = new ResourceRef<ITexture>(new FileTexture(mLoader, id, filename));
+        var texture = new ResourceRef<ITexture>(new FileTexture(_loader, id, filename));
 
-        Trace.Assert(!mTexturesByName.ContainsKey(filenameLower));
-        Trace.Assert(!mTexturesById.ContainsKey(id));
-        mTexturesByName[filenameLower] = texture.CloneRef();
-        mTexturesById[id] = texture.CloneRef();
+        Trace.Assert(!_texturesByName.ContainsKey(filenameLower));
+        Trace.Assert(!_texturesById.ContainsKey(id));
+        _texturesByName[filenameLower] = texture.CloneRef();
+        _texturesById[id] = texture.CloneRef();
 
         return texture;
     }
@@ -449,7 +453,7 @@ public class Textures
             return InvalidTexture;
         }
 
-        return new FileTexture(mLoader, -1, filename);
+        return new FileTexture(_loader, -1, filename);
     }
 
     public ITexture GetById(int textureId)
@@ -459,7 +463,7 @@ public class Textures
             return InvalidTexture;
         }
 
-        if (mTexturesById.TryGetValue(textureId, out var textureRef))
+        if (_texturesById.TryGetValue(textureId, out var textureRef))
         {
             return textureRef.Resource;
         }
@@ -468,15 +472,8 @@ public class Textures
         return InvalidTexture;
     }
 
-    public int GetLoaded() => mLoader.GetLoaded();
-    public int GetRegistered() => mTexturesById.Count;
-    public uint GetUsageEstimate() => mLoader.GetEstimatedUsage();
-    public uint GetMemoryBudget() => mLoader.GetMemoryBudget();
-
-    private TextureLoader mLoader;
-    private int mNextFreeId = 1;
-
-    private readonly Dictionary<int, ResourceRef<ITexture>> mTexturesById = new();
-
-    private readonly Dictionary<string, ResourceRef<ITexture>> mTexturesByName = new();
+    public int GetLoaded() => _loader.GetLoaded();
+    public int GetRegistered() => _texturesById.Count;
+    public uint GetUsageEstimate() => _loader.GetEstimatedUsage();
+    public uint GetMemoryBudget() => _loader.GetMemoryBudget();
 }

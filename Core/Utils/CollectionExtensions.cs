@@ -21,7 +21,7 @@ public static class CollectionExtensions
     /// <summary>
     /// Dispose all elements in the collection and set them to null.
     /// </summary>
-    public static void DisposeAndNull<T>(this IList<T> collection) where T : class, IDisposable
+    public static void DisposeAndNull<T>(this IList<T?> collection) where T : class, IDisposable
     {
         for (var i = 0; i < collection.Count; i++)
         {

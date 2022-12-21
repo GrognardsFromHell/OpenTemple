@@ -328,8 +328,7 @@ public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSys
     }
 
     [TempleDllLocation(0x1002BE60)]
-    [return:MaybeNull]
-    public GameObject GetConsciousLeader()
+    public GameObject? GetConsciousLeader()
     {
         foreach (var selected in _selected)
         {

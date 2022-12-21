@@ -20,7 +20,7 @@ internal class AbilitiesSystem : IChargenSystem
         {Stat.level_ranger, new RangerFeaturesUi()}
     };
 
-    private IChargenSystem _activeFeaturesUi;
+    private IChargenSystem? _activeFeaturesUi;
 
     private CharEditorSelectionPacket _pkt;
 

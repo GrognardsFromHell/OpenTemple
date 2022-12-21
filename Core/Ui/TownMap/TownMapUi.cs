@@ -9,7 +9,6 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Ui.WorldMap;
 

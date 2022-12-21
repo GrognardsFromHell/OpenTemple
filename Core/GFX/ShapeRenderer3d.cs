@@ -173,7 +173,7 @@ public class ShapeRenderer3d : IDisposable
         samplerState.magFilter = TextureFilterType.Linear;
         samplerState.mipFilter = TextureFilterType.Linear;
 
-        var samplers = new[] {new MaterialSamplerSpec(new ResourceRef<ITexture>(null), samplerState)};
+        var samplers = new[] {new MaterialSamplerSpec(default, samplerState)};
 
         return _device.CreateMaterial(
             blendState,

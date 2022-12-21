@@ -96,7 +96,7 @@ public class TextLayouter : IDisposable
         right += 3;
         bottom += 3;
 
-        if (style.flags.HasFlag(TigTextStyleFlag.TTSF_BACKGROUND))
+        if (style.flags.HasFlag(TigTextStyleFlag.Background))
         {
             Span<Vertex2d> corners = stackalloc Vertex2d[4];
             corners[0].pos = new Vector4(left, top, 0.5f, 1);
@@ -104,32 +104,21 @@ public class TextLayouter : IDisposable
             corners[2].pos = new Vector4(right, bottom, 0.5f, 1);
             corners[3].pos = new Vector4(left, bottom, 0.5f, 1);
 
-            if (style.bgColor.HasValue)
-            {
-                var bgColor = style.bgColor.Value;
-                corners[0].diffuse = bgColor.topLeft;
-                corners[1].diffuse = bgColor.topRight;
-                corners[2].diffuse = bgColor.bottomRight;
-                corners[3].diffuse = bgColor.bottomLeft;
-            }
-            else
-            {
-                foreach (ref var corner in corners)
-                {
-                    corner.diffuse = PackedLinearColorA.White;
-                }
-            }
+            corners[0].diffuse = style.bgColor.TopLeft;
+            corners[1].diffuse = style.bgColor.TopRight;
+            corners[2].diffuse = style.bgColor.BottomRight;
+            corners[3].diffuse = style.bgColor.BottomLeft;
 
             corners[0].uv = Vector2.Zero;
             corners[1].uv = Vector2.Zero;
             corners[2].uv = Vector2.Zero;
             corners[3].uv = Vector2.Zero;
 
-            // Draw an untexture rectangle
+            // Draw an untextured rectangle
             _shapeRenderer.DrawRectangle(corners, null);
         }
 
-        if (style.flags.HasFlag(TigTextStyleFlag.TTSF_BORDER))
+        if (style.flags.HasFlag(TigTextStyleFlag.Border))
         {
             var topLeft = new Vector2(left - 1, top - 1);
             var bottomRight = new Vector2(right + 1, bottom + 1);
@@ -177,12 +166,6 @@ public class TextLayouter : IDisposable
                 continue;
             }
 
-            // @t will advance the width up to the next tabstop, but only if a tabstop has been specified
-            if (curCh == '@' && nextCh == 't' && style.tabStop > 0)
-            {
-                break; // Treat it like whitespace
-            }
-
             if (!font.GetGlyphIdx(curCh, out var glyphIdx))
             {
                 Logger.Warn("Tried to display character {0} in text '{1}'", glyphIdx, new string(text));
@@ -191,7 +174,7 @@ public class TextLayouter : IDisposable
 
             if (curCh == '\n')
             {
-                if (lastLine && style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
+                if (lastLine && style.flags.HasFlag(TigTextStyleFlag.Truncate))
                 {
                     result.drawEllipsis = true;
                 }
@@ -204,7 +187,7 @@ public class TextLayouter : IDisposable
                 break;
             }
 
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
+            if (style.flags.HasFlag(TigTextStyleFlag.Truncate))
             {
                 result.fullWidth += glyphs[glyphIdx].WidthLine + style.kerning;
                 if (result.fullWidth > remainingSpace)
@@ -253,32 +236,6 @@ public class TextLayouter : IDisposable
             if (ch == '@' & char.IsDigit(nextCh))
             {
                 ++index; // Skip the number
-            }
-            else if (ch == '@' && nextCh == 't')
-            {
-                ++index; // Skip the t
-
-                // Same handling as whitespaces, but variable sized increment rather than just adding tracking!
-                if (lineWidth + wordWidth <= extentsWidth)
-                {
-                    wordCount++;
-                    if (lineWidth + wordWidth <= extentsWidth + linePadding)
-                    {
-                        wordCountWithPadding++;
-                    }
-
-                    lineWidth += wordWidth;
-                    wordWidth = 0;
-
-                    // Increase the line width such that it continues at the tab stop location,
-                    // but do not move backwards (unsupported)
-                    lineWidth += Math.Max(0, style.tabStop - lineWidth);
-                }
-                else
-                {
-                    // Stop if we have run out of space on this line
-                    break;
-                }
             }
             else if (ch == '\n')
             {
@@ -344,7 +301,7 @@ public class TextLayouter : IDisposable
                     wordCountWithPadding++;
                 }
             }
-            else if (style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
+            else if (style.flags.HasFlag(TigTextStyleFlag.Truncate))
             {
                 // The word would actually not fit, but we're the last
                 // thing in the string and we truncate with ...
@@ -355,7 +312,7 @@ public class TextLayouter : IDisposable
         }
 
         // Ignore the padding if we'd not print ellipsis anyway
-        if (!lastLine || index >= text.Length || !style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
+        if (!lastLine || index >= text.Length || !style.flags.HasFlag(TigTextStyleFlag.Truncate))
         {
             wordCountWithPadding = wordCount;
         }
@@ -363,7 +320,7 @@ public class TextLayouter : IDisposable
         return Tuple.Create(wordCountWithPadding, lineWidth);
     }
 
-    internal static bool HasMoreText(ReadOnlySpan<char> text, bool skipTabs)
+    internal static bool HasMoreText(ReadOnlySpan<char> text)
     {
         // We're on the last line and truncation is active
         // This will seek to the next word
@@ -381,15 +338,6 @@ public class TextLayouter : IDisposable
             {
                 ++index;
                 continue;
-            }
-
-            if (curChar == '@' && nextChar == 't')
-            {
-                ++index;
-                if (skipTabs)
-                {
-                    continue;
-                }
             }
 
             if (curChar != '\n' && !char.IsWhiteSpace(curChar))
@@ -422,7 +370,7 @@ public class TextLayouter : IDisposable
             extentsHeight = metrics.height;
         }
 
-        if ((style.flags & (TigTextStyleFlag.TTSF_BACKGROUND | TigTextStyleFlag.TTSF_BORDER)) != 0)
+        if ((style.flags & (TigTextStyleFlag.Background | TigTextStyleFlag.Border)) != 0)
         {
             var rect = new Rectangle(
                 extents.X,
@@ -484,7 +432,7 @@ public class TextLayouter : IDisposable
         if (metrics.height != 0)
         {
             var maxLines = metrics.height / largestHeight;
-            if (!(style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE)))
+            if (!(style.flags.HasFlag(TigTextStyleFlag.Truncate)))
             {
                 maxLines++;
             }
@@ -496,7 +444,7 @@ public class TextLayouter : IDisposable
         }
         else
         {
-            if (!(style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE)))
+            if (!(style.flags.HasFlag(TigTextStyleFlag.Truncate)))
             {
                 metrics.lines = CountLinesVanilla(metrics.width, 0, text, font, style);
             }
@@ -660,7 +608,7 @@ public class TextLayouter : IDisposable
             }
 
             // Continuation indent
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_CONTINUATION_INDENT))
+            if (style.flags.HasFlag(TigTextStyleFlag.ContinuationIndent))
             {
                 lineWidth += 8 * style.tracking;
             }

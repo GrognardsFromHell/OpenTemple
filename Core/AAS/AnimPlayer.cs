@@ -20,8 +20,8 @@ internal class AnimPlayer : IDisposable
 	public float weight; // 1.0 = Fully weighted, otherwise weighted with primary anims
 	public float fadingSpeed; // Velocity with which weight is being changed
 	public int eventHandlingDepth;
-	public AnimPlayer nextRunningAnim;
-	public AnimPlayer prevRunningAnim;
+	public AnimPlayer? nextRunningAnim;
+	public AnimPlayer? prevRunningAnim;
 	public SkeletonAnimation animation;
 	public int streamCount;
 	public AnimPlayerStream[] streams = new AnimPlayerStream[4];
@@ -283,9 +283,8 @@ internal class AnimPlayer : IDisposable
 	public void Attach(AnimatedModel owner, int animIdx)
 	{
 
-		Trace.Assert(streamCount == 0 && owner != null && ownerAnim == null);
+		Trace.Assert(streamCount == 0 && ownerAnim == null);
 		var skeleton = owner.Skeleton;
-		Trace.Assert(skeleton != null);
 
 		var anims = skeleton.Animations;
 		Trace.Assert(animIdx >= 0 && animIdx < anims.Count);

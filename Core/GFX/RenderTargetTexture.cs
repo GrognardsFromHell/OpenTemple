@@ -1,57 +1,56 @@
 using System;
 using System.Drawing;
 using SharpDX.Direct3D11;
-using SharpDX.DXGI;
 
 namespace OpenTemple.Core.GFX;
 
 public class RenderTargetTexture : GpuResource<RenderTargetTexture>, ITexture
 {
-    private RenderTargetView mRtView;
-    private Texture2D mTexture;
-    private Texture2D mResolvedTexture;
-    private ShaderResourceView mResourceView;
-    private Size mSize;
-    private Rectangle mContentRect;
-    private bool mMultiSampled;
+    private readonly RenderTargetView _rtView;
+    private readonly Texture2D _texture;
+    private readonly Texture2D? _resolvedTexture;
+    private readonly ShaderResourceView? _resourceView;
+    private readonly Size _size;
+    private readonly Rectangle _contentRect;
+    private readonly bool _multiSampled;
 
-    internal Texture2D Texture => mTexture;
+    internal Texture2D Texture => _texture;
 
-    internal RenderTargetView RenderTargetView => mRtView;
+    internal RenderTargetView RenderTargetView => _rtView;
 
-    public bool IsMultiSampled => mMultiSampled;
+    public bool IsMultiSampled => _multiSampled;
 
-    /**
-         * Only valid for MSAA targets. Will return the texture used to resolve the multisampling
-         * so it can be used as a shader resource.
-         */
-    public Texture2D ResolvedTexture => mResolvedTexture;
+    /// <summary>
+    /// Only valid for MSAA targets. Will return the texture used to resolve the multisampling
+    /// so it can be used as a shader resource.
+    /// </summary>
+    public Texture2D? ResolvedTexture => _resolvedTexture;
 
-    /**
-         * For MSAA targets, this will return the resolvedTexture, while for normal targets,
-         * this will just be the texture itself.
-         */
-    public ShaderResourceView ResourceView => mResourceView;
+    /// <summary>
+    /// For MSAA targets, this will return the resolvedTexture, while for normal targets,
+    /// this will just be the texture itself.
+    /// </summary>
+    public ShaderResourceView? ResourceView => _resourceView;
 
     public BufferFormat Format { get; }
 
     public RenderTargetTexture(RenderingDevice device,
         Texture2D texture,
         RenderTargetView rtView,
-        Texture2D resolvedTexture,
-        ShaderResourceView resourceView,
+        Texture2D? resolvedTexture,
+        ShaderResourceView? resourceView,
         Size size,
-        bool multisampled) : base()
+        bool multisampled)
     {
-        mTexture = texture.QueryInterface<Texture2D>(); // Creates our own reference
-        mRtView = rtView;
-        mResolvedTexture = resolvedTexture;
-        mResourceView = resourceView;
-        mSize = size;
-        mMultiSampled = multisampled;
-        mContentRect = new Rectangle(Point.Empty, size);
+        _texture = texture.QueryInterface<Texture2D>(); // Creates our own reference
+        _rtView = rtView;
+        _resolvedTexture = resolvedTexture;
+        _resourceView = resourceView;
+        _size = size;
+        _multiSampled = multisampled;
+        _contentRect = new Rectangle(Point.Empty, size);
 
-        var desc = mTexture.Description;
+        var desc = _texture.Description;
         switch (desc.Format)
         {
             case SharpDX.DXGI.Format.B8G8R8A8_UNorm:
@@ -67,14 +66,10 @@ public class RenderTargetTexture : GpuResource<RenderTargetTexture>, ITexture
 
     protected override void FreeResource()
     {
-        mRtView?.Dispose();
-        mRtView = null;
-        mTexture?.Dispose();
-        mTexture = null;
-        mResolvedTexture?.Dispose();
-        mResolvedTexture = null;
-        mResourceView?.Dispose();
-        mResourceView = null;
+        _rtView.Dispose();
+        _texture.Dispose();
+        _resolvedTexture?.Dispose();
+        _resourceView?.Dispose();
     }
 
     public int GetId()
@@ -84,31 +79,27 @@ public class RenderTargetTexture : GpuResource<RenderTargetTexture>, ITexture
 
     public string GetName() => "<rt>";
 
-    public Rectangle GetContentRect() => mContentRect;
+    public Rectangle GetContentRect() => _contentRect;
 
-    public Size GetSize() => mSize;
+    public Size GetSize() => _size;
 
     public void FreeDeviceTexture()
     {
-        mTexture?.Dispose();
-        mTexture = null;
-        mRtView?.Dispose();
-        mRtView = null;
-        mResourceView?.Dispose();
-        mResourceView = null;
-        mResolvedTexture?.Dispose();
-        mResolvedTexture = null;
+        _texture.Dispose();
+        _rtView.Dispose();
+        _resourceView?.Dispose();
+        _resolvedTexture?.Dispose();
     }
 
     public ShaderResourceView GetResourceView()
     {
-        if (mResourceView == null)
+        if (_resourceView == null)
         {
             throw new InvalidOperationException("This render target texture is not suitable" +
                                                 " for use in a shader.");
         }
 
-        return mResourceView;
+        return _resourceView;
     }
 
     public TextureType Type => TextureType.RenderTarget;

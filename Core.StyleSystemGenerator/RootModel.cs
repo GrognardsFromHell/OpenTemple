@@ -17,7 +17,7 @@ public class RootModel
     {
         // Used for the GeneratedCode attribute
         var assemblyName = typeof(Program).Assembly.GetName();
-        Tool = assemblyName.Name;
+        Tool = assemblyName.Name ?? "Core.StyleSystemGenerator";
         Version = DateTime.UtcNow.ToString("O");
         Properties = StyleModel.PropertyGroups.SelectMany(pg => pg.Properties).ToList();
     }

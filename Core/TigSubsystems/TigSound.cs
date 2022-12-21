@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using System.Reflection.Metadata;
 using SoLoud;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
@@ -74,7 +75,7 @@ public class TigSound : IDisposable
         set
         {
             _masterVolume = value;
-            _soloud.setGlobalVolume(_masterVolume);
+            _soloud?.setGlobalVolume(_masterVolume);
         }
     }
 
@@ -134,7 +135,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e4700)]
     public void Play3dSample(string path, int volume)
     {
-        if (!sound_initialized || tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_THREE_D) != 0)
+        if (_soloud == null || tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_THREE_D) != 0)
         {
             return;
         }
@@ -228,7 +229,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101E3790)]
     public void SetStreamSourceFromPath(int streamId, string soundPath, int soundId)
     {
-        if (!sound_initialized || streamId == -1)
+        if (_soloud == null || streamId == -1)
         {
             return;
         }
@@ -249,7 +250,7 @@ public class TigSound : IDisposable
     private void tig_sound_load_stream_0(int streamId, string path, int loopCount, int a4, bool allowReverb,
         int otherStreamId)
     {
-        if (!sound_initialized || streamId < 0 || streamId >= tig_sound_streams.Length)
+        if (_soloud == null || streamId < 0 || streamId >= tig_sound_streams.Length)
         {
             return;
         }
@@ -371,6 +372,11 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e40c0)]
     private void UpdateSoundStreams()
     {
+        if (_soloud == null)
+        {
+            return;
+        }
+        
         for (var i = 0; i < tig_sound_streams.Length; i++)
         {
             ref var stream = ref tig_sound_streams[i];

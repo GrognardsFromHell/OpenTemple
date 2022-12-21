@@ -38,39 +38,19 @@ public class MainMenuButton : WidgetButtonBase
         SoundPressed = defaultSounds.SoundDown;
         SoundClicked = defaultSounds.SoundClick;
 
-        _normalStyle = new TigTextStyle()
+        _normalStyle = new TigTextStyle
         {
-            textColor = new ColorRect()
-            {
-                topLeft = PackedLinearColorA.FromHex("#0064a4"),
-                topRight = PackedLinearColorA.FromHex("#0064a4"),
-                bottomLeft = PackedLinearColorA.FromHex("#01415d"),
-                bottomRight = PackedLinearColorA.FromHex("#01415d")
-            },
-            flags = TigTextStyleFlag.TTSF_CENTER | TigTextStyleFlag.TTSF_DROP_SHADOW,
-            leading = 1,
+            textColor = ColorRect.GradientV("#0064a4", "#01415d"),
+            flags = TigTextStyleFlag.Center | TigTextStyleFlag.DropShadow,
             kerning = 0,
-            tracking = 10,
-            shadowColor = new ColorRect(PackedLinearColorA.Black)
+            tracking = 10
         };
 
         _hoverStyle = _normalStyle.Copy();
-        _hoverStyle.textColor = new ColorRect()
-        {
-            topLeft = PackedLinearColorA.FromHex("#01ffff"),
-            topRight = PackedLinearColorA.FromHex("#01ffff"),
-            bottomLeft = PackedLinearColorA.FromHex("#01d0ff"),
-            bottomRight = PackedLinearColorA.FromHex("#01d0ff")
-        };
+        _hoverStyle.textColor = ColorRect.GradientV("#01ffff", "#01d0ff");
 
         _pressedStyle = _normalStyle.Copy();
-        _pressedStyle.textColor = new ColorRect()
-        {
-            topLeft = PackedLinearColorA.FromHex("#eb1510"),
-            topRight = PackedLinearColorA.FromHex("#eb1510"),
-            bottomLeft = PackedLinearColorA.FromHex("#da5b61"),
-            bottomRight = PackedLinearColorA.FromHex("#da5b61")
-        };
+        _pressedStyle.textColor = ColorRect.GradientV("#eb1510", "#da5b61");
     }
 
     private void UpdateBounds()

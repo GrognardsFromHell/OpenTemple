@@ -113,10 +113,6 @@ public class LoadingScreen : IDisposable, ILoadingProgress
 
         if (Message.Length > 0)
         {
-            var style = new TigTextStyle(new ColorRect(PackedLinearColorA.White));
-            style.kerning = 1;
-            style.tracking = 3;
-
             var extents = new Rectangle {X = _barBorder.GetX(), Y = _barBorder.GetY() + BarHeight + 5};
 
             _device.TextEngine.RenderText(

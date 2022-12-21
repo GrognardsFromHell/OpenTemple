@@ -26,7 +26,7 @@ public class GameLib
     private static int _ironmanSaveSlot;
 
     [TempleDllLocation(0x103072C0)]
-    private string _ironmanSaveName;
+    private string? _ironmanSaveName;
 
     [TempleDllLocation(0x10002E20)]
     [TempleDllLocation(0x103072D4)]

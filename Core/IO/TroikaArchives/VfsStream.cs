@@ -14,7 +14,7 @@ public class VfsStream : Stream
 
     public string Path { get; }
 
-    private IMemoryOwner<byte> _memoryOwner;
+    private IMemoryOwner<byte>? _memoryOwner;
 
     private Memory<byte> _memory;
 

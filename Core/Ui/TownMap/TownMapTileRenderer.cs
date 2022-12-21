@@ -12,9 +12,9 @@ namespace OpenTemple.Core.Ui.TownMap;
 public class TownMapTileRenderer : WidgetContent
 {
 
-    private TileRenderer _smallTileRenderer;
+    private TileRenderer? _smallTileRenderer;
 
-    private TileRenderer _bigTileRenderer;
+    private TileRenderer? _bigTileRenderer;
 
     private readonly FogTileRenderer _fogTileRenderer = new();
 
@@ -183,7 +183,7 @@ public class TownMapTileRenderer : WidgetContent
             }
         }
 
-        protected abstract ITexture GetTexture(int tileX, int tileY);
+        protected abstract ITexture? GetTexture(int tileX, int tileY);
     }
 
     private sealed class MapTileRenderer : TileRenderer
@@ -204,7 +204,7 @@ public class TownMapTileRenderer : WidgetContent
 
     private sealed class FogTileRenderer : TileRenderer, IDisposable
     {
-        public TownmapFogTile[,] FogTiles { get; set; }
+        public TownmapFogTile[,]? FogTiles { get; set; }
 
         private ResourceRef<DynamicTexture> _fogTexture;
 
@@ -214,7 +214,7 @@ public class TownMapTileRenderer : WidgetContent
             _fogTexture = Tig.RenderingDevice.CreateDynamicTexture(BufferFormat.A8R8G8B8, 256, 256);
         }
 
-        protected override ITexture GetTexture(int tileX, int tileY)
+        protected override ITexture? GetTexture(int tileX, int tileY)
         {
             if (FogTiles == null)
             {

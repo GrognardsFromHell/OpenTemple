@@ -20,10 +20,10 @@ public class PartyUi : IResetAwareSystem, IDisposable
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     [TempleDllLocation(0x10BE33F8)]
-    public GameObject ForceHovered { get; set; }
+    public GameObject? ForceHovered { get; set; }
 
     [TempleDllLocation(0x10BE3400)]
-    public GameObject ForcePressed { get; set; }
+    public GameObject? ForcePressed { get; set; }
 
     [TempleDllLocation(0x10BE2E98)]
     private List<PartyUiPortrait> _portraits = new();

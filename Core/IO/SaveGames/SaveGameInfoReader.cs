@@ -46,7 +46,7 @@ public static class SaveGameInfoReader
         return true;
     }
 
-    public static SaveGameInfo Read(string path)
+    public static SaveGameInfo? Read(string path)
     {
         if (!TryParseFilename(path, out var type, out var slotNumber))
         {

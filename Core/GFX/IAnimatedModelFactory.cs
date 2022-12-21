@@ -122,7 +122,7 @@ public interface IAnimatedModel
     // This seems to reset cloth simulation state
     void SetClothFlag();
 
-    IMdfRenderMaterial[] GetSubmeshes();
+    IMdfRenderMaterial?[] GetSubmeshes();
 
     ISubmesh GetSubmesh(in AnimatedModelParams animParams, int submeshIdx);
 

@@ -425,13 +425,13 @@ public abstract class AbstractPropertyEditor<T> : IPropertyEditor
     }
 }
 
-public class OneLineStringEditor : AbstractPropertyEditor<string>
+public class OneLineStringEditor : AbstractPropertyEditor<string?>
 {
-    private string _lastKnownObjectValue;
+    private string? _lastKnownObjectValue;
 
-    private string _currentValue;
+    private string? _currentValue;
 
-    public OneLineStringEditor(string label, Func<string> getter, Action<string> setter) : base(label, getter,
+    public OneLineStringEditor(string label, Func<string?> getter, Action<string?> setter) : base(label, getter,
         setter)
     {
     }

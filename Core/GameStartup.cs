@@ -136,13 +136,13 @@ public class GameStartup : IDisposable
         GameSystems.Shutdown();
         Tig.Shutdown();
 
-        Globals.ConfigManager = null;
-        Globals.GameFolders = null;
-        Globals.GameLoop = null;
-        Globals.UiAssets = null;
-        Globals.UiManager = null;
-        Globals.UiStyles = null;
-        Globals.WidgetButtonStyles = null;
+        Globals.ConfigManager = null!;
+        Globals.GameFolders = null!;
+        Globals.GameLoop = null!;
+        Globals.UiAssets = null!;
+        Globals.UiManager = null!;
+        Globals.UiStyles = null!;
+        Globals.WidgetButtonStyles = null!;
 
         GC.Collect();
         GC.WaitForPendingFinalizers();

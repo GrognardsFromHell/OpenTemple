@@ -140,22 +140,6 @@ public class FontRenderer : IDisposable
                 continue;
             }
 
-            // Handle @t tabstop movement
-            if (ch == '@' && nextCh == 't')
-            {
-                var tabWidth = style.tabStop - bounds.X;
-
-                if (tabWidth > 0)
-                {
-                    ++it; // Skip the t
-
-                    var tabCount = 1 + (x - bounds.X) / tabWidth;
-                    x = bounds.X + tabCount * tabWidth;
-                }
-
-                continue;
-            }
-
             if (!font.GetGlyphIdx(text[it], out var glyphIdx))
             {
                 continue;
@@ -206,11 +190,10 @@ public class FontRenderer : IDisposable
             Trace.Assert(!style.flags.HasFlag((TigTextStyleFlag) 0x2000));
 
             // Drop Shadow
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_DROP_SHADOW))
+            if (style.flags.HasFlag(TigTextStyleFlag.DropShadow))
             {
-                Trace.Assert(style.shadowColor.HasValue);
                 var shadowVertexIdx = state.GlyphCount * 4;
-                var shadowColor = style.shadowColor.Value.topLeft;
+                var shadowColor = style.shadowColor;
                 shadowColor.A = 255;
 
                 // Top Left
@@ -263,7 +246,7 @@ public class FontRenderer : IDisposable
             vertexTL.Y = destRect.Y;
             vertexTL.U = u1;
             vertexTL.V = v1;
-            vertexTL.diffuse = colorRect.topLeft;
+            vertexTL.diffuse = colorRect.TopLeft;
 
             // Top Right
             ref var vertexTR = ref state.Vertices[vertexIdx + 1];
@@ -271,7 +254,7 @@ public class FontRenderer : IDisposable
             vertexTR.Y = destRect.Y;
             vertexTR.U = u2;
             vertexTR.V = v1;
-            vertexTR.diffuse = colorRect.topRight;
+            vertexTR.diffuse = colorRect.TopRight;
 
             // Bottom Right
             ref var vertexBR = ref state.Vertices[vertexIdx + 2];
@@ -279,7 +262,7 @@ public class FontRenderer : IDisposable
             vertexBR.Y = (float) destRect.Y + destRect.Height;
             vertexBR.U = u2;
             vertexBR.V = v2;
-            vertexBR.diffuse = colorRect.bottomRight;
+            vertexBR.diffuse = colorRect.BottomRight;
 
             // Bottom Left
             ref var vertexBL = ref state.Vertices[vertexIdx + 3];
@@ -287,13 +270,13 @@ public class FontRenderer : IDisposable
             vertexBL.Y = (float) destRect.Y + destRect.Height;
             vertexBL.U = u1;
             vertexBL.V = v2;
-            vertexBL.diffuse = colorRect.bottomLeft;
+            vertexBL.diffuse = colorRect.BottomLeft;
 
             // Support rotations (i.e. for the radial menu)
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_ROTATE))
+            if (style.flags.HasFlag(TigTextStyleFlag.Rotate))
             {
                 float rotCenterX, rotCenterY;
-                if (style.flags.HasFlag(TigTextStyleFlag.TTSF_ROTATE_OFF_CENTER))
+                if (style.flags.HasFlag(TigTextStyleFlag.RotateOffCenter))
                 {
                     rotCenterX = style.rotationCenterX;
                     rotCenterY = style.rotationCenterY;

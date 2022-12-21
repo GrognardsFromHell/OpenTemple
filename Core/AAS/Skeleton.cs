@@ -199,7 +199,7 @@ public class Skeleton
 
     public SkeletonAnimation? FindAnimByName(string name)
     {
-        return _animationsByName.GetValueOrDefault(name.ToLowerInvariant(), null);
+        return _animationsByName.TryGetValue(name.ToLowerInvariant(), out var result) ? result : null;
     }
 
     public int FindAnimIdxByName(ReadOnlySpan<char> name)

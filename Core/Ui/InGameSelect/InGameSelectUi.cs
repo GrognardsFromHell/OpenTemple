@@ -161,7 +161,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
 
     [TempleDllLocation(0x10138cb0)]
     [TempleDllLocation(0x10BE60D8)]
-    public GameObject Focus { get; set; }
+    public GameObject? Focus { get; set; }
 
     [TempleDllLocation(0x10135970)]
     public bool IsPicking => _activePickerIndex >= 0;

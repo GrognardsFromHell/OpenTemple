@@ -85,7 +85,7 @@ public class PCCreationUi : IDisposable
         && uiPcCreationActiveStageIdx == ChargenStages.CG_Stage_Stats;
 
     [TempleDllLocation(0x11e741a0)]
-    private GameObject charEditorObjHnd;
+    private GameObject? charEditorObjHnd;
 
     private readonly PartyAlignmentUi _partyAlignmentUi = new();
 

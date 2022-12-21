@@ -59,7 +59,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     private int _soundStream2;
 
     [TempleDllLocation(0x102fb3e8)]
-    private WorldMapLocation _travelByDialogDestination = null;
+    private WorldMapLocation? _travelByDialogDestination = null;
 
     [TempleDllLocation(0x10bef81c)]
     private bool _destinationReached;
@@ -76,7 +76,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     private Point _lastTrailPos;
 
     [TempleDllLocation(0x10bef814)]
-    private RandomEncounter _randomEncounterDetails;
+    private RandomEncounter? _randomEncounterDetails;
 
     [TempleDllLocation(0x10159790)]
     [TempleDllLocation(0x10bef800)]
@@ -457,7 +457,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
     }
 
-    private bool TryGetWidgetsForArea(int areaId, out WorldMapLocationWidgets location)
+    private bool TryGetWidgetsForArea(int areaId, out WorldMapLocationWidgets? location)
     {
         foreach (var widgets in _locationWidgets)
         {
