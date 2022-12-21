@@ -67,7 +67,7 @@ public struct BonusList
     /// index of the lowest cap in cappedByIdx, if the pointer is not null.
     /// </summary>
     [TempleDllLocation(0x100E6410)]
-    public bool IsBonusCapped(int bonusIdx, out int cappedByIdx)
+    public readonly bool IsBonusCapped(int bonusIdx, out int cappedByIdx)
     {
         var lowestCap = 255;
         var foundCap = false;
@@ -106,7 +106,7 @@ public struct BonusList
     /// in suppressedByIdx.
     /// </summary>
     [TempleDllLocation(0x100E6490)]
-    public bool IsBonusSupressed(int bonusIdx, out int suppressedByIdx)
+    public readonly bool IsBonusSupressed(int bonusIdx, out int suppressedByIdx)
     {
         var curHighest = bonusEntries[bonusIdx].bonValue;
         var type = bonusEntries[bonusIdx].bonType;

@@ -910,7 +910,6 @@ public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSy
 
         int attackerRoll = Dice.D20.Roll();
         int attackerSize = attacker.GetStat(Stat.size);
-        BonusList atkBonlist;
         DispIoAttackBonus dispIoAtkBonus = DispIoAttackBonus.Default;
         if (GameSystems.Feat.HasFeatCountByClass(attacker, FeatId.IMPROVED_DISARM) != 0)
         {
@@ -953,7 +952,6 @@ public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSy
 
         int defenderRoll = Dice.D20.Roll();
         int defenderSize = defender.GetStat(Stat.size);
-        BonusList defBonlist;
         DispIoAttackBonus dispIoDefBonus = DispIoAttackBonus.Default;
         dispIoDefBonus.bonlist.AddBonus((defenderSize - 5) * 4, 0, 316);
         if (defenderWeapon != null)
@@ -999,7 +997,6 @@ public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSy
             defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponSecondary);
         int attackerRoll = Dice.D20.Roll();
         int attackerSize = attacker.GetStat(Stat.size);
-        BonusList atkBonlist;
         DispIoAttackBonus dispIoAtkBonus = DispIoAttackBonus.Default;
         if (GameSystems.Feat.HasFeatCountByClass(attacker, FeatId.IMPROVED_SUNDER) != 0)
         {

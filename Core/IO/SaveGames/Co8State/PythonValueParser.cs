@@ -78,8 +78,6 @@ public static class PythonValueParser
         {
             throw new ArgumentException($"Unexpected character {ch}");
         }
-
-        return null;
     }
 
     private static object ParseNumber(ReadOnlySpan<char> text, ref int start)

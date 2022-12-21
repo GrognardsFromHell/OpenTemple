@@ -8,18 +8,6 @@ namespace OpenTemple.Core.GameObjects;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct TransientProps : IDisposable
 {
-    public int renderColor;
-    public int renderColors;
-    public int renderPalette;
-    public int renderScale;
-    public SparseArray<int>? renderAlpha;
-    public int renderX;
-    public int renderY;
-    public int renderWidth;
-    public int renderHeight;
-    public int palette;
-    public int color;
-    public int colors;
     public int renderFlags;
     public int tempId;
     public int lightHandle;
@@ -30,8 +18,6 @@ public struct TransientProps : IDisposable
 
     public void Dispose()
     {
-        renderAlpha?.Dispose();
-        renderAlpha = null;
         overlayLightHandles?.Dispose();
         overlayLightHandles = null;
     }
@@ -40,30 +26,6 @@ public struct TransientProps : IDisposable
     {
         switch (field)
         {
-            case obj_f.render_color:
-                return renderColor;
-            case obj_f.render_colors:
-                return renderColors;
-            case obj_f.render_palette:
-                return renderPalette;
-            case obj_f.render_scale:
-                return renderScale;
-            case obj_f.render_alpha:
-                return renderAlpha;
-            case obj_f.render_x:
-                return renderX;
-            case obj_f.render_y:
-                return renderY;
-            case obj_f.render_width:
-                return renderWidth;
-            case obj_f.render_height:
-                return renderHeight;
-            case obj_f.palette:
-                return palette;
-            case obj_f.color:
-                return color;
-            case obj_f.colors:
-                return colors;
             case obj_f.render_flags:
                 return renderFlags;
             case obj_f.temp_id:
@@ -87,47 +49,6 @@ public struct TransientProps : IDisposable
     {
         switch (field)
         {
-            case obj_f.render_color:
-                renderColor = (int) newValue;
-                break;
-            case obj_f.render_colors:
-                renderColors = (int) newValue;
-                break;
-            case obj_f.render_palette:
-                renderPalette = (int) newValue;
-                break;
-            case obj_f.render_scale:
-                renderScale = (int) newValue;
-                break;
-            case obj_f.render_alpha:
-                if (!ReferenceEquals(renderAlpha, newValue))
-                {
-                    renderAlpha?.Dispose();
-                }
-
-                renderAlpha = (SparseArray<int>) newValue;
-                break;
-            case obj_f.render_x:
-                renderX = (int) newValue;
-                break;
-            case obj_f.render_y:
-                renderY = (int) newValue;
-                break;
-            case obj_f.render_width:
-                renderWidth = (int) newValue;
-                break;
-            case obj_f.render_height:
-                renderHeight = (int) newValue;
-                break;
-            case obj_f.palette:
-                palette = (int) newValue;
-                break;
-            case obj_f.color:
-                color = (int) newValue;
-                break;
-            case obj_f.colors:
-                colors = (int) newValue;
-                break;
             case obj_f.render_flags:
                 renderFlags = (int) newValue;
                 break;

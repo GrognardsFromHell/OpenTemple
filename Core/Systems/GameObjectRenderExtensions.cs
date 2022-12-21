@@ -578,28 +578,6 @@ public static class GameObjectRenderExtensions
     {
         GameSystems.Light.RemoveAttachedTo(obj);
 
-        var renderPalette = obj.GetInt32(obj_f.render_palette);
-        if (renderPalette != 0)
-        {
-            // I think most of this is 2D rendering which is unused
-            throw new NotImplementedException();
-            // TODO sub_101EBD40(v1);
-            obj.SetInt32(obj_f.render_palette, 0);
-        }
-
-        var renderColors = obj.GetUInt32(obj_f.render_colors);
-        if (renderColors != 0)
-        {
-            throw new NotImplementedException();
-
-            // TODO I think most of this is 2D rendering which is unused
-            // TODO v3 = *(_DWORD *)(renderColors - 4);
-            // TODO *(_DWORD *)(v3 + 4) = dword_107880A0;
-            // TODO dword_107880A0 = (void *)v3;
-
-            obj.SetInt32(obj_f.render_colors, 0);
-        }
-
         var renderFlags = obj.GetUInt32(obj_f.render_flags);
         // Clear flags 76000000
         obj.SetUInt32(obj_f.render_flags, renderFlags & 0x89FFFFFF);

@@ -230,13 +230,13 @@ public class GeneratedDialog
     public string GetPcClassBasedLine(int baseLine, DialogState state)
     {
         int fileIndex;
-        if ( GameSystems.Critter.CritterIsLowInt(state.pc) )
+        if ( GameSystems.Critter.CritterIsLowInt(state.Pc) )
         {
-            fileIndex = (state.npc.GetGender() == Gender.Male) ? 18 : 19;
+            fileIndex = (state.NPC.GetGender() == Gender.Male) ? 18 : 19;
         }
         else
         {
-            fileIndex = (state.npc.GetGender() == Gender.Male) ? 6 : 7;
+            fileIndex = (state.NPC.GetGender() == Gender.Male) ? 6 : 7;
         }
 
         var line = GetRandomLineInRange(fileIndex, baseLine, baseLine + 49);
@@ -256,13 +256,13 @@ public class GeneratedDialog
     public string GetPcLine(DialogState state, int minLine, int maxLine)
     {
         int fileIndex;
-        if ( GameSystems.Critter.CritterIsLowInt(state.pc) )
+        if ( GameSystems.Critter.CritterIsLowInt(state.Pc) )
         {
-            fileIndex = (state.npc.GetGender() == Gender.Male) ? 16 : 17;
+            fileIndex = (state.NPC.GetGender() == Gender.Male) ? 16 : 17;
         }
         else
         {
-            fileIndex = (state.npc.GetGender() == Gender.Male) ? 0 : 1;
+            fileIndex = (state.NPC.GetGender() == Gender.Male) ? 0 : 1;
         }
 
         var line = GetRandomLineInRange(fileIndex, minLine, maxLine);

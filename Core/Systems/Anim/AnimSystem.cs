@@ -1089,7 +1089,6 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
             if (prevGoal.goalType == AnimGoalType.anim_fidget)
             {
                 Debugger.Break();
-                int dummy = 1;
                 // FIX: prevents AnimGoalType.anim_fidget from queueing an AnimComplete call (which
                 // creates the phantom animId = 0 bullshit)
             }

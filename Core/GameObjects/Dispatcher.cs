@@ -495,7 +495,7 @@ public class Dispatcher : IDispatcher
 
                 for (int i = 0; i < condStruct.numArgs; i++)
                 {
-                    if (condArgs[i] != 0xDEADBEEF)
+                    if (condArgs[i] != unchecked((int) 0xDEADBEEF))
                     {
                         attachment.args[i] = condArgs[i];
                     }
@@ -516,7 +516,7 @@ public class Dispatcher : IDispatcher
                 {
                     for (int i = 0; i < condStruct.numArgs; i++)
                     {
-                        if (condArgs[i] != 0xDEADBEEF)
+                        if (condArgs[i] != unchecked((int) 0xDEADBEEF))
                         {
                             attachment.args[i] = condArgs[i];
                         }

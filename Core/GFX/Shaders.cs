@@ -54,7 +54,8 @@ public abstract class Shader<TSelf, T> : GpuResource<TSelf> where TSelf : GpuRes
 
     protected override void FreeResource()
     {
-        DeviceShader.Dispose();
+        DeviceShader?.Dispose();
+        DeviceShader = null;
     }
 
     public abstract void Bind();
@@ -62,7 +63,7 @@ public abstract class Shader<TSelf, T> : GpuResource<TSelf> where TSelf : GpuRes
 
     public byte[] CompiledCode => CompiledShader;
 
-    protected T DeviceShader;
+    protected T? DeviceShader;
     protected byte[] CompiledShader;
 }
 
@@ -136,11 +137,19 @@ public class Shaders : IDisposable
 
     private readonly IFileSystem _fs;
 
+    // For each shader file, we may have multiple compiled
+    // variants depending on the defines used
+    private readonly Dictionary<string, ShaderCode<VertexShader>> _vertexShaders = new();
+
+    private readonly Dictionary<string, ShaderCode<PixelShader>> _pixelShaders = new();
+
+    private readonly ResourceLifecycleCallbacks _registration;    
+
     public Shaders(IFileSystem fs, RenderingDevice device)
     {
         _fs = fs;
         _device = device;
-        mRegistration = new ResourceLifecycleCallbacks(device, CreateResources, FreeResources);
+        _registration = new ResourceLifecycleCallbacks(device, CreateResources, FreeResources);
     }
 
     /// <summary>
@@ -171,16 +180,16 @@ public class Shaders : IDisposable
 
     public ResourceRef<VertexShader> LoadVertexShader(string name, ShaderDefines defines)
     {
-        if (!mVertexShaders.TryGetValue(name, out var shaderCode))
+        if (!_vertexShaders.TryGetValue(name, out var shaderCode))
         {
             var content = _fs.ReadTextFile($"shaders/{name}.hlsl");
             shaderCode = new ShaderCode<VertexShader>(content);
-            mVertexShaders[name] = shaderCode;
+            _vertexShaders[name] = shaderCode;
         }
         else
         {
             // Search for a variant that matches the defines that are required
-            foreach (var variant in shaderCode.compiledVariants)
+            foreach (var variant in shaderCode.CompiledVariants)
             {
                 if (AreDefinesEqual(variant.Item1, defines))
                 {
@@ -194,13 +203,13 @@ public class Shaders : IDisposable
         var compiler = new ShaderCompiler(_fs);
         compiler.Defines = defines;
         compiler.Name = name;
-        compiler.SourceCode = shaderCode.source;
+        compiler.SourceCode = shaderCode.Source;
         compiler.DebugMode = _device.IsDebugDevice();
         var shader = compiler.CompileVertexShader(_device);
         shader.Resource.CreateShader();
 
         // Insert the newly created shader into the cache
-        shaderCode.compiledVariants.Add(Tuple.Create(defines, shader));
+        shaderCode.CompiledVariants.Add(Tuple.Create(defines, shader));
 
         return shader.CloneRef();
     }
@@ -212,16 +221,16 @@ public class Shaders : IDisposable
 
     public ResourceRef<PixelShader> LoadPixelShader(string name, ShaderDefines defines)
     {
-        if (!mPixelShaders.TryGetValue(name, out var shaderCode))
+        if (!_pixelShaders.TryGetValue(name, out var shaderCode))
         {
             var content = _fs.ReadTextFile($"shaders/{name}.hlsl");
             shaderCode = new ShaderCode<PixelShader>(content);
-            mPixelShaders[name] = shaderCode;
+            _pixelShaders[name] = shaderCode;
         }
         else
         {
             // Search for a variant that matches the defines that are required
-            foreach (var variant in shaderCode.compiledVariants)
+            foreach (var variant in shaderCode.CompiledVariants)
             {
                 if (AreDefinesEqual(variant.Item1, defines))
                 {
@@ -235,13 +244,13 @@ public class Shaders : IDisposable
         var compiler = new ShaderCompiler(_fs);
         compiler.Defines = defines;
         compiler.Name = name;
-        compiler.SourceCode = shaderCode.source;
+        compiler.SourceCode = shaderCode.Source;
         compiler.DebugMode = _device.IsDebugDevice();
         var shader = compiler.CompilePixelShader(_device);
         shader.Resource.CreateShader();
 
         // Insert the newly created shader into the cache
-        shaderCode.compiledVariants.Add(Tuple.Create(defines, shader));
+        shaderCode.CompiledVariants.Add(Tuple.Create(defines, shader));
 
         return shader;
     }
@@ -253,37 +262,37 @@ public class Shaders : IDisposable
 
     public void Dispose()
     {
-        mRegistration.Dispose();
+        _registration.Dispose();
     }
 
     private class ShaderCode<T> where T : GpuResource<T>
     {
         // The HLSL shader source code
-        public readonly string source;
+        public readonly string Source;
 
         // The compiled variants based on the defines used to compile them
-        public readonly List<Tuple<ShaderDefines, ResourceRef<T>>> compiledVariants;
+        public readonly List<Tuple<ShaderDefines, ResourceRef<T>>> CompiledVariants;
 
         public ShaderCode(string source)
         {
-            this.source = source;
-            compiledVariants = new List<Tuple<ShaderDefines, ResourceRef<T>>>();
+            Source = source;
+            CompiledVariants = new List<Tuple<ShaderDefines, ResourceRef<T>>>();
         }
     }
 
     private void CreateResources(RenderingDevice device)
     {
-        foreach (var pair in mVertexShaders.Values)
+        foreach (var pair in _vertexShaders.Values)
         {
-            foreach (var variant in pair.compiledVariants)
+            foreach (var variant in pair.CompiledVariants)
             {
                 variant.Item2.Resource.CreateShader();
             }
         }
 
-        foreach (var pair in mPixelShaders.Values)
+        foreach (var pair in _pixelShaders.Values)
         {
-            foreach (var variant in pair.compiledVariants)
+            foreach (var variant in pair.CompiledVariants)
             {
                 variant.Item2.Resource.CreateShader();
             }
@@ -292,30 +301,20 @@ public class Shaders : IDisposable
 
     private void FreeResources(RenderingDevice device)
     {
-        foreach (var pair in mVertexShaders.Values)
+        foreach (var pair in _vertexShaders.Values)
         {
-            foreach (var variant in pair.compiledVariants)
+            foreach (var variant in pair.CompiledVariants)
             {
                 variant.Item2.Resource.FreeShader();
             }
         }
 
-        foreach (var pair in mPixelShaders.Values)
+        foreach (var pair in _pixelShaders.Values)
         {
-            foreach (var variant in pair.compiledVariants)
+            foreach (var variant in pair.CompiledVariants)
             {
                 variant.Item2.Resource.FreeShader();
             }
         }
     }
-
-    private RenderingDevice Device;
-
-    // For each shader file, we may have multiple compiled
-    // variants depending on the defines used
-    private Dictionary<string, ShaderCode<VertexShader>> mVertexShaders = new();
-
-    private Dictionary<string, ShaderCode<PixelShader>> mPixelShaders = new();
-
-    private ResourceLifecycleCallbacks mRegistration;
 }

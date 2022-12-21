@@ -471,18 +471,6 @@ public static class ObjectFields
             {obj_f.trap_end, ObjectFieldType.EndSection},
             {obj_f.total_normal, ObjectFieldType.None},
             {obj_f.transient_begin, ObjectFieldType.None},
-            {obj_f.render_color, ObjectFieldType.Int32},
-            {obj_f.render_colors, ObjectFieldType.Int32},
-            {obj_f.render_palette, ObjectFieldType.Int32},
-            {obj_f.render_scale, ObjectFieldType.Int32},
-            {obj_f.render_alpha, ObjectFieldType.AbilityArray},
-            {obj_f.render_x, ObjectFieldType.Int32},
-            {obj_f.render_y, ObjectFieldType.Int32},
-            {obj_f.render_width, ObjectFieldType.Int32},
-            {obj_f.render_height, ObjectFieldType.Int32},
-            {obj_f.palette, ObjectFieldType.Int32},
-            {obj_f.color, ObjectFieldType.Int32},
-            {obj_f.colors, ObjectFieldType.Int32},
             {obj_f.render_flags, ObjectFieldType.Int32},
             {obj_f.temp_id, ObjectFieldType.Int32},
             {obj_f.light_handle, ObjectFieldType.Int32},
@@ -892,10 +880,6 @@ public static class ObjectFields
         if (field == obj_f.critter_abilities_idx)
         {
             return 6;
-        }
-        else if (field == obj_f.render_alpha)
-        {
-            return 4;
         }
         else if (field >= obj_f.transient_begin)
         {

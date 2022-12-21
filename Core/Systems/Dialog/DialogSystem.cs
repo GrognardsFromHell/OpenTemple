@@ -75,7 +75,7 @@ public class DialogSystem : IGameSystem
             var dialogState = new DialogState(speaker, listener);
 
             sub_10036E00(out text, dialogScriptLineId, dialogState, generatedLineFrom, generatedLineTo);
-            soundId = dialogState.speechId;
+            soundId = dialogState.SpeechId;
         }
     }
 
@@ -85,13 +85,13 @@ public class DialogSystem : IGameSystem
     {
         if (!GetDialogScriptLine(state, out textOut, dialogScriptLine))
         {
-            var line = _generatedDialog.GetNpcLine(state.npc, state.pc, generatedLineFrom, generatedLineTo);
+            var line = _generatedDialog.GetNpcLine(state.NPC, state.Pc, generatedLineFrom, generatedLineTo);
             if (line != null)
             {
                 textOut = ResolveLineTokens(state, line);
             }
 
-            state.speechId = -1;
+            state.SpeechId = -1;
         }
     }
 
@@ -110,7 +110,7 @@ public class DialogSystem : IGameSystem
     {
         lineText = null;
 
-        var script = state.npc.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Dialog);
+        var script = state.NPC.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Dialog);
 
         if (script.scriptId == 0)
         {
@@ -128,7 +128,7 @@ public class DialogSystem : IGameSystem
             return false;
         }
 
-        if (UseFemaleResponseFor(state.pc))
+        if (UseFemaleResponseFor(state.Pc))
         {
             lineText = dialogLine.genderField;
         }
@@ -138,7 +138,7 @@ public class DialogSystem : IGameSystem
         }
 
         lineText = ResolveLineTokens(state, lineText);
-        state.speechId = ((script.scriptId & 0x7FFF) << 16) | (dialogLine.key & 0xFFFF);
+        state.SpeechId = ((script.scriptId & 0x7FFF) << 16) | (dialogLine.key & 0xFFFF);
 
         return true;
     }
@@ -161,14 +161,14 @@ public class DialogSystem : IGameSystem
                 var rest = chars.Slice(i);
                 if (rest.StartsWith("@pcname@"))
                 {
-                    result.Append(GameSystems.MapObject.GetDisplayName(state.pc));
+                    result.Append(GameSystems.MapObject.GetDisplayName(state.Pc));
                     i += "pcname@".Length;
                     continue;
                 }
 
                 if (rest.StartsWith("@npcname@"))
                 {
-                    result.Append(GameSystems.MapObject.GetDisplayName(state.npc));
+                    result.Append(GameSystems.MapObject.GetDisplayName(state.NPC));
                     i += "npcname@".Length;
                     continue;
                 }
@@ -421,14 +421,14 @@ public class DialogSystem : IGameSystem
     [TempleDllLocation(0x10038770)]
     public bool BeginDialog(DialogState state)
     {
-        if (GameSystems.AI.GetCannotTalkReason(state.npc, state.pc) != AiSystem.CannotTalkCause.None)
+        if (GameSystems.AI.GetCannotTalkReason(state.NPC, state.Pc) != AiSystem.CannotTalkCause.None)
         {
             return false;
         }
 
-        GameSystems.Reaction.DialogReaction_10053FE0(state.npc, state.pc);
+        GameSystems.Reaction.DialogReaction_10053FE0(state.NPC, state.Pc);
         GameSystems.Combat.CritterLeaveCombat(GameSystems.Party.GetConsciousLeader());
-        if (GameSystems.Party.IsInParty(state.pc))
+        if (GameSystems.Party.IsInParty(state.Pc))
         {
             _savedPartySelection.Clear();
             foreach (var selectedCritter in GameSystems.Party.Selected)
@@ -437,12 +437,12 @@ public class DialogSystem : IGameSystem
             }
 
             GameSystems.Party.ClearSelection();
-            GameSystems.Party.AddToSelection(state.pc);
-            GameSystems.Scroll.CenterOnSmooth(state.npc);
+            GameSystems.Party.AddToSelection(state.Pc);
+            GameSystems.Scroll.CenterOnSmooth(state.NPC);
         }
 
-        state.lineNumber = state.reqNpcLineId;
-        state.actionType = 0;
+        state.LineNumber = state.ReqNpcLineId;
+        state.ActionType = 0;
         DialogGetLines(false, state);
         return true;
     }
@@ -450,16 +450,16 @@ public class DialogSystem : IGameSystem
     [TempleDllLocation(0x100385f0)]
     public void DialogGetLines(bool reuseRngSeed, DialogState state)
     {
-        state.pcLineText = Array.Empty<string>();
-        state.pcLineSkillUse = Array.Empty<DialogSkill>();
+        state.PcLineText = Array.Empty<string>();
+        state.PcLineSkillUse = Array.Empty<DialogSkill>();
 
         if (reuseRngSeed)
         {
-            GameSystems.Random.SetSeed(state.rngSeed);
+            GameSystems.Random.SetSeed(state.RngSeed);
         }
         else
         {
-            state.rngSeed = GameSystems.Random.SetRandomSeed();
+            state.RngSeed = GameSystems.Random.SetRandomSeed();
         }
 
         if (DialogGetNpcLine(state, reuseRngSeed))
@@ -468,22 +468,22 @@ public class DialogSystem : IGameSystem
             var answerCount = DialogGetPossibleAnswerLineIds(state, answerKeys);
             if (answerCount == 0)
             {
-                state.pcLineText = new string[1];
-                state.pcReplyOpcode = new DialogReplyOpCode[1];
-                state.pcLineSkillUse = new DialogSkill[1];
-                state.npcReplyIds = new int[1];
-                state.effectLineKey = new int[1];
+                state.PcLineText = new string[1];
+                state.PcReplyOpcode = new DialogReplyOpCode[1];
+                state.PcLineSkillUse = new DialogSkill[1];
+                state.NPCReplyIds = new int[1];
+                state.EffectLineKey = new int[1];
 
-                state.pcLineText[0] = _generatedDialog.GetPcLine(state, 400, 499);
-                state.pcReplyOpcode[0] = DialogReplyOpCode.GoToLine;
+                state.PcLineText[0] = _generatedDialog.GetPcLine(state, 400, 499);
+                state.PcReplyOpcode[0] = DialogReplyOpCode.GoToLine;
             }
             else
             {
-                state.pcLineText = new string[answerCount];
-                state.pcReplyOpcode = new DialogReplyOpCode[answerCount];
-                state.pcLineSkillUse = new DialogSkill[answerCount];
-                state.npcReplyIds = new int[answerCount];
-                state.effectLineKey = new int[answerCount];
+                state.PcLineText = new string[answerCount];
+                state.PcReplyOpcode = new DialogReplyOpCode[answerCount];
+                state.PcLineSkillUse = new DialogSkill[answerCount];
+                state.NPCReplyIds = new int[answerCount];
+                state.EffectLineKey = new int[answerCount];
                 for (var i = 0; i < answerCount; i++)
                 {
                     DialogGetPcReplyLine(answerKeys[i], i, state);
@@ -495,15 +495,15 @@ public class DialogSystem : IGameSystem
     [TempleDllLocation(0x100357d0)]
     private int DialogGetPossibleAnswerLineIds(DialogState state, Span<int> answers)
     {
-        state.pcLineSkillUse = Array.Empty<DialogSkill>();
+        state.PcLineSkillUse = Array.Empty<DialogSkill>();
 
-        var intScore = state.pc.GetStat(Stat.intelligence);
-        if (intScore > 7 && GameSystems.Critter.CritterIsLowInt(state.pc))
+        var intScore = state.Pc.GetStat(Stat.intelligence);
+        if (intScore > 7 && GameSystems.Critter.CritterIsLowInt(state.Pc))
         {
             intScore = 1;
         }
 
-        if (!state.dialogScript.Lines.TryGetValue(state.lineNumber, out var line))
+        if (!state.DialogScript.Lines.TryGetValue(state.LineNumber, out var line))
         {
             return 0;
         }
@@ -512,7 +512,7 @@ public class DialogSystem : IGameSystem
         int nextLineKey = line.nextResponseKey;
         while (nextLineKey != -1)
         {
-            var responseLine = state.dialogScript.Lines[nextLineKey];
+            var responseLine = state.DialogScript.Lines[nextLineKey];
             nextLineKey = responseLine.nextResponseKey;
 
             if (!SatisfiesIntRequirement(intScore, responseLine.minIq))
@@ -539,39 +539,39 @@ public class DialogSystem : IGameSystem
     [TempleDllLocation(0x10035960)]
     private void DialogGetPcReplyLine(int answerLineId, int responseIdx, DialogState state)
     {
-        var line = state.dialogScript.Lines[answerLineId];
+        var line = state.DialogScript.Lines[answerLineId];
 
         DialogGetOpcodeAndAnswer2(line.answerLineId,
-            out state.npcReplyIds[responseIdx],
-            out state.pcReplyOpcode[responseIdx]
+            out state.NPCReplyIds[responseIdx],
+            out state.PcReplyOpcode[responseIdx]
         );
 
         if (line.txt.Equals("a:", StringComparison.OrdinalIgnoreCase))
         {
-            state.pcLineText[responseIdx] = _generatedDialog.GetPcClassBasedLine(1000, state);
+            state.PcLineText[responseIdx] = _generatedDialog.GetPcClassBasedLine(1000, state);
         }
         else if (line.txt.StartsWith("b:", StringComparison.OrdinalIgnoreCase))
         {
             var restOfLine = line.txt.Substring(2);
             if (restOfLine.Length > 0)
             {
-                state.pcLineText[responseIdx] = restOfLine;
+                state.PcLineText[responseIdx] = restOfLine;
             }
             else
             {
-                state.pcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 300, 399);
+                state.PcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 300, 399);
             }
 
             // This always returned zero in vanilla, but what is opcode 26?
             if (false)
             {
-                state.pcReplyOpcode[responseIdx] = DialogReplyOpCode.NpcSellOffThenBarter;
-                state.npcReplyIds[responseIdx] = line.answerLineId;
+                state.PcReplyOpcode[responseIdx] = DialogReplyOpCode.NpcSellOffThenBarter;
+                state.NPCReplyIds[responseIdx] = line.answerLineId;
             }
             else
             {
-                state.pcReplyOpcode[responseIdx] = DialogReplyOpCode.Barter;
-                state.npcReplyIds[responseIdx] = line.answerLineId;
+                state.PcReplyOpcode[responseIdx] = DialogReplyOpCode.Barter;
+                state.NPCReplyIds[responseIdx] = line.answerLineId;
             }
         }
         else if (line.txt.StartsWith("c:", StringComparison.OrdinalIgnoreCase))
@@ -581,19 +581,19 @@ public class DialogSystem : IGameSystem
         }
         else if (line.txt.Equals("e:", StringComparison.OrdinalIgnoreCase))
         {
-            state.pcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 400, 499);
+            state.PcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 400, 499);
         }
         else if (line.txt.Equals("f:", StringComparison.OrdinalIgnoreCase))
         {
-            state.pcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 800, 899);
+            state.PcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 800, 899);
         }
         else if (line.txt.Equals("k:", StringComparison.OrdinalIgnoreCase))
         {
-            state.pcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 1500, 1599);
+            state.PcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 1500, 1599);
         }
         else if (line.txt.Equals("n:", StringComparison.OrdinalIgnoreCase))
         {
-            state.pcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 100, 199);
+            state.PcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 100, 199);
         }
         else if (line.txt.StartsWith("q:", StringComparison.OrdinalIgnoreCase))
         {
@@ -601,29 +601,29 @@ public class DialogSystem : IGameSystem
         }
         else if (line.txt.StartsWith("r:", StringComparison.OrdinalIgnoreCase))
         {
-            state.pcLineText[responseIdx] = _generatedDialog.GetPcClassBasedLine(2000, state);
-            state.pcReplyOpcode[responseIdx] = DialogReplyOpCode.OfferRumor;
-            state.npcReplyIds[responseIdx] = line.answerLineId;
+            state.PcLineText[responseIdx] = _generatedDialog.GetPcClassBasedLine(2000, state);
+            state.PcReplyOpcode[responseIdx] = DialogReplyOpCode.OfferRumor;
+            state.NPCReplyIds[responseIdx] = line.answerLineId;
         }
         else if (line.txt.Equals("s:", StringComparison.OrdinalIgnoreCase))
         {
-            state.pcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 200, 299);
+            state.PcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 200, 299);
         }
         else if (line.txt.Equals("y:", StringComparison.OrdinalIgnoreCase))
         {
-            state.pcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 1, 99);
+            state.PcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 1, 99);
         }
         else
         {
-            state.pcLineText[responseIdx] = ResolveLineTokens(state, line.txt);
+            state.PcLineText[responseIdx] = ResolveLineTokens(state, line.txt);
         }
 
-        state.effectLineKey[responseIdx] = line.key;
+        state.EffectLineKey[responseIdx] = line.key;
 
         // This is a debug option
         if (Globals.Config.ShowDialogLineIds)
         {
-            state.pcLineText[responseIdx] = $"[{line.key}] " + state.pcLineText[responseIdx];
+            state.PcLineText[responseIdx] = $"[{line.key}] " + state.PcLineText[responseIdx];
         }
     }
 
@@ -667,15 +667,15 @@ public class DialogSystem : IGameSystem
     [TempleDllLocation(0x10038240)]
     public bool DialogGetNpcLine(DialogState state, bool rngSeed)
     {
-        if (!state.dialogScript.Lines.TryGetValue(state.lineNumber, out var line))
+        if (!state.DialogScript.Lines.TryGetValue(state.LineNumber, out var line))
         {
-            state.npcLineText = " ";
-            state.speechId = -1;
+            state.NPCLineText = " ";
+            state.SpeechId = -1;
             return false;
         }
 
-        int dlgScriptId = state.dialogScriptId;
-        state.answerLineId = line.answerLineId;
+        int dlgScriptId = state.DialogScriptId;
+        state.AnswerLineId = line.answerLineId;
 
         int line_and_script_packed;
         if (dlgScriptId != 0)
@@ -687,7 +687,7 @@ public class DialogSystem : IGameSystem
             line_and_script_packed = -1;
         }
 
-        state.speechId = line_and_script_packed;
+        state.SpeechId = line_and_script_packed;
         if (!rngSeed && line.effectField != null)
         {
             RunDialogAction(line.key, state, 0);
@@ -696,13 +696,13 @@ public class DialogSystem : IGameSystem
         if (line.txt.StartsWith("g:", StringComparison.OrdinalIgnoreCase))
         {
             dlg_generic_greeting(state);
-            if (state.actionType == 3)
+            if (state.ActionType == 3)
             {
-                state.pcLineText = Array.Empty<string>();
-                state.pcReplyOpcode = Array.Empty<DialogReplyOpCode>();
-                state.pcLineSkillUse = Array.Empty<DialogSkill>();
-                state.npcReplyIds = Array.Empty<int>();
-                state.effectLineKey = Array.Empty<int>();
+                state.PcLineText = Array.Empty<string>();
+                state.PcReplyOpcode = Array.Empty<DialogReplyOpCode>();
+                state.PcLineSkillUse = Array.Empty<DialogSkill>();
+                state.NPCReplyIds = Array.Empty<int>();
+                state.EffectLineKey = Array.Empty<int>();
                 return false;
             }
 
@@ -721,7 +721,7 @@ public class DialogSystem : IGameSystem
         }
 
         string lineTemplate;
-        if (state.pc.GetGender() != Gender.Male)
+        if (state.Pc.GetGender() != Gender.Male)
         {
             lineTemplate = line.genderField;
         }
@@ -730,7 +730,7 @@ public class DialogSystem : IGameSystem
             lineTemplate = line.txt;
         }
 
-        state.npcLineText = ResolveLineTokens(state, lineTemplate);
+        state.NPCLineText = ResolveLineTokens(state, lineTemplate);
         return true;
     }
 
@@ -745,74 +745,74 @@ public class DialogSystem : IGameSystem
         bool disableReputationResponse = false
     )
     {
-        if (GameSystems.AI.HasSurrendered(state.npc, out _))
+        if (GameSystems.AI.HasSurrendered(state.NPC, out _))
         {
-            state.npcLineText = "";
-            state.speechId = -1;
+            state.NPCLineText = "";
+            state.SpeechId = -1;
 
-            if (state.npc.IsNPC())
+            if (state.NPC.IsNPC())
             {
-                GetNpcVoiceLine(state.npc, state.pc, out var text, out var speechId, 3000,
+                GetNpcVoiceLine(state.NPC, state.Pc, out var text, out var speechId, 3000,
                     3099, 12029);
-                state.npcLineText = text;
-                state.speechId = speechId;
+                state.NPCLineText = text;
+                state.SpeechId = speechId;
             }
 
             return;
         }
 
-        if (!disableFearsomeResponse && GameSystems.Critter.HasFearsomeAssociates(state.pc))
+        if (!disableFearsomeResponse && GameSystems.Critter.HasFearsomeAssociates(state.Pc))
         {
-            state.npcLineText = GetClassBasedNpcLine(state, 18000);
-            if (GameSystems.Critter.GetLeaderRecursive(state.npc) == null)
+            state.NPCLineText = GetClassBasedNpcLine(state, 18000);
+            if (GameSystems.Critter.GetLeaderRecursive(state.NPC) == null)
             {
-                state.actionType = 3;
+                state.ActionType = 3;
             }
 
             return;
         }
 
         if (!disableInvisibleResponse &&
-            GameSystems.D20.D20Query(state.pc, D20DispatcherKey.QUE_Critter_Is_Invisible))
+            GameSystems.D20.D20Query(state.Pc, D20DispatcherKey.QUE_Critter_Is_Invisible))
         {
-            state.npcLineText = GetClassBasedNpcLine(state, 22000);
-            if (GameSystems.Critter.GetLeaderRecursive(state.npc) == null)
+            state.NPCLineText = GetClassBasedNpcLine(state, 22000);
+            if (GameSystems.Critter.GetLeaderRecursive(state.NPC) == null)
             {
-                state.actionType = 3;
+                state.ActionType = 3;
             }
 
             return;
         }
 
-        if (!disablePolymorphedResponse && GameSystems.D20.D20Query(state.pc, D20DispatcherKey.QUE_Polymorphed))
+        if (!disablePolymorphedResponse && GameSystems.D20.D20Query(state.Pc, D20DispatcherKey.QUE_Polymorphed))
         {
-            state.npcLineText = GetClassBasedNpcLine(state, 20000);
-            if (GameSystems.Critter.GetLeaderRecursive(state.npc) == null)
+            state.NPCLineText = GetClassBasedNpcLine(state, 20000);
+            if (GameSystems.Critter.GetLeaderRecursive(state.NPC) == null)
             {
-                state.actionType = 3;
+                state.ActionType = 3;
             }
 
             return;
         }
 
-        if (!disableMirrorImageResponse && state.pc.HasCondition(SpellEffects.SpellMirrorImage))
+        if (!disableMirrorImageResponse && state.Pc.HasCondition(SpellEffects.SpellMirrorImage))
         {
-            state.npcLineText = GetClassBasedNpcLine(state, 21000);
+            state.NPCLineText = GetClassBasedNpcLine(state, 21000);
             return;
         }
 
-        var armor = GameSystems.Item.ItemWornAt(state.pc, EquipSlot.Armor);
-        var robes = GameSystems.Item.ItemWornAt(state.pc, EquipSlot.Robes);
+        var armor = GameSystems.Item.ItemWornAt(state.Pc, EquipSlot.Armor);
+        var robes = GameSystems.Item.ItemWornAt(state.Pc, EquipSlot.Robes);
         if (!disableNakedResponse && armor == null && robes == null)
         {
-            state.npcLineText = GetClassBasedNpcLine(state, 16000);
+            state.NPCLineText = GetClassBasedNpcLine(state, 16000);
             return;
         }
 
-        if (!disableBarbarianArmorResponse && armor != null && state.pc.GetStat(Stat.level_barbarian) > 0 &&
+        if (!disableBarbarianArmorResponse && armor != null && state.Pc.GetStat(Stat.level_barbarian) > 0 &&
             armor.ProtoId == 6055)
         {
-            state.npcLineText = GetClassBasedNpcLine(state, 17000);
+            state.NPCLineText = GetClassBasedNpcLine(state, 17000);
             return;
         }
 
@@ -820,19 +820,19 @@ public class DialogSystem : IGameSystem
         // reaction towards the player positively.
         if (!disableReputationResponse
             && GameSystems.Random.GetInt(1, 100) <= 20
-            && GameSystems.Reputation.TryGetReputationAffectingReaction(state.pc, state.npc,
+            && GameSystems.Reputation.TryGetReputationAffectingReaction(state.Pc, state.NPC,
                 out var reputationId)
-            && GameSystems.Reputation.TryGetGreeting(state.pc, state.npc, reputationId, out var repGreeting)
+            && GameSystems.Reputation.TryGetGreeting(state.Pc, state.NPC, reputationId, out var repGreeting)
            )
         {
-            state.npcLineText = repGreeting;
-            state.speechId = -1;
+            state.NPCLineText = repGreeting;
+            state.SpeechId = -1;
             return;
         }
 
-        var reaction = GameSystems.Reaction.GetReaction(state.npc, state.pc);
+        var reaction = GameSystems.Reaction.GetReaction(state.NPC, state.Pc);
         var reactionLevel = GameSystems.Reaction.GetReactionLevel(reaction);
-        if (GameSystems.Reaction.HasMet(state.npc, state.pc))
+        if (GameSystems.Reaction.HasMet(state.NPC, state.Pc))
         {
             switch (reactionLevel)
             {
@@ -840,18 +840,18 @@ public class DialogSystem : IGameSystem
                 case 0:
                 case 1:
                 case 2:
-                    state.npcLineText = GetClassBasedNpcLine(state, 12000);
+                    state.NPCLineText = GetClassBasedNpcLine(state, 12000);
                     break;
                 // Further neutral greeting
                 case 3:
-                    state.npcLineText = GetClassBasedNpcLine(state, 13000);
+                    state.NPCLineText = GetClassBasedNpcLine(state, 13000);
                     break;
                 case 4:
                 case 5:
-                    state.npcLineText = GetRaceBasedNpcLine(state, 4000);
+                    state.NPCLineText = GetRaceBasedNpcLine(state, 4000);
                     break;
                 case 6:
-                    state.npcLineText = GetRaceBasedNpcLine(state, 5000);
+                    state.NPCLineText = GetRaceBasedNpcLine(state, 5000);
                     break;
                 default:
                     return;
@@ -864,17 +864,17 @@ public class DialogSystem : IGameSystem
                 case 0:
                 case 1:
                 case 2:
-                    state.npcLineText = GetClassBasedNpcLine(state, 9000);
+                    state.NPCLineText = GetClassBasedNpcLine(state, 9000);
                     break;
                 case 3:
-                    state.npcLineText = GetClassBasedNpcLine(state, 10000);
+                    state.NPCLineText = GetClassBasedNpcLine(state, 10000);
                     break;
                 case 4:
                 case 5:
-                    state.npcLineText = GetRaceBasedNpcLine(state, 2000);
+                    state.NPCLineText = GetRaceBasedNpcLine(state, 2000);
                     break;
                 case 6:
-                    state.npcLineText = GetRaceBasedNpcLine(state, 3000);
+                    state.NPCLineText = GetRaceBasedNpcLine(state, 3000);
                     break;
                 default:
                     return;
@@ -890,18 +890,18 @@ public class DialogSystem : IGameSystem
             return; // No action to run
         }
 
-        if (!GameSystems.Script.TryGetDialogScript(state.dialogScriptId, out var dialogScript))
+        if (!GameSystems.Script.TryGetDialogScript(state.DialogScriptId, out var dialogScript))
         {
-            Logger.Warn("Dialog script {0} is missing.", state.dialogScriptId);
+            Logger.Warn("Dialog script {0} is missing.", state.DialogScriptId);
             return;
         }
 
-        var currentEffect = state.dialogScript.Lines[lineKey].effectField;
-        dialogScript.ApplySideEffect(state.npc, state.pc, lineKey, out var originalEffect);
+        var currentEffect = state.DialogScript.Lines[lineKey].effectField;
+        dialogScript.ApplySideEffect(state.NPC, state.Pc, lineKey, out var originalEffect);
         if (currentEffect != originalEffect)
         {
             Logger.Warn("Dialog script {0} line {1} has effect '{2}', but C# scripts were converted from '{3}'",
-                state.dialogScript.Path, lineKey, currentEffect, originalEffect);
+                state.DialogScript.Path, lineKey, currentEffect, originalEffect);
         }
     }
 
@@ -909,9 +909,9 @@ public class DialogSystem : IGameSystem
     private bool SatisfiesPrecondition(DialogState state, ref DialogLine responseLine,
         out DialogSkillChecks skillChecks)
     {
-        if (!GameSystems.Script.TryGetDialogScript(state.dialogScriptId, out var dialogScript))
+        if (!GameSystems.Script.TryGetDialogScript(state.DialogScriptId, out var dialogScript))
         {
-            Logger.Warn("Dialog script {0} is missing.", state.dialogScriptId);
+            Logger.Warn("Dialog script {0} is missing.", state.DialogScriptId);
             skillChecks = default;
             return true;
         }
@@ -922,12 +922,12 @@ public class DialogSystem : IGameSystem
         }
 
         var currentTest = responseLine.testField;
-        var result = dialogScript.CheckPrecondition(state.npc, state.pc, responseLine.key, out var originalTest);
+        var result = dialogScript.CheckPrecondition(state.NPC, state.Pc, responseLine.key, out var originalTest);
 
         if (currentTest != originalTest)
         {
             Logger.Warn("Dialog script {0} line {1} has effect '{2}', but C# scripts were converted from '{3}'",
-                state.dialogScript.Path, responseLine.key, currentTest, originalTest);
+                state.DialogScript.Path, responseLine.key, currentTest, originalTest);
         }
 
         return result;
@@ -938,19 +938,19 @@ public class DialogSystem : IGameSystem
     {
         DialogGetOpcodeAndAnswer2(answerLineId, out var npcReplyId, out var pcOpCode);
 
-        if (!GameSystems.Rumor.TryFindRumor(state.pc, state.npc, out var rumorId))
+        if (!GameSystems.Rumor.TryFindRumor(state.Pc, state.NPC, out var rumorId))
         {
-            state.npcLineText = GetClassBasedNpcLine(state, 7000);
+            state.NPCLineText = GetClassBasedNpcLine(state, 7000);
 
-            state.pcLineText = new string[1];
-            state.pcReplyOpcode = new DialogReplyOpCode[1];
-            state.pcLineSkillUse = new DialogSkill[1];
-            state.npcReplyIds = new int[1];
-            state.effectLineKey = new int[1];
+            state.PcLineText = new string[1];
+            state.PcReplyOpcode = new DialogReplyOpCode[1];
+            state.PcLineSkillUse = new DialogSkill[1];
+            state.NPCReplyIds = new int[1];
+            state.EffectLineKey = new int[1];
 
-            state.pcLineText[0] = _generatedDialog.GetPcLine(state, 600, 699);
-            state.pcReplyOpcode[0] = pcOpCode;
-            state.npcReplyIds[0] = npcReplyId;
+            state.PcLineText[0] = _generatedDialog.GetPcLine(state, 600, 699);
+            state.PcReplyOpcode[0] = pcOpCode;
+            state.NPCReplyIds[0] = npcReplyId;
         }
         else if (rumorCostInGold <= 0)
         {
@@ -966,21 +966,21 @@ public class DialogSystem : IGameSystem
     [TempleDllLocation(0x10035300)]
     public void SayRumor(DialogState state, int rumorId, DialogReplyOpCode pcOpCode, int npcReplyId)
     {
-        GameSystems.Rumor.TryGetRumorNpcLine(state.pc, state.npc, rumorId, out var rumorText);
-        state.npcLineText = ResolveLineTokens(state, rumorText);
+        GameSystems.Rumor.TryGetRumorNpcLine(state.Pc, state.NPC, rumorId, out var rumorText);
+        state.NPCLineText = ResolveLineTokens(state, rumorText);
 
-        state.speechId = -1;
-        GameSystems.Rumor.Add(state.pc, rumorId);
+        state.SpeechId = -1;
+        GameSystems.Rumor.Add(state.Pc, rumorId);
 
-        state.pcLineText = new string[1];
-        state.pcReplyOpcode = new DialogReplyOpCode[1];
-        state.pcLineSkillUse = new DialogSkill[1];
-        state.npcReplyIds = new int[1];
-        state.effectLineKey = new int[1];
+        state.PcLineText = new string[1];
+        state.PcReplyOpcode = new DialogReplyOpCode[1];
+        state.PcLineSkillUse = new DialogSkill[1];
+        state.NPCReplyIds = new int[1];
+        state.EffectLineKey = new int[1];
 
-        state.pcLineText[0] = _generatedDialog.GetPcClassBasedLine(1000, state);
-        state.pcReplyOpcode[0] = pcOpCode;
-        state.npcReplyIds[0] = npcReplyId;
+        state.PcLineText[0] = _generatedDialog.GetPcClassBasedLine(1000, state);
+        state.PcReplyOpcode[0] = pcOpCode;
+        state.NPCReplyIds[0] = npcReplyId;
     }
 
     [TempleDllLocation(0x10036fb0)]
@@ -988,28 +988,28 @@ public class DialogSystem : IGameSystem
         int npcReplyId)
     {
         // Is this how much money the NPC is asking for?
-        var moneyAmount = GameSystems.Reaction.AdjustBuyPrice(state.npc, state.pc, goldPieces);
+        var moneyAmount = GameSystems.Reaction.AdjustBuyPrice(state.NPC, state.Pc, goldPieces);
 
         // Asking for money
-        state.npcLineText = GetClassBasedNpcLine(state, 1000);
+        state.NPCLineText = GetClassBasedNpcLine(state, 1000);
 
-        state.pcLineText = new string[2];
-        state.pcReplyOpcode = new DialogReplyOpCode[2];
-        state.pcLineSkillUse = new DialogSkill[2];
-        state.npcReplyIds = new int[2];
-        state.effectLineKey = new int[2];
+        state.PcLineText = new string[2];
+        state.PcReplyOpcode = new DialogReplyOpCode[2];
+        state.PcLineSkillUse = new DialogSkill[2];
+        state.NPCReplyIds = new int[2];
+        state.EffectLineKey = new int[2];
 
         // Yes
-        state.pcLineText[0] = _generatedDialog.GetPcLine(state, 1, 99);
-        state.npcReplyIds[0] = moneyAmount;
-        state.pcReplyOpcode[0] = DialogReplyOpCode.AskForMoney;
+        state.PcLineText[0] = _generatedDialog.GetPcLine(state, 1, 99);
+        state.NPCReplyIds[0] = moneyAmount;
+        state.PcReplyOpcode[0] = DialogReplyOpCode.AskForMoney;
 
         // No
-        state.pcLineText[1] = _generatedDialog.GetPcLine(state, 100, 199);
-        state.pcReplyOpcode[1] = pcOpCode;
-        state.npcReplyIds[1] = npcReplyId;
+        state.PcLineText[1] = _generatedDialog.GetPcLine(state, 100, 199);
+        state.PcReplyOpcode[1] = pcOpCode;
+        state.NPCReplyIds[1] = npcReplyId;
 
-        state.askForMoneyOp = successOp;
+        state.AskForMoneyOp = successOp;
     }
 
     [TempleDllLocation(0x10036b20)]
@@ -1022,9 +1022,9 @@ public class DialogSystem : IGameSystem
             return lineText;
         }
 
-        lineText = _generatedDialog.GetNpcClassBasedLine(state.npc, state.pc, baseLine);
+        lineText = _generatedDialog.GetNpcClassBasedLine(state.NPC, state.Pc, baseLine);
         lineText = ResolveLineTokens(state, lineText);
-        state.speechId = -1;
+        state.SpeechId = -1;
         return lineText;
     }
 
@@ -1038,16 +1038,16 @@ public class DialogSystem : IGameSystem
             return lineText;
         }
 
-        lineText = _generatedDialog.GetNpcRaceBasedLine(state.npc, state.pc, baseLine);
+        lineText = _generatedDialog.GetNpcRaceBasedLine(state.NPC, state.Pc, baseLine);
         lineText = ResolveLineTokens(state, lineText);
-        state.speechId = -1;
+        state.SpeechId = -1;
         return lineText;
     }
 
     [TempleDllLocation(0x10034710)]
     public void EndDialog(DialogState state)
     {
-        GameSystems.Reaction.NpcReactionUpdate(state.npc, state.pc);
+        GameSystems.Reaction.NpcReactionUpdate(state.NPC, state.Pc);
 
         GameSystems.Party.ClearSelection();
         foreach (var selectedMember in _savedPartySelection)
@@ -1095,7 +1095,7 @@ public class DialogSystem : IGameSystem
                 dlg_generic_greeting(dlgState);
             }
 
-            return dlgState.npcLineText;
+            return dlgState.NPCLineText;
         }
     }
 
@@ -1163,40 +1163,40 @@ public class DialogSystem : IGameSystem
     [TempleDllLocation(0x10038a50)]
     public void DialogChoiceParse(DialogState state, int responseIdx)
     {
-        var actionType = state.actionType;
+        var actionType = state.ActionType;
         if (actionType != 3 && actionType != 4 && actionType != 6 && actionType != 5 && actionType != 7 &&
             actionType != 8)
         {
-            if (GameSystems.AI.GetCannotTalkReason(state.npc, state.pc) != AiSystem.CannotTalkCause.None)
+            if (GameSystems.AI.GetCannotTalkReason(state.NPC, state.Pc) != AiSystem.CannotTalkCause.None)
             {
-                state.actionType = 1;
+                state.ActionType = 1;
             }
             else
             {
-                var dialogSkill = state.pcLineSkillUse[responseIdx];
+                var dialogSkill = state.PcLineSkillUse[responseIdx];
                 if (dialogSkill != DialogSkill.None)
                 {
                     var skill = GetSkillForDialogSkill(dialogSkill);
-                    GameUiBridge.RecordSkillUse(state.pc, skill);
+                    GameUiBridge.RecordSkillUse(state.Pc, skill);
                 }
 
                 if (actionType == 2)
                 {
-                    DialogGetOpcodeAndAnswer2(state.lineNumber, out var answerId, out var opCode);
+                    DialogGetOpcodeAndAnswer2(state.LineNumber, out var answerId, out var opCode);
                     DialogGetNpcReply(opCode, answerId, state);
                 }
                 else
                 {
                     if (actionType != 1)
                     {
-                        var effectField = state.effectLineKey[responseIdx];
+                        var effectField = state.EffectLineKey[responseIdx];
                         if (effectField != null)
                         {
                             RunDialogAction(effectField, state, responseIdx);
                         }
                     }
 
-                    DialogGetNpcReply(state.pcReplyOpcode[responseIdx], state.npcReplyIds[responseIdx], state);
+                    DialogGetNpcReply(state.PcReplyOpcode[responseIdx], state.NPCReplyIds[responseIdx], state);
                 }
             }
         }
@@ -1208,16 +1208,16 @@ public class DialogSystem : IGameSystem
         switch (replyOpCode)
         {
             case DialogReplyOpCode.GoToLine:
-                state.lineNumber = lineNumber;
-                state.actionType = 0;
+                state.LineNumber = lineNumber;
+                state.ActionType = 0;
                 GameSystems.Dialog.DialogGetLines(false, state);
                 return;
             case DialogReplyOpCode.ExitDialog:
-                state.actionType = 1;
+                state.ActionType = 1;
                 return;
             case DialogReplyOpCode.Barter:
-                state.lineNumber = lineNumber;
-                state.actionType = 2;
+                state.LineNumber = lineNumber;
+                state.ActionType = 2;
                 return;
             case DialogReplyOpCode.AskForMoney:
                 AskedForMoneyConfirmed(lineNumber, state);
@@ -1226,7 +1226,7 @@ public class DialogSystem : IGameSystem
                 GameSystems.Dialog.OfferRumor(lineNumber, 5, state);
                 return;
             case DialogReplyOpCode.GiveRumor:
-                GameSystems.Dialog.SayRumor(state, lineNumber, state.pcReplyOpcode[1], state.npcReplyIds[1]);
+                GameSystems.Dialog.SayRumor(state, lineNumber, state.PcReplyOpcode[1], state.NPCReplyIds[1]);
                 return;
             case DialogReplyOpCode.NpcSellOffThenBarter:
                 DialogDoNpcSelloff_0(state, lineNumber);
@@ -1239,15 +1239,15 @@ public class DialogSystem : IGameSystem
     [TempleDllLocation(0x100389e0)]
     private void AskedForMoneyConfirmed(int goldPieces, DialogState state)
     {
-        if (GameSystems.Item.GetTotalCurrencyAmount(state.pc) < goldPieces)
+        if (GameSystems.Item.GetTotalCurrencyAmount(state.Pc) < goldPieces)
         {
             // Not enough money
-            SayNotEnoughMoney(2000, state, state.pcReplyOpcode[1], state.npcReplyIds[1]);
+            SayNotEnoughMoney(2000, state, state.PcReplyOpcode[1], state.NPCReplyIds[1]);
         }
         else
         {
             GameSystems.Party.RemovePartyMoney(0, goldPieces, 0, 0);
-            DialogGetNpcReply(state.askForMoneyOp.OpCode, state.askForMoneyOp.Argument, state);
+            DialogGetNpcReply(state.AskForMoneyOp.OpCode, state.AskForMoneyOp.Argument, state);
         }
     }
 
@@ -1256,15 +1256,15 @@ public class DialogSystem : IGameSystem
     {
         GetClassBasedNpcLine(state, a1);
 
-        state.pcLineText = new string[1];
-        state.pcReplyOpcode = new DialogReplyOpCode[1];
-        state.pcLineSkillUse = new DialogSkill[1];
-        state.npcReplyIds = new int[1];
-        state.effectLineKey = new int[1];
+        state.PcLineText = new string[1];
+        state.PcReplyOpcode = new DialogReplyOpCode[1];
+        state.PcLineSkillUse = new DialogSkill[1];
+        state.NPCReplyIds = new int[1];
+        state.EffectLineKey = new int[1];
 
-        state.pcLineText[0] = _generatedDialog.GetPcLine(state, 600, 699); // "continue"
-        state.pcReplyOpcode[0] = nextOpCode;
-        state.npcReplyIds[0] = nextNpcReply;
+        state.PcLineText[0] = _generatedDialog.GetPcLine(state, 600, 699); // "continue"
+        state.PcReplyOpcode[0] = nextOpCode;
+        state.NPCReplyIds[0] = nextNpcReply;
     }
 
     [TempleDllLocation(0x10037240)]
@@ -1277,17 +1277,17 @@ public class DialogSystem : IGameSystem
         sub_10036E00(out var npcLine, 12012, state, 4400, 4499);
         if (npcLine != null)
         {
-            state.npcLineText = npcLine;
+            state.NPCLineText = npcLine;
         }
 
-        state.pcLineText = new string[1];
-        state.pcReplyOpcode = new DialogReplyOpCode[1];
-        state.pcLineSkillUse = new DialogSkill[1];
-        state.npcReplyIds = new int[1];
-        state.effectLineKey = new int[1];
+        state.PcLineText = new string[1];
+        state.PcReplyOpcode = new DialogReplyOpCode[1];
+        state.PcLineSkillUse = new DialogSkill[1];
+        state.NPCReplyIds = new int[1];
+        state.EffectLineKey = new int[1];
 
-        state.pcLineText[0] = GameSystems.Dialog._generatedDialog.GetPcLine(state, 600, 699);
-        state.pcReplyOpcode[0] = DialogReplyOpCode.Barter;
-        state.npcReplyIds[0] = a2;
+        state.PcLineText[0] = GameSystems.Dialog._generatedDialog.GetPcLine(state, 600, 699);
+        state.PcReplyOpcode[0] = DialogReplyOpCode.Barter;
+        state.NPCReplyIds[0] = a2;
     }
 }

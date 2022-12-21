@@ -558,7 +558,7 @@ internal static class PythonConstants
         Add("obj_f_base_mesh", obj_f.base_mesh);
         Add("obj_f_base_anim", obj_f.base_anim);
         Add("obj_f_radius", obj_f.radius);
-        Add("obj_f_3d_render_height", obj_f.render_height);
+        Add("obj_f_3d_render_height", obj_f.render_height_3d);
         Add("obj_f_conditions", obj_f.conditions);
         Add("obj_f_condition_arg0", obj_f.condition_arg0);
         Add("obj_f_permanent_mods", obj_f.permanent_mods);
@@ -925,18 +925,6 @@ internal static class PythonConstants
         Add("obj_f_trap_end", obj_f.trap_end);
         Add("obj_f_total_normal", obj_f.total_normal);
         Add("obj_f_transient_begin", obj_f.transient_begin);
-        Add("obj_f_render_color", obj_f.render_color);
-        Add("obj_f_render_colors", obj_f.render_colors);
-        Add("obj_f_render_palette", obj_f.render_palette);
-        Add("obj_f_render_scale", obj_f.render_scale);
-        Add("obj_f_render_alpha", obj_f.render_alpha);
-        Add("obj_f_render_x", obj_f.render_x);
-        Add("obj_f_render_y", obj_f.render_y);
-        Add("obj_f_render_width", obj_f.render_width);
-        Add("obj_f_render_height", obj_f.render_height);
-        Add("obj_f_palette", obj_f.palette);
-        Add("obj_f_color", obj_f.color);
-        Add("obj_f_colors", obj_f.colors);
         Add("obj_f_render_flags", obj_f.render_flags);
         Add("obj_f_temp_id", obj_f.temp_id);
         Add("obj_f_light_handle", obj_f.light_handle);

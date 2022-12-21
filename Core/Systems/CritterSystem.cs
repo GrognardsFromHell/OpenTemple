@@ -114,7 +114,6 @@ public class CritterSystem : IGameSystem
     public void GenerateHp(GameObject obj)
     {
         var hpPts = 0;
-        var critterLvlIdx = 0;
 
         var conMod = 0;
         if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_No_Con_Score))

@@ -24,7 +24,7 @@ public class D20System : IGameSystem, IResetAwareSystem, ITimeAwareSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    public const bool IsEditor = false;
+    public static readonly bool IsEditor = false;
 
     public D20ActionSystem Actions { get; private set; }
 

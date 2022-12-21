@@ -189,7 +189,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         }
         else
         {
-            if (responseIndex < dialog_slot_idx.pcLineText.Length)
+            if (responseIndex < dialog_slot_idx.PcLineText.Length)
             {
                 UiDialogPcReplyLineExecute(dialog_slot_idx, responseIndex);
             }
@@ -206,7 +206,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
 
         void SelectResponse(int responseIdx)
         {
-            if (responseIdx < dialog_slot_idx.pcLineText.Length)
+            if (responseIdx < dialog_slot_idx.PcLineText.Length)
             {
                 UiDialogPcReplyLineExecute(dialog_slot_idx, responseIdx);
                 e.StopPropagation();
@@ -251,32 +251,32 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x1014d1a0)]
     private void UiDialogPcReplyLineExecute(DialogState state, int responseIdx)
     {
-        GameSystems.TextBubble.Remove(state.npc);
+        GameSystems.TextBubble.Remove(state.NPC);
         GameSystems.Dialog.StopCurrentVoiceLine();
-        DialogLineAppend(state.pc, state.pcLineText[responseIdx]);
+        DialogLineAppend(state.Pc, state.PcLineText[responseIdx]);
         GameSystems.Dialog.DialogChoiceParse(state, responseIdx);
 
-        switch (state.actionType)
+        switch (state.ActionType)
         {
             case 0:
                 UiDialogGetResponsesFromDialogState(state);
                 break;
             case 1:
-                CancelDialog(state.pc);
+                CancelDialog(state.Pc);
                 break;
             case 2:
                 UiSystems.CharSheet.State = CharInventoryState.Bartering;
-                UiSystems.CharSheet.Looting.Show(state.npc);
-                UiSystems.CharSheet.Show(state.pc);
-                DialogCreateBubble(state.npc, state.pc, 0, -1, state.npcLineText, state.speechId);
-                CancelDialog(state.pc);
+                UiSystems.CharSheet.Looting.Show(state.NPC);
+                UiSystems.CharSheet.Show(state.Pc);
+                DialogCreateBubble(state.NPC, state.Pc, 0, -1, state.NPCLineText, state.SpeechId);
+                CancelDialog(state.Pc);
                 break;
             case 3:
-                DialogCreateBubble(state.npc, state.pc, 0, -1, state.npcLineText, state.speechId);
-                CancelDialog(state.pc);
+                DialogCreateBubble(state.NPC, state.Pc, 0, -1, state.NPCLineText, state.SpeechId);
+                CancelDialog(state.Pc);
                 break;
             case 7:
-                if (GameSystems.Party.IsInParty(state.pc))
+                if (GameSystems.Party.IsInParty(state.Pc))
                 {
                     UiDialogResetResponses();
                 }
@@ -286,7 +286,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
             case 5:
             case 6:
             case 8:
-                if (GameSystems.Party.IsInParty(state.pc))
+                if (GameSystems.Party.IsInParty(state.Pc))
                 {
                     UiDialogResetResponses();
                 }
@@ -381,14 +381,14 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     {
         if (dialog_slot_idx != null)
         {
-            CancelDialog(dialog_slot_idx.pc);
+            CancelDialog(dialog_slot_idx.Pc);
         }
     }
 
     [TempleDllLocation(0x1014BA40)]
     public void CancelDialog(GameObject obj)
     {
-        if (dialog_slot_idx != null && dialog_slot_idx.pc == obj)
+        if (dialog_slot_idx != null && dialog_slot_idx.Pc == obj)
         {
             var currentDialog = dialog_slot_idx;
             dialog_slot_idx = null;
@@ -399,8 +399,8 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
                 IsConversationOngoing = false;
             }
 
-            GameSystems.Dialog.Free(ref currentDialog.dialogScript);
-            GameSystems.TextBubble.SetDuration(currentDialog.npc, -1);
+            GameSystems.Dialog.Free(ref currentDialog.DialogScript);
+            GameSystems.TextBubble.SetDuration(currentDialog.NPC, -1);
             GameSystems.Dialog.EndDialog(currentDialog);
         }
     }
@@ -487,26 +487,26 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
             else
             {
                 dialog_slot_idx = new DialogState(npc, pc);
-                dialog_slot_idx.dialogScript = dialogScript;
-                dialog_slot_idx.reqNpcLineId = lineNumber;
-                dialog_slot_idx.dialogScriptId = scriptId;
+                dialog_slot_idx.DialogScript = dialogScript;
+                dialog_slot_idx.ReqNpcLineId = lineNumber;
+                dialog_slot_idx.DialogScriptId = scriptId;
                 if (!GameSystems.Dialog.BeginDialog(dialog_slot_idx))
                 {
-                    GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
+                    GameSystems.Dialog.Free(ref dialog_slot_idx.DialogScript);
                     return;
                 }
 
-                if (dialog_slot_idx.actionType == 3)
+                if (dialog_slot_idx.ActionType == 3)
                 {
                     DialogCreateBubble(
-                        dialog_slot_idx.npc,
-                        dialog_slot_idx.pc,
+                        dialog_slot_idx.NPC,
+                        dialog_slot_idx.Pc,
                         0,
                         -1,
-                        dialog_slot_idx.npcLineText,
-                        dialog_slot_idx.speechId);
+                        dialog_slot_idx.NPCLineText,
+                        dialog_slot_idx.SpeechId);
                     GameSystems.Dialog.EndDialog(dialog_slot_idx);
-                    GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
+                    GameSystems.Dialog.Free(ref dialog_slot_idx.DialogScript);
                     return;
                 }
 
@@ -533,7 +533,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
                     GameSystems.Critter.SetMovingSilently(npc, false);
                 }
 
-                dialog_slot_idx.unk = i;
+                dialog_slot_idx.Unk = i;
                 UiDialogGetResponsesFromDialogState(dialog_slot_idx);
             }
         }
@@ -543,20 +543,20 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     public void UiDialogGetResponsesFromDialogState(DialogState state)
     {
         DialogCreateBubble(
-            state.npc,
-            state.pc,
+            state.NPC,
+            state.Pc,
             0,
             -2,
-            state.npcLineText,
-            state.speechId);
+            state.NPCLineText,
+            state.SpeechId);
 
-        if (GameSystems.Party.IsInParty(state.pc))
+        if (GameSystems.Party.IsInParty(state.Pc))
         {
-            var lines = new ResponseLine[state.pcLineText.Length];
+            var lines = new ResponseLine[state.PcLineText.Length];
 
-            for (var i = 0; i < state.pcLineText.Length; i++)
+            for (var i = 0; i < state.PcLineText.Length; i++)
             {
-                lines[i] = new ResponseLine(state.pcLineText[i], state.pcLineSkillUse[i]);
+                lines[i] = new ResponseLine(state.PcLineText[i], state.PcLineSkillUse[i]);
             }
 
             _responseList.SetResponses(lines);
@@ -629,9 +629,9 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x1014c8f0)]
     public void UiDialogBegin()
     {
-        if (dialog_slot_idx?.npc != null)
+        if (dialog_slot_idx?.NPC != null)
         {
-            var script = dialog_slot_idx.npc.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Dialog);
+            var script = dialog_slot_idx.NPC.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Dialog);
             if (script.scriptId > 0)
             {
                 var soundDir = $"data/sound/speech/{script.scriptId:D5}";
@@ -837,7 +837,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
 
         if (dialog_slot_idx != null)
         {
-            GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
+            GameSystems.Dialog.Free(ref dialog_slot_idx.DialogScript);
             GameSystems.Dialog.EndDialog(dialog_slot_idx);
             dialog_slot_idx = null;
         }

@@ -29,16 +29,6 @@ public class StatsUiParams
             }
         }
 
-        void LoadColor(out PackedLinearColorA color, int baseId)
-        {
-            color = new PackedLinearColorA(
-                byte.Parse(settings[baseId]),
-                byte.Parse(settings[baseId + 1]),
-                byte.Parse(settings[baseId + 2]),
-                byte.Parse(settings[baseId + 3])
-            );
-        }
-
         LoadRectangle(out MainWindow, 0);
         LoadRectangle(out PlatinumButton, 5, true);
         LoadRectangle(out GoldButton, 10, true);
