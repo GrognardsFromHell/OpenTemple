@@ -223,7 +223,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
 
         // Don't push goals for destroyed ObjectHandles.
         var handle = stackEntry.self.obj;
-        if (handle.GetFlags().HasFlag(ObjectFlag.DESTROYED))
+        if (handle == null || handle.GetFlags().HasFlag(ObjectFlag.DESTROYED))
         {
             return false;
         }
@@ -280,7 +280,7 @@ public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSyst
         var runInfo = _slots[_lastSlotPushedTo.slotIndex];
         runInfo.currentState = 0;
         runInfo.field_14 = -1;
-        runInfo.animObj = stackEntry.self.obj;
+        runInfo.animObj = handle;
         runInfo.flags |= flags;
         runInfo.goals.Add(stackEntry); // TODO: We might want to copy here
         runInfo.currentGoal = runInfo.goals.Count - 1;

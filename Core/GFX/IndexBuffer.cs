@@ -7,7 +7,7 @@ namespace OpenTemple.Core.GFX;
 
 public class IndexBuffer : GpuResource<IndexBuffer>
 {
-    internal Buffer Buffer { get; private set; }
+    internal Buffer Buffer { get; }
 
     public Format Format { get; }
 
@@ -31,14 +31,13 @@ public class IndexBuffer : GpuResource<IndexBuffer>
 
     protected override void FreeResource()
     {
-        Buffer?.Dispose();
-        Buffer = null;
+        Buffer.Dispose();
     }
 }
 
 public class VertexBuffer : GpuResource<VertexBuffer>
 {
-    internal Buffer Buffer { get; private set; }
+    internal Buffer Buffer { get; }
 
     internal int Size { get; }
 
@@ -58,7 +57,6 @@ public class VertexBuffer : GpuResource<VertexBuffer>
 
     protected override void FreeResource()
     {
-        Buffer?.Dispose();
-        Buffer = null;
+        Buffer.Dispose();
     }
 }

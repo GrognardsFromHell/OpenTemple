@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -447,7 +449,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
         else
         {
-            // Try placing it where the last random encounter ocurred
+            // Try placing it where the last random encounter occurred
             _youAreHereWidget.X = _randomEncounterPoint.X
                                   - YouAreHereDefaultRadius;
             _youAreHereWidget.Y = _randomEncounterPoint.Y
@@ -457,7 +459,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
     }
 
-    private bool TryGetWidgetsForArea(int areaId, out WorldMapLocationWidgets? location)
+    private bool TryGetWidgetsForArea(int areaId, [MaybeNullWhen(false)] out WorldMapLocationWidgets location)
     {
         foreach (var widgets in _locationWidgets)
         {
@@ -530,6 +532,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         // When we're traveling from dialog, it means we have to immediately initiate travel
         if (_mode == WorldMapMode.TravelFromDialog)
         {
+            Debug.Assert(_travelByDialogDestination != null);
             var curArea = GameSystems.Area.GetCurrentArea();
             if (TryGetWidgetsForArea(curArea, out var widgets))
             {

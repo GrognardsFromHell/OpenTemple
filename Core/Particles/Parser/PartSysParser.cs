@@ -42,14 +42,9 @@ public class PartSysParser
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    public PartSysSpec GetSpec(string name)
+    public PartSysSpec? GetSpec(string name)
     {
-        if (_specs.TryGetValue(name.ToLowerInvariant(), out var spec))
-        {
-            return spec;
-        }
-
-        return null;
+        return _specs.GetValueOrDefault(name.ToLowerInvariant());
     }
 
     public IReadOnlyDictionary<string, PartSysSpec> Specs => _specs;
@@ -267,14 +262,14 @@ public class PartSysParser
             var mdfContent = Tig.FS.ReadTextFile(fullName);
             MdfParser mdfParser = new MdfParser(fullName, mdfContent);
             var mdfMaterial = mdfParser.Parse();
-            if (mdfMaterial.samplers.Count == 0)
+            if (mdfMaterial.Samplers.Count == 0)
             {
                 Logger.Warn("Emitter on line {0} has material: '{1}' with no associated textures.",
                     record.LineNumber, fullName);
                 return;
             }
 
-            var textureName = mdfMaterial.samplers[0].filename;
+            var textureName = mdfMaterial.Samplers[0].Filename;
             emitter.SetTextureName(textureName);
             _textureNameCache[materialName] = textureName;
         }

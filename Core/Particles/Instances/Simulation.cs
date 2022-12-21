@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using OpenTemple.Core.Particles.Spec;
 using OpenTemple.Core.Utils;
@@ -133,12 +134,13 @@ internal static class PartSysSimulation
             case PartSysEmitterSpace.Bones:
             {
                 var scale = 1.0f - emitter.GetParticleAge(particleIdx) / timeToSimulate;
-                if (emitter.GetBoneState() == null)
+                var boneState = emitter.GetBoneState(); 
+                if (boneState == null)
                 {
                     break;
                 }
 
-                if (emitter.GetBoneState().GetRandomPos(scale, out var bonePos))
+                if (boneState.GetRandomPos(scale, out var bonePos))
                 {
                     particleX = bonePos.X;
                     particleY = bonePos.Y;

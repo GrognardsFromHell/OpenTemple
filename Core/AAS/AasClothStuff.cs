@@ -4,84 +4,34 @@ using System.Numerics;
 
 namespace OpenTemple.Core.AAS;
 
-/**
-     * Represents an edge (between two vertices) and the distance (squared).
-     */
+/// <summary>
+/// Represents an edge (between two vertices) and the distance (squared).
+/// </summary>
 struct EdgeDistance {
-    public short to;
-    public short from;
-    public float distSquared;
+    public short To;
+    public short From;
+    public float DistSquared;
 };
 
-internal class AasClothStuff : IDisposable
+internal class AasClothStuff
 {
 
     private readonly Vector4[] _vertexPosBuffer;
 
-    public int clothVertexCount = 0;
-    public Memory<Vector4> clothVertexPos1 = null;
-    public Memory<Vector4> clothVertexPos2 = null;
-    public Memory<Vector4> clothVertexPos3 = null;
-    public byte[] bytePerVertex = null;
-    public int boneDistancesCount = 0;
-    public int boneDistancesCountDelta = 0;
-    public EdgeDistance[] boneDistances = null;
-    public int boneDistances2Count = 0;
-    public int boneDistances2CountDelta = 0;
-    public EdgeDistance[] boneDistances2 = null;
-    public CollisionSphere spheres = null;
-    public CollisionCylinder cylinders = null;
-    public float field_34_time = 0.0f;
-
-    public void UpdateBoneDistances()
-    {
-        clothVertexPos2.CopyTo(clothVertexPos3);
-
-        var positions = clothVertexPos2.Span;
-
-        for (var i = 0; i < boneDistancesCountDelta + boneDistancesCount; i++) {
-            ref var distance = ref boneDistances[i];
-            var pos1 = positions[distance.to];
-            var pos2 = positions[distance.from];
-
-            var deltaX = pos1.X - pos2.X;
-            var deltaY = pos1.Y - pos2.Y;
-            var deltaZ = pos1.Z - pos2.Z;
-            distance.distSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
-        }
-
-        for (var i = 0; i < boneDistances2CountDelta + boneDistances2Count; i++) {
-            ref var distance = ref boneDistances2[i];
-            var pos1 = positions[distance.to];
-            var pos2 = positions[distance.from];
-
-            var deltaX = pos1.X - pos2.X;
-            var deltaY = pos1.Y - pos2.Y;
-            var deltaZ = pos1.Z - pos2.Z;
-            distance.distSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
-        }
-    }
-
-    public void Simulate(float time)
-    {
-
-        int step_count = (int)MathF.Ceiling(time * 200.0f);
-        float timePerStep;
-        if (step_count <= 5) {
-            timePerStep = time / step_count;
-        }
-        else {
-            step_count = 5;
-            timePerStep = 0.005f;
-        }
-
-        for (int i = 0; i < step_count; i++) {
-            SimulateStep(timePerStep);
-            ApplySprings();
-            ApplySprings();
-            HandleCollisions();
-        }
-    }
+    public readonly int clothVertexCount;
+    public Memory<Vector4> clothVertexPos1;
+    public Memory<Vector4> clothVertexPos2;
+    public Memory<Vector4> clothVertexPos3;
+    public readonly byte[] bytePerVertex;
+    public readonly int boneDistancesCount;
+    public readonly int boneDistancesCountDelta;
+    public readonly EdgeDistance[] boneDistances;
+    public readonly int boneDistances2Count;
+    public readonly int boneDistances2CountDelta;
+    public readonly EdgeDistance[] boneDistances2;
+    public readonly CollisionSphere spheres;
+    public readonly CollisionCylinder cylinders;
+    public float field_34_time;
 
     internal AasClothStuff(
         ReadOnlySpan<Vector4> clothVertexPos,
@@ -109,11 +59,7 @@ internal class AasClothStuff : IDisposable
 
         Trace.Assert(bytePerClothVertex.Length == clothVertexPos.Length);
         bytePerVertex = bytePerClothVertex.ToArray();
-
-        boneDistancesCount = 0;
-        boneDistancesCountDelta = 0;
-        boneDistances = null;
-
+        
         if (!edges.IsEmpty)
         {
             boneDistances = edges.ToArray();
@@ -124,10 +70,13 @@ internal class AasClothStuff : IDisposable
                 out boneDistancesCount,
                 out boneDistancesCountDelta);
         }
+        else
+        {
+            boneDistancesCount = 0;
+            boneDistancesCountDelta = 0;
+            boneDistances = Array.Empty<EdgeDistance>();
+        }
 
-        boneDistances2Count = 0;
-        boneDistances2CountDelta = 0;
-        boneDistances2 = null;
         if (!indirectEdges.IsEmpty)
         {
             boneDistances2 = indirectEdges.ToArray();
@@ -138,27 +87,75 @@ internal class AasClothStuff : IDisposable
                 out boneDistances2Count,
                 out boneDistances2CountDelta);
         }
+        else
+        {
+            boneDistances2Count = 0;
+            boneDistances2CountDelta = 0;
+            boneDistances2 = Array.Empty<EdgeDistance>();
+        }
         field_34_time = 0.0f;
     }
 
-    public void Dispose()
+    public void UpdateBoneDistances()
     {
-        clothVertexPos1 = null;
-        bytePerVertex = null;
-        boneDistances = null;
-        boneDistances2 = null;
+        clothVertexPos2.CopyTo(clothVertexPos3);
+
+        var positions = clothVertexPos2.Span;
+
+        for (var i = 0; i < boneDistancesCountDelta + boneDistancesCount; i++) {
+            ref var distance = ref boneDistances[i];
+            var pos1 = positions[distance.To];
+            var pos2 = positions[distance.From];
+
+            var deltaX = pos1.X - pos2.X;
+            var deltaY = pos1.Y - pos2.Y;
+            var deltaZ = pos1.Z - pos2.Z;
+            distance.DistSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
+        }
+
+        for (var i = 0; i < boneDistances2CountDelta + boneDistances2Count; i++) {
+            ref var distance = ref boneDistances2[i];
+            var pos1 = positions[distance.To];
+            var pos2 = positions[distance.From];
+
+            var deltaX = pos1.X - pos2.X;
+            var deltaY = pos1.Y - pos2.Y;
+            var deltaZ = pos1.Z - pos2.Z;
+            distance.DistSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
+        }
     }
 
-    private void SimulateStep(float step_time)
+    public void Simulate(float time)
     {
 
-        if (field_34_time <= 0.0 || step_time <= 0.0)
+        int stepCount = (int)MathF.Ceiling(time * 200.0f);
+        float timePerStep;
+        if (stepCount <= 5) {
+            timePerStep = time / stepCount;
+        }
+        else {
+            stepCount = 5;
+            timePerStep = 0.005f;
+        }
+
+        for (int i = 0; i < stepCount; i++) {
+            SimulateStep(timePerStep);
+            ApplySprings();
+            ApplySprings();
+            HandleCollisions();
+        }
+    }
+
+    private void SimulateStep(float stepTime)
+    {
+
+        if (field_34_time <= 0.0 || stepTime <= 0.0)
         {
-            field_34_time = step_time;
+            field_34_time = stepTime;
         }
         else
         {
-            var factor = (MathF.Pow(2.0f, -step_time) * step_time + field_34_time) / field_34_time;
+            var factor = (MathF.Pow(2.0f, -stepTime) * stepTime + field_34_time) / field_34_time;
 
             var oldState = clothVertexPos2.Span;
             var newState = clothVertexPos3.Span;
@@ -173,12 +170,12 @@ internal class AasClothStuff : IDisposable
                     newPos.X += (oldPos.X - newPos.X) * factor;
                     newPos.Y += (oldPos.Y - newPos.Y) * factor;
                     newPos.Z += (oldPos.Z - newPos.Z) * factor;
-                    newState[i].Y -= step_time * step_time * 2400.0f;
+                    newState[i].Y -= stepTime * stepTime * 2400.0f;
                 }
             }
 
             Swap(ref clothVertexPos2, ref clothVertexPos3);
-            field_34_time = step_time;
+            field_34_time = stepTime;
         }
 
     }
@@ -191,14 +188,14 @@ internal class AasClothStuff : IDisposable
         for (var i = 0; i < boneDistancesCount; i++) {
             ref var distance = ref boneDistances[i];
 
-            ref var pos1 = ref positions[distance.to];
-            ref var pos2 = ref positions[distance.from];
+            ref var pos1 = ref positions[distance.To];
+            ref var pos2 = ref positions[distance.From];
 
             var deltaX = pos1.X - pos2.X;
             var deltaY = pos1.Y - pos2.Y;
             var deltaZ = pos1.Z - pos2.Z;
 
-            var factor = 2 * (distance.distSquared / (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ + distance.distSquared) - 0.5f);
+            var factor = 2 * (distance.DistSquared / (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ + distance.DistSquared) - 0.5f);
 
             pos2.X -= deltaX * factor;
             pos2.Y -= deltaY * factor;
@@ -209,14 +206,14 @@ internal class AasClothStuff : IDisposable
 
             ref var distance = ref boneDistances[boneDistancesCount + i];
 
-            ref var pos1 = ref positions[distance.to];
-            ref var pos2 = ref positions[distance.from];
+            ref var pos1 = ref positions[distance.To];
+            ref var pos2 = ref positions[distance.From];
 
             var deltaX = pos1.X - pos2.X;
             var deltaY = pos1.Y - pos2.Y;
             var deltaZ = pos1.Z - pos2.Z;
 
-            var factor = (distance.distSquared / (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ + distance.distSquared) - 0.5f);
+            var factor = (distance.DistSquared / (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ + distance.DistSquared) - 0.5f);
 
             pos1.X += deltaX * factor;
             pos1.Y += deltaY * factor;
@@ -241,29 +238,29 @@ internal class AasClothStuff : IDisposable
                     pos.Y = 0.0f;
                 }
 
-                for (var sphere = spheres; sphere != null; sphere = sphere.next) {
-                    var posInSphere = Matrix3x4.transformPosition(sphere.worldMatrixInverse, pos);
+                for (var sphere = spheres; sphere != null; sphere = sphere.Next) {
+                    var posInSphere = Matrix3x4.transformPosition(sphere.WorldMatrixInverse, pos);
                     var distanceFromOriginSq = posInSphere.LengthSquared();
-                    if (distanceFromOriginSq < sphere.radius * sphere.radius) {
-                        var ratio = sphere.radius / MathF.Sqrt(distanceFromOriginSq);
+                    if (distanceFromOriginSq < sphere.Radius * sphere.Radius) {
+                        var ratio = sphere.Radius / MathF.Sqrt(distanceFromOriginSq);
                         posInSphere.X *= ratio;
                         posInSphere.Y *= ratio;
                         posInSphere.Z *= ratio;
-                        pos = Matrix3x4.transformPosition(sphere.worldMatrix, posInSphere);
+                        pos = Matrix3x4.transformPosition(sphere.WorldMatrix, posInSphere);
                     }
                 }
 
-                for (var cylinder = cylinders; cylinder != null; cylinder = cylinder.next) {
-                    var posInCylinder = Matrix3x4.transformPosition(cylinder.worldMatrixInverse, pos);
+                for (var cylinder = cylinders; cylinder != null; cylinder = cylinder.Next) {
+                    var posInCylinder = Matrix3x4.transformPosition(cylinder.WorldMatrixInverse, pos);
 
-                    if (posInCylinder.Z >= 0.0 && posInCylinder.Z <= cylinder.height) {
+                    if (posInCylinder.Z >= 0.0 && posInCylinder.Z <= cylinder.Height) {
                         var distanceFromOriginSq = posInCylinder.X * posInCylinder.X + posInCylinder.Y * posInCylinder.Y;
-                        if (distanceFromOriginSq < cylinder.radius * cylinder.radius) {
-                            var ratio = cylinder.radius / MathF.Sqrt(distanceFromOriginSq);
+                        if (distanceFromOriginSq < cylinder.Radius * cylinder.Radius) {
+                            var ratio = cylinder.Radius / MathF.Sqrt(distanceFromOriginSq);
                             posInCylinder.X *= ratio;
                             posInCylinder.Y *= ratio;
 
-                            pos = Matrix3x4.transformPosition(cylinder.worldMatrix, posInCylinder);
+                            pos = Matrix3x4.transformPosition(cylinder.WorldMatrix, posInCylinder);
                         }
                     }
                 }
@@ -289,11 +286,11 @@ internal class AasClothStuff : IDisposable
             var edgesItA = edgesItB;
             while (edgesProcessed < edges.Length)
             {
-                if (bytePerClothVertex[edges[edgesItB].to] == 0) {
-                    if (bytePerClothVertex[edges[edgesItB].from] == 1)
+                if (bytePerClothVertex[edges[edgesItB].To] == 0) {
+                    if (bytePerClothVertex[edges[edgesItB].From] == 1)
                     {
                         // Swap vertices of edgesitb so that the first vertex is the one with flag=1
-                        Swap(ref edges[edgesItB].to, ref edges[edgesItB].from);
+                        Swap(ref edges[edgesItB].To, ref edges[edgesItB].From);
 
                         // Then swap edgesItB with edgesItA
                         Swap(ref edges[edgesItA], ref edges[edgesItB]);
@@ -304,7 +301,7 @@ internal class AasClothStuff : IDisposable
                     ++edgesItB;
                     continue;
                 }
-                if (bytePerClothVertex[edges[edgesItB].from] == 0)
+                if (bytePerClothVertex[edges[edgesItB].From] == 0)
                 {
                     // Swap EdgesitA with EdgesitB
                     Swap(ref edges[edgesItA], ref edges[edgesItB]);
@@ -328,8 +325,6 @@ internal class AasClothStuff : IDisposable
 
     private static void Swap<T>(ref T a, ref T b)
     {
-        var tmp = a;
-        a = b;
-        b = tmp;
+        (a, b) = (b, a);
     }
 }

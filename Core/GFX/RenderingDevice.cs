@@ -885,7 +885,7 @@ public class RenderingDevice : IDisposable
 
     public void CopyRenderTarget(RenderTargetTexture renderTarget, DynamicTexture stagingTexture)
     {
-        _context.CopyResource(renderTarget.Texture, stagingTexture.mTexture);
+        _context.CopyResource(renderTarget.Texture, stagingTexture._texture);
     }
 
     public ResourceRef<RenderTargetTexture> CreateRenderTargetTexture(BufferFormat format, int width, int height,
@@ -1564,18 +1564,18 @@ public class RenderingDevice : IDisposable
     {
         var mapMode = ConvertMapMode(mode);
 
-        var mapped = _context.MapSubresource(texture.mTexture, 0, 0, mapMode, 0, out _);
+        var mapped = _context.MapSubresource(texture._texture, 0, 0, mapMode, 0, out _);
 
         var size = texture.GetSize().Height * mapped.RowPitch;
         var data = new Span<byte>((void*)mapped.DataPointer, size);
         var rowPitch = mapped.RowPitch;
 
-        return new MappedBuffer<byte>(texture.mTexture, _context, data, rowPitch);
+        return new MappedBuffer<byte>(texture._texture, _context, data, rowPitch);
     }
 
     public void Unmap(DynamicTexture texture)
     {
-        _context.UnmapSubresource(texture.mTexture, 0);
+        _context.UnmapSubresource(texture._texture, 0);
     }
 
     public const int MaxVsConstantBufferSize = 2048;

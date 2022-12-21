@@ -39,7 +39,7 @@ internal class ModelParticleRenderer : ParticleRenderer
         var it = emitter.NewIterator();
 
         var animParams = AnimatedModelParams.Default;
-        animParams.rotation3d = true;
+        animParams.Rotation3d = true;
 
         // Lazily initialize render state
         if (!emitter.HasRenderState())
@@ -76,8 +76,8 @@ internal class ModelParticleRenderer : ParticleRenderer
 
         var overrides = new MdfRenderOverrides
         {
-            ignoreLighting = true,
-            overrideDiffuse = true
+            IgnoreLighting = true,
+            OverrideDiffuse = true
         };
 
         var yaw = emitter.GetParamState(PartSysParamId.part_yaw);
@@ -89,27 +89,27 @@ internal class ModelParticleRenderer : ParticleRenderer
             var particleIdx = it.Next();
             var age = emitter.GetParticleAge(particleIdx);
 
-            overrides.overrideColor = GeneralEmitterRenderState.GetParticleColor(emitter, particleIdx);
+            overrides.OverrideColor = GeneralEmitterRenderState.GetParticleColor(emitter, particleIdx);
 
             // Yes, this is *actually* swapped for Y / Z
             var particleState = emitter.GetParticleState();
-            animParams.offsetX = particleState.GetState(ParticleStateField.PSF_POS_VAR_X, particleIdx);
-            animParams.offsetY = particleState.GetState(ParticleStateField.PSF_POS_VAR_Z, particleIdx);
-            animParams.offsetZ = particleState.GetState(ParticleStateField.PSF_POS_VAR_Y, particleIdx);
+            animParams.OffsetX = particleState.GetState(ParticleStateField.PSF_POS_VAR_X, particleIdx);
+            animParams.OffsetY = particleState.GetState(ParticleStateField.PSF_POS_VAR_Z, particleIdx);
+            animParams.OffsetZ = particleState.GetState(ParticleStateField.PSF_POS_VAR_Y, particleIdx);
 
             if (yaw != null)
             {
-                animParams.rotationYaw = Angles.ToRadians(yaw.GetValue(emitter, particleIdx, age));
+                animParams.RotationYaw = Angles.ToRadians(yaw.GetValue(emitter, particleIdx, age));
             }
 
             if (pitch != null)
             {
-                animParams.rotationPitch = Angles.ToRadians(pitch.GetValue(emitter, particleIdx, age));
+                animParams.RotationPitch = Angles.ToRadians(pitch.GetValue(emitter, particleIdx, age));
             }
 
             if (roll != null)
             {
-                animParams.rotationRoll = Angles.ToRadians(roll.GetValue(emitter, particleIdx, age));
+                animParams.RotationRoll = Angles.ToRadians(roll.GetValue(emitter, particleIdx, age));
             }
 
             renderState.Model.SetTime(animParams, age);

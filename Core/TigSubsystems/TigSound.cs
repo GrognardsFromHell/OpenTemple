@@ -44,7 +44,7 @@ public class TigSound : IDisposable
     private int nextFreeMusicStreamIdx = 2;
 
     [TempleDllLocation(0x10eed38c)]
-    private readonly Func<int, string> _soundLookup;
+    private readonly Func<int, string?> _soundLookup;
 
     [TempleDllLocation(0x10ee7568)]
     private bool mss_reverb_enabled = false;
@@ -597,7 +597,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e36d0)]
     public void FreeStream(int streamId)
     {
-        if (streamId < 0 || streamId >= tig_sound_streams.Length)
+        if (_soloud == null || streamId < 0 || streamId >= tig_sound_streams.Length)
         {
             return;
         }
@@ -697,20 +697,20 @@ public class TigSound : IDisposable
         var actualVolume = volume / 127.0f;
         if ((stream.flags & 1) != 0)
         {
-            stream.wav.setVolume(actualVolume);
+            stream.wav?.setVolume(actualVolume);
         }
         else if ((stream.flags & 2) != 0)
         {
-            stream.wav.setVolume(actualVolume);
+            stream.wav?.setVolume(actualVolume);
         }
         else if ((stream.flags & 0x400) != 0)
         {
-            stream.wav.setVolume(actualVolume);
+            stream.wav?.setVolume(actualVolume);
         }
 
         if (stream.voiceHandle != 0)
         {
-            _soloud.setVolume(stream.voiceHandle, actualVolume);
+            _soloud?.setVolume(stream.voiceHandle, actualVolume);
         }
     }
 
@@ -760,12 +760,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e3cd0)]
     public void SetStreamPanning(int streamId, float panning)
     {
-        if (!sound_initialized)
-        {
-            return;
-        }
-
-        if (streamId < 0 || streamId >= 70)
+        if (_soloud == null || streamId is < 0 or >= 70)
         {
             return;
         }
@@ -784,14 +779,16 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e3d40)]
     public bool IsStreamPlaying(int streamId)
     {
-        if (streamId >= 0 && streamId < 70)
+        if (_soloud == null || streamId is < 0 or >= 70)
         {
-            ref var stream = ref tig_sound_streams[streamId];
-            if (stream.active)
-            {
-                return _soloud.isValidVoiceHandle(stream.voiceHandle)
-                       && !_soloud.getPause(stream.voiceHandle);
-            }
+            return false;
+        }
+
+        ref var stream = ref tig_sound_streams[streamId];
+        if (stream.active)
+        {
+            return _soloud.isValidVoiceHandle(stream.voiceHandle)
+                   && !_soloud.getPause(stream.voiceHandle);
         }
 
         return false;
@@ -898,7 +895,7 @@ public class TigSound : IDisposable
         public int mss_audiodata;
         public int mss_3dsample;
         public int field20; // ID of other stream (cross-fade ??!?!)
-        public string soundPath;
+        public string? soundPath;
         public int soundId;
         public int volume; // 0-127
         public float panning; // -1 to 1 (where 0 is center, -1 is left, 1 is right)
@@ -908,7 +905,7 @@ public class TigSound : IDisposable
         public Vector3 worldPos;
         public SoundSourceSize sourceSize;
         public int field154;
-        public Wav wav;
+        public Wav? wav;
 
         // Soloud handle returned by play
         public uint voiceHandle;

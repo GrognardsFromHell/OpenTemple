@@ -128,8 +128,6 @@ public class WeaponSystem
             default:
                 return false;
         }
-
-        return false;
     }
 
 
@@ -210,8 +208,6 @@ public class WeaponSystem
             default:
                 return false;
         }
-
-        return false;
     }
 
     [TempleDllLocation(0x10065de0)]
@@ -291,7 +287,6 @@ public class WeaponSystem
 
         /*if (IsSlashingWeapon(wpnType) || IsBludgeoningWeapon(wpnType))
             return true;*/
-        return false;
     }
 
     public bool IsSlashingWeapon(WeaponType wpnType)

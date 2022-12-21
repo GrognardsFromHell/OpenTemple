@@ -201,7 +201,7 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
         return state;
     }
 
-    public void Render(IGameViewport viewport, IAnimatedModel model, AnimatedModelParams animParams, IList<Light3d> lights,
+    public void Render(IGameViewport viewport, IAnimatedModel model, AnimatedModelParams animParams, IReadOnlyList<Light3d> lights,
         MdfRenderOverrides? materialOverrides = null)
     {
         var renderData = GetOrCreateState(model);
@@ -209,7 +209,7 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
         var materialIds = model.GetSubmeshes();
         for (var i = 0; i < materialIds.Length; ++i) {
             var material = materialIds[i];
-            var submesh = animParams.rotation3d ? model.GetSubmeshForParticles(animParams, i) : model.GetSubmesh(animParams, i);
+            var submesh = animParams.Rotation3d ? model.GetSubmeshForParticles(animParams, i) : model.GetSubmesh(animParams, i);
 
             // Usually this should not happen, since it means there's
             // an unbound replacement material
@@ -220,7 +220,7 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
             material.Bind(viewport, _device, lights, materialOverrides);
 
             // Do we have to recalculate the normals?
-            if (material.GetSpec().recalculateNormals) {
+            if (material.GetSpec().RecalculateNormals) {
                 RecalcNormals(
                     submesh.VertexCount,
                     submesh.Positions,
@@ -284,8 +284,8 @@ public class AasRenderer : IAnimatedModelRenderer, IDisposable
 
         var globals = new ShadowGlobals();
         globals.projMatrix = camera.GetViewProj();
-        globals.globalLightDir = globalLight.dir;
-        globals.offsetZ = new Vector4(animParams.offsetZ, 0, 0, 0);
+        globals.globalLightDir = globalLight.Dir;
+        globals.offsetZ = new Vector4(animParams.OffsetZ, 0, 0, 0);
         globals.alpha = new Vector4( alpha, 0, 0, 0 );
         _device.SetVertexShaderConstants(0, ref globals);
 
@@ -452,6 +452,6 @@ public interface IAnimatedModelRenderer
 {
     void Render(IGameViewport viewport, IAnimatedModel model,
         AnimatedModelParams animParams,
-        IList<Light3d> lights,
+        IReadOnlyList<Light3d> lights,
         MdfRenderOverrides? materialOverrides = null);
 }

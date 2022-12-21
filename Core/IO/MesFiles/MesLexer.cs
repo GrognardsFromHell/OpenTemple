@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace OpenTemple.Core.IO.MesFiles;
@@ -25,7 +26,7 @@ internal ref struct MesLexer
         Line = 1;
     }
 
-    public bool ReadNextToken(out string token)
+    public bool ReadNextToken([MaybeNullWhen(false)] out string token)
     {
         _tokenBuilder.Clear();
 

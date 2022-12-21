@@ -56,11 +56,11 @@ public struct AttackPacket
     public int dispKey; // This isn'T the "dispKey"... It's the attack code
     public D20CAF flags;
     public int field_1C;
-    public GameObject weaponUsed;
-    public GameObject ammoItem;
+    public GameObject? weaponUsed;
+    public GameObject? ammoItem;
 
     [TempleDllLocation(0x1004dfa0)]
-    public GameObject GetWeaponUsed()
+    public GameObject? GetWeaponUsed()
     {
         if ( !flags.HasFlag(D20CAF.TOUCH_ATTACK) || flags.HasFlag(D20CAF.THROWN_GRENADE) ) {
             return weaponUsed;

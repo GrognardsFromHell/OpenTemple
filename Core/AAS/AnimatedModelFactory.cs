@@ -369,7 +369,7 @@ internal class AnimatedModelAdapter : IAnimatedModel
     public float GetRadius(int scale = 100)
     {
         var animParams = AnimatedModelParams.Default;
-        animParams.scale = scale / 100.0f;
+        animParams.Scale = scale / 100.0f;
         var aasParams = Convert(animParams);
         aasSystem_.UpdateWorldMatrix(handle_, aasParams);
         model_.Method19();
@@ -377,7 +377,7 @@ internal class AnimatedModelAdapter : IAnimatedModel
         return model_.GetRadius();
     }
 
-    public IRenderState RenderState
+    public IRenderState? RenderState
     {
         get => model_.RenderState;
         set => model_.RenderState = value;
@@ -393,19 +393,19 @@ internal class AnimatedModelAdapter : IAnimatedModel
     {
         var result = new AasAnimParams();
         result.flags = 0;
-        result.locX = animParams.x;
-        result.locY = animParams.y;
-        result.scale = animParams.scale;
-        result.offsetX = animParams.offsetX;
-        result.offsetY = animParams.offsetY;
-        result.offsetZ = animParams.offsetZ;
-        result.rotation = animParams.rotation;
-        result.rotationYaw = animParams.rotationYaw;
-        result.rotationPitch = animParams.rotationPitch;
-        result.rotationRoll = animParams.rotationRoll;
-        result.attachedBoneName = animParams.attachedBoneName;
+        result.locX = animParams.X;
+        result.locY = animParams.Y;
+        result.scale = animParams.Scale;
+        result.offsetX = animParams.OffsetX;
+        result.offsetY = animParams.OffsetY;
+        result.offsetZ = animParams.OffsetZ;
+        result.rotation = animParams.Rotation;
+        result.rotationYaw = animParams.RotationYaw;
+        result.rotationPitch = animParams.RotationPitch;
+        result.rotationRoll = animParams.RotationRoll;
+        result.attachedBoneName = animParams.AttachedBoneName;
         result.unknown = 0;
-        if (animParams.parentAnim is AnimatedModelAdapter parentAdapter)
+        if (animParams.ParentAnim is AnimatedModelAdapter parentAdapter)
         {
             result.parentAnim = parentAdapter.handle_;
             result.flags = 2;

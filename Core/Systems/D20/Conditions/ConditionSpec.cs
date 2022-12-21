@@ -401,10 +401,10 @@ public readonly ref struct DispatcherCallbackArgs
     public readonly GameObject objHndCaller; // Rename to obj
     public readonly DispatcherType dispType;
     public readonly D20DispatcherKey dispKey;
-    public readonly object dispIO; // Rename to dispIo
+    public readonly object? dispIO; // Rename to dispIo
 
     public DispatcherCallbackArgs(SubDispatcherAttachment attachment, GameObject obj, DispatcherType dispType,
-        D20DispatcherKey dispKey, object dispIo)
+        D20DispatcherKey dispKey, object? dispIo)
     {
         subDispNode = attachment;
         // This can actually be null for items

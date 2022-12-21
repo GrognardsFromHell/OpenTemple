@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -48,11 +49,11 @@ public static class GameSystems
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private static bool mResetting = false;
+    private static bool _resetting = false;
 
-    private static Guid mModuleGuid;
-    private static string mModuleArchivePath;
-    private static string mModuleDirPath;
+    private static Guid _moduleGuid;
+    private static string? _moduleArchivePath;
+    private static string? _moduleDirPath;
 
     public static VagrantSystem Vagrant { get; private set; }
     public static HotkeySystem Hotkeys { get; private set; }
@@ -214,6 +215,7 @@ public static class GameSystems
         Tig.Fonts.PushFont("priory-12", 12);
     }
 
+    [SuppressMessage("ReSharper", "ConditionalAccessQualifierIsNonNullableAccordingToAPIContract")]
     public static void Shutdown()
     {
         Logger.Info("Unloading game systems");
@@ -225,175 +227,175 @@ public static class GameSystems
         AAS?.Dispose();
 
         Vfx?.Dispose();
-        Vfx = null;
+        Vfx = null!;
         PathXRender?.Dispose();
-        PathXRender = null;
+        PathXRender = null!;
         PathX?.Dispose();
-        PathX = null;
+        PathX = null!;
         ItemHighlight?.Dispose();
-        ItemHighlight = null;
+        ItemHighlight = null!;
         Formation?.Dispose();
-        Formation = null;
+        Formation = null!;
         ObjectEvent?.Dispose();
-        ObjectEvent = null;
+        ObjectEvent = null!;
         RandomEncounter?.Dispose();
-        RandomEncounter = null;
+        RandomEncounter = null!;
         MapFogging?.Dispose();
-        MapFogging = null;
+        MapFogging = null!;
         Secretdoor?.Dispose();
-        Secretdoor = null;
+        Secretdoor = null!;
         Cheats?.Dispose();
-        Cheats = null;
+        Cheats = null!;
         UiArtManager?.Dispose();
-        UiArtManager = null;
+        UiArtManager = null!;
         Deity?.Dispose();
-        Deity = null;
+        Deity = null!;
         ObjFade?.Dispose();
-        ObjFade = null;
+        ObjFade = null!;
         GameInit?.Dispose();
-        GameInit = null;
+        GameInit = null!;
         D20LoadSave?.Dispose();
-        D20LoadSave = null;
+        D20LoadSave = null!;
         Party?.Dispose();
-        Party = null;
+        Party = null!;
         MonsterGen?.Dispose();
-        MonsterGen = null;
+        MonsterGen = null!;
         Trap?.Dispose();
-        Trap = null;
+        Trap = null!;
         AntiTeleport?.Dispose();
-        AntiTeleport = null;
+        AntiTeleport = null!;
         GFade?.Dispose();
-        GFade = null;
+        GFade = null!;
         Brightness?.Dispose();
-        Brightness = null;
+        Brightness = null!;
         Movies?.Dispose();
-        Movies = null;
+        Movies = null!;
         TownMap?.Dispose();
-        TownMap = null;
+        TownMap = null!;
         InvenSource?.Dispose();
-        InvenSource = null;
+        InvenSource = null!;
         Waypoint?.Dispose();
-        Waypoint = null;
+        Waypoint = null!;
         SectorScript?.Dispose();
-        SectorScript = null;
+        SectorScript = null!;
         TileScript?.Dispose();
-        TileScript = null;
+        TileScript = null!;
         Reaction?.Dispose();
-        Reaction = null;
+        Reaction = null!;
         Reputation?.Dispose();
-        Reputation = null;
+        Reputation = null!;
         AI?.Dispose();
-        AI = null;
+        AI = null!;
         Quest?.Dispose();
-        Quest = null;
+        Quest = null!;
         Rumor?.Dispose();
-        Rumor = null;
+        Rumor = null!;
         Combat?.Dispose();
-        Combat = null;
+        Combat = null!;
         TimeEvent?.Dispose();
-        TimeEvent = null;
+        TimeEvent = null!;
         Anim?.Dispose();
-        Anim = null;
+        Anim = null!;
         Item?.Dispose();
-        Item = null;
-        Weapon = null;
+        Item = null!;
+        Weapon = null!;
         SoundGame?.Dispose();
-        SoundGame = null;
+        SoundGame = null!;
         SoundMap?.Dispose();
-        SoundMap = null;
+        SoundMap = null!;
         Dialog?.Dispose();
-        Dialog = null;
+        Dialog = null!;
         Area?.Dispose();
-        Area = null;
+        Area = null!;
         Player?.Dispose();
-        Player = null;
+        Player = null!;
         LightScheme?.Dispose();
-        LightScheme = null;
+        LightScheme = null!;
         PathNode?.Dispose();
-        PathNode = null;
+        PathNode = null!;
         GMesh?.Dispose();
-        GMesh = null;
+        GMesh = null!;
         Height?.Dispose();
-        Height = null;
+        Height = null!;
         Terrain?.Dispose();
-        Terrain = null;
+        Terrain = null!;
         Clipping?.Dispose();
-        Clipping = null;
+        Clipping = null!;
         JumpPoint?.Dispose();
-        JumpPoint = null;
+        JumpPoint = null!;
         TextFloater?.Dispose();
-        TextFloater = null;
+        TextFloater = null!;
         TextBubble?.Dispose();
-        TextBubble = null;
+        TextBubble = null!;
         SectorVisibility?.Dispose();
-        SectorVisibility = null;
+        SectorVisibility = null!;
         MapSector?.Dispose();
-        MapSector = null;
+        MapSector = null!;
         Object?.Dispose();
-        Object = null;
+        Object = null!;
         ObjectNode?.Dispose();
-        ObjectNode = null;
+        ObjectNode = null!;
         OName?.Dispose();
-        OName = null;
+        OName = null!;
         Tile?.Dispose();
-        Tile = null;
+        Tile = null!;
         Light?.Dispose();
-        Light = null;
+        Light = null!;
         Location?.Dispose();
-        Location = null;
+        Location = null!;
         Scroll?.Dispose();
-        Scroll = null;
+        Scroll = null!;
         Map?.Dispose();
-        Map = null;
+        Map = null!;
         ParticleSys?.Dispose();
-        ParticleSys = null;
+        ParticleSys = null!;
         D20?.Dispose();
-        D20 = null;
+        D20 = null!;
         Raycast?.Dispose();
-        Raycast = null;
+        Raycast = null!;
         MapObject?.Dispose();
-        MapObject = null;
+        MapObject = null!;
         Level?.Dispose();
-        Level = null;
+        Level = null!;
         Script?.Dispose();
-        Script = null;
+        Script = null!;
         Stat?.Dispose();
-        Stat = null;
+        Stat = null!;
         Spell?.Dispose();
-        Spell = null;
+        Spell = null!;
         Feat?.Dispose();
-        Feat = null;
+        Feat = null!;
         Skill?.Dispose();
-        Skill = null;
+        Skill = null!;
         Portrait?.Dispose();
-        Portrait = null;
+        Portrait = null!;
         ScriptName?.Dispose();
-        ScriptName = null;
+        ScriptName = null!;
         Critter?.Dispose();
-        Critter = null;
+        Critter = null!;
         Random?.Dispose();
-        Random = null;
+        Random = null!;
         Sector?.Dispose();
-        Sector = null;
+        Sector = null!;
         Teleport?.Dispose();
-        Teleport = null;
+        Teleport = null!;
         ItemEffect?.Dispose();
-        ItemEffect = null;
+        ItemEffect = null!;
         Description?.Dispose();
-        Description = null;
+        Description = null!;
         Vagrant?.Dispose();
-        Vagrant = null;
+        Vagrant = null!;
         Help?.Dispose();
-        Help = null;
+        Help = null!;
         Proto?.Dispose();
-        Proto = null;
-        AAS = null;
-        Hotkeys = null;
+        Proto = null!;
+        AAS = null!;
+        Hotkeys = null!;
 
-        mResetting = default;
-        mModuleGuid = default;
-        mModuleArchivePath = default;
-        mModuleDirPath = default;
+        _resetting = default;
+        _moduleGuid = default;
+        _moduleArchivePath = default;
+        _moduleDirPath = default;
         ModuleLoaded = false;
 
         _timing.Clear();
@@ -477,7 +479,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         Logger.Info("Resetting game systems...");
 
-        mResetting = true;
+        _resetting = true;
 
         var currentSaveFolder = Globals.GameFolders.CurrentSaveFolder;
         if (Directory.Exists(currentSaveFolder))
@@ -496,12 +498,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             }
         }
 
-        mResetting = false;
+        _resetting = false;
     }
 
     public static bool IsResetting()
     {
-        return mResetting;
+        return _resetting;
     }
 
     /// <summary>
@@ -1004,16 +1006,16 @@ public class ScriptNameSystem : IGameSystem, IModuleAwareSystem
     /// Gets the path for a legacy .scr script file.
     /// </summary>
     [TempleDllLocation(0x1007e1d0)]
-    public string GetScriptPath(int scriptId)
+    public string? GetScriptPath(int scriptId)
     {
         string filename;
         if (IsModuleScriptId(scriptId))
         {
-            filename = _scriptModuleIndex.GetValueOrDefault(scriptId, null);
+            filename = _scriptModuleIndex.GetValueOrDefault(scriptId);
         }
         else if (IsGlobalScriptId(scriptId))
         {
-            filename = _scriptIndex.GetValueOrDefault(scriptId, null);
+            filename = _scriptIndex.GetValueOrDefault(scriptId);
         }
         else
         {
@@ -1029,7 +1031,7 @@ public class ScriptNameSystem : IGameSystem, IModuleAwareSystem
     }
 
     [TempleDllLocation(0x1007e270)]
-    public bool TryGetDialogScriptPath(int scriptId, out string scriptPath)
+    public bool TryGetDialogScriptPath(int scriptId, [MaybeNullWhen(false)] out string scriptPath)
     {
         return _dialogIndex.TryGetValue(scriptId, out scriptPath);
     }
@@ -1210,14 +1212,14 @@ public class ObjectNodeSystem : IGameSystem
 
 public class JumpPointSystem : IGameSystem, IModuleAwareSystem
 {
-    private Dictionary<int, JumpPoint> _jumpPoints;
+    private readonly Dictionary<int, JumpPoint> _jumpPoints = new();
 
     public void Dispose()
     {
     }
 
     [TempleDllLocation(0x100bde20)]
-    public bool TryGet(int id, out string name, out int mapId, out locXY location)
+    public bool TryGet(int id, [MaybeNullWhen(false)] out string name, out int mapId, out locXY location)
     {
         if (_jumpPoints.TryGetValue(id, out var jumpPoint))
         {
@@ -1235,7 +1237,7 @@ public class JumpPointSystem : IGameSystem, IModuleAwareSystem
 
     public void LoadModule()
     {
-        _jumpPoints = new Dictionary<int, JumpPoint>();
+        _jumpPoints.Clear();
 
         TabFile.ParseFile("rules/jumppoint.tab", (in TabFileRecord record) =>
         {
@@ -1252,7 +1254,7 @@ public class JumpPointSystem : IGameSystem, IModuleAwareSystem
 
     public void UnloadModule()
     {
-        _jumpPoints = null;
+        _jumpPoints.Clear();
     }
 
     private struct JumpPoint
@@ -1315,7 +1317,7 @@ public class GMeshSystem : IGameSystem
 public class PlayerSystem : IGameSystem, IResetAwareSystem
 {
     [TempleDllLocation(0x10aa9508)]
-    private GameObject _player;
+    private GameObject? _player;
 
     [TempleDllLocation(0x10aa94e8)]
     private ObjectId _playerId;
@@ -1615,7 +1617,7 @@ public class UiArtManagerSystem : IGameSystem, IDisposable
     }
 
     [TempleDllLocation(0x1004a360)]
-    public string GetPortraitPath(int portraitId, PortraitVariant variant)
+    public string? GetPortraitPath(int portraitId, PortraitVariant variant)
     {
         if (portraitId % 10 != 0)
         {
@@ -1633,36 +1635,21 @@ public class UiArtManagerSystem : IGameSystem, IDisposable
     }
 
     [TempleDllLocation(0x1004a360)]
-    public string GetInventoryIconPath(int artId)
+    public string? GetInventoryIconPath(int artId)
     {
-        if (_inventoryPaths.TryGetValue(artId, out var result))
-        {
-            return result;
-        }
-
-        return null;
+        return _inventoryPaths.GetValueOrDefault(artId);
     }
 
     [TempleDllLocation(0x1004a4e0)]
-    public string GetGenericTiledImagePath(int artId)
+    public string? GetGenericTiledImagePath(int artId)
     {
-        if (_genericLargePaths.TryGetValue(artId, out var result))
-        {
-            return result;
-        }
-
-        return null;
+        return _genericLargePaths.GetValueOrDefault(artId);
     }
 
     [TempleDllLocation(0x1004a360)]
-    public string GetGenericPath(int artId)
+    public string? GetGenericPath(int artId)
     {
-        if (_genericPaths.TryGetValue(artId, out var result))
-        {
-            return result;
-        }
-
-        return null;
+        return _genericPaths.GetValueOrDefault(artId);
     }
 }
 
@@ -1674,8 +1661,6 @@ public class CheatsSystem : IGameSystem
 
     void LevelupCritter(GameObject critter)
     {
-        if (critter == null) return;
-
         if (GameSystems.Critter.CanLevelUp(critter))
             return;
         var curLevel = GameSystems.Critter.GetEffectiveLevel(critter);

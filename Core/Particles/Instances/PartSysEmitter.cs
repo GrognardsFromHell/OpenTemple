@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using OpenTemple.Core.Particles.Spec;
 using OpenTemple.Core.Utils;
@@ -9,11 +8,11 @@ namespace OpenTemple.Core.Particles.Instances;
 
 public class PartSysEmitter : IDisposable
 {
-    private object _attachedTo;
+    private object? _attachedTo;
     private readonly ParticleState _particleState;
     private float _aliveInSecs;
 
-    private BonesState _boneState; // Only used if space == bones
+    private BonesState? _boneState; // Only used if space == bones
 
     // Indicates that emission has been forced to end
     public bool IsEnded { get; private set; }
@@ -26,12 +25,12 @@ public class PartSysEmitter : IDisposable
     private Vector3 _objPos; // Current known pos of mAttachedTo
     private float _objRotation; // Current known rotation of mAttachedTo
     private float _outstandingSimulation;
-    private readonly PartSysParamState[] _paramState;
+    private readonly PartSysParamState?[] _paramState;
     private readonly float[] _particleAges;
     private Vector3 _prevObjPos; // Prev. known pos of mAttachedTo
     private float _prevObjRotation; // Prev. known rotation of mAttachedTo
 
-    private IPartSysEmitterRenderState _renderState;
+    private IPartSysEmitterRenderState? _renderState;
 
     private readonly PartSysEmitterSpec _spec;
 
@@ -119,12 +118,12 @@ public class PartSysEmitter : IDisposable
         return _particleAges;
     }
 
-    public PartSysParamState[] GetParamState()
+    public PartSysParamState?[] GetParamState()
     {
         return _paramState;
     }
 
-    public PartSysParamState GetParamState(PartSysParamId paramId)
+    public PartSysParamState? GetParamState(PartSysParamId paramId)
     {
         return _paramState[(int) paramId];
     }
@@ -156,12 +155,12 @@ public class PartSysEmitter : IDisposable
         return _outstandingSimulation;
     }
 
-    public object GetAttachedTo()
+    public object? GetAttachedTo()
     {
         return _attachedTo;
     }
 
-    public void SetAttachedTo(object attachedTo)
+    public void SetAttachedTo(object? attachedTo)
     {
         _attachedTo = attachedTo;
 
@@ -482,14 +481,14 @@ public class PartSysEmitter : IDisposable
 
     public IPartSysEmitterRenderState GetRenderState()
     {
-        Trace.Assert(HasRenderState());
+        if (_renderState is null)
+        {
+            throw new InvalidOperationException("Emitter has no render-state");
+        }
         return _renderState;
     }
 
-    public BonesState GetBoneState()
-    {
-        return _boneState;
-    }
+    public BonesState? GetBoneState() => _boneState;
 
     private float GetParamValue(PartSysParamState state, int particleIdx = 0)
     {

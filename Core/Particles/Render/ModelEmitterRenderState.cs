@@ -8,9 +8,9 @@ namespace OpenTemple.Core.Particles.Render;
 /// </summary>
 internal class ModelEmitterRenderState : IPartSysEmitterRenderState
 {
-    public readonly IAnimatedModel Model;
+    public readonly IAnimatedModel? Model;
 
-    public ModelEmitterRenderState(IAnimatedModel model)
+    public ModelEmitterRenderState(IAnimatedModel? model)
     {
         Model = model;
     }

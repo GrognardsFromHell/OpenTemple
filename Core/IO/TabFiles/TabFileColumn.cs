@@ -1,6 +1,7 @@
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace OpenTemple.Core.IO.TabFiles;
@@ -79,7 +80,7 @@ public readonly ref struct TabFileColumn
 
     public string Location => $"@{LineNumber}:{ValueStart}";
 
-    public bool TryGetEnum<T>(Dictionary<string, T> mapping, out T value) where T : Enum
+    public bool TryGetEnum<T>(Dictionary<string, T> mapping, [MaybeNullWhen(false)] out T value) where T : Enum
     {
         // Decode on the stack
         Span<char> decodedText = stackalloc char[Encoding.Default.GetMaxCharCount(_value.Length)];

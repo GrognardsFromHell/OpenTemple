@@ -10,7 +10,7 @@ public struct FadeAndTeleportArgs
 {
     public FadeAndTeleportFlags flags; // FadeAndTeleportFlags
     public int field4;
-    public GameObject somehandle;
+    public GameObject? somehandle;
     public locXY destLoc;
     public int destMap;
     public int movieId;
@@ -19,7 +19,7 @@ public struct FadeAndTeleportArgs
     public FadeArgs FadeInArgs;
     public int soundId;
     public int timeToAdvance; // In seconds
-    public Action<int> callback; // Activate via flag 0x400
+    public Action<int>? callback; // Activate via flag 0x400
     public int callbackArg; // Activate via flag 0x800
     public int field74;
 

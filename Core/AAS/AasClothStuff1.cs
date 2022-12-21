@@ -16,7 +16,7 @@ internal static class EdgeBuilder
 
         for (int i = 0; i < edges.Length; i++)
         {
-            if (edges[i].from == from && edges[i].to == to)
+            if (edges[i].From == from && edges[i].To == to)
             {
                 return true;
             }
@@ -40,22 +40,22 @@ internal static class EdgeBuilder
         }
 
         ref var newEdge = ref edges[edgesCount++];
-        newEdge.to = to;
-        newEdge.from = from;
-        newEdge.distSquared = 1.0f;
+        newEdge.To = to;
+        newEdge.From = from;
+        newEdge.DistSquared = 1.0f;
     }
 
     public static void Build(ReadOnlySpan<EdgeDistance> edges, Span<EdgeDistance> edges2, ref int edges2Count)
     {
         for (int i = 0; i < edges.Length - 1; i++)
         {
-            var firstEdge1 = edges[i].to;
-            var firstEdge2 = edges[i].from;
+            var firstEdge1 = edges[i].To;
+            var firstEdge2 = edges[i].From;
 
             for (var nextEdgeIdx = i + 1; nextEdgeIdx < edges.Length; nextEdgeIdx++)
             {
-                var secondEdge1 = edges[nextEdgeIdx].to;
-                var secondEdge2 = edges[nextEdgeIdx].from;
+                var secondEdge1 = edges[nextEdgeIdx].To;
+                var secondEdge2 = edges[nextEdgeIdx].From;
 
                 if (firstEdge1 == secondEdge1)
                 {
@@ -98,7 +98,7 @@ internal static class EdgeBuilder
     }
 }
 
-internal class AasClothStuff1 : IDisposable
+internal class AasClothStuff1
 {
     public Mesh mesh { get; }
     public int clothVertexCount; // Count of vertices found in skm_vertex_idx
@@ -229,7 +229,7 @@ internal class AasClothStuff1 : IDisposable
                 bool found = false;
                 for (int j = 0; j < edges_count; j++)
                 {
-                    if (edges[j].from == cloth_state_idx_from && edges[j].to == cloth_state_idx_to)
+                    if (edges[j].From == cloth_state_idx_from && edges[j].To == cloth_state_idx_to)
                     {
                         found = true;
                         break;
@@ -241,9 +241,9 @@ internal class AasClothStuff1 : IDisposable
                     var distSq = (vertices[to].Pos - vertices[from].Pos).LengthSquared();
 
                     ref var newEdge = ref edges[edges_count++];
-                    newEdge.from = (short) cloth_state_idx_from;
-                    newEdge.to = (short) cloth_state_idx_to;
-                    newEdge.distSquared = distSq;
+                    newEdge.From = (short) cloth_state_idx_from;
+                    newEdge.To = (short) cloth_state_idx_to;
+                    newEdge.DistSquared = distSq;
                 }
             }
         }
@@ -267,10 +267,5 @@ internal class AasClothStuff1 : IDisposable
         bytePerClothVertex = byte_per_cloth_vertex.AsSpan(0, cloth_vertex_count).ToArray();
         bytePerClothVertex2 = byte_per_cloth_vertex2.AsSpan(0, cloth_vertex_count).ToArray();
         vertexIdxForClothVertexIdx = cloth_vertex_idx_map.AsSpan(0, cloth_vertex_count).ToArray();
-    }
-
-    public void Dispose()
-    {
-        clothStuff.Dispose();
     }
 }

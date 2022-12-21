@@ -2,8 +2,7 @@ namespace OpenTemple.Core.GFX;
 
 public ref struct PerfGroup
 {
-
-    private RenderingDevice _device;
+    private RenderingDevice? _device;
 
     public PerfGroup(RenderingDevice device)
     {
@@ -15,5 +14,4 @@ public ref struct PerfGroup
         _device?.EndPerfGroup();
         _device = null;
     }
-
 }

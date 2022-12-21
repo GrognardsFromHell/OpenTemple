@@ -1188,7 +1188,7 @@ public class D20StatSystem : IGameSystem
     }
 
     [TempleDllLocation(0x1004dec0)]
-    public int DispatchAttackBonus(GameObject attacker, GameObject victim, ref DispIoAttackBonus dispIo,
+    public int DispatchAttackBonus(GameObject attacker, GameObject victim, ref DispIoAttackBonus? dispIo,
         DispatcherType dispType, D20DispatcherKey key)
     {
         var dispatcher = attacker.GetDispatcher();

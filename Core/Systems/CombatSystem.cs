@@ -844,7 +844,7 @@ public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSy
 
     [TempleDllLocation(0x10062560)]
     private void ThrownItemCleanup(GameObject projectile, GameObject actor,
-        GameObject target, bool recursed = false)
+        GameObject? target, bool recursed = false)
     {
         var projectileFlags = projectile.ProjectileFlags;
         if (projectileFlags.HasFlag(ProjectileFlag.UNK_40))

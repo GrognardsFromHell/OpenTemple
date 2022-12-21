@@ -9,36 +9,36 @@ namespace OpenTemple.Core.AAS;
     */
 internal class CollisionSphere
 {
-    public int boneId;
-    public float radius;
-    public Matrix3x4 worldMatrix;
-    public Matrix3x4 worldMatrixInverse;
-    public CollisionSphere? next;
-};
+    public int BoneId;
+    public float Radius;
+    public Matrix3x4 WorldMatrix;
+    public Matrix3x4 WorldMatrixInverse;
+    public CollisionSphere? Next;
+}
 
 /**
     * Represents a cylinder for cloth collision purposes.
     */
 internal class CollisionCylinder
 {
-    public int boneId;
-    public float radius;
-    public float height;
-    public Matrix3x4 worldMatrix;
-    public Matrix3x4 worldMatrixInverse;
-    public CollisionCylinder? next;
-};
+    public int BoneId;
+    public float Radius;
+    public float Height;
+    public Matrix3x4 WorldMatrix;
+    public Matrix3x4 WorldMatrixInverse;
+    public CollisionCylinder? Next;
+}
 
 internal class CollisionGeometry
 {
-    public CollisionSphere? firstSphere;
-    public CollisionCylinder? firstCylinder;
+    public CollisionSphere? FirstSphere;
+    public CollisionCylinder? FirstCylinder;
 
     /// <summary>
     /// Extract the cloth collision information from a list of bones.
     /// The information is parsed from the bone names.
     /// </summary>
-    public static CollisionGeometry Find(List<SkeletonBone> bones)
+    public static CollisionGeometry Find(IReadOnlyList<SkeletonBone> bones)
     {
         CollisionGeometry result = new CollisionGeometry();
 
@@ -67,20 +67,20 @@ internal class CollisionGeometry
                 }
 
                 var newClothSphere = new CollisionSphere();
-                newClothSphere.radius = radius;
-                newClothSphere.next = null;
-                newClothSphere.boneId = i;
+                newClothSphere.Radius = radius;
+                newClothSphere.Next = null;
+                newClothSphere.BoneId = i;
 
                 // Append to the linked list structure
-                if (result.firstSphere == null)
+                if (result.FirstSphere == null)
                 {
-                    result.firstSphere = newClothSphere;
-                    spheresTail = result.firstSphere;
+                    result.FirstSphere = newClothSphere;
+                    spheresTail = result.FirstSphere;
                 }
                 else
                 {
-                    spheresTail.next = newClothSphere;
-                    spheresTail = spheresTail.next;
+                    spheresTail.Next = newClothSphere;
+                    spheresTail = spheresTail.Next;
                 }
 
                 continue;
@@ -114,23 +114,21 @@ internal class CollisionGeometry
                 }
 
                 var newClothCyl = new CollisionCylinder();
-                newClothCyl.radius = radius;
-                newClothCyl.height = height;
-                newClothCyl.next = null;
-                newClothCyl.boneId = i;
+                newClothCyl.Radius = radius;
+                newClothCyl.Height = height;
+                newClothCyl.Next = null;
+                newClothCyl.BoneId = i;
 
-                if (result.firstCylinder == null)
+                if (result.FirstCylinder == null)
                 {
-                    result.firstCylinder = newClothCyl;
-                    cylindersTail = result.firstCylinder;
+                    result.FirstCylinder = newClothCyl;
+                    cylindersTail = result.FirstCylinder;
                 }
                 else
                 {
-                    cylindersTail.next = newClothCyl;
-                    cylindersTail = cylindersTail.next;
+                    cylindersTail.Next = newClothCyl;
+                    cylindersTail = cylindersTail.Next;
                 }
-
-                continue;
             }
         }
 

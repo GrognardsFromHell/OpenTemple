@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.MaterialDefinitions;
-using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.GFX.RenderMaterials;
 
@@ -17,10 +15,11 @@ public class MdfMaterialFactory : IDisposable
 	private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
 	private readonly IFileSystem _fs;
-
 	private readonly RenderingDevice _device;
-
 	private readonly Textures _textures;
+	private readonly Dictionary<int, ResourceRef<IMdfRenderMaterial>> _idRegistry = new();
+	private readonly Dictionary<string, ResourceRef<IMdfRenderMaterial>> _nameRegistry = new();
+	private int _nextFreeId = 1;
 
 	public MdfMaterialFactory(IFileSystem fs, RenderingDevice device)
 	{
@@ -29,9 +28,9 @@ public class MdfMaterialFactory : IDisposable
 		_textures = device.GetTextures();
 	}
 
-	public IMdfRenderMaterial GetById(int id)
+	public IMdfRenderMaterial? GetById(int id)
 	{
-		if (mIdRegistry.TryGetValue(id, out var materialRef))
+		if (_idRegistry.TryGetValue(id, out var materialRef))
 		{
 			return materialRef.Resource;
 		}
@@ -39,10 +38,10 @@ public class MdfMaterialFactory : IDisposable
 		return null;
 	}
 
-	public IMdfRenderMaterial GetByName(string name)
+	public IMdfRenderMaterial? GetByName(string name)
 	{
 		var nameLower = name.ToLowerInvariant();
-		if (mNameRegistry.TryGetValue(nameLower, out var materialRef))
+		if (_nameRegistry.TryGetValue(nameLower, out var materialRef))
 		{
 			return materialRef.Resource;
 		}
@@ -55,7 +54,7 @@ public class MdfMaterialFactory : IDisposable
 		var nameLower = name.ToLowerInvariant();
 
 		// Do not cache if a customizer is present
-		if (customizer == null && mNameRegistry.TryGetValue(name, out var materialRef))
+		if (customizer == null && _nameRegistry.TryGetValue(name, out var materialRef))
 		{
 			return materialRef.CloneRef();
 		}
@@ -76,10 +75,10 @@ public class MdfMaterialFactory : IDisposable
 				new MdfRenderMaterial(id, name, mdfMaterial, material)
 			);
 
-			mIdRegistry[id] = result.CloneRef();
+			_idRegistry[id] = result.CloneRef();
 			if (customizer == null)
 			{
-				mNameRegistry[nameLower] = result.CloneRef();
+				_nameRegistry[nameLower] = result.CloneRef();
 			}
 
 			return result.CloneRef();
@@ -89,26 +88,22 @@ public class MdfMaterialFactory : IDisposable
 		}
 	}
 
-	private Dictionary<int, ResourceRef<IMdfRenderMaterial>> mIdRegistry = new();
-	private Dictionary<string, ResourceRef<IMdfRenderMaterial>> mNameRegistry = new();
-	private int _nextFreeId = 1;
-
 	private Material CreateDeviceMaterial(string name, MdfMaterial spec)
 	{
             
 		var rasterizerState = new RasterizerSpec();
 
 		// Wireframe mode
-		rasterizerState.wireframe = spec.wireframe;
+		rasterizerState.wireframe = spec.Wireframe;
 
 		// Cull mode
-		if (!spec.faceCulling) {
+		if (!spec.FaceCulling) {
 			rasterizerState.cullMode = CullMode.None;
 		}
 
 		BlendSpec blendState = new BlendSpec();
 
-		switch (spec.blendType) {
+		switch (spec.BlendType) {
 			case MdfBlendType.Alpha:
 				blendState.blendEnable = true;
 				blendState.srcBlend = BlendOperand.SrcAlpha;
@@ -129,7 +124,7 @@ public class MdfMaterialFactory : IDisposable
 				break;
 		}
 
-		if (!spec.enableColorWrite) {
+		if (!spec.EnableColorWrite) {
 			blendState.writeAlpha = false;
 			blendState.writeRed = false;
 			blendState.writeGreen = false;
@@ -137,38 +132,38 @@ public class MdfMaterialFactory : IDisposable
 		}
 
 		DepthStencilSpec depthStencilState = new DepthStencilSpec();
-		depthStencilState.depthEnable = !spec.disableZ;
-		depthStencilState.depthWrite = spec.enableZWrite;
+		depthStencilState.depthEnable = !spec.DisableZ;
+		depthStencilState.depthWrite = spec.EnableZWrite;
 		depthStencilState.depthFunc = ComparisonFunc.LessEqual;
 
 		// Resolve texture references based on type
-		Trace.Assert(spec.samplers.Count <= 4);
+		Trace.Assert(spec.Samplers.Count <= 4);
 
 		Dictionary<string, string> psDefines = new Dictionary<string, string>();
 		Dictionary<string, string> vsDefines = new Dictionary<string, string>();
 
-		List<MaterialSamplerSpec> samplers = new List<MaterialSamplerSpec>(spec.samplers.Count);
+		List<MaterialSamplerSpec> samplers = new List<MaterialSamplerSpec>(spec.Samplers.Count);
 		// A general MDF can reference up to 4 textures
-		for (var i = 0; i < spec.samplers.Count; ++i) {
-			var sampler = spec.samplers[i];
-			if (sampler.filename == null)
+		for (var i = 0; i < spec.Samplers.Count; ++i) {
+			var sampler = spec.Samplers[i];
+			if (sampler.Filename == null)
 				continue;
 
-			var texture = _textures.Resolve(sampler.filename, true);
+			var texture = _textures.Resolve(sampler.Filename, true);
 			if (!texture.IsValid) {
 				Logger.Warn("General shader {0} references invalid texture '{1}' in sampler {2}",
-					name, sampler.filename, i);
+					name, sampler.Filename, i);
 			}
 
 			SamplerSpec samplerState = new SamplerSpec();
 			// Set up the addressing
-			if (spec.clamp) {
+			if (spec.Clamp) {
 				samplerState.addressU = TextureAddress.Clamp;
 				samplerState.addressV = TextureAddress.Clamp;
 			}
 
 			// Set up filtering
-			if (spec.linearFiltering) {
+			if (spec.LinearFiltering) {
 				samplerState.magFilter = TextureFilterType.Linear;
 				samplerState.minFilter = TextureFilterType.Linear;
 				samplerState.mipFilter = TextureFilterType.Linear;
@@ -186,7 +181,7 @@ public class MdfMaterialFactory : IDisposable
 			*/
 			var stageId = samplers.Count;
 			var defName = $"TEXTURE_STAGE{stageId}_MODE";
-			switch (sampler.blendType) {
+			switch (sampler.BlendType) {
 				default:
 				case MdfTextureBlendType.Modulate:
 					psDefines[defName] = "1";
@@ -211,36 +206,30 @@ public class MdfMaterialFactory : IDisposable
 				correlate with defines in mdf_vs.hlsl
 			*/
 			defName = $"TEXTURE_STAGE{stageId}_UVANIM";
-			vsDefines[$"TEXTURE_STAGE{stageId}_SPEEDU"] = sampler.speedU.ToString(CultureInfo.InvariantCulture);
-			vsDefines[$"TEXTURE_STAGE{stageId}_SPEEDV"] = sampler.speedV.ToString(CultureInfo.InvariantCulture);
-			switch (sampler.uvType) {				
-				case MdfUvType.Environment:
-					vsDefines[defName] = "1";
-					break;
-				case MdfUvType.Drift:
-					vsDefines[defName] = "2";
-					break;
-				case MdfUvType.Swirl:
-					vsDefines[defName] = "3";
-					break;
-				case MdfUvType.Wavey:
-					vsDefines[defName] = "4";
-					break;
-			}
+			vsDefines[$"TEXTURE_STAGE{stageId}_SPEEDU"] = sampler.SpeedU.ToString(CultureInfo.InvariantCulture);
+			vsDefines[$"TEXTURE_STAGE{stageId}_SPEEDV"] = sampler.SpeedV.ToString(CultureInfo.InvariantCulture);
+			vsDefines[defName] = sampler.UvType switch
+			{
+				MdfUvType.Environment => "1",
+				MdfUvType.Drift => "2",
+				MdfUvType.Swirl => "3",
+				MdfUvType.Wavey => "4",
+				_ => vsDefines[defName]
+			};
 		}
 
-		if (spec.glossmap != null) {
-			var glossMap = _textures.Resolve(spec.glossmap, true);
+		if (spec.Glossmap != null) {
+			var glossMap = _textures.Resolve(spec.Glossmap, true);
 			if (!glossMap.IsValid) {
 				Logger.Warn("General shader {0} references invalid gloss map texture '{1}'",
-					name, spec.glossmap);
+					name, spec.Glossmap);
 			}
 		}
 
 		psDefines["TEXTURE_STAGES"] = samplers.Count.ToString(CultureInfo.InvariantCulture);
 		vsDefines["TEXTURE_STAGES"] = samplers.Count.ToString(CultureInfo.InvariantCulture);
-		vsDefines["LIGHTING"] = spec.notLit ? "0" : "1";
-		vsDefines["PER_VERTEX_COLOR"] = spec.perVertexColor ? "1" : "0";
+		vsDefines["LIGHTING"] = spec.NotLit ? "0" : "1";
+		vsDefines["PER_VERTEX_COLOR"] = spec.PerVertexColor ? "1" : "0";
 
 		// Special case for highlight shaders until we're able to encode this
 		// in the material file itself
@@ -266,17 +255,17 @@ public class MdfMaterialFactory : IDisposable
 	public void Dispose()
 	{
 		// Clear all loaded materials
-		foreach (var value in mIdRegistry.Values)
+		foreach (var value in _idRegistry.Values)
 		{
 			value.Dispose();
 		}
-		mIdRegistry.Clear();
+		_idRegistry.Clear();
 
-		foreach (var value in mNameRegistry.Values)
+		foreach (var value in _nameRegistry.Values)
 		{
 			value.Dispose();
 		}
-		mNameRegistry.Clear();
+		_nameRegistry.Clear();
 
 	}
 }
@@ -309,14 +298,14 @@ internal class InvalidMdfRenderMaterial : IMdfRenderMaterial
 		return "<invalid>";
 	}
 
-	public ITexture GetPrimaryTexture()
+	public ITexture? GetPrimaryTexture()
 	{
 		return null;
 	}
 
 	public MdfMaterial GetSpec() => _spec;
 
-	public void Bind(WorldCamera? camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides? overrides = null)
+	public void Bind(WorldCamera? camera, RenderingDevice g, IReadOnlyList<Light3d> lights, MdfRenderOverrides? overrides = null)
 	{
 		// Simply do nothing
 	}

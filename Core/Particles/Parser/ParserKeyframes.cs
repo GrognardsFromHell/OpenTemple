@@ -107,7 +107,7 @@ public static class ParserKeyframes
         frames[^1].deltaPerSec = 0; // No delta for last
     }
 
-    public static PartSysParamKeyframes Parse(ReadOnlySpan<byte> value, float parentLifespan)
+    public static PartSysParamKeyframes? Parse(ReadOnlySpan<byte> value, float parentLifespan)
     {
         using var frameDefsOwner = SpanUtils.SplitList(value, (byte) ',', out var frameCount);
         var frameDefs = frameDefsOwner.Memory.Span.Slice(0, frameCount);

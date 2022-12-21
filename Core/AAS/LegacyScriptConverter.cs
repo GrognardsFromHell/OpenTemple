@@ -14,7 +14,7 @@ public class LegacyScriptConverter
     private const string StringArg = @"'([^']*)'";
     private const string IntArg = @"(\d+)";
 
-    private static readonly (Regex, Func<Match, AasEvent>)[] ParticlesPattern =
+    private static readonly (Regex, Func<Match, AasEvent?>)[] ParticlesPattern =
     {
         (CreateMethodRegex("game.particles", StringArg, "anim_obj"), ConvertParticles),
         (CreateMethodRegex("game.shake", IntArg, IntArg), ConvertScreenShake),
@@ -47,7 +47,7 @@ public class LegacyScriptConverter
         return new Regex(result.ToString());
     }
 
-    public bool TryConvert(string script, out AasEvent evt)
+    public bool TryConvert(string script, out AasEvent? evt)
     {
         foreach (var (pattern, handler) in ParticlesPattern)
         {

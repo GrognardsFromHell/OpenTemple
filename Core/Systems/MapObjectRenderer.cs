@@ -153,20 +153,20 @@ public class MapObjectRenderer : IDisposable
             && (type == ObjectType.projectile
                 || type.IsCritter()
                 || type.IsEquipment())
-            && (GameSystems.MapFogging.GetFogStatus(worldLoc, animParams.offsetX, animParams.offsetY) & 1) == 0)
+            && (GameSystems.MapFogging.GetFogStatus(worldLoc, animParams.OffsetX, animParams.OffsetY) & 1) == 0)
         {
             return;
         }
 
         LocAndOffsets worldPosFull;
-        worldPosFull.off_x = animParams.offsetX;
-        worldPosFull.off_y = animParams.offsetY;
+        worldPosFull.off_x = animParams.OffsetX;
+        worldPosFull.off_y = animParams.OffsetY;
         worldPosFull.location = worldLoc;
 
         var radius = obj.GetRadius();
         var renderHeight = obj.GetRenderHeight(true);
 
-        if (!IsObjectOnScreen(viewport.Camera, worldPosFull, animParams.offsetZ, radius, renderHeight))
+        if (!IsObjectOnScreen(viewport.Camera, worldPosFull, animParams.OffsetZ, radius, renderHeight))
         {
             return;
         }
@@ -175,7 +175,7 @@ public class MapObjectRenderer : IDisposable
         {
             Tig.ShapeRenderer3d.DrawCylinder(
                 viewport,
-                worldPosFull.ToInches3D(animParams.offsetZ),
+                worldPosFull.ToInches3D(animParams.OffsetZ),
                 radius,
                 renderHeight
             );
@@ -189,8 +189,8 @@ public class MapObjectRenderer : IDisposable
 
         LocAndOffsets locAndOffsets;
         locAndOffsets.location = worldLoc;
-        locAndOffsets.off_x = animParams.offsetX;
-        locAndOffsets.off_y = animParams.offsetY;
+        locAndOffsets.off_x = animParams.OffsetX;
+        locAndOffsets.off_y = animParams.OffsetY;
         var lights = FindLights(locAndOffsets, lightSearchRadius);
 
         if (type == ObjectType.weapon)
@@ -226,16 +226,16 @@ public class MapObjectRenderer : IDisposable
             // Add a single light with full ambient color to make the object appear fully lit
             lights.Clear();
             Light3d fullBrightLight = new Light3d();
-            fullBrightLight.ambient = LinearColor.White;
-            fullBrightLight.color = new LinearColor(0, 0, 0);
-            fullBrightLight.dir = Vector4.UnitZ;
-            fullBrightLight.type = Light3dType.Directional;
+            fullBrightLight.Ambient = LinearColor.White;
+            fullBrightLight.Color = new LinearColor(0, 0, 0);
+            fullBrightLight.Dir = Vector4.UnitZ;
+            fullBrightLight.Type = Light3dType.Directional;
             lights.Add(fullBrightLight);
         }
 
         mRenderedLastFrame++;
         MdfRenderOverrides? overrides = new MdfRenderOverrides();
-        overrides.alpha = alpha / 255.0f;
+        overrides.Alpha = alpha / 255.0f;
         mAasRenderer.Render(viewport, animatedModel, animParams, lights, overrides);
 
         Light3d globalLight = new Light3d();
@@ -331,29 +331,29 @@ public class MapObjectRenderer : IDisposable
         var animatedModel = obj.GetOrCreateAnimHandle();
 
         var animParams = obj.GetAnimParams();
-        animParams.x = 0;
-        animParams.y = 0;
-        animParams.offsetX = worldPos.X + 865.70398f;
-        animParams.offsetZ = 1200.0f;
-        animParams.offsetY = worldPos.Z + 865.70398f;
-        animParams.scale *= scale;
-        animParams.rotation = MathF.PI + rotation;
-        animParams.rotationPitch = 0;
+        animParams.X = 0;
+        animParams.Y = 0;
+        animParams.OffsetX = worldPos.X + 865.70398f;
+        animParams.OffsetZ = 1200.0f;
+        animParams.OffsetY = worldPos.Z + 865.70398f;
+        animParams.Scale *= scale;
+        animParams.Rotation = MathF.PI + rotation;
+        animParams.RotationPitch = 0;
 
         var lights = new List<Light3d>
         {
             new()
             {
-                type = Light3dType.Directional,
-                color = new LinearColor(1, 1, 1),
-                dir = new Vector4(-0.7071200013160706f, -0.7071200013160706f, 0, 0),
+                Type = Light3dType.Directional,
+                Color = new LinearColor(1, 1, 1),
+                Dir = new Vector4(-0.7071200013160706f, -0.7071200013160706f, 0, 0),
             },
 
             new()
             {
-                type = Light3dType.Directional,
-                color = new LinearColor(1, 1, 1),
-                dir = new Vector4(0, 0.7071200013160706f, -0.7071200013160706f, 0),
+                Type = Light3dType.Directional,
+                Color = new LinearColor(1, 1, 1),
+                Dir = new Vector4(0, 0.7071200013160706f, -0.7071200013160706f, 0),
             }
         };
 
@@ -478,7 +478,7 @@ public class MapObjectRenderer : IDisposable
         // Handle fog occlusion of the world position, but handle it differently for portals
         if (type != ObjectType.portal)
         {
-            var fogStatus = GameSystems.MapFogging.GetFogStatus(worldLoc, animParams.offsetX, animParams.offsetY);
+            var fogStatus = GameSystems.MapFogging.GetFogStatus(worldLoc, animParams.OffsetX, animParams.OffsetY);
             if ((fogStatus & 0xB0) == 0 || (fogStatus & 1) == 0)
             {
                 return;
@@ -488,8 +488,8 @@ public class MapObjectRenderer : IDisposable
         {
             LocAndOffsets loc;
             loc.location = worldLoc;
-            loc.off_x = animParams.offsetX - locXY.INCH_PER_SUBTILE;
-            loc.off_y = animParams.offsetY - locXY.INCH_PER_SUBTILE;
+            loc.off_x = animParams.OffsetX - locXY.INCH_PER_SUBTILE;
+            loc.off_y = animParams.OffsetY - locXY.INCH_PER_SUBTILE;
             loc.Normalize();
 
             var fogStatus = GameSystems.MapFogging.GetFogStatus(loc.location, loc.off_x, loc.off_y);
@@ -500,14 +500,14 @@ public class MapObjectRenderer : IDisposable
         }
 
         LocAndOffsets worldPosFull;
-        worldPosFull.off_x = animParams.offsetX;
-        worldPosFull.off_y = animParams.offsetY;
+        worldPosFull.off_x = animParams.OffsetX;
+        worldPosFull.off_y = animParams.OffsetY;
         worldPosFull.location = worldLoc;
 
         var radius = obj.GetRadius();
         var renderHeight = obj.GetRenderHeight(true);
 
-        if (!IsObjectOnScreen(viewport.Camera, worldPosFull, animParams.offsetZ, radius, renderHeight))
+        if (!IsObjectOnScreen(viewport.Camera, worldPosFull, animParams.OffsetZ, radius, renderHeight))
         {
             return;
         }
@@ -520,13 +520,13 @@ public class MapObjectRenderer : IDisposable
 
         LocAndOffsets locAndOffsets;
         locAndOffsets.location = worldLoc;
-        locAndOffsets.off_x = animParams.offsetX;
-        locAndOffsets.off_y = animParams.offsetY;
+        locAndOffsets.off_x = animParams.OffsetX;
+        locAndOffsets.off_y = animParams.OffsetY;
         var lights = FindLights(locAndOffsets, lightSearchRadius);
 
         mRenderedLastFrame++;
         MdfRenderOverrides? overrides = new MdfRenderOverrides();
-        overrides.alpha = alpha / 255.0f;
+        overrides.Alpha = alpha / 255.0f;
 
         if (type != ObjectType.portal)
         {
@@ -566,7 +566,7 @@ public class MapObjectRenderer : IDisposable
         {
             if (GameSystems.ItemHighlight.ShowHighlights)
             {
-                overrides.ignoreLighting = true;
+                overrides.IgnoreLighting = true;
             }
 
             mAasRenderer.Render(viewport, animatedModel, animParams, lights, overrides);
@@ -638,20 +638,20 @@ public class MapObjectRenderer : IDisposable
             && (type == ObjectType.projectile
                 || type.IsCritter()
                 || type.IsEquipment())
-            && (GameSystems.MapFogging.GetFogStatus(worldLoc, animParams.offsetX, animParams.offsetY) & 1) == 0)
+            && (GameSystems.MapFogging.GetFogStatus(worldLoc, animParams.OffsetX, animParams.OffsetY) & 1) == 0)
         {
             return;
         }
 
         LocAndOffsets worldPosFull;
-        worldPosFull.off_x = animParams.offsetX;
-        worldPosFull.off_y = animParams.offsetY;
+        worldPosFull.off_x = animParams.OffsetX;
+        worldPosFull.off_y = animParams.OffsetY;
         worldPosFull.location = worldLoc;
 
         var radius = obj.GetRadius();
         var renderHeight = obj.GetRenderHeight(true);
 
-        if (!IsObjectOnScreen(viewport.Camera, worldPosFull, animParams.offsetZ, radius, renderHeight))
+        if (!IsObjectOnScreen(viewport.Camera, worldPosFull, animParams.OffsetZ, radius, renderHeight))
         {
             return;
         }
@@ -664,14 +664,14 @@ public class MapObjectRenderer : IDisposable
 
         LocAndOffsets locAndOffsets;
         locAndOffsets.location = worldLoc;
-        locAndOffsets.off_x = animParams.offsetX;
-        locAndOffsets.off_y = animParams.offsetY;
+        locAndOffsets.off_x = animParams.OffsetX;
+        locAndOffsets.off_y = animParams.OffsetY;
         var lights = FindLights(locAndOffsets, lightSearchRadius);
 
         mRenderedLastFrame++;
 
         MdfRenderOverrides? overrides = new MdfRenderOverrides();
-        overrides.alpha = alpha / 255.0f;
+        overrides.Alpha = alpha / 255.0f;
         material.Resource.Bind(viewport, mDevice, lights, overrides);
         mAasRenderer.RenderWithoutMaterial(animatedModel, animParams);
     }
@@ -704,16 +704,16 @@ public class MapObjectRenderer : IDisposable
         {
             Light3d light = new Light3d();
             var legacyLight = GameSystems.Light.GlobalLight;
-            light.type = (Light3dType) legacyLight.type;
-            light.color = legacyLight.Color;
-            light.dir.X = legacyLight.dir.X;
-            light.dir.Y = legacyLight.dir.Y;
-            light.dir.Z = legacyLight.dir.Z;
-            light.pos.X = legacyLight.pos.X;
-            light.pos.Y = legacyLight.pos.Y;
-            light.pos.Z = legacyLight.pos.Z;
-            light.range = legacyLight.range;
-            light.phi = legacyLight.phi;
+            light.Type = (Light3dType) legacyLight.type;
+            light.Color = legacyLight.Color;
+            light.Dir.X = legacyLight.dir.X;
+            light.Dir.Y = legacyLight.dir.Y;
+            light.Dir.Z = legacyLight.dir.Z;
+            light.Pos.X = legacyLight.pos.X;
+            light.Pos.Y = legacyLight.pos.Y;
+            light.Pos.Z = legacyLight.pos.Z;
+            light.Range = legacyLight.range;
+            light.Phi = legacyLight.phi;
             lights.Add(light);
         }
 
@@ -834,38 +834,38 @@ public class MapObjectRenderer : IDisposable
                 Light3d light3d = new Light3d();
                 if (type == 2)
                 {
-                    light3d.type = Light3dType.Directional;
-                    light3d.dir = new Vector4(Vector3.Normalize(direction), 0);
+                    light3d.Type = Light3dType.Directional;
+                    light3d.Dir = new Vector4(Vector3.Normalize(direction), 0);
                 }
                 else if (type == 3)
                 {
-                    light3d.type = Light3dType.Spot;
-                    light3d.dir = new Vector4(Vector3.Normalize(direction), 0);
+                    light3d.Type = Light3dType.Spot;
+                    light3d.Dir = new Vector4(Vector3.Normalize(direction), 0);
                 }
                 else if (type == 1)
                 {
-                    light3d.type = Light3dType.Point;
-                    light3d.dir.X = direction.X;
-                    light3d.dir.Y = direction.Y;
-                    light3d.dir.Z = direction.Z;
+                    light3d.Type = Light3dType.Point;
+                    light3d.Dir.X = direction.X;
+                    light3d.Dir.Y = direction.Y;
+                    light3d.Dir.Z = direction.Z;
                 }
 
                 // Some vanilla lights are broken
-                if (light3d.dir.X == 0.0f && light3d.dir.Y == 0.0f && light3d.dir.Z == 0.0f)
+                if (light3d.Dir.X == 0.0f && light3d.Dir.Y == 0.0f && light3d.Dir.Z == 0.0f)
                 {
-                    light3d.dir.X = 0.0f;
-                    light3d.dir.Y = 0.0f;
-                    light3d.dir.Z = 1.0f;
+                    light3d.Dir.X = 0.0f;
+                    light3d.Dir.Y = 0.0f;
+                    light3d.Dir.Z = 1.0f;
                 }
 
-                light3d.pos.X = lightPos.X;
-                light3d.pos.Y = light.offsetZ;
-                light3d.pos.Z = lightPos.Y;
+                light3d.Pos.X = lightPos.X;
+                light3d.Pos.Y = light.offsetZ;
+                light3d.Pos.Z = lightPos.Y;
 
-                light3d.color = color;
+                light3d.Color = color;
 
-                light3d.range = range;
-                light3d.phi = phi;
+                light3d.Range = range;
+                light3d.Phi = phi;
                 lights.Add(light3d);
             }
         }
@@ -920,7 +920,7 @@ public class MapObjectRenderer : IDisposable
         GameObject obj,
         AnimatedModelParams animParams,
         IAnimatedModel model,
-        IList<Light3d> lights)
+        IReadOnlyList<Light3d> lights)
     {
         var mirrorImages = GameSystems.D20.D20QueryInt(obj, D20DispatcherKey.QUE_Critter_Has_Mirror_Image);
 
@@ -960,11 +960,11 @@ public class MapObjectRenderer : IDisposable
 
             // Generate a world matrix that applies the translation
             MdfRenderOverrides? overrides = new MdfRenderOverrides();
-            overrides.useWorldMatrix = true;
+            overrides.UseWorldMatrix = true;
             var xTrans = MathF.Cos(_mirrorImagesRotation) * pos * radius;
             var yTrans = MathF.Sin(_mirrorImagesRotation) * pos * radius;
-            overrides.worldMatrix = Matrix4x4.CreateTranslation(xTrans, 0, yTrans);
-            overrides.alpha = 0.31f;
+            overrides.WorldMatrix = Matrix4x4.CreateTranslation(xTrans, 0, yTrans);
+            overrides.Alpha = 0.31f;
 
             mAasRenderer.Render(viewport, model, animParams, lights, overrides);
         }
@@ -977,8 +977,8 @@ public class MapObjectRenderer : IDisposable
         Light3d globalLight,
         int alpha)
     {
-        LocAndOffsets loc = new LocAndOffsets(animParams.x, animParams.y, animParams.offsetX, animParams.offsetY);
-        var worldPos = loc.ToInches3D(animParams.offsetZ);
+        LocAndOffsets loc = new LocAndOffsets(animParams.X, animParams.Y, animParams.OffsetX, animParams.OffsetY);
+        var worldPos = loc.ToInches3D(animParams.OffsetZ);
 
         var radius = obj.GetRadius();
         var height = obj.GetRenderHeight();
@@ -1017,7 +1017,7 @@ public class MapObjectRenderer : IDisposable
             worldPos,
             radius,
             height,
-            globalLight.dir,
+            globalLight.Dir,
             alpha / 255.0f,
             Globals.Config.SoftShadows
         );
@@ -1034,8 +1034,8 @@ public class MapObjectRenderer : IDisposable
 
         Span<ShapeVertex3d> corners = stackalloc ShapeVertex3d[4];
 
-        LocAndOffsets loc = new LocAndOffsets(animParams.x, animParams.y, animParams.offsetX, animParams.offsetY);
-        var center = loc.ToInches3D(animParams.offsetZ);
+        LocAndOffsets loc = new LocAndOffsets(animParams.X, animParams.Y, animParams.OffsetX, animParams.OffsetY);
+        var center = loc.ToInches3D(animParams.OffsetZ);
 
         var radius = handle.GetRadius();
 
@@ -1059,7 +1059,7 @@ public class MapObjectRenderer : IDisposable
         corners[3].pos.Z = center.Z + radius;
         corners[3].uv = Vector2.UnitY;
 
-        var color = new PackedLinearColorA(mBlobShadowMaterial.Resource.GetSpec().diffuse);
+        var color = new PackedLinearColorA(mBlobShadowMaterial.Resource.GetSpec().Diffuse);
         color.A = (byte) (color.A * alpha / 255);
         shapeRenderer3d.DrawQuad(viewport, corners, mBlobShadowMaterial.Resource, color);
     }

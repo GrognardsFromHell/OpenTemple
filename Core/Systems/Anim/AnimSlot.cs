@@ -12,37 +12,37 @@ namespace OpenTemple.Core.Systems.Anim;
 // Has to be 0x10 in size
 public struct AnimParam
 {
-    private object value;
+    private object? _value;
 
-    public GameObject obj
+    public GameObject? obj
     {
-        get => (GameObject) value;
-        set => this.value = value;
+        get => (GameObject?) _value;
+        set => this._value = value;
     }
 
     public LocAndOffsets location
     {
-        get => (LocAndOffsets) value;
-        set => this.value = value;
+        get => (LocAndOffsets) _value;
+        set => this._value = value;
     }
 
     public int number
     {
-        get => (int) value;
-        set => this.value = value;
+        get => (int) _value;
+        set => this._value = value;
     }
 
     public int spellId
     {
-        get => (int) value;
-        set => this.value = value;
+        get => (int) _value;
+        set => this._value = value;
     }
 
     public float floatNum
     {
         // Isn't ToEE great!
-        get => BitConverter.Int32BitsToSingle((int) value);
-        set => this.value = BitConverter.SingleToInt32Bits(value);
+        get => BitConverter.Int32BitsToSingle((int) _value);
+        set => this._value = BitConverter.SingleToInt32Bits(value);
     }
 }
 

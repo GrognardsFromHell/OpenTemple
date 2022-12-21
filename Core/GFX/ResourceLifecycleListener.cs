@@ -10,14 +10,14 @@ public interface IResourceLifecycleListener
 
 public sealed class ResourceLifecycleCallbacks : IResourceLifecycleListener, IDisposable
 {
-    private RenderingDevice _device;
-    private Action<RenderingDevice> _createCallback;
-    private Action<RenderingDevice> _freeCallback;
+    private RenderingDevice? _device;
+    private Action<RenderingDevice>? _createCallback;
+    private Action<RenderingDevice>? _freeCallback;
 
     public ResourceLifecycleCallbacks(
         RenderingDevice device,
-        Action<RenderingDevice> createCallback,
-        Action<RenderingDevice> freeCallback)
+        Action<RenderingDevice>? createCallback,
+        Action<RenderingDevice>? freeCallback)
     {
         _device = device;
         _createCallback = createCallback;
@@ -27,12 +27,12 @@ public sealed class ResourceLifecycleCallbacks : IResourceLifecycleListener, IDi
 
     public void CreateResources(RenderingDevice device)
     {
-        _createCallback(device);
+        _createCallback?.Invoke(device);
     }
 
     public void FreeResources(RenderingDevice device)
     {
-        _freeCallback(device);
+        _freeCallback?.Invoke(device);
     }
 
     public void Dispose()

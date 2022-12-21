@@ -26,7 +26,7 @@ public class SavedD20State
 
     public int CurrentSequenceIndex { get; set; }
 
-    public SavedD20ActionSequence[] ActionSequences { get; set; }
+    public SavedD20ActionSequence?[] ActionSequences { get; set; }
 
     public SavedProjectile[] Projectiles { get; set; }
 
@@ -52,7 +52,7 @@ public class SavedD20State
 
         result.CurrentSequenceIndex = reader.ReadInt32();
 
-        var actionSequences = new SavedD20ActionSequence[32];
+        var actionSequences = new SavedD20ActionSequence?[32];
         for (var i = 0; i < actionSequences.Length; i++)
         {
             actionSequences[i] = SavedD20ActionSequence.Load(reader);
@@ -63,7 +63,7 @@ public class SavedD20State
         for (var index = 0; index < actionSequences.Length; index++)
         {
             var sequence = actionSequences[index];
-            if (!sequence.IsPerforming)
+            if (sequence is not {IsPerforming: true})
             {
                 // We reset the action sequence to null here because the save does not contain enough info
                 // to recover it (nor do we care since our action array only contains active sequences)
@@ -140,7 +140,7 @@ public class SavedD20State
 
         foreach (var actionSequence in ActionSequences)
         {
-            actionSequence.Save(writer);
+            actionSequence?.Save(writer);
         }
 
         // Pad out the 32 entry array with empty action sequences
@@ -157,7 +157,7 @@ public class SavedD20State
         // to fixup transient references
         foreach (var sequence in ActionSequences)
         {
-            if (!sequence.IsPerforming)
+            if (sequence is not {IsPerforming: true})
             {
                 continue;
             }
@@ -234,7 +234,7 @@ public class SavedD20State
 
         foreach (var sequence in ActionSequences)
         {
-            if (sequence.IsPerforming)
+            if (sequence is {IsPerforming: true})
             {
                 sequence.Spell.Write(writer);
             }
@@ -499,7 +499,10 @@ public class SavedD20Action
     {
         // The rest is mostly packed in 4-bit numbers
         Span<byte> packedSpellData = stackalloc byte[8];
-        reader.Read(packedSpellData);
+        if (reader.Read(packedSpellData) != packedSpellData.Length)
+        {
+            throw new InvalidDataException();
+        }
 
         var spellEnum = BitConverter.ToInt16(packedSpellData);
         // The upper 8-bit of the spell enum will bleed into the metamagic data,

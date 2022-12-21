@@ -411,7 +411,7 @@ public class GameObject : IDisposable
     }
 
     [TempleDllLocation(0x100a0280)]
-    public void SetObject(obj_f field, GameObject obj)
+    public void SetObject(obj_f field, GameObject? obj)
     {
         if (_frozenObjRefs)
         {
@@ -1481,7 +1481,7 @@ public class GameObject : IDisposable
         }
     }
 
-    private void SetFieldValue(obj_f field, object newValue)
+    private void SetFieldValue(obj_f field, object? newValue)
     {
         if (!ValidateFieldForType(field))
         {

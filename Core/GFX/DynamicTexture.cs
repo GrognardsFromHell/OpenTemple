@@ -6,12 +6,17 @@ namespace OpenTemple.Core.GFX;
 
 public class DynamicTexture : GpuResource<DynamicTexture>, ITexture
 {
+    private readonly Size _size;
 
-    private readonly Size mSize;
-
-    private readonly Rectangle mRectangle;
+    private readonly Rectangle _rectangle;
 
     private RenderingDevice _device;
+
+    internal Texture2D _texture;
+
+    private ShaderResourceView _resourceView;
+
+    public int BytesPerPixel { get; }
 
     public DynamicTexture(RenderingDevice device,
         Texture2D texture,
@@ -20,18 +25,12 @@ public class DynamicTexture : GpuResource<DynamicTexture>, ITexture
         int bytesPerPixel)
     {
         _device = device;
-        mResourceView = resourceView;
-        mTexture = texture;
-        mSize = size;
-        mRectangle = new Rectangle(Point.Empty, size);
+        _resourceView = resourceView;
+        _texture = texture;
+        _size = size;
+        _rectangle = new Rectangle(Point.Empty, size);
         BytesPerPixel = bytesPerPixel;
     }
-
-    internal Texture2D mTexture;
-
-    private ShaderResourceView mResourceView;
-
-    public int BytesPerPixel { get; }
 
     protected override void FreeResource()
     {
@@ -45,18 +44,17 @@ public class DynamicTexture : GpuResource<DynamicTexture>, ITexture
 
     public string GetName() => "<dynamic>";
 
-    public Rectangle GetContentRect() => mRectangle;
+    public Rectangle GetContentRect() => _rectangle;
 
-    public Size GetSize() => mSize;
+    public Size GetSize() => _size;
+
     public void FreeDeviceTexture()
     {
-        mTexture?.Dispose();
-        mTexture = null;
-        mResourceView?.Dispose();
-        mResourceView = null;
+        _texture.Dispose();
+        _resourceView.Dispose();
     }
 
-    public ShaderResourceView GetResourceView() => mResourceView;
+    public ShaderResourceView GetResourceView() => _resourceView;
 
     public TextureType Type => TextureType.Dynamic;
 
@@ -66,12 +64,15 @@ public class DynamicTexture : GpuResource<DynamicTexture>, ITexture
     {
         using var mapped = _device.Map(this);
 
-        if (mapped.RowPitch == pitch) {
+        if (mapped.RowPitch == pitch)
+        {
             data.CopyTo(mapped.Data);
-        } else {
+        }
+        else
+        {
             var dest = mapped.Data;
             var rowWidth = Math.Min(pitch, mapped.RowPitch);
-            for (var y = 0; y < mSize.Height; ++y)
+            for (var y = 0; y < _size.Height; ++y)
             {
                 var srcRow = data.Slice(y * pitch, rowWidth);
                 var destRow = dest.Slice(y * mapped.RowPitch, rowWidth);

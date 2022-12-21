@@ -16,9 +16,9 @@ namespace OpenTemple.Core.Systems;
 
 internal struct GrappleState
 {
-    public ushort state;
-    public float currentLength;
-    public float targetLength;
+    public ushort State;
+    public float CurrentLength;
+    public float TargetLength;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -39,16 +39,16 @@ internal class FrogGrappleController
     public FrogGrappleController(RenderingDevice device,
         MdfMaterialFactory mdfFactory)
     {
-        mDevice = device;
-        mBufferBinding = device.CreateMdfBufferBinding();
+        _device = device;
+        _bufferBinding = device.CreateMdfBufferBinding();
 
-        mTongueMaterial = mdfFactory.LoadMaterial("art/meshes/Monsters/GiantFrog/tongue.mdf");
+        _tongueMaterial = mdfFactory.LoadMaterial("art/meshes/Monsters/GiantFrog/tongue.mdf");
 
-        mVertexBuffer = device.CreateEmptyVertexBuffer(TongueVertex.Size * VertexCount, debugName:"FrogTongue");
+        _vertexBuffer = device.CreateEmptyVertexBuffer(TongueVertex.Size * VertexCount, debugName:"FrogTongue");
 
         CreateIndexBuffer();
 
-        mBufferBinding.AddBuffer(mVertexBuffer, 0, TongueVertex.Size)
+        _bufferBinding.AddBuffer(_vertexBuffer, 0, TongueVertex.Size)
             .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
             .AddElement(VertexElementType.Float4, VertexElementSemantic.Normal)
             .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
@@ -60,12 +60,12 @@ internal class FrogGrappleController
         GameObject giantFrog,
         AnimatedModelParams animParams,
         IAnimatedModel model,
-        IList<Light3d> lights,
+        IReadOnlyList<Light3d> lights,
         float alpha)
     {
         var grappleState = GetGrappleState(giantFrog);
 
-        if (grappleState.state == 0)
+        if (grappleState.State == 0)
         {
             return;
         }
@@ -102,34 +102,34 @@ internal class FrogGrappleController
             tonguePosZ = worldMatrixFrog.M33 * 120.0f + worldMatrixFrog.M43;
         }
 
-        switch (grappleState.state)
+        switch (grappleState.State)
         {
             // This state seems to mean . Extending tongue to full length
             case 1:
-                grappleState.currentLength += locXY.INCH_PER_TILE;
-                if (grappleState.currentLength > tongueLength)
+                grappleState.CurrentLength += locXY.INCH_PER_TILE;
+                if (grappleState.CurrentLength > tongueLength)
                 {
-                    grappleState.state = 2;
-                    grappleState.currentLength = tongueLength;
+                    grappleState.State = 2;
+                    grappleState.CurrentLength = tongueLength;
                 }
 
                 break;
             // This state seems to mean . Retracting tongue
             case 2:
-                grappleState.currentLength -= locXY.INCH_PER_TILE;
-                if (grappleState.currentLength <= 0)
+                grappleState.CurrentLength -= locXY.INCH_PER_TILE;
+                if (grappleState.CurrentLength <= 0)
                 {
-                    grappleState.state = 0;
-                    grappleState.currentLength = 0;
+                    grappleState.State = 0;
+                    grappleState.CurrentLength = 0;
                 }
 
                 break;
             case 3:
-                grappleState.currentLength += locXY.INCH_PER_TILE;
-                if (grappleState.currentLength > tongueLength)
+                grappleState.CurrentLength += locXY.INCH_PER_TILE;
+                if (grappleState.CurrentLength > tongueLength)
                 {
-                    grappleState.state = 4;
-                    grappleState.currentLength = tongueLength;
+                    grappleState.State = 4;
+                    grappleState.CurrentLength = tongueLength;
                     var frogAnim = GameSystems.Critter.GetAnimId(giantFrog,
                         WeaponAnim.Special2);
                     giantFrog.SetAnimId(frogAnim);
@@ -142,58 +142,58 @@ internal class FrogGrappleController
                 break;
             case 4:
                 // Maintain Tongue between frog and opponent without progressing
-                grappleState.currentLength = tongueLength;
+                grappleState.CurrentLength = tongueLength;
                 break;
             case 5:
             case 6:
             {
-                if (grappleState.state == 5)
+                if (grappleState.State == 5)
                 {
-                    grappleState.targetLength = tongueLength - 12.0f;
-                    if (grappleState.targetLength < 0)
+                    grappleState.TargetLength = tongueLength - 12.0f;
+                    if (grappleState.TargetLength < 0)
                     {
-                        grappleState.targetLength = 0;
+                        grappleState.TargetLength = 0;
                     }
 
-                    grappleState.state = 6;
+                    grappleState.State = 6;
                 }
 
-                grappleState.currentLength = grappleState.currentLength - locXY.INCH_PER_HALFTILE;
+                grappleState.CurrentLength = grappleState.CurrentLength - locXY.INCH_PER_HALFTILE;
                 // Move the opponent closer to the frog
                 float newX = tonguePosX - worldMatrixFrog.M31 * locXY.INCH_PER_HALFTILE;
                 float newZ = tonguePosZ - worldMatrixFrog.M33 * locXY.INCH_PER_HALFTILE;
                 var newLoc = LocAndOffsets.FromInches(newX, newZ);
                 GameSystems.MapObject.Move(grappledOpponent, newLoc);
 
-                if (grappleState.currentLength < grappleState.targetLength)
+                if (grappleState.CurrentLength < grappleState.TargetLength)
                 {
-                    newX = worldMatrixFrog.M41 + grappleState.targetLength * worldMatrixFrog.M31;
-                    newZ = worldMatrixFrog.M43 + grappleState.targetLength * worldMatrixFrog.M33;
+                    newX = worldMatrixFrog.M41 + grappleState.TargetLength * worldMatrixFrog.M31;
+                    newZ = worldMatrixFrog.M43 + grappleState.TargetLength * worldMatrixFrog.M33;
                     newLoc = LocAndOffsets.FromInches(newX, newZ);
                     GameSystems.MapObject.Move(grappledOpponent, newLoc);
-                    grappleState.currentLength = grappleState.targetLength;
-                    grappleState.state = 4;
+                    grappleState.CurrentLength = grappleState.TargetLength;
+                    grappleState.State = 4;
                 }
             }
                 break;
             case 7:
             {
-                grappleState.currentLength = grappleState.currentLength - locXY.INCH_PER_HALFTILE;
+                grappleState.CurrentLength = grappleState.CurrentLength - locXY.INCH_PER_HALFTILE;
                 // Move the opponent closer to the frog
                 float newX = tonguePosX - worldMatrixFrog.M31 * locXY.INCH_PER_HALFTILE;
                 float newZ = tonguePosZ - worldMatrixFrog.M33 * locXY.INCH_PER_HALFTILE;
                 var newLoc = LocAndOffsets.FromInches(newX, newZ);
                 GameSystems.MapObject.Move(grappledOpponent, newLoc);
 
-                if (grappleState.currentLength < 0)
+                if (grappleState.CurrentLength < 0)
                 {
                     newX = worldMatrixFrog.M41;
                     newZ = worldMatrixFrog.M43;
                     newLoc = LocAndOffsets.FromInches(newX, newZ);
                     GameSystems.MapObject.Move(grappledOpponent, newLoc);
                     GameSystems.ObjFade.FadeTo(grappledOpponent, 0, 0, 16, 0);
-                    grappleState.currentLength = 0;
-                    grappleState.state = 0;
+                    grappleState.CurrentLength = 0;
+                    grappleState.State = 0;
 
                     // Probably the swallow animation
                     var animId = GameSystems.Critter.GetAnimId(giantFrog, WeaponAnim.Special3);
@@ -232,11 +232,11 @@ internal class FrogGrappleController
     private const int VertexCount = 96;
     private const int TriCount = 180;
 
-    private RenderingDevice mDevice;
-    private ResourceRef<IMdfRenderMaterial> mTongueMaterial;
-    private BufferBinding mBufferBinding;
-    private ResourceRef<VertexBuffer> mVertexBuffer;
-    private ResourceRef<IndexBuffer> mIndexBuffer;
+    private RenderingDevice _device;
+    private ResourceRef<IMdfRenderMaterial> _tongueMaterial;
+    private BufferBinding _bufferBinding;
+    private ResourceRef<VertexBuffer> _vertexBuffer;
+    private ResourceRef<IndexBuffer> _indexBuffer;
 
     private void CreateIndexBuffer()
     {
@@ -270,7 +270,7 @@ internal class FrogGrappleController
             indices[i++] = (ushort) (nextDiscFirst + 5);
         }
 
-        mIndexBuffer = mDevice.CreateIndexBuffer(indices);
+        _indexBuffer = _device.CreateIndexBuffer(indices);
     }
 
     private void RenderTongue(
@@ -280,7 +280,7 @@ internal class FrogGrappleController
         in Vector3 tongueUp,
         in Vector3 tongueRight,
         in Vector3 tonguePos,
-        IList<Light3d> lights,
+        IReadOnlyList<Light3d> lights,
         float alpha)
     {
         Span<TongueVertex> vertices = stackalloc TongueVertex[VertexCount];
@@ -293,11 +293,11 @@ internal class FrogGrappleController
             float radiusVariance = (MathF.Cos(2 * MathF.PI * i / 15.0f) - 1.0f) * 0.5f;
 
             // This seems to be the radius of the tongue at this particular given disc
-            float tongueRadius = 3.0f + radiusVariance * (grappleState.currentLength / 700.0f) * 3.0f;
+            float tongueRadius = 3.0f + radiusVariance * (grappleState.CurrentLength / 700.0f) * 3.0f;
 
             // Calculates the center point of the tongue along the directional vector
             // of the tongue_ref
-            float distFromFrog = grappleState.currentLength * i / 15.0f;
+            float distFromFrog = grappleState.CurrentLength * i / 15.0f;
             var posFromOrig = tongueDir * distFromFrog;
 
             // Each disc has 6 corner points on the
@@ -328,21 +328,21 @@ internal class FrogGrappleController
             }
         }
 
-        mVertexBuffer.Resource.Update<TongueVertex>(vertices);
+        _vertexBuffer.Resource.Update<TongueVertex>(vertices);
 
-        mBufferBinding.Bind();
+        _bufferBinding.Bind();
         MdfRenderOverrides? overrides = new MdfRenderOverrides();
-        overrides.alpha = alpha;
-        mTongueMaterial.Resource.Bind(viewport, mDevice, lights, overrides);
-        mDevice.SetIndexBuffer(mIndexBuffer);
+        overrides.Alpha = alpha;
+        _tongueMaterial.Resource.Bind(viewport, _device, lights, overrides);
+        _device.SetIndexBuffer(_indexBuffer);
 
-        mDevice.DrawIndexed(
+        _device.DrawIndexed(
             PrimitiveType.TriangleList,
             VertexCount,
             TriCount * 3);
     }
 
-    public GameObject GetGrappledOpponent(GameObject giantFrog)
+    public GameObject? GetGrappledOpponent(GameObject giantFrog)
     {
         int spellIdx;
         if (!GameSystems.D20.CritterHasCondition(giantFrog, "sp-Frog Tongue", out spellIdx))
@@ -365,7 +365,7 @@ internal class FrogGrappleController
     public static void PlayFailedLatch(GameObject giantFrog)
     {
         SetGrappleState(giantFrog, new GrappleState {
-            state = 1
+            State = 1
         });
     }
 
@@ -373,7 +373,7 @@ internal class FrogGrappleController
     public static void PlayLatch(GameObject giantFrog)
     {
         SetGrappleState(giantFrog, new GrappleState {
-            state = 3
+            State = 3
         });
     }
 
@@ -382,7 +382,7 @@ internal class FrogGrappleController
     {
         // Keep current tongue position as starting point
         var grappleState = GetGrappleState(giantFrog);
-        grappleState.state = 5;
+        grappleState.State = 5;
         SetGrappleState(giantFrog, grappleState);
     }
 
@@ -391,7 +391,7 @@ internal class FrogGrappleController
     {
         // Keep current tongue position as starting point
         var grappleState = GetGrappleState(giantFrog);
-        grappleState.state = 2;
+        grappleState.State = 2;
         SetGrappleState(giantFrog, grappleState);
     }
 
@@ -406,15 +406,15 @@ internal class FrogGrappleController
     {
         // Keep current tongue position as starting point
         var grappleState = GetGrappleState(giantFrog);
-        grappleState.state = 7;
+        grappleState.State = 7;
         SetGrappleState(giantFrog, grappleState);
     }
 
     private static void SetGrappleState(GameObject giantFrog, GrappleState state)
     {
-        uint newGrappleState = (uint) (((byte) state.targetLength) << 24
-                                       | ((byte) state.currentLength) << 16
-                                       | state.state);
+        uint newGrappleState = (uint) (((byte) state.TargetLength) << 24
+                                       | ((byte) state.CurrentLength) << 16
+                                       | state.State);
         giantFrog.SetUInt32(obj_f.grapple_state, newGrappleState);
     }
 
@@ -424,9 +424,9 @@ internal class FrogGrappleController
 
         // Unpack the grapple state
         GrappleState result;
-        result.state = (ushort) (grappleState & 0xFFFF);
-        result.currentLength = (float) ((grappleState >> 16) & 0xFF);
-        result.targetLength = (float) (grappleState >> 24);
+        result.State = (ushort) (grappleState & 0xFFFF);
+        result.CurrentLength = (float) ((grappleState >> 16) & 0xFF);
+        result.TargetLength = (float) (grappleState >> 24);
         return result;
     }
 }

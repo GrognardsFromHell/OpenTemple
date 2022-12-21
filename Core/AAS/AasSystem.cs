@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
@@ -10,7 +9,20 @@ namespace OpenTemple.Core.AAS;
 
 public class AasSystem : IDisposable
 {
+    private const int MaxAnims = 5000;
+    private const float WorldScaleX = 28.284271f;
+    private const float WorldScaleY = 28.284271f;
+    private const float RotationOffset = 2.3561945f;
+
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+    private readonly Func<int, string> _getSkeletonFilename;
+    private readonly Func<int, string> _getMeshFilename;
+    private readonly IMaterialResolver _materialResolver;
+
+    private readonly ActiveModel?[] _activeModels = new ActiveModel[MaxAnims];
+
+    private readonly IFileSystem _fileSystem;
 
     public AasSystem(
         IFileSystem fileSystem,
@@ -18,11 +30,11 @@ public class AasSystem : IDisposable
         Func<int, string> getMeshFilename,
         IMaterialResolver materialResolver)
     {
-        fileSystems_ = fileSystem;
-        getMeshFilename_ = getMeshFilename;
-        getSkeletonFilename_ = getSkeletonFilename;
+        _fileSystem = fileSystem;
+        _getMeshFilename = getMeshFilename;
+        _getSkeletonFilename = getSkeletonFilename;
 
-        materialResolver_ = materialResolver;
+        _materialResolver = materialResolver;
     }
 
     // Originally @ 0x102641B0
@@ -33,13 +45,13 @@ public class AasSystem : IDisposable
         in AasAnimParams animParams
     )
     {
-        var skeletonFilename = getSkeletonFilename_(skeletonId);
+        var skeletonFilename = _getSkeletonFilename(skeletonId);
         if (skeletonFilename.Length == 0)
         {
             throw new AasException($"Could not resolve the filename for skeleton id {skeletonId}");
         }
 
-        var meshFilename = getMeshFilename_(meshId);
+        var meshFilename = _getMeshFilename(meshId);
         if (meshFilename.Length == 0)
         {
             throw new AasException($"Could not resolve the filename for mesh id {meshId}");
@@ -63,9 +75,9 @@ public class AasSystem : IDisposable
             LoadSkeletonFile(skeletonFilename)
         );
 
-        activeModel.model.AddMesh(activeModel.mesh, materialResolver_);
+        activeModel.model.AddMesh(activeModel.mesh, _materialResolver);
 
-        activeModels_[animHandle] = activeModel;
+        _activeModels[animHandle] = activeModel;
 
         try
         {
@@ -83,7 +95,7 @@ public class AasSystem : IDisposable
 
     private Skeleton LoadSkeletonFile(string skeletonFilename)
     {
-        var buffer = fileSystems_.ReadBinaryFile(skeletonFilename);
+        var buffer = _fileSystem.ReadBinaryFile(skeletonFilename);
 
         return new Skeleton(buffer)
         {
@@ -93,7 +105,7 @@ public class AasSystem : IDisposable
 
     private Mesh LoadMeshFile(string meshFilename)
     {
-        var buffer = fileSystems_.ReadBinaryFile(meshFilename);
+        var buffer = _fileSystem.ReadBinaryFile(meshFilename);
 
         return new Mesh(buffer)
         {
@@ -262,10 +274,10 @@ public class AasSystem : IDisposable
 
     public void ReleaseAllModels()
     {
-        for (var index = 0; index < activeModels_.Length; index++)
+        for (var index = 0; index < _activeModels.Length; index++)
         {
-            activeModels_[index]?.Dispose();
-            activeModels_[index] = null;
+            _activeModels[index]?.Dispose();
+            _activeModels[index] = null;
         }
     }
 
@@ -274,8 +286,8 @@ public class AasSystem : IDisposable
     {
         if (IsValidHandle(handle))
         {
-            activeModels_[handle]?.Dispose();
-            activeModels_[handle] = null;
+            _activeModels[handle]?.Dispose();
+            _activeModels[handle] = null;
         }
     }
 
@@ -283,7 +295,7 @@ public class AasSystem : IDisposable
     {
         return handle >= 1
                && handle < MaxAnims
-               && activeModels_[handle] != null;
+               && _activeModels[handle] != null;
     }
 
     internal AnimatedModel GetAnimatedModel(AasHandle handle) => GetActiveModel(handle).model;
@@ -296,7 +308,7 @@ public class AasSystem : IDisposable
         var mesh = LoadMeshFile(filename);
         anim.AdditionalMeshes.Add(mesh);
 
-        anim.model.AddMesh(mesh, materialResolver_);
+        anim.model.AddMesh(mesh, _materialResolver);
     }
 
     public void ClearAddmeshes(AasHandle handle)
@@ -365,38 +377,25 @@ public class AasSystem : IDisposable
         model.SetSpecialMaterial(slot, material);
     }
 
-    private const int MaxAnims = 5000;
-
-    private Func<int, string> getSkeletonFilename_;
-    private Func<int, string> getMeshFilename_;
-    private IMaterialResolver materialResolver_;
-
-    private Dictionary<string, WeakReference<Skeleton>> skeletonCache_;
-
-    private ActiveModel[] activeModels_ = new ActiveModel[MaxAnims];
-
-    private const float worldScaleX_ = 28.284271f;
-    private const float worldScaleY_ = 28.284271f;
-
-    private readonly IFileSystem fileSystems_;
-
     private ActiveModel GetActiveModel(AasHandle handle)
     {
         if (IsValidHandle(handle))
         {
-            return activeModels_[handle];
+            var model = _activeModels[handle];
+            if (model != null)
+            {
+                return model;
+            }
         }
-        else
-        {
-            throw new AasException($"Invalid animation handle: {handle}");
-        }
+
+        throw new AasException($"Invalid animation handle: {handle}");
     }
 
     private AasHandle FindFreeHandle()
     {
         for (var i = 1; i < MaxAnims; i++)
         {
-            if (activeModels_[i] == null)
+            if (_activeModels[i] == null)
             {
                 return new AasHandle((uint) i);
             }
@@ -405,17 +404,15 @@ public class AasSystem : IDisposable
         throw new AasException("Maximum number of active animated models has been exceded.");
     }
 
-    const float rotation_offset = 2.3561945f;
-
     private void GetWorldMatrix(in AasAnimParams animParams, out Matrix3x4 worldMatrix)
     {
         Matrix3x4 scale = Matrix3x4.scaleMatrix(-1.0f, 1.0f, 1.0f);
-        Quaternion q = Quaternion.CreateFromAxisAngle(Vector3.UnitY, animParams.rotation - rotation_offset);
+        Quaternion q = Quaternion.CreateFromAxisAngle(Vector3.UnitY, animParams.rotation - RotationOffset);
         var rotation = Matrix3x4.rotationMatrix(q);
 
-        float x = worldScaleX_ * (animParams.locX + 0.5f) + animParams.offsetX;
+        float x = WorldScaleX * (animParams.locX + 0.5f) + animParams.offsetX;
         float y = animParams.offsetZ;
-        float z = worldScaleY_ * (animParams.locY + 0.5f) + animParams.offsetY;
+        float z = WorldScaleY * (animParams.locY + 0.5f) + animParams.offsetY;
         var translation = Matrix3x4.translationMatrix(x, y, z);
 
         worldMatrix = Matrix3x4.multiplyMatrix3x3_3x4(Matrix3x4.multiplyMatrix3x3(scale, rotation), translation);
@@ -439,9 +436,9 @@ public class AasSystem : IDisposable
         var rotationRoll =
             Matrix3x4.rotationMatrix(Quaternion.CreateFromAxisAngle(Vector3.UnitY, animParams.rotationRoll));
 
-        float x = worldScaleX_ * (animParams.locX + 0.5f) + animParams.offsetX;
+        float x = WorldScaleX * (animParams.locX + 0.5f) + animParams.offsetX;
         float y = animParams.offsetZ;
-        float z = worldScaleY_ * (animParams.locY + 0.5f) + animParams.offsetY;
+        float z = WorldScaleY * (animParams.locY + 0.5f) + animParams.offsetY;
         var translation = Matrix3x4.translationMatrix(x, y, z);
 
         worldMatrix = Matrix3x4.multiplyMatrix3x3_3x4(
@@ -465,6 +462,6 @@ public class AasSystem : IDisposable
 
     public void SetAnimEventHandler(AasHandle handle, Action<AasEvent> evt)
     {
-        activeModels_[handle].model.EventHandler = new EventHandler(evt);
+        GetActiveModel(handle).model.EventHandler = new EventHandler(evt);
     }
 }

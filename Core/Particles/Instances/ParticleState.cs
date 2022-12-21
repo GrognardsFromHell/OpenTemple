@@ -48,6 +48,6 @@ public class ParticleState : IDisposable
     }
 
     private readonly int _capacity;
-    private IMemoryOwner<float> _data;
+    private IMemoryOwner<float>? _data;
     private Memory<float> _memory;
 }

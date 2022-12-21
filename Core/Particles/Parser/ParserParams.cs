@@ -7,7 +7,7 @@ namespace OpenTemple.Core.Particles.Parser;
 
 public static class ParserParams
 {
-    public static IPartSysParam Parse(PartSysParamId id, ReadOnlySpan<byte> value, float emitterLifespan,
+    public static IPartSysParam? Parse(PartSysParamId id, ReadOnlySpan<byte> value, float emitterLifespan,
         float particleLifespan, out bool success)
     {
         // Look up the default value
@@ -19,7 +19,7 @@ public static class ParserParams
         return Parse(value, defaultValue, lifespan, out success);
     }
 
-    public static IPartSysParam Parse(ReadOnlySpan<byte> value, float defaultValue, float parentLifespan,
+    public static IPartSysParam? Parse(ReadOnlySpan<byte> value, float defaultValue, float parentLifespan,
         out bool success)
     {
         success = false;
@@ -55,12 +55,12 @@ public static class ParserParams
         return ParseConstant(value, defaultValue, out success);
     }
 
-    public static PartSysParamKeyframes ParseKeyframes(ReadOnlySpan<byte> value, float parentLifespan)
+    public static PartSysParamKeyframes? ParseKeyframes(ReadOnlySpan<byte> value, float parentLifespan)
     {
         return ParserKeyframes.Parse(value, parentLifespan);
     }
 
-    public static PartSysParamRandom ParseRandom(ReadOnlySpan<byte> value)
+    public static PartSysParamRandom? ParseRandom(ReadOnlySpan<byte> value)
     {
         if (!Utf8Parser.TryParse(value, out float lower, out var bytesConsumed))
         {
@@ -99,7 +99,7 @@ public static class ParserParams
 
     private static readonly byte[] SpecialValueRadius = Encoding.ASCII.GetBytes("#radius");
 
-    public static PartSysParamSpecial ParseSpecial(ReadOnlySpan<byte> value)
+    public static PartSysParamSpecial? ParseSpecial(ReadOnlySpan<byte> value)
     {
         Span<byte> valueLower = stackalloc byte[value.Length];
         ToStringLower(value, valueLower);
@@ -120,7 +120,7 @@ public static class ParserParams
         }
     }
 
-    public static PartSysParamConstant ParseConstant(ReadOnlySpan<byte> value, float defaultValue, out bool success)
+    public static PartSysParamConstant? ParseConstant(ReadOnlySpan<byte> value, float defaultValue, out bool success)
     {
         // Try to parse it as a floating point constant
         if (!Utf8Parser.TryParse(value, out float floatValue, out _))

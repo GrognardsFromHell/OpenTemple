@@ -56,8 +56,8 @@ public class MdfParser
     {
         var result = new MdfMaterial(MdfType.Clipper);
 
-        result.enableZWrite = false;
-        result.enableColorWrite = false;
+        result.EnableZWrite = false;
+        result.EnableColorWrite = false;
 
         var tokenizer = new Tokenizer(_content);
         tokenizer.NextToken(); // Skip material type
@@ -66,17 +66,17 @@ public class MdfParser
         {
             if (tokenizer.IsNamedIdentifier("wire"))
             {
-                result.wireframe = true;
-                result.enableColorWrite = true;
+                result.Wireframe = true;
+                result.EnableColorWrite = true;
             }
             else if (tokenizer.IsNamedIdentifier("zfill"))
             {
-                result.enableZWrite = true;
+                result.EnableZWrite = true;
             }
             else if (tokenizer.IsNamedIdentifier("outline"))
             {
-                result.outline = true;
-                result.enableColorWrite = true;
+                result.Outline = true;
+                result.EnableColorWrite = true;
             }
             else
             {
@@ -107,7 +107,7 @@ public class MdfParser
         {
             if (tokenizer.IsNamedIdentifier("color"))
             {
-                if (!ParseRgba(ref tokenizer, "Color", out result.diffuse))
+                if (!ParseRgba(ref tokenizer, "Color", out result.Diffuse))
                 {
                     throw CreateError("Unable to parse diffuse color");
                 }
@@ -119,34 +119,34 @@ public class MdfParser
                     throw CreateError("Missing filename for texture");
                 }
 
-                result.samplers[0].filename = tokenizer.TokenText.ToString();
+                result.Samplers[0].Filename = tokenizer.TokenText.ToString();
             }
             else if (tokenizer.IsNamedIdentifier("colorfillonly"))
             {
-                result.enableZWrite = false;
-                result.enableColorWrite = true;
+                result.EnableZWrite = false;
+                result.EnableColorWrite = true;
             }
             else if (tokenizer.IsNamedIdentifier("notlit"))
             {
-                result.notLit = true;
+                result.NotLit = true;
             }
             else if (tokenizer.IsNamedIdentifier("notlite"))
             {
                 // The original ToEE parser only does prefix parsing, which is why
                 // "notlite" was accepted as "notlit".
-                result.notLit = true;
+                result.NotLit = true;
             }
             else if (tokenizer.IsNamedIdentifier("disablez"))
             {
-                result.disableZ = true;
+                result.DisableZ = true;
             }
             else if (tokenizer.IsNamedIdentifier("double"))
             {
-                result.faceCulling = false;
+                result.FaceCulling = false;
             }
             else if (tokenizer.IsNamedIdentifier("clamp"))
             {
-                result.clamp = true;
+                result.Clamp = true;
             }
             else
             {
@@ -198,7 +198,7 @@ public class MdfParser
                 var samplerNo = tokenizer.TokenInt;
                 if (ParseFilename(ref tokenizer, "Texture"))
                 {
-                    result.samplers[samplerNo].filename = tokenizer.TokenText.ToString();
+                    result.Samplers[samplerNo].Filename = tokenizer.TokenText.ToString();
                 }
 
                 continue;
@@ -208,7 +208,7 @@ public class MdfParser
             {
                 if (ParseFilename(ref tokenizer, "GlossMap"))
                 {
-                    result.glossmap = tokenizer.TokenText.ToString();
+                    result.Glossmap = tokenizer.TokenText.ToString();
                 }
 
                 continue;
@@ -259,7 +259,7 @@ public class MdfParser
                     continue;
                 }
 
-                result.samplers[samplerNo].uvType = uvType;
+                result.Samplers[samplerNo].UvType = uvType;
                 continue;
             }
 
@@ -308,7 +308,7 @@ public class MdfParser
                     continue;
                 }
 
-                result.samplers[samplerNo].blendType = blendType;
+                result.Samplers[samplerNo].BlendType = blendType;
                 continue;
             }
 
@@ -317,7 +317,7 @@ public class MdfParser
                 uint argbColor;
                 if (ParseRgba(ref tokenizer, "Color", out argbColor))
                 {
-                    result.diffuse = argbColor;
+                    result.Diffuse = argbColor;
                 }
 
                 continue;
@@ -328,7 +328,7 @@ public class MdfParser
                 uint argbColor;
                 if (ParseRgba(ref tokenizer, "Specular", out argbColor))
                 {
-                    result.specular = argbColor;
+                    result.Specular = argbColor;
                 }
 
                 continue;
@@ -353,7 +353,7 @@ public class MdfParser
                 }
                 else
                 {
-                    result.specularPower = tokenizer.TokenFloat;
+                    result.SpecularPower = tokenizer.TokenFloat;
                 }
 
                 continue;
@@ -368,19 +368,19 @@ public class MdfParser
 
                 if (tokenizer.IsNamedIdentifier("none"))
                 {
-                    result.blendType = MdfBlendType.None;
+                    result.BlendType = MdfBlendType.None;
                 }
                 else if (tokenizer.IsNamedIdentifier("alpha"))
                 {
-                    result.blendType = MdfBlendType.Alpha;
+                    result.BlendType = MdfBlendType.Alpha;
                 }
                 else if (tokenizer.IsNamedIdentifier("add"))
                 {
-                    result.blendType = MdfBlendType.Add;
+                    result.BlendType = MdfBlendType.Add;
                 }
                 else if (tokenizer.IsNamedIdentifier("alphaadd"))
                 {
-                    result.blendType = MdfBlendType.AlphaAdd;
+                    result.BlendType = MdfBlendType.AlphaAdd;
                 }
                 else
                 {
@@ -404,10 +404,10 @@ public class MdfParser
                 var speed = tokenizer.TokenFloat * 60.0f;
 
                 // Set the speed for all texture stages and for both U and V
-                foreach (var sampler in result.samplers)
+                foreach (var sampler in result.Samplers)
                 {
-                    sampler.speedU = speed;
-                    sampler.speedV = speed;
+                    sampler.SpeedU = speed;
+                    sampler.SpeedV = speed;
                 }
 
                 continue;
@@ -428,7 +428,7 @@ public class MdfParser
                 }
 
                 var speed = tokenizer.TokenFloat * 60.0f;
-                result.samplers[samplerNo].speedU = speed;
+                result.Samplers[samplerNo].SpeedU = speed;
                 continue;
             }
 
@@ -447,51 +447,51 @@ public class MdfParser
                 }
 
                 var speed = tokenizer.TokenFloat * 60.0f;
-                result.samplers[samplerNo].speedV = speed;
+                result.Samplers[samplerNo].SpeedV = speed;
                 continue;
             }
 
             if (tokenizer.IsNamedIdentifier("double"))
             {
-                result.faceCulling = false;
+                result.FaceCulling = false;
                 continue;
             }
 
             if (tokenizer.IsNamedIdentifier("linearfiltering"))
             {
-                result.linearFiltering = true;
+                result.LinearFiltering = true;
                 continue;
             }
 
             if (tokenizer.IsNamedIdentifier("recalculatenormals"))
             {
-                result.recalculateNormals = true;
+                result.RecalculateNormals = true;
                 continue;
             }
 
             if (tokenizer.IsNamedIdentifier("zfillonly"))
             {
-                result.enableColorWrite = false;
-                result.enableZWrite = true;
+                result.EnableColorWrite = false;
+                result.EnableZWrite = true;
                 continue;
             }
 
             if (tokenizer.IsNamedIdentifier("colorfillonly"))
             {
-                result.enableColorWrite = true;
-                result.enableZWrite = false;
+                result.EnableColorWrite = true;
+                result.EnableZWrite = false;
                 continue;
             }
 
             if (tokenizer.IsNamedIdentifier("notlit"))
             {
-                result.notLit = true;
+                result.NotLit = true;
                 continue;
             }
 
             if (tokenizer.IsNamedIdentifier("disablez"))
             {
-                result.disableZ = true;
+                result.DisableZ = true;
                 continue;
             }
 

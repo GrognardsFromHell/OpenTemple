@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using OpenTemple.Core.MaterialDefinitions;
 using OpenTemple.Core.Ui;
@@ -14,23 +13,23 @@ public enum Light3dType {
 };
 
 public class Light3d {
-    public Light3dType type;
-    public LinearColor ambient;
-    public LinearColor color;
-    public Vector4 pos;
-    public Vector4 dir;
-    public float range;
-    public float phi;
+    public Light3dType Type;
+    public LinearColor Ambient;
+    public LinearColor Color;
+    public Vector4 Pos;
+    public Vector4 Dir;
+    public float Range;
+    public float Phi;
 };
 
 public class MdfRenderOverrides {
-    public bool ignoreLighting = false;
-    public bool overrideDiffuse = false;
-    public PackedLinearColorA overrideColor = default;
-    public float alpha = 1;
-    public bool useWorldMatrix = false;
-    public Matrix4x4 worldMatrix;
-    public bool uiProjection = false;
+    public bool IgnoreLighting = false;
+    public bool OverrideDiffuse = false;
+    public PackedLinearColorA OverrideColor = default;
+    public float Alpha = 1;
+    public bool UseWorldMatrix = false;
+    public Matrix4x4 WorldMatrix;
+    public bool UiProjection = false;
 };
 
 public interface IMdfRenderMaterial : IRefCounted
@@ -44,9 +43,9 @@ public interface IMdfRenderMaterial : IRefCounted
 
     MdfMaterial GetSpec();
 
-    void Bind(WorldCamera? camera, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides? overrides = null);
+    void Bind(WorldCamera? camera, RenderingDevice g, IReadOnlyList<Light3d> lights, MdfRenderOverrides? overrides = null);
 
-    void Bind(IGameViewport? viewport, RenderingDevice g, IList<Light3d> lights,
+    void Bind(IGameViewport? viewport, RenderingDevice g, IReadOnlyList<Light3d> lights,
         MdfRenderOverrides? overrides = null)
     {
         Bind(viewport?.Camera, g, lights, overrides);

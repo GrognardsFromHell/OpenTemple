@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using OpenTemple.Core.Config;
@@ -158,7 +159,8 @@ public static class Tig
             var dynamicScriptingAssembly = Assembly.Load("DynamicScripting");
             var dynamicScriptingType =
                 dynamicScriptingAssembly.GetType("OpenTemple.DynamicScripting.DynamicScripting");
-            return (IDynamicScripting) Activator.CreateInstance(dynamicScriptingType);
+            // Activator apparently returns null-values for types like "int?", which we don't use here, hence the non-null-assertion
+            return (IDynamicScripting) Activator.CreateInstance(dynamicScriptingType)!;
         }
         catch (Exception e)
         {
@@ -203,6 +205,7 @@ public static class Tig
         return vfs;
     }
 
+    [SuppressMessage("ReSharper", "ConditionalAccessQualifierIsNonNullableAccordingToAPIContract")]
     public static void Shutdown()
     {
         var sw = Stopwatch.StartNew();
@@ -216,21 +219,21 @@ public static class Tig
         Sound?.Dispose();
         Fonts?.Dispose();
 
-        DynamicScripting = null;
-        FS = null;
-        Mouse = null;
-        Keyboard = null;
-        MainWindow = null;
-        RenderingDevice = null;
-        DebugUI = null;
-        MdfFactory = null;
-        ShapeRenderer2d = null;
-        ShapeRenderer3d = null;
-        TextLayouter = null;
-        Sound = null;
-        Fonts = null;
-        Console = null;
-        EventLoop = null;
+        DynamicScripting = null!;
+        FS = null!;
+        Mouse = null!;
+        Keyboard = null!;
+        MainWindow = null!;
+        RenderingDevice = null!;
+        DebugUI = null!;
+        MdfFactory = null!;
+        ShapeRenderer2d = null!;
+        ShapeRenderer3d = null!;
+        TextLayouter = null!;
+        Sound = null!;
+        Fonts = null!;
+        Console = null!;
+        EventLoop = null!;
         Logger.Info("TIG shutdown completed in {0}.", sw.Elapsed);
     }
 }

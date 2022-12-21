@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
@@ -15,7 +16,7 @@ internal struct VariationSelector
 
 internal class AnimatedModel : IDisposable
 {
-    public readonly Skeleton Skeleton;
+    public readonly Skeleton? Skeleton;
     public readonly int VariationCount;
     public readonly VariationSelector[] Variations = new VariationSelector[8];
     public readonly bool HasClothBones;
@@ -66,8 +67,8 @@ internal class AnimatedModel : IDisposable
             
             // Discover the collision geometry used for cloth simulation
             var collisionGeom = CollisionGeometry.Find(bones);
-            CollisionSpheresHead = collisionGeom.firstSphere;
-            CollisionCylindersHead = collisionGeom.firstCylinder;
+            CollisionSpheresHead = collisionGeom.FirstSphere;
+            CollisionCylindersHead = collisionGeom.FirstCylinder;
         }
     }
 
@@ -86,16 +87,26 @@ internal class AnimatedModel : IDisposable
 
     public int GetBoneCount()
     {
-        return Skeleton.Bones.Count;
+        return Skeleton?.Bones.Count ?? 0;
     }
 
     public string GetBoneName(int boneIdx)
     {
+        if (Skeleton == null)
+        {
+            throw new InvalidOperationException("This animated model has no skeleton.");
+        }
+        
         return Skeleton.Bones[boneIdx].Name;
     }
 
     public int GetBoneParentId(int boneIdx)
     {
+        if (Skeleton == null)
+        {
+            throw new InvalidOperationException("This animated model has no skeleton.");
+        }
+        
         return Skeleton.Bones[boneIdx].ParentId;
     }
 
@@ -158,7 +169,6 @@ internal class AnimatedModel : IDisposable
                 var clothStuff = ClothStuff1[i];
                 if (clothStuff.mesh == mesh)
                 {
-                    clothStuff.Dispose();
                     ClothStuff1.RemoveAt(i);
                     break;
                 }
@@ -206,7 +216,8 @@ internal class AnimatedModel : IDisposable
 
         int clothVerticesWithFlagCount = 0;
         int clothVerticesWithoutFlagCount = 0;
-
+        
+        Span<short> faceVertices = stackalloc short[3];
         foreach (var submesh in Submeshes)
         {
             int worksetCount = 0;
@@ -262,7 +273,6 @@ internal class AnimatedModel : IDisposable
 
                     var primVertIdxOut = primitiveCount++ * 3;
 
-                    Span<short> faceVertices = stackalloc short[3];
                     faceVertices[0] = face.Vertex1;
                     faceVertices[1] = face.Vertex2;
                     faceVertices[2] = face.Vertex3;
@@ -661,7 +671,7 @@ internal class AnimatedModel : IDisposable
 
         // Build the effective translation/scale/rotation for each bone of the animated skeleton
         Span<SkelBoneState> boneState = stackalloc SkelBoneState[1024];
-        var bones = Skeleton.Bones;
+        var bones = Skeleton?.Bones ?? Array.Empty<SkeletonBone>();
 
         var runningAnim = RunningAnimsHead;
         if (runningAnim == null || runningAnim.weight != 1.0f || runningAnim.fadingSpeed < 0.0)
@@ -888,26 +898,26 @@ internal class AnimatedModel : IDisposable
             {
                 var inverseSomeMatrix = Matrix3x4.invertOrthogonalAffineTransform(CurrentWorldMatrix);
 
-                for (var sphere = CollisionSpheresHead; sphere != null; sphere = sphere.next)
+                for (var sphere = CollisionSpheresHead; sphere != null; sphere = sphere.Next)
                 {
                     Method19();
-                    var boneMatrix = BoneMatrices[sphere.boneId + 1];
+                    var boneMatrix = BoneMatrices[sphere.BoneId + 1];
                     Matrix3x4.makeMatrixOrthogonal(ref boneMatrix);
 
                     var boneMult = Matrix3x4.multiplyMatrix3x4(boneMatrix, inverseSomeMatrix);
-                    sphere.worldMatrix = boneMult;
-                    sphere.worldMatrixInverse = Matrix3x4.invertOrthogonalAffineTransform(boneMult);
+                    sphere.WorldMatrix = boneMult;
+                    sphere.WorldMatrixInverse = Matrix3x4.invertOrthogonalAffineTransform(boneMult);
                 }
 
-                for (var cylinder = CollisionCylindersHead; cylinder != null; cylinder = cylinder.next)
+                for (var cylinder = CollisionCylindersHead; cylinder != null; cylinder = cylinder.Next)
                 {
                     Method19();
-                    var boneMatrix = BoneMatrices[cylinder.boneId + 1];
+                    var boneMatrix = BoneMatrices[cylinder.BoneId + 1];
                     Matrix3x4.makeMatrixOrthogonal(ref boneMatrix);
 
                     var boneMult = Matrix3x4.multiplyMatrix3x4(boneMatrix, inverseSomeMatrix);
-                    cylinder.worldMatrix = boneMult;
-                    cylinder.worldMatrixInverse = Matrix3x4.invertOrthogonalAffineTransform(boneMult);
+                    cylinder.WorldMatrix = boneMult;
+                    cylinder.WorldMatrixInverse = Matrix3x4.invertOrthogonalAffineTransform(boneMult);
                 }
 
                 Span<SubmeshVertexClothStateWithFlag> clothStateWithFlag = submesh.cloth_vertices_with_flag;
@@ -1467,8 +1477,8 @@ class AasSubmeshWithMaterial : IDisposable
     public Vector4[]? positions;
     public Vector4[]? normals;
     public bool fullyInitialized; // This could actually be: NEEDS UPDATE! (TODO)
-    public SubmeshVertexClothStateWithoutFlag[]? cloth_vertices_without_flag;
-    public SubmeshVertexClothStateWithFlag[]? cloth_vertices_with_flag;
+    public SubmeshVertexClothStateWithoutFlag[] cloth_vertices_without_flag = Array.Empty<SubmeshVertexClothStateWithoutFlag>();
+    public SubmeshVertexClothStateWithFlag[] cloth_vertices_with_flag = Array.Empty<SubmeshVertexClothStateWithFlag>();
     public ushort[]? indices;
 
     public AasSubmeshWithMaterial(AasMaterial materialId, IMaterialResolver materialResolver)
@@ -1508,8 +1518,8 @@ class AasSubmeshWithMaterial : IDisposable
 
     public void ResetState()
     {
-        cloth_vertices_without_flag = null;
-        cloth_vertices_with_flag = null;
+        cloth_vertices_without_flag = Array.Empty<SubmeshVertexClothStateWithoutFlag>();
+        cloth_vertices_with_flag = Array.Empty<SubmeshVertexClothStateWithFlag>();
         bone_elem_counts = null;
         bone_floats = null;
         vertex_copy_positions = null;

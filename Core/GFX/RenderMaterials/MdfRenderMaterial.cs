@@ -14,28 +14,28 @@ namespace OpenTemple.Core.GFX.RenderMaterials;
 
 public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMaterial
 {
-    private int mId;
+    private int _id;
 
-    private string mName;
+    private string _name;
 
-    private ResourceRef<Material> mDeviceMaterial;
+    private ResourceRef<Material> _deviceMaterial;
 
-    private MdfMaterial mSpec;
+    private MdfMaterial _spec;
 
     public MdfRenderMaterial(int id, string name, MdfMaterial mdfMaterial, Material material)
     {
-        mId = id;
-        mName = name;
-        mDeviceMaterial = material.Ref();
-        mSpec = mdfMaterial;
+        _id = id;
+        _name = name;
+        _deviceMaterial = material.Ref();
+        _spec = mdfMaterial;
     }
 
     protected override void FreeResource()
     {
-        mDeviceMaterial.Dispose();
+        _deviceMaterial.Dispose();
     }
 
-    public int GetId() => mId;
+    public int GetId() => _id;
 
     public string GetName()
     {
@@ -44,7 +44,7 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
 
     public ITexture? GetPrimaryTexture()
     {
-        var samplers = mDeviceMaterial.Resource.Samplers;
+        var samplers = _deviceMaterial.Resource.Samplers;
         if (samplers.Count == 0)
         {
             return null;
@@ -53,26 +53,26 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
         return samplers[0].Resource.Texture.Resource;
     }
 
-    public MdfMaterial GetSpec() => mSpec;
+    public MdfMaterial GetSpec() => _spec;
 
-    public void Bind(WorldCamera? camera, RenderingDevice device, IList<Light3d> lights,
+    public void Bind(WorldCamera? camera, RenderingDevice device, IReadOnlyList<Light3d> lights,
         MdfRenderOverrides? overrides = null)
     {
-        device.SetMaterial(mDeviceMaterial);
+        device.SetMaterial(_deviceMaterial);
 
         BindShader(camera, device, lights, overrides);
     }
 
     private void BindShader(WorldCamera? camera,
         RenderingDevice device,
-        IList<Light3d> lights,
+        IReadOnlyList<Light3d> lights,
         MdfRenderOverrides? overrides)
     {
         // Fill out the globals for the shader
         var globals = new MdfGlobalConstants();
 
         Matrix4x4 viewProj;
-        if (overrides != null && overrides.uiProjection)
+        if (overrides is {UiProjection: true})
         {
             viewProj = device.UiProjection;
         }
@@ -82,10 +82,10 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
         }
 
         // Should we use a separate world matrix?
-        if (overrides != null && overrides.useWorldMatrix)
+        if (overrides != null && overrides.UseWorldMatrix)
         {
             // Build a world * view * proj matrix
-            var worldViewProj = overrides.worldMatrix * viewProj;
+            var worldViewProj = overrides.WorldMatrix * viewProj;
             globals.viewProj = worldViewProj;
         }
         else
@@ -96,19 +96,19 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
         // Set material diffuse color for shader
         Vector4 color;
         // TODO: This is a bug, it should check overrideDiffuse
-        if (overrides != null && overrides.overrideColor != default)
+        if (overrides != null && overrides.OverrideColor != default)
         {
-            color = overrides.overrideColor.ToRGBA();
+            color = overrides.OverrideColor.ToRGBA();
         }
         else
         {
-            color = new PackedLinearColorA(mSpec.diffuse).ToRGBA();
+            color = new PackedLinearColorA(_spec.Diffuse).ToRGBA();
         }
 
         globals.matDiffuse = color;
-        if (overrides != null && overrides.alpha != 1.0f)
+        if (overrides != null && overrides.Alpha != 1.0f)
         {
-            globals.matDiffuse.W *= overrides.alpha;
+            globals.matDiffuse.W *= overrides.Alpha;
         }
 
         // Set time for UV animation in minutes as a floating point number
@@ -123,22 +123,22 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
         // Swirl is more complicated due to cos/sin involvement
         // This means speedU is in "full rotations every 60 seconds" . RPM
         var uvRotations = globals.UvRotations;
-        for (var i = 0; i < mSpec.samplers.Count; ++i)
+        for (var i = 0; i < _spec.Samplers.Count; ++i)
         {
-            var sampler = mSpec.samplers[i];
-            if (sampler.uvType != MdfUvType.Swirl)
+            var sampler = _spec.Samplers[i];
+            if (sampler.UvType != MdfUvType.Swirl)
             {
                 continue;
             }
 
             ref var uvRot = ref uvRotations[i];
-            uvRot.X = MathF.Cos(sampler.speedU * globals.uvAnimTime.X * MathF.PI * 2) * 0.1f;
-            uvRot.Y = MathF.Sin(sampler.speedV * globals.uvAnimTime.X * MathF.PI * 2) * 0.1f;
+            uvRot.X = MathF.Cos(sampler.SpeedU * globals.uvAnimTime.X * MathF.PI * 2) * 0.1f;
+            uvRot.Y = MathF.Sin(sampler.SpeedV * globals.uvAnimTime.X * MathF.PI * 2) * 0.1f;
         }
 
-        if (!mSpec.notLit)
+        if (!_spec.NotLit)
         {
-            var ignoreLighting = overrides != null && overrides.ignoreLighting;
+            var ignoreLighting = overrides != null && overrides.IgnoreLighting;
             BindVertexLighting(ref globals, lights, ignoreLighting);
         }
 
@@ -146,15 +146,15 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
     }
 
     private void BindVertexLighting(ref MdfGlobalConstants globals,
-        IList<Light3d> lights,
+        IReadOnlyList<Light3d> lights,
         bool ignoreLighting)
     {
-        const int MaxLights = 8;
+        const int maxLights = 8;
 
-        if (lights.Count > MaxLights)
+        if (lights.Count > maxLights)
         {
             // TODO THIS SUCKS
-            var limitedLights = new Light3d[MaxLights];
+            var limitedLights = new Light3d[maxLights];
             for (int i = 0; i < limitedLights.Length; i++)
             {
                 limitedLights[i] = lights[i];
@@ -195,7 +195,7 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
             // Count the number of lights of each type
             foreach (var light in lights)
             {
-                switch (light.type)
+                switch (light.Type)
                 {
                     case Light3dType.Directional:
                         ++directionalCount;
@@ -221,7 +221,7 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
             foreach (var light in lights)
             {
                 int lightIdx;
-                switch (light.type)
+                switch (light.Type)
                 {
                     case Light3dType.Directional:
                         lightIdx = directionalCount++;
@@ -236,46 +236,46 @@ public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMater
                         continue;
                 }
 
-                lightPos[lightIdx].X = light.pos.X;
-                lightPos[lightIdx].Y = light.pos.Y;
-                lightPos[lightIdx].Z = light.pos.Z;
+                lightPos[lightIdx].X = light.Pos.X;
+                lightPos[lightIdx].Y = light.Pos.Y;
+                lightPos[lightIdx].Z = light.Pos.Z;
 
-                lightDir[lightIdx].X = light.dir.X;
-                lightDir[lightIdx].Y = light.dir.Y;
-                lightDir[lightIdx].Z = light.dir.Z;
+                lightDir[lightIdx].X = light.Dir.X;
+                lightDir[lightIdx].Y = light.Dir.Y;
+                lightDir[lightIdx].Z = light.Dir.Z;
 
-                lightAmbient[lightIdx].X = light.ambient.R;
-                lightAmbient[lightIdx].Y = light.ambient.G;
-                lightAmbient[lightIdx].Z = light.ambient.B;
+                lightAmbient[lightIdx].X = light.Ambient.R;
+                lightAmbient[lightIdx].Y = light.Ambient.G;
+                lightAmbient[lightIdx].Z = light.Ambient.B;
                 lightAmbient[lightIdx].W = 0;
 
-                lightDiffuse[lightIdx].X = light.color.R;
-                lightDiffuse[lightIdx].Y = light.color.G;
-                lightDiffuse[lightIdx].Z = light.color.B;
+                lightDiffuse[lightIdx].X = light.Color.R;
+                lightDiffuse[lightIdx].Y = light.Color.G;
+                lightDiffuse[lightIdx].Z = light.Color.B;
                 lightDiffuse[lightIdx].W = 0;
 
-                lightSpecular[lightIdx].X = light.color.R;
-                lightSpecular[lightIdx].Y = light.color.G;
-                lightSpecular[lightIdx].Z = light.color.B;
+                lightSpecular[lightIdx].X = light.Color.R;
+                lightSpecular[lightIdx].Y = light.Color.G;
+                lightSpecular[lightIdx].Z = light.Color.B;
                 lightSpecular[lightIdx].W = 0;
 
-                lightRange[lightIdx].X = light.range;
+                lightRange[lightIdx].X = light.Range;
 
                 lightAttenuation[lightIdx].X = 0;
                 lightAttenuation[lightIdx].Y = 0;
-                lightAttenuation[lightIdx].Z = 4.0f / (light.range * light.range);
-                var phiRad = Angles.ToRadians(light.phi);
+                lightAttenuation[lightIdx].Z = 4.0f / (light.Range * light.Range);
+                var phiRad = Angles.ToRadians(light.Phi);
                 lightSpot[lightIdx].X = MathF.Cos(phiRad * 0.6f * 0.5f);
                 lightSpot[lightIdx].Y = MathF.Cos(phiRad * 0.5f);
                 lightSpot[lightIdx].Z = 1;
             }
         }
 
-        globals.bSpecular = new RawInt4((mSpec.specular != 0) ? 1 : 0, 0, 0, 0);
-        globals.fMaterialPower = new Vector4(mSpec.specularPower, 0, 0, 0);
+        globals.bSpecular = new RawInt4((_spec.Specular != 0) ? 1 : 0, 0, 0, 0);
+        globals.fMaterialPower = new Vector4(_spec.SpecularPower, 0, 0, 0);
 
         // Set the specular color
-        globals.matSpecular = new PackedLinearColorA(mSpec.specular).ToRGBA();
+        globals.matSpecular = new PackedLinearColorA(_spec.Specular).ToRGBA();
 
         globals.lightCount.X = directionalCount;
         globals.lightCount.Y = globals.lightCount.X + pointCount;

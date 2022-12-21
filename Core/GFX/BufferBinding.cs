@@ -40,15 +40,19 @@ public enum VertexElementSemantic : uint {
 }
 
 struct VertexElement {
-	public ushort stream; // Stream index (0 based)
-	public ushort offset; // Offset from the start of the stream in bytes
-	public VertexElementType type; // Data type of the element
-	public VertexElementSemantic semantic; // Semantic for this element
+	public ushort Stream; // Stream index (0 based)
+	public ushort Offset; // Offset from the start of the stream in bytes
+	public VertexElementType Type; // Data type of the element
+	public VertexElementSemantic Semantic; // Semantic for this element
 	// If more than slot exists for the semantic, use this to identify which one
-	public byte semanticIndex;
+	public byte SemanticIndex;
 };
 
 public ref struct BufferBindingBuilder {
+	private BufferBinding _binding;
+	private int _streamIdx;
+	private int _curOffset;
+	
 	public BufferBindingBuilder AddElement(
 		VertexElementType type,
 		VertexElementSemantic semantic,
@@ -56,42 +60,38 @@ public ref struct BufferBindingBuilder {
 	)
 	{
 
-		var elemIdx = mBinding._elementCount++;
-		ref var elem = ref mBinding._elements[elemIdx];
-		elem.stream = (ushort) mStreamIdx;
-		elem.offset = (ushort) mCurOffset;
-		elem.type = type;
-		elem.semantic = semantic;
-		elem.semanticIndex = semanticIndex;
+		var elemIdx = _binding._elementCount++;
+		ref var elem = ref _binding._elements[elemIdx];
+		elem.Stream = (ushort) _streamIdx;
+		elem.Offset = (ushort) _curOffset;
+		elem.Type = type;
+		elem.Semantic = semantic;
+		elem.SemanticIndex = semanticIndex;
 
-		mCurOffset += BufferBinding.GetElementSize(type);
+		_curOffset += BufferBinding.GetElementSize(type);
 
 		return this;
 	}
 
 	internal BufferBindingBuilder(BufferBinding binding, int streamIdx)
 	{
-		mBinding = binding;
-		mStreamIdx = streamIdx;
-		mCurOffset = 0;
+		_binding = binding;
+		_streamIdx = streamIdx;
+		_curOffset = 0;
 	}
-
-	private BufferBinding mBinding;
-	private int mStreamIdx;
-	private int mCurOffset;
 }
 
 public class BufferBinding : GpuResource<BufferBinding>
 {
 	internal VertexElement[] _elements = new VertexElement[16];
 	internal int _elementCount; // Actual number of used elements in _elements
-	private ResourceRef<VertexBuffer>[] _streams = new ResourceRef<VertexBuffer>[16];
-	private int[] _offsets = new int[16];
-	private int[] _strides = new int[16];
+	private readonly OptionalResourceRef<VertexBuffer>[] _streams = new OptionalResourceRef<VertexBuffer>[16];
+	private readonly int[] _offsets = new int[16];
+	private readonly int[] _strides = new int[16];
 	private int _streamCount; // Actual number of used streams
-	private InputLayout _inputLayout;
+	private InputLayout? _inputLayout;
 	private ResourceRef<VertexShader> _shader;
-	private RenderingDevice _device;
+	private readonly RenderingDevice _device;
 
 	public BufferBinding(RenderingDevice device, VertexShader shader)
 	{
@@ -114,9 +114,9 @@ public class BufferBinding : GpuResource<BufferBinding>
 		return new BufferBindingBuilder(this, streamIdx);
 	}
 
-	public BufferBindingBuilder AddBuffer<T>(VertexBuffer buffer, int offset) where T : unmanaged {
+	public BufferBindingBuilder AddBuffer<T>(VertexBuffer? buffer, int offset) where T : unmanaged {
 		var streamIdx = _streamCount++;
-		_streams[streamIdx] = new ResourceRef<VertexBuffer>(buffer);
+		_streams[streamIdx] = new OptionalResourceRef<VertexBuffer>(buffer);
 		_offsets[streamIdx] = offset;
 		unsafe {
 			_strides[streamIdx] = sizeof(T);
@@ -129,7 +129,6 @@ public class BufferBinding : GpuResource<BufferBinding>
 	{
 		_shader.Dispose();
 		_inputLayout?.Dispose();
-		_inputLayout = null;
 		foreach (var stream in _streams)
 		{
 			stream.Dispose();
@@ -149,7 +148,7 @@ public class BufferBinding : GpuResource<BufferBinding>
 
 				var desc = new InputElement();
 
-				switch (elemIn.semantic) {
+				switch (elemIn.Semantic) {
 					case VertexElementSemantic.Position:
 						desc.SemanticName = "POSITION";
 						break;
@@ -165,13 +164,13 @@ public class BufferBinding : GpuResource<BufferBinding>
 					default:
 						throw new GfxException("Unsupported semantic");
 				}
-				desc.SemanticIndex = elemIn.semanticIndex;
-				desc.AlignedByteOffset = elemIn.offset;
+				desc.SemanticIndex = elemIn.SemanticIndex;
+				desc.AlignedByteOffset = elemIn.Offset;
 				desc.InstanceDataStepRate = 0;
 				desc.Classification = InputClassification.PerVertexData;
-				desc.Slot = elemIn.stream;
+				desc.Slot = elemIn.Stream;
 
-				switch (elemIn.type) {
+				switch (elemIn.Type) {
 					case VertexElementType.Float1:
 						desc.Format = Format.R32_Float;
 						break;
@@ -204,9 +203,9 @@ public class BufferBinding : GpuResource<BufferBinding>
 		_device.Context.InputAssembler.InputLayout = _inputLayout;
 
 		// Set the stream sources
-		var vertexBuffers = new List<Buffer>(16);
+		var vertexBuffers = new List<Buffer?>(16);
 		for (int i = 0; i < _streamCount; ++i) {
-			vertexBuffers.Add(_streams[i].Resource.Buffer);
+			vertexBuffers.Add(_streams[i].Resource?.Buffer);
 		}
 		for (var i = _streamCount; i < 16; i++) {
 			vertexBuffers.Add(null);

@@ -42,7 +42,7 @@ public abstract class LineSegmentRenderer : IDisposable
 
         _device = device;
         _material = materialFactory.LoadMaterial("art/meshes/lightning.mdf",
-            material => material.perVertexColor = true);
+            material => material.PerVertexColor = true);
 
         _indexBuffer = CreateIndexBuffer(_device, maxLineSegments, debugName);
         _capIndexBuffer = CreateIndexBuffer2(_device, debugName);

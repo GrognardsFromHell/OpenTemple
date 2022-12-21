@@ -230,7 +230,7 @@ public static class GameObjectRenderExtensions
     public static AnimatedModelParams GetAnimParams(this GameObject obj)
     {
         var result = new AnimatedModelParams();
-        result.scale = obj.GetScalePercent() / 100.0f;
+        result.Scale = obj.GetScalePercent() / 100.0f;
 
         // Special case for equippable items
         if (obj.type.IsEquipment())
@@ -241,24 +241,24 @@ public static class GameObjectRenderExtensions
                 var parent = GameSystems.Item.GetParent(obj);
                 if (parent != null)
                 {
-                    result.scale *= parent.GetScalePercent() / 100.0f;
+                    result.Scale *= parent.GetScalePercent() / 100.0f;
 
-                    result.attachedBoneName = GameSystems.Item.GetAttachBone(obj);
-                    if (result.attachedBoneName != null)
+                    result.AttachedBoneName = GameSystems.Item.GetAttachBone(obj);
+                    if (result.AttachedBoneName != null)
                     {
                         var parentLoc = parent.GetLocationFull();
-                        result.x = parentLoc.location.locx;
-                        result.y = parentLoc.location.locy;
-                        result.offsetX = parentLoc.off_x;
-                        result.offsetY = parentLoc.off_y;
+                        result.X = parentLoc.location.locx;
+                        result.Y = parentLoc.location.locy;
+                        result.OffsetX = parentLoc.off_x;
+                        result.OffsetY = parentLoc.off_y;
 
                         var parentDepth = GameSystems.Height.GetDepth(parentLoc);
                         var offsetZ = parent.OffsetZ;
-                        result.offsetZ = offsetZ - parentDepth;
+                        result.OffsetZ = offsetZ - parentDepth;
 
-                        result.rotation = parent.Rotation;
-                        result.rotationPitch = parent.RotationPitch;
-                        result.parentAnim = parent.GetOrCreateAnimHandle();
+                        result.Rotation = parent.Rotation;
+                        result.RotationPitch = parent.RotationPitch;
+                        result.ParentAnim = parent.GetOrCreateAnimHandle();
 
                         return result;
                     }
@@ -267,10 +267,10 @@ public static class GameObjectRenderExtensions
         }
 
         var loc = obj.GetLocationFull();
-        result.x = loc.location.locx;
-        result.y = loc.location.locy;
-        result.offsetX = loc.off_x;
-        result.offsetY = loc.off_y;
+        result.X = loc.location.locx;
+        result.Y = loc.location.locy;
+        result.OffsetX = loc.off_x;
+        result.OffsetY = loc.off_y;
 
         var flags = obj.GetFlags();
         sbyte depth = 0;
@@ -279,9 +279,9 @@ public static class GameObjectRenderExtensions
             depth = GameSystems.Height.GetDepth(loc);
         }
 
-        result.offsetZ = obj.OffsetZ - depth;
-        result.rotation = obj.Rotation;
-        result.rotationPitch = obj.RotationPitch;
+        result.OffsetZ = obj.OffsetZ - depth;
+        result.Rotation = obj.Rotation;
+        result.RotationPitch = obj.RotationPitch;
 
         return result;
     }

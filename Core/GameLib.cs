@@ -34,7 +34,7 @@ public class GameLib
 
     [TempleDllLocation(0x102abee0)]
     [TempleDllLocation(0x10002810)]
-    public string ModuleName { get; set; }
+    public string? ModuleName { get; set; }
 
     [TempleDllLocation(0x10003860)]
     public bool IsIronmanGame
@@ -44,7 +44,7 @@ public class GameLib
     }
 
     [TempleDllLocation(0x10003870)]
-    public string IronmanSaveName => _ironmanSaveName;
+    public string? IronmanSaveName => _ironmanSaveName;
 
     [TempleDllLocation(0x10004b70)]
     public void SetIronmanSaveName(string name)
@@ -90,7 +90,7 @@ public class GameLib
                                                 && s.Name == _ironmanSaveName);
             if (save != null)
             {
-                Logger.Info("Deleting Ironman savegame {0} upon total party kill.");
+                Logger.Info("Deleting ironman savegame {0} upon total party kill.", _ironmanSaveName);
                 if (DeleteSave(save))
                 {
                     return true;
@@ -98,7 +98,7 @@ public class GameLib
             }
             else
             {
-                Logger.Warn("Failed to find irongame save game '{0}'", _ironmanSaveName);
+                Logger.Warn("Failed to find ironman save game '{0}'", _ironmanSaveName);
             }
         }
 

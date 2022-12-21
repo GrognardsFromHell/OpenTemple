@@ -13,7 +13,7 @@ internal struct AnimEvent
 
 internal class AnimPlayer : IDisposable
 {
-	public AnimatedModel ownerAnim;
+	public AnimatedModel? ownerAnim;
 	public sbyte field_D;
 	public sbyte field_E;
 	public sbyte field_F;

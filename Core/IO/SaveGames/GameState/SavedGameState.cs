@@ -10,13 +10,13 @@ public class SavedGameState
 {
     private const uint Sentinel = 0xBEEFCAFEu;
 
-    public int SaveVersion { get; set; } = 0;
+    public int SaveVersion { get; set; }
 
     public bool IsIronmanSave { get; set; }
 
     public int IronmanSlotNumber { get; set; }
 
-    public string IronmanSaveName { get; set; }
+    public string? IronmanSaveName { get; set; }
 
     public SavedDescriptionState DescriptionState { get; set; }
 

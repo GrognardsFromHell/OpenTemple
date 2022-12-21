@@ -66,7 +66,7 @@ public class Skeleton
             stream.Seek(animationDataStart, SeekOrigin.Begin);
 
             Span<int> animDataStarts = stackalloc int[animationCount];
-            Animations = new List<SkeletonAnimation>(animationCount);
+            var animations = new List<SkeletonAnimation>(animationCount);
             var streamStartOffsets = new HashSet<int>();
             for (var i = 0; i < animationCount; i++)
             {
@@ -116,7 +116,7 @@ public class Skeleton
                 reader.Read(byteSpan);
                 if (streamCount == 0)
                 {
-                    streams = new SkelAnimStream[0];
+                    streams = Array.Empty<SkelAnimStream>();
                 }
                 else
                 {
@@ -130,9 +130,10 @@ public class Skeleton
 
                 animation.Streams = streams;
 
-
-                Animations.Add(animation);
+                animations.Add(animation);
             }
+
+            Animations = animations;
 
             // Key frame data is contiguous in the file until the end of the file
             var sortedKeyFrameDataStart = streamStartOffsets.ToImmutableSortedSet().ToArray();
@@ -188,9 +189,9 @@ public class Skeleton
         return -1;
     }
 
-    public List<SkeletonBone> Bones { get; }
+    public IReadOnlyList<SkeletonBone> Bones { get; }
 
-    public List<SkeletonAnimation> Animations { get; }
+    public IReadOnlyList<SkeletonAnimation> Animations { get; }
 
     public KeyFrameStreamReader OpenKeyFrameStream(ReadOnlyMemory<byte> streamData)
     {

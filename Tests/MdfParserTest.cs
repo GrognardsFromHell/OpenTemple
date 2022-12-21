@@ -12,8 +12,8 @@ public class MdfParserTest
 Texture ""folder/filename.tga""
 ");
         var material = parser.Parse();
-        Assert.AreEqual(MdfType.Textured, material.type);
-        Assert.AreEqual(@"folder/filename.tga", material.samplers[0].filename);
+        Assert.AreEqual(MdfType.Textured, material.Type);
+        Assert.AreEqual(@"folder/filename.tga", material.Samplers[0].Filename);
     }
 
     /// <summary>
@@ -26,8 +26,8 @@ Texture ""folder/filename.tga""
 Texture ""folder\filename.tga""
 ");
         var material = parser.Parse();
-        Assert.AreEqual(MdfType.Textured, material.type);
-        Assert.AreEqual(@"folder\filename.tga", material.samplers[0].filename);
+        Assert.AreEqual(MdfType.Textured, material.Type);
+        Assert.AreEqual(@"folder\filename.tga", material.Samplers[0].Filename);
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ Texture ""folder\filename.tga""
 Texture 0 ""folder\\filename.tga""
 ");
         var material = parser.Parse();
-        Assert.AreEqual(MdfType.General, material.type);
-        Assert.AreEqual(@"folder\filename.tga", material.samplers[0].filename);
+        Assert.AreEqual(MdfType.General, material.Type);
+        Assert.AreEqual(@"folder\filename.tga", material.Samplers[0].Filename);
     }
 }

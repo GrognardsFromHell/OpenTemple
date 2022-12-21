@@ -232,7 +232,7 @@ public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSys
         return group;
     }
 
-    private const int PARTY_SIZE_MAX = 8;
+    private const int PartySizeMax = 8;
 
     [TempleDllLocation(0x1002BBE0)]
     public void AddToPCGroup(GameObject obj)
@@ -241,7 +241,7 @@ public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSys
         var pcs = _pcs.Count;
 
         if (pcs < Globals.Config.MaxPCs
-            || Globals.Config.MaxPCsFlexible && (npcFollowers + pcs < PARTY_SIZE_MAX))
+            || Globals.Config.MaxPCsFlexible && (npcFollowers + pcs < PartySizeMax))
         {
             _pcs.Add(obj);
             _party.Add(obj);
@@ -258,8 +258,8 @@ public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSys
 
         var pcs = _pcs.Count;
 
-        if (npcFollowers < PARTY_SIZE_MAX - Globals.Config.MaxPCs
-            || Globals.Config.MaxPCsFlexible && (npcFollowers + pcs < PARTY_SIZE_MAX))
+        if (npcFollowers < PartySizeMax - Globals.Config.MaxPCs
+            || Globals.Config.MaxPCsFlexible && (npcFollowers + pcs < PartySizeMax))
         {
             _npcs.Add(obj);
             _party.Add(obj);
@@ -317,7 +317,7 @@ public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSys
     [TempleDllLocation(0x1002b380)]
     public int AiFollowerCount => _aiFollowers.Count;
 
-    public GameObject GetLeader()
+    public GameObject? GetLeader()
     {
         if (_pcs.Count == 0)
         {

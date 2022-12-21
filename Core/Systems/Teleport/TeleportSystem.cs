@@ -127,15 +127,18 @@ public class TeleportSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
             GameSystems.Combat.CritterLeaveCombat(leader);
         }
 
-        AddTeleportingObject(_currentArgs.somehandle, _currentArgs.destLoc);
-
-        if (_currentArgs.somehandle.IsCritter())
+        if (_currentArgs.somehandle != null)
         {
-            foreach (var member in GameSystems.Party.PartyMembers)
+            AddTeleportingObject(_currentArgs.somehandle, _currentArgs.destLoc);
+
+            if (_currentArgs.somehandle.IsCritter())
             {
-                if (member != _currentArgs.somehandle)
+                foreach (var member in GameSystems.Party.PartyMembers)
                 {
-                    AddTeleportingObject(member, _currentArgs.destLoc);
+                    if (member != _currentArgs.somehandle)
+                    {
+                        AddTeleportingObject(member, _currentArgs.destLoc);
+                    }
                 }
             }
         }
@@ -147,7 +150,7 @@ public class TeleportSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
 
         if (_currentArgs.destMap != GameSystems.Map.GetCurrentMapId())
         {
-            if (GameSystems.Party.IsInParty(_currentArgs.somehandle))
+            if (_currentArgs.somehandle != null && GameSystems.Party.IsInParty(_currentArgs.somehandle))
             {
                 GameSystems.D20.ObjectRegistry.SendSignalAll(D20DispatcherKey.SIG_Teleport_Prepare);
                 GameSystems.TimeEvent.SaveForTeleportDestination(_currentArgs.destMap);
@@ -167,18 +170,21 @@ public class TeleportSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
         {
             // Save the ID of the top-level teleport target
             var topLevelTarget = ObjectId.CreateNull();
-            if (GameSystems.Party.IsInParty(_currentArgs.somehandle))
+            if (_currentArgs.somehandle != null)
             {
-                topLevelTarget = _currentArgs.somehandle.id;
-            }
-            else if (_currentArgs.somehandle.IsNPC())
-            {
-                var obj = GameSystems.Critter.GetLeaderRecursive(_currentArgs.somehandle);
-                topLevelTarget = obj.id;
+                if (GameSystems.Party.IsInParty(_currentArgs.somehandle))
+                {
+                    topLevelTarget = _currentArgs.somehandle.id;
+                }
+                else if (_currentArgs.somehandle.IsNPC())
+                {
+                    var obj = GameSystems.Critter.GetLeaderRecursive(_currentArgs.somehandle);
+                    topLevelTarget = obj.id;
+                }
             }
 
             var destMapId = _currentArgs.destMap;
-            var pGuidOut = _currentArgs.somehandle.id;
+            var pGuidOut = _currentArgs.somehandle?.id ?? ObjectId.CreateNull();
             _isTeleportingPc = false;
 
             if (destMapId != currentMapId)

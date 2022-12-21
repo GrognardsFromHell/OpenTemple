@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GFX.RenderMaterials;
-using EventHandler = OpenTemple.Core.AAS.EventHandler;
 
 namespace OpenTemple.Core.GFX;
 
@@ -25,24 +24,24 @@ public readonly struct AnimatedModelEvents
 public struct AnimatedModelParams
 {
     // see: objects.GetAnimParams(handle)
-    public int x;
-    public int y;
-    public float offsetX;
-    public float offsetY;
-    public float offsetZ;
-    public float rotation;
-    public float scale;
-    public float rotationRoll;
-    public float rotationPitch;
-    public float rotationYaw;
-    public IAnimatedModel parentAnim;
-    public string attachedBoneName;
-    public bool rotation3d; // Enables use of rotationRoll/rotationPitch/rotationYaw
+    public int X;
+    public int Y;
+    public float OffsetX;
+    public float OffsetY;
+    public float OffsetZ;
+    public float Rotation;
+    public float Scale;
+    public float RotationRoll;
+    public float RotationPitch;
+    public float RotationYaw;
+    public IAnimatedModel ParentAnim;
+    public string AttachedBoneName;
+    public bool Rotation3d; // Enables use of rotationRoll/rotationPitch/rotationYaw
 
     public static AnimatedModelParams Default =>
         new()
         {
-            scale = 1.0f
+            Scale = 1.0f
         };
 }
 
@@ -130,29 +129,29 @@ public interface IAnimatedModel
 
     bool HitTestRay(in AnimatedModelParams animParams, in Ray3d ray, out float hitDistance);
 
-    /**
-         * Find the closest distance that the given point is away from the surface of this mesh.
-         */
+    /// <summary>
+    /// Find the closest distance that the given point is away from the surface of this mesh.
+    /// </summary>
     float GetDistanceToMesh(in AnimatedModelParams animParams, Vector3 pos);
 
-    /**
-            This calculates the effective height in world coordinate units of the model in its current
-            state. Scale is the model scale in percent.
-        */
+    /// <summary>
+    /// This calculates the effective height in world coordinate units of the model in its current
+    /// state. Scale is the model scale in percent.
+    /// </summary>
     float GetHeight(int scale = 100);
 
-    /**
-            This calculates the visible radius of the model in its current state.
-            The radius is the maximum distance of any vertex on the x,z plane from the models origin.
-            If the model has no vertices, 0 is returned.
-            Scale is model scale in percent.
-        */
+    /// <summary>
+    /// This calculates the visible radius of the model in its current state.
+    /// The radius is the maximum distance of any vertex on the x,z plane from the models origin.
+    /// If the model has no vertices, 0 is returned.
+    /// Scale is model scale in percent.
+    /// </summary>
     float GetRadius(int scale = 100);
 
-    /**
-         * Sets a custom render state pointer that will be freed when this model is freed.
-         */
-    IRenderState RenderState { get; set; }
+    /// <summary>
+    /// Sets a custom render state pointer that will be freed when this model is freed.
+    /// </summary>
+    IRenderState? RenderState { get; set; }
 
     event Action<AasEvent> OnAnimEvent;
 }

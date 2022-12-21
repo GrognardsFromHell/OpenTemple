@@ -5,9 +5,11 @@ namespace OpenTemple.Core.AAS;
 
 internal class MaterialResolver : IMaterialResolver
 {
+    private readonly Func<string, object> _resolver;
+
     public MaterialResolver(Func<string, object> resolver)
     {
-        resolver_ = resolver;
+        _resolver = resolver;
     }
 
     public AasMaterial Acquire(ReadOnlySpan<char> materialName, ReadOnlySpan<char> context)
@@ -30,7 +32,7 @@ internal class MaterialResolver : IMaterialResolver
             return new AasMaterial(MaterialPlaceholderSlot.BOOTS, null);
         }
 
-        return new AasMaterial(null, resolver_(new string(materialName)));
+        return new AasMaterial(null, _resolver(new string(materialName)));
     }
 
     public void Release(AasMaterial material, ReadOnlySpan<char> context)
@@ -48,8 +50,11 @@ internal class MaterialResolver : IMaterialResolver
 
     public MaterialPlaceholderSlot GetMaterialPlaceholderSlot(AasMaterial material)
     {
+        if (!material.Slot.HasValue)
+        {
+            throw new InvalidOperationException("Cannot get the placeholder slot from a material that is not a placeholder.");
+        }
+
         return material.Slot.Value;
     }
-
-    private readonly Func<string, object> resolver_;
 }

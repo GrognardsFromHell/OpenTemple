@@ -57,7 +57,7 @@ public struct AasMaterial
         }
     }
 
-    public AasMaterial(MaterialPlaceholderSlot? slot, object material)
+    public AasMaterial(MaterialPlaceholderSlot? slot, object? material)
     {
         Slot = slot;
         _material = material;

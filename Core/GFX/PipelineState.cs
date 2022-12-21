@@ -8,10 +8,9 @@ public abstract class PipelineState<TSelf, TSpec, TGpuObject> : GpuResource<TSel
 {
     public TSpec Spec { get; }
 
-    public TGpuObject GpuState { get; internal set; }
+    public TGpuObject GpuState { get; }
 
-    public PipelineState(RenderingDevice device, TSpec spec, TGpuObject gpuObject) :
-        base()
+    public PipelineState(RenderingDevice device, TSpec spec, TGpuObject gpuObject)
     {
         Spec = spec;
         GpuState = gpuObject;
@@ -19,8 +18,7 @@ public abstract class PipelineState<TSelf, TSpec, TGpuObject> : GpuResource<TSel
 
     protected override void FreeResource()
     {
-        GpuState?.Dispose();
-        GpuState = null;
+        GpuState.Dispose();
     }
 }
 
@@ -32,9 +30,9 @@ public class RasterizerState : GpuResource<RasterizerState>
 {
     public RasterizerSpec Spec { get; }
 
-    public SharpDX.Direct3D11.RasterizerState State { get; internal set; }
+    public SharpDX.Direct3D11.RasterizerState State { get; }
 
-    public SharpDX.Direct3D11.RasterizerState MultiSamplingState { get; internal set; }
+    public SharpDX.Direct3D11.RasterizerState MultiSamplingState { get; }
 
     public RasterizerState(RasterizerSpec spec,
         SharpDX.Direct3D11.RasterizerState state,
@@ -47,10 +45,8 @@ public class RasterizerState : GpuResource<RasterizerState>
 
     protected override void FreeResource()
     {
-        State?.Dispose();
-        State = null;
-        MultiSamplingState?.Dispose();
-        MultiSamplingState = null;
+        State.Dispose();
+        MultiSamplingState.Dispose();
     }
 }
 

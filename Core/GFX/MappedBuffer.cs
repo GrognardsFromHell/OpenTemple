@@ -5,9 +5,9 @@ namespace OpenTemple.Core.GFX;
 
 public ref struct MappedBuffer<T>
 {
-    private Resource _resource;
+    private Resource? _resource;
 
-    private DeviceContext _context;
+    private DeviceContext? _context;
 
     public int RowPitch { get; }
 
@@ -23,13 +23,10 @@ public ref struct MappedBuffer<T>
 
     public void Dispose()
     {
-        if (_resource != null)
-        {
-            Data = Span<T>.Empty;
+        Data = Span<T>.Empty;
 
-            _context.UnmapSubresource(_resource, 0);
-            _resource = null;
-            _context = null;
-        }
+        _context?.UnmapSubresource(_resource, 0);
+        _resource = null;
+        _context = null;
     }
 }

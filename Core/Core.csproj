@@ -4,7 +4,7 @@
         <AssemblyName>OpenTemple.Core</AssemblyName>
         <RootNamespace>OpenTemple.Core</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Nullable>enable</Nullable>
+        <Nullable>annotations</Nullable>
 
         <NoWarn>CS8618,CS8600,CS8604</NoWarn>
     </PropertyGroup>

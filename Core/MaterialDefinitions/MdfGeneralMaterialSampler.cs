@@ -1,9 +1,9 @@
 namespace OpenTemple.Core.MaterialDefinitions;
 
 public class MdfGeneralMaterialSampler {
-    public float speedU = 60.0f;
-    public float speedV = 0;
-    public string filename;
-    public MdfTextureBlendType blendType = MdfTextureBlendType.Modulate;
-    public MdfUvType uvType = MdfUvType.Mesh;
+    public float SpeedU = 60.0f;
+    public float SpeedV = 0;
+    public string? Filename;
+    public MdfTextureBlendType BlendType = MdfTextureBlendType.Modulate;
+    public MdfUvType UvType = MdfUvType.Mesh;
 };

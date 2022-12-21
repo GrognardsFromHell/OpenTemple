@@ -19,7 +19,7 @@ public class AreaSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSys
     }
 
     [TempleDllLocation(0x10aa94c4)]
-    private AreaEntry[] _areas;
+    private AreaEntry[] _areas = Array.Empty<AreaEntry>();
 
     // TODO: May be unused
     [TempleDllLocation(0x10aa94dc)]
@@ -61,7 +61,7 @@ public class AreaSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSys
     [TempleDllLocation(0x1006e860)]
     public void UnloadModule()
     {
-        _areas = null;
+        _areas = Array.Empty<AreaEntry>();
     }
 
     [TempleDllLocation(0x1006e560)]

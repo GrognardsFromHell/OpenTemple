@@ -16,10 +16,10 @@ public class DisabledDynamicScripting : IDynamicScripting
         return command;
     }
 
-    public Task<object> RunScriptAsync(string path)
+    public Task<object?> RunScriptAsync(string path)
     {
         Tig.Console.Append("[error] Scripting is disabled, is the DynamicScripting assembly not available?");
-        return Task.FromResult<object>(null);
+        return Task.FromResult<object?>(null);
     }
 
     public void RunStartupScripts()

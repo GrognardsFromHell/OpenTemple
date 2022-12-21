@@ -17,12 +17,12 @@ public abstract class Shader<TSelf, T> : GpuResource<TSelf> where TSelf : GpuRes
     public Shader(string name, byte[] compiledShader)
     {
         Name = name;
-        mCompiledShader = compiledShader;
+        CompiledShader = compiledShader;
     }
 
     void PrintConstantBuffers()
     {
-        using var reflector = new ShaderReflection(mCompiledShader);
+        using var reflector = new ShaderReflection(CompiledShader);
 
         var shaderDesc = reflector.Description;
 
@@ -54,17 +54,16 @@ public abstract class Shader<TSelf, T> : GpuResource<TSelf> where TSelf : GpuRes
 
     protected override void FreeResource()
     {
-        mDeviceShader?.Dispose();
-        mDeviceShader = null;
+        DeviceShader.Dispose();
     }
 
     public abstract void Bind();
     public abstract void Unbind();
 
-    public byte[] CompiledCode => mCompiledShader;
+    public byte[] CompiledCode => CompiledShader;
 
-    protected T mDeviceShader;
-    protected byte[] mCompiledShader;
+    protected T DeviceShader;
+    protected byte[] CompiledShader;
 }
 
 public class VertexShader : Shader<VertexShader, SharpDX.Direct3D11.VertexShader>
@@ -80,16 +79,16 @@ public class VertexShader : Shader<VertexShader, SharpDX.Direct3D11.VertexShader
     {
         FreeResource();
 
-        mDeviceShader = new SharpDX.Direct3D11.VertexShader(_device.Device, mCompiledShader);
+        DeviceShader = new SharpDX.Direct3D11.VertexShader(_device.Device, CompiledShader);
         if (_device.IsDebugDevice())
         {
-            mDeviceShader.DebugName = Name;
+            DeviceShader.DebugName = Name;
         }
     }
 
     public override void Bind()
     {
-        _device.Context.VertexShader.SetShader(mDeviceShader, null, 0);
+        _device.Context.VertexShader.SetShader(DeviceShader, null, 0);
     }
 
     public override void Unbind()
@@ -111,16 +110,16 @@ public class PixelShader : Shader<PixelShader, SharpDX.Direct3D11.PixelShader>
     {
         FreeResource();
 
-        mDeviceShader = new SharpDX.Direct3D11.PixelShader(_device.Device, mCompiledShader);
+        DeviceShader = new SharpDX.Direct3D11.PixelShader(_device.Device, CompiledShader);
         if (_device.IsDebugDevice())
         {
-            mDeviceShader.DebugName = Name;
+            DeviceShader.DebugName = Name;
         }
     }
 
     public override void Bind()
     {
-        _device.Context.PixelShader.SetShader(mDeviceShader, null, 0);
+        _device.Context.PixelShader.SetShader(DeviceShader, null, 0);
     }
 
     public override void Unbind()

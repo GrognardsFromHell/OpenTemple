@@ -20,7 +20,7 @@ public class SparseArray<T> : IReadOnlyList<T>, ISparseArray, IDisposable where 
 {
     private static readonly MemoryPool<T> Pool = MemoryPool<T>.Shared;
 
-    private IMemoryOwner<T> _memory;
+    private IMemoryOwner<T>? _memory;
 
     private ArrayIdxMapId _idxBitmapId = ArrayIdxMapId.Null;
 
@@ -46,7 +46,7 @@ public class SparseArray<T> : IReadOnlyList<T>, ISparseArray, IDisposable where 
     {
         get
         {
-            if (!HasIndex(index))
+            if (_memory == null || !HasIndex(index))
             {
                 return default;
             }
@@ -59,7 +59,7 @@ public class SparseArray<T> : IReadOnlyList<T>, ISparseArray, IDisposable where 
             int packedIdx;
 
             // Add the corresponding index position
-            if (!HasIndex(index))
+            if (_memory == null || !HasIndex(index))
             {
                 if (!_idxBitmapId.IsValid)
                 {

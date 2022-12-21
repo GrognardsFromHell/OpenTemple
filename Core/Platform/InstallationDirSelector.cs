@@ -1,6 +1,6 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
 using OpenTemple.Core.Startup;
 using OpenTemple.Interop;
 
@@ -26,7 +26,8 @@ public static class InstallationDirSelector
     /// </summary>
     public static bool Select(
         ValidationReport validationErrors,
-        string currentDirectory,
+        string? currentDirectory,
+        [MaybeNullWhen(false)]
         out string selectedPath
     )
     {

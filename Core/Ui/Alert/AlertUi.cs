@@ -18,7 +18,7 @@ public class AlertUi
 
     private readonly WidgetButton _okButton;
 
-    private Action<int> _okCallback;
+    private Action<int>? _okCallback;
 
     [TempleDllLocation(0x1019da60)]
     public AlertUi()

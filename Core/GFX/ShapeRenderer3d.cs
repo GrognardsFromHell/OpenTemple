@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using OpenTemple.Core.GFX.Materials;
@@ -296,9 +297,9 @@ public class ShapeRenderer3d : IDisposable
         _discBufferBinding.Resource.Bind();
 
         MdfRenderOverrides? overrides = new MdfRenderOverrides();
-        overrides.overrideDiffuse = true;
-        overrides.overrideColor = color;
-        material.Bind(viewport, _device, null, overrides);
+        overrides.OverrideDiffuse = true;
+        overrides.OverrideColor = color;
+        material.Bind(viewport, _device, Array.Empty<Light3d>(), overrides);
 
         _device.SetIndexBuffer(_discIndexBuffer);
         _device.DrawIndexed(PrimitiveType.TriangleList, 4, 2 * 3);
@@ -338,7 +339,7 @@ public class ShapeRenderer3d : IDisposable
 
         _discVertexBuffer.Resource.Update<ShapeVertex3d>(vertices);
         _discBufferBinding.Resource.Bind();
-        material.Bind(viewport, _device, null);
+        material.Bind(viewport, _device, Array.Empty<Light3d>());
 
         _device.SetIndexBuffer(_discIndexBuffer);
         _device.DrawIndexed(PrimitiveType.TriangleList, 16, 8 * 3);
