@@ -328,7 +328,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
             volume = schemeElement.volFrom + GameSystems.Random.GetInt(0, maxVolume - volume - 1);
         }
 
-        if (schemeElement.scatter != 0)
+        if (schemeElement.scatter)
         {
             Logger.Debug("Playing ambient 3d sound effect {0}. Volume={1}", schemeElement.filename, volume);
             Tig.Sound.Play3dSample(filename, volume * threeDVolume / 100);
@@ -801,7 +801,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003c770)]
     public void StartCombatMusic(GameObject obj)
     {
-        if (!_combatMusicPlaying && obj != null && obj.IsNPC())
+        if (!_combatMusicPlaying && obj.IsNPC())
         {
             _schemesBeforeCombatMusic = (
                 soundScheme[0].schemelistKey != 0 ? soundScheme[0].schemeId : 0,
@@ -821,7 +821,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003C8B0)]
     public void StopCombatMusic(GameObject handle)
     {
-        if (_combatMusicPlaying && handle != null)
+        if (_combatMusicPlaying)
         {
             Tig.Sound.FadeOutStream(_combatMusicIntroStreamId, 25);
             Tig.Sound.FadeOutStream(_combatMusicLoopStreamId, 25);
@@ -867,7 +867,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     }
 
     [TempleDllLocation(0x1003b9e0)]
-    public string FindSoundFilename(int soundId)
+    public string? FindSoundFilename(int soundId)
     {
         // weapon hit sounds (encoded data)
         if (GameSystems.SoundMap.IsEncodedWeaponSound(soundId))
@@ -875,7 +875,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
             return GameSystems.SoundMap.GetWeaponHitSoundPath(soundId);
         }
 
-        return _soundIndex.GetValueOrDefault(soundId, null);
+        return _soundIndex.GetValueOrDefault(soundId);
     }
 
     public bool IsValidSoundId(int soundId) => FindSoundFilename(soundId) != null;
@@ -1126,7 +1126,7 @@ public class SoundSchemeElement
     public int balanceTo = 50;
     public int volFrom = 100;
     public int volTo = 100;
-    public int scatter;
+    public bool scatter;
     public int streamId = -1;
     public string filename;
 
@@ -1238,7 +1238,7 @@ public class SoundSchemeElement
             else if (part == "/scatter")
             {
                 // Only valid for sound effects
-                result.scatter = 1;
+                result.scatter = true;
             }
         }
 

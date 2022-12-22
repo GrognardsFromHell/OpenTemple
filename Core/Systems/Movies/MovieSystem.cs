@@ -13,7 +13,7 @@ public class MovieSystem : IGameSystem, IModuleAwareSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    internal static Action<PlayMovieEvent>? OnPlayMovie;
+    public static Action<PlayMovieEvent>? OnPlayMovie;
 
     [TempleDllLocation(0x102ad0a8)]
     private readonly Dictionary<int, MovieDefinition> _movies = new();

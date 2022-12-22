@@ -40,6 +40,7 @@ public class DynamicScripting : IDynamicScripting
     {
         "System",
         "System.Collections.Generic",
+        "System.Threading.Tasks",
         "System.Linq",
         "OpenTemple.Core.TestTools",
         typeof(UiSystems).Namespace,
