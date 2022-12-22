@@ -1,10 +1,10 @@
 <Project>
   <PropertyGroup>
     <!-- Default values for all projects -->
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>10.0</LangVersion>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>11.0</LangVersion>
 
-    <Copyright>(c) 2021 OpenTemple Development Team</Copyright>
+    <Copyright>(c) 2022 OpenTemple Development Team</Copyright>
 
     <!--
       Which version of Roslyn should be used at game runtime, i.e. for dynamic scripting and debugging consoles.

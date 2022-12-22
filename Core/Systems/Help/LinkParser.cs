@@ -35,7 +35,7 @@ public static class LinkParser
         return true;
     }
 
-    private static bool ParseDelimitedToken(ref ReadOnlySpan<byte> text,
+    private static bool ParseDelimitedToken(scoped ref ReadOnlySpan<byte> text,
         byte tokenStart,
         byte tokenEnd,
         out ReadOnlySpan<byte> tokenText)
@@ -46,7 +46,7 @@ public static class LinkParser
             return false;
         }
 
-        var end = text.Slice(1).IndexOf(tokenEnd);
+        var end = text[1..].IndexOf(tokenEnd);
         if (end == -1)
         {
             tokenText = default;
@@ -56,7 +56,7 @@ public static class LinkParser
         end++;
 
         tokenText = text.Slice(1, end - 1);
-        text = text.Slice(end + 1);
+        text = text[(end + 1)..];
         return true;
     }
 }

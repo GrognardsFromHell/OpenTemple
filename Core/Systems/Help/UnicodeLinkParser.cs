@@ -34,7 +34,7 @@ public static class UnicodeLinkParser
         return true;
     }
 
-    private static bool ParseDelimitedToken(ref ReadOnlySpan<char> text,
+    private static bool ParseDelimitedToken(scoped ref ReadOnlySpan<char> text,
         char tokenStart,
         char tokenEnd,
         out ReadOnlySpan<char> tokenText)
@@ -45,7 +45,7 @@ public static class UnicodeLinkParser
             return false;
         }
 
-        var end = text.Slice(1).IndexOf(tokenEnd);
+        var end = text[1..].IndexOf(tokenEnd);
         if (end == -1)
         {
             tokenText = default;
@@ -55,7 +55,7 @@ public static class UnicodeLinkParser
         end++;
 
         tokenText = text.Slice(1, end - 1);
-        text = text.Slice(end + 1);
+        text = text[(end + 1)..];
         return true;
     }
 }
