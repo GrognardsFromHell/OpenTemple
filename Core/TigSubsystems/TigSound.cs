@@ -26,9 +26,6 @@ public class TigSound : IDisposable
 
     private Soloud? _soloud;
 
-    [TempleDllLocation(0x10ee7570)]
-    private bool sound_initialized => _soloud != null;
-
     /// <summary>
     /// This is segmented as follows:
     /// Indices  Purpose
@@ -118,7 +115,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e46a0)]
     public void PlaySoundEffect(int soundId)
     {
-        if (!sound_initialized || soundId == -1)
+        if (_soloud == null || soundId == -1)
         {
             return;
         }
@@ -211,7 +208,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101E38D0)]
     public void SetStreamSourceFromSoundId(int streamId, int soundId)
     {
-        if (!sound_initialized)
+        if (_soloud == null)
         {
             return;
         }
@@ -340,7 +337,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101E4360)]
     public void ProcessEvents()
     {
-        if (!sound_initialized)
+        if (_soloud == null)
         {
             return;
         }
@@ -497,7 +494,7 @@ public class TigSound : IDisposable
     [TemplePlusLocation("sound.cpp:76")]
     public int tig_sound_alloc_stream(out int streamId, tig_sound_type streamType)
     {
-        if (!sound_initialized)
+        if (_soloud == null)
         {
             streamId = -1;
             return 1;
@@ -635,7 +632,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e36c0)]
     public void FadeOutStream(int streamId, int fadeOutTime)
     {
-        if (!sound_initialized || streamId < 0 || streamId >= 70)
+        if (_soloud == null || streamId < 0 || streamId >= 70)
         {
             return;
         }
@@ -654,7 +651,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e4640)]
     public void SetVolume(tig_sound_type soundType, int volume)
     {
-        if (!sound_initialized)
+        if (_soloud == null)
         {
             return;
         }
@@ -681,7 +678,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101E3B60)]
     public void SetStreamVolume(int streamId, int volume)
     {
-        if (!sound_initialized || streamId == -1)
+        if (_soloud == null || streamId == -1)
         {
             return;
         }
@@ -718,7 +715,7 @@ public class TigSound : IDisposable
     public tig_sound_type SoundStreamGetType(int streamId)
     {
         // TODO: storing the "type" in a bitfield is stupid, let's just use a normal field (if at all)
-        if (sound_initialized && streamId >= 0 && streamId < 70)
+        if (_soloud != null && streamId >= 0 && streamId < 70)
         {
             tig_sound_type type = tig_sound_type.TIG_ST_EFFECTS;
             while ((tig_sound_streams[streamId].flags & tig_sound_type_stream_flags[type]) == 0)
@@ -738,7 +735,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e3c70)]
     public SoundSourceSize GetStreamSourceSize(int streamId)
     {
-        if (sound_initialized && streamId >= 0 && streamId < 70)
+        if (_soloud != null && streamId >= 0 && streamId < 70)
         {
             return tig_sound_streams[streamId].sourceSize;
         }
@@ -751,7 +748,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e3ca0)]
     public void SetStreamSourceSize(int streamId, SoundSourceSize value)
     {
-        if (sound_initialized && streamId >= 0 && streamId < 70)
+        if (_soloud != null && streamId >= 0 && streamId < 70)
         {
             tig_sound_streams[streamId].sourceSize = value;
         }
@@ -806,7 +803,7 @@ public class TigSound : IDisposable
     [TempleDllLocation(0x101e3b30)]
     public void SetStreamLoopCount(int streamId, int loopCount)
     {
-        if (sound_initialized)
+        if (_soloud != null)
         {
             if (streamId >= 0 && streamId < 70)
                 tig_sound_streams[streamId].loopCount = loopCount;
