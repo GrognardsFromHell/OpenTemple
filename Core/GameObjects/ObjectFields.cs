@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Reflection.Emit;
 using System.Text;
 using OpenTemple.Core.IO;
 
@@ -31,37 +30,37 @@ public enum ObjectFieldType : uint
 public struct ObjectFieldDef
 {
     // Name of this field
-    public string name;
+    public string Name;
 
     // The index of this field in the property
     // collection of prototype objects
-    public int protoPropIdx;
+    public int ProtoPropIdx;
 
     // The idx of this array field (starting at 0 for the first array) or -1 if this is
     // not an array field
-    public int arrayIdx;
+    public int ArrayIdx;
 
     // The idx of the bitmap 32-bit block that contains the bit indicating whether
     // an object instance has this field or not
-    public int bitmapBlockIdx;
+    public int BitmapBlockIdx;
 
     // The bit within the bitmap block identified by bitmapBlockIdx
-    public byte bitmapBitIdx;
+    public byte BitmapBitIdx;
 
     // A bitmask to easily test for the bit identified by bitmapBitIdx
-    public uint bitmapMask;
+    public uint BitmapMask;
 
     // Number of entries in the properties collection for this field
-    public int storedInPropColl;
+    public int StoredInPropColl;
 
-    public ObjectFieldType type;
+    public ObjectFieldType Type;
 }
 
 public static class ObjectFields
 {
-    private const int sSectionCount = 20;
+    private const int SectionCount = 20;
 
-    private static readonly Dictionary<obj_f, ObjectFieldType> sFieldTypeMapping =
+    private static readonly Dictionary<obj_f, ObjectFieldType> FieldTypeMapping =
         new()
         {
             {obj_f.begin, ObjectFieldType.BeginSection},
@@ -469,22 +468,10 @@ public static class ObjectFields
             {obj_f.trap_pad_ias_1, ObjectFieldType.Int32Array},
             {obj_f.trap_pad_i64as_1, ObjectFieldType.Int64Array},
             {obj_f.trap_end, ObjectFieldType.EndSection},
-            {obj_f.total_normal, ObjectFieldType.None},
-            {obj_f.transient_begin, ObjectFieldType.None},
-            {obj_f.render_flags, ObjectFieldType.Int32},
-            {obj_f.temp_id, ObjectFieldType.Int32},
-            {obj_f.light_handle, ObjectFieldType.Int32},
-            {obj_f.overlay_light_handles, ObjectFieldType.Int32Array},
-            {obj_f.internal_flags, ObjectFieldType.Int32},
-            {obj_f.find_node, ObjectFieldType.Int32},
-            {obj_f.animation_handle, ObjectFieldType.Int32},
-            {obj_f.grapple_state, ObjectFieldType.Int32},
-            {obj_f.transient_end, ObjectFieldType.None},
-            {obj_f.type, ObjectFieldType.Int32},
-            {obj_f.prototype_handle, ObjectFieldType.Obj}
+            {obj_f.total_normal, ObjectFieldType.None}
         };
 
-    private static readonly obj_f[] sSectionStarts =
+    private static readonly obj_f[] SectionStarts =
     {
         obj_f.begin,
         obj_f.portal_begin,
@@ -510,6 +497,14 @@ public static class ObjectFields
 
     private static readonly ImmutableArray<obj_f>[] FieldsByType = new ImmutableArray<obj_f>[ObjectTypes.Count];
 
+    private static readonly ObjectFieldDef[] FieldDefs = new ObjectFieldDef[(int) obj_f.total_normal];
+
+    // The number of bitmap blocks needed to be allocated by type
+    private static readonly int[] BitmapBlocksPerType = new int[ObjectTypes.Count];
+
+    // The number of possible property storage locations per type
+    public static readonly int[] PropCollSizePerType = new int[ObjectTypes.Count];
+
     static ObjectFields()
     {
         int curProtoPropIdx = 0, curArrayIdx = 0;
@@ -517,38 +512,38 @@ public static class ObjectFields
         int critterArrayCount = 0, critterProtoPropCount = 0;
         int itemArrayCount = 0, itemProtoPropCount = 0;
 
-        Span<int> sectionFirstProtoPropIdx = stackalloc int[sSectionCount];
+        Span<int> sectionFirstProtoPropIdx = stackalloc int[SectionCount];
 
         // Create the full property definitions
-        for (var i = 0; i < mFieldDefs.Length; ++i)
+        for (var i = 0; i < FieldDefs.Length; ++i)
         {
             var field = (obj_f) i;
 
-            ref var objectFieldDef = ref mFieldDefs[i];
+            ref var objectFieldDef = ref FieldDefs[i];
             // Initialize a few of the properties
-            objectFieldDef.protoPropIdx = -1;
-            objectFieldDef.arrayIdx = -1;
-            objectFieldDef.bitmapBlockIdx = -1;
+            objectFieldDef.ProtoPropIdx = -1;
+            objectFieldDef.ArrayIdx = -1;
+            objectFieldDef.BitmapBlockIdx = -1;
 
             // Determine the name
-            objectFieldDef.name = field.ToString();
+            objectFieldDef.Name = field.ToString();
 
             // Determine the type
-            if (!sFieldTypeMapping.TryGetValue(field, out var fieldType))
+            if (!FieldTypeMapping.TryGetValue(field, out var fieldType))
             {
                 throw new Exception($"No type for {field}");
             }
 
-            objectFieldDef.type = fieldType;
+            objectFieldDef.Type = fieldType;
 
             // Determine the width in the property collection
-            objectFieldDef.storedInPropColl = GetPropCollSize(field, fieldType);
+            objectFieldDef.StoredInPropColl = GetPropCollSize(field, fieldType);
         }
 
         // For all normal fields, calculate property bitmap indices
         for (obj_f field = obj_f.begin; field < obj_f.total_normal; field = (obj_f) ((int) field + 1))
         {
-            var fieldType = mFieldDefs[(int) field].type;
+            var fieldType = FieldDefs[(int) field].Type;
 
             // Handle section markers
             if (fieldType == ObjectFieldType.BeginSection)
@@ -618,16 +613,16 @@ public static class ObjectFields
                 int bitmapBlockIdx = fieldIdx / 32;
                 int bitmapBitIdx = fieldIdx % 32;
 
-                ref var fieldDef = ref mFieldDefs[(int) field];
+                ref var fieldDef = ref FieldDefs[(int) field];
 
-                fieldDef.bitmapBlockIdx = bitmapBlockIdx;
-                fieldDef.bitmapBitIdx = (byte) bitmapBitIdx;
-                fieldDef.bitmapMask = (uint) (1 << bitmapBitIdx);
-                fieldDef.protoPropIdx = curProtoPropIdx++;
+                fieldDef.BitmapBlockIdx = bitmapBlockIdx;
+                fieldDef.BitmapBitIdx = (byte) bitmapBitIdx;
+                fieldDef.BitmapMask = (uint) (1 << bitmapBitIdx);
+                fieldDef.ProtoPropIdx = curProtoPropIdx++;
 
                 if (IsArrayType(fieldType))
                 {
-                    fieldDef.arrayIdx = curArrayIdx++;
+                    fieldDef.ArrayIdx = curArrayIdx++;
                 }
             }
         }
@@ -640,9 +635,9 @@ public static class ObjectFields
             var count = 0;
             IterateTypeFields(type, field =>
             {
-                if (mFieldDefs[(int) field].bitmapBlockIdx > highestIdx)
+                if (FieldDefs[(int) field].BitmapBlockIdx > highestIdx)
                 {
-                    highestIdx = mFieldDefs[(int) field].bitmapBlockIdx;
+                    highestIdx = FieldDefs[(int) field].BitmapBlockIdx;
                 }
 
                 count++;
@@ -657,19 +652,19 @@ public static class ObjectFields
                 return true;
             });
 
-            mPropCollSizePerType[(int) type] = count;
-            mBitmapBlocksPerType[(int) type] = highestIdx + 1;
+            PropCollSizePerType[(int) type] = count;
+            BitmapBlocksPerType[(int) type] = highestIdx + 1;
             FieldsByType[(int) type] = fieldList.MoveToImmutable();
         }
     }
 
-    public static ref readonly ObjectFieldDef GetFieldDef(obj_f field) => ref mFieldDefs[(int) field];
+    public static ref readonly ObjectFieldDef GetFieldDef(obj_f field) => ref FieldDefs[(int) field];
 
-    public static ReadOnlySpan<ObjectFieldDef> GetFieldDefs() => mFieldDefs;
+    public static ReadOnlySpan<ObjectFieldDef> GetFieldDefs() => FieldDefs;
 
     public static bool DoesTypeSupportField(ObjectType type, obj_f field)
     {
-        var fieldType = mFieldDefs[(int) field].type;
+        var fieldType = FieldDefs[(int) field].Type;
 
         // Section markers are not supported for storage
         if (fieldType == ObjectFieldType.None
@@ -680,10 +675,7 @@ public static class ObjectFields
         }
 
         // Properties that are supported by all object types
-        if (field > obj_f.begin & field < obj_f.end
-            || field > obj_f.transient_begin && field < obj_f.transient_end
-            || field == obj_f.type
-            || field == obj_f.prototype_handle)
+        if (field > obj_f.begin & field < obj_f.end)
         {
             return true;
         }
@@ -756,12 +748,7 @@ public static class ObjectFields
     // Gets the type of the given field
     public static ObjectFieldType GetType(obj_f field)
     {
-        return GetFieldDef(field).type;
-    }
-
-    public static bool IsTransient(obj_f field)
-    {
-        return field > obj_f.transient_begin & field < obj_f.transient_end;
+        return GetFieldDef(field).Type;
     }
 
     /**
@@ -769,7 +756,7 @@ public static class ObjectFields
          */
     public static int GetBitmapBlockCount(ObjectType type)
     {
-        return mBitmapBlocksPerType[(int) type];
+        return BitmapBlocksPerType[(int) type];
     }
 
     /**
@@ -777,7 +764,7 @@ public static class ObjectFields
          */
     public static int GetSupportedFieldCount(ObjectType type)
     {
-        return mPropCollSizePerType[(int) type];
+        return PropCollSizePerType[(int) type];
     }
 
     public static ImmutableArray<obj_f> GetTypeFields(ObjectType type)
@@ -866,14 +853,6 @@ public static class ObjectFields
                || type == ObjectFieldType.SpellArray;
     }
 
-    private static readonly ObjectFieldDef[] mFieldDefs = new ObjectFieldDef[430];
-
-    // The number of bitmap blocks needed to be allocated by type
-    private static readonly int[] mBitmapBlocksPerType = new int[ObjectTypes.Count];
-
-    // The number of possible property storage locations per type
-    public static readonly int[] mPropCollSizePerType = new int[ObjectTypes.Count];
-
     private static int GetPropCollSize(obj_f field, ObjectFieldType type)
     {
         // Handle special cases
@@ -881,11 +860,7 @@ public static class ObjectFields
         {
             return 6;
         }
-        else if (field >= obj_f.transient_begin)
-        {
-            return 0;
-        }
-
+        
         // All other fields are just 1 entry, except the section markers
         if (type == ObjectFieldType.None
             || type == ObjectFieldType.BeginSection
@@ -917,9 +892,9 @@ public static class ObjectFields
 
     private static int GetSectionStartIdx(obj_f sectionStart)
     {
-        for (var i = 0; i < sSectionStarts.Length; ++i)
+        for (var i = 0; i < SectionStarts.Length; ++i)
         {
-            if (sSectionStarts[i] == sectionStart)
+            if (SectionStarts[i] == sectionStart)
             {
                 return i;
             }

@@ -64,7 +64,7 @@ public class ParticleSysSystem : IGameSystem, ITimeAwareSystem
     {
         foreach (var sys in _activeSys.Values)
         {
-            if (sys.GetAttachedTo() == obj)
+            if (ReferenceEquals(sys.GetAttachedTo(), obj))
             {
                 sys.SetAttachedTo(null);
                 sys.EndPrematurely();
@@ -242,7 +242,7 @@ public class ParticleSysSystem : IGameSystem, ITimeAwareSystem
     /// </summary>
     public IEnumerable<PartSys> GetAttachedTo(GameObject obj)
     {
-        return _activeSys.Values.Where(sys => sys.GetAttachedTo() == obj);
+        return _activeSys.Values.Where(sys => ReferenceEquals(sys.GetAttachedTo(), obj));
     }
 }
 

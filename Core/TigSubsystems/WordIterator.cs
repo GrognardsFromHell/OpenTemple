@@ -23,8 +23,6 @@ internal ref struct LayoutRunIterator
 
     private int ellipsisWidth;
 
-    private LayoutRun nextRun;
-
     private int currentY;
 
     private int state;

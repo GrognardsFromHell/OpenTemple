@@ -14,11 +14,11 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems;
 
-internal struct GrappleState
+public class GrappleState
 {
-    public ushort State;
-    public float CurrentLength;
-    public float TargetLength;
+    public ushort State { get; set; }
+    public float CurrentLength { get; set; }
+    public float TargetLength { get; set; }
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -63,9 +63,9 @@ internal class FrogGrappleController
         IReadOnlyList<Light3d> lights,
         float alpha)
     {
-        var grappleState = GetGrappleState(giantFrog);
+        var grappleState = giantFrog.GrappleState;
 
-        if (grappleState.State == 0)
+        if (grappleState == null)
         {
             return;
         }
@@ -158,7 +158,7 @@ internal class FrogGrappleController
                     grappleState.State = 6;
                 }
 
-                grappleState.CurrentLength = grappleState.CurrentLength - locXY.INCH_PER_HALFTILE;
+                grappleState.CurrentLength -= locXY.INCH_PER_HALFTILE;
                 // Move the opponent closer to the frog
                 float newX = tonguePosX - worldMatrixFrog.M31 * locXY.INCH_PER_HALFTILE;
                 float newZ = tonguePosZ - worldMatrixFrog.M33 * locXY.INCH_PER_HALFTILE;
@@ -178,7 +178,7 @@ internal class FrogGrappleController
                 break;
             case 7:
             {
-                grappleState.CurrentLength = grappleState.CurrentLength - locXY.INCH_PER_HALFTILE;
+                grappleState.CurrentLength -= locXY.INCH_PER_HALFTILE;
                 // Move the opponent closer to the frog
                 float newX = tonguePosX - worldMatrixFrog.M31 * locXY.INCH_PER_HALFTILE;
                 float newZ = tonguePosZ - worldMatrixFrog.M33 * locXY.INCH_PER_HALFTILE;
@@ -204,9 +204,6 @@ internal class FrogGrappleController
             default:
                 break;
         }
-
-        // Update to the new grapple state
-        SetGrappleState(giantFrog, grappleState);
 
         // The directional vector of the tongue ref point on the frog
         var tongueUp = worldMatrixFrog.GetRow(0).ToVector3();
@@ -364,69 +361,50 @@ internal class FrogGrappleController
     [TempleDllLocation(0x100209a0)]
     public static void PlayFailedLatch(GameObject giantFrog)
     {
-        SetGrappleState(giantFrog, new GrappleState {
+        giantFrog.GrappleState = new GrappleState {
             State = 1
-        });
+        };
     }
 
     [TempleDllLocation(0x100209c0)]
     public static void PlayLatch(GameObject giantFrog)
     {
-        SetGrappleState(giantFrog, new GrappleState {
+        giantFrog.GrappleState = new GrappleState {
             State = 3
-        });
+        };
     }
 
     [TempleDllLocation(0x100209e0)]
     public static void PlayPull(GameObject giantFrog)
     {
         // Keep current tongue position as starting point
-        var grappleState = GetGrappleState(giantFrog);
-        grappleState.State = 5;
-        SetGrappleState(giantFrog, grappleState);
+        GetOrCreateGrappleState(giantFrog).State = 5;
     }
 
     [TempleDllLocation(0x10020a60)]
     public static void PlayRetractTongue(GameObject giantFrog)
     {
         // Keep current tongue position as starting point
-        var grappleState = GetGrappleState(giantFrog);
-        grappleState.State = 2;
-        SetGrappleState(giantFrog, grappleState);
+        GetOrCreateGrappleState(giantFrog).State = 2;
     }
 
     [TempleDllLocation(0x10020980)]
     public static void Reset(GameObject giantFrog)
     {
-        SetGrappleState(giantFrog, new GrappleState());
+        giantFrog.GrappleState = null;
     }
 
     [TempleDllLocation(0x10020a20)]
     public static void PlaySwallow(GameObject giantFrog)
     {
         // Keep current tongue position as starting point
-        var grappleState = GetGrappleState(giantFrog);
+        var grappleState = GetOrCreateGrappleState(giantFrog);
         grappleState.State = 7;
-        SetGrappleState(giantFrog, grappleState);
     }
 
-    private static void SetGrappleState(GameObject giantFrog, GrappleState state)
+    private static GrappleState GetOrCreateGrappleState(GameObject frog)
     {
-        uint newGrappleState = (uint) (((byte) state.TargetLength) << 24
-                                       | ((byte) state.CurrentLength) << 16
-                                       | state.State);
-        giantFrog.SetUInt32(obj_f.grapple_state, newGrappleState);
-    }
-
-    private static GrappleState GetGrappleState(GameObject giantFrog)
-    {
-        var grappleState = giantFrog.GetUInt32(obj_f.grapple_state);
-
-        // Unpack the grapple state
-        GrappleState result;
-        result.State = (ushort) (grappleState & 0xFFFF);
-        result.CurrentLength = (float) ((grappleState >> 16) & 0xFF);
-        result.TargetLength = (float) (grappleState >> 24);
-        return result;
+        frog.GrappleState ??= new GrappleState();
+        return frog.GrappleState;
     }
 }

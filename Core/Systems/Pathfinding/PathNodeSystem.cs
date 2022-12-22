@@ -442,21 +442,15 @@ public class PathNodeSystem : IGameSystem, IResetAwareSystem
 		for (int i = chainLength -1 ; i >= 0 ; i--)
 		{
 			nodeIds[i] = fpTemp.nodeId;
-			int refererFound = 0;
 			for (int refIdx = 0; refIdx < fpbnCount; refIdx++)
 			{
 				if (fpbnData[refIdx].nodeId == refererId)
 				{
 					fpTemp = fpbnData[refIdx];
 					refererId = fpTemp.refererId;
-					refererFound = 1;
 					break;
 				}
 
-			}
-			if (i == 0 && refererId != -1)
-			{
-				int breakPointDummy = 1;
 			}
 		}
 

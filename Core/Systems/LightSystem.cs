@@ -49,7 +49,7 @@ public readonly struct DaylightLookupTable
 public class LightSystem : IGameSystem
 {
     [TempleDllLocation(0x10B5DC88)]
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     [TempleDllLocation(0x11869200)]
     public LegacyLight GlobalLight { get; private set; }
@@ -152,17 +152,16 @@ public class LightSystem : IGameSystem
     [TempleDllLocation(0x100A85F0)]
     public void RemoveAttachedTo(GameObject obj)
     {
-        var renderFlags = obj.GetUInt32(obj_f.render_flags);
-        if ((renderFlags & 0x80000000) != 0)
+        if ((obj.RenderFlags & 0x80000000) != 0)
         {
-            var lightHandle = obj.GetInt32(obj_f.light_handle);
+            var lightHandle = obj.LightHandle;
             if (lightHandle != 0)
             {
                 // TODO: Free sector light
                 throw new NotImplementedException();
             }
 
-            obj.SetUInt32(obj_f.render_flags, renderFlags & ~0x80000000);
+            obj.RenderFlags &= ~0x80000000;
         }
     }
 
@@ -196,8 +195,7 @@ public class LightSystem : IGameSystem
         foreach (var obj in sector.objects)
         {
             var flags = obj.GetFlags();
-            var renderFlags = obj.GetUInt32(obj_f.render_flags);
-            obj.SetUInt32(obj_f.render_flags, renderFlags & ~0x600_0000u);
+            obj.RenderFlags &= ~0x600_0000u;
 
             if (obj.type != ObjectType.scenery)
             {
@@ -233,8 +231,8 @@ public class LightSystem : IGameSystem
                 return;
             }
 
-            var lightHandle = obj.GetInt32(obj_f.light_handle);
-            if ((renderFlags & 0x80000000) == 0)
+            var lightHandle = obj.LightHandle;
+            if ((obj.RenderFlags & 0x80000000) == 0)
             {
                 if (lightHandle != 0)
                 {
@@ -242,11 +240,11 @@ public class LightSystem : IGameSystem
                     throw new NotImplementedException();
                 }
 
-                obj.SetUInt32(obj_f.render_flags, renderFlags | 0x80000000);
+                obj.RenderFlags |= 0x80000000;
             }
             else
             {
-                if (lightHandle != null)
+                if (lightHandle != 0)
                 {
                     // TODO 0x10106030
                     throw new NotImplementedException();
@@ -284,7 +282,7 @@ public class LightSystem : IGameSystem
     [TempleDllLocation(0x100a8430)]
     public void MoveObjectLight(GameObject obj, LocAndOffsets loc)
     {
-        var lightHandle = obj.GetInt32(obj_f.light_handle);
+        var lightHandle = obj.LightHandle;
         if (lightHandle != 0)
         {
             // TODO: Free sector light
@@ -295,7 +293,7 @@ public class LightSystem : IGameSystem
     [TempleDllLocation(0x100a8470)]
     public void MoveObjectLightOffsets(GameObject obj, float offsetX, float offsetY)
     {
-        var lightHandle = obj.GetInt32(obj_f.light_handle);
+        var lightHandle = obj.LightHandle;
         if (lightHandle != 0)
         {
             throw new NotImplementedException();

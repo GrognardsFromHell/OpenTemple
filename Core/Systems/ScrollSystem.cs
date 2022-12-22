@@ -17,7 +17,7 @@ namespace OpenTemple.Core.Systems;
 
 public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
 {
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     // How many milliseconds until the scroll velocity fully decays
     private const float FullDecelerationTime = 600;
@@ -481,13 +481,10 @@ public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     [TempleDllLocation(0x100056e0)]
     public void Dispose()
     {
-        Tig.RenderingDevice.RemoveResizeListener(_resizeListener);
     }
 
     [TempleDllLocation(0x10307318)]
     private locXY _someLocation;
-
-    private int _resizeListener;
 
     [TempleDllLocation(0x10005b40)]
     public void SetLocation(locXY loc)

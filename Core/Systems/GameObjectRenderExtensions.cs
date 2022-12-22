@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
@@ -109,17 +110,11 @@ public static class GameObjectRenderExtensions
     [TempleDllLocation(0x10021a40)]
     public static IAnimatedModel GetOrCreateAnimHandle(this GameObject obj)
     {
-        // I think this belongs to the map_obj subsystem
-        if (obj == null)
-        {
-            return null;
-        }
-
         // An animation handle was already created
-        var animHandle = new AasHandle(obj.GetUInt32(obj_f.animation_handle));
-        if (animHandle)
+        var model = obj.AnimationModel;
+        if (model != null)
         {
-            return GameSystems.AAS.ModelFactory.BorrowByHandle(animHandle.Handle);
+            return model;
         }
 
         // Which object to retrieve the model properties from (this indirection
@@ -139,15 +134,14 @@ public static class GameObjectRenderExtensions
         var animParams = obj.GetAnimParams();
 
         // Create the model from the meshes.mes IDs and store the result in the obj
-        var model = GameSystems.AAS.ModelFactory.FromIds(
+        model = GameSystems.AAS.ModelFactory.FromIds(
             meshId,
             skeletonId,
             idleAnimId,
-            animParams,
-            true // Borrowed since we store the handle in the obj
+            animParams // Borrowed since we store the handle in the obj
         );
         model.OnAnimEvent += evt => HandleAnimEvent(obj, evt);
-        obj.SetUInt32(obj_f.animation_handle, model.GetHandle());
+        obj.AnimationModel = model;
 
         if (obj.IsCritter())
         {
@@ -213,18 +207,8 @@ public static class GameObjectRenderExtensions
     [TempleDllLocation(0x10264510)]
     public static void FreeAnimHandle(this GameObject obj)
     {
-        if (obj == null)
-        {
-            return;
-        }
-
         // An animation handle was already created
-        var animHandle = obj.GetUInt32(obj_f.animation_handle);
-        if (animHandle != 0)
-        {
-            GameSystems.AAS.ModelFactory.FreeHandle(animHandle);
-            obj.SetUInt32(obj_f.animation_handle, 0);
-        }
+        obj.AnimationModel = null;
     }
 
     public static AnimatedModelParams GetAnimParams(this GameObject obj)
@@ -492,7 +476,7 @@ public static class GameObjectRenderExtensions
         obj.AdvanceAnimationTime(0.0f);
         var flags = obj.GetFlags();
         // Clears flags 0x04000000‬ and 0x02000000‬
-        var renderflags = obj.GetUInt32(obj_f.render_flags) & 0xF9FFFFFF;
+        var renderflags = obj.RenderFlags & 0xF9FFFFFF;
 
         var loc = obj.GetLocation();
         if (!flags.HasFlag(ObjectFlag.DISALLOW_WADING))
@@ -540,7 +524,7 @@ public static class GameObjectRenderExtensions
             GameSystems.MapSector.MapSectorResetLightHandle(obj);
         }
 
-        obj.SetUInt32(obj_f.render_flags, renderflags);
+        obj.RenderFlags = renderflags;
     }
 
     private static void HandleEnterNewSector(SectorLoc loc, GameObject obj)
@@ -578,16 +562,10 @@ public static class GameObjectRenderExtensions
     {
         GameSystems.Light.RemoveAttachedTo(obj);
 
-        var renderFlags = obj.GetUInt32(obj_f.render_flags);
         // Clear flags 76000000
-        obj.SetUInt32(obj_f.render_flags, renderFlags & 0x89FFFFFF);
+        obj.RenderFlags &= 0x89FFFFFF;
 
-        var animHandle = new AasHandle(obj.GetUInt32(obj_f.animation_handle));
-        if (animHandle)
-        {
-            GameSystems.AAS.ModelFactory.FreeHandle(animHandle.Handle);
-            obj.SetUInt32(obj_f.animation_handle, 0);
-        }
+        obj.FreeAnimHandle();
 
         GameSystems.ParticleSys.InvalidateObject(obj);
     }

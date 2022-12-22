@@ -55,31 +55,22 @@ public interface IAnimatedModelFactory
         int meshId,
         int skeletonId,
         EncodedAnimId idleAnimId,
-        in AnimatedModelParams animParams,
-        bool borrow = false);
+        in AnimatedModelParams animParams);
 
     IAnimatedModel FromFilenames(
         string meshFilename,
         string skeletonFilename,
         EncodedAnimId idleAnimId,
         in AnimatedModelParams animParams);
-
-    IAnimatedModel BorrowByHandle(uint handle);
-
-    void FreeHandle(uint handle);
-
-    void FreeAll();
 }
 
 public interface IAnimatedModel
 {
-    uint GetHandle();
-
     bool AddAddMesh(string filename);
 
-    bool ClearAddMeshes();
+    void ClearAddMeshes();
 
-    AnimatedModelEvents Advance(float deltaTime,
+    AnimatedModelEvents Advance(float deltaTimeInSecs,
         float deltaDistance,
         float deltaRotation,
         in AnimatedModelParams animParams);
@@ -116,7 +107,7 @@ public interface IAnimatedModel
 
     void AddReplacementMaterial(MaterialPlaceholderSlot slot, IMdfRenderMaterial material);
 
-    void SetAnimId(EncodedAnimId animId);
+    bool SetAnimId(EncodedAnimId animId);
 
     // This seems to reset cloth simulation state
     void SetClothFlag();

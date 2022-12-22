@@ -128,8 +128,6 @@ internal class AnimatedModel : IDisposable
             var matHandle = matResolver.Acquire(materials[i], mesh.Path);
 
             var submesh = GetOrAddSubmesh(matHandle, matResolver);
-            Debug.Assert(submesh != null);
-
             if (submesh.AttachMesh(mesh, i) < 0)
             {
                 throw new AasException(
@@ -198,10 +196,10 @@ internal class AnimatedModel : IDisposable
     private static SubmeshVertexClothStateWithoutFlag[] _clothVerticesWithoutFlag =
         new SubmeshVertexClothStateWithoutFlag[0x7FFF];
 
-    private short[] _vertexIdxMapping = new short[0x7FFF];
-    private short[] _primVertIdx = new short[0xFFFF * 3];
+    private readonly short[] _vertexIdxMapping = new short[0x7FFF];
+    private readonly short[] _primVertIdx = new short[0xFFFF * 3];
 
-    public unsafe void Method11()
+    private unsafe void Method11()
     {
         // Cached bone mappings for SKM file
         Mesh boneMappingMesh = null;
@@ -211,8 +209,8 @@ internal class AnimatedModel : IDisposable
         Span<SkaBoneAffectedCount> skaBoneAffectedCount = stackalloc SkaBoneAffectedCount[1024];
 
         // Mapping between index of vertex in SKM file, and index of vertex in submesh vertex array
-        Span<short> vertexIdxMapping = this._vertexIdxMapping;
-        Span<short> primVertIdx = this._primVertIdx; // 3 vertex indices per face
+        Span<short> vertexIdxMapping = _vertexIdxMapping;
+        Span<short> primVertIdx = _primVertIdx; // 3 vertex indices per face
 
         int clothVerticesWithFlagCount = 0;
         int clothVerticesWithoutFlagCount = 0;
@@ -230,7 +228,7 @@ internal class AnimatedModel : IDisposable
             {
                 var mesh = attachment.mesh;
 
-                // Rebuild the bone maping if we're working on a new SKM file
+                // Rebuild the bone mapping if we're working on a new SKM file
                 // TODO: This is expensive and stupid since pairs of SKM/SKA files are reused all the time
                 // and the mapping between their bones is static
                 if (mesh != boneMappingMesh)
@@ -332,9 +330,7 @@ internal class AnimatedModel : IDisposable
                         // Deduplicate bone attachment ids and weights
                         int vertexBoneAttachCount = 0;
                         Span<float> vertexBoneAttachWeights = stackalloc float[6];
-                        Span<short>
-                            vertexBoneAttachSkaIds =
-                                stackalloc short[6]; // Attached bones mapped to SKA bone ids
+                        Span<short> vertexBoneAttachSkaIds = stackalloc short[6]; // Attached bones mapped to SKA bone ids
                         Span<Vector4> attachmentPositions = stackalloc Vector4[6];
                         Span<Vector4> attachmentNormals = stackalloc Vector4[6];
 

@@ -100,7 +100,8 @@ public class Caret
         {
             CaretMove.Character => Position - 1,
             CaretMove.Word => FindBeginningOfPreviousWord(Position),
-            CaretMove.All => 0
+            CaretMove.All => 0,
+            _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, null)
         });
     }
 
@@ -110,7 +111,8 @@ public class Caret
         {
             CaretMove.Character => Position + 1,
             CaretMove.Word => FindBeginningOfNextWord(Position),
-            CaretMove.All => _buffer.Length
+            CaretMove.All => _buffer.Length,
+            _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, null)
         });
     }
 

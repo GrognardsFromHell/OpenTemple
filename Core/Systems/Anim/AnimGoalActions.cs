@@ -4708,7 +4708,6 @@ public static partial class AnimGoalActions
         AssertAnimParam(source != null);
         AssertAnimParam(target != null);
 
-        var result = false;
         if (source.IsCritter() && GameSystems.Critter.IsDeadOrUnconscious(source)
             || target.IsCritter() && GameSystems.Critter.IsDeadOrUnconscious(target))
         {
@@ -4721,9 +4720,9 @@ public static partial class AnimGoalActions
             return false;
         }
 
-        var v5 = target.GetLocation();
+        var targetLoc = target.GetLocation();
 
-        GameSystems.AI.FindObstacleObj(source, v5, out var objOut);
+        GameSystems.AI.FindObstacleObj(source, targetLoc, out var objOut);
 
         if (objOut == null || objOut == target)
         {
@@ -4737,7 +4736,7 @@ public static partial class AnimGoalActions
         path.fieldD4 = 0;
         path.deltaIdxMax = 0;
         path.fieldD0 = 0;
-        return AnimCheckTgtPathMaker(source, v5, ref path);
+        return AnimCheckTgtPathMaker(source, targetLoc, ref path);
     }
 
     [TempleDllLocation(0x10017ad0)]

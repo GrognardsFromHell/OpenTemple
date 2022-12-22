@@ -12,7 +12,7 @@ public class PartSys
     private static int _idSequence;
     private readonly IPartSysExternal _external;
     private float _aliveInSecs;
-    private object _attachedTo;
+    private object? _attachedTo;
     private readonly List<PartSysEmitter> _emitters;
     private int _id = _idSequence++;
     private float _lastSimulated; // Also in Secs since creation
@@ -141,12 +141,12 @@ public class PartSys
         }
     }
 
-    public object GetAttachedTo()
+    public object? GetAttachedTo()
     {
         return _attachedTo;
     }
 
-    public void SetAttachedTo(object attachedTo)
+    public void SetAttachedTo(object? attachedTo)
     {
         _attachedTo = attachedTo;
 

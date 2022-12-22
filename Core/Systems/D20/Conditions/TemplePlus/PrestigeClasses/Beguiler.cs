@@ -158,7 +158,7 @@ public class Beguiler
 
         throw new NotImplementedException();
         // classSpecModule.LevelupSpellsFinalize(evt.objHndCaller);
-        return;
+        // return;
     }
 
     public static void OnInitLevelupSpellSelection(in DispatcherCallbackArgs evt)
@@ -171,7 +171,7 @@ public class Beguiler
 
         throw new NotImplementedException();
         // classSpecModule.InitSpellSelection(evt.objHndCaller);
-        return;
+        // return;
     }
 
     public static void OnLevelupSpellsCheckComplete(in DispatcherCallbackArgs evt)

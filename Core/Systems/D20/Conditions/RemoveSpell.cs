@@ -461,8 +461,6 @@ public static partial class SpellEffects
                     default:
                         return;
                 }
-
-                return;
             case WellKnownSpells.Enlarge:
                 GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId);
 
@@ -889,8 +887,6 @@ public static partial class SpellEffects
                     default:
                         return;
                 }
-
-                return;
             case WellKnownSpells.Bane:
             case WellKnownSpells.Bless:
             case WellKnownSpells.ChaosHammer:
@@ -1000,8 +996,6 @@ public static partial class SpellEffects
                     default:
                         return;
                 }
-
-                return;
             case WellKnownSpells.BreakEnchantment:
             case WellKnownSpells.CallLightning:
             case WellKnownSpells.Confusion:
@@ -1026,7 +1020,6 @@ public static partial class SpellEffects
             case WellKnownSpells.PotionOfHaste:
             case WellKnownSpells.PotionOfProtectionFromAcid:
             case WellKnownSpells.PotionOfProtectionFromElectricity:
-                LABEL_231:
                 GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                     0);
                 goto Play_OnEndSPellCast__Remove_Caller_From_Targets;

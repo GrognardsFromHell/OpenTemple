@@ -367,7 +367,6 @@ public static class D20ActionCallbacks
     [TempleDllLocation(0x100907c0)]
     public static ActionErrorCode ChargePerform(D20Action action)
     {
-        int crit = 0, isSecondary = 0;
         var performer = action.d20APerformer;
         performer.AddCondition("Charging", 0);
         action.d20Caf |= D20CAF.CHARGE;
@@ -518,7 +517,6 @@ public static class D20ActionCallbacks
 
             // action.d20ATarget.AddCondition("Disarmed", targetWeapon, targetWeapon,0,0,0,0,0,0);
             throw new NotImplementedException(); // TODO: no way of passing objhndl to condition yet
-            return false;
         }
 
         // counter attempt
@@ -545,7 +543,7 @@ public static class D20ActionCallbacks
                     GameSystems.D20.Combat.FloatCombatLine(action.d20APerformer, 200); // Counter Disarmed!
                     // action.d20APerformer.AddCondition("Disarmed", weapon, weapon, 0,0,0,0,0,0);
                     throw new NotImplementedException(); // TODO: no way of passing objhndl to condition yet
-                    return false;
+                    // return false;
                 }
                 else if (!failedOnce)
                 {
@@ -608,7 +606,6 @@ public static class D20ActionCallbacks
 
     public static ActionErrorCode ActionCheckDisarmedWeaponRetrieve(D20Action action, TurnBasedStatus tbStatus)
     {
-        int dummy = 1;
         return ActionErrorCode.AEC_OK;
     }
 
@@ -794,8 +791,6 @@ public static class D20ActionCallbacks
             default:
                 return ActionErrorCode.AEC_OK;
         }
-
-        return ActionErrorCode.AEC_OK;
     }
 
     [TempleDllLocation(0x1008c290)]

@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Location;
@@ -37,14 +38,37 @@ public class GameObject : IDisposable
     public uint[] propCollBitmap;
     public uint[] difBitmap;
     public object?[] propCollection;
-    TransientProps transientProps;
+    
+    #region Transient Properties
     private IDispatcher? dispatcher;
+    
+    /// <summary>
+    /// State for the <see cref="FrogGrappleController"/>
+    /// </summary>
+    public GrappleState? GrappleState { get; set; }
+    
+    /// <summary>
+    /// Reference to the animation model used by this game object.
+    /// </summary>
+    public IAnimatedModel? AnimationModel { get; set; }
+    
+    /// <summary>
+    /// Bit-Field for rendering related info.
+    /// 0x80000000 seems to indicate that light handle contains something
+    /// 0x2000000 seems to be set via game flags (?)
+    /// </summary>
+    public uint RenderFlags { get; set; }
+    
+    public int LightHandle { get; set; }
+
+    public int TemporaryId { get; set; }
 
     /// <summary>
     /// Indicates that fields of type <see cref="ObjectFieldType.Obj"/> and <see cref="ObjectFieldType.ObjArray"/>
     /// do not store actual pointers, but rather the persistable IDs of those objects.
     /// </summary>
     private bool _frozenObjRefs = false;
+    #endregion
 
     public GameObject()
     {
@@ -83,12 +107,6 @@ public class GameObject : IDisposable
             FreeStorage(ref storage);
             return true;
         });
-
-        // Delete transient props
-        if (!IsProto())
-        {
-            transientProps.Dispose();
-        }
 
         propCollection = Array.Empty<object>();
     }
@@ -134,11 +152,6 @@ public class GameObject : IDisposable
     [TempleDllLocation(0x1009e1d0)]
     public int GetInt32(obj_f field)
     {
-        if (field == obj_f.type)
-        {
-            return (int) type;
-        }
-
         Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Int32);
 
         var storageLoc = GetFieldValue(field);
@@ -191,19 +204,6 @@ public class GameObject : IDisposable
     public bool GetValidObject(obj_f field, out GameObject? objOut)
     {
         Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Obj);
-
-        // Special case for prototype handle
-        if (field == obj_f.prototype_handle)
-        {
-            // GetProtoObj already validates and Protos can never be invalidated either
-            var protoObj = GetProtoObj();
-            if (protoObj == null)
-            {
-                Logger.Warn("Object {0} references non-existing proto {1}.", this, ProtoId);
-            }
-            objOut = protoObj;
-            return objOut != null;
-        }
 
         objOut = GetObject(field);
         if (!GameSystems.Object.IsValidHandle(objOut))
@@ -486,7 +486,7 @@ public class GameObject : IDisposable
     // Setters
     public void SetInt32(obj_f field, int value)
     {
-        Trace.Assert(ObjectFields.GetFieldDef(field).type == ObjectFieldType.Int32);
+        Trace.Assert(ObjectFields.GetFieldDef(field).Type == ObjectFieldType.Int32);
         SetFieldValue(field, value);
     }
 
@@ -494,7 +494,7 @@ public class GameObject : IDisposable
 
     public void SetFloat(obj_f field, float value)
     {
-        Trace.Assert(ObjectFields.GetFieldDef(field).type == ObjectFieldType.Float32);
+        Trace.Assert(ObjectFields.GetFieldDef(field).Type == ObjectFieldType.Float32);
         SetFieldValue(field, value);
     }
 
@@ -502,7 +502,7 @@ public class GameObject : IDisposable
 
     public void SetInt64(obj_f field, long value)
     {
-        Trace.Assert(ObjectFields.GetFieldDef(field).type == ObjectFieldType.Int64);
+        Trace.Assert(ObjectFields.GetFieldDef(field).Type == ObjectFieldType.Int64);
         SetFieldValue(field, value);
         if (field == obj_f.location)
         {
@@ -549,8 +549,8 @@ public class GameObject : IDisposable
 
             Array.Resize(ref propCollection, propCollection.Length - 1);
 
-            propCollBitmap[fieldDef.bitmapBlockIdx] &= ~fieldDef.bitmapMask;
-            difBitmap[fieldDef.bitmapBlockIdx] &= ~fieldDef.bitmapMask;
+            propCollBitmap[fieldDef.BitmapBlockIdx] &= ~fieldDef.BitmapMask;
+            difBitmap[fieldDef.BitmapBlockIdx] &= ~fieldDef.BitmapMask;
         }
     }
 
@@ -578,7 +578,7 @@ public class GameObject : IDisposable
             return ObjectFields.IterateTypeFields(type, field =>
             {
                 ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-                return callback(field, propCollection[fieldDef.protoPropIdx]);
+                return callback(field, propCollection[fieldDef.ProtoPropIdx]);
             });
         }
 
@@ -1045,10 +1045,6 @@ public class GameObject : IDisposable
         }
     }
 
-    #region Transient Property Accessors
-
-    public int TemporaryId => transientProps.tempId;
-
     public float OffsetX
     {
         get => GetFloat(obj_f.offset_x);
@@ -1079,8 +1075,6 @@ public class GameObject : IDisposable
     }
 
     public float RotationPitch => GetFloat(obj_f.rotation_pitch);
-
-    #endregion
 
     #region Persistence
 
@@ -1225,7 +1219,7 @@ public class GameObject : IDisposable
         {
             // Is it marked for diffs?
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-            if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) != 0)
+            if ((difBitmap[fieldDef.BitmapBlockIdx] & fieldDef.BitmapMask) != 0)
             {
                 // Read the object field value
                 var value = ObjectFields.ReadFieldValue(field, reader);
@@ -1299,7 +1293,7 @@ public class GameObject : IDisposable
         ObjectFields.IterateTypeFields(type, field =>
         {
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-            bool hasDifs = (difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) != 0;
+            bool hasDifs = (difBitmap[fieldDef.BitmapBlockIdx] & fieldDef.BitmapMask) != 0;
             bool hasData = HasDataForField(fieldDef);
             if (hasDifs && !hasData)
             {
@@ -1317,9 +1311,9 @@ public class GameObject : IDisposable
         ForEachField((field, currentValue) =>
         {
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-            if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) != 0)
+            if ((difBitmap[fieldDef.BitmapBlockIdx] & fieldDef.BitmapMask) != 0)
             {
-                WriteFieldToStream(fieldDef.type, currentValue, stream);
+                WriteFieldToStream(fieldDef.Type, currentValue, stream);
             }
 
             return true;
@@ -1379,7 +1373,7 @@ public class GameObject : IDisposable
         {
             // Is it marked for diffs?
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-            if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) != 0)
+            if ((difBitmap[fieldDef.BitmapBlockIdx] & fieldDef.BitmapMask) != 0)
             {
                 // Read the object field value
                 var newValue = ObjectFields.ReadFieldValue(field, file);
@@ -1412,7 +1406,7 @@ public class GameObject : IDisposable
     private bool HasDataForField(in ObjectFieldDef field)
     {
         Trace.Assert(!IsProto());
-        return (propCollBitmap[field.bitmapBlockIdx] & field.bitmapMask) != 0;
+        return (propCollBitmap[field.BitmapBlockIdx] & field.BitmapMask) != 0;
     }
 
     /// <summary>
@@ -1436,14 +1430,14 @@ public class GameObject : IDisposable
         Trace.Assert(!IsProto());
 
         int count = 0;
-        for (int i = 0; i < field.bitmapBlockIdx; ++i)
+        for (int i = 0; i < field.BitmapBlockIdx; ++i)
         {
             count += ArrayIndexBitmaps.Instance.PopCnt(propCollBitmap[i]);
         }
 
         count += ArrayIndexBitmaps.Instance.PopCntConstrained(
-            propCollBitmap[field.bitmapBlockIdx],
-            field.bitmapBitIdx
+            propCollBitmap[field.BitmapBlockIdx],
+            field.BitmapBitIdx
         );
 
         return count;
@@ -1462,11 +1456,7 @@ public class GameObject : IDisposable
 
         if (IsProto())
         {
-            return propCollection[fieldDef.protoPropIdx];
-        }
-        else if (ObjectFields.IsTransient(field))
-        {
-            return transientProps.GetFieldValue(field);
+            return propCollection[fieldDef.ProtoPropIdx];
         }
         else if (HasDataForField(fieldDef))
         {
@@ -1477,7 +1467,7 @@ public class GameObject : IDisposable
         {
             // Fall back to the storage in the parent prototype
             var protoObj = GetProtoObj();
-            return protoObj?.propCollection[fieldDef.protoPropIdx];
+            return protoObj?.propCollection[fieldDef.ProtoPropIdx];
         }
     }
 
@@ -1494,16 +1484,12 @@ public class GameObject : IDisposable
 
         if (IsProto())
         {
-            ref var currentValue = ref propCollection[fieldDef.protoPropIdx];
+            ref var currentValue = ref propCollection[fieldDef.ProtoPropIdx];
             if (!ReferenceEquals(currentValue, newValue))
             {
                 FreeStorage(ref currentValue);
                 currentValue = newValue;
             }
-        }
-        else if (ObjectFields.IsTransient(field))
-        {
-            transientProps.SetFieldValue(field, newValue);
         }
         else if (HasDataForField(fieldDef))
         {
@@ -1521,7 +1507,7 @@ public class GameObject : IDisposable
         else
         {
             // Allocate the storage location
-            propCollBitmap[fieldDef.bitmapBlockIdx] |= fieldDef.bitmapMask;
+            propCollBitmap[fieldDef.BitmapBlockIdx] |= fieldDef.BitmapMask;
 
             Array.Resize(ref propCollection, propCollection.Length + 1);
 
@@ -1543,14 +1529,9 @@ public class GameObject : IDisposable
             return; // Dont mark prototype objects as changed
         }
 
-        if (ObjectFields.IsTransient(field))
-        {
-            return; // Dont mark transient fields as changed
-        }
-
         hasDifs = true;
         ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-        difBitmap[fieldDef.bitmapBlockIdx] |= fieldDef.bitmapMask;
+        difBitmap[fieldDef.BitmapBlockIdx] |= fieldDef.BitmapMask;
     }
 
     public int ProtoId => protoId.PrototypeId;
@@ -1652,13 +1633,8 @@ public class GameObject : IDisposable
 
         if (IsProto())
         {
-            return (List<GameObject?>?)propCollection[fieldDef.protoPropIdx]
+            return (List<GameObject?>?)propCollection[fieldDef.ProtoPropIdx]
                    ?? throw new Exception("Cannot get mutable list for " + field + " for proto");
-        }
-        else if (ObjectFields.IsTransient(field))
-        {
-            return (List<GameObject?>?) transientProps.GetFieldValue(field)
-                   ?? throw new Exception("Cannot get mutable list for " + field + " for transient field");
         }
 
         if (!HasDataForField(fieldDef))
@@ -1687,19 +1663,14 @@ public class GameObject : IDisposable
 
         if (IsProto())
         {
-            var result = propCollection[fieldDef.protoPropIdx];
+            var result = propCollection[fieldDef.ProtoPropIdx];
             if (result == null)
             {
                 result = new List<SpellStoreData>();
-                propCollection[fieldDef.protoPropIdx] = result;
+                propCollection[fieldDef.ProtoPropIdx] = result;
             }
 
             return (List<SpellStoreData>)result;
-        }
-        else if (ObjectFields.IsTransient(field))
-        {
-            return (List<SpellStoreData>?) transientProps.GetFieldValue(field)
-                   ?? throw new Exception("Field " + field + " not set on transient props");
         }
 
         if (!HasDataForField(fieldDef))

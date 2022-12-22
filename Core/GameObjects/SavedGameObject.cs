@@ -67,9 +67,9 @@ public class SavedGameObject
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
 
             // Does this object have the prop?
-            if ((propCollBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) != 0)
+            if ((propCollBitmap[fieldDef.BitmapBlockIdx] & fieldDef.BitmapMask) != 0)
             {
-                properties[field] = ObjectFields.ReadFieldValue(fieldDef.type, reader);
+                properties[field] = ObjectFields.ReadFieldValue(fieldDef.Type, reader);
             }
         }
 

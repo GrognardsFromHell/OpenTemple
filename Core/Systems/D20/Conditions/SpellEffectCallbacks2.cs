@@ -1492,13 +1492,10 @@ public static partial class SpellEffects
     [TempleDllLocation(0x100c3530)]
     public static void ConcentratingTooltipCallback(in DispatcherCallbackArgs evt, int data)
     {
-        int v3;
-        SpellPacketBody spellPkt;
-
         var dispIo = evt.GetDispIoTooltip();
         var meslineKey = data;
         var condArg1 = evt.GetConditionArg1();
-        if (GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt))
+        if (GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt))
         {
             var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
             var spellLine = GameSystems.Spell.GetSpellName(spellPkt.spellEnum);
@@ -2765,8 +2762,6 @@ public static partial class SpellEffects
     [TempleDllLocation(0x100d2e90)]
     public static void SpellResistanceTooltipCallback(in DispatcherCallbackArgs evt, int data)
     {
-        int v2;
-
         var dispIo = evt.GetDispIoTooltip();
         var meslineKey = data;
         var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);

@@ -1280,8 +1280,6 @@ public static class FeatConditions
     [TempleDllLocation(0x100f9390)]
     public static void FlurryOfBlowsRadial(in DispatcherCallbackArgs evt)
     {
-        int v2;
-
         var radMenuEntry = evt.CreateToggleForArg(0);
         var meslineKey = 5038;
         var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
@@ -1609,8 +1607,6 @@ public static class FeatConditions
     [TempleDllLocation(0x100fa960)]
     public static void RapidShotRadialMenu(in DispatcherCallbackArgs evt)
     {
-        int v2;
-
         var radMenuEntry = evt.CreateToggleForArg(0);
         var meslineKey = 5053;
         var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
@@ -1628,7 +1624,7 @@ public static class FeatConditions
         var condArg1 = evt.GetConditionArg1();
         var obj = evt.GetConditionObjArg(1);
         var dispIo = evt.GetDispIoD20Query();
-        if (obj != dispIo.obj && condArg1 > 0)
+        if (!ReferenceEquals(obj, dispIo.obj) && condArg1 > 0)
         {
             dispIo.return_val = 1;
         }
@@ -2470,8 +2466,6 @@ public static class FeatConditions
     [TempleDllLocation(0x100f8c20)]
     public static void CastDefensivelyRadial(in DispatcherCallbackArgs evt)
     {
-        int v2;
-
         var radMenuEntry = evt.CreateToggleForArg(0);
         var meslineKey = 5013;
         var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
@@ -3812,8 +3806,6 @@ public static class FeatConditions
     [TempleDllLocation(0x100fceb0)]
     public static void ManyshotRadial(in DispatcherCallbackArgs evt)
     {
-        int v2;
-
         var radMenuEntry = evt.CreateToggleForArg(0);
         var meslineKey = 5095;
         var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);

@@ -759,7 +759,6 @@ public class TurnBasedUi : IResetAwareSystem
         if (GameSystems.D20.Actions.CurrentSequence != curSeq)
         {
             Logger.Info("Sequence switch from Generate Sequence to {0}", GameSystems.D20.Actions.CurrentSequence);
-            int dummy = 1;
         }
     }
 

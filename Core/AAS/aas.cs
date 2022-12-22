@@ -5,7 +5,7 @@ using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.AAS;
 
-public struct AasAnimParams
+internal struct AasAnimParams
 {
     public uint flags;
     public uint unknown;
@@ -19,7 +19,7 @@ public struct AasAnimParams
     public float rotationRoll;
     public float rotationPitch;
     public float rotationYaw;
-    public AasHandle parentAnim;
+    public AnimatedModel? parentAnim;
     public string attachedBoneName;
 }
 
@@ -104,28 +104,4 @@ public interface IMaterialResolver
 
     bool IsMaterialPlaceholder(AasMaterial material);
     MaterialPlaceholderSlot GetMaterialPlaceholderSlot(AasMaterial material);
-}
-
-internal class ActiveModel : IDisposable
-{
-    public readonly AasHandle handle;
-    public EncodedAnimId animId = new(WeaponAnim.None);
-    public float floatconst = 6.3940001f;
-    public TimePoint timeLoaded = TimePoint.Now;
-    public readonly AnimatedModel model;
-    public readonly Mesh mesh;
-    public readonly Skeleton skeleton;
-    public readonly List<Mesh> AdditionalMeshes = new();
-
-    public ActiveModel(AasHandle handle, Mesh mesh, Skeleton skeleton)
-    {
-        this.handle = handle;
-        this.mesh = mesh;
-        this.skeleton = skeleton;
-        this.model = new AnimatedModel(skeleton);
-    }
-
-    public void Dispose()
-    {
-    }
 }

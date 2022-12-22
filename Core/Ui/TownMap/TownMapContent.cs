@@ -580,6 +580,7 @@ public class TownMapContent : WidgetButtonBase
             TownMapControlMode.Zoom => CursorIds.Zoom,
             TownMapControlMode.PlaceMarker => CursorIds.PlaceFlag,
             TownMapControlMode.RemoveMarker => CursorIds.DeleteFlag,
+            _ => throw new ArgumentOutOfRangeException()
         };
         e.StopPropagation();
     }

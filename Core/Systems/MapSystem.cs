@@ -25,44 +25,44 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private D20System mD20System;
+    private readonly D20System _d20System;
 
     // Startup tips related fields
-    private bool mEnableTips;
-    private string mTipsDialogTitle;
-    private string mTipsDialogOk;
-    private string mTipsDialogNext;
-    private string mTipsDialogShowTips;
-    private Dictionary<int, string> mTips;
+    private bool _enableTips;
+    private string _tipsDialogTitle;
+    private string _tipsDialogOk;
+    private string _tipsDialogNext;
+    private string _tipsDialogShowTips;
+    private Dictionary<int, string> _tips;
 
     // Related to fleeing from combat (for whatever reason this is here)
     [TempleDllLocation(0x10AA9558)]
-    private MapFleeInfo mFleeInfo;
+    private MapFleeInfo _fleeInfo;
 
-    private string mSectorDataDir;
-    private string mSectorSaveDir;
+    private string _sectorDataDir;
+    private string _sectorSaveDir;
 
     // List of maps, scope: module
-    private Dictionary<int, MapListEntry> mMaps;
-    private MapListEntry mCurrentMap = null;
+    private Dictionary<int, MapListEntry> _maps;
+    private MapListEntry? _currentMap;
 
     // Visited maps, scope: game session
-    private HashSet<int> mVisitedMaps = new();
+    private HashSet<int> _visitedMaps = new();
 
     // Picked when opening the map
-    private locXY mStartLoc;
+    private locXY _startLoc;
 
     // Indicates that the map is currently being cleared
-    private bool mClearingMap = false;
+    private bool _clearingMap = false;
 
     // Indicates that a map is currently opened
-    private bool mMapOpen = false;
-    private bool mMapClosed = false;
+    private bool _mapOpen = false;
+    private bool _mapClosed = false;
 
     [TempleDllLocation(0x1006f4d0)]
     public MapSystem(D20System d20)
     {
-        mD20System = d20;
+        _d20System = d20;
     }
 
     public void Dispose()
@@ -78,8 +78,8 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
         savedGameState.MapState = new SavedMapState
         {
-            CurrentMapName = mCurrentMap.name,
-            VisitedMaps = mVisitedMaps.ToHashSet()
+            CurrentMapName = _currentMap.name,
+            VisitedMaps = _visitedMaps.ToHashSet()
         };
 
         foreach (var partyMember in GameSystems.Party.PartyMembers)
@@ -89,11 +89,11 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
         savedGameState.MapFleeState = new SavedMapFleeState
         {
-            Location = mFleeInfo.location,
-            EnterX = mFleeInfo.enterLocation.locx,
-            EnterY = mFleeInfo.enterLocation.locy,
-            IsFleeing = mFleeInfo.isFleeing,
-            MapId = mFleeInfo.mapId
+            Location = _fleeInfo.location,
+            EnterX = _fleeInfo.enterLocation.locx,
+            EnterY = _fleeInfo.enterLocation.locy,
+            IsFleeing = _fleeInfo.isFleeing,
+            MapId = _fleeInfo.mapId
         };
     }
 
@@ -102,19 +102,19 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     {
         var mapState = savedGameState.MapState;
 
-        var mapEntry = mMaps.Values.First(m => m.name == mapState.CurrentMapName);
+        var mapEntry = _maps.Values.First(m => m.name == mapState.CurrentMapName);
         if (mapEntry == null)
         {
             throw new CorruptSaveException(
                 $"Save game references map {mapState.CurrentMapName} which doesn't exist.");
         }
 
-        mVisitedMaps = mapState.VisitedMaps.ToHashSet();
+        _visitedMaps = mapState.VisitedMaps.ToHashSet();
 
         OpenMap(mapEntry);
 
         var mapFleeState = savedGameState.MapFleeState;
-        mFleeInfo = new MapFleeInfo
+        _fleeInfo = new MapFleeInfo
         {
             location = mapFleeState.Location,
             isFleeing = mapFleeState.IsFleeing,
@@ -136,12 +136,12 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
             alwaysUnfog = true;
         }
 
-        mMaps = MapListParser.Parse(Tig.FS, alwaysFog, alwaysUnfog);
+        _maps = MapListParser.Parse(Tig.FS, alwaysFog, alwaysUnfog);
     }
 
     public void UnloadModule()
     {
-        mMaps = null;
+        _maps = null;
     }
 
     [TempleDllLocation(0x10071e40)]
@@ -154,53 +154,53 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         GameSystems.Anim.InterruptAll();
 
         CloseMap();
-        mCurrentMap = null; // TODO: Redundant?
+        _currentMap = null; // TODO: Redundant?
 
-        mVisitedMaps.Clear();
+        _visitedMaps.Clear();
     }
 
     [TempleDllLocation(0x1006f8f0)]
     public void ResetFleeTo()
     {
-        mFleeInfo = new MapFleeInfo();
+        _fleeInfo = new MapFleeInfo();
     }
 
     [TempleDllLocation(0x1006f920)]
     public void SetFleeInfo(int mapId, LocAndOffsets loc, locXY enterLoc)
     {
-        mFleeInfo.mapId = mapId;
-        mFleeInfo.enterLocation = enterLoc;
-        mFleeInfo.location = loc;
+        _fleeInfo.mapId = mapId;
+        _fleeInfo.enterLocation = enterLoc;
+        _fleeInfo.location = loc;
     }
 
     [TempleDllLocation(0x1006f990)]
     public bool HasFleeInfo()
     {
-        return mFleeInfo.mapId != 0;
+        return _fleeInfo.mapId != 0;
     }
 
     [TempleDllLocation(0x1006f970)]
     public bool GetFleeInfo(out MapFleeInfo fleeInfo)
     {
-        fleeInfo = mFleeInfo;
+        fleeInfo = _fleeInfo;
         return HasFleeInfo();
     }
 
     [TempleDllLocation(0x1006f9b0)]
     public bool IsFleeing()
     {
-        return mFleeInfo.isFleeing;
+        return _fleeInfo.isFleeing;
     }
 
     [TempleDllLocation(0x1006f9a0)]
     public void SetFleeing(bool fleeing)
     {
-        mFleeInfo.isFleeing = fleeing;
+        _fleeInfo.isFleeing = fleeing;
     }
 
     private string GetExplorationDataPath(SectorLoc sectorLoc)
     {
-        return Path.Combine(mSectorSaveDir, $"esd{sectorLoc.Pack()}");
+        return Path.Combine(_sectorSaveDir, $"esd{sectorLoc.Pack()}");
     }
 
     [TempleDllLocation(0x1006faa0)]
@@ -241,7 +241,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     [TempleDllLocation(0x1006fd70)]
     public int GetMapIdByType(MapType type)
     {
-        foreach (var entry in mMaps.Values)
+        foreach (var entry in _maps.Values)
         {
             if (entry.type == type)
             {
@@ -274,29 +274,10 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     }
 
     [TempleDllLocation(0x1006fe80)]
-    public bool IsCurrentMapOutdoors()
-    {
-        if (mCurrentMap != null)
-        {
-            return mCurrentMap.IsOutdoors;
-        }
-
-        return false;
-    }
+    public bool IsCurrentMapOutdoors() => _currentMap is {IsOutdoors: true};
 
     [TempleDllLocation(0x1006fea0)]
-    public bool IsCurrentMapBedrest
-    {
-        get
-        {
-            if (mCurrentMap != null)
-            {
-                return mCurrentMap.IsBedrest;
-            }
-
-            return false;
-        }
-    }
+    public bool IsCurrentMapBedrest => _currentMap is {IsBedrest: true};
 
     private void ClearDispatchers()
     {
@@ -304,7 +285,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         {
             if (!obj.IsStatic())
             {
-                mD20System.RemoveDispatcher(obj);
+                _d20System.RemoveDispatcher(obj);
             }
         }
     }
@@ -312,9 +293,9 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     [TempleDllLocation(0x100706d0)]
     private void ClearObjects()
     {
-        Trace.Assert(!mClearingMap);
+        Trace.Assert(!_clearingMap);
 
-        mClearingMap = true;
+        _clearingMap = true;
 
         GameSystems.TimeEvent.ClearForMapClose();
 
@@ -333,19 +314,19 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         GameSystems.MapSector.Clear();
         GameSystems.Object.CompactIndex();
 
-        mClearingMap = false;
+        _clearingMap = false;
     }
 
     public void ShowGameTip()
     {
-        if (mEnableTips)
+        if (_enableTips)
         {
             if (!GameUiBridge.IsTutorialActive())
             {
                 var tip = Globals.Config.StartupTip;
                 if (tip >= 0)
                 {
-                    mEnableTips = true;
+                    _enableTips = true;
                     ShowGameTip(tip);
                 }
             }
@@ -355,24 +336,24 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     private void ShowGameTip(int tipId)
     {
         // Roll over to the first tip
-        if (tipId >= mTips.Count)
+        if (tipId >= _tips.Count)
         {
             tipId = 0;
         }
 
-        var sTipText = mTips[tipId];
+        var sTipText = _tips[tipId];
         GameUiBridge.ShowTip(
-            mTipsDialogTitle,
+            _tipsDialogTitle,
             sTipText,
-            mTipsDialogOk,
-            mTipsDialogNext,
-            mTipsDialogShowTips,
-            out mEnableTips,
+            _tipsDialogOk,
+            _tipsDialogNext,
+            _tipsDialogShowTips,
+            out _enableTips,
             okButton =>
             {
                 if (okButton)
                 {
-                    if (!mEnableTips)
+                    if (!_enableTips)
                     {
                         Globals.Config.StartupTip = -1;
                         Globals.ConfigManager.Save();
@@ -389,14 +370,14 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     }
 
     [TempleDllLocation(0x10070ef0)]
-    public bool IsValidMapId(int mapId) => mMaps.ContainsKey(mapId);
+    public bool IsValidMapId(int mapId) => _maps.ContainsKey(mapId);
 
     [TempleDllLocation(0x10070f90)]
     public int GetCurrentMapId()
     {
-        if (mCurrentMap != null)
+        if (_currentMap != null)
         {
-            return mCurrentMap.id;
+            return _currentMap.id;
         }
 
         return 0;
@@ -405,7 +386,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     private int GetHighestMapId()
     {
         int highestId = 0;
-        foreach (var entry in mMaps)
+        foreach (var entry in _maps)
         {
             if (entry.Value.id > highestId)
             {
@@ -421,7 +402,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     {
         var result = new locXY();
 
-        if (mMaps.TryGetValue(mapId, out var map))
+        if (_maps.TryGetValue(mapId, out var map))
         {
             result.locx = map.startPosX;
             result.locy = map.startPosY;
@@ -432,7 +413,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
     public string GetMapName(int mapId)
     {
-        if (mMaps.TryGetValue(mapId, out var map))
+        if (_maps.TryGetValue(mapId, out var map))
         {
             return map.name;
         }
@@ -442,7 +423,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
     public string GetMapDescription(int mapId)
     {
-        if (mMaps.TryGetValue(mapId, out var map))
+        if (_maps.TryGetValue(mapId, out var map))
         {
             return map.description;
         }
@@ -452,7 +433,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
     public bool IsMapOutdoors(int mapId)
     {
-        if (mMaps.TryGetValue(mapId, out var map))
+        if (_maps.TryGetValue(mapId, out var map))
         {
             return map.IsOutdoors;
         }
@@ -462,12 +443,12 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
     public int GetEnterMovie(int mapId, bool ignoreVisited)
     {
-        if (!ignoreVisited && mVisitedMaps.Contains(mapId))
+        if (!ignoreVisited && _visitedMaps.Contains(mapId))
         {
             return 0;
         }
 
-        if (mMaps.TryGetValue(mapId, out var map))
+        if (_maps.TryGetValue(mapId, out var map))
         {
             return map.movie;
         }
@@ -476,7 +457,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     }
 
     [TempleDllLocation(0x1006fe50)]
-    public IEnumerable<int> VisitedMaps => mVisitedMaps;
+    public IEnumerable<int> VisitedMaps => _visitedMaps;
 
     [TempleDllLocation(0x10071700)]
     public void MarkVisitedMap(GameObject obj)
@@ -486,12 +467,12 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
             return;
         }
 
-        if (mCurrentMap == null)
+        if (_currentMap == null)
         {
             return;
         }
 
-        int mapId = mCurrentMap.id;
+        int mapId = _currentMap.id;
         MarkVisitedMap(mapId);
     }
 
@@ -499,13 +480,13 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     {
         if (!IsRandomEncounterMap(mapId) && !IsVignetteMap(mapId))
         {
-            mVisitedMaps.Add(mapId);
+            _visitedMaps.Add(mapId);
         }
     }
 
     public bool IsUnfogged(int mapId)
     {
-        if (mMaps.TryGetValue(mapId, out var map))
+        if (_maps.TryGetValue(mapId, out var map))
         {
             return map.IsUnfogged;
         }
@@ -515,7 +496,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
     private int GetArea(int mapId)
     {
-        if (mMaps.TryGetValue(mapId, out var map))
+        if (_maps.TryGetValue(mapId, out var map))
         {
             return map.area;
         }
@@ -524,14 +505,14 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     }
 
     [TempleDllLocation(0x1006fd90)]
-    public bool IsClearingMap() => mClearingMap;
+    public bool IsClearingMap() => _clearingMap;
 
-    public bool IsMapOpen() => mMapOpen;
+    public bool IsMapOpen() => _mapOpen;
 
     [TempleDllLocation(0x10072a90)]
     public bool OpenMap(int mapId, bool preloadSectors, bool dontSaveCurrentMap, bool ignoreParty = false)
     {
-        if (!mMaps.TryGetValue(mapId, out var mapEntry))
+        if (!_maps.TryGetValue(mapId, out var mapEntry))
         {
             Logger.Warn("Trying to open unknown map id {0}", mapId);
             return false;
@@ -556,8 +537,8 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
         OpenMap(mapEntry);
 
-        mStartLoc.locx = mapEntry.startPosX;
-        mStartLoc.locy = mapEntry.startPosY;
+        _startLoc.locx = mapEntry.startPosX;
+        _startLoc.locy = mapEntry.startPosY;
 
         GameSystems.Location.CenterOn(mapEntry.startPosX, mapEntry.startPosY);
 
@@ -565,7 +546,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
         if (preloadSectors)
         {
-            PreloadSectorsAround(mStartLoc);
+            PreloadSectorsAround(_startLoc);
         }
 
         GameSystems.TimeEvent.ValidateEvents();
@@ -592,15 +573,13 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     [TempleDllLocation(0x10071780)]
     public void CloseMap()
     {
-        if (!mMapClosed)
+        if (!_mapClosed)
         {
-            mMapClosed = true;
+            _mapClosed = true;
 
             GameSystems.D20.turnBasedReset();
 
-            GameSystems.AAS.ModelFactory.FreeAll();
-
-            mMapOpen = false;
+            _mapOpen = false;
 
             foreach (var mapSystem in GameSystems.MapCloseAwareSystems)
             {
@@ -610,8 +589,8 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
             ClearObjects();
             GameSystems.ParticleSys.RemoveAll();
 
-            mSectorSaveDir = "";
-            mSectorDataDir = "";
+            _sectorSaveDir = "";
+            _sectorDataDir = "";
         }
     }
 
@@ -619,25 +598,25 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     {
         var tips = Tig.FS.ReadMesFile("mes/tips.mes");
 
-        mTipsDialogTitle = tips[0];
-        mTipsDialogOk = tips[1];
-        mTipsDialogNext = tips[2];
-        mTipsDialogShowTips = tips[3];
+        _tipsDialogTitle = tips[0];
+        _tipsDialogOk = tips[1];
+        _tipsDialogNext = tips[2];
+        _tipsDialogShowTips = tips[3];
 
         var count = int.Parse(tips[99]);
 
         for (int i = 0; i < count; ++i)
         {
-            mTips[i] = tips[100 + i];
+            _tips[i] = tips[100 + i];
         }
 
         if (Globals.Config.StartupTip >= 0)
         {
-            mEnableTips = true;
+            _enableTips = true;
         }
         else
         {
-            mEnableTips = false;
+            _enableTips = false;
         }
     }
 
@@ -664,9 +643,9 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         // Both are fogging related, but I have no idea how they differ?
         GameSystems.MapFogging.FlushSectorExploration();
 
-        if (mCurrentMap != null)
+        if (_currentMap != null)
         {
-            GameSystems.MapFogging.SaveExploredTileData(mCurrentMap.id);
+            GameSystems.MapFogging.SaveExploredTileData(_currentMap.id);
         }
 
         GameSystems.MapSector.FlushSectors(keepLoaded);
@@ -687,10 +666,10 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     struct MapProperties
     {
         // ID for terrain art
-        public int groundArtId;
-        public int y;
-        public ulong limitX;
-        public ulong limitY;
+        public int GroundArtId;
+        public int Y;
+        public ulong LimitX;
+        public ulong LimitY;
     };
 
 
@@ -712,8 +691,8 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
         Directory.CreateDirectory(saveDir);
 
-        mSectorSaveDir = saveDir;
-        mSectorDataDir = dataDir;
+        _sectorSaveDir = saveDir;
+        _sectorDataDir = dataDir;
 
         GameSystems.Height.SetDataDirs(dataDir, saveDir);
         GameSystems.PathNode.SetDataDirs(dataDir, saveDir);
@@ -749,14 +728,14 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         // But only  seemed to be used from within map systems and at one spot
         // in editor mode
 
-        GameSystems.Terrain.Load(mapProperties.groundArtId);
+        GameSystems.Terrain.Load(mapProperties.GroundArtId);
 
         // Previously a "map.sbf" file was loaded here, which is only used
         // by the old scripting system though
 
-        GameSystems.Location.SetLimits(mapProperties.limitX, mapProperties.limitY);
+        GameSystems.Location.SetLimits(mapProperties.LimitX, mapProperties.LimitY);
 
-        GameSystems.Sector.SetLimits(mapProperties.limitX / 64, mapProperties.limitY / 64);
+        GameSystems.Sector.SetLimits(mapProperties.LimitX / 64, mapProperties.LimitY / 64);
 
         GameSystems.MapSector.SetDirectories(dataDir, saveDir);
         GameSystems.SectorVisibility.SetDirectories(dataDir, saveDir);
@@ -764,7 +743,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         var center = GameSystems.Location.GetLimitsCenter();
         GameSystems.Location.CenterOn(center.locx, center.locy);
 
-        mCurrentMap = mapEntry;
+        _currentMap = mapEntry;
 
         if (mapEntry.IsUnfogged)
         {
@@ -785,8 +764,8 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         // Previously there was a function call here that disabled ObjectHandles.outside the
         // Arkanum demo bounds, which are obviously unused here.
 
-        mMapOpen = true;
-        mMapClosed = false;
+        _mapOpen = true;
+        _mapClosed = false;
 
         Logger.Info("Finished loading the map");
     }
@@ -897,15 +876,15 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
     private void SaveMapMobiles()
     {
         // This file will contain the differences from the mobile object stored in the sector's data files
-        var diffFilename = Path.Join(mSectorSaveDir, MapMobileLoader.MobileDifferencesFile);
+        var diffFilename = Path.Join(_sectorSaveDir, MapMobileLoader.MobileDifferencesFile);
         using var diffOut = new BinaryWriter(new FileStream(diffFilename, FileMode.Create));
 
         // This file will contain the dynamic ObjectHandles.that have been created on this map
-        var dynFilename = Path.Join(mSectorSaveDir, MapMobileLoader.DynamicMobilesFile);
+        var dynFilename = Path.Join(_sectorSaveDir, MapMobileLoader.DynamicMobilesFile);
         using var dynOut = new BinaryWriter(new FileStream(dynFilename, FileMode.Create));
 
         // This file will contain the object ids of mobile sector ObjectHandles.that have been destroyed
-        var destrFilename = Path.Join(mSectorSaveDir, MapMobileLoader.DestroyedMobilesFile);
+        var destrFilename = Path.Join(_sectorSaveDir, MapMobileLoader.DestroyedMobilesFile);
         using var destrFh = new BinaryWriter(new FileStream(destrFilename, FileMode.Append));
 
         var prevDestroyedObjs = destrFh.BaseStream.Length / Marshal.SizeOf<ObjectId>();
@@ -961,7 +940,7 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         dynOut.Dispose();
 
         Logger.Info("Saved {0} dynamic, {1} destroyed ({2} previously), and {3} mobiles with differences in {4}",
-            dynamicObjs, destroyedObjs, prevDestroyedObjs, diffObjs, mSectorSaveDir);
+            dynamicObjs, destroyedObjs, prevDestroyedObjs, diffObjs, _sectorSaveDir);
 
         if (diffObjs == 0)
         {
@@ -1004,13 +983,13 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
 
     public string GetDataDir(int mapId)
     {
-        var mapEntry = mMaps[mapId];
+        var mapEntry = _maps[mapId];
         return $"maps/{mapEntry.name}";
     }
 
     public string GetSaveDir(int mapId)
     {
-        var mapEntry = mMaps[mapId];
+        var mapEntry = _maps[mapId];
         return Path.Join(Globals.GameFolders.CurrentSaveFolder, "maps", mapEntry.name);
     }
 }

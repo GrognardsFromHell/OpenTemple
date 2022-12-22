@@ -23,7 +23,7 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     public bool RenderDebugInfo { get; set; }
 
@@ -56,9 +56,6 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
     [TempleDllLocation(0x10AB747C)]
     private bool _sectorLocking;
 
-    [TempleDllLocation(0x10AB7458)]
-    private bool _sectorLockingDisabled;
-
     private class CachedSector
     {
         public TimePoint Loaded { get; }
@@ -90,11 +87,6 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
         if (_sectorLocking)
         {
             throw new InvalidOperationException("A sector is already being locked.");
-        }
-
-        if (_sectorLockingDisabled)
-        {
-            return null;
         }
 
         if (!GameSystems.Map.IsMapOpen())
@@ -684,7 +676,7 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
     [TempleDllLocation(0x100a8130)]
     private void ClearLightHandleFlag(GameObject obj, int flag)
     {
-        var lightHandle = obj.GetInt32(obj_f.light_handle);
+        var lightHandle = obj.LightHandle;
         SectorLight light = default; // TODO
         light.flags &= ~flag;
     }
@@ -693,15 +685,15 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
     [TempleDllLocation(0x100a8650)]
     public void SetLightHandleFlag(GameObject obj, int flag)
     {
-        var lightHandle = obj.GetInt32(obj_f.light_handle);
+        var lightHandle = obj.LightHandle;
         if (lightHandle != 0)
         {
-            throw new NotImplementedException();
             // TODO
             SectorLight light = default;
             if ((light.flags & 0x40) == 0)
                 light = MakeSectorLightNocturnal(light);
             light.flags |= flag;
+            throw new NotImplementedException();
         }
     }
 
@@ -747,7 +739,7 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
 
                 MapSectorResetLightHandle(obj);
 
-                var lightHandle = obj.GetInt32(obj_f.light_handle);
+                var lightHandle = obj.LightHandle;
                 if (lightHandle != 0)
                 {
                     // Adds the associated light to the sector and marks it dirty
@@ -760,18 +752,16 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
     [TempleDllLocation(0x100a8590)]
     public void MapSectorResetLightHandle(GameObject obj)
     {
-        var renderFlags = obj.GetUInt32(obj_f.render_flags);
-
-        if ((renderFlags & 0x80000000) == 0)
+        if ((obj.RenderFlags & 0x80000000) == 0)
         {
-            var lightHandle = obj.GetInt32(obj_f.light_handle);
+            var lightHandle = obj.LightHandle;
             if (lightHandle != 0)
             {
                 // TODO FreeSectorLight(lightHandle); @ 0x100a84b0
                 throw new NotImplementedException();
             }
 
-            obj.SetUInt32(obj_f.render_flags, renderFlags | 0x80000000);
+            obj.RenderFlags |= 0x80000000;
         }
     }
 
@@ -798,7 +788,7 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
             var obj = GameSystems.Object.LoadFromFile(reader);
 
             obj.UnfreezeIds();
-            obj.SetInt32(obj_f.temp_id, sectorObjects.objectsRead);
+            obj.TemporaryId = sectorObjects.objectsRead;
 
             builder.Add(obj);
             if (!SectorInsertStaticObject(ref sectorObjects, obj))
@@ -896,7 +886,7 @@ public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGam
                 obj.LoadDeltaFromFile(diffReader);
             }
 
-            obj.SetInt32(obj_f.temp_id, sectorObjects.objectsRead);
+            obj.TemporaryId = sectorObjects.objectsRead;
 
             // The extinct flag is used by the diff-file to delete objects
             if (obj.HasFlag(ObjectFlag.EXTINCT))

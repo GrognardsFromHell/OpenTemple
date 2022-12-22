@@ -28,7 +28,7 @@ public class CritterSystem : IGameSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
     
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     private readonly Dictionary<int, ImmutableList<string>> _addMeshes;    
 

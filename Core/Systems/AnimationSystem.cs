@@ -8,7 +8,7 @@ using OpenTemple.Core.Logging;
 
 namespace OpenTemple.Core.Systems;
 
-public class AASSystem : IGameSystem, IDisposable
+public class AASSystem : IGameSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -37,18 +37,11 @@ public class AASSystem : IGameSystem, IDisposable
 
     public void Dispose()
     {
-        _modelFactory.Dispose();
     }
 
     private object ResolveMaterial(string materialPath)
     {
         using var material = _materials.LoadMaterial(materialPath);
-        if (material.Resource == null)
-        {
-            Logger.Error("Unable to load material {0}", materialPath);
-            return -1;
-        }
-
         return material;
     }
 

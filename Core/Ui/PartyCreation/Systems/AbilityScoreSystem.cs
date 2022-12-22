@@ -453,11 +453,6 @@ class AbilityScoreSystem : IChargenSystem
             // dec btn
             {
                 var decBtnId = _decreaseButtons[i];
-                var cost = 1;
-                if (abLvl >= 17)
-                    cost = 3;
-                else if (abLvl >= 15)
-                    cost = 2;
 
                 if (pointBuyPoints >= Globals.Config.PointBuyBudget || (abLvl == 8 && !Globals.Config.laxRules) ||
                     abLvl <= 5)

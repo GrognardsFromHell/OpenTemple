@@ -26,7 +26,7 @@ using ReplacementSet = IImmutableDictionary<MaterialPlaceholderSlot, ResourceRef
 
 public class MapObjectSystem : IGameSystem
 {
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     private readonly ObjectFlag _hiddenFlags;
 
@@ -351,7 +351,7 @@ public class MapObjectSystem : IGameSystem
         }
 
         obj.SetFlags(obj.GetFlags() & ~flags);
-        obj.SetInt32(obj_f.render_flags, (int) (obj.GetInt32(obj_f.render_flags) & ~clearRenderFlags));
+        obj.RenderFlags &= ~clearRenderFlags;
 
         if (startAnimating)
         {
@@ -668,7 +668,7 @@ public class MapObjectSystem : IGameSystem
             sector.AddObject(item);
         }
 
-        item.SetInt32(obj_f.render_flags, 0);
+        item.RenderFlags = 0;
         GameSystems.MapSector.MapSectorResetLightHandle(item);
 
         item.UpdateRenderingState(true);
@@ -816,11 +816,11 @@ public class MapObjectSystem : IGameSystem
 
     #region Global Stashed Object
 
-    private GameObject _globalStashedObject;
+    private GameObject? _globalStashedObject;
     private FrozenObjRef _globalStashedObjectRef;
 
     [TempleDllLocation(0x100206d0)]
-    private bool ValidateFrozenRef(ref GameObject obj, in FrozenObjRef frozenRef)
+    private bool ValidateFrozenRef(ref GameObject? obj, in FrozenObjRef frozenRef)
     {
         if (obj == null || frozenRef.guid.IsNull)
         {
@@ -847,7 +847,7 @@ public class MapObjectSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10808CE8)]
-    public GameObject GlobalStashedObject
+    public GameObject? GlobalStashedObject
     {
         [TempleDllLocation(0x10020ee0)]
         get
@@ -885,9 +885,8 @@ public class MapObjectSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10020540)]
-    public FrozenObjRef CreateFrozenRef(GameObject obj)
+    public FrozenObjRef CreateFrozenRef(GameObject? obj)
     {
-        FrozenObjRef result;
         if (obj == null)
         {
             return FrozenObjRef.Null;
@@ -916,7 +915,7 @@ public class MapObjectSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10020610)]
-    public bool Unfreeze(in FrozenObjRef frozenRef, out GameObject obj)
+    public bool Unfreeze(in FrozenObjRef frozenRef, out GameObject? obj)
     {
         if (frozenRef.guid.IsNull)
         {
@@ -936,7 +935,7 @@ public class MapObjectSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10020370)]
-    public bool LoadFrozenRef(out GameObject objOut, out FrozenObjRef frozenRef, BinaryReader fh)
+    public bool LoadFrozenRef(out GameObject? objOut, out FrozenObjRef frozenRef, BinaryReader fh)
     {
         var objId = fh.ReadObjectId();
         locXY location = fh.ReadTileLocation();

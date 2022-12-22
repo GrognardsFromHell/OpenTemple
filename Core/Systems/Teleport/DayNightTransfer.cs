@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Systems.Teleport;
 public class DayNightTransfer
 {
     [TempleDllLocation(0x10ab7540)]
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 

@@ -1793,7 +1793,7 @@ TP Replaced @ ability_fixes.cpp:71
         if (ammoItem != null && dispIo.attackPacket.weaponUsed == item)
         {
             var projectilePartSysId = ammoItem.GetInt32(obj_f.projectile_part_sys_id);
-            if (projectilePartSysId != null)
+            if (projectilePartSysId != 0)
             {
                 GameSystems.ParticleSys.End(projectilePartSysId);
                 throw new NotImplementedException();
@@ -2752,7 +2752,7 @@ TP Replaced @ ability_fixes.cpp:71
         var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
         var condArg1 = evt.GetConditionArg1();
         var dispIo = evt.GetDispIoD20Query();
-        if (dispIo != null && item == dispIo.obj)
+        if (dispIo != null && ReferenceEquals(item, dispIo.obj))
         {
             dispIo.return_val = condArg1;
         }
@@ -3661,8 +3661,6 @@ TP Replaced @ ability_fixes.cpp:71
             var spellLevels = new List<int>();
             GameSystems.Spell.SpellKnownQueryGetData(evt.objHndCaller, spData.spellEnum, spellClasses, spellLevels);
 
-            var alreadyKnows = false;
-
             for (var i = 0; i < spellClasses.Count; i++)
             {
                 if (spellClasses[i] == SpellSystem.GetSpellClass(Stat.level_wizard))
@@ -3683,8 +3681,6 @@ TP Replaced @ ability_fixes.cpp:71
                     RadialMenuStandardNode.CopyScroll);
             }
         }
-
-        return;
     }
 
     [DispTypes(DispatcherType.D20Query)]

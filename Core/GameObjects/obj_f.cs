@@ -1,3 +1,5 @@
+using System;
+
 namespace OpenTemple.Core.GameObjects;
 
 public  enum obj_f {
@@ -426,31 +428,5 @@ public  enum obj_f {
 	trap_pad_ias_1 = 402,
 	trap_pad_i64as_1 = 403,
 	trap_end = 404,
-	total_normal = 405,
-
-	transient_begin = 406,
-	// Previously render_color = 407,
-	// Previously render_colors = 408,
-	// Previously render_palette = 409,
-	// Previously render_scale = 410,
-	// Previously render_alpha = 411,
-	// Previously render_x = 412,
-	// Previously render_y = 413,
-	// Previously render_width = 414,
-	// Previously render_height = 415,
-	// Previously palette = 416,
-	// Previously color = 417,
-	// Previously colors = 418,
-	render_flags = 419,
-	temp_id = 420,
-	light_handle = 421,
-	overlay_light_handles = 422,
-	internal_flags = 423,
-	find_node = 424,
-	animation_handle = 425,
-	grapple_state = 426,
-	transient_end = 427,
-	type = 428,
-	prototype_handle = 429
-
-};
+	total_normal = 405
+}

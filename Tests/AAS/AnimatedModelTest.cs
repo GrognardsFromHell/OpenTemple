@@ -26,12 +26,6 @@ public class AnimatedModelTest : RealGameFiles
         );
     }
 
-    [TearDown]
-    public void TearDown()
-    {
-        _amf.Dispose();
-    }
-
     [Test]
     public void TestSimplePlayback()
     {

@@ -208,14 +208,23 @@ public class MdfMaterialFactory : IDisposable
 			defName = $"TEXTURE_STAGE{stageId}_UVANIM";
 			vsDefines[$"TEXTURE_STAGE{stageId}_SPEEDU"] = sampler.SpeedU.ToString(CultureInfo.InvariantCulture);
 			vsDefines[$"TEXTURE_STAGE{stageId}_SPEEDV"] = sampler.SpeedV.ToString(CultureInfo.InvariantCulture);
-			vsDefines[defName] = sampler.UvType switch
+			switch (sampler.UvType)
 			{
-				MdfUvType.Environment => "1",
-				MdfUvType.Drift => "2",
-				MdfUvType.Swirl => "3",
-				MdfUvType.Wavey => "4",
-				_ => vsDefines[defName]
-			};
+				case MdfUvType.Environment:
+					vsDefines[defName] = "1";
+					break;
+				case MdfUvType.Drift:
+					vsDefines[defName] = "2";
+					break;
+				case MdfUvType.Swirl:
+					vsDefines[defName] = "3";
+					break;
+				case MdfUvType.Wavey:
+					vsDefines[defName] = "4";
+					break;
+				default:
+					break;
+			}
 		}
 
 		if (spec.Glossmap != null) {

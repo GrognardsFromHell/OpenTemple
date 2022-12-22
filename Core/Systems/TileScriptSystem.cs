@@ -9,7 +9,7 @@ namespace OpenTemple.Core.Systems;
 
 public class TileScriptSystem : IGameSystem
 {
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     public void Dispose()
     {

@@ -924,18 +924,6 @@ internal static class PythonConstants
         Add("obj_f_trap_pad_i64as_1", obj_f.trap_pad_i64as_1);
         Add("obj_f_trap_end", obj_f.trap_end);
         Add("obj_f_total_normal", obj_f.total_normal);
-        Add("obj_f_transient_begin", obj_f.transient_begin);
-        Add("obj_f_render_flags", obj_f.render_flags);
-        Add("obj_f_temp_id", obj_f.temp_id);
-        Add("obj_f_light_handle", obj_f.light_handle);
-        Add("obj_f_overlay_light_handles", obj_f.overlay_light_handles);
-        Add("obj_f_internal_flags", obj_f.internal_flags);
-        Add("obj_f_find_node", obj_f.find_node);
-        Add("obj_f_animation_handle", obj_f.animation_handle);
-        Add("obj_f_grapple_state", obj_f.grapple_state);
-        Add("obj_f_transient_end", obj_f.transient_end);
-        Add("obj_f_type", obj_f.type);
-        Add("obj_f_prototype_handle", obj_f.prototype_handle);
     }
 
     private static void AddMonsterTypes()

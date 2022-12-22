@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
@@ -243,7 +244,7 @@ public class SpellSystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSys
     }
 
     [TempleDllLocation(0x100756e0)]
-    public bool TryGetActiveSpell(int activeSpellId, out SpellPacketBody spellPacketBody)
+    public bool TryGetActiveSpell(int activeSpellId, [MaybeNullWhen(false)] out SpellPacketBody spellPacketBody)
     {
         if (_activeSpells.TryGetValue(activeSpellId, out var spellPacket))
         {
@@ -930,7 +931,7 @@ return false;
     }
 
     [TempleDllLocation(0x100769f0)]
-    public bool IsSpellHarmful(int spellEnum, GameObject caster, GameObject target)
+    public bool IsSpellHarmful(int spellEnum, GameObject? caster, GameObject? target)
     {
         // Vanilla used a hardcoded table.
         if (spellEnum > SPELL_ENUM_MAX_VANILLA)
@@ -938,486 +939,50 @@ return false;
             SpellEntry spEntry = GetSpellEntry(spellEnum);
             if (spEntry.spellEnum == 0)
             {
-                Logger.Warn("Invalid spellEnum in IsSpellHarmfull");
+                Logger.Warn("Invalid spellEnum {0} in IsSpellHarmful", spellEnum);
                 return false;
             }
 
             return spEntry.HasAiType(AiSpellType.ai_action_offensive);
         }
 
-
         if (caster != null)
         {
-            if (target != null)
+            if (target == null)
             {
-                switch (spellEnum)
-                {
-                    case WellKnownSpells.Aid:
-                    case WellKnownSpells.AnimalFriendship:
-                    case WellKnownSpells.AnimalGrowth:
-                    case WellKnownSpells.ArcaneLock:
-                    case WellKnownSpells.Barkskin:
-                    case WellKnownSpells.Bless:
-                    case WellKnownSpells.BlessWeapon:
-                    case WellKnownSpells.Blink:
-                    case WellKnownSpells.Blur:
-                    case WellKnownSpells.BullsStrength:
-                    case WellKnownSpells.CalmAnimals:
-                    case WellKnownSpells.CalmEmotions:
-                    case WellKnownSpells.CatsGrace:
-                    case WellKnownSpells.ClairaudienceClairvoyance:
-                    case WellKnownSpells.Consecrate:
-                    case WellKnownSpells.CurseWater:
-                    case WellKnownSpells.Darkvision:
-                    case WellKnownSpells.Daylight:
-                    case WellKnownSpells.DeathWard:
-                    case WellKnownSpells.DelayPoison:
-                    case WellKnownSpells.DetectChaos:
-                    case WellKnownSpells.DetectEvil:
-                    case WellKnownSpells.DetectLaw:
-                    case WellKnownSpells.DetectMagic:
-                    case WellKnownSpells.DetectSecretDoors:
-                    case WellKnownSpells.DetectUndead:
-                    case WellKnownSpells.DimensionDoor:
-                    case WellKnownSpells.DiscernLies:
-                    case WellKnownSpells.DispelChaos:
-                    case WellKnownSpells.DispelEvil:
-                    case WellKnownSpells.DispelLaw:
-                    case WellKnownSpells.DispelMagic:
-                    case WellKnownSpells.Displacement:
-                    case WellKnownSpells.DivineFavor:
-                    case WellKnownSpells.DivinePower:
-                    case WellKnownSpells.Emotion:
-                    case WellKnownSpells.Endurance:
-                    case WellKnownSpells.EndureElements:
-                    case WellKnownSpells.Enlarge:
-                    case WellKnownSpells.EntropicShield:
-                    case WellKnownSpells.ExpeditiousRetreat:
-                    case WellKnownSpells.FindTraps:
-                    case WellKnownSpells.FireShield:
-                    case WellKnownSpells.FreedomOfMovement:
-                    case WellKnownSpells.GaseousForm:
-                    case WellKnownSpells.GiantVermin:
-                    case WellKnownSpells.Goodberry:
-                    case WellKnownSpells.GreaterMagicFang:
-                    case WellKnownSpells.GreaterMagicWeapon:
-                    case WellKnownSpells.Guidance:
-                    case WellKnownSpells.Haste:
-                    case WellKnownSpells.HoldPortal:
-                    case WellKnownSpells.Identify:
-                    case WellKnownSpells.ImprovedInvisibility:
-                    case WellKnownSpells.Invisibility:
-                    case WellKnownSpells.InvisibilitySphere:
-                    case WellKnownSpells.InvisibilityToAnimals:
-                    case WellKnownSpells.InvisibilityToUndead:
-                    case WellKnownSpells.KeenEdge:
-                    case WellKnownSpells.LesserRestoration:
-                    case WellKnownSpells.MageArmor:
-                    case WellKnownSpells.MagicCircleAgainstChaos:
-                    case WellKnownSpells.MagicCircleAgainstEvil:
-                    case WellKnownSpells.MagicCircleAgainstGood:
-                    case WellKnownSpells.MagicCircleAgainstLaw:
-                    case WellKnownSpells.MagicFang:
-                    case WellKnownSpells.MagicStone:
-                    case WellKnownSpells.MagicVestment:
-                    case WellKnownSpells.MagicWeapon:
-                    case WellKnownSpells.MeldIntoStone:
-                    case WellKnownSpells.LesserGlobeOfInvulnerability:
-                    case WellKnownSpells.MirrorImage:
-                    case WellKnownSpells.MordenkainensFaithfulHound:
-                    case WellKnownSpells.NegativeEnergyProtection:
-                    case WellKnownSpells.NeutralizePoison:
-                    case WellKnownSpells.OpenClose:
-                    case WellKnownSpells.OtilukesResilientSphere:
-                    case WellKnownSpells.Prayer:
-                    case WellKnownSpells.ProtectionFromArrows:
-                    case WellKnownSpells.ProtectionFromChaos:
-                    case WellKnownSpells.ProtectionFromElements:
-                    case WellKnownSpells.ProtectionFromEvil:
-                    case WellKnownSpells.ProtectionFromGood:
-                    case WellKnownSpells.ProtectionFromLaw:
-                    case WellKnownSpells.PryingEyes:
-                    case WellKnownSpells.RaiseDead:
-                    case WellKnownSpells.ReadMagic:
-                    case WellKnownSpells.RemoveBlindnessDeafness:
-                    case WellKnownSpells.RemoveCurse:
-                    case WellKnownSpells.RemoveDisease:
-                    case WellKnownSpells.RemoveFear:
-                    case WellKnownSpells.RemoveParalysis:
-                    case WellKnownSpells.Resistance:
-                    case WellKnownSpells.ResistElements:
-                    case WellKnownSpells.Restoration:
-                    case WellKnownSpells.Resurrection:
-                    case WellKnownSpells.RighteousMight:
-                    case WellKnownSpells.Sanctuary:
-                    case WellKnownSpells.SeeInvisibility:
-                    case WellKnownSpells.Shield:
-                    case WellKnownSpells.ShieldOfFaith:
-                    case WellKnownSpells.Shillelagh:
-                    case WellKnownSpells.SpellResistance:
-                    case WellKnownSpells.SpiritualWeapon:
-                    case WellKnownSpells.Stoneskin:
-                    case WellKnownSpells.SummonMonsterI:
-                    case WellKnownSpells.SummonMonsterIi:
-                    case WellKnownSpells.SummonMonsterIii:
-                    case WellKnownSpells.SummonMonsterIv:
-                    case WellKnownSpells.SummonMonsterV:
-                    case WellKnownSpells.SummonMonsterVi:
-                    case WellKnownSpells.SummonMonsterVii:
-                    case WellKnownSpells.SummonMonsterViii:
-                    case WellKnownSpells.SummonMonsterIx:
-                    case WellKnownSpells.SummonNaturesAllyI:
-                    case WellKnownSpells.SummonNaturesAllyIi:
-                    case WellKnownSpells.SummonNaturesAllyIii:
-                    case WellKnownSpells.SummonNaturesAllyIv:
-                    case WellKnownSpells.SummonNaturesAllyV:
-                    case WellKnownSpells.SummonNaturesAllyVi:
-                    case WellKnownSpells.SummonNaturesAllyVii:
-                    case WellKnownSpells.SummonNaturesAllyViii:
-                    case WellKnownSpells.SummonNaturesAllyIx:
-                    case WellKnownSpells.SummonSwarm:
-                    case WellKnownSpells.Teleport:
-                    case WellKnownSpells.TreeShape:
-                    case WellKnownSpells.TrueSeeing:
-                    case WellKnownSpells.TrueStrike:
-                    case WellKnownSpells.VampiricTouch:
-                    case WellKnownSpells.Virtue:
-                    case WellKnownSpells.WindWall:
-                    case WellKnownSpells.DispelAir:
-                    case WellKnownSpells.DispelEarth:
-                    case WellKnownSpells.DispelFire:
-                    case WellKnownSpells.DispelWater:
-                    case WellKnownSpells.Rage:
-                    case WellKnownSpells.EaglesSplendor:
-                    case WellKnownSpells.FoxsCunning:
-                    case WellKnownSpells.OwlsWisdom:
-                    case WellKnownSpells.Glibness:
-                    case WellKnownSpells.FalseLife:
-                    case WellKnownSpells.Longstrider:
-                    case WellKnownSpells.Heroism:
-                    case WellKnownSpells.GreaterHeroism:
-                    case WellKnownSpells.GoodHope:
-                    case WellKnownSpells.Heal:
-                    case WellKnownSpells.Reincarnation:
-                    case WellKnownSpells.RingOfFreedomOfMovement:
-                    case WellKnownSpells.PotionOfEnlarge:
-                    case WellKnownSpells.PotionOfHaste:
-                    case WellKnownSpells.BootsOfSpeed:
-                    case WellKnownSpells.DustOfDisappearance:
-                    case WellKnownSpells.PotionOfCharisma:
-                    case WellKnownSpells.PotionOfGlibness:
-                    case WellKnownSpells.PotionOfHiding:
-                    case WellKnownSpells.PotionOfSneaking:
-                    case WellKnownSpells.PotionOfHeroism:
-                    case WellKnownSpells.PotionOfSuperHeroism:
-                    case WellKnownSpells.PotionOfProtectionFromFire:
-                    case WellKnownSpells.PotionOfProtectionFromOutsiders:
-                    case WellKnownSpells.PotionOfProtectionFromElementals:
-                    case WellKnownSpells.PotionOfProtectionFromEarth:
-                    case WellKnownSpells.PotionOfProtectionFromMagic:
-                    case WellKnownSpells.PotionOfProtectionFromUndead:
-                    case WellKnownSpells.RingOfAnimalSummoningDog:
-                    case WellKnownSpells.PotionOfProtectionFromAcid:
-                    case WellKnownSpells.PotionOfProtectionFromElectricity:
-                    case WellKnownSpells.SummonAirElemental:
-                    case WellKnownSpells.SummonEarthElemental:
-                    case WellKnownSpells.SummonFireElemental:
-                    case WellKnownSpells.SummonWaterElemental:
-                    case WellKnownSpells.SummonBalor:
-                    case WellKnownSpells.SummonGlabrezu:
-                    case WellKnownSpells.SummonHezrou:
-                    case WellKnownSpells.SummonVrock:
-                        return false;
-                    case WellKnownSpells.CureCriticalWounds:
-                    case WellKnownSpells.CureLightWounds:
-                    case WellKnownSpells.CureMinorWounds:
-                    case WellKnownSpells.CureModerateWounds:
-                    case WellKnownSpells.CureSeriousWounds:
-                        return GameSystems.Critter.IsUndead(target);
-                    case WellKnownSpells.InflictCriticalWounds:
-                    case WellKnownSpells.InflictLightWounds:
-                    case WellKnownSpells.InflictMinorWounds:
-                    case WellKnownSpells.InflictModerateWounds:
-                    case WellKnownSpells.InflictSeriousWounds:
-                        return !GameSystems.Critter.IsUndead(target);
-                    default:
-                        return !GameSystems.Critter.IsFriendly(caster, target);
-                    case WellKnownSpells.AnimalTrance:
-                    case WellKnownSpells.AnimateDead:
-                    case WellKnownSpells.Bane:
-                    case WellKnownSpells.BestowCurse:
-                    case WellKnownSpells.BlindnessDeafness:
-                    case WellKnownSpells.BreakEnchantment:
-                    case WellKnownSpells.BurningHands:
-                    case WellKnownSpells.CallLightning:
-                    case WellKnownSpells.CauseFear:
-                    case WellKnownSpells.ChainLightning:
-                    case WellKnownSpells.ChaosHammer:
-                    case WellKnownSpells.CharmMonster:
-                    case WellKnownSpells.CharmPerson:
-                    case WellKnownSpells.CharmPersonOrAnimal:
-                    case WellKnownSpells.ChillMetal:
-                    case WellKnownSpells.ChillTouch:
-                    case WellKnownSpells.Cloudkill:
-                    case WellKnownSpells.ColorSpray:
-                    case WellKnownSpells.Command:
-                    case WellKnownSpells.ConeOfCold:
-                    case WellKnownSpells.Confusion:
-                    case WellKnownSpells.Contagion:
-                    case WellKnownSpells.ControlPlants:
-                    case WellKnownSpells.Darkness:
-                    case WellKnownSpells.Daze:
-                    case WellKnownSpells.DeathKnell:
-                    case WellKnownSpells.DeeperDarkness:
-                    case WellKnownSpells.Desecrate:
-                    case WellKnownSpells.DimensionalAnchor:
-                    case WellKnownSpells.DominateAnimal:
-                    case WellKnownSpells.DominateMonster:
-                    case WellKnownSpells.DominatePerson:
-                    case WellKnownSpells.Doom:
-                    case WellKnownSpells.Enervation:
-                    case WellKnownSpells.Entangle:
-                    case WellKnownSpells.FaerieFire:
-                    case WellKnownSpells.Fear:
-                    case WellKnownSpells.Feeblemind:
-                    case WellKnownSpells.Fireball:
-                    case WellKnownSpells.FlameArrow:
-                    case WellKnownSpells.FlameStrike:
-                    case WellKnownSpells.FlamingSphere:
-                    case WellKnownSpells.Flare:
-                    case WellKnownSpells.FogCloud:
-                    case WellKnownSpells.GhoulTouch:
-                    case WellKnownSpells.Glitterdust:
-                    case WellKnownSpells.Grease:
-                    case WellKnownSpells.GreaterCommand:
-                    case WellKnownSpells.GustOfWind:
-                    case WellKnownSpells.HaltUndead:
-                    case WellKnownSpells.HeatMetal:
-                    case WellKnownSpells.HoldAnimal:
-                    case WellKnownSpells.HoldMonster:
-                    case WellKnownSpells.HoldPerson:
-                    case WellKnownSpells.HolySmite:
-                    case WellKnownSpells.HypnoticPattern:
-                    case WellKnownSpells.Hypnotism:
-                    case WellKnownSpells.IceStorm:
-                    case WellKnownSpells.MagicMissile:
-                    case WellKnownSpells.MelfsAcidArrow:
-                    case WellKnownSpells.ObscuringMist:
-                    case WellKnownSpells.OrdersWrath:
-                    case WellKnownSpells.PhantasmalKiller:
-                    case WellKnownSpells.ProduceFlame:
-                    case WellKnownSpells.RayOfEnfeeblement:
-                    case WellKnownSpells.RayOfFrost:
-                    case WellKnownSpells.Reduce:
-                    case WellKnownSpells.RepelVermin:
-                    case WellKnownSpells.Scare:
-                    case WellKnownSpells.SearingLight:
-                    case WellKnownSpells.Shatter:
-                    case WellKnownSpells.ShockingGrasp:
-                    case WellKnownSpells.Shout:
-                    case WellKnownSpells.Silence:
-                    case WellKnownSpells.SlayLiving:
-                    case WellKnownSpells.Sleep:
-                    case WellKnownSpells.SleetStorm:
-                    case WellKnownSpells.Slow:
-                    case WellKnownSpells.SoftenEarthAndStone:
-                    case WellKnownSpells.SolidFog:
-                    case WellKnownSpells.SoundBurst:
-                    case WellKnownSpells.SpikeGrowth:
-                    case WellKnownSpells.SpikeStones:
-                    case WellKnownSpells.StinkingCloud:
-                    case WellKnownSpells.Suggestion:
-                    case WellKnownSpells.TashasHideousLaughter:
-                    case WellKnownSpells.UnholyBlight:
-                    case WellKnownSpells.Web:
-                    case WellKnownSpells.Blight:
-                    case WellKnownSpells.ReduceAnimal:
-                    case WellKnownSpells.AcidSplash:
-                    case WellKnownSpells.DazeMonster:
-                    case 559:
-                    case WellKnownSpells.CallLightningStorm:
-                    case WellKnownSpells.LesserConfusion:
-                    case WellKnownSpells.DeepSlumber:
-                    case WellKnownSpells.CrushingDespair:
-                    case WellKnownSpells.Harm2:
-                    case WellKnownSpells.SpellMonsterFrogTongue:
-                    case WellKnownSpells.SpellMonsterVrockScreech:
-                    case WellKnownSpells.SpellMonsterVrockSpores:
-                    case WellKnownSpells.JavelinOfLightning:
-                    case WellKnownSpells.FlameTongue:
-                        return true;
-                }
-            }
-
-            return true;
-        }
-
-        if (spellEnum > WellKnownSpells.KeenEdge)
-        {
-            if (spellEnum > WellKnownSpells.SeeInvisibility)
-            {
-                if (spellEnum > WellKnownSpells.VampiricTouch)
-                {
-                    switch (spellEnum)
-                    {
-                        case WellKnownSpells.Virtue:
-                        case WellKnownSpells.WindWall:
-                        case WellKnownSpells.DispelAir:
-                        case WellKnownSpells.DispelEarth:
-                        case WellKnownSpells.DispelFire:
-                        case WellKnownSpells.DispelWater:
-                        case WellKnownSpells.Rage:
-                        case WellKnownSpells.EaglesSplendor:
-                        case WellKnownSpells.FoxsCunning:
-                        case WellKnownSpells.OwlsWisdom:
-                        case WellKnownSpells.Glibness:
-                        case WellKnownSpells.FalseLife:
-                        case WellKnownSpells.Longstrider:
-                        case WellKnownSpells.Heroism:
-                        case WellKnownSpells.GreaterHeroism:
-                        case WellKnownSpells.GoodHope:
-                        case WellKnownSpells.Heal:
-                        case WellKnownSpells.Reincarnation:
-                        case WellKnownSpells.RingOfFreedomOfMovement:
-                        case WellKnownSpells.PotionOfEnlarge:
-                        case WellKnownSpells.PotionOfHaste:
-                        case WellKnownSpells.BootsOfSpeed:
-                        case WellKnownSpells.DustOfDisappearance:
-                        case WellKnownSpells.PotionOfCharisma:
-                        case WellKnownSpells.PotionOfGlibness:
-                        case WellKnownSpells.PotionOfHiding:
-                        case WellKnownSpells.PotionOfSneaking:
-                        case WellKnownSpells.PotionOfHeroism:
-                        case WellKnownSpells.PotionOfSuperHeroism:
-                        case WellKnownSpells.PotionOfProtectionFromFire:
-                        case WellKnownSpells.PotionOfProtectionFromOutsiders:
-                        case WellKnownSpells.PotionOfProtectionFromElementals:
-                        case WellKnownSpells.PotionOfProtectionFromEarth:
-                        case WellKnownSpells.PotionOfProtectionFromMagic:
-                        case WellKnownSpells.PotionOfProtectionFromUndead:
-                        case WellKnownSpells.RingOfAnimalSummoningDog:
-                        case WellKnownSpells.PotionOfProtectionFromAcid:
-                        case WellKnownSpells.PotionOfProtectionFromElectricity:
-                        case WellKnownSpells.SummonAirElemental:
-                        case WellKnownSpells.SummonEarthElemental:
-                        case WellKnownSpells.SummonFireElemental:
-                        case WellKnownSpells.SummonWaterElemental:
-                        case WellKnownSpells.SummonBalor:
-                        case WellKnownSpells.SummonGlabrezu:
-                        case WellKnownSpells.SummonHezrou:
-                        case WellKnownSpells.SummonVrock:
-                            return false;
-                        default:
-                            return true;
-                    }
-
-                    return true;
-                }
-
-                if (spellEnum != WellKnownSpells.VampiricTouch)
-                {
-                    switch (spellEnum)
-                    {
-                        case WellKnownSpells.Shield:
-                        case WellKnownSpells.ShieldOfFaith:
-                        case WellKnownSpells.Shillelagh:
-                        case WellKnownSpells.SpellResistance:
-                        case WellKnownSpells.SpiritualWeapon:
-                        case WellKnownSpells.Stoneskin:
-                        case WellKnownSpells.SummonMonsterI:
-                        case WellKnownSpells.SummonMonsterIi:
-                        case WellKnownSpells.SummonMonsterIii:
-                        case WellKnownSpells.SummonMonsterIv:
-                        case WellKnownSpells.SummonMonsterV:
-                        case WellKnownSpells.SummonMonsterVi:
-                        case WellKnownSpells.SummonMonsterVii:
-                        case WellKnownSpells.SummonMonsterViii:
-                        case WellKnownSpells.SummonMonsterIx:
-                        case WellKnownSpells.SummonNaturesAllyI:
-                        case WellKnownSpells.SummonNaturesAllyIi:
-                        case WellKnownSpells.SummonNaturesAllyIii:
-                        case WellKnownSpells.SummonNaturesAllyIv:
-                        case WellKnownSpells.SummonNaturesAllyV:
-                        case WellKnownSpells.SummonNaturesAllyVi:
-                        case WellKnownSpells.SummonNaturesAllyVii:
-                        case WellKnownSpells.SummonNaturesAllyViii:
-                        case WellKnownSpells.SummonNaturesAllyIx:
-                        case WellKnownSpells.SummonSwarm:
-                        case WellKnownSpells.Teleport:
-                        case WellKnownSpells.TreeShape:
-                        case WellKnownSpells.TrueSeeing:
-                        case WellKnownSpells.TrueStrike:
-                            return false;
-                        default:
-                            return true;
-                    }
-
-                    return true;
-                }
-            }
-            else if (spellEnum != WellKnownSpells.SeeInvisibility)
-            {
-                switch (spellEnum)
-                {
-                    case WellKnownSpells.LesserRestoration:
-                    case WellKnownSpells.MageArmor:
-                    case WellKnownSpells.MagicCircleAgainstChaos:
-                    case WellKnownSpells.MagicCircleAgainstEvil:
-                    case WellKnownSpells.MagicCircleAgainstGood:
-                    case WellKnownSpells.MagicCircleAgainstLaw:
-                    case WellKnownSpells.MagicFang:
-                    case WellKnownSpells.MagicStone:
-                    case WellKnownSpells.MagicVestment:
-                    case WellKnownSpells.MagicWeapon:
-                    case WellKnownSpells.MeldIntoStone:
-                    case WellKnownSpells.LesserGlobeOfInvulnerability:
-                    case WellKnownSpells.MirrorImage:
-                    case WellKnownSpells.MordenkainensFaithfulHound:
-                    case WellKnownSpells.NegativeEnergyProtection:
-                    case WellKnownSpells.NeutralizePoison:
-                    case WellKnownSpells.OpenClose:
-                    case WellKnownSpells.OtilukesResilientSphere:
-                    case WellKnownSpells.Prayer:
-                    case WellKnownSpells.ProtectionFromArrows:
-                    case WellKnownSpells.ProtectionFromChaos:
-                    case WellKnownSpells.ProtectionFromElements:
-                    case WellKnownSpells.ProtectionFromEvil:
-                    case WellKnownSpells.ProtectionFromGood:
-                    case WellKnownSpells.ProtectionFromLaw:
-                    case WellKnownSpells.PryingEyes:
-                    case WellKnownSpells.RaiseDead:
-                    case WellKnownSpells.ReadMagic:
-                    case WellKnownSpells.RemoveBlindnessDeafness:
-                    case WellKnownSpells.RemoveCurse:
-                    case WellKnownSpells.RemoveDisease:
-                    case WellKnownSpells.RemoveFear:
-                    case WellKnownSpells.RemoveParalysis:
-                    case WellKnownSpells.Resistance:
-                    case WellKnownSpells.ResistElements:
-                    case WellKnownSpells.Restoration:
-                    case WellKnownSpells.Resurrection:
-                    case WellKnownSpells.RighteousMight:
-                    case WellKnownSpells.Sanctuary:
-                        return false;
-                    default:
-                        return true;
-                }
-
                 return true;
             }
 
-            return false;
-        }
-
-        if (spellEnum == WellKnownSpells.KeenEdge)
-        {
-            return false;
-        }
-
-        if (spellEnum > WellKnownSpells.DiscernLies)
-        {
             switch (spellEnum)
             {
+                case WellKnownSpells.Aid:
+                case WellKnownSpells.AnimalFriendship:
+                case WellKnownSpells.AnimalGrowth:
+                case WellKnownSpells.ArcaneLock:
+                case WellKnownSpells.Barkskin:
+                case WellKnownSpells.Bless:
+                case WellKnownSpells.BlessWeapon:
+                case WellKnownSpells.Blink:
+                case WellKnownSpells.Blur:
+                case WellKnownSpells.BullsStrength:
+                case WellKnownSpells.CalmAnimals:
+                case WellKnownSpells.CalmEmotions:
+                case WellKnownSpells.CatsGrace:
+                case WellKnownSpells.ClairaudienceClairvoyance:
+                case WellKnownSpells.Consecrate:
+                case WellKnownSpells.CurseWater:
+                case WellKnownSpells.Darkvision:
+                case WellKnownSpells.Daylight:
+                case WellKnownSpells.DeathWard:
+                case WellKnownSpells.DelayPoison:
+                case WellKnownSpells.DetectChaos:
+                case WellKnownSpells.DetectEvil:
+                case WellKnownSpells.DetectLaw:
+                case WellKnownSpells.DetectMagic:
+                case WellKnownSpells.DetectSecretDoors:
+                case WellKnownSpells.DetectUndead:
+                case WellKnownSpells.DimensionDoor:
+                case WellKnownSpells.DiscernLies:
                 case WellKnownSpells.DispelChaos:
                 case WellKnownSpells.DispelEvil:
                 case WellKnownSpells.DispelLaw:
@@ -1448,21 +1013,394 @@ return false;
                 case WellKnownSpells.InvisibilitySphere:
                 case WellKnownSpells.InvisibilityToAnimals:
                 case WellKnownSpells.InvisibilityToUndead:
+                case WellKnownSpells.KeenEdge:
+                case WellKnownSpells.LesserRestoration:
+                case WellKnownSpells.MageArmor:
+                case WellKnownSpells.MagicCircleAgainstChaos:
+                case WellKnownSpells.MagicCircleAgainstEvil:
+                case WellKnownSpells.MagicCircleAgainstGood:
+                case WellKnownSpells.MagicCircleAgainstLaw:
+                case WellKnownSpells.MagicFang:
+                case WellKnownSpells.MagicStone:
+                case WellKnownSpells.MagicVestment:
+                case WellKnownSpells.MagicWeapon:
+                case WellKnownSpells.MeldIntoStone:
+                case WellKnownSpells.LesserGlobeOfInvulnerability:
+                case WellKnownSpells.MirrorImage:
+                case WellKnownSpells.MordenkainensFaithfulHound:
+                case WellKnownSpells.NegativeEnergyProtection:
+                case WellKnownSpells.NeutralizePoison:
+                case WellKnownSpells.OpenClose:
+                case WellKnownSpells.OtilukesResilientSphere:
+                case WellKnownSpells.Prayer:
+                case WellKnownSpells.ProtectionFromArrows:
+                case WellKnownSpells.ProtectionFromChaos:
+                case WellKnownSpells.ProtectionFromElements:
+                case WellKnownSpells.ProtectionFromEvil:
+                case WellKnownSpells.ProtectionFromGood:
+                case WellKnownSpells.ProtectionFromLaw:
+                case WellKnownSpells.PryingEyes:
+                case WellKnownSpells.RaiseDead:
+                case WellKnownSpells.ReadMagic:
+                case WellKnownSpells.RemoveBlindnessDeafness:
+                case WellKnownSpells.RemoveCurse:
+                case WellKnownSpells.RemoveDisease:
+                case WellKnownSpells.RemoveFear:
+                case WellKnownSpells.RemoveParalysis:
+                case WellKnownSpells.Resistance:
+                case WellKnownSpells.ResistElements:
+                case WellKnownSpells.Restoration:
+                case WellKnownSpells.Resurrection:
+                case WellKnownSpells.RighteousMight:
+                case WellKnownSpells.Sanctuary:
+                case WellKnownSpells.SeeInvisibility:
+                case WellKnownSpells.Shield:
+                case WellKnownSpells.ShieldOfFaith:
+                case WellKnownSpells.Shillelagh:
+                case WellKnownSpells.SpellResistance:
+                case WellKnownSpells.SpiritualWeapon:
+                case WellKnownSpells.Stoneskin:
+                case WellKnownSpells.SummonMonsterI:
+                case WellKnownSpells.SummonMonsterIi:
+                case WellKnownSpells.SummonMonsterIii:
+                case WellKnownSpells.SummonMonsterIv:
+                case WellKnownSpells.SummonMonsterV:
+                case WellKnownSpells.SummonMonsterVi:
+                case WellKnownSpells.SummonMonsterVii:
+                case WellKnownSpells.SummonMonsterViii:
+                case WellKnownSpells.SummonMonsterIx:
+                case WellKnownSpells.SummonNaturesAllyI:
+                case WellKnownSpells.SummonNaturesAllyIi:
+                case WellKnownSpells.SummonNaturesAllyIii:
+                case WellKnownSpells.SummonNaturesAllyIv:
+                case WellKnownSpells.SummonNaturesAllyV:
+                case WellKnownSpells.SummonNaturesAllyVi:
+                case WellKnownSpells.SummonNaturesAllyVii:
+                case WellKnownSpells.SummonNaturesAllyViii:
+                case WellKnownSpells.SummonNaturesAllyIx:
+                case WellKnownSpells.SummonSwarm:
+                case WellKnownSpells.Teleport:
+                case WellKnownSpells.TreeShape:
+                case WellKnownSpells.TrueSeeing:
+                case WellKnownSpells.TrueStrike:
+                case WellKnownSpells.VampiricTouch:
+                case WellKnownSpells.Virtue:
+                case WellKnownSpells.WindWall:
+                case WellKnownSpells.DispelAir:
+                case WellKnownSpells.DispelEarth:
+                case WellKnownSpells.DispelFire:
+                case WellKnownSpells.DispelWater:
+                case WellKnownSpells.Rage:
+                case WellKnownSpells.EaglesSplendor:
+                case WellKnownSpells.FoxsCunning:
+                case WellKnownSpells.OwlsWisdom:
+                case WellKnownSpells.Glibness:
+                case WellKnownSpells.FalseLife:
+                case WellKnownSpells.Longstrider:
+                case WellKnownSpells.Heroism:
+                case WellKnownSpells.GreaterHeroism:
+                case WellKnownSpells.GoodHope:
+                case WellKnownSpells.Heal:
+                case WellKnownSpells.Reincarnation:
+                case WellKnownSpells.RingOfFreedomOfMovement:
+                case WellKnownSpells.PotionOfEnlarge:
+                case WellKnownSpells.PotionOfHaste:
+                case WellKnownSpells.BootsOfSpeed:
+                case WellKnownSpells.DustOfDisappearance:
+                case WellKnownSpells.PotionOfCharisma:
+                case WellKnownSpells.PotionOfGlibness:
+                case WellKnownSpells.PotionOfHiding:
+                case WellKnownSpells.PotionOfSneaking:
+                case WellKnownSpells.PotionOfHeroism:
+                case WellKnownSpells.PotionOfSuperHeroism:
+                case WellKnownSpells.PotionOfProtectionFromFire:
+                case WellKnownSpells.PotionOfProtectionFromOutsiders:
+                case WellKnownSpells.PotionOfProtectionFromElementals:
+                case WellKnownSpells.PotionOfProtectionFromEarth:
+                case WellKnownSpells.PotionOfProtectionFromMagic:
+                case WellKnownSpells.PotionOfProtectionFromUndead:
+                case WellKnownSpells.RingOfAnimalSummoningDog:
+                case WellKnownSpells.PotionOfProtectionFromAcid:
+                case WellKnownSpells.PotionOfProtectionFromElectricity:
+                case WellKnownSpells.SummonAirElemental:
+                case WellKnownSpells.SummonEarthElemental:
+                case WellKnownSpells.SummonFireElemental:
+                case WellKnownSpells.SummonWaterElemental:
+                case WellKnownSpells.SummonBalor:
+                case WellKnownSpells.SummonGlabrezu:
+                case WellKnownSpells.SummonHezrou:
+                case WellKnownSpells.SummonVrock:
                     return false;
-                default:
+                case WellKnownSpells.CureCriticalWounds:
+                case WellKnownSpells.CureLightWounds:
+                case WellKnownSpells.CureMinorWounds:
+                case WellKnownSpells.CureModerateWounds:
+                case WellKnownSpells.CureSeriousWounds:
+                    return GameSystems.Critter.IsUndead(target);
+                case WellKnownSpells.InflictCriticalWounds:
+                case WellKnownSpells.InflictLightWounds:
+                case WellKnownSpells.InflictMinorWounds:
+                case WellKnownSpells.InflictModerateWounds:
+                case WellKnownSpells.InflictSeriousWounds:
+                    return !GameSystems.Critter.IsUndead(target);
+                case WellKnownSpells.AnimalTrance:
+                case WellKnownSpells.AnimateDead:
+                case WellKnownSpells.Bane:
+                case WellKnownSpells.BestowCurse:
+                case WellKnownSpells.BlindnessDeafness:
+                case WellKnownSpells.BreakEnchantment:
+                case WellKnownSpells.BurningHands:
+                case WellKnownSpells.CallLightning:
+                case WellKnownSpells.CauseFear:
+                case WellKnownSpells.ChainLightning:
+                case WellKnownSpells.ChaosHammer:
+                case WellKnownSpells.CharmMonster:
+                case WellKnownSpells.CharmPerson:
+                case WellKnownSpells.CharmPersonOrAnimal:
+                case WellKnownSpells.ChillMetal:
+                case WellKnownSpells.ChillTouch:
+                case WellKnownSpells.Cloudkill:
+                case WellKnownSpells.ColorSpray:
+                case WellKnownSpells.Command:
+                case WellKnownSpells.ConeOfCold:
+                case WellKnownSpells.Confusion:
+                case WellKnownSpells.Contagion:
+                case WellKnownSpells.ControlPlants:
+                case WellKnownSpells.Darkness:
+                case WellKnownSpells.Daze:
+                case WellKnownSpells.DeathKnell:
+                case WellKnownSpells.DeeperDarkness:
+                case WellKnownSpells.Desecrate:
+                case WellKnownSpells.DimensionalAnchor:
+                case WellKnownSpells.DominateAnimal:
+                case WellKnownSpells.DominateMonster:
+                case WellKnownSpells.DominatePerson:
+                case WellKnownSpells.Doom:
+                case WellKnownSpells.Enervation:
+                case WellKnownSpells.Entangle:
+                case WellKnownSpells.FaerieFire:
+                case WellKnownSpells.Fear:
+                case WellKnownSpells.Feeblemind:
+                case WellKnownSpells.Fireball:
+                case WellKnownSpells.FlameArrow:
+                case WellKnownSpells.FlameStrike:
+                case WellKnownSpells.FlamingSphere:
+                case WellKnownSpells.Flare:
+                case WellKnownSpells.FogCloud:
+                case WellKnownSpells.GhoulTouch:
+                case WellKnownSpells.Glitterdust:
+                case WellKnownSpells.Grease:
+                case WellKnownSpells.GreaterCommand:
+                case WellKnownSpells.GustOfWind:
+                case WellKnownSpells.HaltUndead:
+                case WellKnownSpells.HeatMetal:
+                case WellKnownSpells.HoldAnimal:
+                case WellKnownSpells.HoldMonster:
+                case WellKnownSpells.HoldPerson:
+                case WellKnownSpells.HolySmite:
+                case WellKnownSpells.HypnoticPattern:
+                case WellKnownSpells.Hypnotism:
+                case WellKnownSpells.IceStorm:
+                case WellKnownSpells.MagicMissile:
+                case WellKnownSpells.MelfsAcidArrow:
+                case WellKnownSpells.ObscuringMist:
+                case WellKnownSpells.OrdersWrath:
+                case WellKnownSpells.PhantasmalKiller:
+                case WellKnownSpells.ProduceFlame:
+                case WellKnownSpells.RayOfEnfeeblement:
+                case WellKnownSpells.RayOfFrost:
+                case WellKnownSpells.Reduce:
+                case WellKnownSpells.RepelVermin:
+                case WellKnownSpells.Scare:
+                case WellKnownSpells.SearingLight:
+                case WellKnownSpells.Shatter:
+                case WellKnownSpells.ShockingGrasp:
+                case WellKnownSpells.Shout:
+                case WellKnownSpells.Silence:
+                case WellKnownSpells.SlayLiving:
+                case WellKnownSpells.Sleep:
+                case WellKnownSpells.SleetStorm:
+                case WellKnownSpells.Slow:
+                case WellKnownSpells.SoftenEarthAndStone:
+                case WellKnownSpells.SolidFog:
+                case WellKnownSpells.SoundBurst:
+                case WellKnownSpells.SpikeGrowth:
+                case WellKnownSpells.SpikeStones:
+                case WellKnownSpells.StinkingCloud:
+                case WellKnownSpells.Suggestion:
+                case WellKnownSpells.TashasHideousLaughter:
+                case WellKnownSpells.UnholyBlight:
+                case WellKnownSpells.Web:
+                case WellKnownSpells.Blight:
+                case WellKnownSpells.ReduceAnimal:
+                case WellKnownSpells.AcidSplash:
+                case WellKnownSpells.DazeMonster:
+                case 559:
+                case WellKnownSpells.CallLightningStorm:
+                case WellKnownSpells.LesserConfusion:
+                case WellKnownSpells.DeepSlumber:
+                case WellKnownSpells.CrushingDespair:
+                case WellKnownSpells.Harm2:
+                case WellKnownSpells.SpellMonsterFrogTongue:
+                case WellKnownSpells.SpellMonsterVrockScreech:
+                case WellKnownSpells.SpellMonsterVrockSpores:
+                case WellKnownSpells.JavelinOfLightning:
+                case WellKnownSpells.FlameTongue:
                     return true;
+                default:
+                    return !GameSystems.Critter.IsFriendly(caster, target);
             }
-
-            return true;
-        }
-
-        if (spellEnum == WellKnownSpells.DiscernLies)
-        {
-            return false;
         }
 
         switch (spellEnum)
         {
+            case WellKnownSpells.Virtue:
+            case WellKnownSpells.WindWall:
+            case WellKnownSpells.DispelAir:
+            case WellKnownSpells.DispelEarth:
+            case WellKnownSpells.DispelFire:
+            case WellKnownSpells.DispelWater:
+            case WellKnownSpells.Rage:
+            case WellKnownSpells.EaglesSplendor:
+            case WellKnownSpells.FoxsCunning:
+            case WellKnownSpells.OwlsWisdom:
+            case WellKnownSpells.Glibness:
+            case WellKnownSpells.FalseLife:
+            case WellKnownSpells.Longstrider:
+            case WellKnownSpells.Heroism:
+            case WellKnownSpells.GreaterHeroism:
+            case WellKnownSpells.GoodHope:
+            case WellKnownSpells.Heal:
+            case WellKnownSpells.Reincarnation:
+            case WellKnownSpells.RingOfFreedomOfMovement:
+            case WellKnownSpells.PotionOfEnlarge:
+            case WellKnownSpells.PotionOfHaste:
+            case WellKnownSpells.BootsOfSpeed:
+            case WellKnownSpells.DustOfDisappearance:
+            case WellKnownSpells.PotionOfCharisma:
+            case WellKnownSpells.PotionOfGlibness:
+            case WellKnownSpells.PotionOfHiding:
+            case WellKnownSpells.PotionOfSneaking:
+            case WellKnownSpells.PotionOfHeroism:
+            case WellKnownSpells.PotionOfSuperHeroism:
+            case WellKnownSpells.PotionOfProtectionFromFire:
+            case WellKnownSpells.PotionOfProtectionFromOutsiders:
+            case WellKnownSpells.PotionOfProtectionFromElementals:
+            case WellKnownSpells.PotionOfProtectionFromEarth:
+            case WellKnownSpells.PotionOfProtectionFromMagic:
+            case WellKnownSpells.PotionOfProtectionFromUndead:
+            case WellKnownSpells.RingOfAnimalSummoningDog:
+            case WellKnownSpells.PotionOfProtectionFromAcid:
+            case WellKnownSpells.PotionOfProtectionFromElectricity:
+            case WellKnownSpells.SummonAirElemental:
+            case WellKnownSpells.SummonEarthElemental:
+            case WellKnownSpells.SummonFireElemental:
+            case WellKnownSpells.SummonWaterElemental:
+            case WellKnownSpells.SummonBalor:
+            case WellKnownSpells.SummonGlabrezu:
+            case WellKnownSpells.SummonHezrou:
+            case WellKnownSpells.SummonVrock:
+            case WellKnownSpells.Shield:
+            case WellKnownSpells.ShieldOfFaith:
+            case WellKnownSpells.Shillelagh:
+            case WellKnownSpells.SpellResistance:
+            case WellKnownSpells.SpiritualWeapon:
+            case WellKnownSpells.Stoneskin:
+            case WellKnownSpells.SummonMonsterI:
+            case WellKnownSpells.SummonMonsterIi:
+            case WellKnownSpells.SummonMonsterIii:
+            case WellKnownSpells.SummonMonsterIv:
+            case WellKnownSpells.SummonMonsterV:
+            case WellKnownSpells.SummonMonsterVi:
+            case WellKnownSpells.SummonMonsterVii:
+            case WellKnownSpells.SummonMonsterViii:
+            case WellKnownSpells.SummonMonsterIx:
+            case WellKnownSpells.SummonNaturesAllyI:
+            case WellKnownSpells.SummonNaturesAllyIi:
+            case WellKnownSpells.SummonNaturesAllyIii:
+            case WellKnownSpells.SummonNaturesAllyIv:
+            case WellKnownSpells.SummonNaturesAllyV:
+            case WellKnownSpells.SummonNaturesAllyVi:
+            case WellKnownSpells.SummonNaturesAllyVii:
+            case WellKnownSpells.SummonNaturesAllyViii:
+            case WellKnownSpells.SummonNaturesAllyIx:
+            case WellKnownSpells.SummonSwarm:
+            case WellKnownSpells.Teleport:
+            case WellKnownSpells.TreeShape:
+            case WellKnownSpells.TrueSeeing:
+            case WellKnownSpells.TrueStrike:
+            case WellKnownSpells.SeeInvisibility:
+            case WellKnownSpells.LesserRestoration:
+            case WellKnownSpells.MageArmor:
+            case WellKnownSpells.MagicCircleAgainstChaos:
+            case WellKnownSpells.MagicCircleAgainstEvil:
+            case WellKnownSpells.MagicCircleAgainstGood:
+            case WellKnownSpells.MagicCircleAgainstLaw:
+            case WellKnownSpells.MagicFang:
+            case WellKnownSpells.MagicStone:
+            case WellKnownSpells.MagicVestment:
+            case WellKnownSpells.MagicWeapon:
+            case WellKnownSpells.MeldIntoStone:
+            case WellKnownSpells.LesserGlobeOfInvulnerability:
+            case WellKnownSpells.MirrorImage:
+            case WellKnownSpells.MordenkainensFaithfulHound:
+            case WellKnownSpells.NegativeEnergyProtection:
+            case WellKnownSpells.NeutralizePoison:
+            case WellKnownSpells.OpenClose:
+            case WellKnownSpells.OtilukesResilientSphere:
+            case WellKnownSpells.Prayer:
+            case WellKnownSpells.ProtectionFromArrows:
+            case WellKnownSpells.ProtectionFromChaos:
+            case WellKnownSpells.ProtectionFromElements:
+            case WellKnownSpells.ProtectionFromEvil:
+            case WellKnownSpells.ProtectionFromGood:
+            case WellKnownSpells.ProtectionFromLaw:
+            case WellKnownSpells.PryingEyes:
+            case WellKnownSpells.RaiseDead:
+            case WellKnownSpells.ReadMagic:
+            case WellKnownSpells.RemoveBlindnessDeafness:
+            case WellKnownSpells.RemoveCurse:
+            case WellKnownSpells.RemoveDisease:
+            case WellKnownSpells.RemoveFear:
+            case WellKnownSpells.RemoveParalysis:
+            case WellKnownSpells.Resistance:
+            case WellKnownSpells.ResistElements:
+            case WellKnownSpells.Restoration:
+            case WellKnownSpells.Resurrection:
+            case WellKnownSpells.RighteousMight:
+            case WellKnownSpells.Sanctuary:
+            case WellKnownSpells.KeenEdge:
+            case WellKnownSpells.DispelChaos:
+            case WellKnownSpells.DispelEvil:
+            case WellKnownSpells.DispelLaw:
+            case WellKnownSpells.DispelMagic:
+            case WellKnownSpells.Displacement:
+            case WellKnownSpells.DivineFavor:
+            case WellKnownSpells.DivinePower:
+            case WellKnownSpells.Emotion:
+            case WellKnownSpells.Endurance:
+            case WellKnownSpells.EndureElements:
+            case WellKnownSpells.Enlarge:
+            case WellKnownSpells.EntropicShield:
+            case WellKnownSpells.ExpeditiousRetreat:
+            case WellKnownSpells.FindTraps:
+            case WellKnownSpells.FireShield:
+            case WellKnownSpells.FreedomOfMovement:
+            case WellKnownSpells.GaseousForm:
+            case WellKnownSpells.GiantVermin:
+            case WellKnownSpells.Goodberry:
+            case WellKnownSpells.GreaterMagicFang:
+            case WellKnownSpells.GreaterMagicWeapon:
+            case WellKnownSpells.Guidance:
+            case WellKnownSpells.Haste:
+            case WellKnownSpells.HoldPortal:
+            case WellKnownSpells.Identify:
+            case WellKnownSpells.ImprovedInvisibility:
+            case WellKnownSpells.Invisibility:
+            case WellKnownSpells.InvisibilitySphere:
+            case WellKnownSpells.InvisibilityToAnimals:
+            case WellKnownSpells.InvisibilityToUndead:
+            case WellKnownSpells.DiscernLies:
             case WellKnownSpells.Aid:
             case WellKnownSpells.AnimalFriendship:
             case WellKnownSpells.AnimalGrowth:
@@ -1495,12 +1433,10 @@ return false;
             case WellKnownSpells.DetectSecretDoors:
             case WellKnownSpells.DetectUndead:
             case WellKnownSpells.DimensionDoor:
-                return false;
+                return false;            
             default:
                 return true;
         }
-
-        return true;
     }
 
     public bool IsValidSpell(int spEnum)

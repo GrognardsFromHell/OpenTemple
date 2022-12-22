@@ -329,7 +329,6 @@ public class ArcaneArcher
         var dispIo = evt.GetDispIoD20ActionTurnBased();
         var cur_seq = GameSystems.D20.Actions.CurrentSequence;
         var arrowTgt = dispIo.action.d20ATarget;
-        var min_dist = 10000;
         // print "Seeker arrow: target is " + str(arrowTgt)
         // roll to hit
         // cover bonus won't be applied because it doesn't appear in the ActionCheck callback
@@ -434,7 +433,6 @@ public class ArcaneArcher
         var dispIo = evt.GetDispIoD20ActionTurnBased();
         var cur_seq = GameSystems.D20.Actions.CurrentSequence;
         var arrowTgt = dispIo.action.d20ATarget;
-        var min_dist = 10000;
         // print "Phase arrow: target is " + str(arrowTgt)
         // roll to hit
         dispIo.action.d20Caf |= D20CAF.RANGED;

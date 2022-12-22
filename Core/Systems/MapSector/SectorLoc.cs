@@ -41,7 +41,7 @@ public readonly struct SectorLoc
     [TempleDllLocation(0x100819c0)]
     public ulong Pack()
     {
-        return ((ulong) Y << 26) | (ulong) (X & 0x3FFFFFF);
+        return ((ulong) Y << 26) | (uint) (X & 0x3FFFFFF);
     }
 
     public static SectorLoc Unpack(ulong fieldValue)

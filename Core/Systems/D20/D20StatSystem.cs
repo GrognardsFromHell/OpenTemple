@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Feats;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Systems.D20;
@@ -242,8 +239,8 @@ public class D20StatSystem : IGameSystem
             if (raceName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new NotImplementedException();
-                race = (RaceId) subraceId;
-                return true;
+                // race = (RaceId) subraceId;
+                // return true;
             }
         }
 
@@ -330,8 +327,6 @@ public class D20StatSystem : IGameSystem
             default:
                 return StatLevelGet(obj, stat);
         }
-
-        return 0;
     }
 
     [TempleDllLocation(0x1004dc30)]

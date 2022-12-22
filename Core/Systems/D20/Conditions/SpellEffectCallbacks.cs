@@ -42,9 +42,10 @@ public static partial class SpellEffects
     public static void DispCritterKilledRemoveSpellAndMod(in DispatcherCallbackArgs evt)
     {
         var dispIo = evt.GetDispIoD20Signal();
-        if (dispIo.obj ==
+        var critter = (GameObject) dispIo.obj;
+        if (critter ==
             GameSystems.D20.D20QueryReturnObject(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Charmed, 0, 0)
-            || dispIo.obj ==
+            || critter ==
             GameSystems.D20.D20QueryReturnObject(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Held, 0, 0))
         {
             Spell_remove_spell(in evt, 0, 0);
@@ -816,12 +817,12 @@ public static partial class SpellEffects
     [TempleDllLocation(0x100c86f0)]
     public static void HasteMoveSpeed(in DispatcherCallbackArgs evt, int data1, int data2)
     {
-        int v2 = 0; // TODO: This was badly patched in temple.dll and uses a register used for something else
+        // TODO: This was badly patched in temple.dll and uses a register used for something else
         throw new NotImplementedException();
 
-        evt.objHndCaller.GetBaseStat(Stat.movement_speed);
-        var dispIo = evt.GetDispIoMoveSpeed();
-        dispIo.bonlist.AddBonus(v2, 12, 174);
+        // evt.objHndCaller.GetBaseStat(Stat.movement_speed);
+        // var dispIo = evt.GetDispIoMoveSpeed();
+        // dispIo.bonlist.AddBonus(v2, 12, 174);
     }
 
 
@@ -1012,11 +1013,6 @@ public static partial class SpellEffects
                 spellPkt.durationRemaining = 0;
             }
 
-            {
-                GameSystems.Spell.UpdateSpellPacket(spellPkt);
-                Logger.Info("d20_mods_spells.c / _cloudkill_hit_trigger(): unable to save new spell_packet");
-                return;
-            }
             GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
         }
 
@@ -1393,12 +1389,6 @@ public static partial class SpellEffects
     [TempleDllLocation(0x100c5d90)]
     public static void DeafnessSpellFailure(in DispatcherCallbackArgs evt)
     {
-        int spellClassCode;
-        int spellEnum;
-        SpellStoreData spData;
-
-        var spellLvl = 0;
-        var mmData = 0;
         var dispIo = evt.GetDispIoD20Query();
         if (dispIo.return_val != 1)
         {
@@ -3259,7 +3249,6 @@ concentration
         int v2;
         int condArg1;
         int condArg3;
-        int v5;
         SpellPacketBody spellPkt;
 
         var dispIo = evt.GetDispIoTooltip();

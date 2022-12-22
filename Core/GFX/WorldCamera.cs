@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using OpenTemple.Core.Location;
@@ -8,11 +7,30 @@ namespace OpenTemple.Core.GFX;
 
 public class WorldCamera
 {
+    private float _xTranslation;
+    private float _yTranslation;
+    private float _viewportWidth;
+    private float _viewportHeight;
+    private bool _dirty = true;
+
+    // This is roughly 64 * PIXEL_PER_TILE (inches per tile to be precise)
+    private const float ZNear = -1814.2098860142813876543089825124f;
+    private const float ZFar = 1814.2098860142813876543089825124f;
+
+    // Current x,y offset in screen space relative to a
+    // cam position of 0,0
+    private Vector2 _curScreenOffset;
+
+    private Matrix4x4 _projection;
+    private Matrix4x4 _view;
+    private Matrix4x4 _viewProjection;
+    private Matrix4x4 _invViewProjection;
+    
     public bool IsBoxOnScreen(Vector2 screenCenter,
         float left, float top, float right, float bottom)
     {
-        var dx = mCurScreenOffset.X;
-        var dy = mCurScreenOffset.Y;
+        var dx = _curScreenOffset.X;
+        var dy = _curScreenOffset.Y;
 
         var screenX = dx - screenCenter.X;
         var screenY = dy - screenCenter.Y;
@@ -46,7 +64,7 @@ public class WorldCamera
             _dirty = false;
         }
 
-        return mViewProjection;
+        return _viewProjection;
     }
 
     public Matrix4x4 GetProj()
@@ -56,7 +74,7 @@ public class WorldCamera
             Update();
         }
 
-        return mProjection;
+        return _projection;
     }
 
     public void SetTranslation(float x, float y)
@@ -73,7 +91,7 @@ public class WorldCamera
             Update();
         }
 
-        return mCurScreenOffset;
+        return _curScreenOffset;
     }
 
     public float GetViewportWidth()
@@ -97,7 +115,7 @@ public class WorldCamera
             Update();
         }
 
-        var pos = Vector3.Transform(worldPos, mView);
+        var pos = Vector3.Transform(worldPos, _view);
 
         var screenPos = new Vector2(pos.X, pos.Y);
         screenPos.X *= -1;
@@ -122,9 +140,9 @@ public class WorldCamera
             0,
             _viewportWidth,
             _viewportHeight,
-            zNear,
-            zFar,
-            mViewProjection
+            ZNear,
+            ZFar,
+            _viewProjection
         );
         return new Vector2(
             result.X,
@@ -150,10 +168,10 @@ public class WorldCamera
             0,
             _viewportWidth,
             _viewportHeight,
-            zNear,
-            zFar,
-            mProjection,
-            mView,
+            ZNear,
+            ZFar,
+            _projection,
+            _view,
             Matrix4x4.Identity
         );
 
@@ -163,10 +181,10 @@ public class WorldCamera
             0,
             _viewportWidth,
             _viewportHeight,
-            zNear,
-            zFar,
-            mProjection,
-            mView,
+            ZNear,
+            ZFar,
+            _projection,
+            _view,
             Matrix4x4.Identity
         );
 
@@ -195,10 +213,10 @@ public class WorldCamera
             0,
             _viewportWidth,
             _viewportHeight,
-            zNear,
-            zFar,
-            mProjection,
-            mView,
+            ZNear,
+            ZFar,
+            _projection,
+            _view,
             Matrix4x4.Identity
         );
 
@@ -208,10 +226,10 @@ public class WorldCamera
             0,
             _viewportWidth,
             _viewportHeight,
-            zNear,
-            zFar,
-            mProjection,
-            mView,
+            ZNear,
+            ZFar,
+            _projection,
+            _view,
             Matrix4x4.Identity
         );
 
@@ -277,36 +295,16 @@ public class WorldCamera
         _dirty = true;
     }
 
-    private float _xTranslation;
-    private float _yTranslation;
-    private float _viewportWidth;
-    private float _viewportHeight;
-    private bool _dirty = true;
-
-    // This is roughly 64 * PIXEL_PER_TILE (inches per tile to be precise)
-    private const float zNear = -1814.2098860142813876543089825124f;
-    private const float zFar = 1814.2098860142813876543089825124f;
-
-    // Current x,y offset in screen space relative to a
-    // cam position of 0,0
-    private Vector2 mCurScreenOffset;
-
-    private Matrix4x4 mProjection;
-    private Matrix4x4 mView;
-    private Matrix4x4 mViewProjection;
-    private Matrix4x4 mViewUntranslated;
-    private Matrix4x4 mInvViewProjection;
-
     private void Update()
     {
         var projection = CreateOrthographicLH(
             _viewportWidth,
             _viewportHeight,
-            zNear,
-            zFar
+            ZNear,
+            ZFar
         );
 
-        mProjection = projection;
+        _projection = projection;
 
         /*
             This is x for sin(x) = 0.7, so x is roughly 44.42°.
@@ -337,39 +335,39 @@ public class WorldCamera
 
         // Calculate how much the screen has moved in x,y coordinates
         // using the current camera position
-        mCurScreenOffset = Vector3.Transform(Vector3.Zero, view).ToVector2();
-        mCurScreenOffset.X -= transformOrigin.X;
+        _curScreenOffset = Vector3.Transform(Vector3.Zero, view).ToVector2();
+        _curScreenOffset.X -= transformOrigin.X;
         // mCurScreenOffset.X *= -1;
-        mCurScreenOffset.Y -= transformOrigin.Y;
-        mCurScreenOffset.Y *= -1;
+        _curScreenOffset.Y -= transformOrigin.Y;
+        _curScreenOffset.Y *= -1;
 
         view = Matrix4x4.CreateRotationY(2.3561945f) * view; // 135°
 
-        mView = view;
+        _view = view;
 
-        mViewProjection = view * projection;
+        _viewProjection = view * projection;
 
-        Matrix4x4.Invert(mViewProjection, out mInvViewProjection);
+        Matrix4x4.Invert(_viewProjection, out _invViewProjection);
 
         _dirty = false;
     }
 
     // Ported from XMMatrixOrthographicLH
-    private static Matrix4x4 CreateOrthographicLH(float ViewWidth,
-        float ViewHeight,
-        float NearZ,
-        float FarZ)
+    private static Matrix4x4 CreateOrthographicLH(float viewWidth,
+        float viewHeight,
+        float nearZ,
+        float farZ)
     {
-        float fRange = 1.0f / (FarZ - NearZ);
+        float fRange = 1.0f / (farZ - nearZ);
 
         var m = new Matrix4x4();
-        m.M11 = 2.0f / ViewWidth;
+        m.M11 = 2.0f / viewWidth;
         m.M12 = 0.0f;
         m.M13 = 0.0f;
         m.M14 = 0.0f;
 
         m.M21 = 0.0f;
-        m.M22 = 2.0f / ViewHeight;
+        m.M22 = 2.0f / viewHeight;
         m.M23 = 0.0f;
         m.M24 = 0.0f;
 
@@ -380,7 +378,7 @@ public class WorldCamera
 
         m.M41 = 0.0f;
         m.M42 = 0.0f;
-        m.M43 = -fRange * NearZ;
+        m.M43 = -fRange * nearZ;
         m.M44 = 1.0f;
         return m;
     }
@@ -413,8 +411,8 @@ public class WorldCamera
 
         // In D3D, negative Z extends outwards from the screen (left-handed coordinates)
         // 2 / width, 2 / height translates to 1 pixel due to screen-space being [-1,1]
-        var up = Vector3.TransformNormal(new Vector3(0, 2 / _viewportHeight, 0), mInvViewProjection);
-        var right = Vector3.TransformNormal(new Vector3(2 / _viewportWidth, 0, 0), mInvViewProjection);
+        var up = Vector3.TransformNormal(new Vector3(0, 2 / _viewportHeight, 0), _invViewProjection);
+        var right = Vector3.TransformNormal(new Vector3(2 / _viewportWidth, 0, 0), _invViewProjection);
         return (right, up);
     }
 }

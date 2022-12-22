@@ -11,9 +11,9 @@ public class HeadlessMainWindow : IMainWindow
     {
     }
 
-    public event Action<Size> Resized;
-
-    public event Action Closed;
+    public event Action<Size>? Resized;
+    
+    public event Action? Closed;
     
     public IUiRoot? UiRoot { get; set; }
 
@@ -24,6 +24,11 @@ public class HeadlessMainWindow : IMainWindow
     public void InvokeClosed()
     {
         Closed?.Invoke();
+    }
+
+    public void InvokeResized(Size size)
+    {
+        Resized?.Invoke(size);
     }
 
     public SizeF UiCanvasSize => new(OffScreenSize.Width, OffScreenSize.Height);

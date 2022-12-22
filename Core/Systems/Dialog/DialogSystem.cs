@@ -1190,10 +1190,7 @@ public class DialogSystem : IGameSystem
                     if (actionType != 1)
                     {
                         var effectField = state.EffectLineKey[responseIdx];
-                        if (effectField != null)
-                        {
-                            RunDialogAction(effectField, state, responseIdx);
-                        }
+                        RunDialogAction(effectField, state, responseIdx);
                     }
 
                     DialogGetNpcReply(state.PcReplyOpcode[responseIdx], state.NPCReplyIds[responseIdx], state);

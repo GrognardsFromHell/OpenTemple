@@ -25,7 +25,7 @@ public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareS
 
     public delegate void ShowMessage(GameObject speaker, GameObject speakingTo, string text, int speechId);
 
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     [TempleDllLocation(0x103073B8)]
     private int[] _globalVars = new int[2000];
@@ -234,9 +234,15 @@ public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareS
     [TempleDllLocation(0x100067c0)]
     public void SetGlobalFlag(int index, bool enable)
     {
-        var value = enable ? 1 : 0;
-
-        _globalFlags[index / 32] = (uint)((value << index % 32) | _globalFlags[index / 32] & ~(1 << index % 32));
+        var mask = 1u << (index % 32);
+        if (enable)
+        {
+            _globalFlags[index / 32] |= mask;
+        }
+        else
+        {
+            _globalFlags[index / 32] &= ~mask;
+        }
     }
 
     [TempleDllLocation(0x10006760)]

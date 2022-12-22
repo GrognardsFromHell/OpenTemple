@@ -35,7 +35,7 @@ public class TextFloaterSystem : IGameSystem, IResetAwareSystem, ITimeAwareSyste
     IMapCloseAwareGameSystem
 {
     [TempleDllLocation(0x10B3D8A4)]
-    private const bool IsEditor = false; // Is Editor
+    private static readonly bool IsEditor = false; // Is Editor
 
     // TODO this is incorrect and the floating system needs a rework of how it fades in/out
     private const float LineHeight = 20;

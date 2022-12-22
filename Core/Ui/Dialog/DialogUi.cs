@@ -63,7 +63,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     private int dword_10BEC20C;
 
     [TempleDllLocation(0x10be9ff0)]
-    private int dword_10BE9FF0;
+    private int maximizedBackdropY;
 
     private WidgetContainer _dialogLinesContainer;
     private readonly TextEngine _textEngine;

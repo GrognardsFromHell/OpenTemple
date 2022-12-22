@@ -104,9 +104,6 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
     private WidgetContainer _locationList;
 
-    [TempleDllLocation(0x102fb3e4)]
-    private WorldMapLocation _tripFromLocation;
-
     private readonly WidgetContainer _mapContent;
 
     private readonly WidgetContainer _trailDotsContainer;
@@ -553,7 +550,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x102fb3e0)]
     private int uiWorldMapToId;
 
-    [TempleDllLocation(0x102fb3e0)]
+    [TempleDllLocation(0x102FB3E4)]
     private int uiWorldMapFromId;
 
     [TempleDllLocation(0x102fb3dc)]

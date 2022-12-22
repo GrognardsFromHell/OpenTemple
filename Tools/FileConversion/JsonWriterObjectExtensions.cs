@@ -303,7 +303,7 @@ public static class JsonWriterObjectExtensions
                 return;
         }
 
-        switch (fieldDef.type)
+        switch (fieldDef.Type)
         {
             case ObjectFieldType.Int32:
                 writer.WriteNumberValue((int) value);

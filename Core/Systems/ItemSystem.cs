@@ -27,7 +27,7 @@ public class ItemSystem : IGameSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     private readonly Dictionary<int, int[]> _startEquipment;
 
@@ -2816,7 +2816,6 @@ public class ItemSystem : IGameSystem
         if (GetWieldType(receiver, item) == 3)
             return ItemErrorCode.Item_Too_Large;
 
-        LABEL_97:
         if (shield != null)
         {
             if (!shield.GetItemWearFlags().HasFlag(ItemWearFlag.BUCKLER))

@@ -1203,8 +1203,6 @@ public static class StatusEffects
     [TempleDllLocation(0x100eb3f0)]
     public static void DiseaseBeginRound(in DispatcherCallbackArgs evt)
     {
-        int v2;
-
         var diseaseId = evt.GetConditionArg1();
         var disease = GameSystems.Disease.GetDisease(diseaseId);
 
@@ -3573,11 +3571,7 @@ public static class StatusEffects
     [TempleDllLocation(0x100e8a80)]
     public static void InvisibilityAcBonus2Cap(in DispatcherCallbackArgs args)
     {
-        DispIoAttackBonus dispIo;
-        int condArg1;
-        SpellPacketBody spellPkt;
-
-        dispIo = args.GetDispIoAttackBonus();
+        var dispIo = args.GetDispIoAttackBonus();
         if (GameSystems.Feat.HasFeat(dispIo.attackPacket.victim, FeatId.BLIND_FIGHT))
         {
             dispIo.bonlist.zeroBonusSetMeslineNum(164);

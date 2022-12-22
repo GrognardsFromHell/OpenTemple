@@ -18,7 +18,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
 
     private static readonly TimeSpan UpdateInterval = TimeSpan.FromMilliseconds(250);
 
-    private const bool IsEditor = false;
+    private static readonly bool IsEditor = false;
 
     [TempleDllLocation(0x108f270c)]
     private bool soundgameInited;

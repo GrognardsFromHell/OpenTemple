@@ -1930,7 +1930,7 @@ public class D20ActionSystem : IDisposable
         // is the animId ok?
         var action = curSeq.d20ActArray[curSeq.d20aCurIdx];
 
-        if (animId != -1 && animId != 0xccccCCCC && (animId != 0) && action.animID != animId)
+        if (animId != -1 && animId != 0 && action.animID != animId)
         {
             Logger.Debug("PerformOnAnimComplete: \t Wrong anim ID: {0} != {1}",
                 animId, action.animID);

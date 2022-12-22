@@ -226,7 +226,6 @@ public class FavoredSoul
 
         throw new NotImplementedException();
         // classSpecModule.InitSpellSelection(evt.objHndCaller);
-        return;
     }
 
     public static void OnLevelupSpellsCheckComplete(in DispatcherCallbackArgs evt)

@@ -207,10 +207,6 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
                 }
 
                 gotPath = FindPathUsingNodes(pq, pqr);
-                if (!gotPath)
-                {
-                    int dummy = 1;
-                }
             }
         }
 
@@ -1198,17 +1194,6 @@ public class PathXSystem : IGameSystem, IResetAwareSystem
                     lastIdx = i - 1;
                     fromLocDirection = pqr.directions[i - 1];
                     directionChanged = false;
-                }
-                else
-                {
-                    int dummy = 1;
-                }
-            }
-            else
-            {
-                if (lastIdx == i - 2)
-                {
-                    int dummy = 1;
                 }
             }
         }

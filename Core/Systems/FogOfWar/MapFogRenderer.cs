@@ -106,8 +106,6 @@ public class FogOfWarRenderer : IDisposable
 	private ResourceRef<IndexBuffer> _indexBuffer;
 	private ResourceRef<BufferBinding> _bufferBinding;
 
-	private Vector2 mFogOrigin;
-
 	// Size of the buffers used by the fog system in subtiles
 	private Size _originalFogSize;
 
