@@ -4,37 +4,37 @@ namespace OpenTemple.Core.Systems.Sound;
 
 public class SoundScheme
 {
-    public string schemeName;
-    public int schemelistKey;
-    public int schemeId;
-    public List<SoundSchemeElement> lines = new();
-    public string? combatintro;
-    public string? combatloop;
+    public string SchemeName;
+    public int SchemelistKey;
+    public int SchemeId;
+    public List<SoundSchemeElement> Lines = new();
+    public string? CombatIntro;
+    public string? CombatLoop;
 
     [TempleDllLocation(0x1003bad0)]
     public void Reset()
     {
-        schemeName = null;
-        schemelistKey = 0;
-        combatintro = null;
-        combatloop = null;
-        lines.Clear();
+        SchemeName = null;
+        SchemelistKey = 0;
+        CombatIntro = null;
+        CombatLoop = null;
+        Lines.Clear();
     }
 
     public void GetCombatMusicFiles(out string combatIntro, out string combatLoop)
     {
-        if (combatintro != null)
+        if (CombatIntro != null)
         {
-            combatIntro = $"sound/{combatintro}";
+            combatIntro = $"sound/{CombatIntro}";
         }
         else
         {
             combatIntro = "sound/music/combatintro.mp3";
         }
 
-        if (combatloop != null)
+        if (CombatLoop != null)
         {
-            combatLoop = $"sound/{combatloop}";
+            combatLoop = $"sound/{CombatLoop}";
         }
         else
         {

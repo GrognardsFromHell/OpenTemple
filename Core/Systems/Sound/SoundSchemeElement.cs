@@ -51,7 +51,7 @@ public class SoundSchemeElement
                 return false;
             }
 
-            var subparts = part.Substring(prefix.Length).Split("-");
+            var subparts = part[prefix.Length..].Split("-");
             from = int.Parse(subparts[0]);
             to = subparts.Length >= 2 ? int.Parse(subparts[1]) : from;
             return true;
@@ -65,7 +65,7 @@ public class SoundSchemeElement
                 return false;
             }
 
-            value = int.Parse(part.Substring(prefix.Length));
+            value = int.Parse(part[prefix.Length..]);
             return true;
         }
 

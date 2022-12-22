@@ -188,8 +188,8 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
             IsCombatMusicPlaying = _combatMusicPlaying,
             SchemesSuppressedByCombatMusic = _schemesBeforeCombatMusic,
             CurrentSchemeIds = (
-                soundScheme[0].schemelistKey != 0 ? soundScheme[0].schemeId : 0,
-                soundScheme[1].schemelistKey != 0 ? soundScheme[1].schemeId : 0
+                soundScheme[0].SchemelistKey != 0 ? soundScheme[0].SchemeId : 0,
+                soundScheme[1].SchemelistKey != 0 ? soundScheme[1].SchemeId : 0
             )
         };
     }
@@ -248,7 +248,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     private void TickSoundScheme(SoundScheme scheme)
     {
         var hourOfDay = GameSystems.TimeEvent.HourOfDay;
-        foreach (var schemeElement in scheme.lines)
+        foreach (var schemeElement in scheme.Lines)
         {
             if (schemeElement.Music)
             {
@@ -595,7 +595,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         {
             for (var i = 0; i < soundScheme.Length; i++)
             {
-                if (soundScheme[i].schemelistKey != 0 && soundScheme[i].schemeId == schemeId)
+                if (soundScheme[i].SchemelistKey != 0 && soundScheme[i].SchemeId == schemeId)
                 {
                     index = i;
                     return true;
@@ -624,10 +624,10 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     {
         var scheme = soundScheme[idx];
         var stashSchemeId = 0;
-        if (scheme.schemelistKey != 0)
+        if (scheme.SchemelistKey != 0)
         {
-            stashSchemeId = scheme.schemeId;
-            foreach (var element in scheme.lines)
+            stashSchemeId = scheme.SchemeId;
+            foreach (var element in scheme.Lines)
             {
                 if (element.Loop)
                 {
@@ -668,7 +668,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         int freeSlot = -1;
         for (var i = 0; i < soundScheme.Length; i++)
         {
-            if (soundScheme[i].schemelistKey == 0)
+            if (soundScheme[i].SchemelistKey == 0)
             {
                 freeSlot = i;
                 break;
@@ -687,7 +687,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     private void LoadSoundScheme(int id, SoundScheme scheme)
     {
         scheme.Reset();
-        scheme.schemeId = id;
+        scheme.SchemeId = id;
 
         if (!soundSchemeIndexMes.TryGetValue(id, out var meslineValue))
         {
@@ -702,12 +702,12 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
             return;
         }
 
-        scheme.schemeName = indexLineParts[0].Trim();
-        scheme.schemelistKey = int.Parse(indexLineParts[1]);
+        scheme.SchemeName = indexLineParts[0].Trim();
+        scheme.SchemelistKey = int.Parse(indexLineParts[1]);
 
         for (var i = 0; i < 100; i++)
         {
-            var lineKey = scheme.schemelistKey + i;
+            var lineKey = scheme.SchemelistKey + i;
             if (!soundSchemeListMes.TryGetValue(lineKey, out var line))
             {
                 continue;
@@ -726,16 +726,16 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
 
             if (element.Type == SoundSchemeElementType.CombatIntro)
             {
-                scheme.combatintro = element.Filename;
-                return;
+                scheme.CombatIntro = element.Filename;
+                continue;
             }
             else if (element.Type == SoundSchemeElementType.CombatLoop)
             {
-                scheme.combatloop = element.Filename;
-                return;
+                scheme.CombatLoop = element.Filename;
+                continue;
             }
 
-            scheme.lines.Add(element);
+            scheme.Lines.Add(element);
 
             if (element.Music)
             {
@@ -807,8 +807,8 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         if (!_combatMusicPlaying && obj.IsNPC())
         {
             _schemesBeforeCombatMusic = (
-                soundScheme[0].schemelistKey != 0 ? soundScheme[0].schemeId : 0,
-                soundScheme[1].schemelistKey != 0 ? soundScheme[1].schemeId : 0
+                soundScheme[0].SchemelistKey != 0 ? soundScheme[0].SchemeId : 0,
+                soundScheme[1].SchemelistKey != 0 ? soundScheme[1].SchemeId : 0
             );
 
             soundScheme[0].GetCombatMusicFiles(out var combatIntro, out var combatLoop);
@@ -949,9 +949,9 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         {
             for (var i = 0; i < soundScheme.Length; i++)
             {
-                if (soundScheme[i].schemelistKey != 0)
+                if (soundScheme[i].SchemelistKey != 0)
                 {
-                    _stashedSoundSchemes[i] = soundScheme[i].schemeId;
+                    _stashedSoundSchemes[i] = soundScheme[i].SchemeId;
                 }
                 else
                 {
