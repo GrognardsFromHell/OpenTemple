@@ -663,15 +663,16 @@ public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSyst
         }
     }
 
-    struct MapProperties
+    private struct MapProperties
     {
+#pragma warning disable CS0649
         // ID for terrain art
         public int GroundArtId;
         public int Y;
         public ulong LimitX;
         public ulong LimitY;
-    };
-
+#pragma warning restore CS0649
+    }
 
     [TempleDllLocation(0x10072370)]
     private void OpenMap(MapListEntry mapEntry)

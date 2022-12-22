@@ -187,19 +187,20 @@ internal class AnimatedModel : IDisposable
         }
     }
 
-    private static AasVertexState[] _vertexState = new AasVertexState[0x7FFF];
-    private static AasWorkSet[] _workset = new AasWorkSet[0x47FF7];
+    private static readonly AasVertexState[] VertexState = new AasVertexState[0x7FFF];
+    private static readonly AasWorkSet[] WorkSet = new AasWorkSet[0x47FF7];
 
-    private static SubmeshVertexClothStateWithFlag[] _clothVerticesWithFlag =
+    private static readonly SubmeshVertexClothStateWithFlag[] ClothVerticesWithFlag =
         new SubmeshVertexClothStateWithFlag[0x7FFF];
 
-    private static SubmeshVertexClothStateWithoutFlag[] _clothVerticesWithoutFlag =
+    private static readonly SubmeshVertexClothStateWithoutFlag[] ClothVerticesWithoutFlag =
         new SubmeshVertexClothStateWithoutFlag[0x7FFF];
 
     private readonly short[] _vertexIdxMapping = new short[0x7FFF];
     private readonly short[] _primVertIdx = new short[0xFFFF * 3];
 
-    private unsafe void Method11()
+    [TempleDllLocation(0x10267640)]
+    private unsafe void UpdateSubmeshes()
     {
         // Cached bone mappings for SKM file
         Mesh boneMappingMesh = null;
@@ -215,7 +216,12 @@ internal class AnimatedModel : IDisposable
         int clothVerticesWithFlagCount = 0;
         int clothVerticesWithoutFlagCount = 0;
         
-        Span<short> faceVertices = stackalloc short[3];
+        // Scratch-Variables for inverting vertex attachments
+        Span<float> vertexBoneAttachWeights = stackalloc float[6];
+        Span<short> vertexBoneAttachSkaIds = stackalloc short[6]; // Attached bones mapped to SKA bone ids
+        Span<Vector4> attachmentPositions = stackalloc Vector4[6];
+        Span<Vector4> attachmentNormals = stackalloc Vector4[6];
+        
         foreach (var submesh in Submeshes)
         {
             int worksetCount = 0;
@@ -271,12 +277,9 @@ internal class AnimatedModel : IDisposable
 
                     var primVertIdxOut = primitiveCount++ * 3;
 
-                    faceVertices[0] = face.Vertex1;
-                    faceVertices[1] = face.Vertex2;
-                    faceVertices[2] = face.Vertex3;
-
-                    foreach (var skmVertexIdx in faceVertices)
+                    for (var faceVertexIdx = 0; faceVertexIdx < 3; faceVertexIdx++)
                     {
+                        var skmVertexIdx = face[faceVertexIdx];
                         ref var vertex = ref vertices[skmVertexIdx];
 
                         // Is it mapped for the submesh already, then reuse the existing vertex
@@ -291,7 +294,7 @@ internal class AnimatedModel : IDisposable
                         mappedIdx = (short) vertexCount++;
                         vertexIdxMapping[skmVertexIdx] = mappedIdx;
                         primVertIdx[primVertIdxOut++] = mappedIdx;
-                        ref var curVertexState = ref _vertexState[mappedIdx];
+                        ref var curVertexState = ref VertexState[mappedIdx];
 
                         // Handle the cloth state
                         if (matchingclothstuff1Idx < ClothStuff1.Count)
@@ -305,21 +308,21 @@ internal class AnimatedModel : IDisposable
                                 {
                                     if (clothState.bytePerClothVertex[i] == 1)
                                     {
-                                        _clothVerticesWithFlag[clothVerticesWithFlagCount].cloth_stuff1 =
+                                        ClothVerticesWithFlag[clothVerticesWithFlagCount].cloth_stuff1 =
                                             clothState;
-                                        _clothVerticesWithFlag[clothVerticesWithFlagCount]
+                                        ClothVerticesWithFlag[clothVerticesWithFlagCount]
                                             .submesh_vertex_idx = mappedIdx;
-                                        _clothVerticesWithFlag[clothVerticesWithFlagCount]
+                                        ClothVerticesWithFlag[clothVerticesWithFlagCount]
                                             .cloth_stuff_vertex_idx = i;
                                         clothVerticesWithFlagCount++;
                                     }
                                     else
                                     {
-                                        _clothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
+                                        ClothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
                                             .cloth_stuff1 = clothState;
-                                        _clothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
+                                        ClothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
                                             .submesh_vertex_idx = mappedIdx;
-                                        _clothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
+                                        ClothVerticesWithoutFlag[clothVerticesWithoutFlagCount]
                                             .cloth_stuff_vertex_idx = i;
                                         clothVerticesWithoutFlagCount++;
                                     }
@@ -329,10 +332,6 @@ internal class AnimatedModel : IDisposable
 
                         // Deduplicate bone attachment ids and weights
                         int vertexBoneAttachCount = 0;
-                        Span<float> vertexBoneAttachWeights = stackalloc float[6];
-                        Span<short> vertexBoneAttachSkaIds = stackalloc short[6]; // Attached bones mapped to SKA bone ids
-                        Span<Vector4> attachmentPositions = stackalloc Vector4[6];
-                        Span<Vector4> attachmentNormals = stackalloc Vector4[6];
 
                         for (int attachmentIdx = 0; attachmentIdx < vertex.AttachmentCount; attachmentIdx++)
                         {
@@ -414,7 +413,7 @@ internal class AnimatedModel : IDisposable
                                 weight * attachmentPositions[i].Z,
                                 1
                             );
-                            curVertexState.array2[i] = (short) AasWorkSet.workset_add(_workset,
+                            curVertexState.array2[i] = (short) AasWorkSet.workset_add(WorkSet,
                                 ref worksetCount,
                                 weightedPos,
                                 weight,
@@ -428,7 +427,7 @@ internal class AnimatedModel : IDisposable
                                 weight * attachmentNormals[i].Z,
                                 0
                             );
-                            curVertexState.array3[i] = (short) AasWorkSet.workset_add(_workset,
+                            curVertexState.array3[i] = (short) AasWorkSet.workset_add(WorkSet,
                                 ref worksetCount,
                                 weightedNormal,
                                 0.0f,
@@ -442,12 +441,12 @@ internal class AnimatedModel : IDisposable
 
             if (HasClothBones)
             {
-                submesh.cloth_vertices_without_flag = _clothVerticesWithoutFlag
+                submesh.cloth_vertices_without_flag = ClothVerticesWithoutFlag
                     .AsSpan(0, clothVerticesWithoutFlagCount)
                     .ToArray();
                 clothVerticesWithoutFlagCount = 0;
 
-                submesh.cloth_vertices_with_flag = _clothVerticesWithFlag
+                submesh.cloth_vertices_with_flag = ClothVerticesWithFlag
                     .AsSpan(0, clothVerticesWithFlagCount)
                     .ToArray();
                 clothVerticesWithFlagCount = 0;
@@ -491,12 +490,12 @@ internal class AnimatedModel : IDisposable
                 var offset = 0;
                 while (scratchIdx != -1)
                 {
-                    floatOut[offset++] = _workset[scratchIdx].vector.X;
-                    floatOut[offset++] = _workset[scratchIdx].vector.Y;
-                    floatOut[offset++] = _workset[scratchIdx].vector.Z;
-                    floatOut[offset++] = _workset[scratchIdx].weight;
+                    floatOut[offset++] = WorkSet[scratchIdx].vector.X;
+                    floatOut[offset++] = WorkSet[scratchIdx].vector.Y;
+                    floatOut[offset++] = WorkSet[scratchIdx].vector.Z;
+                    floatOut[offset++] = WorkSet[scratchIdx].weight;
 
-                    scratchIdx = _workset[scratchIdx].next;
+                    scratchIdx = WorkSet[scratchIdx].next;
                 }
 
                 // Copy over all normals to the float buffer
@@ -506,11 +505,11 @@ internal class AnimatedModel : IDisposable
                 offset = 0;
                 while (scratchIdx != -1)
                 {
-                    floatOut[offset++] = _workset[scratchIdx].vector.X;
-                    floatOut[offset++] = _workset[scratchIdx].vector.Y;
-                    floatOut[offset++] = _workset[scratchIdx].vector.Z;
+                    floatOut[offset++] = WorkSet[scratchIdx].vector.X;
+                    floatOut[offset++] = WorkSet[scratchIdx].vector.Y;
+                    floatOut[offset++] = WorkSet[scratchIdx].vector.Z;
 
-                    scratchIdx = _workset[scratchIdx].next;
+                    scratchIdx = WorkSet[scratchIdx].next;
                 }
             }
 
@@ -523,7 +522,7 @@ internal class AnimatedModel : IDisposable
             var idxOffset = 0;
             for (int i = 0; i < vertexCount; i++)
             {
-                ref var curVertexState = ref _vertexState[i];
+                ref var curVertexState = ref VertexState[i];
                 submesh.uv[i].X = curVertexState.uv.X;
                 submesh.uv[i].Y = 1.0f - curVertexState.uv.Y;
 
@@ -579,7 +578,7 @@ internal class AnimatedModel : IDisposable
         {
             if (!SubmeshesValid)
             {
-                Method11();
+                UpdateSubmeshes();
             }
 
             foreach (var submesh in Submeshes)
@@ -787,7 +786,7 @@ internal class AnimatedModel : IDisposable
 
         if (!SubmeshesValid)
         {
-            Method11();
+            UpdateSubmeshes();
         }
 
         var submesh = Submeshes[submeshIdx];

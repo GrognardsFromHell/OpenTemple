@@ -177,15 +177,6 @@ public class PopupUi : IDisposable, IResetAwareSystem
         uiPopups[popupIdx].btn3.Rectangle = uiPrompt.textEntryRect;
     }
 
-    [TempleDllLocation(0x10c03fd4)]
-    private Rectangle stru_10C03FD4;
-
-    [TempleDllLocation(0x10C04018)]
-    private Rectangle stru_10C04018;
-
-    [TempleDllLocation(0x10c04008)]
-    private Rectangle uiPromptRect;
-
     [TempleDllLocation(0x10171580)]
     public void UiPopupShow_Impl(UiPromptPacket uiPrompt, int uiPromptIdx, int flags)
     {

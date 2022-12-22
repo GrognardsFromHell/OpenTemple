@@ -2461,7 +2461,6 @@ public class D20ActionSystem : IDisposable
     private struct ProjectileEntry
     {
         public D20Action d20a;
-        public int pad4;
         public GameObject projectile;
         public GameObject ammoItem;
     }

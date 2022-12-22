@@ -87,15 +87,14 @@ public class FogOfWarRenderer : IDisposable
 
 	private readonly MapFoggingSystem _fogSystem;
 	    
-	private readonly FogBlurKernel sOpaquePattern = FogBlurKernel.Create(0xFF);
-	private readonly FogBlurKernel sHalfTransparentPattern = FogBlurKernel.Create(0xA0);
+	private readonly FogBlurKernel _opaquePattern = FogBlurKernel.Create(0xFF);
+	private readonly FogBlurKernel _halfTransparentPattern = FogBlurKernel.Create(0xA0);
 
-	private MdfMaterialFactory mMdfFactory;
 	private readonly RenderingDevice _device;
 
 	private ResourceRef<Material> _material;
 
-	private byte[] _blurredFog;
+	private byte[] _blurredFog = Array.Empty<byte>();
 	private int _blurredFogWidth;
 	private int _blurredFogHeight;
 
@@ -214,10 +213,10 @@ public class FogOfWarRenderer : IDisposable
 					ReadOnlySpan<byte> patternSrc;
 					// Bit 3 -> Explored
 					if ((fogState & 4) != 0) {
-						patternSrc = sHalfTransparentPattern.GetKernel(x);
+						patternSrc = _halfTransparentPattern.GetKernel(x);
 					} else
 					{
-						patternSrc = sOpaquePattern.GetKernel(x);
+						patternSrc = _opaquePattern.GetKernel(x);
 					}
 
 					// Now we copy 5 rows of 2 dwords each, to apply
@@ -245,10 +244,10 @@ public class FogOfWarRenderer : IDisposable
 		_blurredFogTexture.Resource.UpdateRaw(_blurredFog, _blurredFogWidth);
 
 		// Use only the relevant subportion of the texture
-		var umin = 2.5f / (float)_blurredFogWidth;
-		var vmin = 2.5f / (float)_blurredFogHeight;
-		var umax = (subtilesX - 0.5f) / (float)_blurredFogWidth;
-		var vmax = (subtilesY - 0.5f) / (float)_blurredFogHeight;
+		var umin = 2.5f / _blurredFogWidth;
+		var vmin = 2.5f / _blurredFogHeight;
+		var umax = (subtilesX - 0.5f) / _blurredFogWidth;
+		var vmax = (subtilesY - 0.5f) / _blurredFogHeight;
 
 		Span<FogOfWarVertex> mVertices = stackalloc FogOfWarVertex[4];
 		mVertices[0].pos.X = (mFogOriginX * 3) * locXY.INCH_PER_SUBTILE;

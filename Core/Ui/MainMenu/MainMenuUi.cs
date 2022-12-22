@@ -11,6 +11,7 @@ using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.TigSubsystems;
@@ -486,6 +487,10 @@ class ViewCinematicsDialog
 class SetPiecesDialog
 {
     private readonly MainMenuUi _mainMenuUi;
+    private WidgetContainer _widget;
+    private WidgetScrollView _listBox;
+    private List<WidgetButton> btnIds = new();
+    private int _selection;
 
     public SetPiecesDialog(MainMenuUi mainMenuUi)
     {
@@ -507,11 +512,6 @@ class SetPiecesDialog
         });
     }
 
-    public void Select(int i)
-    {
-        mSelection = i;
-    }
-
     public void Show()
     {
         _listBox.Clear();
@@ -530,7 +530,7 @@ class SetPiecesDialog
             button.Y = y;
             btnIds.Add(button);
             var idx = i;
-            button.AddClickListener(() => Select(idx));
+            button.AddClickListener(() => _selection = idx);
             y += button.Height;
             _listBox.Add(button);
         }
@@ -553,15 +553,12 @@ class SetPiecesDialog
         var destMap = GameSystems.Map.GetMapIdByType(MapType.ArenaMap);
         _mainMenuUi.TransitionToMap(destMap);
 
+        var selectedScenario = _selection;
+
         // TODO var args = PyTuple_New(0);
 
         // TODO var result = pythonObjIntegration.ExecuteScript("arena_script", "OnStartup", args);
         // TODO Py_DECREF(result);
         // TODO Py_DECREF(args);
     }
-
-    private int mSelection = 0;
-    private WidgetContainer _widget;
-    private WidgetScrollView _listBox;
-    private List<WidgetButton> btnIds;
 }

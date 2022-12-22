@@ -24,9 +24,6 @@ public class CharSheetLootingUi : IDisposable
     internal bool IsVisible => _mainWindow.IsInTree;
 
     [TempleDllLocation(0x10BE6EB8)]
-    private int dword_10BE6EB8;
-
-    [TempleDllLocation(0x10be6ef0)]
     private bool _identifyIsActive;
 
     [TempleDllLocation(0x1013de30)]
@@ -437,14 +434,11 @@ public class CharSheetLootingUi : IDisposable
     [TempleDllLocation(0x1013ddf0)]
     public ActionCursor? GetCursor()
     {
-        if (dword_10BE6EB8 != 0)
+        if (_identifyIsActive)
         {
             return ActionCursor.IdentifyCursor;
         }
 
-        else
-        {
-            return null;
-        }
+        return null;
     }
 }
