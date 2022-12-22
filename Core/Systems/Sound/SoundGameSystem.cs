@@ -9,7 +9,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 
-namespace OpenTemple.Core.Systems;
+namespace OpenTemple.Core.Systems.Sound;
 
 public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem,
     ITimeAwareSystem
@@ -35,7 +35,8 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     private readonly Dictionary<int, string> soundSchemeListMes;
 
     [TempleDllLocation(0x108ee848)]
-    private SoundScheme[] soundScheme = {
+    private SoundScheme[] soundScheme =
+    {
         new(),
         new()
     };
@@ -82,7 +83,8 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003c9f0)]
     public int MusicVolume => musicVolume;
 
-    [TempleDllLocation(0x108ee838)] [TempleDllLocation(0x108f2888)]
+    [TempleDllLocation(0x108ee838)]
+    [TempleDllLocation(0x108f2888)]
     private Vector3 _currentListenerPos;
 
     [TempleDllLocation(0x108f2890)]
@@ -201,7 +203,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         _schemesBeforeOverlayScheme = soundState.SchemesSuppressedByOverlay;
         _combatMusicPlaying = soundState.IsCombatMusicPlaying;
         _schemesBeforeCombatMusic = soundState.SchemesSuppressedByCombatMusic;
-        
+
         if (_combatMusicPlaying)
         {
             soundscheme_unloadall(0);
@@ -212,7 +214,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         }
         else
         {
-            SetScheme(soundState.CurrentSchemeIds.Item1, soundState.CurrentSchemeIds.Item2);   
+            SetScheme(soundState.CurrentSchemeIds.Item1, soundState.CurrentSchemeIds.Item2);
         }
     }
 
@@ -261,9 +263,9 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
 
     private void ApplySoundSchemeImmediateElement(SoundSchemeElement schemeElement, int hourOfDay)
     {
-        if (schemeElement.over)
+        if (schemeElement.Over)
         {
-            if (!Tig.Sound.IsStreamPlaying(schemeElement.streamId))
+            if (!Tig.Sound.IsStreamPlaying(schemeElement.StreamId))
             {
                 if (_playingOverlayScheme)
                 {
@@ -272,19 +274,19 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
                 }
             }
         }
-        else if (schemeElement.loop)
+        else if (schemeElement.Loop)
         {
-            if (hourOfDay < schemeElement.timeFrom || hourOfDay > schemeElement.timeTo)
+            if (hourOfDay < schemeElement.TimeFrom || hourOfDay > schemeElement.TimeTo)
             {
-                if (schemeElement.streamId != -1)
+                if (schemeElement.StreamId != -1)
                 {
-                    Tig.Sound.FadeOutStream(schemeElement.streamId, 80);
-                    schemeElement.streamId = -1;
+                    Tig.Sound.FadeOutStream(schemeElement.StreamId, 80);
+                    schemeElement.StreamId = -1;
                 }
             }
             else
             {
-                if (schemeElement.streamId == -1)
+                if (schemeElement.StreamId == -1)
                 {
                     if (_combatMusicPlaying)
                     {
@@ -295,12 +297,12 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
                         _combatMusicPlaying = false;
                     }
 
-                    var path = ResolvePath(schemeElement.filename);
+                    var path = ResolvePath(schemeElement.Filename);
                     Tig.Sound.tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_MUSIC);
                     Tig.Sound.SetStreamVolume(streamId,
-                        musicVolume * 80 / 100 * schemeElement.volFrom / 100);
+                        musicVolume * 80 / 100 * schemeElement.VolFrom / 100);
                     Tig.Sound.StreamPlayMusicLoop(streamId, path, 80, false, -1);
-                    schemeElement.streamId = streamId;
+                    schemeElement.StreamId = streamId;
                 }
             }
         }
@@ -308,41 +310,41 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
 
     private void ApplySoundSchemeAmbientElement(SoundSchemeElement schemeElement, int hourOfDay)
     {
-        if (hourOfDay < schemeElement.timeFrom || hourOfDay > schemeElement.timeTo)
+        if (hourOfDay < schemeElement.TimeFrom || hourOfDay > schemeElement.TimeTo)
         {
             return; // Element does not apply to this time of day
         }
 
         var roll = GameSystems.Random.GetInt(0, 999);
-        if (roll >= schemeElement.freq)
+        if (roll >= schemeElement.Freq)
         {
             return; // Random occurrence roll not met 
         }
-        
-        var filename = ResolvePath(schemeElement.filename);
 
-        var maxVolume = schemeElement.volTo;
-        var volume = schemeElement.volFrom;
+        var filename = ResolvePath(schemeElement.Filename);
+
+        var maxVolume = schemeElement.VolTo;
+        var volume = schemeElement.VolFrom;
         if (maxVolume > volume)
         {
-            volume = schemeElement.volFrom + GameSystems.Random.GetInt(0, maxVolume - volume - 1);
+            volume = schemeElement.VolFrom + GameSystems.Random.GetInt(0, maxVolume - volume - 1);
         }
 
-        if (schemeElement.scatter)
+        if (schemeElement.Scatter)
         {
-            Logger.Debug("Playing ambient 3d sound effect {0}. Volume={1}", schemeElement.filename, volume);
+            Logger.Debug("Playing ambient 3d sound effect {0}. Volume={1}", schemeElement.Filename, volume);
             Tig.Sound.Play3dSample(filename, volume * threeDVolume / 100);
         }
         else
         {
-            var maxPanning = schemeElement.balanceTo;
-            int panning = schemeElement.balanceFrom;
+            var maxPanning = schemeElement.BalanceTo;
+            int panning = schemeElement.BalanceFrom;
             if (maxPanning > panning)
             {
-                panning = schemeElement.balanceFrom + GameSystems.Random.GetInt(0, maxPanning - panning - 1);
+                panning = schemeElement.BalanceFrom + GameSystems.Random.GetInt(0, maxPanning - panning - 1);
             }
 
-            Logger.Debug("Playing ambient sound effect {0}. Volume={1}, Panning={2}", schemeElement.filename, volume, panning);
+            Logger.Debug("Playing ambient sound effect {0}. Volume={1}, Panning={2}", schemeElement.Filename, volume, panning);
             CreateSoundStream(filename, 0, 1, volume, panning);
         }
     }
@@ -351,7 +353,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     {
         path = ResolvePath(path);
         Tig.Sound.tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_MUSIC);
-        Tig.Sound.SetStreamVolume(streamId, (int)((float)musicVolume * 80 / 100 * volume));
+        Tig.Sound.SetStreamVolume(streamId, (int) ((float) musicVolume * 80 / 100 * volume));
         if (once)
         {
             Tig.Sound.StreamPlayMusicOnce(streamId, path, 80, false, -1);
@@ -494,7 +496,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         else if (maxRadius > minRadius)
         {
             var v18 = (minRadius - distanceToSource) * 127;
-            volume = (int)((v18 / (maxRadius - minRadius)) + 127);
+            volume = (int) ((v18 / (maxRadius - minRadius)) + 127);
             volume = Math.Clamp(volume, 0, 127);
         }
 
@@ -536,7 +538,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003c5b0)]
     public void StopAll(int fadeOutTime)
     {
-        if ( soundgameInited )
+        if (soundgameInited)
         {
             soundscheme_unloadall(fadeOutTime);
             _playingOverlayScheme = false;
@@ -547,14 +549,15 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003c4d0)]
     public void SetScheme(int scheme1, int scheme2)
     {
-        if ( soundgameInited && soundscheme_stashed == 0 )
+        if (soundgameInited && soundscheme_stashed == 0)
         {
-            if ( scheme1 == scheme2 )
+            if (scheme1 == scheme2)
             {
                 scheme2 = 0;
             }
+
             Tig.Sound.SoundDisableReverb();
-            if ( _combatMusicPlaying )
+            if (_combatMusicPlaying)
             {
                 _schemesBeforeCombatMusic = (scheme1, scheme2);
             }
@@ -562,15 +565,15 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
             {
                 var scheme1Running = soundscheme_get(scheme1, out var currentScheme1Slot);
                 var scheme2Running = soundscheme_get(scheme2, out var currentScheme2Slot);
-                if ( scheme1Running )
+                if (scheme1Running)
                 {
-                    if ( !scheme2Running )
+                    if (!scheme2Running)
                     {
                         soundscheme_unload(80, 1 - currentScheme1Slot);
                         soundscheme_load(scheme2);
                     }
                 }
-                else if ( scheme2Running )
+                else if (scheme2Running)
                 {
                     soundscheme_unload(80, 1 - currentScheme2Slot);
                     soundscheme_load(scheme1);
@@ -584,11 +587,11 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
             }
         }
     }
-        
+
     [TempleDllLocation(0x1003c490)]
     public bool soundscheme_get(int schemeId, out int index)
     {
-        if ( schemeId != 0 )
+        if (schemeId != 0)
         {
             for (var i = 0; i < soundScheme.Length; i++)
             {
@@ -607,7 +610,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003bef0)]
     public void soundscheme_unloadall(int fadeOutTime)
     {
-        if ( soundgameInited )
+        if (soundgameInited)
         {
             for (var i = 0; i < soundScheme.Length; i++)
             {
@@ -621,17 +624,17 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     {
         var scheme = soundScheme[idx];
         var stashSchemeId = 0;
-        if ( scheme.schemelistKey != 0 )
+        if (scheme.schemelistKey != 0)
         {
             stashSchemeId = scheme.schemeId;
             foreach (var element in scheme.lines)
             {
-                if (element.loop)
+                if (element.Loop)
                 {
-                    if ( element.streamId != -1 )
+                    if (element.StreamId != -1)
                     {
-                        Tig.Sound.FadeOutStream(element.streamId, fadeOutTime);
-                        element.streamId = -1;
+                        Tig.Sound.FadeOutStream(element.StreamId, fadeOutTime);
+                        element.StreamId = -1;
                     }
                 }
             }
@@ -640,7 +643,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         }
 
         // If it is later determined that the "new" scheme was a one-off, this allows us to restore this scheme
-        if ( !_playingOverlayScheme )
+        if (!_playingOverlayScheme)
         {
             if (idx == 0)
             {
@@ -723,12 +726,12 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
 
             if (element.Type == SoundSchemeElementType.CombatIntro)
             {
-                scheme.combatintro = element.filename;
+                scheme.combatintro = element.Filename;
                 return;
             }
             else if (element.Type == SoundSchemeElementType.CombatLoop)
             {
-                scheme.combatloop = element.filename;
+                scheme.combatloop = element.Filename;
                 return;
             }
 
@@ -736,16 +739,16 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
 
             if (element.Music)
             {
-                if (!element.loop)
+                if (!element.Loop)
                 {
-                    var path = ResolvePath(element.filename);
-                    Tig.Sound.tig_sound_alloc_stream(out element.streamId, tig_sound_type.TIG_ST_MUSIC);
-                    Tig.Sound.SetStreamVolume(element.streamId,
-                        80 * musicVolume * element.volFrom / 100 / 100);
-                    Tig.Sound.StreamPlayMusicOnce(element.streamId, path, 80, false, -1);
+                    var path = ResolvePath(element.Filename);
+                    Tig.Sound.tig_sound_alloc_stream(out element.StreamId, tig_sound_type.TIG_ST_MUSIC);
+                    Tig.Sound.SetStreamVolume(element.StreamId,
+                        80 * musicVolume * element.VolFrom / 100 / 100);
+                    Tig.Sound.StreamPlayMusicOnce(element.StreamId, path, 80, false, -1);
                 }
 
-                if (element.over)
+                if (element.Over)
                 {
                     _playingOverlayScheme = true;
                 }
@@ -942,7 +945,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
     [TempleDllLocation(0x1003c910)]
     public void StashSchemes()
     {
-        if ( GameSystems.SoundGame.soundscheme_stashed == 0 )
+        if (GameSystems.SoundGame.soundscheme_stashed == 0)
         {
             for (var i = 0; i < soundScheme.Length; i++)
             {
@@ -958,6 +961,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
 
             soundscheme_unloadall(0);
         }
+
         ++GameSystems.SoundGame.soundscheme_stashed;
     }
 
@@ -971,295 +975,5 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         {
             SetScheme(_stashedSoundSchemes[0], _stashedSoundSchemes[1]);
         }
-    }
-}
-
-public enum SoundSourceSize
-{
-    Small = 0,
-    Medium = 1,
-    Large = 2, // This is the default
-    ExtraLarge = 3
-}
-
-public class PositionalAudioConfig
-{
-    /// <summary>
-    /// Sounds closer than this (in screen coordinates) are unattenuated.
-    /// This seems to be relative to the center of the screen.
-    /// </summary>
-    public Dictionary<SoundSourceSize, int> AttenuationRangeStart { get; } =
-        new()
-        {
-            { SoundSourceSize.Small, 50 },
-            { SoundSourceSize.Medium, 50 },
-            { SoundSourceSize.Large, 150 },
-            { SoundSourceSize.ExtraLarge, 50 }
-        };
-
-    /// <summary>
-    /// Sound sources further away than this (in screen coordinates) from the
-    /// center of the screen play at zero volume.
-    /// TODO: This should calculate based on the screen edge.
-    /// </summary>
-    public Dictionary<SoundSourceSize, int> AttenuationRangeEnd { get; } =
-        new()
-        {
-            { SoundSourceSize.Small, 150 },
-            { SoundSourceSize.Medium, 400 },
-            { SoundSourceSize.Large, 800 },
-            { SoundSourceSize.ExtraLarge, 1500 }
-        };
-
-    /// <summary>
-    /// The volume for sound sources of a given size at minimum attenuation.
-    /// </summary>
-    public Dictionary<SoundSourceSize, int> AttenuationMaxVolume { get; } =
-        new()
-        {
-            { SoundSourceSize.Small, 40 },
-            { SoundSourceSize.Medium, 70 },
-            { SoundSourceSize.Large, 100 },
-            { SoundSourceSize.ExtraLarge, 100 }
-        };
-
-    /// <summary>
-    /// Sounds within this range of the screen center (in screen coordinates) play
-    /// dead center.
-    /// </summary>
-    [TempleDllLocation(0x108f2880)]
-    public int PanningMinRange { get; } = 150;
-
-    /// <summary>
-    /// Sounds further away than this range relative to the screen center (in screen coordinates) play
-    /// fully on that side.
-    /// </summary>
-    [TempleDllLocation(0x108f2860)]
-    public int PanningMaxRange { get; } = 400;
-
-    public PositionalAudioConfig()
-    {
-    }
-
-    public PositionalAudioConfig(Dictionary<int, string> parameters)
-    {
-        AttenuationRangeStart[SoundSourceSize.Large] = int.Parse(parameters[1]);
-        AttenuationRangeEnd[SoundSourceSize.Large] = int.Parse(parameters[2]);
-        PanningMinRange = int.Parse(parameters[3]);
-        PanningMaxRange = int.Parse(parameters[4]);
-
-        AttenuationRangeStart[SoundSourceSize.Small] = int.Parse(parameters[10]);
-        AttenuationRangeEnd[SoundSourceSize.Small] = int.Parse(parameters[11]);
-        AttenuationMaxVolume[SoundSourceSize.Small] = int.Parse(parameters[12]);
-
-        AttenuationRangeStart[SoundSourceSize.Medium] = int.Parse(parameters[20]);
-        AttenuationRangeEnd[SoundSourceSize.Medium] = int.Parse(parameters[21]);
-        AttenuationMaxVolume[SoundSourceSize.Medium] = int.Parse(parameters[22]);
-
-        AttenuationRangeStart[SoundSourceSize.ExtraLarge] = int.Parse(parameters[30]);
-        AttenuationRangeEnd[SoundSourceSize.ExtraLarge] = int.Parse(parameters[31]);
-        AttenuationMaxVolume[SoundSourceSize.ExtraLarge] = int.Parse(parameters[32]);
-    }
-}
-
-public class SoundScheme
-{
-    public string schemeName;
-    public int schemelistKey;
-    public int schemeId;
-    public List<SoundSchemeElement> lines = new();
-    public string? combatintro;
-    public string? combatloop;
-
-    [TempleDllLocation(0x1003bad0)]
-    public void Reset()
-    {
-        schemeName = null;
-        schemelistKey = 0;
-        combatintro = null;
-        combatloop = null;
-        lines.Clear();
-    }
-
-    public void GetCombatMusicFiles(out string combatIntro, out string combatLoop)
-    {
-        if (combatintro != null)
-        {
-            combatIntro = $"sound/{combatintro}";
-        }
-        else
-        {
-            combatIntro = "sound/music/combatintro.mp3";
-        }
-
-        if (combatloop != null)
-        {
-            combatLoop = $"sound/{combatloop}";
-        }
-        else
-        {
-            combatLoop = "sound/music/combatmusic.mp3";
-        }
-    }
-}
-
-public enum SoundSchemeElementType
-{
-    CombatIntro,
-    CombatLoop,
-    Anchor,
-    Over,
-    Loop,
-    Ambient
-}
-
-public class SoundSchemeElement
-{
-    public SoundSchemeElementType Type = SoundSchemeElementType.Ambient;
-    public bool Music;
-    public bool loop;
-    public bool over;
-    public int freq = 5;
-    public int timeFrom;
-    public int timeTo = 23;
-    public int balanceFrom = 50;
-    public int balanceTo = 50;
-    public int volFrom = 100;
-    public int volTo = 100;
-    public bool scatter;
-    public int streamId = -1;
-    public string filename;
-
-    [TempleDllLocation(0x1003bfd0)]
-    public static SoundSchemeElement Parse(string line)
-    {
-        var result = new SoundSchemeElement();
-
-        var parts = line.Split(' ', StringSplitOptions.TrimEntries);
-        result.filename = parts[0];
-
-        static bool ParseRangePart(string part, string prefix, out int from, out int to)
-        {
-            if (!part.StartsWith(prefix))
-            {
-                from = default;
-                to = default;
-                return false;
-            }
-
-            var subparts = part.Substring(prefix.Length).Split("-");
-            from = int.Parse(subparts[0]);
-            to = subparts.Length >= 2 ? int.Parse(subparts[1]) : from;
-            return true;
-        }
-
-        static bool ParseValuePart(string part, string prefix, out int value)
-        {
-            if (!part.StartsWith(prefix))
-            {
-                value = default;
-                return false;
-            }
-
-            value = int.Parse(part.Substring(prefix.Length));
-            return true;
-        }
-
-        for (var i = 1; i < parts.Length; i++)
-        {
-            var part = parts[i].ToLowerInvariant();
-            if (ParseRangePart(part, "/vol:", out var volFrom, out var volTo))
-            {
-                result.volFrom = volFrom;
-                result.volTo = volTo;
-            }
-            else if (part == "/combatmusic")
-            {
-                if (result.Type != SoundSchemeElementType.Ambient)
-                {
-                    throw new Exception("Cannot combine different option types in one line.");
-                }
-                result.Type = SoundSchemeElementType.CombatLoop;
-            }
-            else if (part == "/combatintro")
-            {
-                if (result.Type != SoundSchemeElementType.Ambient)
-                {
-                    throw new Exception("Cannot combine different option types in one line.");
-                }
-                result.Type = SoundSchemeElementType.CombatIntro;
-            }
-            else if (part == "/anchor")
-            {
-                if (result.Type != SoundSchemeElementType.Ambient)
-                {
-                    throw new Exception("Cannot combine different option types in one line.");
-                }
-                result.Type = SoundSchemeElementType.Anchor;
-                result.Music = true;
-            }
-            else if (part == "/over")
-            {
-                if (result.Type != SoundSchemeElementType.Ambient)
-                {
-                    throw new Exception("Cannot combine different option types in one line.");
-                }
-                result.Type = SoundSchemeElementType.Over;
-                result.Music = true;
-                result.over = true;
-            }
-            else if (part == "/loop")
-            {
-                if (result.Type != SoundSchemeElementType.Ambient)
-                {
-                    throw new Exception("Cannot combine different option types in one line.");
-                }
-                result.Type = SoundSchemeElementType.Loop;
-                result.Music = true;
-                result.loop = true;
-            }
-            else if (ParseRangePart(part, "/time:", out var timeFrom, out var timeTo))
-            {
-                // Only valid for loops _or_ sound effects
-                result.timeFrom = timeFrom;
-                result.timeTo = timeTo;
-            }
-            else if (ParseValuePart(part, "/freq:", out var freq))
-            {
-                // Only valid for sound effects
-                result.freq = freq;
-            }
-            else if (ParseRangePart(part, "/bal:", out var balanceFrom, out var balanceTo))
-            {
-                // Only valid for sound effects
-                result.balanceFrom = balanceFrom;
-                result.balanceTo = balanceTo;
-            }
-            else if (part == "/scatter")
-            {
-                // Only valid for sound effects
-                result.scatter = true;
-            }
-        }
-
-        if (result.volTo < result.volFrom)
-        {
-            result.volTo = result.volFrom;
-        }
-        if (result.balanceTo < result.balanceFrom)
-        {
-            result.balanceTo = result.balanceFrom;
-        }
-
-        static void PercentageToSByte(ref int value)
-        {
-            value = Math.Clamp(127 * value / 100, 0, 127);
-        }
-        PercentageToSByte(ref result.volFrom);
-        PercentageToSByte(ref result.volTo);
-        PercentageToSByte(ref result.balanceFrom);
-        PercentageToSByte(ref result.balanceTo);
-
-        return result;
     }
 }

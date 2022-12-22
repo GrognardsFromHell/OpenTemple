@@ -7,6 +7,7 @@ using System.Reflection.Metadata;
 using SoLoud;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Sound;
 using OpenTemple.Core.Time;
 using OpenTemple.Interop;
 
