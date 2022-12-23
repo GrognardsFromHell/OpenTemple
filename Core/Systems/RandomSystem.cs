@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTemple.Core.Time;
+using SharpDX;
 
 namespace OpenTemple.Core.Systems;
 
@@ -19,6 +20,14 @@ public class RandomSystem : IGameSystem
         return _random.Next(fromInclusive, toInclusive + 1);
     }
 
+    /// <summary>
+    /// From 0 to 1 *exlusive*.
+    /// </summary>
+    public float GetFactor()
+    {
+        return _random.NextSingle();
+    }
+    
     public bool GetBool() => GetInt(0, 1) == 1;
 
     public T PickRandom<T>(IReadOnlyList<T> collection)

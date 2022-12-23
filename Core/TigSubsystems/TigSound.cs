@@ -136,7 +136,7 @@ public class TigSound : IDisposable
     }
 
     [TempleDllLocation(0x101e4700)]
-    public void Play3dSample(string path, float volume)
+    public void PlayPositionalAmbientSample(string path, float volume)
     {
         if (_soloud == null || tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_THREE_D) != 0)
         {
@@ -159,12 +159,13 @@ public class TigSound : IDisposable
             // TODO AIL_set_3D_sample_effects_level(stream.mss_3dsample, 0x3F800000); ???
         }
 
-        // TODO: Just randomly positioned... okay?!
-        float xPos = GameSystems.Random.GetInt(0, 100) - 50;
-        float yPos = GameSystems.Random.GetInt(0, 100) - 50;
-        Logger.Info("Distance: {0}", MathF.Sqrt(xPos * xPos + yPos * yPos));
-
-        stream.voiceHandle = _soloud.play3d(stream.wav, xPos, yPos, 0, aVolume: volume, aPaused: true);
+        // Just  generate a random point around the listener
+        var distance = 10f + GameSystems.Random.GetFactor() * 40f;
+        var theta = GameSystems.Random.GetFactor() * 2 * MathF.PI;
+        var x = distance * MathF.Cos(theta);
+        var z = distance * MathF.Sin(theta);
+        
+        stream.voiceHandle = _soloud.play3d(stream.wav, x, 0, z, aVolume: volume, aPaused: true);
         _soloud.set3dSourceMinMaxDistance(stream.voiceHandle, 2.0f, 50.0f);
         // model 1 is inverse distance clamped. seems to be the standard DirectSound model and also used by MSS
         _soloud.set3dSourceAttenuation(stream.voiceHandle, 2, 1);

@@ -334,7 +334,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         {
             Logger.Debug("Playing ambient 3d sound effect {0}. Volume={1}", schemeElement.Filename, volume);
             // this is obviously wrong since the volume is 0-127, not 0-100, but it's what ToEE did
-            Tig.Sound.Play3dSample(filename, (volume * threeDVolume) / 100f / 127f);
+            Tig.Sound.PlayPositionalAmbientSample(filename, (volume * threeDVolume) / 100f / 127f);
         }
         else
         {
