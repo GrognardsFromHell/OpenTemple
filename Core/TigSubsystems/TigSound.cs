@@ -108,6 +108,11 @@ public class TigSound : IDisposable
             _soloud.getBackendChannels(),
             _soloud.getBackendSamplerate()
         );
+        
+        // This is the same as DirectSound 8 which is a potential backend for MSS32 used by ToEE
+        _soloud.set3dListenerPosition(0, 0, 0);
+        _soloud.set3dListenerAt(0, 0, 1);
+        _soloud.set3dListenerUp(0, 1, 0);
 
         // TODO: Possibly sample cache
         // TODO dword_10EED5A4/*0x10eed5a4*/ = sub_10200B20/*0x10200b20*/(0x14, 1000000);
@@ -131,7 +136,7 @@ public class TigSound : IDisposable
     }
 
     [TempleDllLocation(0x101e4700)]
-    public void Play3dSample(string path, int volume)
+    public void Play3dSample(string path, float volume)
     {
         if (_soloud == null || tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_THREE_D) != 0)
         {
@@ -140,7 +145,11 @@ public class TigSound : IDisposable
 
         ref var stream = ref tig_sound_streams[streamId];
 
-        LoadSample(ref stream, path);
+        if (!LoadSample(ref stream, path))
+        {
+            FreeStream(streamId);
+            return;
+        }
 
         // TODO v5 = (int*) sub_10200C00 /*0x10200c00*/(dword_10EED5A4 /*0x10eed5a4*/, path);
         // TODO stream.field_134 = (int) v5;
@@ -153,10 +162,13 @@ public class TigSound : IDisposable
         // TODO: Just randomly positioned... okay?!
         float xPos = GameSystems.Random.GetInt(0, 100) - 50;
         float yPos = GameSystems.Random.GetInt(0, 100) - 50;
+        Logger.Info("Distance: {0}", MathF.Sqrt(xPos * xPos + yPos * yPos));
 
-        var actualVolume = volume / 127.0f;
-        stream.voiceHandle = _soloud.play3d(stream.wav, xPos, yPos, 0, aVolume: actualVolume, aPaused: true);
+        stream.voiceHandle = _soloud.play3d(stream.wav, xPos, yPos, 0, aVolume: volume, aPaused: true);
         _soloud.set3dSourceMinMaxDistance(stream.voiceHandle, 2.0f, 50.0f);
+        // model 1 is inverse distance clamped. seems to be the standard DirectSound model and also used by MSS
+        _soloud.set3dSourceAttenuation(stream.voiceHandle, 2, 1);
+        _soloud.update3dAudio();
         _soloud.setPause(stream.voiceHandle, false);
 
         stream.flags |= 0x400;

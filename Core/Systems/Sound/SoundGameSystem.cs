@@ -137,7 +137,7 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         musicVolume = 127 * Globals.Config.MusicVolume / 100;
         Tig.Sound.SetVolume(tig_sound_type.TIG_ST_MUSIC, musicVolume);
 
-        threeDVolume = 127 * Globals.Config.VoiceVolume / 100;
+        threeDVolume = 127 * Globals.Config.ThreeDVolume / 100;
         Tig.Sound.SetVolume(tig_sound_type.TIG_ST_THREE_D, threeDVolume);
     }
 
@@ -333,7 +333,8 @@ public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwar
         if (schemeElement.Scatter)
         {
             Logger.Debug("Playing ambient 3d sound effect {0}. Volume={1}", schemeElement.Filename, volume);
-            Tig.Sound.Play3dSample(filename, volume * threeDVolume / 100);
+            // this is obviously wrong since the volume is 0-127, not 0-100, but it's what ToEE did
+            Tig.Sound.Play3dSample(filename, (volume * threeDVolume) / 100f / 127f);
         }
         else
         {
