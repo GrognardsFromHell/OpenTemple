@@ -8,7 +8,7 @@
   "__styles": [
     {
       "id": "options-button-text",
-      "fontFamily": "arial-12",
+      "fontSize": 12,
       "legacyKerning": 0,
       "legacyTracking": 5,
       "color": "#ffffff",
@@ -18,7 +18,7 @@
     },
     {
       "id": "options-label",
-      "fontFamily": "arial-10",
+      
       "paragraphAlignment": "center",
       "legacyKerning": 1,
       "legacyTracking": 3

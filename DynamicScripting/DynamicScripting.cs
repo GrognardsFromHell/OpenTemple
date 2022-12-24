@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
@@ -75,7 +76,7 @@ public class DynamicScripting : IDynamicScripting
     public DynamicScripting()
     {
         // The default will try to load VisualBasic, which we explicitly want to exclude
-        var mefServices = MefHostServices.Create(new []
+        var mefServices = MefHostServices.Create(new[]
         {
             Assembly.Load("Microsoft.CodeAnalysis.Workspaces"),
             Assembly.Load("Microsoft.CodeAnalysis.CSharp.Workspaces"),
@@ -110,6 +111,9 @@ public class DynamicScripting : IDynamicScripting
             DocumentId.CreateNewId(project.Id), "Script",
             sourceCodeKind: SourceCodeKind.Script);
         _scriptDocument = workspace.AddDocument(scriptDocumentInfo);
+        
+        // Create and run a dummy script to force the compiler classes to be loaded
+        CSharpScript.Create("0", _scriptOptions, typeof(ReplGlobals)).RunAsync(_globals);
     }
 
     public object EvaluateExpression(string command)
@@ -138,6 +142,8 @@ public class DynamicScripting : IDynamicScripting
 
     public async Task<object> RunScriptAsync(string path)
     {
+        var sw = Stopwatch.StartNew();
+
         var scriptText = Tig.FS.ReadTextFile(path);
         var script = CSharpScript.Create(scriptText, _scriptOptions, typeof(ReplGlobals));
         try
@@ -152,6 +158,7 @@ public class DynamicScripting : IDynamicScripting
             finally
             {
                 Globals.GameLoop.ReleaseGlobalLock();
+                Logger.Info("Finished running {0} in {1}ms", path, sw.ElapsedMilliseconds);
             }
         }
         catch (Exception e)

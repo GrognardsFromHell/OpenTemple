@@ -91,6 +91,12 @@ public static class PropertyTypes
         .Add("ExtraBold", 800)
         .Add("Black", 900)
         .Add("ExtraBlack", 950);
+    
+    // https://learn.microsoft.com/en-us/windows/win32/api/dwrite_3/ns-dwrite_3-dwrite_line_spacing explains some of these values
+    public static readonly EnumPropertyType LineSpacingMode = new EnumPropertyType("LineSpacingMode")
+        .Add("Default", 0)
+        .Add("Uniform", 1)
+        .Add("Proportional", 2);
 }
 
 /// <summary>
@@ -134,7 +140,9 @@ public class StyleSystemModel
                 new StyleProperty("ParagraphAlignment", PropertyTypes.ParagraphAlign, "ParagraphAlign.Near"),
                 new StyleProperty("WordWrap", PropertyTypes.WordWrap, "WordWrap.Wrap"),
                 new StyleProperty("TrimMode", PropertyTypes.TrimMode, "TrimMode.None"),
-                new StyleProperty("TrimmingSign", PropertyTypes.TrimmingSign, "TrimmingSign.Ellipsis")
+                new StyleProperty("TrimmingSign", PropertyTypes.TrimmingSign, "TrimmingSign.Ellipsis"),
+                new StyleProperty("LineSpacingMode", PropertyTypes.LineSpacingMode, "LineSpacingMode.Default"),
+                new StyleProperty("LineHeight", PropertyTypes.Float, "1")
             }
         },
         new StylePropertyGroup("Text")

@@ -212,7 +212,7 @@ public class TooltipUi : IDisposable
         return content;
     }
 
-    private void AppendHitPointDescription(GameObject critter, IInlineContainer content)
+    private void AppendHitPointDescription(GameObject critter, IMutableInlineContainer content)
     {
         var subdualDamage = critter.GetStat(Stat.subdual_damage);
         var currentHp = critter.GetStat(Stat.hp_current);

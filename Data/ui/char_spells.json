@@ -8,14 +8,14 @@
   "__styles": [
     {
       "id": "char-spell-class-tab-label",
-      "fontFamily": "arial-10",
+      
       "color": "#000000",
       "legacyKerning": 1,
       "legacyTracking": 5
     },
     {
       "id": "char-spell-body",
-      "fontFamily": "arial-10",
+      
       "color": "#ffffff",
       "legacyKerning": 1,
       "legacyTracking": 5
@@ -27,7 +27,7 @@
     },
     {
       "id": "char-spell-level",
-      "fontFamily": "arial-10",
+      
       "color": "#4d7197",
       "legacyKerning": 1,
       "legacyTracking": 5

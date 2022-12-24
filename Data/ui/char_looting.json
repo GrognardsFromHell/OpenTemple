@@ -13,7 +13,7 @@
     },
     {
       "id": "charLootingIdentify",
-      "fontFamily": "arial-12",
+      "fontSize": 12,
       "dropShadowColor": "#000000",
       "legacyKerning": 1,
       "legacyTracking": 5,

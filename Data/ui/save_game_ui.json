@@ -8,9 +8,8 @@
   "__styles": [
     {
       "id": "loadGameTitle",
-      "fontFamily": "arial-12",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 12,
+
       "textAlignment": "center",
       "paragraphAlignment": "center",
       "color": "#ffffff"
@@ -18,8 +17,7 @@
     {
       "id": "loadGameSlot",
       "fontFamily": "priory-12",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+
       "color": "#ffffff"
     }
   ],

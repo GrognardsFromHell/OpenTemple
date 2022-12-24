@@ -15,7 +15,8 @@
     },
     {
       "id": "charGenCurrentHeightLabel",
-      "fontFamily": "arial-bold-24",
+      "fontSize": 24,
+"fontWeight": "bold",
       "color": "#ffffff",
       "dropShadowColor": "#000000",
       "dropShadow": true

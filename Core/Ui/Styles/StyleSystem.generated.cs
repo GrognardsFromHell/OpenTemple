@@ -1,4 +1,5 @@
 ﻿#nullable enable
+
 using System;
 using System.CodeDom.Compiler;
 using System.Text.Json;
@@ -8,7 +9,7 @@ using System.Collections.Immutable;
 
 namespace OpenTemple.Core.Ui.Styles;
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public interface IStyleDefinition {
     public OpenTemple.Core.GFX.PackedLinearColorA? BackgroundColor { get; }
     public OpenTemple.Core.GFX.PackedLinearColorA? BorderColor { get; }
@@ -29,6 +30,8 @@ public interface IStyleDefinition {
     public WordWrap? WordWrap { get; }
     public TrimMode? TrimMode { get; }
     public TrimmingSign? TrimmingSign { get; }
+    public LineSpacingMode? LineSpacingMode { get; }
+    public float? LineHeight { get; }
     public string? FontFace { get; }
     public float? FontSize { get; }
     public OpenTemple.Core.GFX.PackedLinearColorA? Color { get; }
@@ -100,6 +103,12 @@ public interface IStyleDefinition {
         if (TrimmingSign != null) {
             target.TrimmingSign = TrimmingSign;
         }
+        if (LineSpacingMode != null) {
+            target.LineSpacingMode = LineSpacingMode;
+        }
+        if (LineHeight != null) {
+            target.LineHeight = LineHeight;
+        }
         if (FontFace != null) {
             target.FontFace = FontFace;
         }
@@ -138,7 +147,7 @@ public interface IStyleDefinition {
         }
     }
 }
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public sealed class StyleDefinition : IStyleDefinition {
     private OpenTemple.Core.GFX.PackedLinearColorA? _backgroundColor;
     private OpenTemple.Core.GFX.PackedLinearColorA? _borderColor;
@@ -159,6 +168,8 @@ public sealed class StyleDefinition : IStyleDefinition {
     private WordWrap? _wordWrap;
     private TrimMode? _trimMode;
     private TrimmingSign? _trimmingSign;
+    private LineSpacingMode? _lineSpacingMode;
+    private float? _lineHeight;
     private string? _fontFace;
     private float? _fontSize;
     private OpenTemple.Core.GFX.PackedLinearColorA? _color;
@@ -405,6 +416,30 @@ public sealed class StyleDefinition : IStyleDefinition {
             }
         }
     }
+    public LineSpacingMode? LineSpacingMode
+    {
+        get => _lineSpacingMode;
+        set
+        {
+            if (_lineSpacingMode != value)
+            {
+                _lineSpacingMode = value;
+                OnChange?.Invoke();
+            }
+        }
+    }
+    public float? LineHeight
+    {
+        get => _lineHeight;
+        set
+        {
+            if (_lineHeight != value)
+            {
+                _lineHeight = value;
+                OnChange?.Invoke();
+            }
+        }
+    }
     public string? FontFace
     {
         get => _fontFace;
@@ -554,7 +589,7 @@ public sealed class StyleDefinition : IStyleDefinition {
 /// <summary>
 /// Contains the resolved values for all style properties.
 /// </summary>
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public class ComputedStyles {
     public OpenTemple.Core.GFX.PackedLinearColorA BackgroundColor { get; }
     public OpenTemple.Core.GFX.PackedLinearColorA BorderColor { get; }
@@ -575,6 +610,8 @@ public class ComputedStyles {
     public WordWrap WordWrap { get; }
     public TrimMode TrimMode { get; }
     public TrimmingSign TrimmingSign { get; }
+    public LineSpacingMode LineSpacingMode { get; }
+    public float LineHeight { get; }
     public string FontFace { get; }
     public float FontSize { get; }
     public OpenTemple.Core.GFX.PackedLinearColorA Color { get; }
@@ -609,6 +646,8 @@ public class ComputedStyles {
         WordWrap wordWrap,
         TrimMode trimMode,
         TrimmingSign trimmingSign,
+        LineSpacingMode lineSpacingMode,
+        float lineHeight,
         string fontFace,
         float fontSize,
         OpenTemple.Core.GFX.PackedLinearColorA color,
@@ -642,6 +681,8 @@ public class ComputedStyles {
         this.WordWrap = wordWrap;
         this.TrimMode = trimMode;
         this.TrimmingSign = trimmingSign;
+        this.LineSpacingMode = lineSpacingMode;
+        this.LineHeight = lineHeight;
         this.FontFace = fontFace;
         this.FontSize = fontSize;
         this.Color = color;
@@ -657,7 +698,7 @@ public class ComputedStyles {
     }
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public class StyleResolver
 {
 
@@ -680,6 +721,8 @@ public class StyleResolver
     public WordWrap DefaultWordWrap { get; } = WordWrap.Wrap;
     public TrimMode DefaultTrimMode { get; } = TrimMode.None;
     public TrimmingSign DefaultTrimmingSign { get; } = TrimmingSign.Ellipsis;
+    public LineSpacingMode DefaultLineSpacingMode { get; } = LineSpacingMode.Default;
+    public float DefaultLineHeight { get; } = 1;
     public string DefaultFontFace { get; }
     public float DefaultFontSize { get; }
     public OpenTemple.Core.GFX.PackedLinearColorA DefaultColor { get; }
@@ -786,6 +829,14 @@ public class StyleResolver
         {
             DefaultTrimmingSign = defaultStyle.TrimmingSign.Value;
         }
+        if (defaultStyle.LineSpacingMode != null)
+        {
+            DefaultLineSpacingMode = defaultStyle.LineSpacingMode.Value;
+        }
+        if (defaultStyle.LineHeight != null)
+        {
+            DefaultLineHeight = defaultStyle.LineHeight.Value;
+        }
         if (defaultStyle.Underline != null)
         {
             DefaultUnderline = defaultStyle.Underline.Value;
@@ -878,6 +929,8 @@ public class StyleResolver
         WordWrap wordWrap = DefaultWordWrap;
         TrimMode trimMode = DefaultTrimMode;
         TrimmingSign trimmingSign = DefaultTrimmingSign;
+        LineSpacingMode lineSpacingMode = DefaultLineSpacingMode;
+        float lineHeight = DefaultLineHeight;
         string fontFace = DefaultFontFace;
         float fontSize = DefaultFontSize;
         OpenTemple.Core.GFX.PackedLinearColorA color = DefaultColor;
@@ -1010,76 +1063,88 @@ public class StyleResolver
                 frozenProps1 |= 0x40000;
             }
 
-            if ((frozenProps1 & 0x80000) == 0 && style.FontFace != null)
+            if ((frozenProps1 & 0x80000) == 0 && style.LineSpacingMode != null)
             {
-                fontFace = style.FontFace;
+                lineSpacingMode = style.LineSpacingMode.Value;
                 frozenProps1 |= 0x80000;
             }
 
-            if ((frozenProps1 & 0x100000) == 0 && style.FontSize != null)
+            if ((frozenProps1 & 0x100000) == 0 && style.LineHeight != null)
             {
-                fontSize = style.FontSize.Value;
+                lineHeight = style.LineHeight.Value;
                 frozenProps1 |= 0x100000;
             }
 
-            if ((frozenProps1 & 0x200000) == 0 && style.Color != null)
+            if ((frozenProps1 & 0x200000) == 0 && style.FontFace != null)
             {
-                color = style.Color.Value;
+                fontFace = style.FontFace;
                 frozenProps1 |= 0x200000;
             }
 
-            if ((frozenProps1 & 0x400000) == 0 && style.Underline != null)
+            if ((frozenProps1 & 0x400000) == 0 && style.FontSize != null)
             {
-                underline = style.Underline.Value;
+                fontSize = style.FontSize.Value;
                 frozenProps1 |= 0x400000;
             }
 
-            if ((frozenProps1 & 0x800000) == 0 && style.LineThrough != null)
+            if ((frozenProps1 & 0x800000) == 0 && style.Color != null)
             {
-                lineThrough = style.LineThrough.Value;
+                color = style.Color.Value;
                 frozenProps1 |= 0x800000;
             }
 
-            if ((frozenProps1 & 0x1000000) == 0 && style.FontStretch != null)
+            if ((frozenProps1 & 0x1000000) == 0 && style.Underline != null)
             {
-                fontStretch = style.FontStretch.Value;
+                underline = style.Underline.Value;
                 frozenProps1 |= 0x1000000;
             }
 
-            if ((frozenProps1 & 0x2000000) == 0 && style.FontStyle != null)
+            if ((frozenProps1 & 0x2000000) == 0 && style.LineThrough != null)
             {
-                fontStyle = style.FontStyle.Value;
+                lineThrough = style.LineThrough.Value;
                 frozenProps1 |= 0x2000000;
             }
 
-            if ((frozenProps1 & 0x4000000) == 0 && style.FontWeight != null)
+            if ((frozenProps1 & 0x4000000) == 0 && style.FontStretch != null)
             {
-                fontWeight = style.FontWeight.Value;
+                fontStretch = style.FontStretch.Value;
                 frozenProps1 |= 0x4000000;
             }
 
-            if ((frozenProps1 & 0x8000000) == 0 && style.DropShadowColor != null)
+            if ((frozenProps1 & 0x8000000) == 0 && style.FontStyle != null)
             {
-                dropShadowColor = style.DropShadowColor.Value;
+                fontStyle = style.FontStyle.Value;
                 frozenProps1 |= 0x8000000;
             }
 
-            if ((frozenProps1 & 0x10000000) == 0 && style.OutlineColor != null)
+            if ((frozenProps1 & 0x10000000) == 0 && style.FontWeight != null)
             {
-                outlineColor = style.OutlineColor.Value;
+                fontWeight = style.FontWeight.Value;
                 frozenProps1 |= 0x10000000;
             }
 
-            if ((frozenProps1 & 0x20000000) == 0 && style.OutlineWidth != null)
+            if ((frozenProps1 & 0x20000000) == 0 && style.DropShadowColor != null)
             {
-                outlineWidth = style.OutlineWidth.Value;
+                dropShadowColor = style.DropShadowColor.Value;
                 frozenProps1 |= 0x20000000;
             }
 
-            if ((frozenProps1 & 0x40000000) == 0 && style.Kerning != null)
+            if ((frozenProps1 & 0x40000000) == 0 && style.OutlineColor != null)
+            {
+                outlineColor = style.OutlineColor.Value;
+                frozenProps1 |= 0x40000000;
+            }
+
+            if ((frozenProps1 & 0x80000000) == 0 && style.OutlineWidth != null)
+            {
+                outlineWidth = style.OutlineWidth.Value;
+                frozenProps1 |= 0x80000000;
+            }
+
+            if ((frozenProps1 & 0x100000000) == 0 && style.Kerning != null)
             {
                 kerning = style.Kerning.Value;
-                frozenProps1 |= 0x40000000;
+                frozenProps1 |= 0x100000000;
             }
         }
 
@@ -1120,49 +1185,57 @@ public class StyleResolver
             }
             if ((frozenProps1 & 0x80000) == 0)
             {
-                fontFace = parentStyles.FontFace;
+                lineSpacingMode = parentStyles.LineSpacingMode;
             }
             if ((frozenProps1 & 0x100000) == 0)
             {
-                fontSize = parentStyles.FontSize;
+                lineHeight = parentStyles.LineHeight;
             }
             if ((frozenProps1 & 0x200000) == 0)
             {
-                color = parentStyles.Color;
+                fontFace = parentStyles.FontFace;
             }
             if ((frozenProps1 & 0x400000) == 0)
             {
-                underline = parentStyles.Underline;
+                fontSize = parentStyles.FontSize;
             }
             if ((frozenProps1 & 0x800000) == 0)
             {
-                lineThrough = parentStyles.LineThrough;
+                color = parentStyles.Color;
             }
             if ((frozenProps1 & 0x1000000) == 0)
             {
-                fontStretch = parentStyles.FontStretch;
+                underline = parentStyles.Underline;
             }
             if ((frozenProps1 & 0x2000000) == 0)
             {
-                fontStyle = parentStyles.FontStyle;
+                lineThrough = parentStyles.LineThrough;
             }
             if ((frozenProps1 & 0x4000000) == 0)
             {
-                fontWeight = parentStyles.FontWeight;
+                fontStretch = parentStyles.FontStretch;
             }
             if ((frozenProps1 & 0x8000000) == 0)
             {
-                dropShadowColor = parentStyles.DropShadowColor;
+                fontStyle = parentStyles.FontStyle;
             }
             if ((frozenProps1 & 0x10000000) == 0)
             {
-                outlineColor = parentStyles.OutlineColor;
+                fontWeight = parentStyles.FontWeight;
             }
             if ((frozenProps1 & 0x20000000) == 0)
             {
-                outlineWidth = parentStyles.OutlineWidth;
+                dropShadowColor = parentStyles.DropShadowColor;
             }
             if ((frozenProps1 & 0x40000000) == 0)
+            {
+                outlineColor = parentStyles.OutlineColor;
+            }
+            if ((frozenProps1 & 0x80000000) == 0)
+            {
+                outlineWidth = parentStyles.OutlineWidth;
+            }
+            if ((frozenProps1 & 0x100000000) == 0)
             {
                 kerning = parentStyles.Kerning;
             }
@@ -1188,6 +1261,8 @@ public class StyleResolver
             wordWrap,
             trimMode,
             trimmingSign,
+            lineSpacingMode,
+            lineHeight,
             fontFace,
             fontSize,
             color,
@@ -1225,6 +1300,8 @@ public class StyleResolver
             DefaultWordWrap,
             DefaultTrimMode,
             DefaultTrimmingSign,
+            DefaultLineSpacingMode,
+            DefaultLineHeight,
             DefaultFontFace,
             DefaultFontSize,
             DefaultColor,
@@ -1240,7 +1317,7 @@ public class StyleResolver
         );
     }
 }
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public static partial class StyleJsonDeserializer {
 
     ///<summary>
@@ -1398,6 +1475,22 @@ public static partial class StyleJsonDeserializer {
                 definition.TrimmingSign = ReadTrimmingSign(propertyNode);
             } catch (Exception e) {
                 throw new StyleParsingException("Failed to read property TrimmingSign: " + e);
+            }
+        }
+        if (element.TryGetProperty("lineSpacingMode", out propertyNode))
+        {
+            try {
+                definition.LineSpacingMode = ReadLineSpacingMode(propertyNode);
+            } catch (Exception e) {
+                throw new StyleParsingException("Failed to read property LineSpacingMode: " + e);
+            }
+        }
+        if (element.TryGetProperty("lineHeight", out propertyNode))
+        {
+            try {
+                definition.LineHeight = ReadFloat(propertyNode);
+            } catch (Exception e) {
+                throw new StyleParsingException("Failed to read property LineHeight: " + e);
             }
         }
         if (element.TryGetProperty("fontFace", out propertyNode))
@@ -1635,11 +1728,26 @@ public static partial class StyleJsonDeserializer {
             };
         }
         
+        private static LineSpacingMode? ReadLineSpacingMode(in JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.Null) {
+                return null;
+            }
+    
+            var value = element.GetString();
+            return value switch {
+            "default" => LineSpacingMode.Default,
+            "uniform" => LineSpacingMode.Uniform,
+            "proportional" => LineSpacingMode.Proportional,
+                _ => throw new Exception("Invalid value for LineSpacingMode: " + value)
+            };
+        }
+        
 
 }
 
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public enum TextAlign
 {
     Left = 0,
@@ -1648,7 +1756,7 @@ public enum TextAlign
     Justified,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public enum ParagraphAlign
 {
     Near = 0,
@@ -1656,7 +1764,7 @@ public enum ParagraphAlign
     Center,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public enum WordWrap
 {
     Wrap = 0,
@@ -1666,7 +1774,7 @@ public enum WordWrap
     Character,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public enum TrimMode
 {
     None = 0,
@@ -1674,14 +1782,14 @@ public enum TrimMode
     Word,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public enum TrimmingSign
 {
     None = 0,
     Ellipsis,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public enum FontStretch
 {
     UltraCondensed = 0,
@@ -1695,7 +1803,7 @@ public enum FontStretch
     UltraExpanded,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public enum FontStyle
 {
     Normal = 0,
@@ -1703,7 +1811,7 @@ public enum FontStyle
     Oblique,
 }
 
-[GeneratedCode("Core.StyleSystemGenerator", "2022-08-28T13:48:46.6866206Z")]
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
 public enum FontWeight
 {
     Thin = 100,
@@ -1716,5 +1824,13 @@ public enum FontWeight
     ExtraBold = 800,
     Black = 900,
     ExtraBlack = 950,
+}
+
+[GeneratedCode("Core.StyleSystemGenerator", "2022-12-24T16:36:49.0838294Z")]
+public enum LineSpacingMode
+{
+    Default = 0,
+    Uniform = 1,
+    Proportional = 2,
 }
 

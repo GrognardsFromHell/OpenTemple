@@ -181,8 +181,6 @@ public class WidgetText : WidgetContent, IFlowContentHost, IDisposable
         return PreferredSize;
     }
 
-    public ColorRect[] LegacyAdditionalTextColors { get; set; }
-
     protected override void OnUpdateFixedSize()
     {
         InvalidateTextLayout();

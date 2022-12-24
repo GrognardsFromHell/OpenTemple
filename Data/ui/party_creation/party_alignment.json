@@ -8,9 +8,8 @@
       "id": "partyAlignmentAcceptCancel",
       "textAlignment": "center",
       "paragraphAlignment": "center",
-      "fontFamily": "arial-12",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 12,
+
       "color": "#ffffff",
       "dropShadowColor": "#000000"
     },
@@ -18,26 +17,23 @@
       "id": "partyAlignmentButton",
       "textAlignment": "center",
       "paragraphAlignment": "center",
-      "fontFamily": "arial-bold-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontWeight": "bold",
+
       "color": "#ffffff",
       "dropShadowColor": "#000000"
     },
     {
       "id": "partyAlignmentTitle",
       "textAlignment": "center",
-      "fontFamily": "arial-12",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 12,
+
       "color": "#ffffff",
       "dropShadowColor": "#000000"
     },
     {
       "id": "partyAlignmentBody",
-      "fontFamily": "arial-bold-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontWeight": "bold",
+
       "color": "#ffffff",
       "dropShadowColor": "#000000"
     },

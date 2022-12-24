@@ -7,7 +7,9 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Assets;
 using OpenTemple.Core.Ui.Events;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -124,10 +126,9 @@ class AbilityScoreSystem : IChargenSystem
             InstallAbilityScoreBehavior(rolledStatWidget);
         }
     }
-    
+
     private void InstallAbilityScoreBehavior(AbilityScoreValueWidget widget)
     {
-        
         widget.OnMouseDown += e =>
         {
             if (widget.Value == -1)
@@ -173,7 +174,7 @@ class AbilityScoreSystem : IChargenSystem
                 });
             }
         };
-        
+
         widget.OnMouseUp += e =>
         {
             if (widget.HasMouseCapture && e.Button == MouseButton.Left)
@@ -217,7 +218,7 @@ class AbilityScoreSystem : IChargenSystem
                     charGenRolledStats[i] = 18;
                 }
 
-                _pkt.rerollString = "@1#{pc_creation:10002}";
+                _pkt.rerollString = CreateRerollText("pc_creation:10002");
             }
             else if (_pkt.numRerolls > 100000)
             {
@@ -227,7 +228,7 @@ class AbilityScoreSystem : IChargenSystem
                     charGenRolledStats[i] = 3;
                 }
 
-                _pkt.rerollString = "@1#{pc_creation:10003}";
+                _pkt.rerollString = CreateRerollText("pc_creation:10003");
             }
             else
             {
@@ -238,7 +239,7 @@ class AbilityScoreSystem : IChargenSystem
                 }
                 else
                 {
-                    _pkt.rerollString = $"@0#{{pc_creation:10001}}@1 {_pkt.numRerolls:D5}";
+                    _pkt.rerollString = CreateRerollText("pc_creation:10001", _pkt.numRerolls);
                     RollStats();
                 }
 
@@ -332,11 +333,11 @@ class AbilityScoreSystem : IChargenSystem
         pkt.numRerolls = 0;
         if (Globals.GameLib.IsIronmanGame)
         {
-            pkt.rerollString = "@1#{pc_creation:10004}"; // Iron Man
+            pkt.rerollString = CreateRerollText("pc_creation:10004"); // Iron Man
         }
         else
         {
-            pkt.rerollString = $"@0#{{pc_creation:10001}}@1 {pkt.numRerolls:D5}";
+            pkt.rerollString = CreateRerollText("pc_creation:10001", pkt.numRerolls);
         }
 
         for (var i = 0; i < 6; i++)
@@ -472,7 +473,7 @@ class AbilityScoreSystem : IChargenSystem
 
         _rerollButton.Visible = !isPointBuyMode;
         _rerollsLabel.Visible = !isPointBuyMode;
-        _rerollsLabel.Text = _pkt.rerollString;
+        _rerollsLabel.Content = _pkt.rerollString;
     }
 
     [TempleDllLocation(0x1018adb0)]
@@ -513,8 +514,20 @@ class AbilityScoreSystem : IChargenSystem
         {
             _pkt.abilityStats[i] = charGenRolledStats[i];
         }
+
         OnAbilityScoresChanged();
         return true;
     }
 
+    private static InlineElement? CreateRerollText(string labelTranslationId, int count = -1)
+    {
+        var label = new ComplexInlineElement();
+        label.AppendContent(Globals.UiAssets.ApplyTranslation($"#{{{labelTranslationId}}}"), "charGenRerollsLabel");
+        if (count >= 0)
+        {
+            label.AppendContent($" {count:D5}", "charGenRerollsCount");
+        }
+
+        return label;
+    }
 }

@@ -10,9 +10,7 @@
       "id": "partyPoolTitle",
       "textAlignment": "center",
       "paragraphAlignment": "center",
-      "fontFamily": "arial-bold-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontWeight": "bold",
       "color": "#ffffff",
       "dropShadowColor": "#000000"
     },
@@ -20,51 +18,48 @@
       "id": "partyPoolButton",
       "textAlignment": "center",
       "paragraphAlignment": "center",
-      "fontFamily": "arial-12",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 12,
       "color": "#ffffff"
+    },
+    {
+      "id": "partyAlignmentAccent",
+      "color": "#1AC4FF"
     },
     {
       "id": "partyPoolBeginAdventuring",
       "textAlignment": "center",
       "paragraphAlignment": "center",
-      "fontFamily": "arial-12",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 12,
       "color": "#ffffff",
       "dropShadowColor": "#000000"
     },
     {
       "id": "partyPoolBody",
-      "fontFamily": "arial-12",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 12,
       "color": "#ffffff"
     },
     {
       "id": "partyPoolCheckboxLabel",
-      "fontFamily": "arial-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
       "color": "#ffffff"
     },
     {
       "id": "partyPoolBigButton",
       "textAlignment": "center",
       "paragraphAlignment": "center",
-      "fontFamily": "arial-bold-24",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 24,
+      "fontWeight": "bold",
       "color": "#ffffff"
     },
     {
       "id": "partyPoolSlot",
-      "fontFamily": "arial-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
       "color": "#ffffff",
-      "dropShadowColor": "#000000"
+      "dropShadowColor": "#000000",
+      "lineSpacingMode": "proportional",
+      "lineHeight": 0.9
+    },
+    {
+      "id": "partyPoolSlotIncompatible",
+      "color": "#ff0000"
     }
   ],
   "__buttonStyles": [

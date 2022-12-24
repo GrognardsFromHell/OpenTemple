@@ -123,7 +123,7 @@ internal class LogbookKeyDetailsUi
     }
 
     // Append text describing a point in time to an inline element
-    private static void AppendTimePoint(LogbookKeyTranslations translations, TimePoint timePoint, IInlineContainer container)
+    private static void AppendTimePoint(LogbookKeyTranslations translations, TimePoint timePoint, IMutableInlineContainer container)
     {
         container.AppendContent(translations.LabelDay, MutedStyle);
         container.AppendContent(GameSystems.TimeEvent.GetDayOfMonth(timePoint).ToString());

@@ -7,14 +7,14 @@
   "__styles": [
     {
       "id": "popupTitle",
-      "fontFamily": "arial-10",
+      
       "legacyTracking": 3,
       "legacyKerning": 1,
       "textAlignment": "center"
     },
     {
       "id": "popupBody",
-      "fontFamily": "arial-10",
+      
       "legacyTracking": 3,
       "legacyKerning": 1
     }

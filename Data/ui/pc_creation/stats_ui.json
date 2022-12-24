@@ -8,74 +8,59 @@
   "__styles": [
     {
       "id": "togglePointBuyButton",
-      "fontFamily": "arial-bold-10",
       "color": "#000000",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
-      "textAlignment": "center"
+      "textAlignment": "center",
+      "fontWeight": "bold"
     },
     {
       "id": "charGenStatLabel",
-      "fontFamily": "arial-bold-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
-      "textAlignment": "center"
+      "textAlignment": "center",
+      "fontWeight": "bold"
     },
     {
       "id": "charGenRerollsLabel",
-      "fontFamily": "arial-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
-      "color": "#41586F",
-      "legacyExtraColors": ["#ffffff"]
+      "color": "#41586F"
+    },
+    {
+      "id": "charGenRerollsCount",
+      "color": "#FFFFFF"
     },
     {
       "id": "charGenAssignedStat",
-      "fontFamily": "arial-bold-24",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 24,
+      "fontWeight": "bold",
       "textAlignment": "center",
       "paragraphAlignment": "center",
       "color": "#ffffff"
     },
     {
       "id": "charGenAssignedStatMod",
-      "fontFamily": "arial-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
       "textAlignment": "center",
       "paragraphAlignment": "center",
       "color": "#ffffff"
     },
     {
       "id": "pointBuyInfoTableHeader",
-      "fontFamily": "arial-bold-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontWeight": "bold",
       "textAlignment": "center",
       "color": "#41586F"
     },
     {
       "id": "pointBuyInfoTableBody",
-      "fontFamily": "arial-bold-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontWeight": "bold",
       "color": "#ffffff"
     },
     {
       "id": "pointBuyPointsAvailableCaption",
-      "fontFamily": "arial-bold-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontWeight": "bold",
       "color": "#ffffff",
       "textAlignment": "right",
       "paragraphAlignment": "center"
     },
     {
       "id": "pointBuyPointsAvailableLabel",
-      "fontFamily": "arial-bold-24",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "fontSize": 24,
+      "fontWeight": "bold",
       "color": "#ffffff",
       "textAlignment": "center",
       "paragraphAlignment": "center",

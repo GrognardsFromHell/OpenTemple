@@ -4,7 +4,7 @@ using System.Text;
 
 namespace OpenTemple.Core.Ui.FlowModel;
 
-public class ComplexInlineElement : InlineElement, IInlineContainer
+public class ComplexInlineElement : InlineElement, IMutableInlineContainer
 {
     private InlineChildren _children;
 

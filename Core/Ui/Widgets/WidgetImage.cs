@@ -7,7 +7,11 @@ namespace OpenTemple.Core.Ui.Widgets;
 
 public class WidgetImage : WidgetContent, IDisposable
 {
-    public WidgetImage(string path)
+    private string? _path;
+
+    private OptionalResourceRef<ITexture> _texture;
+    
+    public WidgetImage(string? path)
     {
         SetTexture(path);
     }
@@ -22,7 +26,8 @@ public class WidgetImage : WidgetContent, IDisposable
 
     public override void Render()
     {
-        if (!mTexture.IsValid)
+        var texture = _texture.Resource;
+        if (texture == null)
         {
             return;
         }
@@ -33,7 +38,7 @@ public class WidgetImage : WidgetContent, IDisposable
             var drawArgs = new Render2dArgs();
             drawArgs.srcRect = SourceRect.Value;
             drawArgs.destRect = ContentArea;
-            drawArgs.customTexture = mTexture.Resource;
+            drawArgs.customTexture = texture;
             drawArgs.flags = Render2dFlag.BUFFERTEXTURE;
             if (Color != PackedLinearColorA.White)
             {
@@ -55,43 +60,39 @@ public class WidgetImage : WidgetContent, IDisposable
                 ContentArea.Y,
                 ContentArea.Width,
                 ContentArea.Height,
-                mTexture.Resource,
+                _texture.Resource,
                 Color
             );
         }
     }
 
-    public void SetTexture(string path)
+    public void SetTexture(string? path)
     {
-        mPath = path;
-        mTexture.Dispose();
+        _path = path;
+        _texture.Dispose();
         if (path != null)
         {
-            mTexture = Tig.RenderingDevice.GetTextures().Resolve(path, false);
-            if (mTexture.Resource.IsValid())
+            _texture = Tig.RenderingDevice.GetTextures().Resolve(path, false);
+            if (_texture.Resource?.IsValid() ?? false)
             {
-                PreferredSize = mTexture.Resource.GetSize();
+                PreferredSize = _texture.Resource.GetSize();
             }
         }
     }
 
     public void SetTexture(ITexture texture)
     {
-        mPath = texture.GetName();
-        mTexture.Dispose();
-        mTexture = texture.Ref();
-        if (mTexture.Resource.IsValid())
+        _path = texture.GetName();
+        _texture.Dispose();
+        _texture = texture.Ref();
+        if (_texture.Resource?.IsValid() ?? false)
         {
-            PreferredSize = mTexture.Resource.GetSize();
+            PreferredSize = _texture.Resource.GetSize();
         }
     }
-
-    private string mPath;
-
-    private ResourceRef<ITexture> mTexture;
-
+    
     public void Dispose()
     {
-        mTexture.Dispose();
+        _texture.Dispose();
     }
 };

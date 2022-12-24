@@ -1,8 +1,6 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 
 namespace OpenTemple.Core.Ui.FlowModel;
 
@@ -19,12 +17,19 @@ internal struct InlineChildren
         }
     }
 
-    public void Append(IInlineContainer parent, InlineElement inlineElement)
+    public void Append(IMutableInlineContainer parent, InlineElement inlineElement)
     {
         if (inlineElement.Parent != null)
         {
             inlineElement.Paragraph?.Invalidate(Paragraph.InvalidationFlags.TextFlow);
-            inlineElement.Parent?.RemoveContent(inlineElement);
+            if (inlineElement.Paragraph is IMutableInlineContainer mutableContainer)
+            {
+                mutableContainer.RemoveContent(inlineElement);
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot remove an inline element from an immutable parent.");
+            }
         }
 
         _children ??= new List<InlineElement>();
@@ -34,7 +39,7 @@ internal struct InlineChildren
         inlineElement.Paragraph?.Invalidate(Paragraph.InvalidationFlags.TextFlow);
     }
 
-    public void Remove(IInlineContainer parent, InlineElement inlineElement)
+    public void Remove(IMutableInlineContainer parent, InlineElement inlineElement)
     {
         if (inlineElement.Parent != parent)
         {
@@ -54,7 +59,7 @@ internal struct InlineChildren
         inlineElement.Parent = null;
     }
 
-    public void Clear(IInlineContainer parent)
+    public void Clear(IMutableInlineContainer parent)
     {
         for (var i = parent.Children.Count - 1; i >= 0; i--)
         {

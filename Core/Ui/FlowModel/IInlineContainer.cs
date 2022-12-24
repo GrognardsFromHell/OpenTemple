@@ -17,12 +17,6 @@ public interface IInlineContainer
 
     bool IsEmpty { get; }
 
-    void AppendContent(InlineElement inlineElement);
-
-    void RemoveContent(InlineElement inlineElement);
-
-    void ClearContent();
-
     /// <summary>
     /// NOTE: No RTL support yet
     /// </summary>

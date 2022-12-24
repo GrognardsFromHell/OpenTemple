@@ -8,13 +8,13 @@
   "__styles": [
     {
       "id": "char-skills-label",
-      "fontFamily": "arial-10",
+      
       "legacyTracking": 5,
       "legacyKerning": 1
     },
     {
       "id": "char-skills-value",
-      "fontFamily": "arial-10",
+      
       "textAlignment": "center",
       "legacyTracking": 5,
       "legacyKerning": 1

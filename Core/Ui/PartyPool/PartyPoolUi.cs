@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml.Schema;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -17,6 +18,8 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.Events;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -67,7 +70,8 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x10BDB8E0)]
     public WidgetButton BeginAdventuringButton { get; private set; }
 
-    [TempleDllLocation(0x10bf1ba4)] [TempleDllLocation(0x10BF1764)]
+    [TempleDllLocation(0x10bf1ba4)]
+    [TempleDllLocation(0x10BF1764)]
     private WidgetContainer _container;
 
     [TempleDllLocation(0x10bf21a4)]
@@ -104,7 +108,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         // TODO: Auto-resize to screen size
         _container = new WidgetContainer(Globals.UiManager.CanvasSize);
         _container.PreventsInGameInteraction = true;
-        
+
         var doc = WidgetDoc.Load("ui/party_pool.json");
         var window = doc.GetRootContainer();
         _container.Add(window);
@@ -158,10 +162,6 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         });
 
         _partyAlignmentLabel = doc.GetTextContent("partyAlignment");
-        _partyAlignmentLabel.LegacyAdditionalTextColors = new[]
-        {
-            new ColorRect(new PackedLinearColorA(0xFF1AC4FF))
-        };
 
         // Begin Adventuring button, original render @ 0x1011c060, msg @ 0x1011fee0
         BeginAdventuringButton = new WidgetButton();
@@ -196,10 +196,8 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
         var slotsContainer = doc.GetContainer("slots");
         // Forward scrollwheel to the scrollbar
-        slotsContainer.OnMouseWheel += e => {
-            _scrollBar.DispatchMouseWheel(e);
-        };
-        
+        slotsContainer.OnMouseWheel += e => { _scrollBar.DispatchMouseWheel(e); };
+
         _slots = new PartyPoolSlot[7];
         for (var i = 0; i < _slots.Length; i++)
         {
@@ -211,8 +209,16 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             }
 
             slot.Y = i * (slot.Height + padding);
-            var slotIdx = i;
             slot.AddClickListener(() => SelectAvailable(slot));
+            slot.OnDoubleClick += e =>
+            {
+                if (slot.Player != null)
+                {
+                    TogglePlayerInGroup(slot.Player);
+                }                
+                e.PreventDefault();
+                e.StopPropagation();
+            };
             _slots[i] = slot;
 
             slotsContainer.Add(slot);
@@ -250,10 +256,10 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
         if (selected != null && !_confirmingPlayerRemoval)
         {
-            CreatePlayerOnDemand(selected);
+            var critter = selected.GetOrCreateGameObject();
 
             UiSystems.CharSheet.State = CharInventoryState.PartyPool;
-            UiSystems.CharSheet.Show(selected.handle);
+            UiSystems.CharSheet.Show(critter);
         }
     }
 
@@ -303,11 +309,22 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         var player = _availablePlayers.Find(p => p.handle == selectedPortrait);
         if (player != null)
         {
-            player.flag4 = false;
-            GameSystems.Party.RemoveFromAllGroups(player.handle);
+            RemovePlayerFromGroup(player);
         }
 
         ClearSelection();
+    }
+
+    private void RemovePlayerFromGroup(PartyPoolPlayer player)
+    {
+        if (player.InGroup)
+        {
+            player.InGroup = false;
+            if (player.handle != null)
+            {
+                GameSystems.Party.RemoveFromAllGroups(player.handle);
+            }
+        }
     }
 
     [TempleDllLocation(0x10163150)]
@@ -322,7 +339,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
         // Find the selected player and remove them
         var player = _availablePlayers.Find(p => p.handle == selectedPortrait);
-        if (player != null)
+        if (player?.handle != null)
         {
             GameSystems.Party.RemoveFromAllGroups(player.handle);
             GameSystems.MapObject.RemoveMapObj(player.handle);
@@ -348,18 +365,26 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         var player = _availablePlayers.Find(p => p.Selected);
         if (_confirmingPlayerRemoval
             || player == null
-            || player.flag4
+            || player.InGroup
             || player.state != SlotState.CanJoin)
         {
             return false;
         }
 
-        CreatePlayerOnDemand(player);
-
-        player.flag4 = true;
-        GameSystems.Party.AddToPCGroup(player.handle);
-        ClearSelection();
+        AddPlayerToGroup(player);
         return true;
+    }
+
+    private void AddPlayerToGroup(PartyPoolPlayer player)
+    {
+        if (player.InGroup)
+        {
+            return;
+        }
+        var playerObj = player.GetOrCreateGameObject();
+        player.InGroup = true;
+        GameSystems.Party.AddToPCGroup(playerObj);
+        ClearSelection();
     }
 
     // Clear only the available party member selection
@@ -371,21 +396,6 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         }
 
         Update();
-    }
-
-    [TempleDllLocation(0x10025f10)]
-    [TemplePlusLocation("generalfixes.cpp:399")]
-    private void CreatePlayerOnDemand(PartyPoolPlayer player)
-    {
-        if (player.handle == null)
-        {
-            using var reader = new BinaryReader(new MemoryStream(player.data));
-            var handle = GameObject.Load(reader);
-            handle.UnfreezeIds();
-            handle.SetLocation(locXY.Zero);
-            GameSystems.MapObject.InitDynamic(handle, locXY.Zero);
-            player.handle = handle;
-        }
     }
 
     private void ClearSelection(bool update = true)
@@ -414,6 +424,18 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         }
 
         Update();
+    }
+
+    private void TogglePlayerInGroup(PartyPoolPlayer player)
+    {
+        if (player.InGroup)
+        {
+            RemovePlayerFromGroup(player);
+        }
+        else
+        {
+            AddPlayerToGroup(player);
+        }
     }
 
     [TempleDllLocation(0x10165cd0)]
@@ -551,7 +573,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     {
         foreach (var availablePlayer in _availablePlayers)
         {
-            if (!availablePlayer.flag4 && availablePlayer.handle != null)
+            if (!availablePlayer.InGroup && availablePlayer.handle != null)
             {
                 GameSystems.Object.Destroy(availablePlayer.handle);
             }
@@ -614,8 +636,11 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x10165150)]
     private void Update()
     {
-        var alignmentName = GameSystems.Stat.GetAlignmentName(_alignment);
-        _partyAlignmentLabel.Text = "@1#{party_pool:1}@0 " + alignmentName;
+        var partyAlignment = new ComplexInlineElement();
+        partyAlignment.AppendTranslation("party_pool:1").AddStyle("partyAlignmentAccent");
+        partyAlignment.AppendContent(" ");
+        partyAlignment.AppendContent(GameSystems.Stat.GetAlignmentName(_alignment));
+        _partyAlignmentLabel.Content = partyAlignment;
 
         UpdateCheckboxes();
         UpdateSlots();
@@ -719,7 +744,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             {
                 if (otherPartyMember.HasEvilAlignment())
                 {
-                    pc.state = SlotState.PaladinOpoposedAlignment;
+                    pc.state = SlotState.PaladinOpposedAlignment;
                     return;
                 }
             }
@@ -730,7 +755,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             {
                 if (otherPartyMember.GetStat(Stat.level_paladin) > 0)
                 {
-                    pc.state = SlotState.PaladinOpoposedAlignment;
+                    pc.state = SlotState.PaladinOpposedAlignment;
                     return;
                 }
             }
@@ -755,7 +780,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
 
 internal class PartyPoolPlayer
 {
-    public bool flag4;
+    public bool InGroup;
     public byte[] data;
     public int field_C;
     public ObjectId objId;
@@ -769,7 +794,7 @@ internal class PartyPoolPlayer
     public Alignment alignment;
     public int hpMax;
     public int field_14C;
-    public GameObject handle;
+    public GameObject? handle;
     public SlotState state;
     public bool Selected;
 
@@ -831,5 +856,20 @@ internal class PartyPoolPlayer
         result.hpMax = reader.ReadInt32();
         result.data = reader.ReadBytes(dataSize);
         return result;
+    }
+
+    [TempleDllLocation(0x10025f10)]
+    [TemplePlusLocation("generalfixes.cpp:399")]
+    public GameObject GetOrCreateGameObject()
+    {
+        if (handle == null)
+        {
+            using var reader = new BinaryReader(new MemoryStream(data));
+            handle = GameObject.Load(reader);
+            handle.UnfreezeIds();
+            handle.SetLocation(locXY.Zero);
+            GameSystems.MapObject.InitDynamic(handle, locXY.Zero);
+        }
+        return handle;
     }
 }

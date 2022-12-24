@@ -8,26 +8,19 @@
   "__styles": [
     {
       "id": "chargenDescriptionBoxStyle",
-      "fontFamily": "priory-12",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      "inherit": "decorative-text",
       "textAlignment": "center"
     },
     {
       "id": "chargenPlayerDescriptionLine",
-      "fontFamily": "arial-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+
       "textAlignment": "center",
       "color": "#ffffff"
     },
     {
       "id": "pcCreationStageTitle",
-      "fontFamily": "arial-bold-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
-      "textAlignment": "center",
-      "color": "#ffffff"
+      "fontWeight": "bold",
+      "textAlignment": "center"
     }
   ],
   "__buttonStyles": [

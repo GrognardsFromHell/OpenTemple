@@ -41,24 +41,26 @@ public class UiAssets
     /// Appended to translation keys this will cause the text to be uppercased.
     /// </summary>
     private const string UpperSuffix = ":upper";
-
+    
+    private readonly Dictionary<string, Dictionary<int, string>> _translationFiles = new();
+    
     public UiAssets()
     {
-        mTranslationFiles["main_menu"] = Tig.FS.ReadMesFile("mes/mainmenu.mes");
-        mTranslationFiles["pc_creation"] = Tig.FS.ReadMesFile("mes/pc_creation.mes");
-        mTranslationFiles["party_pool"] = Tig.FS.ReadMesFile("mes/party_pool.mes");
-        mTranslationFiles["stat"] = Tig.FS.ReadMesFile("mes/stat.mes");
-        mTranslationFiles["options"] = Tig.FS.ReadMesFile("mes/options_text.mes");
-        mTranslationFiles["char_ui_inventory"] = Tig.FS.ReadMesFile("mes/5_char_inventory_ui_text.mes");
-        mTranslationFiles["char_ui_spells"] = Tig.FS.ReadMesFile("mes/14_char_spells_ui_text.mes");
-        mTranslationFiles["char_ui_skills"] = Tig.FS.ReadMesFile("mes/15_char_skills_ui_text.mes");
-        mTranslationFiles["loadgame"] = Tig.FS.ReadMesFile("mes/loadgame_ui.mes");
-        mTranslationFiles["savegame"] = Tig.FS.ReadMesFile("mes/savegame_ui.mes");
-        mTranslationFiles["townmap"] = Tig.FS.ReadMesFile("mes/townmap_ui_text.mes");
-        mTranslationFiles["worldmap_locations"] = Tig.FS.ReadMesFile("mes/worldmap_location_names_text.mes");
-        mTranslationFiles["townmap_markers"] = Tig.FS.ReadMesFile("mes/townmap_ui_placed_flag_text.mes");
-        mTranslationFiles["map_names"] = Tig.FS.ReadMesFile("mes/map_names.mes");
-        mTranslationFiles["logbook_keys"] = Tig.FS.ReadMesFile("mes/logbook_ui_keys_text.mes");
+        _translationFiles["main_menu"] = Tig.FS.ReadMesFile("mes/mainmenu.mes");
+        _translationFiles["pc_creation"] = Tig.FS.ReadMesFile("mes/pc_creation.mes");
+        _translationFiles["party_pool"] = Tig.FS.ReadMesFile("mes/party_pool.mes");
+        _translationFiles["stat"] = Tig.FS.ReadMesFile("mes/stat.mes");
+        _translationFiles["options"] = Tig.FS.ReadMesFile("mes/options_text.mes");
+        _translationFiles["char_ui_inventory"] = Tig.FS.ReadMesFile("mes/5_char_inventory_ui_text.mes");
+        _translationFiles["char_ui_spells"] = Tig.FS.ReadMesFile("mes/14_char_spells_ui_text.mes");
+        _translationFiles["char_ui_skills"] = Tig.FS.ReadMesFile("mes/15_char_skills_ui_text.mes");
+        _translationFiles["loadgame"] = Tig.FS.ReadMesFile("mes/loadgame_ui.mes");
+        _translationFiles["savegame"] = Tig.FS.ReadMesFile("mes/savegame_ui.mes");
+        _translationFiles["townmap"] = Tig.FS.ReadMesFile("mes/townmap_ui_text.mes");
+        _translationFiles["worldmap_locations"] = Tig.FS.ReadMesFile("mes/worldmap_location_names_text.mes");
+        _translationFiles["townmap_markers"] = Tig.FS.ReadMesFile("mes/townmap_ui_placed_flag_text.mes");
+        _translationFiles["map_names"] = Tig.FS.ReadMesFile("mes/map_names.mes");
+        _translationFiles["logbook_keys"] = Tig.FS.ReadMesFile("mes/logbook_ui_keys_text.mes");
     }
 
     /**
@@ -102,7 +104,7 @@ public class UiAssets
             }
 
 
-            if (!mTranslationFiles.TryGetValue(mesFilename.ToString(), out var translationDict))
+            if (!_translationFiles.TryGetValue(mesFilename.ToString(), out var translationDict))
             {
                 result.Append(text.Substring(firstToken, i - firstToken));
                 continue;
@@ -183,8 +185,6 @@ public class UiAssets
             return false;
         }
 
-        return (text[pos] == '#' && text[pos + 1] == '{');
+        return text[pos] == '#' && text[pos + 1] == '{';
     }
-
-    private readonly Dictionary<string, Dictionary<int, string>> mTranslationFiles = new();
-};
+}

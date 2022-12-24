@@ -8,9 +8,8 @@
   "__styles": [
     {
       "id": "deity-button-text",
-      "fontFamily": "arial-10",
-      "legacyKerning": 1,
-      "legacyTracking": 3,
+      
+
       "textAlignment": "center",
       "paragraphAlignment": "center"
     }

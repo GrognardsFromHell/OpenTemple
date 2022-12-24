@@ -8,6 +8,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.D20.Classes.Prereq;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems;
@@ -69,7 +70,11 @@ internal class AlignmentSystem : IChargenSystem
     public void Activate()
     {
         var partyAlignment = GameSystems.Party.PartyAlignment;
-        _partyAlignmentLabel.Text = "#{pc_creation:16000} @1" + GameSystems.Stat.GetAlignmentName(partyAlignment);
+        var alignmentContent = new ComplexInlineElement();
+        alignmentContent.AppendTranslation("pc_creation:16000");
+        alignmentContent.AppendContent(" ");
+        alignmentContent.AppendContent(GameSystems.Stat.GetAlignmentName(partyAlignment), "partyAlignmentAccent");
+        _partyAlignmentLabel.Content = alignmentContent;
 
         foreach (var (alignment, button ) in _alignmentButtons)
         {

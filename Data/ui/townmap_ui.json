@@ -19,7 +19,7 @@
     },
     {
       "id": "visitedMapListButtonNormal",
-      "fontFamily": "arial-10",
+      
       "legacyKerning": 2,
       "legacyTracking": 2,
       "color": "#B4B4B4"

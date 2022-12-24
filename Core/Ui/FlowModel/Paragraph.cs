@@ -6,7 +6,7 @@ using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.FlowModel;
 
-public class Paragraph : Block, IInlineContainer
+public class Paragraph : Block, IMutableInlineContainer
 {
     private InlineChildren _children;
 

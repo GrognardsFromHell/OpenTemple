@@ -295,6 +295,8 @@ public class TextEngine : IDisposable
         nativeStyle.WordWrap = (NativeWordWrap) style.WordWrap;
         nativeStyle.TrimMode = (NativeTrimMode) style.TrimMode;
         nativeStyle.TrimmingSign = (NativeTrimmingSign) style.TrimmingSign;
+        nativeStyle.LineSpacingMode = (NativeLineSpacingMode) style.LineSpacingMode;
+        nativeStyle.LineHeight = style.LineHeight;
         return nativeStyle;
     }
 

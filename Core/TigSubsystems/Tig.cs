@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.GFX;
@@ -69,7 +70,7 @@ public static class Tig
 
         FS = CreateFileSystem(config.InstallationFolder, tigSettings.DataFolder);
 
-        DynamicScripting = TryLoadDynamicScripting();
+        DynamicScripting = new AsyncLoadedDynamicScripting();
 
         if (tigSettings.OffScreen)
         {
@@ -149,24 +150,6 @@ public static class Tig
         // TODO *tigInternal.consoleDisabled = false; // tig init disables console by default
 
         EventLoop = new EventLoop(MainWindow, Keyboard, Sound);        
-    }
-
-    private static IDynamicScripting TryLoadDynamicScripting()
-    {
-        // The dynamic scripting assembly is optional so it doesn't need to be loaded during normal gameplay
-        try
-        {
-            var dynamicScriptingAssembly = Assembly.Load("DynamicScripting");
-            var dynamicScriptingType =
-                dynamicScriptingAssembly.GetType("OpenTemple.DynamicScripting.DynamicScripting");
-            // Activator apparently returns null-values for types like "int?", which we don't use here, hence the non-null-assertion
-            return (IDynamicScripting) Activator.CreateInstance(dynamicScriptingType)!;
-        }
-        catch (Exception e)
-        {
-            Logger.Info("Unable to activate dynamic scripting: {0}", e);
-            return new DisabledDynamicScripting();
-        }
     }
 
     public static IFileSystem CreateFileSystem(string installationFolder, string? dataDirectory)

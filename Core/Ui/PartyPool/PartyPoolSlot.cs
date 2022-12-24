@@ -1,8 +1,10 @@
+using System;
+using System.Diagnostics;
 using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyPool;
@@ -12,7 +14,7 @@ namespace OpenTemple.Core.Ui.PartyPool;
 /// </summary>
 internal class PartyPoolSlot : WidgetButtonBase
 {
-    private PartyPoolPlayer _player;
+    private PartyPoolPlayer? _player;
 
     private readonly WidgetRectangle _border;
 
@@ -20,7 +22,7 @@ internal class PartyPoolSlot : WidgetButtonBase
 
     private readonly WidgetText _text;
 
-    public PartyPoolPlayer Player
+    public PartyPoolPlayer? Player
     {
         get => _player;
         set
@@ -45,10 +47,6 @@ internal class PartyPoolSlot : WidgetButtonBase
         _text = new WidgetText();
         _text.X = 57;
         _text.AddStyle("partyPoolSlot");
-        _text.LegacyAdditionalTextColors = new[]
-        {
-            new ColorRect(new PackedLinearColorA(255, 0, 0, 255)),
-        };
         AddContent(_text);
     }
 
@@ -65,32 +63,32 @@ internal class PartyPoolSlot : WidgetButtonBase
         var borderColor = new PackedLinearColorA(0xFF5d5d5d);
 
         Visible = true;
-        var statusText = "#{party_pool:30}"; // Not in party
+        var statusTranslationId = "party_pool:30"; // Not in party
         if (_player.state != SlotState.CanJoin && _player.Selected)
         {
             borderColor = new PackedLinearColorA(0xFFA90000);
             backgroundColor = new PackedLinearColorA(0xFF960000);
-            statusText = "#{party_pool:32}"; // Not compatible
+            statusTranslationId = "party_pool:32"; // Not compatible
         }
         else if (_player.state == SlotState.WasInParty)
         {
             // Was previously in party, which means somewhere in the game world, the PC exists
             borderColor = new PackedLinearColorA(0xFFA90000);
             backgroundColor = new PackedLinearColorA(0xFF520000);
-            statusText = "#{party_pool:31}"; // Has joined party
+            statusTranslationId = "party_pool:31"; // Has joined party
         }
         else if (_player.state != SlotState.CanJoin)
         {
             borderColor = new PackedLinearColorA(0xFFA90000);
             backgroundColor = new PackedLinearColorA(0xFF520000);
-            statusText = "#{party_pool:32}"; // Not compatible
+            statusTranslationId = "party_pool:32"; // Not compatible
         }
-        else if (_player.flag4)
+        else if (_player.InGroup)
         {
             // Currently in party
             backgroundColor = new PackedLinearColorA(0xFF205120);
             borderColor = new PackedLinearColorA(0xFF08C403);
-            statusText = "#{party_pool:31}"; // Has joined party
+            statusTranslationId = "party_pool:31"; // Has joined party
         }
         else if (_player.Selected)
         {
@@ -107,33 +105,60 @@ internal class PartyPoolSlot : WidgetButtonBase
         {
             _border.Brush = null;
         }
+
         _portrait.SetTexture(GameSystems.UiArtManager.GetPortraitPath(_player.portraitId, PortraitVariant.Small));
 
-        var classColorMarker = "";
-        var classSuffix = "";
-        var alignmentColorMarker = "";
-        var alignmentSuffix = "";
-        if (_player.state == SlotState.OpposedAlignment)
-        {
-            alignmentSuffix = "#{party_pool:40}";
-            alignmentColorMarker = "@1";
-        }
-        else if (_player.state == SlotState.PaladinOpoposedAlignment)
-        {
-            classSuffix = "#{party_pool:41}";
-            classColorMarker = "@1";
-        }
+        UpdateSlotText(statusTranslationId);
+    }
 
+    private void UpdateSlotText(string statusTranslationId)
+    {
+        Debug.Assert(_player != null);
+
+        var content = new ComplexInlineElement();
+
+        // First Line
+        content.AppendContent($"{_player.name} - ");
+        content.AppendTranslation(statusTranslationId);
+        content.AppendBreak();
+
+        // Second line
         var genderText = GameSystems.Stat.GetGenderName(_player.gender);
         var raceText = GameSystems.Stat.GetRaceName(_player.race);
-        var classText = GameSystems.Stat.GetStatName(_player.primaryClass);
-        var alignmentText = GameSystems.Stat.GetAlignmentName(_player.alignment);
+        content.AppendContent(Globals.UiAssets.ApplyTranslation($"{genderText} {raceText}\n"));
 
-        var text = $"{_player.name} - {statusText}\n"
-                   + $"{genderText} {raceText}\n"
-                   + $"{classColorMarker}{classText}{classSuffix}\n"
-                   + $"{alignmentColorMarker}{alignmentText}{alignmentSuffix}\n";
-        _text.Text = text;
+        bool partyAlignmentIncompatible = false;
+        bool paladinOpposedAlignment = false;
+        if (_player.state == SlotState.OpposedAlignment)
+        {
+            partyAlignmentIncompatible = true;
+        }
+        else if (_player.state == SlotState.PaladinOpposedAlignment)
+        {
+            paladinOpposedAlignment = true;
+        }
+
+        // Third line
+        var classText = GameSystems.Stat.GetStatName(_player.primaryClass);
+        content.AppendContent(classText);
+        if (paladinOpposedAlignment)
+        {
+            content.AppendTranslation("party_pool:41").AddStyle("partyPoolSlotIncompatible");
+        }
+
+        content.AppendBreak();
+
+        // Fourth line
+        var alignmentText = GameSystems.Stat.GetAlignmentName(_player.alignment);
+        content.AppendContent(alignmentText);
+        if (partyAlignmentIncompatible)
+        {
+            content.AppendTranslation("party_pool:40").AddStyle("partyPoolSlotIncompatible");
+        }
+
+        content.AppendBreak();
+
+        _text.Content = content;
     }
 }
 
@@ -141,6 +166,6 @@ public enum SlotState
 {
     CanJoin = 0,
     OpposedAlignment = 2,
-    PaladinOpoposedAlignment = 3,
+    PaladinOpposedAlignment = 3,
     WasInParty = 4
 }

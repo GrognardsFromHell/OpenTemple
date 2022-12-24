@@ -26,7 +26,7 @@
   "__styles": [
     {
       "id": "camping-button-text",
-      "fontFamily": "arial-12",
+      "fontSize": 12,
       "textAlignment": "center",
       "paragraphAlignment": "center",
       "legacyTracking": 2,
@@ -42,7 +42,7 @@
     },
     {
       "id": "camping-checkbox-labels",
-      "fontFamily": "arial-10",
+      
       "legacyKerning": 1,
       "legacyTracking": 2
     }

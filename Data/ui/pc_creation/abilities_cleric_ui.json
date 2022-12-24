@@ -8,7 +8,7 @@
   "__styles": [
     {
       "id": "domainSelectionText",
-      "fontFamily": "arial-10",
+      
       "legacyTracking": 3,
       "legacyKerning": 1,
       "color": "#ffffff",

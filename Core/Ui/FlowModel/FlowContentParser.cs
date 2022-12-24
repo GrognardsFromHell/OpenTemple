@@ -21,7 +21,7 @@ public static class FlowContentParser
         {
             if (buffer.Length > 0)
             {
-                paragraph.AppendContent(new SimpleInlineElement()
+                paragraph.AppendContent(new SimpleInlineElement
                 {
                     Text = buffer.ToString()
                 });

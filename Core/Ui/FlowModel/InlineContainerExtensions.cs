@@ -5,10 +5,10 @@ namespace OpenTemple.Core.Ui.FlowModel;
 
 public static class InlineContainerExtensions
 {
-    public static SimpleInlineElement AppendContent(this IInlineContainer container, string text,
+    public static SimpleInlineElement AppendContent(this IMutableInlineContainer container, string text,
         IStyleDefinition? localStyle = null)
     {
-        var element = new SimpleInlineElement()
+        var element = new SimpleInlineElement
         {
             Text = text
         };
@@ -17,7 +17,7 @@ public static class InlineContainerExtensions
         return element;
     }
 
-    public static SimpleInlineElement AppendContent(this IInlineContainer container, string text,
+    public static SimpleInlineElement AppendContent(this IMutableInlineContainer container, string text,
         params string[] styles)
     {
         var element = AppendContent(container, text);
@@ -26,6 +26,18 @@ public static class InlineContainerExtensions
             element.AddStyle(style);
         }
 
+        return element;
+    }
+    
+    public static void AppendBreak(this IMutableInlineContainer container)
+    {
+        container.AppendContent("\n");
+    }
+    
+    public static InlineElement AppendTranslation(this IMutableInlineContainer container, string translationId, params object[] args)
+    {
+        var element = new TranslatedInlineElement(translationId, args);
+        container.AppendContent(element);
         return element;
     }
 }

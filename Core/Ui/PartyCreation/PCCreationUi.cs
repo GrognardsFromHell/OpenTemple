@@ -21,6 +21,7 @@ using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.CharSheet.Portrait;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Ui.Widgets;
@@ -792,7 +793,7 @@ public class CharEditorSelectionPacket
     public int[] abilityStats = new int[6];
     public int numRerolls; // number of rerolls
     public bool isPointbuy;
-    public string rerollString;
+    public InlineElement? rerollString;
     public Stat statBeingRaised;
     public RaceId? raceId; // RACE_INVALID is considered invalid
     public Gender? genderId; // 2 is considered invalid

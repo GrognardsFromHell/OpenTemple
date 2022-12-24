@@ -107,6 +107,17 @@
             "ellipsis"
           ]
         },
+        "lineSpacingMode": {
+          "type": "string",
+          "enum": [
+            "default",
+            "uniform",
+            "proportional"
+          ]
+        },
+        "lineHeight": {
+          "type": "number"
+        },
         "fontFace": {
           "type": "string"
         },

@@ -21,13 +21,10 @@
     },
     {
       "id": "chargen-button-text",
-      "fontFamily": "priory-12",
+      "fontSize": 12,
       "textAlignment": "center",
       "paragraphAlignment": "center",
-      "dropShadowColor": "#000000",
-      "color": "#ffffff",
-      "legacyKerning": 1,
-      "legacyTracking": 3
+      "dropShadowColor": "#000000"
     },
     {
       "id": "dialog-title",

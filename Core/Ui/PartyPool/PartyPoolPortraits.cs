@@ -18,9 +18,9 @@ internal class PartyPoolPortraits
 
     private readonly PartyPoolPortrait[] _portraits;
 
-    private GameObject _selected;
+    private GameObject? _selected;
 
-    public GameObject Selected
+    public GameObject? Selected
     {
         get => _selected;
         set
@@ -30,7 +30,7 @@ internal class PartyPoolPortraits
         }
     }
 
-    public event Action OnSelectedChanged;
+    public event Action? OnSelectedChanged;
 
     public PartyPoolPortraits()
     {
@@ -46,7 +46,13 @@ internal class PartyPoolPortraits
                 portrait.X = _portraits[i - 1].X + _portraits[i - 1].Width;
             }
 
-            portrait.AddClickListener(() => Select(portrait.Player));
+            portrait.AddClickListener(() =>
+            {
+                if (portrait.Player != null)
+                {
+                    Select(portrait.Player);
+                }
+            });
             _portraits[i] = portrait;
             Container.Add(portrait);
         }
@@ -84,11 +90,11 @@ internal class PartyPoolPortraits
 
 internal class PartyPoolPortrait : WidgetButton
 {
-    private WidgetImage _portrait;
+    private WidgetImage? _portrait;
 
-    private GameObject _player;
+    private GameObject? _player;
 
-    public GameObject Player
+    public GameObject? Player
     {
         get => _player;
         set
@@ -124,7 +130,7 @@ internal class PartyPoolPortrait : WidgetButton
         base.Dispose(disposing);
         if (disposing)
         {
-            _portrait.Dispose();
+            _portrait?.Dispose();
         }
     }
 

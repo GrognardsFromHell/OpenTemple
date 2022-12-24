@@ -6,14 +6,14 @@
   "__styles": [
     {
       "id": "pcCreationStatBlockCaption",
-      "fontFamily": "arial-bold-10",
+      "fontWeight": "bold",
       "textAlignment": "center",
       "paragraphAlignment": "center",
       "color": "#000000"
     },
     {
       "id": "pcCreationStatBlockLabel",
-      "fontFamily": "arial-10",
+      
       "textAlignment": "center",
       "paragraphAlignment": "center"
     }
