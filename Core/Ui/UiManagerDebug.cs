@@ -1,19 +1,25 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.AI;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui;
 
 public class UiManagerDebug
 {
+    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
     private static readonly DashPattern WidgetOutlinePattern = new(1f, 4, 3, PackedLinearColorA.White, 500);
-    private static readonly DashPattern ContentOutlinePattern = new (0.5f, 2, 1, new PackedLinearColorA(0x7FFFFFFF), 500);
-    
+    private static readonly DashPattern ContentOutlinePattern = new(0.5f, 2, 1, new PackedLinearColorA(0x7FFFFFFF), 500);
+
     private readonly UiManager _uiManager;
 
     // Set when a picked widget should be selected in tree
@@ -22,6 +28,10 @@ public class UiManagerDebug
     private bool _pickingWidget;
 
     private bool _showInvisible;
+
+    // For delaying a breakpoint entrance into a widget after a short delay
+    private TimePoint _debugAt;
+    private WidgetBase? _debugAtTarget;
 
     public bool DebugMenuVisible { get; set; }
 
@@ -41,7 +51,7 @@ public class UiManagerDebug
             if (widget != null)
             {
                 RenderWidgetOutline(widget);
-                
+
                 // Render hovered content outline too
                 var content = widget.PickContent(mousePos.X, mousePos.Y);
                 if (content != null)
@@ -68,6 +78,13 @@ public class UiManagerDebug
 
     public void RenderDebugUi()
     {
+        if (_debugAtTarget != null && _debugAt <= TimePoint.Now)
+        {
+            _debugAt = default;
+            Debug(_debugAtTarget);
+            _debugAtTarget = null;
+        }
+
         if (!DebugMenuVisible)
         {
             return;
@@ -228,12 +245,24 @@ public class UiManagerDebug
         {
             ImGui.PopStyleColor();
         }
-
+        
+        if (ImGui.IsItemHovered())
+        {
+            RenderWidgetOutline(widget);
+        }        
+        
         if (open)
         {
-            if (ImGui.IsItemHovered())
+            if (ImGui.Button("Debug"))
             {
-                RenderWidgetOutline(widget);
+                Debug(widget);
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Debug in 3s"))
+            {
+                _debugAt = TimePoint.Now + TimeSpan.FromSeconds(3);
+                _debugAtTarget = widget;
             }
 
             if (widget is WidgetContainer container)
@@ -283,5 +312,11 @@ public class UiManagerDebug
 
             ImGui.PopID();
         }
+    }
+
+    private static void Debug(WidgetBase widget)
+    {
+        Logger.Info("Debugging {0}", widget);
+        Debugger.Break();
     }
 }
