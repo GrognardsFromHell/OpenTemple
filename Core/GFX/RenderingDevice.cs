@@ -440,7 +440,7 @@ public class RenderingDevice : IDisposable
         _backBufferDepthStencil.Dispose();
         PopRenderTarget();
 
-        // Then re-aquire the backbuffer from our output target
+        // Then re-acquire the backbuffer from our output target
         _backBuffer = _outputSurface.CreateBackBuffer(this);
         var backBufferSize = _backBuffer.Resource.GetSize();
         _backBufferDepthStencil = CreateRenderTargetDepthStencil(backBufferSize.Width, backBufferSize.Height);
@@ -1648,7 +1648,7 @@ public class RenderingDevice : IDisposable
     public void PopRenderTarget()
     {
         // The last target should NOT be popped, if the backbuffer was auto-pushed
-        if (_backBuffer.Resource != null)
+        if (_backBuffer.IsValid)
         {
             Trace.Assert(_renderTargetStack.Count > 1);
         }
