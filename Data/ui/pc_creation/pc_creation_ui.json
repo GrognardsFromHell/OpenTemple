@@ -13,7 +13,6 @@
     },
     {
       "id": "chargenPlayerDescriptionLine",
-
       "textAlignment": "center",
       "color": "#ffffff"
     },
@@ -21,6 +20,11 @@
       "id": "pcCreationStageTitle",
       "fontWeight": "bold",
       "textAlignment": "center"
+    },
+    {
+      "$comment": "Used to style text in an accent color (dark blue by default)",
+      "id": "pcCreationAccentColor",
+      "color": "#43586E"
     }
   ],
   "__buttonStyles": [

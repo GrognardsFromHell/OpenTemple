@@ -7,6 +7,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Events;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures;
@@ -287,8 +288,11 @@ internal class ClericFeaturesUi : IChargenSystem
     private void GetDeityDomains()
     {
         var deityId = _pkt.deityId.GetValueOrDefault();
-        var deityName = GameSystems.Deity.GetName(deityId);
-        _worshipsLabel.Text = "@1#{pc_creation:18000}@0 " + deityName;
+        var worshipsContent = new ComplexInlineElement();
+        worshipsContent.AppendTranslation("pc_creation:18000").AddStyle(PartyCreationStyles.AccentColor);
+        worshipsContent.AppendContent(" ");
+        worshipsContent.AppendContent(GameSystems.Deity.GetName(deityId));
+        _worshipsLabel.Content = worshipsContent;
 
         _selectableDomains.Clear();
         _selectableDomains.AddRange(GameSystems.Deity.GetDomains(deityId));

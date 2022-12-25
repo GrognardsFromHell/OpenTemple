@@ -66,10 +66,6 @@
       "color": "#ffffff",
       "textAlignment": "center",
       "paragraphAlignment": "center"
-    },
-    {
-      "id": "pointBuyPointsAvailableBudget",
-      "color": "#41586F"
     }
   ],
   "__buttonStyles": [

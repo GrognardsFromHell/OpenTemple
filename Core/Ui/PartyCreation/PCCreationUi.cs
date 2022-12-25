@@ -609,42 +609,41 @@ public class PCCreationUi : IDisposable
     [TempleDllLocation(0x1011c470)]
     public void UpdatePlayerDescription()
     {
-        var desc = new StringBuilder();
+        var desc = new ComplexInlineElement();
 
         // Alignment
         if (charEdSelPkt.alignment.HasValue)
         {
             var s = GameSystems.Stat.GetAlignmentName(charEdSelPkt.alignment.Value);
-            desc.Append(s);
-            desc.Append(" ");
+            desc.AppendContent(s);
+            desc.AppendContent(" ");
         }
 
         // Gender
         if (charEdSelPkt.genderId.HasValue)
         {
             var s = GameSystems.Stat.GetGenderName(charEdSelPkt.genderId.Value);
-            desc.Append(s);
-            desc.Append(" ");
+            desc.AppendContent(s);
+            desc.AppendContent(" ");
         }
 
         // Race
         if (charEdSelPkt.raceId.HasValue)
         {
             var s = GameSystems.Stat.GetRaceName(charEdSelPkt.raceId.Value);
-            desc.Append(s);
-            desc.Append(" ");
+            desc.AppendContent(s);
+            desc.AppendContent(" ");
         }
 
         // Deity
         if (charEdSelPkt.deityId.HasValue)
         {
-            desc.Append("@1");
-            desc.Append("#{pc_creation:500}"); // "Worships"
-            desc.Append("@0");
-            desc.Append(GameSystems.Deity.GetName(charEdSelPkt.deityId.Value));
+            // "Worships"
+            desc.AppendTranslation("pc_creation:500").AddStyle(PartyCreationStyles.AccentColor);
+            desc.AppendContent(GameSystems.Deity.GetName(charEdSelPkt.deityId.Value));
         }
 
-        _descriptionLabel.Text = desc.ToString();
+        _descriptionLabel.Content = desc;
     }
 
     [TempleDllLocation(0x1011e3b0)]

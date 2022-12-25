@@ -413,7 +413,7 @@ class AbilityScoreSystem : IChargenSystem
         var pointBuyBudget = Globals.Config.PointBuyBudget;
         var pointBuyText = new ComplexInlineElement();
         pointBuyText.AppendContent(pointBuyPoints.ToString());
-        pointBuyText.AppendContent($"/{pointBuyBudget}", "pointBuyPointsAvailableBudget");
+        pointBuyText.AppendContent($"/{pointBuyBudget}", PartyCreationStyles.AccentColor);
         _pointBuyPointsAvailable.Content = pointBuyText;
 
         var isPointBuyMode = UiSystems.PCCreation.IsPointBuy;

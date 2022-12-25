@@ -7,25 +7,13 @@
   "height": 250,
   "__styles": [
     {
-      "id": "domainSelectionText",
-      
-      "legacyTracking": 3,
-      "legacyKerning": 1,
-      "color": "#ffffff",
-      "legacyExtraColors": [
-        "#43586E"
-      ]
-    },
-    {
       "id": "domainSelectionTextGrey",
-      "inherit": "domainSelectionText",
       "color": "#5d5d5d"
     }
   ],
   "__buttonStyles": [
     {
-      "id": "deityDomainButton",
-      "textStyle": "domainSelectionText"
+      "id": "deityDomainButton"
     },
     {
       "id": "deityDomainButtonDisabled",
@@ -69,8 +57,7 @@
       "y": 45,
       "width": 184,
       "height": 12,
-      "text": "",
-      "style": "domainSelectionText"
+      "text": ""
     },
     {
       "$comment": "Available domains label",
@@ -89,8 +76,7 @@
       "y": 82,
       "width": 184,
       "height": 12,
-      "text": "#{pc_creation:18002}",
-      "style": "domainSelectionText"
+      "text": "#{pc_creation:18002}"
     },
 
     {
@@ -100,8 +86,7 @@
       "y": 166,
       "width": 320,
       "height": 28,
-      "text": "",
-      "style": "domainSelectionText"
+      "text": ""
     }
   ],
   "children": [
@@ -202,7 +187,6 @@
         {
           "id": "channelingTypeLabel",
           "type": "text",
-          "style": "domainSelectionText",
           "text": "",
           "x": 0,
           "y": 0,
