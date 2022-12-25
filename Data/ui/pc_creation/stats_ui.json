@@ -48,7 +48,9 @@
     {
       "id": "pointBuyInfoTableBody",
       "fontWeight": "bold",
-      "color": "#ffffff"
+      "color": "#ffffff",
+      "lineSpacingMode": "proportional",
+      "lineHeight": 0.9
     },
     {
       "id": "pointBuyPointsAvailableCaption",
@@ -63,8 +65,11 @@
       "fontWeight": "bold",
       "color": "#ffffff",
       "textAlignment": "center",
-      "paragraphAlignment": "center",
-      "legacyExtraColors": ["#41586F"]
+      "paragraphAlignment": "center"
+    },
+    {
+      "id": "pointBuyPointsAvailableBudget",
+      "color": "#41586F"
     }
   ],
   "__buttonStyles": [
@@ -550,7 +555,7 @@
           "$comment": "First column of the cost per point table",
           "type": "text",
           "x": 6,
-          "y": 74,
+          "y": 73,
           "width": 96,
           "height": 67,
           "style": "pointBuyInfoTableBody",
@@ -560,7 +565,7 @@
           "$comment": "Second column of the cost per point table",
           "type": "text",
           "x": 138,
-          "y": 74,
+          "y": 73,
           "width": 96,
           "height": 67,
           "style": "pointBuyInfoTableBody",
@@ -570,9 +575,9 @@
           "$comment": "Points available: (right aligned)",
           "type": "text",
           "x": 1,
-          "y": 10,
-          "width": 118,
-          "height": 18,
+          "y": 1,
+          "width": 114,
+          "height": 27,
           "style": "pointBuyPointsAvailableCaption",
           "text": "#{pc_creation:10007}"
         },
@@ -580,10 +585,10 @@
           "id": "pointBuyPointsAvailable",
           "$comment": "Points available (actual values)",
           "type": "text",
-          "x": 120,
+          "x": 119,
           "y": 1,
-          "width": 64,
-          "height": 23,
+          "width": 68,
+          "height": 27,
           "style": "pointBuyPointsAvailableLabel",
           "text": ""
         }
