@@ -13,7 +13,6 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
-using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.Systems.Script;
 using OpenTemple.Core.Systems.Script.Extensions;
@@ -56,13 +55,22 @@ public class PCCreationUi : IDisposable
     private readonly List<IChargenSystem> chargenSystems = new();
 
     [TempleDllLocation(0x11e72f00)]
-    private CharEditorSelectionPacket charEdSelPkt = new();
+    private readonly CharEditorSelectionPacket charEdSelPkt = new();
 
     [TempleDllLocation(0x10bddd18)]
-    private WidgetContainer _mainWindow;
+    private readonly WidgetContainer _mainWindow;
 
     [TempleDllLocation(0x11e741b4)]
-    private ScrollBox uiPcCreationScrollBox;
+    private readonly ScrollBox uiPcCreationScrollBox;
+
+    private readonly StatBlockWidget _statBlockWidget;
+
+    private readonly WidgetContent _activeButtonBorder;
+
+    [TempleDllLocation(0x10BDB100)]
+    private readonly WidgetText _descriptionLabel;
+
+    private readonly MiniatureWidget _modelPreview;
 
     [TempleDllLocation(0x10bdd5d4)]
     private ChargenStages uiPcCreationStagesCompleted;
@@ -95,13 +103,8 @@ public class PCCreationUi : IDisposable
     [TempleDllLocation(0x10bddd20)]
     private bool ironmanSaveNamePopupActive;
 
-    private StatBlockWidget _statBlockWidget;
-
-    private WidgetContent _activeButtonBorder;
-
-    [TempleDllLocation(0x10BDB100)]
-    private WidgetText _descriptionLabel;
-
+    public GameObject EditedChar => charEditorObjHnd;
+    
     [TempleDllLocation(0x10120420)]
     public PCCreationUi()
     {
@@ -722,8 +725,6 @@ public class PCCreationUi : IDisposable
         }
     }
 
-    private MiniatureWidget _modelPreview;
-
     [TempleDllLocation(0x1011b890)]
     internal void ShowHelpTopic(string systemName)
     {
@@ -764,117 +765,4 @@ public class PCCreationUi : IDisposable
         }
     }
 
-    public GameObject EditedChar => charEditorObjHnd;
-}
-
-public enum ChargenStages
-{
-    CG_Stage_Stats = 0,
-    CG_Stage_Race,
-    CG_Stage_Gender,
-    CG_Stage_Height,
-    CG_Stage_Hair,
-    CG_Stage_Class,
-    CG_Stage_Alignment,
-    CG_Stage_Deity,
-    CG_Stage_Abilities,
-    CG_Stage_Feats,
-    CG_Stage_Skills,
-    CG_Stage_Spells,
-    CG_Stage_Portrait,
-    CG_Stage_Voice,
-
-    CG_STAGE_COUNT
-}
-
-public class CharEditorSelectionPacket
-{
-    public int[] abilityStats = new int[6];
-    public int numRerolls; // number of rerolls
-    public bool isPointbuy;
-    public InlineElement? rerollString;
-    public Stat statBeingRaised;
-    public RaceId? raceId; // RACE_INVALID is considered invalid
-    public Gender? genderId; // 2 is considered invalid
-    public int height;
-    public int weight;
-    public float modelScale; // 0.0 is considered invalid
-    public HairStyle? hairStyle;
-    public HairColor? hairColor;
-    public Stat classCode;
-    public DeityId? deityId;
-    public DomainId domain1;
-    public DomainId domain2;
-    public Alignment? alignment;
-    public AlignmentChoice alignmentChoice; // 1 is for Positive Energy, 2 is for Negative Energy
-    public FeatId? feat0;
-    public FeatId? feat1;
-    public FeatId? feat2;
-    public Dictionary<SkillId, int> skillPointsAdded = new(); // idx corresponds to skill enum
-    public int skillPointsSpent;
-    public int availableSkillPoints;
-    public int[] spellEnums = new int[SpellSystem.SPELL_ENUM_MAX_VANILLA];
-    public int spellEnumsAddedCount;
-    public int spellEnumToRemove; // for sorcerers who swap out spells
-    public SchoolOfMagic wizSchool;
-    public SchoolOfMagic forbiddenSchool1;
-    public SchoolOfMagic forbiddenSchool2;
-    public FeatId? feat3;
-    public FeatId? feat4;
-    public int portraitId;
-    public string voiceFile;
-    public int voiceId; // -1 is considered invalid
-};
-
-public interface IChargenSystem : IDisposable
-{
-    string HelpTopic { get; }
-
-    void Reset(CharEditorSelectionPacket pkt)
-    {
-    }
-
-    void Activate()
-    {
-    }
-
-    void Resize(Size resizeArgs)
-    {
-    }
-
-    void Show()
-    {
-        Container.Visible = true;
-    }
-
-    void Hide()
-    {
-        Container.Visible = false;
-    }
-
-    // checks if the char editing stage is complete (thus allowing you to move on to the next stage). This is checked at every render call.
-    bool CheckComplete()
-    {
-        return true;
-    }
-
-    void Finalize(CharEditorSelectionPacket charSpec, ref GameObject playerObj)
-    {
-    }
-
-    void ButtonExited()
-    {
-    }
-
-    void IDisposable.Dispose()
-    {
-    }
-
-    WidgetContainer Container { get; }
-
-    ChargenStages Stage { get; }
-
-    string ButtonLabel => $"#{{pc_creation:{(int) Stage}}}";
-
-    bool CompleteForTesting(Dictionary<string, object> props) => false;
 }

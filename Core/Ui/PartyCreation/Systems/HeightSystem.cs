@@ -29,7 +29,7 @@ internal class HeightSystem : IChargenSystem
 
     private readonly HeightSlider _slider;
 
-    private bool chargenHeightActivated;
+    private bool _chargenHeightActivated;
 
     private CharEditorSelectionPacket _pkt;
 
@@ -66,7 +66,7 @@ internal class HeightSystem : IChargenSystem
     [TempleDllLocation(0x101892b0)]
     public void Activate()
     {
-        chargenHeightActivated = true;
+        _chargenHeightActivated = true;
     }
 
     [TempleDllLocation(0x101896c0)]
@@ -74,7 +74,7 @@ internal class HeightSystem : IChargenSystem
     {
         if (pkt == _pkt)
         {
-            chargenHeightActivated = false;
+            _chargenHeightActivated = false;
         }
 
         _pkt = pkt;
@@ -129,7 +129,7 @@ internal class HeightSystem : IChargenSystem
     [TempleDllLocation(0x101892e0)]
     public bool CheckComplete()
     {
-        return chargenHeightActivated;
+        return _chargenHeightActivated;
     }
 
     [TempleDllLocation(0x101892f0)]

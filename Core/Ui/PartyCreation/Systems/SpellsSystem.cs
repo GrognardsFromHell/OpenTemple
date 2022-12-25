@@ -1,9 +1,4 @@
-using System.Drawing;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.Spells;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems;
@@ -16,7 +11,7 @@ internal class SpellsSystem : IChargenSystem
 
     public ChargenStages Stage => ChargenStages.CG_Stage_Spells;
 
-    public WidgetContainer Container { get; private set; }
+    public WidgetContainer Container { get; }
 
     [TempleDllLocation(0x10c0eefc)]
     private bool chargenSpellsReseted;

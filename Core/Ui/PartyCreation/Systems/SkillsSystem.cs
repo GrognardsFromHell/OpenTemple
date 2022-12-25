@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Runtime.InteropServices;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems;
@@ -18,19 +15,19 @@ internal class SkillsSystem : IChargenSystem
 
     public ChargenStages Stage => ChargenStages.CG_Stage_Skills;
 
-    public WidgetContainer Container { get; private set; }
+    public WidgetContainer Container { get; }
 
     private CharEditorSelectionPacket _pkt;
 
     [TempleDllLocation(0x10c36248)]
-    private bool _uiPcCreationSkillsActivated = false;
+    private bool _uiPcCreationSkillsActivated;
 
     [TempleDllLocation(0x10c37218)]
-    private SkillId? skillIdxMax;
+    private SkillId? _skillIdxMax;
 
     [TempleDllLocation(0x10c379b8)]
     [TempleDllLocation(0x10c37910)]
-    private readonly List<SkillId> chargenSkills = new();
+    private readonly List<SkillId> _chargenSkills = new();
 
     [TempleDllLocation(0x10181b70)]
     public SkillsSystem()
@@ -55,18 +52,18 @@ internal class SkillsSystem : IChargenSystem
     [TempleDllLocation(0x10181380)]
     public void Activate()
     {
-        skillIdxMax = null;
-        chargenSkills.Clear();
+        _skillIdxMax = null;
+        _chargenSkills.Clear();
         for (SkillId skillIdx = default; skillIdx < SkillId.count; skillIdx++)
         {
             if (GameSystems.Skill.IsEnabled(skillIdx))
             {
-                chargenSkills.Add(skillIdx);
+                _chargenSkills.Add(skillIdx);
             }
 
             ++skillIdx;
         }
-        chargenSkills.Sort(GameSystems.Skill.SkillNameComparer);
+        _chargenSkills.Sort(GameSystems.Skill.SkillNameComparer);
 
         // j_WidgetCopy /*0x101f87a0*/(uiPcCreationSkillsScrollbarId /*0x10c37a14*/,
         // (LgcyWidget*) &uiPcCreationSkillsScrollbar /*0x10c36780*/);
@@ -116,9 +113,9 @@ internal class SkillsSystem : IChargenSystem
     [TempleDllLocation(0x101806f0)]
     private void UpdateDescriptionBox()
     {
-        if (skillIdxMax.HasValue)
+        if (_skillIdxMax.HasValue)
         {
-            ShowSkillHelp(skillIdxMax.Value);
+            ShowSkillHelp(_skillIdxMax.Value);
         }
         else
         {

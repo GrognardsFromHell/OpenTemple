@@ -19,7 +19,7 @@ internal class HairSystem : IChargenSystem
 
     public ChargenStages Stage => ChargenStages.CG_Stage_Hair;
 
-    public WidgetContainer Container { get; private set; }
+    public WidgetContainer Container { get; }
 
     private CharEditorSelectionPacket _pkt;
 

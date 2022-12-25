@@ -28,38 +28,38 @@ class AbilityScoreSystem : IChargenSystem
     public ChargenStages Stage => ChargenStages.CG_Stage_Stats;
 
     [TempleDllLocation(0x10c44c50)]
-    private int[] charGenRolledStats = new int[6];
+    private readonly int[] _charGenRolledStats = new int[6];
 
-    private AbilityScoreValueWidget[] charGenRolledStatsWidgets = new AbilityScoreValueWidget[6];
+    private readonly AbilityScoreValueWidget[] _charGenRolledStatsWidgets = new AbilityScoreValueWidget[6];
 
-    public WidgetContainer Container { get; private set; }
+    public WidgetContainer Container { get; }
 
     [TempleDllLocation(0x10C44C48)]
-    private WidgetButton _togglePointBuyButton;
+    private readonly WidgetButton _togglePointBuyButton;
 
     [TempleDllLocation(0x10C45310)]
-    private WidgetButton[] _increaseButtons;
+    private readonly WidgetButton[] _increaseButtons;
 
     [TempleDllLocation(0x10C44DA8)]
-    private WidgetButton[] _decreaseButtons;
+    private readonly WidgetButton[] _decreaseButtons;
 
     [TempleDllLocation(0x10C45460)]
-    private WidgetButton _rerollButton;
+    private readonly WidgetButton _rerollButton;
 
-    private WidgetText _rerollsLabel;
+    private readonly WidgetText _rerollsLabel;
 
     private CharEditorSelectionPacket _pkt;
 
-    private WidgetText _titleLabel;
+    private readonly WidgetText _titleLabel;
 
-    private WidgetText _draggedAbilityScoreLabel;
+    private readonly WidgetText _draggedAbilityScoreLabel;
 
-    private WidgetContainer _pointBuyInfo;
+    private readonly WidgetContainer _pointBuyInfo;
 
-    private WidgetText _pointBuyPointsAvailable;
+    private readonly WidgetText _pointBuyPointsAvailable;
 
     [TempleDllLocation(0x10C453F4)]
-    private int pointBuyPoints;
+    private int _pointBuyPoints;
 
     [TempleDllLocation(0x1018c740)]
     public AbilityScoreSystem()
@@ -117,11 +117,11 @@ class AbilityScoreSystem : IChargenSystem
             var rolledStatContainer = doc.GetContainer("rolledAttribute" + i);
             var rolledStatWidget = new AbilityScoreValueWidget(
                 rolledStatContainer.Size,
-                () => charGenRolledStats[index],
-                value => charGenRolledStats[index] = value,
+                () => _charGenRolledStats[index],
+                value => _charGenRolledStats[index] = value,
                 false
             );
-            charGenRolledStatsWidgets[i] = rolledStatWidget;
+            _charGenRolledStatsWidgets[i] = rolledStatWidget;
             rolledStatContainer.Add(rolledStatWidget);
             InstallAbilityScoreBehavior(rolledStatWidget);
         }
@@ -141,7 +141,7 @@ class AbilityScoreSystem : IChargenSystem
             // (not in point buy mode)
             if (!_pkt.isPointbuy && e.Button == MouseButton.Right)
             {
-                var destinationPool = widget.IsAssigned ? charGenRolledStats : _pkt.abilityStats;
+                var destinationPool = widget.IsAssigned ? _charGenRolledStats : _pkt.abilityStats;
                 for (var i = 0; i < destinationPool.Length; i++)
                 {
                     if (destinationPool[i] == -1)
@@ -215,7 +215,7 @@ class AbilityScoreSystem : IChargenSystem
                 for (var i = 0; i < 6; i++)
                 {
                     _pkt.abilityStats[i] = -1;
-                    charGenRolledStats[i] = 18;
+                    _charGenRolledStats[i] = 18;
                 }
 
                 _pkt.rerollString = CreateRerollText("pc_creation:10002");
@@ -225,7 +225,7 @@ class AbilityScoreSystem : IChargenSystem
                 for (var i = 0; i < 6; i++)
                 {
                     _pkt.abilityStats[i] = -1;
-                    charGenRolledStats[i] = 3;
+                    _charGenRolledStats[i] = 3;
                 }
 
                 _pkt.rerollString = CreateRerollText("pc_creation:10003");
@@ -271,7 +271,7 @@ class AbilityScoreSystem : IChargenSystem
             sum -= lowestDiceRoll;
 
             _pkt.abilityStats[i] = -1;
-            charGenRolledStats[i] = sum;
+            _charGenRolledStats[i] = sum;
         }
     }
 
@@ -283,8 +283,8 @@ class AbilityScoreSystem : IChargenSystem
         {
             RollStats();
 
-            highestAttribute = charGenRolledStats.Max();
-            modifierSum = charGenRolledStats.Sum(D20StatSystem.GetModifierForAbilityScore);
+            highestAttribute = _charGenRolledStats.Max();
+            modifierSum = _charGenRolledStats.Sum(D20StatSystem.GetModifierForAbilityScore);
         } while (highestAttribute < 14 || modifierSum <= 0);
     }
 
@@ -299,9 +299,9 @@ class AbilityScoreSystem : IChargenSystem
         else if (abilityLvl >= 14)
             cost = 2;
 
-        if (pointBuyPoints >= cost && (abilityLvl < 18 || Globals.Config.laxRules))
+        if (_pointBuyPoints >= cost && (abilityLvl < 18 || Globals.Config.laxRules))
         {
-            pointBuyPoints -= cost;
+            _pointBuyPoints -= cost;
             _pkt.abilityStats[statIndex]++;
             OnAbilityScoresChanged();
         }
@@ -318,9 +318,9 @@ class AbilityScoreSystem : IChargenSystem
         else if (abilityLvl >= 15)
             cost = 2;
 
-        if (pointBuyPoints < Globals.Config.PointBuyBudget && (abilityLvl > 8 || Globals.Config.laxRules))
+        if (_pointBuyPoints < Globals.Config.PointBuyBudget && (abilityLvl > 8 || Globals.Config.laxRules))
         {
-            pointBuyPoints += cost;
+            _pointBuyPoints += cost;
             _pkt.abilityStats[statIndex]--;
             OnAbilityScoresChanged();
         }
@@ -342,7 +342,7 @@ class AbilityScoreSystem : IChargenSystem
 
         for (var i = 0; i < 6; i++)
         {
-            charGenRolledStats[i] = -1;
+            _charGenRolledStats[i] = -1;
             pkt.abilityStats[i] = -1;
         }
 
@@ -389,7 +389,7 @@ class AbilityScoreSystem : IChargenSystem
         UiPcCreationStatSetPointbuyState(!isPointbuy);
         if (UiSystems.PCCreation.IsPointBuy)
         {
-            pointBuyPoints = Globals.Config.PointBuyBudget;
+            _pointBuyPoints = Globals.Config.PointBuyBudget;
             for (int i = 0; i < 6; i++)
             {
                 _pkt.abilityStats[i] = 8;
@@ -397,7 +397,7 @@ class AbilityScoreSystem : IChargenSystem
         }
         else
         {
-            pointBuyPoints = 0;
+            _pointBuyPoints = 0;
             for (int i = 0; i < 6; i++)
             {
                 _pkt.abilityStats[i] = -1;
@@ -412,7 +412,7 @@ class AbilityScoreSystem : IChargenSystem
     {
         var pointBuyBudget = Globals.Config.PointBuyBudget;
         var pointBuyText = new ComplexInlineElement();
-        pointBuyText.AppendContent(pointBuyPoints.ToString());
+        pointBuyText.AppendContent(_pointBuyPoints.ToString());
         pointBuyText.AppendContent($"/{pointBuyBudget}", PartyCreationStyles.AccentColor);
         _pointBuyPointsAvailable.Content = pointBuyText;
 
@@ -447,7 +447,7 @@ class AbilityScoreSystem : IChargenSystem
                     cost = 3;
                 else if (abLvl >= 14)
                     cost = 2;
-                if (pointBuyPoints < cost || (abLvl == 18 && !Globals.Config.laxRules))
+                if (_pointBuyPoints < cost || (abLvl == 18 && !Globals.Config.laxRules))
                     incBtnId.Disabled = true;
                 else
                     incBtnId.Disabled = false;
@@ -458,7 +458,7 @@ class AbilityScoreSystem : IChargenSystem
             {
                 var decBtnId = _decreaseButtons[i];
 
-                if (pointBuyPoints >= Globals.Config.PointBuyBudget || (abLvl == 8 && !Globals.Config.laxRules) ||
+                if (_pointBuyPoints >= Globals.Config.PointBuyBudget || (abLvl == 8 && !Globals.Config.laxRules) ||
                     abLvl <= 5)
                     decBtnId.Disabled = true;
                 else
@@ -469,7 +469,7 @@ class AbilityScoreSystem : IChargenSystem
 
         _pointBuyInfo.Visible = isPointBuyMode;
 
-        foreach (var rolledStatWidget in charGenRolledStatsWidgets)
+        foreach (var rolledStatWidget in _charGenRolledStatsWidgets)
         {
             rolledStatWidget.Visible = !isPointBuyMode;
         }
@@ -490,7 +490,7 @@ class AbilityScoreSystem : IChargenSystem
             }
         }
 
-        return pointBuyPoints == 0;
+        return _pointBuyPoints == 0;
     }
 
     [TempleDllLocation(0x1018acd0)]
@@ -515,7 +515,7 @@ class AbilityScoreSystem : IChargenSystem
         RerollStats();
         for (var i = 0; i < 6; i++)
         {
-            _pkt.abilityStats[i] = charGenRolledStats[i];
+            _pkt.abilityStats[i] = _charGenRolledStats[i];
         }
 
         OnAbilityScoresChanged();

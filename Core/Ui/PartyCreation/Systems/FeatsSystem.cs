@@ -20,22 +20,22 @@ internal class FeatsSystem : IChargenSystem
 
     public ChargenStages Stage => ChargenStages.CG_Stage_Feats;
 
-    public WidgetContainer Container { get; private set; }
+    public WidgetContainer Container { get; }
 
     private CharEditorSelectionPacket _pkt;
 
-    private bool mIsSelectingBonusFeat;
-    private List<SelectableFeat> mBonusFeats;
-    private bool mFeatsActivated;
+    private bool _isSelectingBonusFeat;
+    private List<SelectableFeat> _bonusFeats;
+    private bool _featsActivated;
 
-    private List<SelectableFeat> mExistingFeats = new();
-    private List<SelectableFeat> mSelectableFeats = new();
-    private List<SelectableFeat> mMultiSelectFeats = new();
-    private List<SelectableFeat> mMultiSelectMasterFeats = new();
+    private List<SelectableFeat> _existingFeats = new();
+    private List<SelectableFeat> _selectableFeats = new();
+    private List<SelectableFeat> _multiSelectFeats = new();
+    private List<SelectableFeat> _multiSelectMasterFeats = new();
 
     private readonly IComparer<SelectableFeat> _featComparer;
 
-    private Dictionary<FeatId, string> featsMasterFeatStrings;
+    private Dictionary<FeatId, string> _featsMasterFeatStrings;
 
     [TempleDllLocation(0x101847f0)]
     [TemplePlusLocation("ui_pc_creation_hooks.cpp:165")]
@@ -65,7 +65,7 @@ internal class FeatsSystem : IChargenSystem
     {
         _pkt = selPkt;
 
-        mFeatsActivated = false;
+        _featsActivated = false;
         //mIsSelectingBonusFeat = false; // should not do this here, since then if a user goes back to skills and decreases/increases them, it can cause problems
 
         selPkt.feat0 = null;
@@ -76,37 +76,37 @@ internal class FeatsSystem : IChargenSystem
             selPkt.feat2 = null;
         }
 
-        mExistingFeats.Clear();
-        mSelectableFeats.Clear();
-        mMultiSelectFeats.Clear();
+        _existingFeats.Clear();
+        _selectableFeats.Clear();
+        _multiSelectFeats.Clear();
     }
 
     [TempleDllLocation(0x10182a30)]
     [TemplePlusLocation("ui_pc_creation_hooks.cpp:167")]
     public void Activate()
     {
-        mFeatsActivated = true;
+        _featsActivated = true;
 
         var handle = UiSystems.PCCreation.EditedChar;
 
-        mIsSelectingBonusFeat = D20ClassSystem.IsSelectingFeatsOnLevelup(handle, _pkt.classCode);
+        _isSelectingBonusFeat = D20ClassSystem.IsSelectingFeatsOnLevelup(handle, _pkt.classCode);
 
-        if (mIsSelectingBonusFeat)
+        if (_isSelectingBonusFeat)
         {
-            mBonusFeats.Clear();
-            mBonusFeats.AddRange(D20ClassSystem.LevelupGetBonusFeats(handle, _pkt.classCode));
+            _bonusFeats.Clear();
+            _bonusFeats.AddRange(D20ClassSystem.LevelupGetBonusFeats(handle, _pkt.classCode));
         }
 
-        mExistingFeats.Clear();
+        _existingFeats.Clear();
         foreach (var featId in GameSystems.Feat.FeatListGet(handle, _pkt.classCode))
         {
             if (_pkt.feat0 != featId && _pkt.feat1 != featId && _pkt.feat2 != featId)
             {
-                mExistingFeats.Add(new SelectableFeat(featId));
+                _existingFeats.Add(new SelectableFeat(featId));
             }
         }
 
-        mExistingFeats.Sort(_featComparer);
+        _existingFeats.Sort(_featComparer);
 
         // TODO featsExistingScrollbar = *uiManager->GetScrollBar(featsExistingScrollbarId);
         // TODO featsExistingScrollbar.scrollbarY = 0;
@@ -115,7 +115,7 @@ internal class FeatsSystem : IChargenSystem
         // TODO *uiManager->GetScrollBar(featsExistingScrollbarId) = featsExistingScrollbar;
 
         // Available feats
-        mSelectableFeats.Clear();
+        _selectableFeats.Clear();
         for (var i = 0; i < (int) FeatId.NONE; i++)
         {
             var feat = (FeatId) i;
@@ -127,7 +127,7 @@ internal class FeatsSystem : IChargenSystem
                 continue;
             if (feat == FeatId.NONE)
                 continue;
-            mSelectableFeats.Add(new SelectableFeat(feat));
+            _selectableFeats.Add(new SelectableFeat(feat));
         }
 
         foreach (var feat in GameSystems.Feat.NewFeats)
@@ -138,7 +138,7 @@ internal class FeatsSystem : IChargenSystem
                 continue;
             if (IsClassBonusFeat(feat))
             {
-                mSelectableFeats.Add(new SelectableFeat(feat));
+                _selectableFeats.Add(new SelectableFeat(feat));
                 continue;
             }
 
@@ -149,10 +149,10 @@ internal class FeatsSystem : IChargenSystem
             if (feat == FeatId.NONE)
                 continue;
 
-            mSelectableFeats.Add(new SelectableFeat(feat));
+            _selectableFeats.Add(new SelectableFeat(feat));
         }
 
-        mSelectableFeats.Sort(_featComparer);
+        _selectableFeats.Sort(_featComparer);
 
         // TODO featsScrollbar = *uiManager->GetScrollBar(featsScrollbarId);
         // TODO featsScrollbar.scrollbarY = 0;
@@ -191,7 +191,7 @@ internal class FeatsSystem : IChargenSystem
 
     private bool IsSelectingBonusFeat()
     {
-        return mIsSelectingBonusFeat;
+        return _isSelectingBonusFeat;
     }
 
     private bool IsClassBonusFeat(FeatId feat)
@@ -238,7 +238,7 @@ internal class FeatsSystem : IChargenSystem
     private string GetFeatName(FeatId feat)
     {
         if (feat >= FeatId.EXOTIC_WEAPON_PROFICIENCY && feat <= FeatId.GREATER_WEAPON_FOCUS)
-            return featsMasterFeatStrings[feat];
+            return _featsMasterFeatStrings[feat];
 
         return GameSystems.Feat.GetFeatName(feat);
     }

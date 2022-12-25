@@ -1,6 +1,4 @@
-using System.Drawing;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems;
@@ -12,7 +10,7 @@ internal class VoiceSystem : IChargenSystem
 
     public ChargenStages Stage => ChargenStages.CG_Stage_Voice;
 
-    public WidgetContainer Container { get; private set; }
+    public WidgetContainer Container { get; }
 
     private CharEditorSelectionPacket _pkt;
 

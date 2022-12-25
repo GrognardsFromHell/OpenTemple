@@ -25,7 +25,7 @@ internal class AbilitiesSystem : IChargenSystem
     private CharEditorSelectionPacket _pkt;
 
     [TempleDllLocation(0x10c3d0f0)]
-    private bool uiChargenAbilitiesActivated;
+    private bool _uiChargenAbilitiesActivated;
 
     [TempleDllLocation(0x10186f90)]
     public AbilitiesSystem()
@@ -55,13 +55,13 @@ internal class AbilitiesSystem : IChargenSystem
             featureUi.Reset(pkt);
         }
 
-        uiChargenAbilitiesActivated = false;
+        _uiChargenAbilitiesActivated = false;
     }
 
     [TempleDllLocation(0x10185e10)]
     public void Activate()
     {
-        uiChargenAbilitiesActivated = true;
+        _uiChargenAbilitiesActivated = true;
     }
 
     [TempleDllLocation(0x10185670)]

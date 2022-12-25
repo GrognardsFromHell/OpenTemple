@@ -15,7 +15,7 @@ internal class ClassSystem : IChargenSystem
 
     public ChargenStages Stage => ChargenStages.CG_Stage_Class;
 
-    public WidgetContainer Container { get; private set; }
+    public WidgetContainer Container { get; }
 
     private readonly SelectionList<Stat?> _classList = new();
 

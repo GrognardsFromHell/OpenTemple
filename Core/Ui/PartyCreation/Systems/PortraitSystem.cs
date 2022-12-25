@@ -11,7 +11,7 @@ internal class PortraitSystem : IChargenSystem
 
     public ChargenStages Stage => ChargenStages.CG_Stage_Portrait;
 
-    public WidgetContainer Container { get; private set; }
+    public WidgetContainer Container { get; }
 
     private CharEditorSelectionPacket _pkt;
 
