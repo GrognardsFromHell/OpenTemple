@@ -52,38 +52,38 @@ public sealed class ShapeRenderer2d : IDisposable
 {
     private readonly RenderingDevice _device;
     private readonly Textures _textures;
-    private Material untexturedMaterial;
-    private Material texturedMaterial;
-    private Material texturedWithoutBlendingMaterial;
-    private Material texturedWithMaskMaterial;
-    private Material lineMaterial;
-    private BufferBinding mdfBufferBinding;
-    private Material outlineMaterial;
-    private Material pieFillMaterial;
-    private ResourceRef<BufferBinding> bufferBinding;
-    private ResourceRef<BufferBinding> lineBufferBinding;
-    private ResourceRef<SamplerState> samplerWrapState;
-    private ResourceRef<SamplerState> samplerClampPointState;
-    private ResourceRef<SamplerState> samplerClampState;
-    private ResourceRef<DepthStencilState> noDepthState;
-    private ResourceRef<VertexBuffer> vertexBuffer;
-    private ResourceRef<IndexBuffer> indexBuffer;
+    private readonly Material _untexturedMaterial;
+    private readonly Material _texturedMaterial;
+    private readonly Material _texturedWithoutBlendingMaterial;
+    private readonly Material _texturedWithMaskMaterial;
+    private readonly Material _lineMaterial;
+    private readonly BufferBinding _mdfBufferBinding;
+    private Material _outlineMaterial;
+    private readonly Material _pieFillMaterial;
+    private ResourceRef<BufferBinding> _bufferBinding;
+    private ResourceRef<BufferBinding> _lineBufferBinding;
+    private ResourceRef<SamplerState> _samplerWrapState;
+    private ResourceRef<SamplerState> _samplerClampPointState;
+    private ResourceRef<SamplerState> _samplerClampState;
+    private ResourceRef<DepthStencilState> _noDepthState;
+    private ResourceRef<VertexBuffer> _vertexBuffer;
+    private ResourceRef<IndexBuffer> _indexBuffer;
 
     public ShapeRenderer2d(RenderingDevice device)
     {
         _device = device;
         _textures = device.GetTextures();
 
-        untexturedMaterial = CreateMaterial(device, "diffuse_only_ps");
-        texturedMaterial = CreateMaterial(device, "textured_simple_ps");
-        texturedWithoutBlendingMaterial = CreateMaterial(device, "textured_simple_ps", false, false);
-        texturedWithMaskMaterial = CreateMaterial(device, "textured_two_ps");
-        lineMaterial = CreateMaterial(device, "diffuse_only_ps", true);
-        outlineMaterial = CreateOutlineMaterial(device);
-        pieFillMaterial = CreatePieFillMaterial(device);
-        bufferBinding = new BufferBinding(device, texturedMaterial.VertexShader).Ref();
-        mdfBufferBinding = _device.CreateMdfBufferBinding();
-        lineBufferBinding = new BufferBinding(device, lineMaterial.VertexShader).Ref();
+        _untexturedMaterial = CreateMaterial(device, "diffuse_only_ps");
+        _texturedMaterial = CreateMaterial(device, "textured_simple_ps");
+        _texturedWithoutBlendingMaterial = CreateMaterial(device, "textured_simple_ps", false, false);
+        _texturedWithMaskMaterial = CreateMaterial(device, "textured_two_ps");
+        _lineMaterial = CreateMaterial(device, "diffuse_only_ps", true);
+        _outlineMaterial = CreateOutlineMaterial(device);
+        _pieFillMaterial = CreatePieFillMaterial(device);
+        _bufferBinding = new BufferBinding(device, _texturedMaterial.VertexShader).Ref();
+        _mdfBufferBinding = _device.CreateMdfBufferBinding();
+        _lineBufferBinding = new BufferBinding(device, _lineMaterial.VertexShader).Ref();
 
 
         SamplerSpec samplerWrapSpec = new SamplerSpec();
@@ -92,7 +92,7 @@ public sealed class ShapeRenderer2d : IDisposable
         samplerWrapSpec.minFilter = TextureFilterType.Linear;
         samplerWrapSpec.magFilter = TextureFilterType.Linear;
         samplerWrapSpec.mipFilter = TextureFilterType.Linear;
-        samplerWrapState = _device.CreateSamplerState(samplerWrapSpec);
+        _samplerWrapState = _device.CreateSamplerState(samplerWrapSpec);
 
         SamplerSpec samplerClampPointSpec = new SamplerSpec();
         samplerClampPointSpec.addressU = TextureAddress.Clamp;
@@ -100,7 +100,7 @@ public sealed class ShapeRenderer2d : IDisposable
         samplerClampPointSpec.minFilter = TextureFilterType.NearestNeighbor;
         samplerClampPointSpec.magFilter = TextureFilterType.NearestNeighbor;
         samplerClampPointSpec.mipFilter = TextureFilterType.NearestNeighbor;
-        samplerClampPointState = _device.CreateSamplerState(samplerClampPointSpec);
+        _samplerClampPointState = _device.CreateSamplerState(samplerClampPointSpec);
 
         SamplerSpec samplerClampSpec = new SamplerSpec();
         samplerClampSpec.addressU = TextureAddress.Clamp;
@@ -108,28 +108,28 @@ public sealed class ShapeRenderer2d : IDisposable
         samplerClampSpec.minFilter = TextureFilterType.Linear;
         samplerClampSpec.magFilter = TextureFilterType.Linear;
         samplerClampSpec.mipFilter = TextureFilterType.Linear;
-        samplerClampState = _device.CreateSamplerState(samplerClampSpec);
+        _samplerClampState = _device.CreateSamplerState(samplerClampSpec);
 
         DepthStencilSpec noDepthSpec = new DepthStencilSpec();
         noDepthSpec.depthEnable = false;
-        noDepthState = _device.CreateDepthStencilState(noDepthSpec);
+        _noDepthState = _device.CreateDepthStencilState(noDepthSpec);
 
-        vertexBuffer = _device.CreateEmptyVertexBuffer(Vertex2d.Size * 8, debugName:"ShapeRenderer2d");
+        _vertexBuffer = _device.CreateEmptyVertexBuffer(Vertex2d.Size * 8, debugName:"ShapeRenderer2d");
 
         var indexData = new ushort[]
         {
             0, 1, 2,
             2, 3, 0
         };
-        indexBuffer = _device.CreateIndexBuffer(indexData);
+        _indexBuffer = _device.CreateIndexBuffer(indexData);
 
-        bufferBinding.Resource.AddBuffer<Vertex2d>(vertexBuffer, 0)
+        _bufferBinding.Resource.AddBuffer<Vertex2d>(_vertexBuffer, 0)
             .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
             .AddElement(VertexElementType.Float4, VertexElementSemantic.Normal)
             .AddElement(VertexElementType.Color, VertexElementSemantic.Color)
             .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
 
-        mdfBufferBinding.AddBuffer<Vertex2d>(vertexBuffer, 0)
+        _mdfBufferBinding.AddBuffer<Vertex2d>(_vertexBuffer, 0)
             .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
             .AddElement(VertexElementType.Float4, VertexElementSemantic.Normal)
             .AddElement(VertexElementType.Color, VertexElementSemantic.Color)
@@ -261,12 +261,12 @@ public sealed class ShapeRenderer2d : IDisposable
         SamplerType2d samplerType = SamplerType2d.CLAMP,
         bool blending = true)
     {
-        var samplerState = getSamplerState(samplerType);
+        var samplerState = GetSamplerState(samplerType);
 
         if (texture != null && mask != null)
         {
             Trace.Assert(blending);
-            _device.SetMaterial(texturedWithMaskMaterial);
+            _device.SetMaterial(_texturedWithMaskMaterial);
             _device.SetSamplerState(0, samplerState);
             _device.SetSamplerState(1, samplerState);
             _device.SetTexture(0, texture);
@@ -276,11 +276,11 @@ public sealed class ShapeRenderer2d : IDisposable
         {
             if (blending)
             {
-                _device.SetMaterial(texturedMaterial);
+                _device.SetMaterial(_texturedMaterial);
             }
             else
             {
-                _device.SetMaterial(texturedWithoutBlendingMaterial);
+                _device.SetMaterial(_texturedWithoutBlendingMaterial);
             }
 
             _device.SetSamplerState(0, samplerState);
@@ -288,7 +288,7 @@ public sealed class ShapeRenderer2d : IDisposable
         }
         else
         {
-            _device.SetMaterial(untexturedMaterial);
+            _device.SetMaterial(_untexturedMaterial);
         }
 
         DrawRectangle(corners);
@@ -311,7 +311,7 @@ public sealed class ShapeRenderer2d : IDisposable
         overrides.UiProjection = true;
         material?.Bind((WorldCamera) null, _device, Array.Empty<Light3d>(), overrides);
 
-        _device.SetDepthStencilState(noDepthState);
+        _device.SetDepthStencilState(_noDepthState);
 
         foreach (ref var vertex in corners)
         {
@@ -319,11 +319,11 @@ public sealed class ShapeRenderer2d : IDisposable
         }
 
         // Copy the vertices
-        _device.UpdateBuffer<Vertex2d>(vertexBuffer, corners);
+        _device.UpdateBuffer<Vertex2d>(_vertexBuffer, corners);
 
-        mdfBufferBinding.Bind();
+        _mdfBufferBinding.Bind();
 
-        _device.SetIndexBuffer(indexBuffer);
+        _device.SetIndexBuffer(_indexBuffer);
 
         _device.DrawIndexed(PrimitiveType.TriangleList, 4, 6);
     }
@@ -337,30 +337,30 @@ public sealed class ShapeRenderer2d : IDisposable
         }
 
         // Copy the vertices
-        _device.UpdateBuffer<Vertex2d>(vertexBuffer, corners);
+        _device.UpdateBuffer<Vertex2d>(_vertexBuffer, corners);
 
         _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
 
-        bufferBinding.Resource.Bind();
+        _bufferBinding.Resource.Bind();
 
-        _device.SetIndexBuffer(indexBuffer);
+        _device.SetIndexBuffer(_indexBuffer);
 
         _device.DrawIndexed(PrimitiveType.TriangleList, 4, 6);
     }
 
     public void DrawLines(ReadOnlySpan<Line2d> lines)
     {
-        _device.SetMaterial(lineMaterial);
+        _device.SetMaterial(_lineMaterial);
 
         _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
 
-        bufferBinding.Resource.Bind();
+        _bufferBinding.Resource.Bind();
 
         // Render in batches of 4
         foreach (ref readonly var line in lines)
         {
             // Generate the vertex data
-            using var locked = _device.Map<Vertex2d>(vertexBuffer);
+            using var locked = _device.Map<Vertex2d>(_vertexBuffer);
 
             var data = locked.Data;
 
@@ -454,8 +454,8 @@ public sealed class ShapeRenderer2d : IDisposable
         var posCount = segments * 2 + 2;
 
         // There are two positions for the start and 2 more for each segment thereafter
-        const int MaxPositions = MaxSegments * 2 + 2;
-        Span<Vertex2d> vertices = stackalloc Vertex2d[MaxPositions];
+        const int maxPositions = MaxSegments * 2 + 2;
+        Span<Vertex2d> vertices = stackalloc Vertex2d[maxPositions];
 
         var angleStep = angleWidth / (posCount);
         var angleStart = angleCenter - angleWidth * 0.5f;
@@ -484,9 +484,9 @@ public sealed class ShapeRenderer2d : IDisposable
             pos.W = 1;
         }
 
-        _device.SetMaterial(pieFillMaterial);
+        _device.SetMaterial(_pieFillMaterial);
 
-        using var bufferBindingRef = new BufferBinding(_device, pieFillMaterial.VertexShader).Ref();
+        using var bufferBindingRef = new BufferBinding(_device, _pieFillMaterial.VertexShader).Ref();
         var binding = bufferBindingRef.Resource;
         using var buffer = _device.CreateVertexBuffer<Vertex2d>(vertices, false, "ShapeRendererPieSegments");
         binding.AddBuffer<Vertex2d>(buffer, 0)
@@ -503,7 +503,7 @@ public sealed class ShapeRenderer2d : IDisposable
 
         _device.Draw(PrimitiveType.TriangleStrip, posCount);
 
-        _device.SetMaterial(pieFillMaterial);
+        _device.SetMaterial(_pieFillMaterial);
 
         // Change to the outline color
         globals.colors = color2.ToRGBA();
@@ -522,7 +522,7 @@ public sealed class ShapeRenderer2d : IDisposable
             Build an index buffer that draws an outline around the pie
             segment using the previously generated positions.
         */
-        Span<ushort> outlineIndices = stackalloc ushort[MaxPositions + 1];
+        Span<ushort> outlineIndices = stackalloc ushort[maxPositions + 1];
         CreateOutlineIndices(posCount, outlineIndices);
         using var ib = _device.CreateIndexBuffer(outlineIndices);
         _device.SetIndexBuffer(ib);
@@ -797,30 +797,30 @@ public sealed class ShapeRenderer2d : IDisposable
         outlineIndices[posCount] = 0;
     }
 
-    private SamplerState getSamplerState(SamplerType2d type)
+    private SamplerState GetSamplerState(SamplerType2d type)
     {
         switch (type)
         {
             default:
             case SamplerType2d.CLAMP:
-                return samplerClampState;
+                return _samplerClampState;
             case SamplerType2d.POINT:
-                return samplerClampPointState;
+                return _samplerClampPointState;
             case SamplerType2d.WRAP:
-                return samplerWrapState;
+                return _samplerWrapState;
         }
     }
 
     public void Dispose()
     {
-        bufferBinding.Dispose();
-        lineBufferBinding.Dispose();
-        samplerWrapState.Dispose();
-        samplerClampPointState.Dispose();
-        samplerClampState.Dispose();
-        noDepthState.Dispose();
-        vertexBuffer.Dispose();
-        indexBuffer.Dispose();
+        _bufferBinding.Dispose();
+        _lineBufferBinding.Dispose();
+        _samplerWrapState.Dispose();
+        _samplerClampPointState.Dispose();
+        _samplerClampState.Dispose();
+        _noDepthState.Dispose();
+        _vertexBuffer.Dispose();
+        _indexBuffer.Dispose();
     }
 }
 
