@@ -457,6 +457,23 @@ public partial class WidgetBase : Styleable, IDisposable
         return null;
     }
 
+    // Coordinates are absolute
+    public WidgetContent? PickContent(float x, float y)
+    {
+        UpdateLayout();
+
+        foreach (var content in Content)
+        {
+            var bounds = content.GetBounds();
+            if (x >= bounds.Left && y >= bounds.Top && x < bounds.Right && y < bounds.Bottom)
+            {
+                return content;
+            }
+        }
+
+        return null;
+    }
+
     public void AddContent(WidgetContent content)
     {
         content.Parent = this;

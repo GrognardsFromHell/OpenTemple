@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Systems.AI;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -10,10 +11,18 @@ namespace OpenTemple.Core.Ui;
 
 public class UiManagerDebug
 {
-    private static readonly DashPattern WidgetOutlinePattern = new (1f, 4, 3, PackedLinearColorA.White, 500);
+    private static readonly DashPattern WidgetOutlinePattern = new(1f, 4, 3, PackedLinearColorA.White, 500);
+    private static readonly DashPattern ContentOutlinePattern = new (0.5f, 2, 1, new PackedLinearColorA(0x7FFFFFFF), 500);
     
     private readonly UiManager _uiManager;
-    
+
+    // Set when a picked widget should be selected in tree
+    private WidgetBase? _pickedWidget;
+
+    private bool _pickingWidget;
+
+    private bool _showInvisible;
+
     public bool DebugMenuVisible { get; set; }
 
     public UiManagerDebug(UiManager uiManager)
@@ -25,12 +34,23 @@ public class UiManagerDebug
 
     public void AfterRenderWidgets()
     {
-        if (RenderHoveredWidgetOutline)
+        if (RenderHoveredWidgetOutline || _pickingWidget)
         {
-            var widget = _uiManager.CurrentMouseOverWidget;
+            var mousePos = GetMouseUiPos();
+            var widget = _uiManager.PickWidget(mousePos.X, mousePos.Y);
             if (widget != null)
             {
                 RenderWidgetOutline(widget);
+                
+                // Render hovered content outline too
+                var content = widget.PickContent(mousePos.X, mousePos.Y);
+                if (content != null)
+                {
+                    Tig.ShapeRenderer2d.DrawDashedRectangle(
+                        content.GetBounds(),
+                        ContentOutlinePattern.Scale(Tig.MainWindow.UiScale)
+                    );
+                }
             }
         }
 
@@ -42,10 +62,10 @@ public class UiManagerDebug
         var contentArea = widget.GetContentArea();
         Tig.ShapeRenderer2d.DrawDashedRectangle(
             contentArea,
-            WidgetOutlinePattern
+            WidgetOutlinePattern.Scale(Tig.MainWindow.UiScale)
         );
     }
-    
+
     public void RenderDebugUi()
     {
         if (!DebugMenuVisible)
@@ -63,6 +83,14 @@ public class UiManagerDebug
             {
                 RenderHoveredWidgetOutline = enabled;
             }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Pick"))
+            {
+                _pickingWidget = true;
+            }
+
+            ImGui.Checkbox("Show Invisible", ref _showInvisible);
 
             var currentMouseOver = _uiManager.CurrentMouseOverWidget;
             ImGui.Text("Mouse Over");
@@ -88,9 +116,20 @@ public class UiManagerDebug
                 ImGui.Text("ID: " + focus.Id);
             }
 
+            if (_pickedWidget != null)
+            {
+                ImGui.SetNextItemOpen(true);
+            }
+
             if (ImGui.CollapsingHeader("Widgets"))
             {
-                RenderWidgetTreeNode(_uiManager.Root);
+                foreach (var child in _uiManager.Root.Children)
+                {
+                    if (_showInvisible || child.Visible)
+                    {
+                        RenderWidgetTreeNode(child);
+                    }
+                }
             }
 
             if (ImGui.CollapsingHeader("Active Hotkeys"))
@@ -105,6 +144,33 @@ public class UiManagerDebug
 
             ImGui.End();
         }
+
+        // Clear one-frame transient state
+        if (_pickingWidget)
+        {
+            _pickedWidget = null;
+            ImGui.CaptureMouseFromApp(true);
+
+            var mousePos = GetMouseUiPos();
+            var widget = _uiManager.PickWidget(mousePos.X, mousePos.Y);
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                _pickingWidget = false;
+                _pickedWidget = widget;
+            }
+        }
+        else
+        {
+            _pickedWidget = null;
+        }
+    }
+
+    private static Vector2 GetMouseUiPos()
+    {
+        var mousePos = ImGui.GetMousePos();
+        mousePos.X /= Tig.MainWindow.UiScale;
+        mousePos.Y /= Tig.MainWindow.UiScale;
+        return mousePos;
     }
 
     private void RenderFocusChain(WidgetBase widget)
@@ -125,12 +191,45 @@ public class UiManagerDebug
         }
     }
 
-    private static void RenderWidgetTreeNode(WidgetBase widget)
+    private void RenderWidgetTreeNode(WidgetBase widget)
     {
         ImGui.PushID($"widget${widget.GetHashCode()}");
-        var zIndex = $" Z:{widget.ZIndex}";
 
-        if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.Id} ({widget.SourceURI}){zIndex}"))
+        // Show the Z-Index if it's not the default
+        var zIndex = "";
+        if (widget.ZIndex != 0)
+        {
+            zIndex = $" Z:{widget.ZIndex}";
+        }
+
+        if (_pickedWidget != null && widget.IsInclusiveAncestorOf(_pickedWidget))
+        {
+            ImGui.SetNextItemOpen(true);
+        }
+
+        ImGuiTreeNodeFlags flags = default;
+        if (_uiManager.CurrentMouseOverWidget == widget)
+        {
+            flags = ImGuiTreeNodeFlags.Framed;
+        }
+
+        if (widget.FirstChild == null)
+        {
+            flags |= ImGuiTreeNodeFlags.Leaf;
+        }
+
+        if (!widget.Visible)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, 0xFF999999);
+        }
+
+        var open = ImGui.TreeNodeEx($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.Id} ({widget.SourceURI}){zIndex}", flags);
+        if (!widget.Visible)
+        {
+            ImGui.PopStyleColor();
+        }
+
+        if (open)
         {
             if (ImGui.IsItemHovered())
             {
@@ -141,7 +240,10 @@ public class UiManagerDebug
             {
                 foreach (var child in container.Children)
                 {
-                    RenderWidgetTreeNode(child);
+                    if (_showInvisible || child.Visible)
+                    {
+                        RenderWidgetTreeNode(child);
+                    }
                 }
             }
 
@@ -155,6 +257,8 @@ public class UiManagerDebug
                 RenderWidgetOutline(widget);
             }
         }
+
+        ImGui.PopID();
     }
 
     private void RenderActiveHotkeyList(IReadOnlyList<ActiveActionHotkey> activeHotkeys)
@@ -176,6 +280,8 @@ public class UiManagerDebug
                 ImGui.SameLine();
                 ImGui.TextColored(new Vector4(1, 0, 0, 1), "[disabled]");
             }
+
+            ImGui.PopID();
         }
     }
 }

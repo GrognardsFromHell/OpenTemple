@@ -959,6 +959,11 @@ public struct Render2dArgs
 public readonly record struct DashPattern(float Width, float OnLength, float OffLength, PackedLinearColorA Color, float AnimationCycleMs)
 {
     public float Length => OnLength + OffLength;
+
+    public DashPattern Scale(float scale)
+    {
+        return new DashPattern(Width * scale, OnLength * scale, OffLength * scale, Color, AnimationCycleMs);
+    }
 }
 
 public static class Vertex2dExtensions
