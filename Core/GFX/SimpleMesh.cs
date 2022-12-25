@@ -1,4 +1,5 @@
 using System;
+using OpenTemple.Core.GFX.Materials;
 
 namespace OpenTemple.Core.GFX;
 
@@ -11,9 +12,11 @@ public class SimpleMesh : IDisposable
     public readonly int VertexCount;
 
     public readonly int IndexCount;
+    
+    public PrimitiveType PrimitiveType { get; }
 
     public SimpleMesh(IndexBuffer? indexBuffer, BufferBinding? bufferBinding,
-        int vertexCount, int indexCount)
+        int vertexCount, int indexCount, PrimitiveType primitiveType = PrimitiveType.TriangleList)
     {
         if (indexBuffer != null)
         {
@@ -27,6 +30,7 @@ public class SimpleMesh : IDisposable
 
         VertexCount = vertexCount;
         IndexCount = indexCount;
+        PrimitiveType = primitiveType;
     }
 
     public void Dispose()
@@ -43,7 +47,7 @@ public class SimpleMesh : IDisposable
         {
             bufferBinding.Bind();
             device.SetIndexBuffer(IndexBuffer);
-            device.DrawIndexed(PrimitiveType.TriangleList, VertexCount, IndexCount);
+            device.DrawIndexed(PrimitiveType, VertexCount, IndexCount);
         }
     }
 }

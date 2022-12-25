@@ -215,6 +215,11 @@ public class BufferBinding : GpuResource<BufferBinding>
 		_device.Context.InputAssembler.SetVertexBuffers(0, vertexBuffers.ToArray(), _strides, offsets);
 	}
 
+	public bool IsCompatibleWithShader(VertexShader? shader)
+	{
+		return _shader.IsValid && ReferenceEquals(_shader.Resource, shader);
+	}
+
 	internal static int GetElementSize(VertexElementType type)
 	{
 	        

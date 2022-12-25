@@ -155,10 +155,10 @@ public class GameView : WidgetContainer, IGameViewport
             return;
         }
 
-        var samplerType = SamplerType2d.CLAMP;
+        var samplerType = SamplerType2d.Clamp;
         if (!_isUpscaleLinearFiltering)
         {
-            samplerType = SamplerType2d.POINT;
+            samplerType = SamplerType2d.Point;
         }
 
         Tig.ShapeRenderer2d.DrawRectangle(

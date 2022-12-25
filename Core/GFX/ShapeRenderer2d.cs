@@ -6,14 +6,15 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.GFX;
 
 public enum SamplerType2d
 {
-    CLAMP,
-    WRAP,
-    POINT
+    Clamp,
+    Wrap,
+    Point
 }
 
 public struct Line2d
@@ -31,7 +32,7 @@ public struct Line2d
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 44, Pack = 1)]
-public struct Vertex2d
+public struct Vertex2d : IVertexFormat
 {
     [FieldOffset(0)]
     public Vector4 pos;
@@ -44,6 +45,15 @@ public struct Vertex2d
 
     [FieldOffset(36)]
     public Vector2 uv;
+
+    public static void Describe(ref BufferBindingBuilder builder)
+    {
+        Debug.Assert(Size == 44);
+        builder.AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
+            .AddElement(VertexElementType.Float4, VertexElementSemantic.Normal)
+            .AddElement(VertexElementType.Color, VertexElementSemantic.Color)
+            .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
+    }
 
     public static readonly int Size = Marshal.SizeOf<Vertex2d>();
 }
@@ -114,7 +124,7 @@ public sealed class ShapeRenderer2d : IDisposable
         noDepthSpec.depthEnable = false;
         _noDepthState = _device.CreateDepthStencilState(noDepthSpec);
 
-        _vertexBuffer = _device.CreateEmptyVertexBuffer(Vertex2d.Size * 8, debugName:"ShapeRenderer2d");
+        _vertexBuffer = _device.CreateEmptyVertexBuffer(Vertex2d.Size * 8, debugName: "ShapeRenderer2d");
 
         var indexData = new ushort[]
         {
@@ -192,6 +202,90 @@ public sealed class ShapeRenderer2d : IDisposable
             null, vertexShader, pixelShader);
     }
 
+    public void DrawDashedRectangle(Rectangle bounds, DashPattern pattern) => DrawDashedRectangle(new RectangleF(
+        bounds.X,
+        bounds.Y,
+        bounds.Width,
+        bounds.Height
+    ), pattern);
+
+    public void DrawDashedRectangle(RectangleF bounds, DashPattern pattern)
+    {
+        var nowMillis = (long) TimePoint.Now.Milliseconds;
+
+        var t = 0f;
+        if (pattern.AnimationCycleMs > 0)
+        {
+            t = (nowMillis % (int) pattern.AnimationCycleMs) / pattern.AnimationCycleMs;
+        }
+
+        var builder = SimpleMeshBuilder<Vertex2d>.Quads(100);
+        try
+        {
+            float z = 0;
+
+            BuildHorizontalDashedLine(ref builder, t, bounds.X, bounds.Right, bounds.Y, z, pattern, false);
+            BuildHorizontalDashedLine(ref builder, t, bounds.X, bounds.Right, bounds.Bottom - pattern.Width, z,
+                pattern, true);
+
+            BuildVerticalDashedLine(ref builder, t, bounds.X, bounds.Y, bounds.Bottom, z, pattern, true);
+            BuildVerticalDashedLine(ref builder, t, bounds.Right - pattern.Width, bounds.Y, bounds.Bottom, z, pattern, false);
+
+            using var mesh = builder.Build(_untexturedMaterial.VertexShader);
+            _device.SetMaterial(_untexturedMaterial);
+            _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
+            mesh.Render(_device);
+        }
+        finally
+        {
+            builder.Dispose();
+        }
+    }
+
+    private static void BuildHorizontalDashedLine(ref SimpleMeshBuilder<Vertex2d> builder,
+        float t, float x1, float x2, float y, float z,
+        DashPattern pattern, bool reverse)
+    {
+        if (!reverse)
+        {
+            t = 1 - t;
+        }
+
+        var phase = t * pattern.Length;
+
+        var color = pattern.Color;
+
+        for (float x = x1 - phase; x < x2; x += pattern.Length)
+        {
+            // Clockwise, starting top-left
+            builder.Vertex(Math.Clamp(x, x1, x2), y, z).Color(color);
+            builder.Vertex(Math.Clamp(x + pattern.OnLength, x1, x2), y, z).Color(color);
+            builder.Vertex(Math.Clamp(x + pattern.OnLength, x1, x2), y + pattern.Width, z).Color(color);
+            builder.Vertex(Math.Clamp(x, x1, x2), y + pattern.Width, z).Color(color);
+        }
+    }
+
+    private static void BuildVerticalDashedLine(ref SimpleMeshBuilder<Vertex2d> builder, float t, float x, float y1, float y2, float z, DashPattern pattern, bool reverse)
+    {
+        if (!reverse)
+        {
+            t = 1 - t;
+        }
+
+        var phase = t * pattern.Length;
+
+        var color = pattern.Color;
+
+        for (float y = y1 - phase; y < y2; y += pattern.Length)
+        {
+            // Clockwise, starting top-left
+            builder.Vertex(x, Math.Clamp(y, y1, y2), z).Color(color);
+            builder.Vertex(x + pattern.Width, Math.Clamp(y, y1, y2), z).Color(color);
+            builder.Vertex(x + pattern.Width, Math.Clamp(y + pattern.OnLength, y1, y2), z).Color(color);
+            builder.Vertex(x, Math.Clamp(y + pattern.OnLength, y1, y2), z).Color(color);
+        }
+    }
+
     public void DrawRectangle(float x, float y, float width, float height, ITexture texture)
     {
         DrawRectangle(x, y, width, height, texture, PackedLinearColorA.White);
@@ -201,7 +295,7 @@ public sealed class ShapeRenderer2d : IDisposable
         Rectangle rectangle,
         ITexture? texture,
         PackedLinearColorA color,
-        SamplerType2d samplerType = SamplerType2d.CLAMP
+        SamplerType2d samplerType = SamplerType2d.Clamp
     )
     {
         DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, texture, color, samplerType);
@@ -211,7 +305,7 @@ public sealed class ShapeRenderer2d : IDisposable
         RectangleF rect,
         ITexture? texture,
         PackedLinearColorA color,
-        SamplerType2d samplerType = SamplerType2d.CLAMP
+        SamplerType2d samplerType = SamplerType2d.Clamp
     )
     {
         DrawRectangle(rect.X, rect.Y, rect.Width, rect.Height, texture, color, samplerType);
@@ -221,7 +315,7 @@ public sealed class ShapeRenderer2d : IDisposable
         float x, float y, float width, float height,
         ITexture? texture,
         PackedLinearColorA color,
-        SamplerType2d samplerType = SamplerType2d.CLAMP
+        SamplerType2d samplerType = SamplerType2d.Clamp
     )
     {
         // Generate the vertex data
@@ -254,11 +348,11 @@ public sealed class ShapeRenderer2d : IDisposable
     {
         DrawRectangle(rectangle, null, color);
     }
-    
+
     public void DrawRectangle(Span<Vertex2d> corners,
         ITexture? texture,
         ITexture? mask = null,
-        SamplerType2d samplerType = SamplerType2d.CLAMP,
+        SamplerType2d samplerType = SamplerType2d.Clamp,
         bool blending = true)
     {
         var samplerState = GetSamplerState(samplerType);
@@ -387,7 +481,7 @@ public sealed class ShapeRenderer2d : IDisposable
     {
         var topLeft = new Vector2(rectangle.Left + 0.5f, rectangle.Top + 0.5f);
         var topRight = new Vector2(rectangle.Right - 0.5f, rectangle.Top + 0.5f);
-        var bottomRight = new Vector2(rectangle.Right - 0.5f, rectangle.Bottom - 0.5f );
+        var bottomRight = new Vector2(rectangle.Right - 0.5f, rectangle.Bottom - 0.5f);
         var bottomLeft = new Vector2(rectangle.Left + 0.5f, rectangle.Bottom - 0.5f);
 
         Span<Line2d> lines = stackalloc Line2d[4];
@@ -757,10 +851,10 @@ public sealed class ShapeRenderer2d : IDisposable
         // rendering an icon
         var blending = ((args.flags & Render2dFlag.DISABLEBLENDING) == 0);
 
-        SamplerType2d samplerType = SamplerType2d.CLAMP;
+        SamplerType2d samplerType = SamplerType2d.Clamp;
         if ((args.flags & Render2dFlag.WRAP) != 0)
         {
-            samplerType = SamplerType2d.WRAP;
+            samplerType = SamplerType2d.Wrap;
         }
 
         DrawRectangle(vertices, deviceTexture, maskTexture, samplerType, blending);
@@ -802,11 +896,11 @@ public sealed class ShapeRenderer2d : IDisposable
         switch (type)
         {
             default:
-            case SamplerType2d.CLAMP:
+            case SamplerType2d.Clamp:
                 return _samplerClampState;
-            case SamplerType2d.POINT:
+            case SamplerType2d.Point:
                 return _samplerClampPointState;
-            case SamplerType2d.WRAP:
+            case SamplerType2d.Wrap:
                 return _samplerWrapState;
         }
     }
@@ -860,4 +954,25 @@ public struct Render2dArgs
     public float rotation;
     public float rotationX;
     public float rotationY;
+}
+
+public readonly record struct DashPattern(float Width, float OnLength, float OffLength, PackedLinearColorA Color, float AnimationCycleMs)
+{
+    public float Length => OnLength + OffLength;
+}
+
+public static class Vertex2dExtensions
+{
+    public static ref Vertex2d Vertex(ref this SimpleMeshBuilder<Vertex2d> builder, float x, float y, float z)
+    {
+        ref var vertex = ref builder.Vertex();
+        vertex.pos = new Vector4(x, y, z, 1);
+        return ref vertex;
+    }
+
+    public static ref Vertex2d Color(ref this Vertex2d vertex, PackedLinearColorA color)
+    {
+        vertex.diffuse = color;
+        return ref vertex;
+    }
 }

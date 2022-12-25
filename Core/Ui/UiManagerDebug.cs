@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
@@ -9,8 +10,10 @@ namespace OpenTemple.Core.Ui;
 
 public class UiManagerDebug
 {
+    private static readonly DashPattern WidgetOutlinePattern = new (1f, 4, 3, PackedLinearColorA.White, 500);
+    
     private readonly UiManager _uiManager;
-
+    
     public bool DebugMenuVisible { get; set; }
 
     public UiManagerDebug(UiManager uiManager)
@@ -18,7 +21,7 @@ public class UiManagerDebug
         _uiManager = uiManager;
     }
 
-    public bool RenderHoveredWidgetOutline { get; set; } = false;
+    public bool RenderHoveredWidgetOutline { get; set; }
 
     public void AfterRenderWidgets()
     {
@@ -37,13 +40,12 @@ public class UiManagerDebug
     private static void RenderWidgetOutline(WidgetBase widget)
     {
         var contentArea = widget.GetContentArea();
-        Tig.ShapeRenderer2d.DrawRectangleOutline(
-            new Vector2(contentArea.X, contentArea.Y),
-            new Vector2(contentArea.X + contentArea.Width, contentArea.Y + contentArea.Height),
-            PackedLinearColorA.White
+        Tig.ShapeRenderer2d.DrawDashedRectangle(
+            contentArea,
+            WidgetOutlinePattern
         );
     }
-
+    
     public void RenderDebugUi()
     {
         if (!DebugMenuVisible)
