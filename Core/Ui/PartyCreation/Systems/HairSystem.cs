@@ -17,7 +17,7 @@ internal class HairSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_HAIR";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Hair;
+    public ChargenStage Stage => ChargenStage.Hair;
 
     public WidgetContainer Container { get; }
 
@@ -58,7 +58,6 @@ internal class HairSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/hair_ui.json", CustomElementFactory);
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         for (var i = 0; i < HairColors.Length; i++)
         {

@@ -11,7 +11,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems;
 /// is leveling up (or during character creation, the first class).
 /// </summary>
 [TempleDllLocation(0x102f7a98)]
-internal class AbilitiesSystem : IChargenSystem
+internal class ClassFeaturesSystem : IChargenSystem
 {
     private readonly Dictionary<Stat, IChargenSystem> _featuresByClass = new()
     {
@@ -28,21 +28,22 @@ internal class AbilitiesSystem : IChargenSystem
     private bool _uiChargenAbilitiesActivated;
 
     [TempleDllLocation(0x10186f90)]
-    public AbilitiesSystem()
+    public ClassFeaturesSystem()
     {
         var doc = WidgetDoc.Load("ui/pc_creation/abilities_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         foreach (var featuresUi in _featuresByClass.Values)
         {
-            Container.Add(featuresUi.Container);
+            var subContainer = featuresUi.Container;
+            subContainer.Visible = false;
+            Container.Add(subContainer);
         }
     }
 
     public string HelpTopic => "TAG_CHARGEN_ABILITIES";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
+    public ChargenStage Stage => ChargenStage.ClassFeatures;
 
     public WidgetContainer Container { get; }
 
@@ -87,13 +88,13 @@ internal class AbilitiesSystem : IChargenSystem
     [TempleDllLocation(0x10184bd0)]
     public bool CheckComplete()
     {
-        if (!_featuresByClass.ContainsKey(_pkt.classCode))
+        if (!_featuresByClass.TryGetValue(_pkt.classCode, out var featureUi))
         {
             // Always complete if the class has no special features to select
             return true;
         }
 
-        return _activeFeaturesUi?.CheckComplete() ?? false;
+        return featureUi.CheckComplete();
     }
 
     [TempleDllLocation(0x10184c80)]

@@ -14,7 +14,7 @@ internal class DeitySystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_DEITY";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Deity;
+    public ChargenStage Stage => ChargenStage.Deity;
 
     public WidgetContainer Container { get; }
 
@@ -25,7 +25,6 @@ internal class DeitySystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/deity_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         _deityButtons = new Dictionary<DeityId, WidgetButton>();
         foreach (var deityId in GameSystems.Deity.PlayerSelectableDeities)
@@ -81,7 +80,7 @@ internal class DeitySystem : IChargenSystem
     {
         _pkt.deityId = deityId;
         _pkt.alignmentChoice = GameSystems.Deity.GetAlignmentChoice(deityId, _pkt.alignment.GetValueOrDefault());
-        UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Deity);
+        UiSystems.PCCreation.ResetSystemsAfter(ChargenStage.Deity);
         UpdateDescriptionBox();
         UpdateButtonStates();
     }

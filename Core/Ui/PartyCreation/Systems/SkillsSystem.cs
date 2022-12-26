@@ -13,7 +13,7 @@ internal class SkillsSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_SKILLS";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Skills;
+    public ChargenStage Stage => ChargenStage.Skills;
 
     public WidgetContainer Container { get; }
 
@@ -34,7 +34,6 @@ internal class SkillsSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/skills_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
     }
 
     [TempleDllLocation(0x10180630)]

@@ -46,7 +46,6 @@ internal class ClericFeaturesUi : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/abilities_cleric_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         _worshipsLabel = doc.GetTextContent("worshipsLabel");
 
@@ -79,7 +78,7 @@ internal class ClericFeaturesUi : IChargenSystem
 
     public WidgetContainer Container { get; }
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
+    public ChargenStage Stage => ChargenStage.ClassFeatures;
 
     public string HelpTopic { get; }
 

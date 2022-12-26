@@ -8,7 +8,7 @@ internal class VoiceSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_VOICE";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Voice;
+    public ChargenStage Stage => ChargenStage.Voice;
 
     public WidgetContainer Container { get; }
 
@@ -19,7 +19,6 @@ internal class VoiceSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/voice_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         // TODO int result;
         // TODO int v2;

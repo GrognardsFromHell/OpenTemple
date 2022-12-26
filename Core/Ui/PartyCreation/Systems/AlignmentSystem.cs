@@ -18,7 +18,7 @@ internal class AlignmentSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_ALIGNMENT";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Alignment;
+    public ChargenStage Stage => ChargenStage.Alignment;
 
     public WidgetContainer Container { get; }
 
@@ -33,7 +33,6 @@ internal class AlignmentSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/alignment_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         _partyAlignmentLabel = doc.GetTextContent("partyAlignmentLabel");
 
@@ -91,7 +90,7 @@ internal class AlignmentSystem : IChargenSystem
     {
         _pkt.alignment = alignment;
         UpdateSelection();
-        UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Alignment);
+        UiSystems.PCCreation.ResetSystemsAfter(ChargenStage.Alignment);
     }
 
     private void UpdateSelection()

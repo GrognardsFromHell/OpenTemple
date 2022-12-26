@@ -9,7 +9,7 @@ internal class SpellsSystem : IChargenSystem
 
     public string HelpTopic => "TAG_CHARGEN_SPELLS";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Spells;
+    public ChargenStage Stage => ChargenStage.Spells;
 
     public WidgetContainer Container { get; }
 
@@ -22,7 +22,6 @@ internal class SpellsSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/spells_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         // TODO int v1;
         // TODO int v3;

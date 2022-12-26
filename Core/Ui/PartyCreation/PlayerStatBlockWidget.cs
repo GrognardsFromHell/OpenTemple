@@ -63,7 +63,7 @@ public class StatBlockWidget
         _weight = new StatBlockValue(doc, "weight");
     }
 
-    public void Update(CharEditorSelectionPacket pkt, GameObject critter, ChargenStages completedStages)
+    public void Update(CharEditorSelectionPacket pkt, GameObject critter, ChargenStage completedStages)
     {
         for (var i = 0; i < pkt.abilityStats.Length; i++)
         {
@@ -97,9 +97,9 @@ public class StatBlockWidget
     }
 
     [TempleDllLocation(0x1011d470)]
-    private void UpdateExperienceAndLevel(GameObject critter, ChargenStages completedStages)
+    private void UpdateExperienceAndLevel(GameObject critter, ChargenStage completedStages)
     {
-        if (critter != null && completedStages >= ChargenStages.CG_Stage_Class)
+        if (critter != null && completedStages >= ChargenStage.Class)
         {
             // Vanilla just used constants (exp: 0, lvl: 1) here, but we query the
             // actual object for consistency's sake
@@ -116,9 +116,9 @@ public class StatBlockWidget
     }
 
     [TempleDllLocation(0x1011cd10)]
-    private void UpdateHpAndAc(GameObject critter, ChargenStages completedStages)
+    private void UpdateHpAndAc(GameObject critter, ChargenStage completedStages)
     {
-        if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
+        if (critter != null && completedStages > ChargenStage.Class)
         {
             _hp.IsActive = true;
             _hp.Value = critter.GetStat(Stat.hp_max).ToString();
@@ -133,9 +133,9 @@ public class StatBlockWidget
     }
 
     [TempleDllLocation(0x1011d010)]
-    private void UpdateSavingThrows(GameObject critter, ChargenStages completedStages)
+    private void UpdateSavingThrows(GameObject critter, ChargenStage completedStages)
     {
-        if (critter != null && completedStages >= ChargenStages.CG_Stage_Class)
+        if (critter != null && completedStages >= ChargenStage.Class)
         {
             _reflexSave.IsActive = true;
             _reflexSave.Value = critter.GetStat(Stat.save_reflexes).ToString();
@@ -153,9 +153,9 @@ public class StatBlockWidget
     }
 
     [TempleDllLocation(0x1011ca20)]
-    private void UpdateInitiativeAndSpeed(GameObject critter, ChargenStages completedStages)
+    private void UpdateInitiativeAndSpeed(GameObject critter, ChargenStage completedStages)
     {
-        if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
+        if (critter != null && completedStages > ChargenStage.Class)
         {
             _initiativeBonus.IsActive = true;
             _initiativeBonus.Value = critter.GetStat(Stat.initiative_bonus).ToString();
@@ -171,9 +171,9 @@ public class StatBlockWidget
     }
 
     [TempleDllLocation(0x1011c6c0)]
-    private void UpdateAttackBonus(GameObject critter, ChargenStages completedStages)
+    private void UpdateAttackBonus(GameObject critter, ChargenStage completedStages)
     {
-        if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
+        if (critter != null && completedStages > ChargenStage.Class)
         {
             _meleeAttackBonus.IsActive = true;
             var meleeBonus = critter.GetStat(Stat.melee_attack_bonus);

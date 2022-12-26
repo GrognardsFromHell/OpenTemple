@@ -14,7 +14,7 @@ internal class HeightSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_HEIGHT";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Height;
+    public ChargenStage Stage => ChargenStage.Height;
 
     public WidgetContainer Container { get; }
 
@@ -50,7 +50,6 @@ internal class HeightSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/height_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         _minHeightLabel = doc.GetTextContent("minHeightLabel");
         _maxHeightLabel = doc.GetTextContent("maxHeightLabel");

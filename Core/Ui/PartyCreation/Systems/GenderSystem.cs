@@ -16,7 +16,7 @@ internal class GenderSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_GENDER";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Gender;
+    public ChargenStage Stage => ChargenStage.Gender;
 
     public WidgetContainer Container { get; }
 
@@ -31,7 +31,6 @@ internal class GenderSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/gender_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         _maleButton = doc.GetButton("maleButton");
         _maleButton.AddClickListener(() => ChooseGender(Gender.Male));
@@ -47,7 +46,7 @@ internal class GenderSystem : IChargenSystem
         _pkt.genderId = gender;
         UpdateButtons();
         UiSystems.PCCreation.UpdatePlayerDescription();
-        UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Gender);
+        UiSystems.PCCreation.ResetSystemsAfter(ChargenStage.Gender);
     }
 
     [TempleDllLocation(0x10189c70)]

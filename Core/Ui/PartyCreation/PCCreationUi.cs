@@ -46,7 +46,7 @@ public class PCCreationUi : IDisposable
     };
 
     [TempleDllLocation(0x102f7d68)]
-    private ChargenStages uiPcCreationActiveStageIdx;
+    private ChargenStage uiPcCreationActiveStageIdx;
 
     [TempleDllLocation(0x10bdb8e4)]
     private int dword_10BDB8E4 = 1000;
@@ -73,7 +73,7 @@ public class PCCreationUi : IDisposable
     private readonly MiniatureWidget _modelPreview;
 
     [TempleDllLocation(0x10bdd5d4)]
-    private ChargenStages uiPcCreationStagesCompleted;
+    private ChargenStage uiPcCreationStagesCompleted;
 
     [TempleDllLocation(0x102f7bf0)]
     public bool uiPcCreationIsHidden = true;
@@ -91,7 +91,7 @@ public class PCCreationUi : IDisposable
     [TempleDllLocation(0x1011b730)]
     public bool IsPointBuy =>
         charEdSelPkt.isPointbuy
-        && uiPcCreationActiveStageIdx == ChargenStages.CG_Stage_Stats;
+        && uiPcCreationActiveStageIdx == ChargenStage.Stats;
 
     [TempleDllLocation(0x11e741a0)]
     private GameObject? charEditorObjHnd;
@@ -104,7 +104,7 @@ public class PCCreationUi : IDisposable
     private bool ironmanSaveNamePopupActive;
 
     public GameObject EditedChar => charEditorObjHnd;
-    
+
     [TempleDllLocation(0x10120420)]
     public PCCreationUi()
     {
@@ -160,7 +160,7 @@ public class PCCreationUi : IDisposable
         chargenSystems.Add(new ClassSystem());
         chargenSystems.Add(new AlignmentSystem());
         chargenSystems.Add(new Systems.DeitySystem());
-        chargenSystems.Add(new AbilitiesSystem());
+        chargenSystems.Add(new ClassFeaturesSystem());
         chargenSystems.Add(new FeatsSystem());
         chargenSystems.Add(new SkillsSystem());
         chargenSystems.Add(new SpellsSystem());
@@ -171,6 +171,7 @@ public class PCCreationUi : IDisposable
         var y = 0;
         foreach (var system in chargenSystems)
         {
+            system.Container.Visible = false;
             _mainWindow.Add(system.Container);
 
             var stageButton = CreateStageButton(system);
@@ -216,21 +217,16 @@ public class PCCreationUi : IDisposable
     [TemplePlusLocation("ui_pc_creation.cpp")]
     private void BeforeRenderMainWindow()
     {
-        ChargenStages stage;
         var nextStage = uiPcCreationStagesCompleted + 1;
         // TODO TEMPORARY
         if ((int) nextStage >= chargenSystems.Count)
         {
-            nextStage = (ChargenStages) (chargenSystems.Count - 1);
+            nextStage = (ChargenStage) (chargenSystems.Count - 1);
         }
         // TODO END TEMPORARY
 
-        if (nextStage > ChargenStages.CG_STAGE_COUNT)
-        {
-            nextStage = ChargenStages.CG_STAGE_COUNT;
-        }
-
-        for (stage = 0; stage < nextStage; stage++)
+        var stage = ChargenStages.First;
+        for (; stage < nextStage; stage++)
         {
             if (!chargenSystems[(int) stage].CheckComplete())
             {
@@ -605,7 +601,7 @@ public class PCCreationUi : IDisposable
         Globals.UiManager.AddWindow(_mainWindow);
         _mainWindow.BringToFront();
 
-        ShowStage(ChargenStages.CG_Stage_Stats);
+        ShowStage(ChargenStage.Stats);
         UpdatePlayerDescription();
     }
 
@@ -650,7 +646,7 @@ public class PCCreationUi : IDisposable
     }
 
     [TempleDllLocation(0x1011e3b0)]
-    private void ShowStage(ChargenStages stage)
+    private void ShowStage(ChargenStage stage)
     {
         if (stage > uiPcCreationStagesCompleted)
         {
@@ -659,9 +655,9 @@ public class PCCreationUi : IDisposable
 
         chargenSystems[(int) uiPcCreationActiveStageIdx].Hide();
 
-        if (stage == uiPcCreationStagesCompleted && stage > ChargenStages.CG_Stage_Stats)
+        if (stage == uiPcCreationStagesCompleted && stage > ChargenStage.Stats)
         {
-            for (var i = ChargenStages.CG_Stage_Stats; i < stage; i++)
+            for (var i = ChargenStage.Stats; i < stage; i++)
             {
                 chargenSystems[(int) i].Finalize(charEdSelPkt, ref charEditorObjHnd);
             }
@@ -670,12 +666,20 @@ public class PCCreationUi : IDisposable
         // This has to be set here because Finalize on the systems called above may replace the handle
         _modelPreview.Object = charEditorObjHnd;
         _modelPreview.Visible = charEditorObjHnd != null
-                                && stage > ChargenStages.CG_Stage_Gender
-                                && (stage < ChargenStages.CG_Stage_Portrait || charEdSelPkt.portraitId == 0);
+                                && stage > ChargenStage.Gender
+                                && (stage < ChargenStage.Portrait || charEdSelPkt.portraitId == 0);
 
         uiPcCreationActiveStageIdx = stage;
 
-        if (stage >= ChargenStages.CG_STAGE_COUNT)
+        if (stage <= ChargenStages.Last)
+        {
+            chargenSystems[(int) stage].Activate();
+            // TODO: Probably no longer needed UiPcCreationStatTitleUpdateMeasures/*0x1011bd10*/(stage);
+            var systemNameId = chargenSystems[(int) stage].HelpTopic;
+            ShowHelpTopic(systemNameId);
+            chargenSystems[(int) stage].Show();
+        }
+        else
         {
             UiSystems.PCCreation.UiPcCreationSystemsResetAll();
             if (dword_10BDB8E4 == 1000)
@@ -705,17 +709,9 @@ public class PCCreationUi : IDisposable
             UiSystems.PCCreation.charEditorObjHnd = null;
             // TODO ScrollboxHideWindow /*0x1018cac0*/(uiPcCreationScrollBox /*0x11e741b4*/);
         }
-        else
-        {
-            chargenSystems[(int) stage].Activate();
-            // TODO: Probably no longer needed UiPcCreationStatTitleUpdateMeasures/*0x1011bd10*/(stage);
-            var systemNameId = chargenSystems[(int) stage].HelpTopic;
-            ShowHelpTopic(systemNameId);
-            chargenSystems[(int) stage].Show();
-        }
     }
 
-    public void SkipToStageForTesting(ChargenStages stage, Dictionary<string, object> props)
+    public void SkipToStageForTesting(ChargenStage stage, Dictionary<string, object> props)
     {
         while (uiPcCreationStagesCompleted < stage &&
                chargenSystems[(int) uiPcCreationStagesCompleted].CompleteForTesting(props))
@@ -757,12 +753,11 @@ public class PCCreationUi : IDisposable
     }
 
     [TempleDllLocation(0x1011bc70)]
-    internal void ResetSystemsAfter(ChargenStages stage)
+    internal void ResetSystemsAfter(ChargenStage stage)
     {
         for (var i = (int) stage + 1; i < chargenSystems.Count; i++)
         {
             chargenSystems[i].Reset(charEdSelPkt);
         }
     }
-
 }

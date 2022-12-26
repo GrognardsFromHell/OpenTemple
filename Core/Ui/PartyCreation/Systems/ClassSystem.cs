@@ -13,7 +13,7 @@ internal class ClassSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_CLASS";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Class;
+    public ChargenStage Stage => ChargenStage.Class;
 
     public WidgetContainer Container { get; }
 
@@ -27,7 +27,6 @@ internal class ClassSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/class_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         Container.Add(_classList.Container);
 
@@ -35,7 +34,7 @@ internal class ClassSystem : IChargenSystem
         {
             _pkt.classCode = _classList.SelectedItem.GetValueOrDefault();
             UpdateDescriptionBox();
-            UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Class);
+            UiSystems.PCCreation.ResetSystemsAfter(ChargenStage.Class);
             UpdateActiveClass();
         };
         _classList.OnItemHovered += classId =>

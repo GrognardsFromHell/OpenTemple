@@ -25,7 +25,7 @@ class AbilityScoreSystem : IChargenSystem
         "str", "dex", "con", "int", "wis", "cha"
     };
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Stats;
+    public ChargenStage Stage => ChargenStage.Stats;
 
     [TempleDllLocation(0x10c44c50)]
     private readonly int[] _charGenRolledStats = new int[6];
@@ -66,7 +66,6 @@ class AbilityScoreSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/stats_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         _pointBuyInfo = doc.GetContainer("pointBuyInfo");
         _pointBuyPointsAvailable = doc.GetTextContent("pointBuyPointsAvailable");
@@ -200,7 +199,7 @@ class AbilityScoreSystem : IChargenSystem
     private void OnAbilityScoresChanged()
     {
         UpdateButtons();
-        UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Stats);
+        UiSystems.PCCreation.ResetSystemsAfter(ChargenStage.Stats);
     }
 
     [TempleDllLocation(0x1018bcb0)]

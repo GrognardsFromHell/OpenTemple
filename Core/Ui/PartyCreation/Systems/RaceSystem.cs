@@ -13,7 +13,7 @@ internal class RaceSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_RACE";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Race;
+    public ChargenStage Stage => ChargenStage.Race;
 
     public WidgetContainer Container { get; }
 
@@ -30,7 +30,6 @@ internal class RaceSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/race_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         for (var i = 0; i < 7; i++)
         {
@@ -42,7 +41,7 @@ internal class RaceSystem : IChargenSystem
                 if (buttonIndex < _subraces.Count)
                 {
                     _pkt.raceId = _subraces[buttonIndex];
-                    UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Race);
+                    UiSystems.PCCreation.ResetSystemsAfter(ChargenStage.Race);
                     UpdateActiveRace();
                 }
             });
@@ -65,7 +64,7 @@ internal class RaceSystem : IChargenSystem
         {
             _pkt.raceId = _raceList.SelectedItem;
             UpdateDescriptionBox();
-            UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Race);
+            UiSystems.PCCreation.ResetSystemsAfter(ChargenStage.Race);
             UpdateActiveRace();
         };
         _raceList.OnItemHovered += raceId =>
@@ -195,7 +194,7 @@ internal class RaceSystem : IChargenSystem
     public bool CompleteForTesting(Dictionary<string, object> props)
     {
         _pkt.raceId = RaceId.human;
-        UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Race);
+        UiSystems.PCCreation.ResetSystemsAfter(ChargenStage.Race);
         UpdateActiveRace();
         return true;
     }

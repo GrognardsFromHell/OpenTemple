@@ -9,7 +9,7 @@ internal class PortraitSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_PORTRAIT";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Portrait;
+    public ChargenStage Stage => ChargenStage.Portrait;
 
     public WidgetContainer Container { get; }
 
@@ -20,7 +20,6 @@ internal class PortraitSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/portrait_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         // TODO chargenPortraitCapacity /*0x10c0eaa8*/ = 0;
         // TODO chargenPortraitCount /*0x10c0eb64*/ = 0;

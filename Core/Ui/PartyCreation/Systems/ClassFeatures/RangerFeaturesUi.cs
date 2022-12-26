@@ -16,7 +16,7 @@ internal class RangerFeaturesUi : IChargenSystem
         Container.Visible = false;
     }
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
+    public ChargenStage Stage => ChargenStage.ClassFeatures;
 
     public WidgetContainer Container { get; }
 

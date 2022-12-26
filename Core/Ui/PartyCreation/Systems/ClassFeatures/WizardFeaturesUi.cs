@@ -13,10 +13,9 @@ internal class WizardFeaturesUi : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/abilities_wizard_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
     }
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
+    public ChargenStage Stage => ChargenStage.ClassFeatures;
 
     public string HelpTopic { get; }
 

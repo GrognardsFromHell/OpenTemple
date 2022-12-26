@@ -18,7 +18,7 @@ internal class FeatsSystem : IChargenSystem
 {
     public string HelpTopic => "TAG_CHARGEN_FEATS";
 
-    public ChargenStages Stage => ChargenStages.CG_Stage_Feats;
+    public ChargenStage Stage => ChargenStage.Feats;
 
     public WidgetContainer Container { get; }
 
@@ -43,7 +43,6 @@ internal class FeatsSystem : IChargenSystem
     {
         var doc = WidgetDoc.Load("ui/pc_creation/feats_ui.json");
         Container = doc.GetRootContainer();
-        Container.Visible = false;
 
         // TODO featsMasterFeatStrings
 

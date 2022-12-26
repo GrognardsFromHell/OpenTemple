@@ -52,7 +52,7 @@ public interface IChargenSystem : IDisposable
 
     WidgetContainer Container { get; }
 
-    ChargenStages Stage { get; }
+    ChargenStage Stage { get; }
 
     string ButtonLabel => $"#{{pc_creation:{(int) Stage}}}";
 
