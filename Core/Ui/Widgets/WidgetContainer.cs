@@ -345,4 +345,14 @@ public class WidgetContainer : WidgetBase
 
         yield return context;
     }
+
+    protected internal override void UpdateLayout()
+    {
+        base.UpdateLayout();
+
+        foreach (var child in _children)
+        {
+            child.UpdateLayout();
+        }
+    }
 }

@@ -426,7 +426,7 @@ public class TownMapContent : WidgetButtonBase
     }
 
     [TempleDllLocation(0x1012c040)]
-    protected override void UpdateLayout()
+    protected internal override void UpdateLayout()
     {
         var contentRect = GetContentArea();
 

@@ -377,6 +377,25 @@ public class MainMenuUi : IDisposable
 
 class ViewCinematicsDialog
 {
+    private int _selection = 0;
+    private WidgetContainer _widget;
+    private Dictionary<int, string> _movieNames = new();
+    private WidgetScrollView _listBox;
+    private List<WidgetButton> btnIds = new();
+    private List<int> seenIndices = new(); // indices into movieIds / mMovieNames
+
+    private List<int> movieIds = new()
+    {
+        1000, 1009, 1007,
+        1012, 1002, 1015,
+        1005, 1010, 1004,
+        1013, 1006, 1016,
+        1001, 1011, 1008,
+        1014, 1003, 1017,
+        304, 300, 303,
+        301, 302, 1009
+    };
+    
     public ViewCinematicsDialog(MainMenuUi mainMenu, IDictionary<int, string> mmMes)
     {
         var doc = WidgetDoc.Load("ui/main_menu_cinematics.json");
@@ -384,9 +403,9 @@ class ViewCinematicsDialog
 
         doc.GetButton("view").AddClickListener(() =>
         {
-            if (mSelection < 0 || mSelection >= seenIndices.Count)
+            if (_selection < 0 || _selection >= seenIndices.Count)
                 return;
-            var movieIdx = seenIndices[mSelection];
+            var movieIdx = seenIndices[_selection];
             if (movieIdx < 0 || movieIdx >= movieIds.Count)
                 return;
             var movieId = movieIds[movieIdx];
@@ -431,7 +450,7 @@ class ViewCinematicsDialog
             button.Id = _movieNames[movieInd];
             var innerWidth = _listBox.GetInnerWidth();
             button.Width = innerWidth;
-            button.SetAutoSizeWidth(false);
+            button.AutoSizeWidth = false;
             button.SetStyle("mm-cinematics-list-button");
             button.Y = y;
             //var pBtn = button.get();
@@ -452,10 +471,10 @@ class ViewCinematicsDialog
             pBtn.SetStyle("mm-cinematics-list-button");
         }
 
-        mSelection = idx;
-        if (mSelection >= 0 && mSelection < btnIds.Count)
+        _selection = idx;
+        if (_selection >= 0 && _selection < btnIds.Count)
         {
-            btnIds[mSelection].SetStyle("mm-cinematics-list-button-selected");
+            btnIds[_selection].SetStyle("mm-cinematics-list-button-selected");
         }
     } // changes scrollbox selection
 
@@ -463,26 +482,7 @@ class ViewCinematicsDialog
     {
         return Globals.Config.SeenMovies.Contains(new SeenMovie(movieId, soundId));
     }
-
-    private int mSelection = 0;
-    private WidgetContainer _widget;
-    private Dictionary<int, string> _movieNames = new();
-    private WidgetScrollView _listBox;
-    private List<WidgetButton> btnIds = new();
-    private List<int> seenIndices = new(); // indices into movieIds / mMovieNames
-
-    private List<int> movieIds = new()
-    {
-        1000, 1009, 1007,
-        1012, 1002, 1015,
-        1005, 1010, 1004,
-        1013, 1006, 1016,
-        1001, 1011, 1008,
-        1014, 1003, 1017,
-        304, 300, 303,
-        301, 302, 1009
-    };
-};
+}
 
 class SetPiecesDialog
 {
@@ -525,7 +525,7 @@ class SetPiecesDialog
             button.Id = "Arena";
             var innerWidth = _listBox.GetInnerWidth();
             button.Width = innerWidth;
-            button.SetAutoSizeWidth(false);
+            button.AutoSizeWidth = false;
             button.SetStyle("mm-setpieces-list-button");
             button.Y = y;
             btnIds.Add(button);

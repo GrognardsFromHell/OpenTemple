@@ -50,6 +50,9 @@ public class GameStartup : IDisposable
         Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
         Globals.UiManager = new UiManager(Tig.MainWindow, Tig.FS);
+        Globals.UiAssets = new UiAssets();
+        Globals.UiStyles = new UiStyles();
+        Globals.WidgetButtonStyles = new WidgetButtonStyles();
 
         // Hides the cursor during loading
 #if !DEBUG
@@ -64,10 +67,6 @@ public class GameStartup : IDisposable
         Tig.MainWindow.Closed += Globals.GameLoop.Stop;
 
         GameSystems.Init();
-
-        Globals.UiAssets = new UiAssets();
-        Globals.UiStyles = new UiStyles();
-        Globals.WidgetButtonStyles = new WidgetButtonStyles();
 
         UiSystems.Startup(config);
 

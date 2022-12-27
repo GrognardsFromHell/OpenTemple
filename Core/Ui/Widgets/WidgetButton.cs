@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Immutable;
 using System.Drawing;
@@ -20,7 +19,7 @@ public class WidgetButton : WidgetButtonBase
     private WidgetButtonStyle _style;
 
     // is the state associated with the button active? Note: this is separate from mDisabled, which determines if the button itself is disabled or not
-    protected bool _active = false;
+    protected bool _active;
 
     public void SetActive(bool isActive)
     {
@@ -77,7 +76,7 @@ public class WidgetButton : WidgetButtonBase
 
         base.Render();
 
-        var contentArea = GetContentArea();
+        var area = PaddingArea;
 
         string? labelStyle = null;
 
@@ -146,22 +145,21 @@ public class WidgetButton : WidgetButtonBase
 
         _label.StyleIds = labelStyle != null ? ImmutableList.Create(labelStyle) : ImmutableList<string>.Empty;
 
-        var fr = _frameImage;
-        if (fr != null)
+        var frame = _frameImage;
+        var image = GetCurrentImage();
+        if (frame != null)
         {
-            var contentAreaWithMargins = GetContentArea(true);
-            fr.SetBounds(contentAreaWithMargins);
-            fr.Render();
+            frame.SetBounds(BorderArea);
+            frame.Render();
         }
 
-        var image = GetCurrentImage();
         if (image != null)
         {
-            image.SetBounds(contentArea);
+            image.SetBounds(area);
             image.Render();
         }
 
-        _label.SetBounds(contentArea);
+        _label.SetBounds(area);
         _label.Render();
     }
 
@@ -307,7 +305,7 @@ public class WidgetButton : WidgetButtonBase
     private void UpdateAutoSize()
     {
         // Try to var-size
-        if (_autoSizeWidth || _autoSizeHeight)
+        if (AutoSizeWidth || AutoSizeHeight)
         {
             Size prefSize;
             if (_normalImage != null)
@@ -321,39 +319,44 @@ public class WidgetButton : WidgetButtonBase
 
             if (_frameImage != null)
             {
-                // update margins from frame size
-                var framePrefSize = _frameImage.GetPreferredSize();
-                var marginW = framePrefSize.Width - prefSize.Width;
-                var marginH = framePrefSize.Height - prefSize.Height;
-                if (marginW > 0)
-                {
-                    _margins.Right = marginW / 2;
-                    _margins.Left = marginW - _margins.Right;
-                }
+                var frameSize = _frameImage.GetPreferredSize();
 
-                if (marginH > 0)
-                {
-                    _margins.Bottom = marginH / 2;
-                    _margins.Top = marginH - _margins.Bottom;
-                }
+                var borderH = Math.Max(0, (frameSize.Width - prefSize.Width) / 2);
+                var borderV = Math.Max(0, (frameSize.Height - prefSize.Height) / 2);
+                LocalStyles.BorderWidth = Math.Max(borderH, borderV);
+
+                prefSize = frameSize;
             }
 
-            prefSize.Height += _margins.Bottom + _margins.Top;
-            prefSize.Width += _margins.Left + _margins.Right;
-
-            if (_autoSizeWidth && _autoSizeHeight)
+            if (AutoSizeWidth && AutoSizeHeight)
             {
                 Size = prefSize;
             }
-            else if (_autoSizeWidth)
+            else if (AutoSizeWidth)
             {
                 Width = prefSize.Width;
             }
-            else if (_autoSizeHeight)
+            else if (AutoSizeHeight)
             {
                 Height = prefSize.Height;
             }
         }
     }
 
+    public override bool HitTest(float x, float y)
+    {
+        // Ignore hits on the border if we have a frame image
+        var isHit = base.HitTest(x, y);
+        if (isHit && _frameImage != null)
+        {
+            var borderWidth = ComputedStyles.BorderWidth;
+            var borderArea = BorderArea;
+            if (x <= borderWidth || y <= borderWidth || x >= borderArea.Width - borderWidth || y >= borderArea.Height - borderWidth)
+            {
+                return false;
+            }
+        }
+
+        return isHit;
+    }
 }

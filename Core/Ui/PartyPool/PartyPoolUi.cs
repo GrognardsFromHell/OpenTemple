@@ -168,7 +168,10 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         BeginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
         BeginAdventuringButton.Text = "#{pc_creation:408}\n#{pc_creation:409}";
         BeginAdventuringButton.Size = new Size(151, 64);
-        BeginAdventuringButton.Margins = new Margins(14, 10, 14, 10);
+        BeginAdventuringButton.LocalStyles.PaddingLeft = 14;
+        BeginAdventuringButton.LocalStyles.PaddingTop = 10;
+        BeginAdventuringButton.LocalStyles.PaddingRight = 14;
+        BeginAdventuringButton.LocalStyles.PaddingBottom = 10;
         // TODO: Reposition on screen size change
         BeginAdventuringButton.SetPos(
             _container.Width - BeginAdventuringButton.Width,

@@ -24,6 +24,7 @@ using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui.PartyCreation;
 
@@ -711,6 +712,7 @@ public class PCCreationUi : IDisposable
         }
     }
 
+    [VisibleForScripting]
     public void SkipToStageForTesting(ChargenStage stage, Dictionary<string, object> props)
     {
         while (uiPcCreationStagesCompleted < stage &&

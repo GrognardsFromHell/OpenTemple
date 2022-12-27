@@ -215,6 +215,8 @@ public class UiManager : IUiRoot
     public void Render()
     {
         UpdateCursor();
+        
+        Root.UpdateLayout();
 
         Root.Render();
 

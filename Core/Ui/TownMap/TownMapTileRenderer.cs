@@ -83,7 +83,7 @@ public class TownMapTileRenderer : WidgetContent
             _tileScale = 256.0f / tileDimension;
         }
 
-        public void RenderTownmapTiles(Rectangle srcRect, Rectangle destRect, float widthScale, float heightScale)
+        public void RenderTownmapTiles(RectangleF srcRect, RectangleF destRect, float widthScale, float heightScale)
         {
             var rightmostTile = (srcRect.X + srcRect.Width) / _tileDimension;
             if (rightmostTile >= _cols)
@@ -97,13 +97,13 @@ public class TownMapTileRenderer : WidgetContent
                 bottommostTile = _rows;
             }
 
-            var startTileX = srcRect.X / _tileDimension;
+            var startTileX = (int) (srcRect.X / _tileDimension);
             if (srcRect.X / _tileDimension < 0)
             {
                 startTileX = 0;
             }
 
-            var startTileY = srcRect.Y / _tileDimension;
+            var startTileY = (int) (srcRect.Y / _tileDimension);
             if (srcRect.Y / _tileDimension < 0)
             {
                 startTileY = 0;
@@ -143,7 +143,7 @@ public class TownMapTileRenderer : WidgetContent
                         clippedSrcHeight = srcRectBottom;
                     clippedSrcHeight -= clippedSrcY;
 
-                    Rectangle tileDestRect = default;
+                    RectangleF tileDestRect = default;
                     tileDestRect.X = destRect.X + (int) ((clippedSrcX - srcRect.X) * widthScale);
                     tileDestRect.Y = destRect.Y + (int) ((clippedSrcY - srcRect.Y) * heightScale);
                     tileDestRect.Width = destRect.X +

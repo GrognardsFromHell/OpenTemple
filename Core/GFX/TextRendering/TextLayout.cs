@@ -63,6 +63,10 @@ public sealed class TextLayout : IDisposable
         }
         set
         {
+            if (value < 0)
+            {
+                throw new ArgumentException("Layout width must be positive: " + value);
+            }
             NativeTextLayout.SetMaxWidth(value);
             _metricsInvalid = true;
             _lineMetricsInvalid = true;
@@ -78,6 +82,10 @@ public sealed class TextLayout : IDisposable
         }
         set
         {
+            if (value < 0)
+            {
+                throw new ArgumentException("Layout height must be positive: " + value);
+            }
             NativeTextLayout.SetMaxHeight(value);
             _metricsInvalid = true;
             _lineMetricsInvalid = true;

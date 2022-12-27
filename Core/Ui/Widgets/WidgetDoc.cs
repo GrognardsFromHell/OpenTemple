@@ -205,13 +205,13 @@ internal class WidgetDocLoader
         if (jsonObj.TryGetProperty("width", out var widthNode))
         {
             size.Width = widthNode.GetInt32();
-            widget.SetAutoSizeWidth(false);
+            widget.AutoSizeWidth = false;
         }
 
         if (jsonObj.TryGetProperty("height", out var heightNode))
         {
             size.Height = heightNode.GetInt32();
-            widget.SetAutoSizeHeight(false);
+            widget.AutoSizeHeight = false;
         }
 
         widget.Size = size;

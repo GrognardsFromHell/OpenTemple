@@ -115,4 +115,14 @@ internal class ClassFeaturesSystem : IChargenSystem
             UiSystems.PCCreation.ShowHelpTopic("");
         }
     }
+
+    public bool CompleteForTesting(Dictionary<string, object> props)
+    {
+        if (_featuresByClass.TryGetValue(_pkt.classCode, out var featureUi))
+        {
+            return featureUi.CompleteForTesting(props);
+        }
+
+        return true;
+    }
 }

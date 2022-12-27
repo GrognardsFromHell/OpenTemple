@@ -154,8 +154,8 @@ public class WidgetText : WidgetContent, IFlowContentHost, IDisposable
         if (Math.Abs(width - textLayout.LayoutWidth) > 0.1f ||
             Math.Abs(height - textLayout.LayoutHeight) > 0.1f)
         {
-            textLayout.LayoutWidth = width;
-            textLayout.LayoutHeight = height;
+            textLayout.LayoutWidth = Math.Max(0, width);
+            textLayout.LayoutHeight = Math.Max(0, height);
         }
 
         Tig.RenderingDevice.TextEngine.RenderTextLayout(x, y, textLayout);

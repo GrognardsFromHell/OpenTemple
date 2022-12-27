@@ -23,13 +23,13 @@ public abstract class WidgetContent : Styleable
 
     public abstract void Render();
 
-    public void SetBounds(Rectangle contentArea)
+    public void SetBounds(RectangleF contentArea)
     {
         ContentArea = contentArea;
         Dirty = true;
     }
 
-    public Rectangle GetBounds()
+    public RectangleF GetBounds()
     {
         return ContentArea;
     }
@@ -74,7 +74,7 @@ public abstract class WidgetContent : Styleable
         }
     }
 
-    protected Rectangle ContentArea;
+    protected RectangleF ContentArea;
     protected Size PreferredSize;
     protected bool Dirty = true;
     private int _fixedWidth;

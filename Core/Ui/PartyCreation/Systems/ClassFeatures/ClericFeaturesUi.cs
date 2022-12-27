@@ -296,4 +296,14 @@ internal class ClericFeaturesUi : IChargenSystem
         _selectableDomains.Clear();
         _selectableDomains.AddRange(GameSystems.Deity.GetDomains(deityId));
     }
+
+    public bool CompleteForTesting(Dictionary<string, object> props)
+    {
+        _pkt.domain1 = _selectableDomains[0];
+        _pkt.domain2 = _selectableDomains[1];
+        _pkt.alignmentChoice = AlignmentChoice.Positive;
+        UpdateDomainButtons();
+        UpdateChannelingType();
+        return true;
+    }
 }

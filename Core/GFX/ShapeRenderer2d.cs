@@ -477,7 +477,7 @@ public sealed class ShapeRenderer2d : IDisposable
     }
 
     [TempleDllLocation(0x101d8b70)]
-    public void DrawRectangleOutline(Rectangle rectangle, PackedLinearColorA color)
+    public void DrawRectangleOutline(RectangleF rectangle, PackedLinearColorA color)
     {
         var topLeft = new Vector2(rectangle.Left + 0.5f, rectangle.Top + 0.5f);
         var topRight = new Vector2(rectangle.Right - 0.5f, rectangle.Top + 0.5f);
@@ -948,7 +948,7 @@ public struct Render2dArgs
     public int shaderId;
     public Rectangle srcRect;
     public RectangleF srcRectFloat;
-    public Rectangle destRect;
+    public RectangleF destRect;
     public PackedLinearColorA[] vertexColors;
     public float vertexZ;
     public float rotation;

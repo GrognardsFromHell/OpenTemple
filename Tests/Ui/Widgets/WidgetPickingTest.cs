@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Tests.Ui.Widgets;
@@ -43,7 +44,7 @@ public class WidgetPickingTest
     [TestCase(1.0f, 45.9f, ExpectedResult = true, TestName = "Just inside bottom-left corner (with margin)")]
     public bool PickWithMargin(float relX, float relY)
     {
-        _widget.Margins = new Margins(1, 2, 3, 4);
+        _widget.LocalStyles.SetMargins(1, 2, 3, 4);
 
         var globalPick = _widget.PickWidgetGlobal(relX + _widget.X, relY + _widget.Y);
         var localPick = _widget.PickWidget(relX, relY);

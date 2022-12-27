@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using FluentAssertions;
 using NUnit.Framework;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Tests.Ui.Widgets;
@@ -35,9 +36,9 @@ public class WidgetBaseTest
             X = 11,
             Y = 7,
             Width = 9,
-            Height = 13,
-            Margins = new Margins(1, 2, 3, 4)
+            Height = 13
         };
+        _childWithMargins.LocalStyles.SetMargins(1, 2, 3, 4);
         _parent.Add(_childWithMargins);
     }
 

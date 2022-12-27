@@ -6,10 +6,11 @@
 /// </summary>
 public enum HitTestingMode
 {
+  
     /// <summary>
-    /// Any point within the <see cref="WidgetBase.GetContentArea(OpenTemple.Core.Ui.Widgets.WidgetBase)">Content Area</see>
+    /// Any point within the <see cref="WidgetBase.BorderArea">Border Area</see>
     /// </summary>
-    ContentArea,
+    Area,
 
     /// <summary>
     /// Hit test against the content of this widget, causing areas not covered by content to be transparent to hit-testing.

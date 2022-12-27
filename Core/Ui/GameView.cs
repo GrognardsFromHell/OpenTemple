@@ -72,7 +72,7 @@ public class GameView : WidgetContainer, IGameViewport
     {
         _device = device;
         _gameRenderer = new GameRenderer(_device, this);
-        HitTesting = HitTestingMode.ContentArea; // The entire area represents the in-game UI
+        HitTesting = HitTestingMode.Area; // The entire area represents the in-game UI
 
         _mainWindow = mainWindow;
 

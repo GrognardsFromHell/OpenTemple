@@ -27,7 +27,7 @@ public class TextFieldWidget : WidgetBase
     private RectangleF[] _selectionRects;
 
     // Rectangle containing the text input area inside of this widget
-    private Rectangle _innerTextAreaRect;
+    private RectangleF _innerTextAreaRect;
 
     // By how much is the text layout shifted to the left
     private float _lineXShift;
@@ -252,7 +252,7 @@ public class TextFieldWidget : WidgetBase
         textAreaRect.Offset(contentArea.Location);
 
         // We use the full content rectangle vertically because the baseline / caret doesn't include the descend below the baseline
-        Tig.RenderingDevice.SetScissorRect(textAreaRect.X, textAreaRect.Y, textAreaRect.Width, textAreaRect.Height);
+        Tig.RenderingDevice.SetScissorRect((int) textAreaRect.X, (int) textAreaRect.Y, (int) MathF.Ceiling(textAreaRect.Width), (int) MathF.Ceiling(textAreaRect.Height));
 
         if (!HasFocus && _buffer.Length == 0)
         {
@@ -267,7 +267,7 @@ public class TextFieldWidget : WidgetBase
         Tig.RenderingDevice.ResetScissorRect();
     }
 
-    private void RenderTextLine(Rectangle textAreaRect)
+    private void RenderTextLine(RectangleF textAreaRect)
     {
         var textLayoutLeft = textAreaRect.X - _lineXShift;
         
@@ -396,12 +396,7 @@ public class TextFieldWidget : WidgetBase
         }
 
         // Update content rectangle
-        _innerTextAreaRect = new Rectangle(
-            Margins.Left,
-            Margins.Top,
-            Width - Margins.Left - Margins.Right,
-            Height - Margins.Top - Margins.Bottom
-        );
+        _innerTextAreaRect = ContentArea;
         if (!_undecorated)
         {
             _innerTextAreaRect.Inflate(-4, -4);

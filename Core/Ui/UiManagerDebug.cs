@@ -69,11 +69,36 @@ public class UiManagerDebug
 
     private static void RenderWidgetOutline(WidgetBase widget)
     {
-        var contentArea = widget.GetContentArea();
+        var marginArea = widget.MarginArea;
+        var borderArea = widget.BorderArea;
+        var paddingArea = widget.PaddingArea;
+        var contentArea = widget.ContentArea;
+
         Tig.ShapeRenderer2d.DrawDashedRectangle(
             contentArea,
             WidgetOutlinePattern.Scale(Tig.MainWindow.UiScale)
         );
+        if (paddingArea != contentArea)
+        {
+            Tig.ShapeRenderer2d.DrawDashedRectangle(
+                paddingArea,
+                WidgetOutlinePattern.Scale(Tig.MainWindow.UiScale)
+            );  
+        }
+        if (borderArea != paddingArea)
+        {
+            Tig.ShapeRenderer2d.DrawDashedRectangle(
+                borderArea,
+                WidgetOutlinePattern.Scale(Tig.MainWindow.UiScale)
+            );  
+        }
+        if (marginArea != borderArea)
+        {
+            Tig.ShapeRenderer2d.DrawDashedRectangle(
+                marginArea,
+                WidgetOutlinePattern.Scale(Tig.MainWindow.UiScale)
+            );  
+        }
     }
 
     public void RenderDebugUi()

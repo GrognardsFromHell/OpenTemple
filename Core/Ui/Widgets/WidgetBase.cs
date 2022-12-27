@@ -6,8 +6,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using OpenTemple.Core.Hotkeys;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Styles;
 using Size = System.Drawing.Size;
@@ -34,9 +36,8 @@ public partial class WidgetBase : Styleable, IDisposable
     public bool CenterHorizontally { get; set; }
     public bool CenterVertically { get; set; }
     protected bool _sizeToParent;
-    protected bool _autoSizeWidth = true;
-    protected bool _autoSizeHeight = true;
-    protected Margins _margins;
+    public bool AutoSizeWidth { get; set; } = true;
+    public bool AutoSizeHeight { get; set; } = true;
     protected readonly List<WidgetContent> Content = new();
     private readonly List<ActionHotkeyRegistration> _actionHotkeys = new();
     private readonly Dictionary<Hotkey, HeldHotkeyState> _heldHotkeys = new();
@@ -207,12 +208,6 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     protected Point ContentOffset { get; set; }
 
-    public Margins Margins
-    {
-        get => _margins;
-        set => _margins = value;
-    }
-
     public WidgetBase([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
     {
         if (filePath != null)
@@ -242,6 +237,9 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     public HitTestingMode HitTesting { get; set; }
 
+    /// <summary>
+    /// Hit test the widget at the given x and y position relative to its border area.
+    /// </summary>
     public virtual bool HitTest(float x, float y)
     {
         if (HitTesting == HitTestingMode.Ignore)
@@ -249,13 +247,13 @@ public partial class WidgetBase : Styleable, IDisposable
             return false;
         }
 
-        var contentArea = GetContentArea();
-        x += contentArea.X - _margins.Left;
-        y += contentArea.Y - _margins.Top;
+        var contentArea = BorderArea;
+        x += contentArea.X;
+        y += contentArea.Y;
 
-        if (HitTesting == HitTestingMode.ContentArea)
+        if (HitTesting == HitTestingMode.Area)
         {
-            return contentArea.Contains((int) x, (int) y);
+            return BorderArea.Contains(x, y);
         }
 
         UpdateLayout();
@@ -288,10 +286,10 @@ public partial class WidgetBase : Styleable, IDisposable
 
         OnBeforeRender?.Invoke();
 
-        UpdateLayout();
+        // Draw background
+        RenderDecorations(ComputedStyles);
 
         var contentArea = GetContentArea();
-
         foreach (var content in Content)
         {
             if (!content.Visible || !content.GetBounds().IntersectsWith(contentArea))
@@ -303,14 +301,102 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    protected virtual void UpdateLayout()
+    /// <summary>
+    /// Renders background and borders under the widget content or child widgets.
+    /// </summary>
+    protected virtual void RenderDecorations(ComputedStyles style)
+    {
+        var area = BorderArea;
+
+        if (style.BackgroundColor.A > 0)
+        {
+            Tig.ShapeRenderer2d.DrawRectangle(
+                area,
+                null,
+                style.BackgroundColor
+            );
+        }
+    }
+
+    /// <summary>
+    /// As per CSS Box Model the margin area includes margins, border and padding.
+    /// </summary>
+    public RectangleF MarginArea
+    {
+        get
+        {
+            var area = GetContentArea(true);
+            return new RectangleF(
+                area.X,
+                area.Y,
+                area.Width,
+                area.Height
+            );
+        }
+    }
+
+    /// <summary>
+    /// As per the CSS Box Model the border area includes border, padding and content.
+    /// </summary>
+    public RectangleF BorderArea
+    {
+        get
+        {
+            var area = MarginArea;
+            var style = ComputedStyles;
+            return new RectangleF(
+                area.X + style.MarginLeft,
+                area.Y + style.MarginTop,
+                Math.Max(0, area.Width - style.MarginLeft - style.MarginRight),
+                Math.Max(0, area.Height - style.MarginTop - style.MarginBottom)
+            );
+        }
+    }
+
+    /// <summary>
+    /// As per the CSS Box Model the padding area includes padding and content.
+    /// </summary>
+    public RectangleF PaddingArea
+    {
+        get
+        {
+            var area = BorderArea;
+            var style = ComputedStyles;
+            return new RectangleF(
+                area.X + style.BorderWidth,
+                area.Y + style.BorderWidth,
+                Math.Max(0, area.Width - style.BorderWidth - style.BorderWidth),
+                Math.Max(0, area.Height - style.BorderWidth - style.BorderWidth)
+            );
+        }
+    }
+
+    /// <summary>
+    /// As per CSS Box Model the content area does not include padding, border or margin.
+    /// </summary>
+    public RectangleF ContentArea
+    {
+        get
+        {
+            var area = PaddingArea;
+            var style = ComputedStyles;
+            return new RectangleF(
+                area.X + style.PaddingLeft,
+                area.Y + style.PaddingTop,
+                Math.Max(0, area.Width - style.PaddingLeft - style.PaddingRight),
+                Math.Max(0, area.Height - style.PaddingTop - style.PaddingBottom)
+            );
+        }
+    }
+
+    protected internal virtual void UpdateLayout()
     {
         ApplyAutomaticSizing();
 
         var contentArea = GetContentArea();
 
         // Size to content
-        if (contentArea.Width == 0 && contentArea.Height == 0)
+        if (contentArea is {Width: 0, Height: 0})
         {
             foreach (var content in Content)
             {
@@ -322,8 +408,9 @@ public partial class WidgetBase : Styleable, IDisposable
             // set widget size (adding up the margins in addition to the content dimensions, since the overall size should include the margins)
             if (contentArea.Width != 0 && contentArea.Height != 0)
             {
-                Width = contentArea.Width + _margins.Left + _margins.Right;
-                Height = contentArea.Height + _margins.Top + _margins.Bottom;
+                var style = ComputedStyles;
+                Width = LegacyRound(contentArea.Width + style.MarginLeft + style.MarginRight + 2 * style.BorderWidth + style.PaddingLeft + style.PaddingRight);
+                Height = LegacyRound(contentArea.Height + style.MarginTop + style.MarginBottom + 2 * style.BorderWidth + style.PaddingTop + style.PaddingBottom);
 
                 ApplyAutomaticSizing();
                 contentArea = GetContentArea();
@@ -388,7 +475,14 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    protected void ApplyAutomaticSizing()
+    // This function only exists to make it easier to track places that haven't been converted to use float for coordinates yet
+    [Obsolete]
+    protected internal static int LegacyRound(float v)
+    {
+        return (int) v;
+    }
+
+    protected virtual void ApplyAutomaticSizing()
     {
         if (_sizeToParent)
         {
@@ -424,7 +518,7 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     public WidgetBase? PickWidgetGlobal(float x, float y)
     {
-        var contentBounds = GetContentArea(true);
+        var contentBounds = BorderArea;
         if (x < contentBounds.X || x >= contentBounds.Right || y < contentBounds.Y || y >= contentBounds.Bottom)
         {
             return null;
@@ -434,7 +528,7 @@ public partial class WidgetBase : Styleable, IDisposable
     }
 
     /// <summary>
-    /// Picks the widget a the x,y coordinate local to this widget.
+    /// Picks the widget a the x,y coordinate local to this widgets content area.
     /// Null if the coordinates are outside of this widget. If no
     /// other widget inside is at the given coordinate, will just return this.
     /// </summary>
@@ -445,16 +539,7 @@ public partial class WidgetBase : Styleable, IDisposable
             return null;
         }
 
-        if (x >= _margins.Left &
-            y >= _margins.Top &&
-            x - _margins.Left < Width - _margins.Right
-            && y - _margins.Top < Height - _margins.Bottom
-            && HitTest(x, y))
-        {
-            return this;
-        }
-
-        return null;
+        return HitTest(x, y) ? this : null;
     }
 
     // Coordinates are absolute
@@ -559,54 +644,52 @@ public partial class WidgetBase : Styleable, IDisposable
         _sizeToParent = enable;
         if (enable)
         {
-            SetAutoSizeHeight(false);
-            SetAutoSizeWidth(false);
+            AutoSizeHeight = false;
+            AutoSizeWidth = false;
         }
     }
 
     /// <summary>
-    /// Basically gets a Rectangle of x,y,w,h.
-    /// Can modify based on parent.
+    /// Get the border area of the widget, accounting for its position in the parent.
     /// </summary>
-    private static Rectangle GetContentArea(WidgetBase widget)
+    private static Rectangle GetBorderArea(WidgetBase widget)
     {
-        var bounds = new Rectangle(widget.Pos, widget.Size);
-
+        // We use the border-sizing model, which means the widgets outer size includes border+padding
+        var bounds = new RectangleF(widget.Pos, widget.Size);
+        
         // The content of an advanced widget container may be moved
-        var container = widget.Parent;
-        if (container != null)
+        var parent = widget.Parent;
+        if (parent != null)
         {
-            var scrollOffsetY = container.GetScrollOffsetY();
+            // Children are positioned relative to their parent content area
+            var parentContentArea = parent.ContentArea;
 
-            var parentBounds = GetContentArea(container);
-            bounds.X += parentBounds.X;
-            bounds.Y += parentBounds.Y - scrollOffsetY;
+            var scrollOffsetY = parent.GetScrollOffsetY();
+
+            bounds.X += parentContentArea.X;
+            bounds.Y += parentContentArea.Y - scrollOffsetY;
 
             // Clamp width/height if necessary
-            int parentRight = parentBounds.X + parentBounds.Width;
-            int parentBottom = parentBounds.Y + parentBounds.Height;
-            if (bounds.X >= parentRight)
-            {
-                bounds.Width = 0;
-            }
-
-            if (bounds.Y >= parentBottom)
-            {
-                bounds.Height = 0;
-            }
-
-            if (bounds.X + bounds.Width > parentRight)
+            var parentRight = parentContentArea.Right;
+            var parentBottom = parentContentArea.Bottom;
+            
+            if (bounds.Right > parentRight)
             {
                 bounds.Width = Math.Max(0, parentRight - bounds.X);
             }
 
-            if (bounds.Y + bounds.Height > parentBottom)
+            if (bounds.Bottom > parentBottom)
             {
                 bounds.Height = Math.Max(0, parentBottom - bounds.Y);
             }
         }
 
-        return bounds;
+        return new Rectangle(
+            LegacyRound(bounds.X),
+            LegacyRound(bounds.Y),
+            LegacyRound(bounds.Width),
+            LegacyRound(bounds.Height)
+        );
     }
 
     /// <summary>
@@ -617,24 +700,7 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     public Rectangle GetContentArea(bool includingMargins = false)
     {
-        var res = GetContentArea(this);
-
-        // if margins not included, subtract them
-        if (!includingMargins)
-        {
-            if (res.Width != 0 & res.Height != 0)
-            {
-                res.X += _margins.Left;
-                res.Width -= _margins.Left + _margins.Right;
-                res.Y += _margins.Top;
-                res.Height -= _margins.Bottom + _margins.Top;
-                if (res.Width < 0) res.Width = 0;
-                if (res.Height < 0) res.Height = 0;
-            }
-        }
-
-
-        return res;
+        return GetBorderArea(this);
     }
 
     public Rectangle GetVisibleArea()
@@ -694,16 +760,6 @@ public partial class WidgetBase : Styleable, IDisposable
 
     protected virtual void OnSizeChanged()
     {
-    }
-
-    public void SetAutoSizeWidth(bool enable)
-    {
-        _autoSizeWidth = enable;
-    }
-
-    public void SetAutoSizeHeight(bool enable)
-    {
-        _autoSizeHeight = enable;
     }
 
     protected virtual void InvokeOnBeforeRender()

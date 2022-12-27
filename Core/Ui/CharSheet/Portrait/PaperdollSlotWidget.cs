@@ -70,8 +70,8 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
 
         _quantityLabel = CreateQuantityLabel();
 
-        // We use a custom renderer, so this won't work
-        HitTesting = HitTestingMode.ContentArea;
+        // We use a custom renderer, so hit-testing content won't work
+        HitTesting = HitTestingMode.Area;
     }
 
     private static WidgetText CreateQuantityLabel()

@@ -27,7 +27,7 @@ public class UtilityBarTimeBar : WidgetContainer
         AddContent(arrow);
 
         // We draw the background in a custom render, so there's no content to hit test
-        HitTesting = HitTestingMode.ContentArea;
+        HitTesting = HitTestingMode.Area;
     }
 
     protected override void Dispose(bool disposing)

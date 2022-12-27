@@ -1,13 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Feats;
-using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -37,6 +35,8 @@ internal class FeatsSystem : IChargenSystem
 
     private Dictionary<FeatId, string> _featsMasterFeatStrings;
 
+    private readonly DraggableItemList<SelectableFeat> _featList;
+
     [TempleDllLocation(0x101847f0)]
     [TemplePlusLocation("ui_pc_creation_hooks.cpp:165")]
     public FeatsSystem()
@@ -56,6 +56,12 @@ internal class FeatsSystem : IChargenSystem
 
             return string.Compare(firstName, secondName, StringComparison.CurrentCultureIgnoreCase);
         });
+
+        _featList = new DraggableItemList<SelectableFeat>(300, 200)
+        {
+            TextFactory = feat => new SimpleInlineElement(GetFeatName(feat.featEnum))
+        };
+        Container.Add(_featList);
     }
 
     [TempleDllLocation(0x10181f40)]
@@ -153,6 +159,7 @@ internal class FeatsSystem : IChargenSystem
 
         _selectableFeats.Sort(_featComparer);
 
+        _featList.Items = _selectableFeats;
         // TODO featsScrollbar = *uiManager->GetScrollBar(featsScrollbarId);
         // TODO featsScrollbar.scrollbarY = 0;
         // TODO featsScrollbarY = 0;

@@ -370,8 +370,8 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
     private void CreateExitButton()
     {
         var exitButton = new WidgetButton(_uiParams.CharUiMainExitButton);
-        exitButton.SetAutoSizeHeight(false);
-        exitButton.SetAutoSizeWidth(false);
+        exitButton.AutoSizeWidth = false;
+        exitButton.AutoSizeHeight = false;
         exitButton.SetStyle(new WidgetButtonStyle
         {
             DisabledImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonDisabled],

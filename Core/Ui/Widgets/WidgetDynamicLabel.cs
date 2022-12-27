@@ -34,7 +34,7 @@ public class WidgetDynamicLabel : WidgetBase
         _contentSupplier = contentSupplier;
     }
 
-    protected override void UpdateLayout()
+    protected internal override void UpdateLayout()
     {
         var content = _contentSupplier();
         if (content == null)
