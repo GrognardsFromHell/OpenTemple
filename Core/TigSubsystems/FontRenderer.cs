@@ -111,9 +111,9 @@ public class FontRenderer : IDisposable
     }
 
     public void RenderRun(ReadOnlySpan<char> text,
-        int x,
-        int y,
-        Rectangle bounds,
+        float x,
+        float y,
+        RectangleF bounds,
         TigTextStyle style,
         TigFont font)
     {
@@ -177,7 +177,7 @@ public class FontRenderer : IDisposable
             var state = _fileState[glyph.FontArtIndex];
 
             // See big comment above for reasoning for the 1,1 offset
-            var destRect = new Rectangle(
+            var destRect = new RectangleF(
                 x + 1,
                 y + fontFace.BaseLine - glyph.BaseLineYOffset + 1,
                 glyph.Rectangle.Width,

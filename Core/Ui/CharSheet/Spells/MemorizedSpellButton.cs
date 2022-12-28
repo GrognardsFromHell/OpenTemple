@@ -70,7 +70,7 @@ public class MemorizedSpellButton : WidgetButtonBase
 
     public MemorizedSpellButton(
         GameObject caster, 
-        Rectangle rect,
+        RectangleF rect,
         SpellsPerDay spellsPerDay,
         int level,
         int slotIndex) : base(rect)

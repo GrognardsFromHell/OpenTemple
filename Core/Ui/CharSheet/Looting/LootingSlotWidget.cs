@@ -58,7 +58,7 @@ public class LootingSlotWidget : WidgetContainer
         _item = null;
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         // don't render if the item in this slot is currently being dragged
         if (UiSystems.CharSheet.Inventory.DraggedObject == _item || _item == null)
@@ -66,7 +66,7 @@ public class LootingSlotWidget : WidgetContainer
             return;
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     public void SetItem(GameObject item)
@@ -105,8 +105,8 @@ public class LootingSlotWidget : WidgetContainer
 
             // Position the label in the lower right corner
             var textSize = _quantityLabel.GetPreferredSize();
-            _quantityLabel.X = Width - 2 - textSize.Width;
-            _quantityLabel.Y = Height - 2 - textSize.Height;
+            _quantityLabel.X = PaddingArea.Width - 2 - textSize.Width;
+            _quantityLabel.Y = PaddingArea.Height - 2 - textSize.Height;
             _quantityLabel.Visible = true;
         }
         else

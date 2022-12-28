@@ -4,9 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Text;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.TigSubsystems;
@@ -48,6 +46,14 @@ public partial class WidgetBase : Styleable, IDisposable
     private bool _pressed;
     private bool _disabled;
     private FocusMode _focusMode = FocusMode.None;
+
+    /// <summary>
+    /// This is equivalent to the border box.
+    /// </summary>
+    public RectangleF ComputedLayoutBox { get; set; }
+
+    // Is the layout of this element valid?
+    private bool _layoutValid;
 
     /// <summary>
     /// Controls whether this widget can receive keyboard focus.
@@ -154,14 +160,32 @@ public partial class WidgetBase : Styleable, IDisposable
     public string Name { get; set; }
 
     // Horizontal position relative to parent
-    public int X { get; set; }
+    public float X { get; set; }
 
     // Vertical position relative to parent
-    public int Y { get; set; }
+    public float Y { get; set; }
 
-    public int Width { get; set; }
+    public Dimension Width { get; set; }
 
-    public int Height { get; set; }
+    public Dimension Height { get; set; }
+
+    /// <summary>
+    /// Convenient size to set <see cref="Width"/> and <see cref="Height"/> in UI pixels.
+    /// </summary>
+    public SizeF PixelSize
+    {
+        set
+        {
+            var width = Dimension.Pixels(value.Width);
+            var height = Dimension.Pixels(value.Height);
+            if (Width != width || Height != height)
+            {
+                Width = width;
+                Height = height;
+                InvalidateLayout();
+            }
+        }
+    }
 
     public bool Visible
     {
@@ -256,7 +280,8 @@ public partial class WidgetBase : Styleable, IDisposable
             return BorderArea.Contains(x, y);
         }
 
-        UpdateLayout();
+        LayoutContext context = default;
+        UpdateLayout(context);
 
         foreach (var content in Content)
         {
@@ -277,7 +302,7 @@ public partial class WidgetBase : Styleable, IDisposable
         return false;
     }
 
-    public virtual void Render()
+    public virtual void Render(UiRenderContext context)
     {
         if (!Visible)
         {
@@ -389,9 +414,20 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    protected internal virtual void UpdateLayout()
+    public void EnsureLayoutIsUpToDate()
     {
-        ApplyAutomaticSizing();
+        if (_layoutValid)
+        {
+            return;
+        }
+
+        UpdateLayout(new LayoutContext());
+    }
+
+    protected internal virtual void UpdateLayout(LayoutContext context)
+    {
+        _layoutValid = true;
+        ApplyAutomaticSizing(context);
 
         var contentArea = GetContentArea();
 
@@ -409,10 +445,10 @@ public partial class WidgetBase : Styleable, IDisposable
             if (contentArea.Width != 0 && contentArea.Height != 0)
             {
                 var style = ComputedStyles;
-                Width = LegacyRound(contentArea.Width + style.MarginLeft + style.MarginRight + 2 * style.BorderWidth + style.PaddingLeft + style.PaddingRight);
-                Height = LegacyRound(contentArea.Height + style.MarginTop + style.MarginBottom + 2 * style.BorderWidth + style.PaddingTop + style.PaddingBottom);
+                Width = Dimension.Pixels(LegacyRound(contentArea.Width + style.MarginLeft + style.MarginRight + 2 * style.BorderWidth + style.PaddingLeft + style.PaddingRight));
+                Height = Dimension.Pixels(LegacyRound(contentArea.Height + style.MarginTop + style.MarginBottom + 2 * style.BorderWidth + style.PaddingTop + style.PaddingBottom));
 
-                ApplyAutomaticSizing();
+                ApplyAutomaticSizing(context);
                 contentArea = GetContentArea();
             }
         }
@@ -464,7 +500,7 @@ public partial class WidgetBase : Styleable, IDisposable
                 // Cull the item when it's no longer visible at all
                 if (!contentBounds.IntersectsWith(contentArea))
                 {
-                    contentBounds = Rectangle.Empty;
+                    contentBounds = RectangleF.Empty;
                 }
             }
 
@@ -482,34 +518,34 @@ public partial class WidgetBase : Styleable, IDisposable
         return (int) v;
     }
 
-    protected virtual void ApplyAutomaticSizing()
+    protected virtual void ApplyAutomaticSizing(LayoutContext context)
     {
-        if (_sizeToParent)
-        {
-            var containerWidth = _parent?.Width ?? UiManager?.CanvasSize.Width ?? 1;
-            var containerHeight = _parent?.Height ?? UiManager?.CanvasSize.Height ?? 1;
-            Size = new Size(containerWidth, containerHeight);
-        }
-
-        if (CenterHorizontally)
-        {
-            var containerWidth = _parent?.Width ?? UiManager?.CanvasSize.Width ?? 0;
-            var x = (containerWidth - Width) / 2;
-            if (x != X)
-            {
-                X = x;
-            }
-        }
-
-        if (CenterVertically)
-        {
-            var containerHeight = _parent?.Height ?? UiManager?.CanvasSize.Height ?? 0;
-            var y = (containerHeight - Height) / 2;
-            if (y != Y)
-            {
-                Y = y;
-            }
-        }
+// TODO        if (_sizeToParent)
+// TODO        {
+// TODO            var containerWidth = (_parent != null ? (float) _parent.Width : (float?) null) ?? UiManager?.CanvasSize.Width ?? 1;
+// TODO            var containerHeight = (_parent != null ? _parent.Height : (float?) null) ?? UiManager?.CanvasSize.Height ?? 1;
+// TODO            PixelSize = new Size(containerWidth, containerHeight);
+// TODO        }
+// TODO
+// TODO        if (CenterHorizontally)
+// TODO        {
+// TODO            var containerWidth = (_parent != null ? (float) _parent.Width : (float?) null) ?? UiManager?.CanvasSize.Width ?? 0;
+// TODO            var x = (containerWidth - Width) / 2;
+// TODO            if (x != X)
+// TODO            {
+// TODO                X = x;
+// TODO            }
+// TODO        }
+// TODO
+// TODO        if (CenterVertically)
+// TODO        {
+// TODO            var containerHeight = (_parent != null ? _parent.Height : (float?) null) ?? UiManager?.CanvasSize.Height ?? 0;
+// TODO            var y = (containerHeight - Height) / 2;
+// TODO            if (y != Y)
+// TODO            {
+// TODO                Y = y;
+// TODO            }
+// TODO        }
     }
 
     /// <summary>
@@ -545,7 +581,7 @@ public partial class WidgetBase : Styleable, IDisposable
     // Coordinates are absolute
     public WidgetContent? PickContent(float x, float y)
     {
-        UpdateLayout();
+        EnsureLayoutIsUpToDate();
 
         foreach (var content in Content)
         {
@@ -603,41 +639,27 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    public Rectangle Rectangle
+    public RectangleF Rectangle
     {
-        get => new(Pos, Size);
+        get => new(Pos, GetSize());
         set
         {
             Pos = value.Location;
-            Size = value.Size;
+            PixelSize = value.Size;
         }
     }
 
-    public void SetPos(int x, int y)
-    {
-        X = x;
-        Y = y;
-    }
-
-    public Point Pos
+    public PointF Pos
     {
         get => new(X, Y);
-        set => SetPos(value.X, value.Y);
-    }
-
-    public Size Size
-    {
-        get => new(Width, Height);
         set
         {
-            if (value.Width != Width || value.Height != Height)
-            {
-                Width = value.Width;
-                Height = value.Height;
-                OnSizeChanged();
-            }
+            X = value.X;
+            Y = value.Y;
         }
     }
+
+    public SizeF GetSize() => BorderArea.Size;
 
     public void SetSizeToParent(bool enable)
     {
@@ -652,11 +674,11 @@ public partial class WidgetBase : Styleable, IDisposable
     /// <summary>
     /// Get the border area of the widget, accounting for its position in the parent.
     /// </summary>
-    private static Rectangle GetBorderArea(WidgetBase widget)
+    private static RectangleF GetBorderArea(WidgetBase widget)
     {
         // We use the border-sizing model, which means the widgets outer size includes border+padding
-        var bounds = new RectangleF(widget.Pos, widget.Size);
-        
+        var bounds = new RectangleF(widget.Pos, widget.ComputePreferredBorderAreaSize());
+
         // The content of an advanced widget container may be moved
         var parent = widget.Parent;
         if (parent != null)
@@ -672,7 +694,7 @@ public partial class WidgetBase : Styleable, IDisposable
             // Clamp width/height if necessary
             var parentRight = parentContentArea.Right;
             var parentBottom = parentContentArea.Bottom;
-            
+
             if (bounds.Right > parentRight)
             {
                 bounds.Width = Math.Max(0, parentRight - bounds.X);
@@ -684,39 +706,31 @@ public partial class WidgetBase : Styleable, IDisposable
             }
         }
 
-        return new Rectangle(
-            LegacyRound(bounds.X),
-            LegacyRound(bounds.Y),
-            LegacyRound(bounds.Width),
-            LegacyRound(bounds.Height)
-        );
+        return bounds;
     }
 
     /// <summary>
     /// Returns the {x,y,w,h} rect, but regards modification from parent and subtracts the margins.
-    /// Content area controls:
-    /// - Mouse handling active area
-    /// - Rendering area
     /// </summary>
-    public Rectangle GetContentArea(bool includingMargins = false)
+    public RectangleF GetContentArea(bool includingMargins = false)
     {
         return GetBorderArea(this);
     }
 
-    public Rectangle GetVisibleArea()
+    public RectangleF GetVisibleArea()
     {
         if (_parent != null)
         {
-            Rectangle parentArea = _parent.GetVisibleArea();
-            int parentLeft = parentArea.X;
-            int parentTop = parentArea.Y;
-            int parentRight = parentLeft + parentArea.Width;
-            int parentBottom = parentTop + parentArea.Height;
+            var parentArea = _parent.GetVisibleArea();
+            var parentLeft = parentArea.X;
+            var parentTop = parentArea.Y;
+            var parentRight = parentLeft + parentArea.Width;
+            var parentBottom = parentTop + parentArea.Height;
 
-            int clientLeft = parentArea.X + X;
-            int clientTop = parentArea.Y + Y - _parent.GetScrollOffsetY();
-            int clientRight = clientLeft + Width;
-            int clientBottom = clientTop + Height;
+            var clientLeft = parentArea.X + X;
+            var clientTop = parentArea.Y + Y - _parent.GetScrollOffsetY();
+            var clientRight = clientLeft + BorderArea.Width;
+            var clientBottom = clientTop + BorderArea.Height;
 
             clientLeft = Math.Max(parentLeft, clientLeft);
             clientTop = Math.Max(parentTop, clientTop);
@@ -734,7 +748,7 @@ public partial class WidgetBase : Styleable, IDisposable
                 clientBottom = clientTop;
             }
 
-            return new Rectangle(
+            return new RectangleF(
                 clientLeft,
                 clientTop,
                 clientRight - clientLeft,
@@ -743,7 +757,7 @@ public partial class WidgetBase : Styleable, IDisposable
         }
         else
         {
-            return new Rectangle(X, Y, Width, Height);
+            return new RectangleF(X, Y, BorderArea.Width, BorderArea.Height);
         }
     }
 
@@ -948,13 +962,14 @@ public partial class WidgetBase : Styleable, IDisposable
         UiManager?.ReleaseMouseCapture(this);
     }
 
+    [Obsolete]
     public void CenterInParent()
     {
         if (Parent != null)
         {
-            var parentSize = Parent.Size;
-            X = (parentSize.Width - Width) / 2;
-            Y = (parentSize.Height - Height) / 2;
+            var parentSize = Parent.GetSize();
+            X = (parentSize.Width - BorderArea.Width) / 2;
+            Y = (parentSize.Height - BorderArea.Height) / 2;
         }
     }
 
@@ -1128,5 +1143,55 @@ public partial class WidgetBase : Styleable, IDisposable
         }
 
         UiManager.Focus(this);
+    }
+
+    /// <summary>
+    /// Ensures the layout is updated for this element.
+    /// </summary>
+    public void InvalidateLayout()
+    {
+        _layoutValid = false;
+    }
+
+    /// <summary>
+    /// Calculates the preferred size for this widgets <see cref="ContentArea"/> using the given available horizontal and vertical space,
+    /// which can be <see cref="float.PositiveInfinity"/>.
+    /// </summary>
+    protected virtual SizeF ComputePreferredContentAreaSize(float availableWidth, float availableHeight)
+    {
+        return Size.Empty;
+    }
+
+    /// <summary>
+    /// Calculates the preferred size for this widgets <see cref="BorderArea"/> using the given available horizontal and vertical space,
+    /// which can be <see cref="float.PositiveInfinity"/>.
+    /// </summary>
+    public virtual SizeF ComputePreferredBorderAreaSize(float availableWidth = float.PositiveInfinity, float availableHeight = float.PositiveInfinity)
+    {
+        if (availableWidth is < 0 or float.NaN)
+        {
+            throw new ArgumentOutOfRangeException(nameof(availableWidth));
+        }
+
+        if (availableHeight is < 0 or float.NaN)
+        {
+            throw new ArgumentOutOfRangeException(nameof(availableHeight));
+        }
+        
+        var horizontalBorder = 2 * ComputedStyles.BorderWidth - ComputedStyles.PaddingLeft - ComputedStyles.PaddingRight;
+        var verticalBorder = 2 * ComputedStyles.BorderWidth - ComputedStyles.PaddingTop - ComputedStyles.PaddingBottom;
+
+        var contentAreaSize = ComputePreferredContentAreaSize(
+            availableWidth - horizontalBorder,
+            availableHeight - verticalBorder
+        );
+
+        var preferredWidth = contentAreaSize.Width + horizontalBorder;
+        var preferredHeight =  contentAreaSize.Width + horizontalBorder;
+        
+        return new SizeF(
+            Width.Evaluate(availableWidth, 1, preferredWidth),
+            Height.Evaluate(availableHeight, 1, preferredHeight)
+        );
     }
 }

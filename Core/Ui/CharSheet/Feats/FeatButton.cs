@@ -67,11 +67,11 @@ public class FeatButton : WidgetButtonBase
         UiSystems.CharSheet.Help.ClearHelpText();
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var hover = ContainsMouse;
         ToggleStyle("char-ui-feat-button-hover", hover);
 
-        base.Render();
+        base.Render(context);
     }
 }

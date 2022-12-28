@@ -1,4 +1,5 @@
 
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
@@ -62,10 +63,10 @@ public class MainMenuButton : WidgetButtonBase
         );
         Tig.Fonts.PopFont();
 
-        Size = metrics.Size;
+        PixelSize = metrics.Size;
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var extents = GetContentArea();
         var style = _normalStyle;

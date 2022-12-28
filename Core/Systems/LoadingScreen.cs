@@ -113,7 +113,7 @@ public class LoadingScreen : IDisposable, ILoadingProgress
 
         if (Message.Length > 0)
         {
-            var extents = new Rectangle {X = _barBorder.GetX(), Y = _barBorder.GetY() + BarHeight + 5};
+            var extents = new RectangleF {X = _barBorder.GetX(), Y = _barBorder.GetY() + BarHeight + 5};
 
             _device.TextEngine.RenderText(
                 extents,
@@ -197,12 +197,12 @@ internal class UiRectangle
         _args.destRect.Y = y;
     }
 
-    public int GetX()
+    public float GetX()
     {
         return _args.srcRect.X;
     }
 
-    public int GetY()
+    public float GetY()
     {
         return _args.srcRect.Y;
     }

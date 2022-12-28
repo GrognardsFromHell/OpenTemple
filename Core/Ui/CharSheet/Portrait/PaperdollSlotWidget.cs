@@ -47,7 +47,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         _weaponSlotHighlights.DisposeAndClear();
     }
 
-    public PaperdollSlotWidget(PortraitUiParams uiParams, Size size, EquipSlot slot) : base(size)
+    public PaperdollSlotWidget(PortraitUiParams uiParams, EquipSlot slot)
     {
         _slot = slot;
 
@@ -79,7 +79,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         return new WidgetText("", "inventory-slot-quantity");
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var itemInSlot = CurrentItem;
         if (itemInSlot != null)
@@ -192,7 +192,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
 
             // Position the label in the lower right corner
             var textSize = _quantityLabel.GetPreferredSize();
-            _quantityLabel.SetBounds(new Rectangle(
+            _quantityLabel.SetBounds(new RectangleF(
                 contentArea.Right - 2 - textSize.Width,
                 contentArea.Bottom - 2 - textSize.Height,
                 textSize.Width,
@@ -207,7 +207,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         var srcRect = new Rectangle(0, 0, 44, 44);
         var contentArea = GetContentArea();
 
-        var destRect = new Rectangle(
+        var destRect = new RectangleF(
             contentArea.X,
             contentArea.Y,
             44,

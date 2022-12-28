@@ -57,7 +57,12 @@ public class ActionBarUi
         _combatBarGrey = Tig.Textures.Resolve("art/interface/COMBAT_UI/CombatBar_GREY.tga", false);
         _combatBarFillInvalid = Tig.Textures.Resolve("art/interface/COMBAT_UI/CombatBar_Fill_INVALID.tga", false);
 
-        _window = new WidgetContainer(8, 117, 50, 260);
+        _window = new WidgetContainer
+        {
+            X = 8,
+            Y = 117,
+            PixelSize = new SizeF(50, 260)
+        };
         _window.Name = "combat_ui_debug_output_window";
 
         // Hide or show the entire action bar based on combat status
@@ -250,12 +255,12 @@ public class ActionBarUi
                 if (v13 > 0)
                 {
                     var a1 = new Render2dArgs();
-                    var v22 = new Rectangle(0,
+                    var v22 = new RectangleF(0,
                         contentRect.Height - v13,
                         contentRect.Width,
                         v13);
 
-                    var v23 = new Rectangle(
+                    var v23 = new RectangleF(
                         contentRect.X,
                         contentRect.Y + contentRect.Height - v13,
                         v22.Width,
@@ -282,13 +287,13 @@ public class ActionBarUi
                         if (v17 >= 1)
                         {
                             Render2dArgs a1 = new Render2dArgs();
-                            var srcRect = new Rectangle(
+                            var srcRect = new RectangleF(
                                 0,
                                 contentRect.Height - v14,
                                 contentRect.Width,
                                 v17
                             );
-                            var destRect = new Rectangle(
+                            var destRect = new RectangleF(
                                 contentRect.X,
                                 srcRect.Y + contentRect.Y,
                                 srcRect.Width,
@@ -323,13 +328,15 @@ public class ActionBarUi
     }
 
     [TempleDllLocation(0x10172a00)]
-    private void UiCombatActionBarDrawButton(Rectangle rect, ITexture texture)
+    private void UiCombatActionBarDrawButton(RectangleF rect, ITexture texture)
     {
-        var args = new Render2dArgs();
-        args.srcRect = new Rectangle(0, 0, rect.Width, rect.Height);
-        args.destRect = rect;
-        args.flags = Render2dFlag.BUFFERTEXTURE;
-        args.customTexture = texture;
+        var args = new Render2dArgs
+        {
+            srcRect = rect with {X = 0, Y = 0},
+            destRect = rect,
+            flags = Render2dFlag.BUFFERTEXTURE,
+            customTexture = texture
+        };
         Tig.ShapeRenderer2d.DrawRectangle(ref args);
     }
 

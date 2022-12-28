@@ -68,7 +68,7 @@ internal class LogbookKeyButton : WidgetButtonBase
         }
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         if (IsSelected)
         {
@@ -88,7 +88,7 @@ internal class LogbookKeyButton : WidgetButtonBase
             return; // Don't render when no key is assigned
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     private void Update()

@@ -166,7 +166,7 @@ public class GameViewScrollingController
         }
 
         // TODO This should be the size of the game view
-        var size = _widget.Size;
+        var size = _widget.GetSize();
         var renderWidth = size.Width;
         var renderHeight = size.Height;
 

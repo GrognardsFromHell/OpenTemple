@@ -28,6 +28,6 @@ public class MockViewport : IGameViewport
     public WorldCamera Camera { get; }
     public float Zoom { get; } = 1.0f;
     public event Action OnResize;
-    public Size Size => _window.OffScreenSize;
+    public SizeF Size => _window.OffScreenSize;
     public bool IsInteractive => true;
 }

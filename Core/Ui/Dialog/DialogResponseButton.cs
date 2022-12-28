@@ -86,11 +86,11 @@ public class DialogResponseButton : WidgetButtonBase
     }
 
     [TempleDllLocation(0x1014c520)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var textStyles = GetTextStyles();
         _label.StyleIds = textStyles;
         _numberLabel.StyleIds = textStyles;
-        base.Render();
+        base.Render(context);
     }
 }

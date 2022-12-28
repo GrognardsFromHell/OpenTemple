@@ -103,19 +103,22 @@ public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
             new WidgetTabButton(_translations[16], WidgetTabStyle.Large)
         };
 
-        var buttonX = 40;
+        var buttonX = 40f;
         for (var index = 0; index < _tabButtons.Length; index++)
         {
             var tabButton = _tabButtons[index];
             tabButton.X = buttonX;
+
+            var preferredWidth = tabButton.ComputePreferredBorderAreaSize().Width;
+            
             // Does it reach into the "no tab zone"? Then move it to the right page of the book
-            if (tabButton.X + tabButton.Width >= 302 && buttonX < 389)
+            if (tabButton.X + preferredWidth >= 302 && buttonX < 389)
             {
                 buttonX = 389;
                 tabButton.X = buttonX;
             }
 
-            buttonX += tabButton.Width - 13; // The -13 is to cause an overlap
+            buttonX += preferredWidth - 13; // The -13 is to cause an overlap
             _window.Add(tabButton);
 
             // Activate the corresponding tab on click

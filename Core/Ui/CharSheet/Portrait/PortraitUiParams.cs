@@ -42,7 +42,7 @@ public class PortraitUiParams
 
     public Size Portrait { get; }
 
-    public PortraitUiParams(Rectangle parentWindow,
+    public PortraitUiParams(
         Dictionary<int, string> settings,
         Dictionary<int, string> texturePaths)
     {
@@ -62,8 +62,8 @@ public class PortraitUiParams
             );
             if (makeRelative)
             {
-                rect.X -= parentWindow.X;
-                rect.Y -= parentWindow.Y;
+                rect.X -= 68;
+                rect.Y -= 47;
             }
 
             return rect;

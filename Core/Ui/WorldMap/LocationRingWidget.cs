@@ -37,7 +37,7 @@ public class LocationRingWidget : WidgetButtonBase
     }
 
     [TempleDllLocation(0x1015a710)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var shouldBeVisible = ForceVisible || ContainsMouse;
 
@@ -94,7 +94,7 @@ public class LocationRingWidget : WidgetButtonBase
             _ringImage.Color = PackedLinearColorA.OfFloats(1.0f, 1.0f, 1.0f, _animationPhase);
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     public override bool HitTest(float x, float y)

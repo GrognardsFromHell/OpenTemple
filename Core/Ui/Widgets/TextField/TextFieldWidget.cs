@@ -212,9 +212,9 @@ public class TextFieldWidget : WidgetBase
         _caret.Replace(sanitized[..sanitizedLength]);
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
-        base.Render();
+        base.Render(context);
         if (!Visible)
         {
             return;
@@ -252,7 +252,7 @@ public class TextFieldWidget : WidgetBase
         textAreaRect.Offset(contentArea.Location);
 
         // We use the full content rectangle vertically because the baseline / caret doesn't include the descend below the baseline
-        Tig.RenderingDevice.SetScissorRect((int) textAreaRect.X, (int) textAreaRect.Y, (int) MathF.Ceiling(textAreaRect.Width), (int) MathF.Ceiling(textAreaRect.Height));
+        context.PushScissorRect(textAreaRect);
 
         if (!HasFocus && _buffer.Length == 0)
         {
@@ -264,7 +264,7 @@ public class TextFieldWidget : WidgetBase
             RenderTextLine(textAreaRect);
         }
 
-        Tig.RenderingDevice.ResetScissorRect();
+        context.PopScissorRect();
     }
 
     private void RenderTextLine(RectangleF textAreaRect)

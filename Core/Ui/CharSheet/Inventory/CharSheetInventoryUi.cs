@@ -67,10 +67,12 @@ public class CharSheetInventoryUi : IDisposable
             for (int col = 0; col < 6; col++)
             {
                 var inventoryIdx = row * 6 + col;
-                var slot = new InventorySlotWidget(SlotSize, inventoryIdx);
-                var x = 1 + col * (slot.Width + 2);
-                var y = 1 + row * (slot.Height + 2);
-                slot.Pos = new Point(x, y);
+                var slot = new InventorySlotWidget(inventoryIdx)
+                {
+                    X = 1 + col * (SlotSize.Width + 2),
+                    Y = 1 + row * (SlotSize.Height + 2),
+                    PixelSize = SlotSize
+                };
                 slotContainer.Add(slot);
                 new ItemSlotBehavior(slot,
                     () => slot.CurrentItem,

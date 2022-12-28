@@ -11,18 +11,18 @@ public class TigMouse
     [TempleDllLocation(0x10D2558C)]
     private ResourceRef<ITexture> _iconUnderCursor;
 
-    private Point _iconUnderCursorCenter;
+    private PointF _iconUnderCursorCenter;
 
-    private Size _iconUnderCursorSize;
+    private SizeF _iconUnderCursorSize;
 
     [TempleDllLocation(0x101dd500)]
-    public void SetDraggedIcon(string texturePath, Point center, Size size = default)
+    public void SetDraggedIcon(string texturePath, PointF center, SizeF size = default)
     {
         using var texture = Tig.Textures.Resolve(texturePath, false);
         SetDraggedIcon(texture.Resource, center, size);
     }
 
-    public void SetDraggedIcon(ITexture? texture, Point center, Size size = default)
+    public void SetDraggedIcon(ITexture? texture, PointF center, SizeF size = default)
     {
         if (texture != null)
         {
@@ -49,8 +49,8 @@ public class TigMouse
     public void ClearDraggedIcon()
     {
         _iconUnderCursor.Dispose();
-        _iconUnderCursorCenter = Point.Empty;
-        _iconUnderCursorSize = Size.Empty;
+        _iconUnderCursorCenter = PointF.Empty;
+        _iconUnderCursorSize = SizeF.Empty;
     }
 
     // This is sometimes queried by ToEE to check which callback is active

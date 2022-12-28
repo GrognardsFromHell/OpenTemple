@@ -194,14 +194,14 @@ internal class WidgetDocLoader
 
         var x = jsonObj.GetInt32Prop("x", 0);
         var y = jsonObj.GetInt32Prop("y", 0);
-        widget.SetPos(x, y);
+        widget.Pos = new PointF(y, x);
 
         if (jsonObj.TryGetProperty("localStyles", out var localStylesNode))
         {
             StyleJsonDeserializer.DeserializeProperties(localStylesNode, widget.LocalStyles);
         }
 
-        var size = widget.Size;
+        var size = widget.GetSize();
         if (jsonObj.TryGetProperty("width", out var widthNode))
         {
             size.Width = widthNode.GetInt32();
@@ -214,7 +214,7 @@ internal class WidgetDocLoader
             widget.AutoSizeHeight = false;
         }
 
-        widget.Size = size;
+        widget.PixelSize = size;
 
         if (jsonObj.TryGetProperty("centerHorizontally", out var centerHorizontallyNode))
         {
@@ -265,7 +265,10 @@ internal class WidgetDocLoader
         var width = jsonObj.GetInt32Prop("width", 0);
         var height = jsonObj.GetInt32Prop("height", 0);
 
-        var result = new WidgetScrollView(width, height);
+        var result = new WidgetScrollView
+        {
+            PixelSize = new SizeF(width, height)
+        };
 
         LoadWidgetBaseWithContent(jsonObj, result);
 
@@ -277,7 +280,10 @@ internal class WidgetDocLoader
         var width = jsonObj.GetInt32Prop("width", 0);
         var height = jsonObj.GetInt32Prop("height", 0);
 
-        var result = new WidgetContainer(width, height);
+        var result = new WidgetContainer
+        {
+            PixelSize = new SizeF(width, height)
+        };
 
         LoadWidgetBaseWithContent(jsonObj, result);
 
@@ -289,7 +295,10 @@ internal class WidgetDocLoader
         var width = jsonObj.GetInt32Prop("width", 0);
         var height = jsonObj.GetInt32Prop("height", 0);
 
-        var result = new WidgetTabBar(width, height);
+        var result = new WidgetTabBar
+        {
+            PixelSize = new SizeF(width, height)
+        };
 
         LoadWidgetBaseWithContent(jsonObj, result);
 

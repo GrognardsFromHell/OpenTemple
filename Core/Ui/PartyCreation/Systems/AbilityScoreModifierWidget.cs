@@ -14,10 +14,10 @@ public class AbilityScoreModifierWidget : WidgetBase
 
     private readonly WidgetText _label;
 
-    public AbilityScoreModifierWidget(Size size, Func<int> assignedValueGetter)
+    public AbilityScoreModifierWidget(SizeF size, Func<int> assignedValueGetter)
     {
         _assignedValueGetter = assignedValueGetter;
-        Size = size;
+        PixelSize = size;
         AddContent(new WidgetRectangle
         {
             Pen = new PackedLinearColorA(0xFF43586E)
@@ -26,7 +26,7 @@ public class AbilityScoreModifierWidget : WidgetBase
         AddContent(_label);
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var currentStatValue = _assignedValueGetter();
         if (currentStatValue == -1)
@@ -47,6 +47,6 @@ public class AbilityScoreModifierWidget : WidgetBase
             }
         }
 
-        base.Render();
+        base.Render(context);
     }
 }

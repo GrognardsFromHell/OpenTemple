@@ -322,7 +322,7 @@ public class MapObjectRenderer : IDisposable
         }
     }
 
-    public void RenderObjectInUi(GameObject obj, int x, int y, float rotation, float scale)
+    public void RenderObjectInUi(GameObject obj, float x, float y, float rotation, float scale)
     {
         // TODO: This is a terrible way of doing this
         var viewport = GameViews.Primary;

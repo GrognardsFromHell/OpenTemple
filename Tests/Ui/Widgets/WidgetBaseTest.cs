@@ -19,15 +19,13 @@ public class WidgetBaseTest
         {
             X = 100,
             Y = 101,
-            Width = 33,
-            Height = 67
+            PixelSize = new SizeF(33, 67)
         };
         _child = new WidgetBase
         {
             X = 11,
             Y = 7,
-            Width = 9,
-            Height = 13
+            PixelSize = new SizeF(9, 13)
         };
         _parent.Add(_child);
 
@@ -35,8 +33,7 @@ public class WidgetBaseTest
         {
             X = 11,
             Y = 7,
-            Width = 9,
-            Height = 13
+            PixelSize = new SizeF(9, 13)
         };
         _childWithMargins.LocalStyles.SetMargins(1, 2, 3, 4);
         _parent.Add(_childWithMargins);

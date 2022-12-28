@@ -21,18 +21,16 @@ public class WidgetScrollView : WidgetContainer
         }
     }
 
-    public WidgetScrollView(int width, int height) : base(width, height)
+    public WidgetScrollView()
     {
         // Otherwise scroll-wheel doesnt work in empty areas
         HitTesting = HitTestingMode.Area;
 
         var scrollBar = new WidgetScrollBar();
-        scrollBar.Height = height;
-        scrollBar.X = width - scrollBar.Width;
         _scrollBar = scrollBar;
         base.Add(scrollBar);
 
-        var scrollView = new WidgetContainer(GetInnerWidth(), height);
+        var scrollView = new WidgetContainer();
         _container = scrollView;
         base.Add(scrollView);
 
@@ -53,14 +51,14 @@ public class WidgetScrollView : WidgetContainer
         InvalidateLayout();
     }
 
-    public int GetInnerWidth()
+    public float GetInnerWidth()
     {
-        return Width - _scrollBar.Width - 2 * ContainerPadding;
+        return PaddingArea.Width - _scrollBar.BorderArea.Width - 2 * ContainerPadding;
     }
 
-    public int GetInnerHeight()
+    public float GetInnerHeight()
     {
-        return Height - 2 * ContainerPadding;
+        return PaddingArea.Height - 2 * ContainerPadding;
     }
 
     protected override void HandleMouseWheel(WheelEvent e)
@@ -69,30 +67,35 @@ public class WidgetScrollView : WidgetContainer
         e.StopPropagation();
     }
 
-    protected internal override void UpdateLayout()
+    protected internal override void UpdateLayout(LayoutContext context)
     {
-        base.UpdateLayout();
-
+        base.UpdateLayout(context);
+        
         if (_layoutInvalid)
         {
-            var x = (int) ComputedStyles.PaddingLeft;
-            var y = (int) ComputedStyles.PaddingTop;
+            var x = ComputedStyles.PaddingLeft;
+            var y = ComputedStyles.PaddingTop;
             var innerWidth = GetInnerWidth();
             foreach (var child in _container.Children)
             {
                 child.X = x;
                 child.Y = y;
                 child.AutoSizeWidth = false;
-                child.Width = innerWidth;
-                y += child.Height + Gap;
+                child.Width = Dimension.Pixels(innerWidth);
+                var prefChildSize = child.ComputePreferredBorderAreaSize(innerWidth);
+                y += prefChildSize.Height + Gap;
             }
-
+            
             y += (int) ComputedStyles.PaddingBottom;
+
+            var scrollbarWidth = _scrollBar.ComputePreferredBorderAreaSize().Width;
+            _scrollBar.X = context.AvailableWidth - scrollbarWidth;
+            _scrollBar.Height = Dimension.Pixels(context.AvailableHeight);
         
-            _scrollBar.Max = Math.Max(0, y - GetInnerHeight());
+            _scrollBar.Max = Math.Max(0, (int) (y - GetInnerHeight()));
             if (_container.Children.Count > 0)
             {
-                _scrollBar.Quantum = y / _container.Children.Count;
+                _scrollBar.Quantum = (int) y / _container.Children.Count;
             }
 
             _layoutInvalid = false;
@@ -102,10 +105,10 @@ public class WidgetScrollView : WidgetContainer
     private void UpdateInnerContainer()
     {
         _container.X = ContainerPadding;
-        _container.Width = GetInnerWidth();
+        _container.Width = Dimension.Pixels(GetInnerWidth());
 
         _container.Y = ContainerPadding;
-        _container.Height = GetInnerHeight();
+        _container.Height = Dimension.Pixels(GetInnerHeight());
     }
 
     private void InvalidateLayout()

@@ -12,6 +12,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells;
 
 public class MemorizedSpellsList : WidgetContainer
 {
+    private const int SlotHeight = 14;
+    
     private readonly WidgetScrollBar? _scrollbar;
 
     private readonly GameObject _caster;
@@ -25,14 +27,16 @@ public class MemorizedSpellsList : WidgetContainer
     /// </summary>
     private readonly Dictionary<int, List<MemorizedSpellButton>> _slotsByLevel = new();
 
-    public MemorizedSpellsList(Rectangle rectangle, GameObject caster, SpellsPerDay spellsPerDay) :
-        base(rectangle)
+    public MemorizedSpellsList(Rectangle rectangle, GameObject caster, SpellsPerDay spellsPerDay)
     {
+        Pos = rectangle.Location;
+        PixelSize = rectangle.Size;
+        
         _caster = caster;
         _spellsPerDay = spellsPerDay;
 
         var buttonHeight = 10;
-        var currentY = 0;
+        var currentY = 0f;
 
         foreach (var level in spellsPerDay.Levels)
         {
@@ -53,39 +57,41 @@ public class MemorizedSpellsList : WidgetContainer
             {
                 var slotButton = new MemorizedSpellButton(
                     _caster,
-                    new Rectangle(8, currentY, Width - 8, 14),
+                    new RectangleF(8, currentY, rectangle.Width - 8, SlotHeight),
                     _spellsPerDay,
                     level.Level,
                     index
                 );
                 slotButton.Y = currentY;
                 slotButton.OnChange += InvokeOnChange;
-                currentY += slotButton.Height;
+                currentY += SlotHeight;
                 slots.Add(slotButton);
                 Add(slotButton);
 
-                buttonHeight = Math.Max(buttonHeight, slotButton.Height);
+                buttonHeight = Math.Max(buttonHeight, SlotHeight);
                 
                 slotButton.Slot = level.Slots[index];
             }
         }
 
-        var overscroll = currentY - Height;
+        var overscroll = currentY - rectangle.Height;
         if (overscroll > 0)
         {
-            var lines = (int) MathF.Ceiling(overscroll / (float) buttonHeight);
+            var lines = (int) MathF.Ceiling(overscroll / buttonHeight);
 
             _scrollbar = new WidgetScrollBar();
-            _scrollbar.X = Width - _scrollbar.Width;
-            _scrollbar.Height = Height;
+            var scrollbarWidth = _scrollbar.ComputePreferredBorderAreaSize().Width;
+            _scrollbar.X = rectangle.Width - scrollbarWidth;
+            _scrollbar.Height = Dimension.Percent(100);
 
             // Clip existing items that overlap the scrollbar
             foreach (var childWidget in Children)
             {
-                if (childWidget.X + childWidget.Width >= _scrollbar.X)
+                // TODO: This should just implement proper layout...
+                if (childWidget.X + childWidget.ComputePreferredBorderAreaSize().Width >= _scrollbar.X)
                 {
                     var remainingWidth = Math.Max(0, _scrollbar.X - childWidget.X);
-                    childWidget.Width = remainingWidth;
+                    childWidget.Width = Dimension.Pixels(remainingWidth);
                 }
             }
 

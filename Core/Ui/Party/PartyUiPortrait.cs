@@ -22,8 +22,10 @@ public class PartyUiPortrait : IDisposable
     {
         PartyMember = partyMember;
 
-        var container =
-            new WidgetContainer(uiParams.party_ui_main_window.Width, uiParams.party_ui_main_window.Height);
+        var container = new WidgetContainer
+        {
+            PixelSize = uiParams.party_ui_main_window.Size
+        };
 
         var image = new WidgetImage("art/interface/party_ui/Character Portrait Frame.tga");
         image.X = uiParams.party_ui_frame.X;
@@ -33,7 +35,7 @@ public class PartyUiPortrait : IDisposable
         container.AddContent(image);
 
         var portraitButton = new PortraitButton(partyMember);
-        portraitButton.Size = uiParams.party_ui_portrait_button.Size;
+        portraitButton.PixelSize = uiParams.party_ui_portrait_button.Size;
         portraitButton.Pos = uiParams.party_ui_portrait_button.Location;
         container.Add(portraitButton);
 

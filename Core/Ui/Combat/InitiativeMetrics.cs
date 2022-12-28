@@ -7,9 +7,9 @@ public class InitiativeMetrics
 
     public Size FrameSize { get; }
 
-    public Rectangle Button { get; }
+    public RectangleF Button { get; }
 
-    public Rectangle HighlightFrame { get; }
+    public RectangleF HighlightFrame { get; }
 
     public Size FrameSelected { get; }
 

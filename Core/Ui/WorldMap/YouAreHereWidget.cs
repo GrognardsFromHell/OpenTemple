@@ -15,17 +15,17 @@ public class YouAreHereWidget : WidgetBase
     }
 
     [TempleDllLocation(0x1015a5e0)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         // 5px pulse over 250ms
         var pulse = (int) (MathF.Sin((float) TimePoint.Now.Milliseconds / 250.0f) * 5.0f) / 2;
 
         _image.X = pulse;
         _image.Y = pulse;
-        _image.FixedWidth = Width - 2 * pulse;
-        _image.FixedHeight = Height - 2 * pulse;
+        _image.FixedWidth = PaddingArea.Width - 2 * pulse;
+        _image.FixedHeight = PaddingArea.Height - 2 * pulse;
 
-        base.Render();
+        base.Render(context);
     }
 
     // The icon is purely decorative and should not interact with the mouse

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text.Json;
 using OpenTemple.Core.GameObjects;
@@ -59,14 +58,18 @@ public class CharSheetPortraitUi : IDisposable
     }
 
     [TempleDllLocation(0x101a5b40)]
-    public CharSheetPortraitUi(Rectangle mainWindowRectangle)
+    public CharSheetPortraitUi()
     {
         var textures = Tig.FS.ReadMesFile("art/interface/CHAR_UI/CHAR_PORTRAIT_UI/2_char_portrait_ui_textures.mes");
         var rules = Tig.FS.ReadMesFile("art/interface/CHAR_UI/CHAR_PORTRAIT_UI/2_char_portrait_ui.mes");
-        var uiParams = new PortraitUiParams(mainWindowRectangle, rules, textures);
+        var uiParams = new PortraitUiParams( rules, textures);
 
-        Container = new WidgetContainer(uiParams.MainWindow);
-        Container.Width = 195;
+        Container = new WidgetContainer
+        {
+            Pos = uiParams.MainWindow.Location,
+            PixelSize = uiParams.MainWindow.Size
+        };
+        Container.Width = Dimension.Pixels(195);
 
         CreateButtons(uiParams);
 
@@ -212,7 +215,10 @@ public class CharSheetPortraitUi : IDisposable
             kp =>
             {
                 var parent = widgetDoc.GetContainer(kp.Value);
-                var slotWidget = new PaperdollSlotWidget(uiParams, parent.Size, kp.Key);
+                var slotWidget = new PaperdollSlotWidget(uiParams, kp.Key)
+                {
+                    PixelSize = parent.GetSize()
+                };
                 new ItemSlotBehavior(slotWidget,
                     () => slotWidget.CurrentItem,
                     () => slotWidget.Critter);

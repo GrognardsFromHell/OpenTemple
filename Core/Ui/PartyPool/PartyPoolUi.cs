@@ -106,7 +106,10 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     public PartyPoolUi()
     {
         // TODO: Auto-resize to screen size
-        _container = new WidgetContainer(Globals.UiManager.CanvasSize);
+        _container = new WidgetContainer
+        {
+            PixelSize = Globals.UiManager.CanvasSize
+        };
         _container.PreventsInGameInteraction = true;
 
         var doc = WidgetDoc.Load("ui/party_pool.json");
@@ -167,16 +170,14 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         BeginAdventuringButton = new WidgetButton();
         BeginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
         BeginAdventuringButton.Text = "#{pc_creation:408}\n#{pc_creation:409}";
-        BeginAdventuringButton.Size = new Size(151, 64);
+        BeginAdventuringButton.PixelSize = new Size(151, 64);
         BeginAdventuringButton.LocalStyles.PaddingLeft = 14;
         BeginAdventuringButton.LocalStyles.PaddingTop = 10;
         BeginAdventuringButton.LocalStyles.PaddingRight = 14;
         BeginAdventuringButton.LocalStyles.PaddingBottom = 10;
         // TODO: Reposition on screen size change
-        BeginAdventuringButton.SetPos(
-            _container.Width - BeginAdventuringButton.Width,
-            _container.Height - BeginAdventuringButton.Height
-        );
+        var x = _container.ComputePreferredBorderAreaSize().Width - BeginAdventuringButton.ComputePreferredBorderAreaSize().Width;
+        BeginAdventuringButton.Pos = new PointF(_container.BorderArea.Height - BeginAdventuringButton.BorderArea.Height, x);
         BeginAdventuringButton.AddClickListener(BeginAdventuring);
         _container.Add(BeginAdventuringButton);
 
@@ -189,7 +190,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             ScrollBarHeight = 333
         };
         var helpContainer = doc.GetContainer("helpContainer");
-        _helpScrollBox = new ScrollBox(new Rectangle(Point.Empty, helpContainer.Rectangle.Size), scrollBoxSettings);
+        _helpScrollBox = new ScrollBox(new RectangleF(Point.Empty, helpContainer.Rectangle.Size), scrollBoxSettings);
         _helpScrollBox.SetHelpContent("TAG_CHARGEN_PARTY_POOL", includeTitle: true);
         _helpScrollBox.OnLinkClicked += GameSystems.Help.OpenLink;
         helpContainer.Add(_helpScrollBox);
@@ -211,7 +212,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
                 padding = 2;
             }
 
-            slot.Y = i * (slot.Height + padding);
+            slot.Y = i * (slot.ComputePreferredBorderAreaSize().Height + padding);
             slot.AddClickListener(() => SelectAvailable(slot));
             slot.OnDoubleClick += e =>
             {
@@ -230,7 +231,7 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
         _portraits = new PartyPoolPortraits();
         var portraitContainer = _portraits.Container;
         // Position it in the lower left corner of the parent container
-        portraitContainer.Y = _container.Height - portraitContainer.Height;
+        portraitContainer.Y = _container.ComputePreferredBorderAreaSize().Height - portraitContainer.ComputePreferredBorderAreaSize().Height;
         _portraits.OnSelectedChanged += PartyMemberSelectionChanged;
         _container.Add(portraitContainer);
 

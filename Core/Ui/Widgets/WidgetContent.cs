@@ -39,11 +39,11 @@ public abstract class WidgetContent : Styleable
         return PreferredSize;
     }
 
-    public int X { get; set; }
+    public float X { get; set; }
 
-    public int Y { get; set; }
+    public float Y { get; set; }
 
-    public Size FixedSize
+    public SizeF FixedSize
     {
         get => new(FixedWidth, FixedHeight);
         set
@@ -54,7 +54,7 @@ public abstract class WidgetContent : Styleable
         }
     }
 
-    public int FixedWidth
+    public float FixedWidth
     {
         get => _fixedWidth;
         set
@@ -64,7 +64,7 @@ public abstract class WidgetContent : Styleable
         }
     }
 
-    public int FixedHeight
+    public float FixedHeight
     {
         get => _fixedHeight;
         set
@@ -77,8 +77,8 @@ public abstract class WidgetContent : Styleable
     protected RectangleF ContentArea;
     protected Size PreferredSize;
     protected bool Dirty = true;
-    private int _fixedWidth;
-    private int _fixedHeight;
+    private float _fixedWidth;
+    private float _fixedHeight;
     private WidgetBase? _parent;
 
     public override Styleable? StyleParent => Parent;

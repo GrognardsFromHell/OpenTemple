@@ -57,18 +57,18 @@ public class CharUiTopButton : WidgetButton
         }
 
         Pos = rectangle.Location;
-        Size = rectangle.Size;
+        PixelSize = rectangle.Size;
 
         _arcTopTexture = ResolveTexture(CharUiTexture.ButtonArcTopSelected);
     }
 
     [TempleDllLocation(0x10145560)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var contentArea = GetContentArea();
 
         var destRect = GetContentArea();
-        var srcRect = new Rectangle(0, 0, destRect.Width, destRect.Height);
+        var srcRect = destRect with {X = 0, Y = 0};
         destRect.Y -= 2;
 
         ResourceRef<ITexture> buttonTexture = default;
@@ -101,7 +101,7 @@ public class CharUiTopButton : WidgetButton
                 args.customTexture = _arcTopTexture.Resource;
                 args.flags = Render2dFlag.BUFFERTEXTURE;
                 args.srcRect = new Rectangle(0, 0, 21, 21);
-                args.destRect = new Rectangle(contentArea.X - 18, contentArea.Y + 5, 21, 21);
+                args.destRect = new RectangleF(contentArea.X - 18, contentArea.Y + 5, 21, 21);
                 Tig.ShapeRenderer2d.DrawRectangle(ref args);
 
                 args.destRect.X = contentArea.X + contentArea.Width;

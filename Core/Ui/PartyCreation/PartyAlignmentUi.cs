@@ -109,8 +109,8 @@ public class PartyAlignmentUi : IDisposable
 
             // Center the rectangle on the button that is the selected alignment
             var button = _alignmentButtons[_alignment.Value];
-            var x = button.X + button.Width / 2 - _selectionRect.FixedSize.Width / 2;
-            var y = button.Y + button.Height / 2 - _selectionRect.FixedSize.Height / 2;
+            var x = button.X + button.BorderArea.Width / 2 - _selectionRect.FixedSize.Width / 2;
+            var y = button.Y + button.BorderArea.Height / 2 - _selectionRect.FixedSize.Height / 2;
             _selectionRect.X = x;
             _selectionRect.Y = y;
         }

@@ -79,7 +79,8 @@ public class CharSheetLootingUi : IDisposable
 
         _translations = Tig.FS.ReadMesFile("mes/6_char_looting_ui_text.mes");
 
-        _mainWindow = new WidgetContainer(new Rectangle(7, 77, 137, 464));
+        var mainWindowRect = new RectangleF(7, 77, 137, 464);
+        _mainWindow = new WidgetContainer(mainWindowRect);
         _mainWindow.ZIndex = 100050;
         _mainWindow.Name = "char_looting_ui_main_window";
         _mainWindow.AddContent(new WidgetImage("art/interface/char_ui/char_looting_ui/looting_background.img"));
@@ -89,13 +90,13 @@ public class CharSheetLootingUi : IDisposable
         // Window title
         _title = new WidgetText("", "char-looting-title");
         _title.Y = 9;
-        _title.FixedWidth = _mainWindow.Width;
+        _title.FixedWidth = mainWindowRect.Width;
         _mainWindow.AddContent(_title);
 
         // Container / Vendor name
         _containerName = new WidgetText("", "char-looting-title");
         _containerName.Y = 80;
-        _containerName.FixedWidth = _mainWindow.Width;
+        _containerName.FixedWidth = mainWindowRect.Width;
         _mainWindow.AddContent(_containerName);
 
         for (var i = 0; i < _lootingSlots.Length; i++)

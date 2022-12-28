@@ -169,8 +169,8 @@ public class TownMapTileRenderer : WidgetContent
 
                         Render2dArgs arg = default;
                         arg.customTexture = texture;
-                        arg.flags = Render2dFlag.FLOATSRCRECT | Render2dFlag.BUFFERTEXTURE;
-                        arg.srcRectFloat = new RectangleF(
+                        arg.flags = Render2dFlag.BUFFERTEXTURE;
+                        arg.srcRect = new RectangleF(
                             clippedSrcX,
                             clippedSrcY,
                             clippedSrcWidth,

@@ -12,20 +12,20 @@ public class WidgetLabel : WidgetBase
         AddContent(_text);
     }
 
-    protected override void ApplyAutomaticSizing()
+    protected override void ApplyAutomaticSizing(LayoutContext context)
     {
-        base.ApplyAutomaticSizing();
+        base.ApplyAutomaticSizing(context);
         
         if (AutoSizeWidth || AutoSizeHeight)
         {
             var preferredSize = _text.GetPreferredSize();
             if (AutoSizeWidth)
             {
-                Width = preferredSize.Width;
+                Width = Dimension.Pixels(preferredSize.Width);
             }
             if (AutoSizeHeight)
             {
-                Height = preferredSize.Height;
+                Height = Dimension.Pixels(preferredSize.Height);
             }
         }
     }

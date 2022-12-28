@@ -82,7 +82,7 @@ public class TextEngine : IDisposable
         EndDraw();
     }
 
-    public void SetScissorRect(int x, int y, int width, int height)
+    public void SetScissorRect(float x, float y, float width, float height)
     {
         if (_batching)
         {

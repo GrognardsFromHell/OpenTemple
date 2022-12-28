@@ -179,7 +179,7 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
 
     private void ResizeViewport(IGameViewport viewport)
     {
-        _viewportSize = viewport.Size;
+        _viewportSize = Size.Truncate(viewport.Size);
         _viewportZoom = viewport.Zoom;
 
         // Calculate the tile locations in each corner of the screen

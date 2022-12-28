@@ -21,7 +21,7 @@ public struct ScrollBoxSettings
 
     public int ScrollBarMax { get; set; }
 
-    public Rectangle TextArea { get; set; }
+    public RectangleF TextArea { get; set; }
 
     public PredefinedFont Font { get; set; }
 
@@ -95,7 +95,7 @@ public class ScrollBox : WidgetContainer
     private SimpleInlineElement? _hoveredContent;
 
     [TempleDllLocation(0x1018d8a0)]
-    public ScrollBox(Rectangle rectangle, ScrollBoxSettings settings) : base(rectangle)
+    public ScrollBox(RectangleF rectangle, ScrollBoxSettings settings) : base(rectangle)
     {
         _settings = settings;
 
@@ -148,7 +148,7 @@ public class ScrollBox : WidgetContainer
         }
 
         var prevMax = _scrollbar.Max;
-        _scrollbar.Max = Math.Max(0, (int) Math.Ceiling(_contentHeight) - _settings.TextArea.Height);
+        _scrollbar.Max = Math.Max(0, (int) Math.Ceiling(_contentHeight - _settings.TextArea.Height));
         if (prevMax != _scrollbar.Max)
         {
             _scrollbar.SetValue(_settings.DontAutoScroll ? 0 : _scrollbar.Max);
@@ -181,7 +181,7 @@ public class ScrollBox : WidgetContainer
         HandleClickOnText((int) e.X, (int) e.Y);
     }
 
-    private SimpleInlineElement? HitTestText(int x, int y)
+    private SimpleInlineElement? HitTestText(float x, float y)
     {
         UpdateLayoutIfNeeded();
 
@@ -267,14 +267,14 @@ public class ScrollBox : WidgetContainer
 
     [TempleDllLocation(0x1018d840)]
     [TempleDllLocation(0x1018d4d0)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
-        base.Render();
+        base.Render(context);
 
         RenderLines();
     }
 
-    private Rectangle GetTextContentRect()
+    private RectangleF GetTextContentRect()
     {
         var actualTextRect = _settings.TextArea;
         var contentArea = GetContentArea();

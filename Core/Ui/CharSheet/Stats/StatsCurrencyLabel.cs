@@ -45,7 +45,7 @@ public class StatsCurrencyLabel : WidgetButtonBase
 
         Pos = rect.Location;
         Y = Y - 1; // This is hardcoded in the render-function in ToEE
-        Size = rect.Size;
+        PixelSize = rect.Size;
 
         MoneyType = moneyType;
 
@@ -60,7 +60,7 @@ public class StatsCurrencyLabel : WidgetButtonBase
         GameSystems.Help.ShowTopic("TAG_MONEY");
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var text = GetMoneyText();
         if (text != _currentText)
@@ -69,7 +69,7 @@ public class StatsCurrencyLabel : WidgetButtonBase
             _label.Text = text;
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     private string GetMoneyText()

@@ -31,10 +31,10 @@ public sealed class WidgetScrollBar : WidgetContainer
     public WidgetScrollBar(Rectangle rectangle) : this()
     {
         Pos = rectangle.Location;
-        Height = rectangle.Height;
+        Height = Dimension.Pixels(rectangle.Height);
     }
 
-    public WidgetScrollBar() : base(0, 0)
+    public WidgetScrollBar()
     {
         var upButton = new WidgetButton();
         upButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-up"));
@@ -51,9 +51,12 @@ public sealed class WidgetScrollBar : WidgetContainer
         track.IsRepeat = true;
 
         var handle = new WidgetScrollBarHandle(this);
-        handle.Height = 100;
+        handle.Height = Dimension.Pixels(100);
 
-        Width = Math.Max(upButton.Width, downButton.Width);
+        var upButtonWidth = upButton.ComputePreferredBorderAreaSize().Width;
+        var downButtonWidth = downButton.ComputePreferredBorderAreaSize().Width;
+
+        Width = Dimension.Pixels(MathF.Max(upButtonWidth, downButtonWidth));
 
         _track = track;
         _upButton = upButton;
@@ -162,21 +165,23 @@ public sealed class WidgetScrollBar : WidgetContainer
         }
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
-        _downButton.Y = Height - _downButton.Height;
+        _downButton.Y = PaddingArea.Height - _downButton.BorderArea.Height;
 
         // Update the track position
-        _track.Width = Width;
-        _track.Y = _upButton.Height;
-        _track.Height = Height - _upButton.Height - _downButton.Height;
+        _track.Y = _upButton.BorderArea.Height;
+        _track.PixelSize = new SizeF(
+            PaddingArea.Width,
+            PaddingArea.Height - _upButton.BorderArea.Height - _downButton.BorderArea.Height
+        );
 
         var scrollRange = GetScrollRange();
-        int handleOffset = (int) (((_value - _min) / (float) _max) * scrollRange);
-        _handle.Y = _upButton.Height + handleOffset;
-        _handle.Height = GetHandleHeight();
+        int handleOffset = (int) ((_value - _min) / (float) _max * scrollRange);
+        _handle.Y = _upButton.BorderArea.Height + handleOffset;
+        _handle.Height = Dimension.Pixels(GetHandleHeight());
 
-        base.Render();
+        base.Render(context);
     }
 
     public void SetValueChangeHandler(Action<int> handler)
@@ -184,21 +189,21 @@ public sealed class WidgetScrollBar : WidgetContainer
         _valueChanged = handler;
     }
 
-    private int GetHandleHeight()
+    private float GetHandleHeight()
     {
         return 5 * GetTrackHeight() / (5 + Max - GetMin()) + 20;
     } // gets height of handle button (scaled according to Min/Max values)
 
-    internal int GetScrollRange()
+    internal float GetScrollRange()
     {
         var trackHeight = GetTrackHeight();
         var handleHeight = GetHandleHeight();
         return trackHeight - handleHeight;
     } // gets range of possible values for Handle Button position
 
-    private int GetTrackHeight()
+    private float GetTrackHeight()
     {
-        return Height - _upButton.Height - _downButton.Height;
+        return BorderArea.Height - _upButton.BorderArea.Height - _downButton.BorderArea.Height;
     } // gets height of track area
 
     protected override void HandleMouseWheel(WheelEvent e)
@@ -225,8 +230,8 @@ public sealed class WidgetScrollBar : WidgetContainer
         private readonly WidgetImage _bottom;
         private readonly WidgetImage _bottomClicked;
 
-        private int _dragY;
-        private int _dragGrabPoint;
+        private float _dragY;
+        private float _dragGrabPoint;
         
         public WidgetScrollBarHandle(WidgetScrollBar scrollBar)
         {
@@ -237,10 +242,10 @@ public sealed class WidgetScrollBar : WidgetContainer
             _handleClicked = new WidgetImage("art/scrollbar/fill_click.tga");
             _bottom = new WidgetImage("art/scrollbar/bottom.tga");
             _bottomClicked = new WidgetImage("art/scrollbar/bottom_click.tga");
-            Width = _handle.GetPreferredSize().Width;
+            Width = Dimension.Pixels(_handle.GetPreferredSize().Width);
         }
 
-        public override void Render()
+        public override void Render(UiRenderContext context)
         {
             var contentArea = GetContentArea();
 
@@ -271,7 +276,7 @@ public sealed class WidgetScrollBar : WidgetContainer
             bottom.SetBounds(bottomArea);
             bottom.Render();
 
-            int inBetween = bottomArea.Y - topArea.Y - topArea.Height;
+            var inBetween = bottomArea.Y - topArea.Y - topArea.Height;
             if (inBetween > 0)
             {
                 var centerArea = contentArea;
@@ -297,10 +302,10 @@ public sealed class WidgetScrollBar : WidgetContainer
         {
             if (HasMouseCapture)
             {
-                int curY = _dragY + (int) e.Y - _dragGrabPoint;
+                var curY = _dragY + (int) e.Y - _dragGrabPoint;
 
-                int scrollRange = _scrollBar.GetScrollRange();
-                var vPercent = (curY - _scrollBar._upButton.Height) / (float) scrollRange;
+                var scrollRange = _scrollBar.GetScrollRange();
+                var vPercent = (curY - _scrollBar._upButton.BorderArea.Height) / scrollRange;
                 if (vPercent < 0)
                 {
                     vPercent = 0;

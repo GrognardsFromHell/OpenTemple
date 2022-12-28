@@ -34,7 +34,7 @@ public class WidgetDynamicLabel : WidgetBase
         _contentSupplier = contentSupplier;
     }
 
-    protected internal override void UpdateLayout()
+    protected internal override void UpdateLayout(LayoutContext context)
     {
         var content = _contentSupplier();
         if (content == null)
@@ -48,6 +48,6 @@ public class WidgetDynamicLabel : WidgetBase
             _text.Content = _previousContent = content;
         }
 
-        base.UpdateLayout();
+        base.UpdateLayout(context);
     }
 }

@@ -25,13 +25,12 @@ public class AbilityScoreValueWidget : WidgetBase
 
     public bool IsAssigned { get; }
 
-    public AbilityScoreValueWidget(Size size, Func<int> valueGetter, Action<int> valueSetter, bool assigned)
+    public AbilityScoreValueWidget(Func<int> valueGetter, Action<int> valueSetter, bool assigned)
     {
         _valueGetter = valueGetter;
         _valueSetter = valueSetter;
         IsAssigned = assigned;
 
-        Size = size;
         AddContent(new WidgetRectangle
         {
             Pen = new PackedLinearColorA(assigned ? 0xFF43586E : 0xFFF6FF04)
@@ -40,7 +39,7 @@ public class AbilityScoreValueWidget : WidgetBase
         AddContent(_label);
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var currentStatValue = _valueGetter();
         if (IsDragging || currentStatValue == -1)
@@ -53,7 +52,7 @@ public class AbilityScoreValueWidget : WidgetBase
             _label.Text = currentStatValue.ToString();
         }
 
-        base.Render();
+        base.Render(context);
     }
 
 }

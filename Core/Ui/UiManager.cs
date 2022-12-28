@@ -108,7 +108,7 @@ public class UiManager : IUiRoot
 
         Root = new RootWidget();
         Root.AttachToTree(this);
-        Root.Size = CanvasSize;
+        Root.PixelSize = CanvasSize;
         _keyboardFocusManager = new KeyboardFocusManager(Root);
 
         _cursorRegistry = new CursorRegistry(fs);
@@ -117,7 +117,7 @@ public class UiManager : IUiRoot
     private void ResizeCanvas()
     {
         // Resize the root element
-        Root.Size = CanvasSize;
+        Root.PixelSize = CanvasSize;
 
         OnCanvasSizeChanged?.Invoke(CanvasSize);
     }
@@ -216,9 +216,10 @@ public class UiManager : IUiRoot
     {
         UpdateCursor();
         
-        Root.UpdateLayout();
+        Root.EnsureLayoutIsUpToDate();
 
-        Root.Render();
+        var context = new UiRenderContext(Tig.RenderingDevice, Tig.ShapeRenderer2d); // TODO CACHE
+        Root.Render(context);
 
         Debug.AfterRenderWidgets();
 

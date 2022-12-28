@@ -43,7 +43,7 @@ internal class PartyPoolPortraits
             var portrait = new PartyPoolPortrait();
             if (i > 0)
             {
-                portrait.X = _portraits[i - 1].X + _portraits[i - 1].Width;
+                portrait.X = _portraits[i - 1].X + _portraits[i - 1].ComputePreferredBorderAreaSize().Width;
             }
 
             portrait.AddClickListener(() =>
@@ -58,8 +58,9 @@ internal class PartyPoolPortraits
         }
 
         var lastPortrait = _portraits[^1];
-        Container.Height = lastPortrait.Height;
-        Container.Width = lastPortrait.X + lastPortrait.Width;
+        var lastPortraitSize = lastPortrait.ComputePreferredBorderAreaSize();
+        Container.Height = Dimension.Pixels(lastPortraitSize.Height);
+        Container.Width = Dimension.Pixels(lastPortrait.X + lastPortraitSize.Width);
     }
 
     private void Select(GameObject player)
@@ -109,9 +110,9 @@ internal class PartyPoolPortrait : WidgetButton
         SetStyle("partyPoolPortrait");
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
-        base.Render();
+        base.Render(context);
 
         if (_portrait != null)
         {

@@ -20,9 +20,9 @@ public class MiniatureWidget : WidgetButtonBase
     // TODO: This should be injected in some other way
     private MapObjectRenderer Renderer => UiSystems.GameView.GetMapObjectRenderer();
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
-        base.Render();
+        base.Render(context);
 
         if (Object == null)
         {

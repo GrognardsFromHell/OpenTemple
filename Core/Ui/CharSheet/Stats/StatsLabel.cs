@@ -71,7 +71,7 @@ public class StatsLabel : WidgetButtonBase
         }
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         WidgetImage renderImage = null;
         if (ContainsPress)
@@ -88,7 +88,7 @@ public class StatsLabel : WidgetButtonBase
         if (renderImage != null)
         {
             renderImage.SetBounds(
-                new Rectangle(
+                new RectangleF(
                     contentArea.X,
                     contentArea.Y - 1,
                     renderImage.GetPreferredSize().Width,
@@ -100,7 +100,7 @@ public class StatsLabel : WidgetButtonBase
 
         var labelSize = _label.GetPreferredSize();
         // Center horizontally and vertically within the content area
-        var labelArea = new Rectangle(
+        var labelArea = new RectangleF(
             contentArea.X + (contentArea.Width - labelSize.Width) / 2,
             contentArea.Y + (contentArea.Height - labelSize.Height) / 2,
             contentArea.Width = labelSize.Width,

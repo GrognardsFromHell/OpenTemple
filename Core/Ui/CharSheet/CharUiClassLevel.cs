@@ -31,7 +31,7 @@ public class CharUiClassLevel : WidgetButtonBase
     }
 
     [TempleDllLocation(0x10144b40)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var currentCritter = UiSystems.CharSheet.CurrentCritter;
         if (currentCritter == null)
@@ -59,7 +59,7 @@ public class CharUiClassLevel : WidgetButtonBase
             TooltipText = null;
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     private string BuildClassText(GameObject currentCritter, bool shortClassNames, bool omitLevelText)

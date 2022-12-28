@@ -8,9 +8,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats;
 
 public class StatsUiParams
 {
-    public StatsUiParams(
-        Rectangle mainWindowRectangle,
-        Dictionary<int, string> settings,
+    public StatsUiParams(Dictionary<int, string> settings,
         Dictionary<int, string> textures,
         Dictionary<int, string> translations)
     {
@@ -24,12 +22,11 @@ public class StatsUiParams
             );
             if (makeRelative)
             {
-                rect.X -= MainWindow.X;
-                rect.Y -= MainWindow.Y;
+                rect.X -= 81;
+                rect.Y -= 278;
             }
         }
 
-        LoadRectangle(out MainWindow, 0);
         LoadRectangle(out PlatinumButton, 5, true);
         LoadRectangle(out GoldButton, 10, true);
         LoadRectangle(out SilverButton, 14, true);
@@ -98,16 +95,12 @@ public class StatsUiParams
 
         // TooltipUiStyle = int.Parse(settings[200]);
 
-        MainWindow.X -= mainWindowRectangle.X;
-        MainWindow.Y -= mainWindowRectangle.Y;
-
         foreach (var texture in (StatsUiTexture[]) Enum.GetValues(typeof(StatsUiTexture)))
         {
             TexturePaths[texture] = "art/interface/char_ui/char_stats_ui/" + textures[(int) texture];
         }
     }
 
-    public Rectangle MainWindow;
     public Rectangle PlatinumButton;
     public Rectangle GoldButton;
     public Rectangle SilverButton;

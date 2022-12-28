@@ -34,7 +34,7 @@ public class InitiativePortraitButton : WidgetButtonBase
         _metrics = smallMode ? InitiativeMetrics.Small : InitiativeMetrics.Normal;
 
         Pos = _metrics.Button.Location;
-        Size = _metrics.Button.Size;
+        PixelSize = _metrics.Button.Size;
 
         _portrait = new WidgetImage(GetPortraitPath());
         AddContent(_portrait); // This is for automated cleanup
@@ -79,7 +79,7 @@ public class InitiativePortraitButton : WidgetButtonBase
     }
 
     [TempleDllLocation(0x10141810)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         if (!Visible)
         {

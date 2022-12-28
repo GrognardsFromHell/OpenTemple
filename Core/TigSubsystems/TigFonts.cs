@@ -149,7 +149,7 @@ public sealed class TigFonts : IDisposable
     /// Draws text positioned in screen coordinates. Width of rectangle may be 0 to cause automatic
     /// measurement of the text.
     /// </summary>
-    public bool RenderText(ReadOnlySpan<char> text, Rectangle extents, TigTextStyle style)
+    public bool RenderText(ReadOnlySpan<char> text, RectangleF extents, TigTextStyle style)
     {
         style.colorSlot = 0;
 
@@ -171,11 +171,11 @@ public sealed class TigFonts : IDisposable
     /// <summary>
     /// Measures the given text and returns the bounding rect.
     /// </summary>
-    public Rectangle MeasureTextSize(string text, TigTextStyle style, int maxWidth = 0, int maxHeight = 0)
+    public RectangleF MeasureTextSize(string text, TigTextStyle style, int maxWidth = 0, int maxHeight = 0)
     {
         var metrics = new TigFontMetrics { width = maxWidth, height = maxHeight };
         Measure(style, text, ref metrics);
-        return new Rectangle(0, 0, metrics.width, metrics.height);
+        return new RectangleF(0, 0, metrics.width, metrics.height);
     }
 
     [TempleDllLocation(0x101ea4e0)]

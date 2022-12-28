@@ -53,7 +53,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     public float Zoom => _zoom;
 
-    Size IGameViewport.Size => Size;
+    SizeF IGameViewport.Size => GetSize();
 
     public bool IsInteractive => true;
 
@@ -67,8 +67,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     private bool _isUpscaleLinearFiltering;
 
-    public GameView(IMainWindow mainWindow, RenderingDevice device, RenderingConfig config) : base(Globals.UiManager
-        .CanvasSize)
+    public GameView(IMainWindow mainWindow, RenderingDevice device, RenderingConfig config)
     {
         _device = device;
         _gameRenderer = new GameRenderer(_device, this);
@@ -81,7 +80,6 @@ public class GameView : WidgetContainer, IGameViewport
         GameViews.Add(this);
 
         SetSizeToParent(true);
-        OnSizeChanged();
 
         _scrollingController = new GameViewScrollingController(this, this);
 
@@ -118,8 +116,6 @@ public class GameView : WidgetContainer, IGameViewport
             return;
         }
 
-        ApplyAutomaticSizing();
-
         if (!GameViews.IsDrawingEnabled)
         {
             return;
@@ -140,14 +136,12 @@ public class GameView : WidgetContainer, IGameViewport
         }
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         if (!Visible)
         {
             return;
         }
-
-        ApplyAutomaticSizing();
 
         var sceneTexture = _gameRenderer.SceneTexture;
         if (sceneTexture == null)
@@ -182,8 +176,8 @@ public class GameView : WidgetContainer, IGameViewport
         // We're trying to render at native resolutions by default, hence we apply
         // the UI scale to determine the render target size here.
         _gameRenderer.RenderSize = new Size(
-            (int) (Width * _mainWindow.UiScale * _renderScale),
-            (int) (Height * _mainWindow.UiScale * _renderScale)
+            (int) (ContentArea.Width * _mainWindow.UiScale * _renderScale),
+            (int) (ContentArea.Height * _mainWindow.UiScale * _renderScale)
         );
         Logger.Debug("Rendering @ {0}x{1} ({2}%), MSAA: {3}",
             _gameRenderer.RenderSize.Width,
@@ -239,9 +233,9 @@ public class GameView : WidgetContainer, IGameViewport
 
     private void UpdateCamera()
     {
-        var size = new Size(
-            (int) (Width / _zoom),
-            (int) (Height / _zoom)
+        var size = new SizeF(
+            ContentArea.Width / _zoom,
+            ContentArea.Height / _zoom
         );
 
         if (size != Camera.ViewportSize)

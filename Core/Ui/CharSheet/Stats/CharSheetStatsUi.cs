@@ -18,18 +18,21 @@ public class CharSheetStatsUi : IDisposable
     public WidgetContainer Container { get; }
 
     [TempleDllLocation(0x101ccce0)]
-    public CharSheetStatsUi(Rectangle mainWindowRectangle)
+    public CharSheetStatsUi()
     {
         Stub.TODO();
 
-        var uiParams = new StatsUiParams(
-            mainWindowRectangle,
-            Tig.FS.ReadMesFile("art/interface/char_ui/char_stats_ui/1_char_stats_ui.mes"),
+        var uiParams = new StatsUiParams(Tig.FS.ReadMesFile("art/interface/char_ui/char_stats_ui/1_char_stats_ui.mes"),
             Tig.FS.ReadMesFile("art/interface/char_ui/char_stats_ui/1_char_stats_ui_textures.mes"),
             Tig.FS.ReadMesFile("mes/1_char_stats_ui_text.mes")
         );
 
-        Container = new WidgetContainer(uiParams.MainWindow);
+        Container = new WidgetContainer
+        {
+            X = 13,
+            Y = 231,
+            PixelSize = new SizeF(191, 217)
+        };
 
         CreateMoneyLabels(uiParams);
 

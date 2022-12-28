@@ -19,7 +19,7 @@ public interface IGameViewport
 
     event Action OnResize;
 
-    Size Size { get; }
+    SizeF Size { get; }
     
     bool IsInteractive { get; }
 

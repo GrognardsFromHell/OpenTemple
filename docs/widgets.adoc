@@ -1,0 +1,22 @@
+﻿= Widgets
+
+== Position Model
+
+OpenTemple generally tries to follow the CSS Box Model where possible.
+
+image:https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/The_box_model/box-model.png[Diagram of the box model,width=544,height=300]
+
+== Content
+
+Content is non-interactive background content for a widget that fills the widgets border box. Borders and background images are content.
+
+== Layout
+
+Updating the layout is the process of determining the absolute on-screen areas of each widget. 
+The Border and Margin areas are computed in this process and the Content/Padding Areas are updated
+as a result.
+
+Layout updates are performed in `WidgetBase.UpdateLayout`.
+
+Layout always occurs within the context of a widget container, which given its own area lays out its children.
+The top-level widgets are all children of the root widget, which 

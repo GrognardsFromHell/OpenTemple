@@ -17,7 +17,7 @@ public class LocationSystem : IGameSystem
 
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private Size ScreenSize => GameViews.Primary?.Camera.ViewportSize ?? Size.Empty;
+    private Size ScreenSize => Size.Truncate(GameViews.Primary?.Camera.ViewportSize ?? Size.Empty);
 
     [TempleDllLocation(0x1002a9a0)]
     public LocationSystem()
@@ -56,7 +56,7 @@ public class LocationSystem : IGameSystem
     /// tile-space that is visible.
     /// </summary>
     [TempleDllLocation(0x1002A6B0)]
-    public bool GetVisibleTileRect(IGameViewport viewport, in Rectangle screenRect, out TileRect tiles)
+    public bool GetVisibleTileRect(IGameViewport viewport, in RectangleF screenRect, out TileRect tiles)
     {
         // TODO: This way of figuring out the visible tiles has to go,
         // TODO since it does not use the camera transforms, but rather

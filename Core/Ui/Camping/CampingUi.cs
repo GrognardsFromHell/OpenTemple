@@ -183,7 +183,7 @@ public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
         // Begin top level window
         // Created @ 0x1019b2c8
         // var @ [TempleDllLocation(0x11e72ad8)]
-        var sticky_ui_main_window1 = new WidgetContainer(new Rectangle(0, 0, 0, 0));
+        var sticky_ui_main_window1 = new WidgetContainer();
         // sticky_ui_main_window1.OnHandleMessage += 0x101f5850;
         // sticky_ui_main_window1.OnBeforeRender += 0x1019a9a0;
         sticky_ui_main_window1.ZIndex = 0;

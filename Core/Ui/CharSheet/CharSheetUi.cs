@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using OpenTemple.Core.GameObjects;
@@ -114,37 +115,39 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
 
         Globals.UiStyles.LoadStylesFile("ui/char_ui_styles.json");
 
-        _mainWidget = new CharUiMainWidget(_uiParams);
+        _mainWidget = new CharUiMainWidget();
 
-        char_ui_main_nav_editor_window = new WidgetContainer(_uiParams.CharUiMainNavEditorWindow);
+        char_ui_main_nav_editor_window = new WidgetContainer
+        {
+            X = 601,
+            Y = 12,
+            PixelSize = new SizeF(112, 180)
+        };
         _mainWidget.Add(char_ui_main_nav_editor_window);
 
         char_ui_main_name_button = new WidgetDynamicLabel(GetCharacterNameText)
         {
             X = 17,
             Y = 12,
-            Width = 196,
-            Height = 12,
+            PixelSize = new SizeF(196, 12),
             StyleIds = ImmutableList.Create("char-ui-dialog-title")
         };
         _mainWidget.Add(char_ui_main_name_button);
 
         CreateExitButton();
 
-        _mainWidget.Add(new CharUiClassLevel()
+        _mainWidget.Add(new CharUiClassLevel
         {
             X = 262,
             Y = 12,
-            Width = 300,
-            Height = 12
+            PixelSize = new SizeF(300, 12)
         });
 
         _mainWidget.Add(new WidgetDynamicLabel(GetAlignmentGenderRaceText)
         {
             X = 247,
             Y = 29,
-            Width = 198,
-            Height = 16,
+            PixelSize = new SizeF(198, 16),
             StyleIds = ImmutableList.Create("char-ui-align-gender-race")
         });
 
@@ -152,8 +155,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         {
             X = 460,
             Y = 29,
-            Width = 190,
-            Height = 16,
+            PixelSize = new SizeF(190, 16),
             StyleIds = ImmutableList.Create("char-ui-worship")
         });
 
@@ -193,9 +195,9 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
         _mainWidget.Add(Spells.Container);
         Spells.Hide();
         Looting = new CharSheetLootingUi();
-        Stats = new CharSheetStatsUi(_uiParams.CharUiMainWindow);
+        Stats = new CharSheetStatsUi();
         _mainWidget.Add(Stats.Container);
-        Portrait = new CharSheetPortraitUi(_uiParams.CharUiMainWindow);
+        Portrait = new CharSheetPortraitUi();
         _mainWidget.Add(Portrait.Container);
         LevelUp = new CharSheetLevelUpUi();
         Help = new CharSheetHelpUi();
@@ -526,19 +528,19 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
     public void CenterOnScreen()
     {
         // We need to center both the looting and inventory together
-        if (State == CharInventoryState.Bartering || State == CharInventoryState.Looting || State == CharInventoryState.Unknown6)
+        if (State is CharInventoryState.Bartering or CharInventoryState.Looting or CharInventoryState.Unknown6)
         {
             var screenSize = Globals.UiManager.CanvasSize;
 
             // Vertical centering is easy enough
-            var y = (screenSize.Height - _mainWidget.Height) / 2;
+            var y = (screenSize.Height - _mainWidget.BorderArea.Height) / 2;
             _mainWidget.Y = y;
             Looting.Container.Y = y;
 
-            var totalWidth = Looting.Container.Width + _mainWidget.Width;
+            var totalWidth = Looting.Container.BorderArea.Width + _mainWidget.BorderArea.Width;
             var x = (screenSize.Width - totalWidth) / 2;
             Looting.Container.X = x;
-            _mainWidget.X = x + Looting.Container.Width;
+            _mainWidget.X = x + Looting.Container.BorderArea.Width;
         }
         else
         {
@@ -698,21 +700,21 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
     {
         var screenWidthFactor = Globals.UiManager.CanvasSize.Width / 800.0f;
 
-        int x = UiSystems.CharSheet._mainWidget.X;
+        var x = UiSystems.CharSheet._mainWidget.X;
 
-        int xOffset = 0;
+        var xOffset = 0f;
         switch (_state)
         {
             case CharInventoryState.Closed:
-                xOffset = (int) (screenWidthFactor * _uiParams.CharUiModeXNormal) - x;
+                xOffset = (screenWidthFactor * _uiParams.CharUiModeXNormal) - x;
                 break;
             case CharInventoryState.Looting:
             case CharInventoryState.Bartering:
             case CharInventoryState.Unknown6:
-                xOffset = (int) (screenWidthFactor * _uiParams.CharUiModeXLooting) - x;
+                xOffset = (screenWidthFactor * _uiParams.CharUiModeXLooting) - x;
                 break;
             case CharInventoryState.LevelUp:
-                xOffset = (int) (screenWidthFactor * _uiParams.CharUiModeXLevelUp) - x;
+                xOffset = (screenWidthFactor * _uiParams.CharUiModeXLevelUp) - x;
                 break;
         }
 

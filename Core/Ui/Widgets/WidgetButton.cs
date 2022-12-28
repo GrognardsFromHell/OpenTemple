@@ -36,10 +36,10 @@ public class WidgetButton : WidgetButtonBase
         _label = new WidgetText {Parent = this};
     }
 
-    public WidgetButton(Rectangle rect) : this()
+    public WidgetButton(RectangleF rect) : this()
     {
         Pos = rect.Location;
-        Size = rect.Size;
+        PixelSize = rect.Size;
     }
 
     /*
@@ -69,12 +69,11 @@ public class WidgetButton : WidgetButtonBase
         return _style;
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         InvokeOnBeforeRender();
-        ApplyAutomaticSizing();
 
-        base.Render();
+        base.Render(context);
 
         var area = PaddingArea;
 
@@ -330,15 +329,15 @@ public class WidgetButton : WidgetButtonBase
 
             if (AutoSizeWidth && AutoSizeHeight)
             {
-                Size = prefSize;
+                PixelSize = prefSize;
             }
             else if (AutoSizeWidth)
             {
-                Width = prefSize.Width;
+                Width = Dimension.Pixels(prefSize.Width);
             }
             else if (AutoSizeHeight)
             {
-                Height = prefSize.Height;
+                Height = Dimension.Pixels(prefSize.Height);
             }
         }
     }

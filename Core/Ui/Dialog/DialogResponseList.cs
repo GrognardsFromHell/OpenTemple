@@ -9,7 +9,7 @@ internal class DialogResponseList : WidgetContainer
 {
     public event Action<int> OnResponseSelected;
 
-    public DialogResponseList(Rectangle rectangle) : base(rectangle)
+    public DialogResponseList(RectangleF rectangle) : base(rectangle)
     {
     }
 

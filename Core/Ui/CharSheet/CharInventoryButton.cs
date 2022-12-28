@@ -44,7 +44,7 @@ public class CharInventoryButton : WidgetButton
         }
 
         Pos = rectangle.Location;
-        Size = rectangle.Size;
+        PixelSize = rectangle.Size;
 
         _borderTexture = Tig.Textures.Resolve(uiParams.TexturePaths[CharUiTexture.ButtonContainerSelected], false);
         _arcTopTexture = Tig.Textures.Resolve(uiParams.TexturePaths[CharUiTexture.ButtonArcTopSelected], false);
@@ -58,7 +58,7 @@ public class CharInventoryButton : WidgetButton
     [TempleDllLocation(0x10145990)]
     [TempleDllLocation(0x10145be0)]
     [TempleDllLocation(0x10145e40)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         using var bagTexture = GetBagTexture();
         if (!bagTexture.IsValid)
@@ -130,7 +130,7 @@ public class CharInventoryButton : WidgetButton
         }
     }
 
-    private void RenderSelection(Rectangle contentArea)
+    private void RenderSelection(RectangleF contentArea)
     {
         Tig.ShapeRenderer2d.DrawRectangle(
             contentArea.X - 4,

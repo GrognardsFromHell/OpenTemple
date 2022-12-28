@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
@@ -57,8 +58,9 @@ internal class FeatsSystem : IChargenSystem
             return string.Compare(firstName, secondName, StringComparison.CurrentCultureIgnoreCase);
         });
 
-        _featList = new DraggableItemList<SelectableFeat>(300, 200)
+        _featList = new DraggableItemList<SelectableFeat>
         {
+            PixelSize = new SizeF(300, 200),
             TextFactory = feat => new SimpleInlineElement(GetFeatName(feat.featEnum))
         };
         Container.Add(_featList);

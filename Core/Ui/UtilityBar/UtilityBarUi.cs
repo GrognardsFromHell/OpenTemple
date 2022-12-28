@@ -172,8 +172,9 @@ public class UtilityBarUi : ITimeAwareSystem, IResetAwareSystem
 
     private void UpdateSize(Size size)
     {
-        _container.X = size.Width - _container.Width + 1;
-        _container.Y = size.Height - _container.Height - 2;
+        var preferredSize = _container.ComputePreferredBorderAreaSize();
+        _container.X = size.Width - preferredSize.Width + 1;
+        _container.Y = size.Height - preferredSize.Height - 2;
     }
 
     [TempleDllLocation(0x1010ffd0)]

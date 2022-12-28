@@ -57,9 +57,8 @@ public class InitiativeUi
     [TempleDllLocation(0x101430b0)]
     public InitiativeUi()
     {
-        _portraitContainer = new WidgetContainer(
-            0,
-            0,
+        _portraitContainer = new WidgetContainer();
+        _portraitContainer.PixelSize = new SizeF(
             Globals.UiManager.CanvasSize.Width - 2,
             100 - 12
         );
@@ -93,14 +92,14 @@ public class InitiativeUi
         var combatantCount = GameSystems.D20.Initiative.Count;
 
         // Check if we need small portraits or not
-        var availableWidth = _portraitContainer.Width;
+        var availableWidth = _portraitContainer.ContentArea.Width;
         var requiredWidthNormal = PortraitSize.Width * combatantCount + (combatantCount - 1) * PortraitMargin;
         var useSmallPortraits = requiredWidthNormal > availableWidth;
 
         // Reassemble the list of portraits and try to reuse portraits as we go
         Span<bool> reused = stackalloc bool[_currentPortraits.Count];
         var portraits = new List<PortraitRecord>(combatantCount);
-        var currentX = 0;
+        var currentX = 0f;
         foreach (var combatant in GameSystems.D20.Initiative)
         {
             var index = portraits.Count;
@@ -125,7 +124,8 @@ public class InitiativeUi
                 portraits.Add(CreatePortraitRecord(combatant, useSmallPortraits));
             }
 
-            currentX += portraits[index].Container.Width + PortraitMargin;
+            var preferredSize = portraits[index].Container.ComputePreferredBorderAreaSize();
+            currentX += preferredSize.Width + PortraitMargin;
         }
 
         // Free all portraits that were not reused
@@ -142,8 +142,8 @@ public class InitiativeUi
 
     private PortraitRecord CreatePortraitRecord(GameObject combatant, bool useSmallPortraits)
     {
-        var size = useSmallPortraits ? SmallPortraitSize : PortraitSize;
-        var container = new WidgetContainer(size);
+        var container = new WidgetContainer();
+        container.PixelSize = useSmallPortraits ? SmallPortraitSize : PortraitSize;
         container.Y = 5;
         container.ClipChildren = false;
 

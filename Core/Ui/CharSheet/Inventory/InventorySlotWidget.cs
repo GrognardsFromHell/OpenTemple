@@ -45,7 +45,7 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
         }
     }
 
-    public InventorySlotWidget(Size size, int inventoryIdx) : base(size)
+    public InventorySlotWidget(int inventoryIdx)
     {
         InventoryIndex = inventoryIdx;
 
@@ -65,11 +65,11 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
         return new WidgetText("", "inventory-slot-quantity");
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         _background.Pen = GetOutlineColor();
 
-        base.Render();
+        base.Render(context);
 
         var itemInSlot = CurrentItem;
         if (itemInSlot != null)
@@ -170,7 +170,7 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
             // Position the label in the lower right corner
             var textSize = _quantityLabel.GetPreferredSize();
-            _quantityLabel.SetBounds(new Rectangle(
+            _quantityLabel.SetBounds(new RectangleF(
                 contentArea.Right - 2 - textSize.Width,
                 contentArea.Bottom - 2 - textSize.Height,
                 textSize.Width,

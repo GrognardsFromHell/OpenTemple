@@ -176,7 +176,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
         // Position portraits according to their position in the party list
         for (var i = 0; i < _portraits.Count; i++)
         {
-            _portraits[i].Widget.X = i * _portraits[i].Widget.Width;
+            _portraits[i].Widget.X = i * _portraits[i].Widget.ComputePreferredBorderAreaSize().Width;
         }
 
         // Free any remaining unused portraits
@@ -192,7 +192,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
     [TempleDllLocation(0x101350b0)]
     private void ResizeViewport(Size screenSize)
     {
-        _container.Width = screenSize.Width - 2 * _uiParams.party_ui_main_window.X;
+        _container.Width = Dimension.Pixels(screenSize.Width - 2 * _uiParams.party_ui_main_window.X);
         _container.Y = screenSize.Height + _uiParams.party_ui_main_window.Y;
     }
 
@@ -414,7 +414,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
     }
 
     [TempleDllLocation(0x10131a50)]
-    public bool TryGetPartyMemberRect(GameObject caster, out Rectangle rectangle)
+    public bool TryGetPartyMemberRect(GameObject caster, out RectangleF rectangle)
     {
         var portrait = _portraits.Find(p => p.PartyMember == caster);
         if (portrait != null)

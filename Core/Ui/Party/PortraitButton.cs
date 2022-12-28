@@ -37,7 +37,7 @@ internal class PortraitButton : WidgetButtonBase
     }
 
     [TempleDllLocation(0x10132850)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         UpdatePortrait();
 
@@ -78,7 +78,7 @@ internal class PortraitButton : WidgetButtonBase
             }
 
             _hpLabel.Content = text;
-            _hpLabel.Y = Height - 12;
+            _hpLabel.Y = PaddingArea.Height - 12;
             AddContent(_hpLabel);
         }
 
@@ -108,7 +108,7 @@ internal class PortraitButton : WidgetButtonBase
             }
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     [TempleDllLocation(0x10132850)]

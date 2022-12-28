@@ -39,19 +39,19 @@ public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     private int _scrollSpeed;
 
     [TempleDllLocation(0x10307304)]
-    private Size ScreenSize => GameViews.Primary?.Camera?.ViewportSize ?? Size.Empty;
+    private SizeF ScreenSize => GameViews.Primary?.Camera?.ViewportSize ?? SizeF.Empty;
 
     [TempleDllLocation(0x10307370)]
-    private int _mapScrollX;
+    private float _mapScrollX;
 
     [TempleDllLocation(0x10307338)]
-    private int _mapScrollY;
+    private float _mapScrollY;
 
     [TempleDllLocation(0x103072E8)]
-    private int _mapScrollXSpeed;
+    private float _mapScrollXSpeed;
 
     [TempleDllLocation(0x1030733C)]
-    private int _mapScrollYSpeed;
+    private float _mapScrollYSpeed;
 
     [TempleDllLocation(0x10307310)]
     private locXY _screenCenterTile;
@@ -388,7 +388,7 @@ public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
                 y = _currentLimits.Top - translationY;
             }
         }
-
+        
         GameSystems.Location.AddTranslation(x, y);
     }
 
@@ -432,8 +432,8 @@ public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     [TempleDllLocation(0x10006480)]
     public void SetScrollDirection(ScrollDirection scrollDir)
     {
-        var deltaX = 0;
-        var deltaY = 0;
+        var deltaX = 0f;
+        var deltaY = 0f;
         switch (scrollDir)
         {
             case ScrollDirection.UP:
@@ -465,6 +465,8 @@ public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
                 deltaY = _mapScrollYSpeed + 2;
                 break;
         }
+        
+        // TODO: we should accumulate delta x
 
         _timeLastScrollDirectionChange = TimePoint.Now;
         if (Globals.Config.ScrollAcceleration)
@@ -474,7 +476,7 @@ public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
         }
         else
         {
-            ScrollBy(_currentViewport, deltaX, deltaY);
+            ScrollBy(_currentViewport, (int) deltaX, (int) deltaY);
         }
     }
 
@@ -513,14 +515,14 @@ public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
             var deltaH = _currentLimits.Top - _currentLimits.Bottom;
             if (deltaW < screenSize.Width + 100)
             {
-                _currentLimits.Left += (screenSize.Width - deltaW) / 2 + 50;
-                _currentLimits.Right -= (screenSize.Width - deltaW) / 2 + 50;
+                _currentLimits.Left += (int) (screenSize.Width - deltaW) / 2 + 50;
+                _currentLimits.Right -= (int) (screenSize.Width - deltaW) / 2 + 50;
             }
 
             if (deltaH < screenSize.Height + 100)
             {
-                _currentLimits.Top += (screenSize.Height - deltaH) / 2 + 50;
-                _currentLimits.Bottom -= (screenSize.Height - deltaH) / 2 + 50;
+                _currentLimits.Top += (int) (screenSize.Height - deltaH) / 2 + 50;
+                _currentLimits.Bottom -= (int) (screenSize.Height - deltaH) / 2 + 50;
             }
         }
     }

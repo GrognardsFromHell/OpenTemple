@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Options;
@@ -23,11 +24,14 @@ public class SliderOption : Option
         _getter = getter;
         _setter = setter;
 
-        _slider = new WidgetSlider(399, 9);
+        _slider = new WidgetSlider
+        {
+            X = 178,
+            Y = 2,
+            PixelSize = new SizeF(399, 9)
+        };
         _slider.SetMin(minValue);
         _slider.SetMax(maxValue);
-        _slider.X = 178;
-        _slider.Y = 2;
         Globals.UiManager.RemoveWindow(_slider); // Otherwise it'll show up as a top-level widget
 
         // Display the slider's min value to the left of the slider
@@ -35,14 +39,16 @@ public class SliderOption : Option
         _minLabel.X = _slider.X - _minLabel.GetPreferredSize().Width - 5;
         _minLabel.SetCenterVertically(true);
 
+        var sliderWidth = _slider.ComputePreferredBorderAreaSize().Width;
+        
         // Display the slider's max value to the left of the slider
         _maxLabel = new WidgetText(_slider.GetMax().ToString(), "options-label-muted");
-        _maxLabel.X = _slider.X + _slider.Width + 5;
+        _maxLabel.X = _slider.X + sliderWidth + 5;
         _maxLabel.SetCenterVertically(true);
 
         // Display the current value to the far right
         _valueLabel = new WidgetText(_slider.GetValue().ToString(), "options-label");
-        _valueLabel.X = _slider.X + _slider.Width + 40;
+        _valueLabel.X = _slider.X + sliderWidth + 40;
         _valueLabel.SetCenterVertically(true);
         _slider.SetValueChangeHandler(ValueChanged);
     }

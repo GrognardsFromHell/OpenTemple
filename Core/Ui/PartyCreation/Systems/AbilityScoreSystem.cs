@@ -90,18 +90,20 @@ class AbilityScoreSystem : IChargenSystem
 
             var assignedValContainer = doc.GetContainer($"assigned-val-{AttributeIdSuffixes[i]}");
             var assignedVal = new AbilityScoreValueWidget(
-                assignedValContainer.Size,
                 () => _pkt.abilityStats[abilityIndex],
                 value => _pkt.abilityStats[abilityIndex] = value,
                 true
-            );
+            )
+            {
+                PixelSize = assignedValContainer.GetSize()
+            };
             assignedValContainer.Add(assignedVal);
             InstallAbilityScoreBehavior(assignedVal);
 
             // Displays the modifier for the assigned attribute
             var assignedModContainer = doc.GetContainer($"assigned-mod-{AttributeIdSuffixes[i]}");
             var assignedMod = new AbilityScoreModifierWidget(
-                assignedValContainer.Size,
+                assignedValContainer.GetSize(),
                 () => _pkt.abilityStats[abilityIndex]
             );
             assignedModContainer.Add(assignedMod);
@@ -115,11 +117,13 @@ class AbilityScoreSystem : IChargenSystem
             var index = i;
             var rolledStatContainer = doc.GetContainer("rolledAttribute" + i);
             var rolledStatWidget = new AbilityScoreValueWidget(
-                rolledStatContainer.Size,
                 () => _charGenRolledStats[index],
                 value => _charGenRolledStats[index] = value,
                 false
-            );
+            )
+            {
+                PixelSize = rolledStatContainer.GetSize()
+            };
             _charGenRolledStatsWidgets[i] = rolledStatWidget;
             rolledStatContainer.Add(rolledStatWidget);
             InstallAbilityScoreBehavior(rolledStatWidget);
@@ -166,7 +170,7 @@ class AbilityScoreSystem : IChargenSystem
                 {
                     var point = new Point(x, y);
                     point.Offset(-localX, -localY);
-                    var contentArea = new Rectangle(point, widget.Size);
+                    var contentArea = new RectangleF(point, widget.GetSize());
 
                     _draggedAbilityScoreLabel.SetBounds(contentArea);
                     _draggedAbilityScoreLabel.Render();

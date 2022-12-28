@@ -32,9 +32,9 @@ public class HeightSlider : WidgetButtonBase
     }
     public event Action<float>? OnValueChanged;
 
-    public int ThumbCenterY => Y + _thumbImage.Y + _thumbHeight / 2;
+    public float ThumbCenterY => Y + _thumbImage.Y + _thumbHeight / 2;
 
-    private readonly int _thumbHeight;
+    private readonly float _thumbHeight;
 
     public override bool HitTest(float x, float y)
     {
@@ -54,8 +54,8 @@ public class HeightSlider : WidgetButtonBase
         AddContent(_thumbImage);
         _thumbHeight = _thumbImage.FixedHeight;
 
-        Width = _thumbImage.X + _thumbImage.GetPreferredSize().Width;
-        Height = trackImage.GetPreferredSize().Height;
+        Width = Dimension.Pixels(_thumbImage.X + _thumbImage.GetPreferredSize().Width);
+        Height = Dimension.Pixels(trackImage.GetPreferredSize().Height);
     }
 
     protected override void HandleMouseDown(MouseEvent e)

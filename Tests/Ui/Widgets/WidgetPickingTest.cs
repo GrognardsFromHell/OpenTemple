@@ -13,9 +13,9 @@ public class WidgetPickingTest
     {
         _widget = new WidgetBase();
         _widget.X = 50;
-        _widget.Width = 30;
+        _widget.Width = Dimension.Pixels(30);
         _widget.Y = 150;
-        _widget.Height = 50;
+        _widget.Height = Dimension.Pixels(50);
     }
 
     [TestCase(-0.1f, -0.1f, ExpectedResult = false, TestName = "Just outside top-left corner")]

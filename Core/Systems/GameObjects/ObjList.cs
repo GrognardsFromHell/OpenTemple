@@ -376,8 +376,8 @@ public class ObjList : IDisposable, IEnumerable<GameObject>
         }
 
         var screenSize = GameViews.Primary.Camera.ViewportSize;
-        var screenRect = new Rectangle(Point.Empty, screenSize);
-        GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var screenCenter);
+        var screenRect = new RectangleF(Point.Empty, screenSize);
+        GameSystems.Location.ScreenToLoc((int) screenSize.Width / 2, (int) screenSize.Height / 2, out var screenCenter);
         GameSystems.Location.GetTranslation(screenCenter.locx, screenCenter.locy, out var screenCenterX,
             out var screenCenterY);
         GameSystems.Location.GetTranslation(loc.locx, loc.locy, out var locScreenX, out var locScreenY);

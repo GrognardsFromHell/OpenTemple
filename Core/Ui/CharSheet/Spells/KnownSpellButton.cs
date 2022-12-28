@@ -25,7 +25,7 @@ public class KnownSpellButton : WidgetButtonBase
     /// </summary>
     public event Action<SpellStoreData, MemorizedSpellButton> OnMemorizeSpell;
 
-    public KnownSpellButton(Rectangle rect,
+    public KnownSpellButton(RectangleF rect,
         bool spellOpposesAlignment,
         SpellStoreData spell) : base(rect)
     {
@@ -95,8 +95,8 @@ public class KnownSpellButton : WidgetButtonBase
 
         var extents = new RectangleF();
         extents.X = x;
-        extents.Y = y - Height;
-        extents.Width = Width;
+        extents.Y = y - BorderArea.Height;
+        extents.Width = BorderArea.Width;
         extents.Height = 0;
 
         Tig.RenderingDevice.TextEngine.RenderText(

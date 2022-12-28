@@ -110,7 +110,7 @@ public class LogbookKeysUi : IDisposable
         var listOutline = new WidgetRectangle();
         listOutline.X = listContainer.X;
         listOutline.Y = listContainer.Y;
-        listOutline.FixedSize = listContainer.Size;
+        listOutline.FixedSize = listContainer.GetSize();
         listOutline.Pen = new PackedLinearColorA(0xFF909090);
         Container.AddContent(listOutline);
 
@@ -123,7 +123,7 @@ public class LogbookKeysUi : IDisposable
         var detailsOutline = new WidgetRectangle();
         detailsOutline.X = _details.Container.X;
         detailsOutline.Y = _details.Container.Y;
-        detailsOutline.FixedSize = _details.Container.Size;
+        detailsOutline.FixedSize = _details.Container.GetSize();
         detailsOutline.Pen = new PackedLinearColorA(0xFF909090);
         Container.AddContent(detailsOutline);
     }

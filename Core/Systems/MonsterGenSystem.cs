@@ -281,8 +281,8 @@ public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwa
     private bool IsRectOnScreen(Rectangle rect)
     {
         // TODO: This should probably check every game view not just the primary
-        var screenRect = new Rectangle(Point.Empty, GameViews.Primary.Size);
-        return rect.IntersectsWith(screenRect);
+        var screenRect = new RectangleF(Point.Empty, GameViews.Primary.Size);
+        return rect.IntersectsWith(Rectangle.Truncate(screenRect));
     }
 
     private void HandleSpawning(ref NpcGeneratorInfo npcGenInfo)

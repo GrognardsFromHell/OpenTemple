@@ -169,15 +169,15 @@ public class PCCreationUi : IDisposable
         chargenSystems.Add(new VoiceSystem());
 
         var stateButtonsContainer = doc.GetContainer("stateButtons");
-        var y = 0;
+        var y = 0f;
         foreach (var system in chargenSystems)
         {
             system.Container.Visible = false;
             _mainWindow.Add(system.Container);
 
             var stageButton = CreateStageButton(system);
-            stageButton.SetPos(0, y);
-            y += stageButton.Height;
+            stageButton.Pos = new PointF(y, 0);
+            y += stageButton.ComputePreferredBorderAreaSize().Height;
             stateButtonsContainer.Add(stageButton);
         }
 
@@ -186,7 +186,7 @@ public class PCCreationUi : IDisposable
 
         var modelPreviewContainer = doc.GetContainer("modelPreview");
         _modelPreview = new MiniatureWidget();
-        _modelPreview.Size = modelPreviewContainer.Size;
+        _modelPreview.PixelSize = modelPreviewContainer.GetSize();
         modelPreviewContainer.Add(_modelPreview);
     }
 

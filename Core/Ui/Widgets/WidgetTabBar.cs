@@ -86,30 +86,6 @@ public class WidgetTabBar : WidgetContainer
 
     public event Action<int> OnActiveTabIndexChanged;
 
-    public WidgetTabBar(Size size, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : base(size, filePath, lineNumber)
-    {
-    }
-
-    public WidgetTabBar(Rectangle rectangle, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : base(rectangle, filePath, lineNumber)
-    {
-    }
-
-    public WidgetTabBar(int width, int height, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : base(width, height, filePath, lineNumber)
-    {
-    }
-
-    public WidgetTabBar(int x, int y, int width, int height, [CallerFilePath]
-        string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : base(x, y, width, height, filePath, lineNumber)
-    {
-    }
-
     public void SetTabs(IEnumerable<string> labels)
     {
         _labels.Clear();
@@ -129,7 +105,7 @@ public class WidgetTabBar : WidgetContainer
 
         _tabs.Clear();
 
-        var x = 0;
+        var x = 0f;
         foreach (var label in _labels)
         {
             var button = new WidgetTabButton(label, _style);
@@ -140,7 +116,9 @@ public class WidgetTabBar : WidgetContainer
             var index = _tabs.Count - 1;
             button.AddClickListener(() => ActiveTabIndex = index);
 
-            x += button.Width + _spacing;
+            var preferredSize = button.ComputePreferredBorderAreaSize();
+
+            x += preferredSize.Width + _spacing;
         }
     }
 }
@@ -196,18 +174,18 @@ public class WidgetTabButton : WidgetButtonBase
         // Layout the content items
         LayoutContent(_selectedLeft, _selectedBg, _selectedRight, _label);
         var size = LayoutContent(_normalLeft, _normalBg, _normalRight, _label);
-        Size = size;
+        PixelSize = size;
 
         UpdateSelectedState();
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         UpdateSelectedState();
-        base.Render();
+        base.Render(context);
     }
 
-    private Size LayoutContent(WidgetContent left, WidgetContent bg, WidgetContent right,
+    private SizeF LayoutContent(WidgetContent left, WidgetContent bg, WidgetContent right,
         WidgetContent label)
     {
         left.FixedSize = left.GetPreferredSize();
@@ -228,7 +206,7 @@ public class WidgetTabButton : WidgetButtonBase
         right.FixedSize = right.GetPreferredSize();
         right.X = bg.X + bg.FixedSize.Width;
 
-        return new Size(
+        return new SizeF(
             right.X + right.FixedSize.Width,
             right.FixedSize.Height
         );

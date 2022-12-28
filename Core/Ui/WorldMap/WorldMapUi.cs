@@ -71,11 +71,11 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
 
     [TempleDllLocation(0x102fb3d4)]
     [TempleDllLocation(0x102fb3d8)]
-    private Point _randomEncounterPoint;
+    private PointF _randomEncounterPoint;
 
     [TempleDllLocation(0x10beee60)]
     [TempleDllLocation(0x10bef788)]
-    private Point _lastTrailPos;
+    private PointF _lastTrailPos;
 
     [TempleDllLocation(0x10bef814)]
     private RandomEncounter? _randomEncounterDetails;
@@ -189,7 +189,10 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         });
 
         // This is placed on top of the other map widgets to show the trail dots above the location icons
-        _trailDotsContainer = new WidgetContainer(_mapContent.Size);
+        _trailDotsContainer = new WidgetContainer
+        {
+            PixelSize = _mapContent.GetSize()
+        };
         _mapContent.Add(_trailDotsContainer);
 
         _youAreHereWidget = new YouAreHereWidget();
@@ -412,14 +415,16 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
     }
 
-    private MapTerrain GetTerrain(Point pos)
+    private MapTerrain GetTerrain(PointF pos)
     {
         // Clamp the position to the map container
-        pos.X = Math.Clamp(pos.X, 0, _mapContent.Width - 1);
-        pos.Y = Math.Clamp(pos.Y, 0, _mapContent.Height - 1);
+        var mapWidth = (int) _mapContent.PaddingArea.Width;
+        var mapHeight = (int) _mapContent.PaddingArea.Height;
+        var x = Math.Clamp((int) MathF.Round(pos.X), 0, mapWidth - 1);
+        var y = Math.Clamp((int) MathF.Round(pos.Y), 0, mapHeight - 1);
 
-        var terrainMapX = pos.X * (_terrainMap.info.width - 1) / (_mapContent.Width - 1);
-        var terrainMapY = pos.Y * (_terrainMap.info.height - 1) / (_mapContent.Height - 1);
+        var terrainMapX = x * (_terrainMap.info.width - 1) / (mapWidth - 1);
+        var terrainMapY = y * (_terrainMap.info.height - 1) / (mapHeight - 1);
         var pixelColor = _terrainMap.ReadPackedPixel(terrainMapX, terrainMapY);
 
         if (!TerrainColors.TryGetValue(pixelColor, out var terrain))
@@ -439,8 +444,8 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         if (TryGetWidgetsForArea(currentArea, out var location))
         {
             // Use the current location's radius as the radius for the location ring
-            _youAreHereWidget.Width = 2 * location.Location.Radius;
-            _youAreHereWidget.Height = 2 * location.Location.Radius;
+            _youAreHereWidget.Width = Dimension.Pixels(2 * location.Location.Radius);
+            _youAreHereWidget.Height = Dimension.Pixels(2 * location.Location.Radius);
             _youAreHereWidget.X = location.Location.Position.X - location.Location.Radius;
             _youAreHereWidget.Y = location.Location.Position.Y - location.Location.Radius;
         }
@@ -451,8 +456,8 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
                                   - YouAreHereDefaultRadius;
             _youAreHereWidget.Y = _randomEncounterPoint.Y
                                   - YouAreHereDefaultRadius;
-            _youAreHereWidget.Width = 2 * YouAreHereDefaultRadius;
-            _youAreHereWidget.Height = _youAreHereWidget.Width;
+            _youAreHereWidget.Width = Dimension.Pixels(2 * YouAreHereDefaultRadius);
+            _youAreHereWidget.Height = Dimension.Pixels(2 * YouAreHereDefaultRadius);
         }
     }
 
@@ -610,8 +615,8 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
             var dotCount = (int) MathF.Sqrt(dY * dY + dX * dX) / PixelsPerTrailDot + 1;
             uiWorldmapTrailDotIdx = dotCount;
             EnsureTrailDots(dotCount + 1);
-            var curX = 0;
-            var curY = 0;
+            var curX = 0f;
+            var curY = 0f;
             for (var i = 0; i < uiWorldmapTrailDotIdx; i++)
             {
                 SetTrailDot(i, fromX - curX / dotCount, fromY - curY / dotCount);
@@ -708,7 +713,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         }
     }
 
-    private void SetTrailDot(int index, int x, int y)
+    private void SetTrailDot(int index, float x, float y)
     {
         var trailDot = _trailDots[index];
         trailDot.X = x - trailDot.FixedWidth / 2;
@@ -900,9 +905,9 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
                 _locationList.Add(widgets.ListButton);
                 widgets.ListButton.X = 10;
                 widgets.ListButton.Y = currentY;
-                widgets.ListButton.Width = _locationList.Width - 20;
-                widgets.ListButton.Height = 15; // Previously from worldmap_ui_locations #078
-                currentY += widgets.ListButton.Height + spacing;
+                widgets.ListButton.Width = Dimension.Percent(100);
+                widgets.ListButton.Height = Dimension.Pixels(15); // Previously from worldmap_ui_locations #078
+                currentY += 15 + spacing;
             }
         }
     }
@@ -979,7 +984,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
         {
             DontAskToExitEncounterMap = UiSystems.RandomEncounter.DontAskToExitMap,
             NeedToCleanEncounterMap = NeedToClearEncounterMap,
-            RandomEncounterPoint = _randomEncounterPoint,
+            RandomEncounterPoint = Point.Round(_randomEncounterPoint),
             RandomEncounterStatus = _randomEncounterStatus,
             Locations = locations
         };
@@ -1010,7 +1015,7 @@ public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     }
 
     [TempleDllLocation(0x1015e940)]
-    private void CreateRandomEncounter(Point screenPos, RandomEncounter re)
+    private void CreateRandomEncounter(PointF screenPos, RandomEncounter re)
     {
         _randomEncounterPoint = screenPos;
         NeedToClearEncounterMap = true;

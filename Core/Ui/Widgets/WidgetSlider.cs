@@ -13,28 +13,28 @@ public class WidgetSlider : WidgetContainer
     // Horizontal start and end of the track within the slider background image
     private const int TrackStart = 24;
 
-    public WidgetSlider(int x, int y, [CallerFilePath]
+    public WidgetSlider([CallerFilePath]
         string? filePath = null, [CallerLineNumber]
-        int lineNumber = -1) : base(x, y, filePath, lineNumber)
+        int lineNumber = -1) : base(filePath, lineNumber)
     {
         // Size of the slider itself
-        Width = 177;
-        Height = 27;
+        Width = Dimension.Pixels(177);
+        Height = Dimension.Pixels(27);
 
         var leftButton = new WidgetButton();
         leftButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-left"));
         leftButton.AddClickListener(() => { SetValue(GetValue() - 1); });
         leftButton.IsRepeat = true;
-        leftButton.Width = 27;
-        leftButton.Height = 27;
+        leftButton.Width = Dimension.Pixels(27);
+        leftButton.Height = Dimension.Pixels(27);
 
         var rightButton = new WidgetButton();
         rightButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-right"));
         rightButton.AddClickListener(() => { SetValue(GetValue() + 1); });
         rightButton.IsRepeat = true;
-        rightButton.Width = 27;
-        rightButton.Height = 27;
-        rightButton.X = Width - rightButton.Width;
+        rightButton.Width = Dimension.Pixels(27);
+        rightButton.Height = Dimension.Pixels(27);
+        rightButton.X = Width.Value - rightButton.Width.Value;
 
         var track = new WidgetButton();
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("slider-track"));
@@ -132,13 +132,13 @@ public class WidgetSlider : WidgetContainer
         }
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var scrollRange = GetTrackWidth();
         int handleOffset = (int) (((mValue - mMin) / (float) (mMax - mMin)) * scrollRange);
         _handleButton.X = TrackStart + handleOffset;
 
-        base.Render();
+        base.Render(context);
     }
 
     public void SetValueChangeHandler(Action<int> handler)
@@ -177,6 +177,11 @@ public class WidgetSlider : WidgetContainer
 
     private class WidgetSliderHandle : WidgetButton
     {
+        private readonly WidgetSlider _slider;
+
+        private float _dragX;
+        private float _dragGrabPoint;
+        
         public WidgetSliderHandle(WidgetSlider slider)
         {
             SetStyle("slider-handle");
@@ -194,7 +199,7 @@ public class WidgetSlider : WidgetContainer
         {
             if (HasMouseCapture)
             {
-                int curX = _dragX + (int) e.X - _dragGrabPoint;
+                var curX = _dragX + e.X - _dragGrabPoint;
 
                 var hPercent = (curX - TrackStart) / (float) _slider.GetTrackWidth();
                 if (hPercent < 0)
@@ -211,10 +216,5 @@ public class WidgetSlider : WidgetContainer
                 _slider.SetValue((int) Math.Round(newVal));
             }
         }
-
-        private readonly WidgetSlider _slider;
-
-        private int _dragX = 0;
-        private int _dragGrabPoint = 0;
     };
 };

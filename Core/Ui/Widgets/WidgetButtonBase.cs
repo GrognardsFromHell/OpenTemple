@@ -70,10 +70,10 @@ public class WidgetButtonBase : WidgetBase
     {
     }
 
-    public WidgetButtonBase(Rectangle rect, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(filePath, lineNumber)
+    public WidgetButtonBase(RectangleF rect, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(filePath, lineNumber)
     {
         Pos = rect.Location;
-        Size = rect.Size;
+        PixelSize = rect.Size;
     }
 
     protected override void DefaultMouseDownAction(MouseEvent e)

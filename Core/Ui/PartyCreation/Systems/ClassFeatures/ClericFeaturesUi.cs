@@ -194,7 +194,7 @@ internal class ClericFeaturesUi : IChargenSystem
                 {
                     var point = new Point(x, y);
                     point.Offset(-localX, -localY);
-                    var contentArea = new Rectangle(point, button.Size);
+                    var contentArea = new RectangleF(point, button.GetSize());
 
                     _draggedDomainLabel.SetBounds(contentArea);
                     _draggedDomainLabel.Render();

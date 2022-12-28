@@ -119,7 +119,7 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x102f8970)]
     private float _zoomStartY;
 
-    public TownMapContent(Rectangle rect) : base(rect)
+    public TownMapContent(RectangleF rect) : base(rect)
     {
         _tileRenderer = new TownMapTileRenderer();
         AddContent(_tileRenderer);
@@ -156,8 +156,8 @@ public class TownMapContent : WidgetButtonBase
 
         // Try to keep the map centered on the previous center point after zooming
         var zoomDelta = 1.0f / oldZoom - 1.0f / Zoom;
-        XTranslation = (float) Width / 2 * zoomDelta + XTranslation;
-        YTranslation = (float) Height / 2 * zoomDelta + YTranslation;
+        XTranslation = BorderArea.Width / 2 * zoomDelta + XTranslation;
+        YTranslation = BorderArea.Height / 2 * zoomDelta + YTranslation;
     }
 
     [TempleDllLocation(0x1012c870)]
@@ -270,9 +270,9 @@ public class TownMapContent : WidgetButtonBase
 
             // The mouse message x,y coordinates need to be mapped into the widget's coordinates
             var contentArea = GetContentArea();
-            var worldLoc = ProjectViewToWorld(new Point(
-                (int) e.X - contentArea.X,
-                (int) e.Y - contentArea.Y
+            var worldLoc = ProjectViewToWorld(new PointF(
+                e.X - contentArea.X,
+                e.Y - contentArea.Y
             ));
             var marker = new TownMapMarker(worldLoc)
             {
@@ -345,8 +345,8 @@ public class TownMapContent : WidgetButtonBase
             CancelButtonLabel = "#{townmap:151}",
             InitialValue = marker.Text,
             DialogTitle = "#{townmap:152}",
-            DialogX = screenX + 10,
-            DialogY = screenY + 10,
+            DialogX = (int) screenX + 10,
+            DialogY = (int) screenY + 10,
             Callback = (enteredName, confirmed) =>
             {
                 if (confirmed)
@@ -387,7 +387,7 @@ public class TownMapContent : WidgetButtonBase
     /// <summary>
     /// This is the inverse of ProjectWorldToView.
     /// </summary>
-    private locXY ProjectViewToWorld(Point point)
+    private locXY ProjectViewToWorld(PointF point)
     {
         // Start by transforming point from the viewport into the actual coordinate
         // space of the background map
@@ -426,7 +426,7 @@ public class TownMapContent : WidgetButtonBase
     }
 
     [TempleDllLocation(0x1012c040)]
-    protected internal override void UpdateLayout()
+    protected internal override void UpdateLayout(LayoutContext context)
     {
         var contentRect = GetContentArea();
 
@@ -464,7 +464,7 @@ public class TownMapContent : WidgetButtonBase
         UpdatePartyPositions();
         UpdateMarkerPositions();
 
-        base.UpdateLayout();
+        base.UpdateLayout(context);
     }
 
     private void ResizeImagePool(List<WidgetImage> images, int count)

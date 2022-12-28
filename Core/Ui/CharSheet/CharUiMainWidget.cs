@@ -17,15 +17,14 @@ public class CharUiMainWidget : WidgetContainer
     private readonly WidgetImage _normalBackground;
     private readonly string _pointBuyLabel;
 
-    private Dictionary<int, string> _translation;
-
-    public CharUiMainWidget(CharUiParams uiParams) : base(uiParams.CharUiMainWindow)
+    public CharUiMainWidget()
     {
+        PixelSize = new SizeF(658, 447);
+        
         _normalBackground = new WidgetImage("art/interface/char_ui/main_window.img");
         _ironmanBackground = new WidgetImage("art/interface/char_ui/ironman_main_window.img");
-        Size = _normalBackground.GetPreferredSize();
+        PixelSize = _normalBackground.GetPreferredSize();
 
-        _translation = Tig.FS.ReadMesFile("mes/0_char_ui_text.mes");
         var pcCreationMes = Tig.FS.ReadMesFile("mes/pc_creation.mes");
 
         var rerollsLabel = pcCreationMes[10001];
@@ -38,7 +37,7 @@ public class CharUiMainWidget : WidgetContainer
     private GameObject CurrentCritter => UiSystems.CharSheet.CurrentCritter;
 
     [TempleDllLocation(0x101445f0)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         ClearContent();
         if (Globals.GameLib.IsIronmanGame)
@@ -55,7 +54,7 @@ public class CharUiMainWidget : WidgetContainer
             AddRollCountLabel();
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     private void AddRollCountLabel()

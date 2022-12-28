@@ -158,7 +158,7 @@ public class TextBubbleSystem : IGameSystem, ITimeAwareSystem, IMapCloseAwareGam
     [TempleDllLocation(0x100a3210)]
     public void Render(IGameViewport viewport)
     {
-        var visibleRect = new Rectangle(Point.Empty, viewport.Camera.ViewportSize);
+        var visibleRect = new RectangleF(Point.Empty, viewport.Camera.ViewportSize);
 
         foreach (var bubble in _bubbles)
         {
@@ -177,13 +177,13 @@ public class TextBubbleSystem : IGameSystem, ITimeAwareSystem, IMapCloseAwareGam
             if (!bubble.HidePortrait)
             {
                 var args = new Render2dArgs();
-                args.destRect = new Rectangle(
+                args.destRect = new RectangleF(
                     screenRect.X - 64,
                     screenRect.Y - 3,
                     62,
                     56
                 );
-                args.srcRect = new Rectangle(0, 0, 62, 56);
+                args.srcRect = new RectangleF(0, 0, 62, 56);
                 args.flags = Render2dFlag.BUFFERTEXTURE;
                 args.customTexture = _portraitFrame.Resource;
                 Tig.ShapeRenderer2d.DrawRectangle(ref args);
@@ -192,20 +192,20 @@ public class TextBubbleSystem : IGameSystem, ITimeAwareSystem, IMapCloseAwareGam
                 var portraitPath = GameSystems.UiArtManager.GetPortraitPath(portraitId, PortraitVariant.Small);
                 using var texture = Tig.Textures.Resolve(portraitPath, false);
                 args.customTexture = texture.Resource;
-                args.destRect = new Rectangle(
+                args.destRect = new RectangleF(
                     screenRect.X - 61,
                     screenRect.Y,
                     53,
                     47
                 );
-                args.srcRect = new Rectangle(0, 0, 53, 47); // TODO Assumption about portrait size -> bad
+                args.srcRect = new RectangleF(0, 0, 53, 47); // TODO Assumption about portrait size -> bad
                 Tig.ShapeRenderer2d.DrawRectangle(ref args);
             }
         }
     }
 
     [TempleDllLocation(0x100a3150)]
-    private void GetScreenRect(IGameViewport viewport, TextBubble bubble, out Rectangle rect)
+    private void GetScreenRect(IGameViewport viewport, TextBubble bubble, out RectangleF rect)
     {
         var objLocation = bubble.Object.GetLocationFull();
         var objHeight = bubble.Object.GetRenderHeight();
@@ -213,11 +213,11 @@ public class TextBubbleSystem : IGameSystem, ITimeAwareSystem, IMapCloseAwareGam
         var worldPos = objLocation.ToInches3D(objHeight);
         var screenPos = viewport.WorldToScreen(worldPos);
 
-        var pos = new Point(
-            (int) (screenPos.X - bubble.TextLayout.OverallWidth / 2.0f),
-            (int) (screenPos.Y - 20)
+        var pos = new PointF(
+            (screenPos.X - bubble.TextLayout.OverallWidth / 2.0f),
+            (screenPos.Y - 20)
         );
-        rect = new Rectangle(pos, new Size((int) bubble.TextLayout.OverallWidth, (int) bubble.TextLayout.OverallHeight));
+        rect = new RectangleF(pos, new SizeF(bubble.TextLayout.OverallWidth, bubble.TextLayout.OverallHeight));
     }
 
     [TempleDllLocation(0x100a30f0)]

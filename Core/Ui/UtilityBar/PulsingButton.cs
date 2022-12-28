@@ -25,9 +25,9 @@ public class PulsingButton : WidgetButton
         base.Dispose(disposing);
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
-        base.Render();
+        base.Render(context);
 
         if (PulseColor.A != 0)
         {

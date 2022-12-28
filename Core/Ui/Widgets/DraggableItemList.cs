@@ -17,7 +17,7 @@ public class DraggableItemList<T> : WidgetScrollView
 
     private bool _childrenInvalid = true;
 
-    public DraggableItemList(int width, int height) : base(width, height)
+    public DraggableItemList()
     {
         ContainerPadding = 0;
     }
@@ -33,7 +33,7 @@ public class DraggableItemList<T> : WidgetScrollView
         }
     }
 
-    protected internal override void UpdateLayout()
+    protected internal override void UpdateLayout(LayoutContext context)
     {
         if (_childrenInvalid)
         {
@@ -51,6 +51,6 @@ public class DraggableItemList<T> : WidgetScrollView
             }
         }
 
-        base.UpdateLayout();
+        base.UpdateLayout(context);
     }
 }

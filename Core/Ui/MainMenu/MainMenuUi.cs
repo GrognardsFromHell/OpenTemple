@@ -300,7 +300,7 @@ public class MainMenuUi : IDisposable
     private void RepositionWidgets(Size size)
     {
         // Attach the pages to the bottom of the screen
-        _pagesWidget.Y = size.Height - _pagesWidget.Height;
+        _pagesWidget.Y = size.Height - _pagesWidget.ComputePreferredBorderAreaSize().Height;
     }
 
     [TempleDllLocation(0x10116170)]
@@ -440,7 +440,7 @@ class ViewCinematicsDialog
             }
         }
 
-        int y = 0;
+        var y = 0f;
         for (int i = 0; i < seenIndices.Count; i++)
         {
             var movieInd = seenIndices[i];
@@ -449,7 +449,7 @@ class ViewCinematicsDialog
             button.Text = _movieNames[movieInd];
             button.Id = _movieNames[movieInd];
             var innerWidth = _listBox.GetInnerWidth();
-            button.Width = innerWidth;
+            button.Width = Dimension.Pixels(innerWidth);
             button.AutoSizeWidth = false;
             button.SetStyle("mm-cinematics-list-button");
             button.Y = y;
@@ -457,7 +457,7 @@ class ViewCinematicsDialog
             btnIds.Add(button);
             var selectIdx = i;
             button.AddClickListener(() => Select(selectIdx));
-            y += button.Height;
+            y += button.ComputePreferredBorderAreaSize().Height;
             _listBox.Add(button);
         }
 
@@ -516,7 +516,7 @@ class SetPiecesDialog
     {
         _listBox.Clear();
 
-        int y = 0;
+        var y = 0f;
         const int NUM_SCENARIOS = 0;
         for (int i = 0; i < NUM_SCENARIOS; i++)
         {
@@ -524,14 +524,14 @@ class SetPiecesDialog
             button.Text = "Arena";
             button.Id = "Arena";
             var innerWidth = _listBox.GetInnerWidth();
-            button.Width = innerWidth;
+            button.Width = Dimension.Pixels(innerWidth);
             button.AutoSizeWidth = false;
             button.SetStyle("mm-setpieces-list-button");
             button.Y = y;
             btnIds.Add(button);
             var idx = i;
             button.AddClickListener(() => _selection = idx);
-            y += button.Height;
+            y += button.ComputePreferredBorderAreaSize().Height;
             _listBox.Add(button);
         }
 

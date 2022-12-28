@@ -23,9 +23,9 @@ public class GameRenderer : IDisposable
     private readonly SectorDebugRenderer _sectorDebugRenderer;
     private readonly SectorVisibilityRenderer _sectorVisibilityRenderer;
 
-    private ResourceRef<RenderTargetTexture> _sceneColor;
+    private OptionalResourceRef<RenderTargetTexture> _sceneColor;
 
-    private ResourceRef<RenderTargetDepthStencil> _sceneDepth;
+    private OptionalResourceRef<RenderTargetDepthStencil> _sceneDepth;
 
     public bool RenderSectorDebugInfo { get; set; }
 
@@ -108,7 +108,7 @@ public class GameRenderer : IDisposable
         // Clear the backbuffer
         _device.BeginDraw();
 
-        var viewportSize = new Rectangle();
+        var viewportSize = new RectangleF();
         viewportSize.Y = -256;
         viewportSize.Width = _viewport.Camera.ViewportSize.Width + 512;
         viewportSize.X = -256;
@@ -224,8 +224,10 @@ public class GameRenderer : IDisposable
 
     public void TakeScreenshot(string filename, int width, int height, int quality = 90)
     {
-        _device.TakeScaledScreenshot(_sceneColor.Resource, filename,
-            width, height, quality);
+        if (_sceneColor.Resource != null)
+        {
+            _device.TakeScaledScreenshot(_sceneColor.Resource, filename, width, height, quality);
+        }
     }
 
     private bool CreateGpuResources()

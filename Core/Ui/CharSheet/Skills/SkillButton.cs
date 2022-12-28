@@ -117,7 +117,7 @@ public class SkillButton : WidgetButtonBase
     }
 
     [TempleDllLocation(0x101bd850)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var hovered = ContainsMouse;
         _skillNameLabel.ToggleStyle("char-ui-skill-button-hover", hovered);
@@ -132,7 +132,7 @@ public class SkillButton : WidgetButtonBase
             Tig.ShapeRenderer2d.DrawRectangle(bounds, null, new PackedLinearColorA(255, 255, 255, 32));
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     public void SetSkill(SkillId skill)

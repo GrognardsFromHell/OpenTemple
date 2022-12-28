@@ -150,7 +150,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         _splitter.FixedSize = new Size(599, 9);
         _responseContainer.AddContent(_splitter);
 
-        _responseList = new DialogResponseList(new Rectangle(1, 9, 594, _responseContainer.Height - 9));
+        _responseList = new DialogResponseList(new RectangleF(1, 9, 594, _responseContainer.ComputePreferredBorderAreaSize().Height - 9));
         _responseList.Name = "dialog_response_list";
         _responseList.OnResponseSelected += OnResponseClicked;
         _responseContainer.Add(_responseList);
@@ -301,7 +301,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     private void RenderDialogLines()
     {
         var rect = _dialogLinesContainer.GetContentArea();
-        rect.Y += _dialogLinesContainer.Height - 4;
+        rect.Y += rect.Height - 4;
 
         var scrollMax = _historyScollbar.Max;
         var scrollValue = _historyScollbar.GetValue();
@@ -754,7 +754,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
                 dword_10BEC20C = 26;
                 _backdropHistory.Visible = true;
                 _splitter.Visible = true;
-                _historyScollbar.Height = 126;
+                _historyScollbar.Height = Dimension.Pixels(126);
                 _historyScollbar.Visible = true;
                 _responseContainer.Visible = true;
                 UiSystems.UtilityBar.HistoryUi.HideDialogButton();
@@ -773,7 +773,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
                     _backdrop1Line.Visible = true;
                     _showHistoryButton.Y = 59;
                     _dialogLinesContainer.Y = 77;
-                    _dialogLinesContainer.Height = 15;
+                    _dialogLinesContainer.Height = Dimension.Pixels(15);
                 }
                 else if (measuredHeight > 26)
                 {
@@ -781,7 +781,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
                     _backdrop3Line.Visible = true;
                     _showHistoryButton.Y = 77;
                     _dialogLinesContainer.Y = 94 + 10;
-                    _dialogLinesContainer.Height = 45;
+                    _dialogLinesContainer.Height = Dimension.Pixels(45);
                 }
                 else if (measuredHeight > 13)
                 {
@@ -789,7 +789,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
                     _backdrop2Line.Visible = true;
                     _showHistoryButton.Y = 96;
                     _dialogLinesContainer.Y = 112 + 10;
-                    _dialogLinesContainer.Height = 30;
+                    _dialogLinesContainer.Height = Dimension.Pixels(30);
                 }
                 else
                 {
@@ -797,7 +797,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
                     _backdrop1Line.Visible = true;
                     _showHistoryButton.Y = 109;
                     _dialogLinesContainer.Y = 126 + 10;
-                    _dialogLinesContainer.Height = 15;
+                    _dialogLinesContainer.Height = Dimension.Pixels(15);
                 }
             }
         }
@@ -805,7 +805,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         {
             _backdropHistory.Visible = true;
             dword_10BEC20C = 26;
-            _historyScollbar.Height = 261;
+            _historyScollbar.Height = Dimension.Pixels(261);
             _historyScollbar.Visible = true;
             _showHistoryButton.Y = 1;
             _responseContainer.Visible = false;

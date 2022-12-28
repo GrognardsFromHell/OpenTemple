@@ -728,7 +728,7 @@ public class RenderingDevice : IDisposable
     }
 
     // Changes the current scissor rect to the given rectangle
-    public void SetScissorRect(int x, int y, int width, int height)
+    public void SetUiScissorRect(float x, float y, float width, float height)
     {
         // x, y, width, height are in UI space
         var size = _renderTargetStack.Peek().Size;
@@ -737,8 +737,8 @@ public class RenderingDevice : IDisposable
 
         var left = (int)(x * hFactor);
         var top = (int)(y * vFactor);
-        var right = (int)(Math.Ceiling((x + width) * hFactor));
-        var bottom = (int)(Math.Ceiling((y + height) * vFactor));
+        var right = (int)MathF.Ceiling((x + width) * hFactor);
+        var bottom = (int)MathF.Ceiling((y + height) * vFactor);
 
         _context.Rasterizer.SetScissorRectangle(left, top, right, bottom);
 

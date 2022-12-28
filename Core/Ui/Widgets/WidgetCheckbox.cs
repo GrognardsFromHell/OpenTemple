@@ -32,14 +32,14 @@ public class WidgetCheckbox : WidgetButtonBase
             OnCheckedChanged?.Invoke(Checked);
         });
 
-        Size = _checkedImage.GetPreferredSize();
+        PixelSize = _checkedImage.GetPreferredSize();
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         _checkedImage.Visible = Checked;
         _uncheckedImage.Visible = !Checked;
 
-        base.Render();
+        base.Render(context);
     }
 }

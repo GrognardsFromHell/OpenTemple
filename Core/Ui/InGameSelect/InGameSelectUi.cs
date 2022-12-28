@@ -670,11 +670,11 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
             }
 
             // Position the confirm button on top of the casting party member's portrait
-            var buttonWidth = _confirmSelectionButtonContainer.Width;
+            var buttonWidth = _confirmSelectionButtonContainer.BorderArea.Width;
             // Center the button horizontally with respect to the portrait
             var x = rectangle.X + (rectangle.Width - buttonWidth) / 2;
             var y = rectangle.Y - 12; // TODO: I believe this rectangle might differ from vanilla and this height adjustment needs to be changed
-            _confirmSelectionButtonContainer.SetPos(x, y);
+            _confirmSelectionButtonContainer.Pos = new PointF(y, x);
             Globals.UiManager.AddWindow(_confirmSelectionButtonContainer);
             return;
         }

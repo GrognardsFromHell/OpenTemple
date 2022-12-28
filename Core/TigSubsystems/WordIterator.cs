@@ -17,13 +17,13 @@ internal ref struct LayoutRunIterator
 
     private readonly FontFaceGlyph[] glyphs;
 
-    private readonly Rectangle extents;
+    private readonly RectangleF extents;
 
     private readonly TigTextStyle style;
 
     private int ellipsisWidth;
 
-    private int currentY;
+    private float currentY;
 
     private int state;
 
@@ -36,22 +36,22 @@ internal ref struct LayoutRunIterator
 
     private int wordsOnLine;
 
-    private int lineWidth;
+    private float lineWidth;
 
     // Which word on the line are we currently at
     private int wordIdx;
 
-    private int currentX;
+    private float currentX;
 
     private ScanWordResult wordInfo;
 
-    private int wordWidth;
+    private float wordWidth;
 
     private bool hasNextRun;
 
     internal LayoutRunIterator(Span<char> text,
         TigFont font,
-        Rectangle extents,
+        RectangleF extents,
         TigTextStyle style) : this()
     {
         this.text = text;
@@ -276,8 +276,8 @@ internal struct ScanWordResult
     public int firstIdx;
     public int lastIdx;
     public int idxBeforePadding;
-    public int Width;
-    public int fullWidth; // Ignores padding
+    public float Width;
+    public float fullWidth; // Ignores padding
     public bool drawEllipsis;
 }
 
@@ -285,12 +285,12 @@ internal readonly struct LayoutRun
 {
     public readonly int Start;
     public readonly int End;
-    public readonly int X;
-    public readonly int Y;
-    public readonly Rectangle Bounds;
+    public readonly float X;
+    public readonly float Y;
+    public readonly RectangleF Bounds;
     public readonly bool Truncated;
 
-    public LayoutRun(int start, int end, int x, int y, Rectangle bounds, bool truncated)
+    public LayoutRun(int start, int end, float x, float y, RectangleF bounds, bool truncated)
     {
         Start = start;
         End = end;

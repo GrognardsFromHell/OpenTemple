@@ -51,7 +51,7 @@ public class PortraitHealthBar : WidgetButtonBase
     }
 
     [TempleDllLocation(0x10132f70)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var maxHp = _partyMember.GetStat(Stat.hp_max);
         if (maxHp > 0)
@@ -60,7 +60,8 @@ public class PortraitHealthBar : WidgetButtonBase
             var subdualDamage = _partyMember.GetStat(Stat.subdual_damage);
             var healthFraction = (float) currentHp / maxHp;
 
-            var fillWidth = Math.Min(Width, (int) (Width * healthFraction));
+            var width = PaddingArea.Width;
+            var fillWidth = Math.Min(width, width * healthFraction);
             _fillImage.Visible = fillWidth > 0;
             _fillImage.FixedWidth = fillWidth;
 
@@ -72,15 +73,15 @@ public class PortraitHealthBar : WidgetButtonBase
             _subdualImage.Visible = false;
         }
 
-        base.Render();
+        base.Render(context);
     }
 
     private void UpdateSubdualDamage(int subdualDamage, int maxHp)
     {
         if (subdualDamage > 0 && maxHp > 0)
         {
-            var width = (int) ((subdualDamage / (float) maxHp) * Width);
-            width = Math.Min(Width, width);
+            var width = subdualDamage / (float) maxHp * PaddingArea.Width;
+            width = MathF.Min(PaddingArea.Width, width);
 
             _subdualImage.Visible = true;
             _subdualImage.FixedWidth = width;

@@ -233,7 +233,7 @@ public class TextFloaterSystem : IGameSystem, IResetAwareSystem, ITimeAwareSyste
             return;
         }
 
-        var visibleRect = new Rectangle(Point.Empty, viewport.Camera.ViewportSize);
+        var visibleRect = new RectangleF(Point.Empty, viewport.Camera.ViewportSize);
 
         foreach (var floater in _activeFloaters)
         {
@@ -262,18 +262,18 @@ public class TextFloaterSystem : IGameSystem, IResetAwareSystem, ITimeAwareSyste
     }
 
     [TempleDllLocation(0x100a2410)]
-    private static void GetFloaterScreenRect(IGameViewport viewport, TextFloater floater, out Rectangle rectangle)
+    private static void GetFloaterScreenRect(IGameViewport viewport, TextFloater floater, out RectangleF rectangle)
     {
         var floaterBottomCenter = floater.Object.GetLocationFull().ToInches3D(floater.ObjectHeight);
         var screenPos = viewport.WorldToScreen(floaterBottomCenter);
 
         // This will center the intended rectangle horizontally around the object head's screen pos,
         // and place it on top.
-        rectangle = new Rectangle(
-            (int)(screenPos.X - FloaterWidth / 2f),
-            (int)(screenPos.Y - FloaterHeight),
-            (int)FloaterWidth,
-            (int)FloaterHeight
+        rectangle = new RectangleF(
+            screenPos.X - FloaterWidth / 2f,
+            screenPos.Y - FloaterHeight,
+            FloaterWidth,
+            FloaterHeight
         );
     }
 

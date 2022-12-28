@@ -31,35 +31,21 @@ public class WidgetContainer : WidgetBase
 
     public bool ClipChildren { get; set; } = true;
 
-    public WidgetContainer([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
-        : this(0, 0, 0, 0, filePath, lineNumber)
+    public WidgetContainer([CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : base(filePath, lineNumber)
     {
-    }
-
-    public WidgetContainer(Size size, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1)
-        : this(0, 0, size.Width, size.Height, filePath, lineNumber)
-    {
-    }
-
-    public WidgetContainer(Rectangle rectangle, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height,
-        filePath,
-        lineNumber)
-    {
-    }
-
-    public WidgetContainer(int width, int height, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(0, 0, width, height, filePath, lineNumber)
-    {
-    }
-
-    public WidgetContainer(int x, int y, int width, int height, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : base(filePath, lineNumber)
-    {
-        X = x;
-        Y = y;
-        Width = width;
-        Height = height;
-
         // Containers are usually empty and should be click through where there is no content
         HitTesting = HitTestingMode.Content;
+    }
+    
+    [Obsolete]
+    public WidgetContainer(float x, float y, float width, float height) : this(new RectangleF(x, y, width, height))
+    {
+    }
+    
+    public WidgetContainer(RectangleF rect)
+    {
+        Pos = rect.Location;
+        PixelSize = rect.Size;
     }
 
     public virtual void Add(WidgetBase childWidget)
@@ -132,12 +118,12 @@ public class WidgetContainer : WidgetBase
 
             var localX = x - child.X;
             var localY = y - child.Y + _scrollOffsetY;
-            if (localY < 0 || localY >= child.Height)
+            if (localY < 0 || localY >= child.BorderArea.Height)
             {
                 continue;
             }
 
-            if (localX < 0 || localX >= child.Width)
+            if (localX < 0 || localX >= child.BorderArea.Width)
             {
                 continue;
             }
@@ -166,7 +152,7 @@ public class WidgetContainer : WidgetBase
         base.Dispose(disposing);
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         if (!Visible)
         {
@@ -175,7 +161,7 @@ public class WidgetContainer : WidgetBase
 
         ContentOffset = new Point(0, _scrollOffsetY);
 
-        base.Render();
+        base.Render(context);
 
         var visArea = GetVisibleArea();
 
@@ -187,11 +173,11 @@ public class WidgetContainer : WidgetBase
             {
                 if (ClipChildren && !clipAreaSet)
                 {
-                    Tig.RenderingDevice.SetScissorRect(visArea.X, visArea.Y, visArea.Width, visArea.Height);
+                    Tig.RenderingDevice.SetUiScissorRect(visArea.X, visArea.Y, visArea.Width, visArea.Height);
                     clipAreaSet = true;
                 }
 
-                child.Render();
+                child.Render(context);
             }
         }
 
@@ -346,13 +332,13 @@ public class WidgetContainer : WidgetBase
         yield return context;
     }
 
-    protected internal override void UpdateLayout()
+    protected internal override void UpdateLayout(LayoutContext context)
     {
-        base.UpdateLayout();
+        base.UpdateLayout(context);
 
         foreach (var child in _children)
         {
-            child.UpdateLayout();
+            child.UpdateLayout(context);
         }
     }
 }

@@ -50,7 +50,7 @@ public class HairColorButton : WidgetButtonBase
         AddContent(_colorRect);
     }
 
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         var pen = OutlineDefault;
         if (ContainsPress)
@@ -68,6 +68,6 @@ public class HairColorButton : WidgetButtonBase
 
         _colorRect.Pen = pen;
 
-        base.Render();
+        base.Render(context);
     }
 }

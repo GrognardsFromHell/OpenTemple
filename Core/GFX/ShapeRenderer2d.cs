@@ -344,7 +344,7 @@ public sealed class ShapeRenderer2d : IDisposable
         DrawRectangle(vertices, texture, null, samplerType);
     }
 
-    public void DrawRectangle(Rectangle rectangle, PackedLinearColorA color)
+    public void DrawRectangle(RectangleF rectangle, PackedLinearColorA color)
     {
         DrawRectangle(rectangle, null, color);
     }
@@ -629,29 +629,11 @@ public sealed class ShapeRenderer2d : IDisposable
     {
         float texwidth;
         float texheight;
-        float srcX;
-        float srcY;
-        float srcWidth;
-        float srcHeight;
         Span<Vertex2d> vertices = stackalloc Vertex2d[4];
-
-        // The townmap UI uses floating point coordinates for the srcrect
-        // for whatever reason. They are passed in place of the integer coordinates
-        // And need to be reinterpreted
-        if ((args.flags & Render2dFlag.FLOATSRCRECT) != 0)
-        {
-            srcX = args.srcRectFloat.X;
-            srcY = args.srcRectFloat.Y;
-            srcWidth = args.srcRectFloat.Width;
-            srcHeight = args.srcRectFloat.Height;
-        }
-        else
-        {
-            srcX = args.srcRect.X;
-            srcY = args.srcRect.Y;
-            srcWidth = args.srcRect.Width;
-            srcHeight = args.srcRect.Height;
-        }
+        var srcX = args.srcRect.X;
+        var srcY = args.srcRect.Y;
+        var srcWidth = args.srcRect.Width;
+        var srcHeight = args.srcRect.Height;
 
         // Has a special vertex z value been set? Otherwise we render all UI
         // on the same level
@@ -928,7 +910,6 @@ public enum Render2dFlag
     FLIPV = 0x20,
     UNK = 0x40, // Does not seem to have an effect
     BUFFER = 0x80,
-    FLOATSRCRECT = 0x100,
     ROTATE = 0x200,
     MASK = 0x400,
 
@@ -946,8 +927,7 @@ public struct Render2dArgs
     public IntPtr texBuffer; // Unused for shaders
     public ITexture customTexture;
     public int shaderId;
-    public Rectangle srcRect;
-    public RectangleF srcRectFloat;
+    public RectangleF srcRect;
     public RectangleF destRect;
     public PackedLinearColorA[] vertexColors;
     public float vertexZ;

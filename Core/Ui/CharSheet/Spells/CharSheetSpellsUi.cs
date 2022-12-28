@@ -103,14 +103,14 @@ public class CharSheetSpellsUi : IDisposable
     {
         _classTabBar.Clear();
 
-        var currentX = 0;
+        var currentX = 0f;
         foreach (var spellList in _spellLists)
         {
             var button = new WidgetTabButton(spellList.SpellsPerDay.Name, WidgetTabStyle.Small);
             button.Y = 4;
             button.X = currentX;
             button.AddClickListener(() => ActivateTab(spellList));
-            currentX += button.Width;
+            currentX += button.ComputePreferredBorderAreaSize().Width;
             _classTabBar.Add(button);
 
             spellList.Button = button;

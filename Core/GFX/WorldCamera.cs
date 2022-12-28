@@ -383,9 +383,9 @@ public class WorldCamera
         return m;
     }
 
-    public Size ViewportSize
+    public SizeF ViewportSize
     {
-        get => new((int)GetViewportWidth(), (int)GetViewportHeight());
+        get => new(GetViewportWidth(), GetViewportHeight());
         set
         {
             if (value.Width <= 0 || value.Height <= 0)

@@ -78,7 +78,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         currentMapButton.AddClickListener(SwitchToCurrentMap);
 
         var contentContainer = doc.GetContainer("mapContent");
-        _mapContent = new TownMapContent(new Rectangle(Point.Empty, contentContainer.Size));
+        _mapContent = new TownMapContent(new RectangleF(Point.Empty, contentContainer.GetSize()));
         contentContainer.Add(_mapContent);
         _mapContent.OnControlModeChange += UpdateModeButtons;
         _mapContent.OnBeforeRender += UpdateCurrentMapData;
@@ -207,10 +207,10 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     {
         _visitedMapsList.Clear(true);
 
-        var currentY = 0;
+        var currentY = 0f;
         foreach (var visitedMap in GameSystems.Map.VisitedMaps)
         {
-            var visitedMapButton = new WidgetButton(new Rectangle(
+            var visitedMapButton = new WidgetButton(new RectangleF(
                 0, currentY,
                 179, 15
             ));
@@ -225,7 +225,7 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
             });
             _visitedMapsList.Add(visitedMapButton);
 
-            currentY += visitedMapButton.Height + 2;
+            currentY += visitedMapButton.ComputePreferredBorderAreaSize().Height + 2;
         }
     }
 
@@ -255,11 +255,11 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         float minZoomToFitMap;
         if (_townMapWorldRect.Width >= _townMapWorldRect.Height)
         {
-            minZoomToFitMap = _mapContent.Height / (float) _townMapWorldRect.Height;
+            minZoomToFitMap = _mapContent.BorderArea.Height / _townMapWorldRect.Height;
         }
         else
         {
-            minZoomToFitMap = _mapContent.Width / (float) _townMapWorldRect.Width;
+            minZoomToFitMap = _mapContent.BorderArea.Width / _townMapWorldRect.Width;
         }
 
         _mapContent.MinZoom = MathF.Max(0.1f, minZoomToFitMap);
@@ -503,8 +503,8 @@ public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
         var centerOnPos = TownMapContent.TileToWorld(position);
 
         var zoomx2 = 2 * _mapContent.Zoom;
-        _mapContent.XTranslation = centerOnPos.X - _townMapWorldRect.X - _mapContent.Width / zoomx2;
-        _mapContent.YTranslation = centerOnPos.Y - _townMapWorldRect.Y - _mapContent.Height / zoomx2;
+        _mapContent.XTranslation = centerOnPos.X - _townMapWorldRect.X - _mapContent.BorderArea.Width / zoomx2;
+        _mapContent.YTranslation = centerOnPos.Y - _townMapWorldRect.Y - _mapContent.BorderArea.Height / zoomx2;
     }
 
     private struct TownmapPosition

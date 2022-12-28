@@ -41,7 +41,7 @@ public class UtilityBarTimeBar : WidgetContainer
     }
 
     [TempleDllLocation(0x10110400)]
-    public override void Render()
+    public override void Render(UiRenderContext context)
     {
         // Render the time bar texture under the other content
         var sourceRect = new Rectangle(0, 0, 117, 21);
@@ -61,7 +61,7 @@ public class UtilityBarTimeBar : WidgetContainer
         a1.destRect = GetContentArea();
         Tig.ShapeRenderer2d.DrawRectangle(ref a1);
 
-        base.Render();
+        base.Render(context);
     }
 
     [TempleDllLocation(0x101104a0)]
