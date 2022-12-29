@@ -161,7 +161,7 @@ public class WidgetText : WidgetContent, IFlowContentHost, IDisposable
         Tig.RenderingDevice.TextEngine.RenderTextLayout(x, y, textLayout);
     }
 
-    public override Size GetPreferredSize()
+    public override SizeF GetPreferredSize()
     {
         if (_preferredSizeDirty)
         {

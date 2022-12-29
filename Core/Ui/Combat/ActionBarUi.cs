@@ -88,7 +88,7 @@ public class ActionBarUi
         // Add a full sized button on top of the action bar to handle tooltips and help requests
         var actionBarButton = new WidgetButton();
         actionBarButton.SetStyle(new WidgetButtonStyle());
-        actionBarButton.SetSizeToParent(true);
+        actionBarButton.Anchors.FillParent();
         actionBarButton.AddClickListener(OnActionBarButtonClick);
         actionBarButton.TooltipStyle = "action-bar-tooltip";
         actionBarButton.OnBeforeRender += () =>

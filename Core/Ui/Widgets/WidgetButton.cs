@@ -306,7 +306,7 @@ public class WidgetButton : WidgetButtonBase
         // Try to var-size
         if (AutoSizeWidth || AutoSizeHeight)
         {
-            Size prefSize;
+            SizeF prefSize;
             if (_normalImage != null)
             {
                 prefSize = _normalImage.GetPreferredSize();

@@ -160,7 +160,7 @@ public class MovieRenderer : IDisposable
         }
     }
 
-    internal static RectangleF GetMovieRect(RenderingDevice device, int movieWidth, int movieHeight)
+    internal static RectangleF GetMovieRect(RenderingDevice device, float movieWidth, float movieHeight)
     {
         var screenWidth = device.UiCanvasSize.Width;
         var screenHeight = device.UiCanvasSize.Height;

@@ -27,7 +27,7 @@ public class KnownSpellsList : WidgetContainer
 
         // Try scrolling one spell per scrollbar-tick
         var buttonHeight = 10;
-        var currentY = 0;
+        var currentY = 0f;
         for (var level = 0; level <= 9; level++)
         {
             var headerAdded = false;

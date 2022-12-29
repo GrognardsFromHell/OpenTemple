@@ -20,3 +20,9 @@ Layout updates are performed in `WidgetBase.UpdateLayout`.
 
 Layout always occurs within the context of a widget container, which given its own area lays out its children.
 The top-level widgets are all children of the root widget, which 
+
+=== Anchors
+
+Widgets can be positioned and sized within their parents using anchors.
+
+image:https://doc.qt.io/qt-6/images/edges_qml.png[Anchors in Qml]

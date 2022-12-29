@@ -76,6 +76,7 @@ internal class WidgetDocLoader
                         {
                             throw new Exception("Style ID must be a string: " + styleIdNode);
                         }
+
                         textContent.AddStyle(styleIdNode.GetString()!);
                     }
 
@@ -90,6 +91,7 @@ internal class WidgetDocLoader
                         {
                             throw new Exception("text must be a string: " + textNode);
                         }
+
                         textContent.Text = textNode.GetString()!;
                     }
 
@@ -194,7 +196,7 @@ internal class WidgetDocLoader
 
         var x = jsonObj.GetInt32Prop("x", 0);
         var y = jsonObj.GetInt32Prop("y", 0);
-        widget.Pos = new PointF(y, x);
+        widget.Pos = new PointF(x, y);
 
         if (jsonObj.TryGetProperty("localStyles", out var localStylesNode))
         {
@@ -218,17 +220,35 @@ internal class WidgetDocLoader
 
         if (jsonObj.TryGetProperty("centerHorizontally", out var centerHorizontallyNode))
         {
-            widget.CenterHorizontally = centerHorizontallyNode.GetBoolean();
+            if (centerHorizontallyNode.GetBoolean())
+            {
+                widget.Anchors.HorizontalCenter.ToParent(AnchorEdge.HorizontalCenter);
+            }
+            else
+            {
+                widget.Anchors.HorizontalCenter.Unbind();
+            }
         }
 
         if (jsonObj.TryGetProperty("centerVertically", out var centerVerticallyNode))
         {
-            widget.CenterVertically = centerVerticallyNode.GetBoolean();
+            if (centerVerticallyNode.GetBoolean())
+            {
+                widget.Anchors.VerticalCenter.ToParent(AnchorEdge.VerticalCenter);
+            }
+            else
+            {
+                widget.Anchors.VerticalCenter.Unbind();
+            }
         }
 
         if (jsonObj.TryGetProperty("sizeToParent", out var sizeToParentNode))
         {
-            widget.SetSizeToParent(sizeToParentNode.GetBoolean());
+            if (sizeToParentNode.GetBoolean())
+            {
+                widget.Width = Dimension.Percent(100);
+                widget.Height = Dimension.Percent(100);
+            }
         }
     }
 

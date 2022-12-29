@@ -39,6 +39,11 @@ public class UiManager : IUiRoot
     );
 
     /// <summary>
+    /// How many device pixels correspond to a single UI pixel. Cannot be less than 1.
+    /// </summary>
+    public float DevicePixelsPerUiPixel => _mainWindow.UiScale;
+
+    /// <summary>
     /// Tracking information about the last mouse down event to facilitate click events.
     /// </summary>
     private MouseDownState? _mouseDownState;
@@ -58,8 +63,19 @@ public class UiManager : IUiRoot
     [TempleDllLocation(0x11E74384)]
     private WidgetBase? _pendingMouseCaptureWidget;
 
+    // Indicates that CurrentMouseOverWidget is up to date
+    private bool _mouseOverInvalid = true;
+
     [TempleDllLocation(0x10301324)]
-    public WidgetBase? CurrentMouseOverWidget { get; private set; }
+    public WidgetBase? CurrentMouseOverWidget
+    {
+        get
+        {
+            EnsureMouseOverUpdated();
+            return _currentMouseOverWidget;
+        }
+        private set => _currentMouseOverWidget = value;
+    }
 
     // Hang on to the delegate
     private readonly CursorDrawCallback _renderTooltipCallback;
@@ -98,6 +114,10 @@ public class UiManager : IUiRoot
 
     public IReadOnlyList<ActiveActionHotkey> ActiveHotkeys => _actionHotkeys;
 
+    private bool _layoutInvalid = true;
+    public bool LayoutInProgress { get; private set; }
+    private WidgetBase? _currentMouseOverWidget;
+
     public UiManager(IMainWindow mainWindow, IFileSystem fs)
     {
         _mainWindow = mainWindow;
@@ -114,11 +134,15 @@ public class UiManager : IUiRoot
         _cursorRegistry = new CursorRegistry(fs);
     }
 
+    public void InvalidateLayout()
+    {
+        _layoutInvalid = true;
+        _mouseOverInvalid = true;
+    }
+
     private void ResizeCanvas()
     {
-        // Resize the root element
-        Root.PixelSize = CanvasSize;
-
+        InvalidateLayout();
         OnCanvasSizeChanged?.Invoke(CanvasSize);
     }
 
@@ -162,6 +186,8 @@ public class UiManager : IUiRoot
         {
             _heldHotkeys.Add((widget, state));
         }
+
+        InvalidateLayout();
     }
 
     public void OnRemovedFromTree(WidgetBase widget)
@@ -182,24 +208,6 @@ public class UiManager : IUiRoot
             }
         }
 
-        var refreshMouseOverState = false;
-
-        if (widget.IsInclusiveAncestorOf(MouseCaptureWidget))
-        {
-            ReleaseMouseCapture(MouseCaptureWidget);
-            refreshMouseOverState = true;
-        }
-
-        if (widget.IsInclusiveAncestorOf(CurrentMouseOverWidget))
-        {
-            refreshMouseOverState = true;
-        }
-
-        if (refreshMouseOverState)
-        {
-            RefreshMouseOverState();
-        }
-
         if (KeyboardFocus != null && widget.IsInclusiveAncestorOf(KeyboardFocus))
         {
             _keyboardFocusManager.Blur();
@@ -209,13 +217,15 @@ public class UiManager : IUiRoot
         {
             Modal = null;
         }
+
+        InvalidateLayout();
     }
 
     [TempleDllLocation(0x101F8D10)]
     public void Render()
     {
         UpdateCursor();
-        
+
         Root.EnsureLayoutIsUpToDate();
 
         var context = new UiRenderContext(Tig.RenderingDevice, Tig.ShapeRenderer2d); // TODO CACHE
@@ -1016,6 +1026,43 @@ public class UiManager : IUiRoot
             _tooltipRenderer.TooltipStyle = e.StyleId ?? WidgetTooltipRenderer.DefaultStyle;
             _tooltipRenderer.AlignLeft = e.AlignLeft;
             _tooltipRenderer.Render(x, y);
+        }
+    }
+
+    private void EnsureMouseOverUpdated()
+    {
+        if (!_mouseOverInvalid)
+        {
+            return;
+        }
+
+        _mouseOverInvalid = false;
+        UpdateMouseOver();
+    }
+    
+    public void EnsureLayoutUpdated(WidgetBase? requestedBy = null)
+    {
+        if (LayoutInProgress)
+        {
+            throw new ArgumentException("The layout is already being updated! Update requested by: " + requestedBy);
+        }
+        
+        if (!_layoutInvalid)
+        {
+            return;
+        }
+
+        LayoutInProgress = true;
+        try
+        {
+            // The root element will always take up the entire screen with no padding or margin applied
+            Root.SetLayout(new RectangleF(PointF.Empty, CanvasSize));
+            Root.UpdateLayout();
+            _layoutInvalid = false;
+        }
+        finally
+        {
+            LayoutInProgress = false;
         }
     }
 }

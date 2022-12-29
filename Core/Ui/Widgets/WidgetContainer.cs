@@ -19,7 +19,7 @@ public class WidgetContainer : WidgetBase
     // Children ordered by ascending Z-Index
     private readonly List<WidgetBase> _zOrderChildren = new();
 
-    public IReadOnlyList<WidgetBase> Children => _children;
+    public override IReadOnlyList<WidgetBase> Children => _children;
     
     public IReadOnlyList<WidgetBase> ZOrderChildren => _zOrderChildren;
 
@@ -63,7 +63,7 @@ public class WidgetContainer : WidgetBase
         childWidget.AttachToTree(UiManager);
         _children.Add(childWidget);
         SortChildren();
-        UiManager?.RefreshMouseOverState();
+        UiManager?.InvalidateLayout();
     }
 
     public bool Remove(WidgetBase childWidget)
@@ -79,7 +79,7 @@ public class WidgetContainer : WidgetBase
         _children.Remove(childWidget);
         _zOrderChildren.Remove(childWidget);
         childWidget.AttachToTree(null);
-        UiManager?.RefreshMouseOverState();
+        UiManager?.InvalidateLayout();
         return true;
     }
 
@@ -233,6 +233,20 @@ public class WidgetContainer : WidgetBase
     public override WidgetBase? FirstChild => _children.Count > 0 ? _children[0] : null;
 
     public override WidgetBase? LastChild => _children.Count > 0 ? _children[^1] : null;
+    
+    protected override SizeF ComputePreferredPaddingAreaSize(float availableWidth, float availableHeight)
+    {
+        var area = base.ComputePreferredPaddingAreaSize(availableWidth, availableHeight);
+
+        foreach (var child in Children)
+        {
+            var childSize = child.ComputePreferredBorderAreaSize(availableWidth, availableHeight);
+            area.Width = Math.Max(area.Width, childSize.Width);
+            area.Height = Math.Max(area.Height, childSize.Height);
+        }
+        
+        return area;
+    }
 
     public void SetScrollOffsetY(int scrollY)
     {
@@ -330,15 +344,5 @@ public class WidgetContainer : WidgetBase
         }
 
         yield return context;
-    }
-
-    protected internal override void UpdateLayout(LayoutContext context)
-    {
-        base.UpdateLayout(context);
-
-        foreach (var child in _children)
-        {
-            child.UpdateLayout(context);
-        }
     }
 }

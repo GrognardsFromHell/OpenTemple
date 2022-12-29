@@ -189,7 +189,7 @@ public class WidgetTabButton : WidgetButtonBase
         WidgetContent label)
     {
         left.FixedSize = left.GetPreferredSize();
-        bg.FixedSize = new Size(label.GetPreferredSize().Width, bg.GetPreferredSize().Height);
+        bg.FixedSize = new SizeF(label.GetPreferredSize().Width, bg.GetPreferredSize().Height);
         bg.X = left.FixedSize.Width;
         // The label offset was hardcoded before too
         if (_style == WidgetTabStyle.Large)

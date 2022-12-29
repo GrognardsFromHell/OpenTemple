@@ -79,7 +79,7 @@ public class WidgetTooltipRenderer
             _tooltipLabel.InvalidateStyles();
 
             var preferredSize = _tooltipLabel.GetPreferredSize();
-            var contentArea = new Rectangle(
+            var contentArea = new RectangleF(
                 x,
                 y - preferredSize.Height,
                 preferredSize.Width,

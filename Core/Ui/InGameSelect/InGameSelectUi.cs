@@ -674,7 +674,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
             // Center the button horizontally with respect to the portrait
             var x = rectangle.X + (rectangle.Width - buttonWidth) / 2;
             var y = rectangle.Y - 12; // TODO: I believe this rectangle might differ from vanilla and this height adjustment needs to be changed
-            _confirmSelectionButtonContainer.Pos = new PointF(y, x);
+            _confirmSelectionButtonContainer.Pos = new PointF(x, y);
             Globals.UiManager.AddWindow(_confirmSelectionButtonContainer);
             return;
         }

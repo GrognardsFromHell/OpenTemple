@@ -34,7 +34,7 @@ public abstract class WidgetContent : Styleable
         return ContentArea;
     }
 
-    public virtual Size GetPreferredSize()
+    public virtual SizeF GetPreferredSize()
     {
         return PreferredSize;
     }
@@ -75,7 +75,7 @@ public abstract class WidgetContent : Styleable
     }
 
     protected RectangleF ContentArea;
-    protected Size PreferredSize;
+    protected SizeF PreferredSize;
     protected bool Dirty = true;
     private float _fixedWidth;
     private float _fixedHeight;

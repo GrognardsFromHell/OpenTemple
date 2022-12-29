@@ -137,7 +137,7 @@ public class LoadingScreen : IDisposable, ILoadingProgress
         var imageSize = _imageFile.GetPreferredSize();
         var imgX = (int) (centerX - imageSize.Width / 2.0f);
         var imgY = (int) (centerY - imageSize.Height / 2.0f);
-        _imageFile.SetBounds(new Rectangle(new Point(imgX, imgY), imageSize));
+        _imageFile.SetBounds(new RectangleF(new PointF(imgX, imgY), imageSize));
 
         var barY = imgY + 20 + imageSize.Height;
         var barX = (int) (centerX - BarWidth / 2.0f);
@@ -185,13 +185,13 @@ internal class UiRectangle
         _args.flags = Render2dFlag.VERTEXCOLORS;
     }
 
-    public void SetX(int x)
+    public void SetX(float x)
     {
         _args.srcRect.X = x;
         _args.destRect.X = x;
     }
 
-    public void SetY(int y)
+    public void SetY(float y)
     {
         _args.srcRect.Y = y;
         _args.destRect.Y = y;

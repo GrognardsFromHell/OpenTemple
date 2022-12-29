@@ -12,9 +12,9 @@ public class WidgetLabel : WidgetBase
         AddContent(_text);
     }
 
-    protected override void ApplyAutomaticSizing(LayoutContext context)
+    protected override void ApplyAutomaticSizing()
     {
-        base.ApplyAutomaticSizing(context);
+        base.ApplyAutomaticSizing();
         
         if (AutoSizeWidth || AutoSizeHeight)
         {

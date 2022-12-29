@@ -33,7 +33,7 @@ public class DraggableItemList<T> : WidgetScrollView
         }
     }
 
-    protected internal override void UpdateLayout(LayoutContext context)
+    protected override void LayoutChildren()
     {
         if (_childrenInvalid)
         {
@@ -51,6 +51,6 @@ public class DraggableItemList<T> : WidgetScrollView
             }
         }
 
-        base.UpdateLayout(context);
+        base.LayoutChildren();
     }
 }

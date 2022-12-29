@@ -32,7 +32,7 @@ internal class LogbookKeyButton : WidgetButtonBase
         _title.Text = " ";
         _title.X = 5;
         _title.Y = 2;
-        _title.FixedSize = new Size(rect.Width, _title.GetPreferredSize().Height);
+        _title.FixedSize = new SizeF(rect.Width, _title.GetPreferredSize().Height);
         AddContent(_title);
 
         var currentY = _title.GetPreferredSize().Height + 1;

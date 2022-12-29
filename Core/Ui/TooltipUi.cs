@@ -436,7 +436,7 @@ public class TooltipUi : IDisposable
         return result;
     }
 
-    public void ClampTooltipToScreen(ref Rectangle extents)
+    public void ClampTooltipToScreen(ref RectangleF extents)
     {
         const int margin = 3;
         var screenSize = Globals.UiManager.CanvasSize;
@@ -495,7 +495,7 @@ public class TooltipUi : IDisposable
             var size = tooltipLabel.GetPreferredSize();
 
             var objRect = GameSystems.MapObject.GetObjectRect(viewport, obj);
-            var extents = new Rectangle(
+            var extents = new RectangleF(
                 objRect.X + (objRect.Width - size.Width) / 2,
                 objRect.Y - size.Height,
                 size.Width,

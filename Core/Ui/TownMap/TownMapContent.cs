@@ -426,7 +426,7 @@ public class TownMapContent : WidgetButtonBase
     }
 
     [TempleDllLocation(0x1012c040)]
-    protected internal override void UpdateLayout(LayoutContext context)
+    protected override void LayoutChildren()
     {
         var contentRect = GetContentArea();
 
@@ -464,7 +464,7 @@ public class TownMapContent : WidgetButtonBase
         UpdatePartyPositions();
         UpdateMarkerPositions();
 
-        base.UpdateLayout(context);
+        base.LayoutChildren();
     }
 
     private void ResizeImagePool(List<WidgetImage> images, int count)

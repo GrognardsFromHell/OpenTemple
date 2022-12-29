@@ -104,7 +104,8 @@ public class CharSheetPortraitUi : IDisposable
         AddPortraitFrame(uiParams, _miniatureContainer);
 
         _miniatureWidget = new MiniatureWidget();
-        _miniatureWidget.SetSizeToParent(true);
+        _miniatureWidget.Width = Dimension.Percent(100);
+        _miniatureWidget.Height = Dimension.Percent(100);
         _miniatureContainer.Add(_miniatureWidget);
 
         Container.Add(_miniatureContainer);

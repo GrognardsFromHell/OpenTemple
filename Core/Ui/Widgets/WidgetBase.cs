@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,7 +11,6 @@ using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Styles;
-using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
@@ -20,6 +20,10 @@ public partial class WidgetBase : Styleable, IDisposable
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(10);
 
     private WidgetContainer? _parent;
+
+    private readonly Anchors _anchors;
+
+    public Anchors Anchors => _anchors;
 
     /// <summary>
     /// If this widget was loaded from a file, indicates the URI to that file to more easily identify it.
@@ -31,9 +35,6 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     public string? Id { get; set; }
 
-    public bool CenterHorizontally { get; set; }
-    public bool CenterVertically { get; set; }
-    protected bool _sizeToParent;
     public bool AutoSizeWidth { get; set; } = true;
     public bool AutoSizeHeight { get; set; } = true;
     protected readonly List<WidgetContent> Content = new();
@@ -48,12 +49,36 @@ public partial class WidgetBase : Styleable, IDisposable
     private FocusMode _focusMode = FocusMode.None;
 
     /// <summary>
-    /// This is equivalent to the border box.
+    /// Indicates that <see cref="LayoutBox"/> has been set by the layout engine and is valid.
     /// </summary>
-    public RectangleF ComputedLayoutBox { get; set; }
+    public bool HasValidLayout { get; private set; } = true;
 
-    // Is the layout of this element valid?
-    private bool _layoutValid;
+    /// <summary>
+    /// This is equivalent to the border box. Accessing it will automatically update the layout of the entire widget tree.
+    /// It can also be accessed while layout is in progress, but only if it has already been set.
+    /// </summary>
+    public RectangleF LayoutBox
+    {
+        get
+        {
+            if (UiManager is {LayoutInProgress: true})
+            {
+                if (!HasValidLayout)
+                {
+                    throw new ArgumentException($"Accessing layout box of {this} before it has been updated.");
+                }
+            }
+            else
+            {
+                EnsureLayoutIsUpToDate();
+                Debug.Assert(HasValidLayout);
+            }
+
+            return _layoutBox;
+        }
+    }
+
+    private RectangleF _layoutBox;
 
     /// <summary>
     /// Controls whether this widget can receive keyboard focus.
@@ -238,6 +263,8 @@ public partial class WidgetBase : Styleable, IDisposable
         {
             SourceURI = $"{Path.GetFileName(filePath)}:{lineNumber}";
         }
+
+        _anchors = new Anchors(this);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -281,7 +308,7 @@ public partial class WidgetBase : Styleable, IDisposable
         }
 
         LayoutContext context = default;
-        UpdateLayout(context);
+        EnsureLayoutIsUpToDate();
 
         foreach (var content in Content)
         {
@@ -346,37 +373,18 @@ public partial class WidgetBase : Styleable, IDisposable
     /// <summary>
     /// As per CSS Box Model the margin area includes margins, border and padding.
     /// </summary>
-    public RectangleF MarginArea
-    {
-        get
-        {
-            var area = GetContentArea(true);
-            return new RectangleF(
-                area.X,
-                area.Y,
-                area.Width,
-                area.Height
-            );
-        }
-    }
+    public RectangleF MarginArea =>
+        new(
+            BorderArea.X - ComputedStyles.MarginLeft,
+            BorderArea.Y - ComputedStyles.MarginTop,
+            BorderArea.Width + ComputedStyles.MarginLeft + ComputedStyles.MarginRight,
+            BorderArea.Height + ComputedStyles.MarginTop + ComputedStyles.MarginBottom
+        );
 
     /// <summary>
     /// As per the CSS Box Model the border area includes border, padding and content.
     /// </summary>
-    public RectangleF BorderArea
-    {
-        get
-        {
-            var area = MarginArea;
-            var style = ComputedStyles;
-            return new RectangleF(
-                area.X + style.MarginLeft,
-                area.Y + style.MarginTop,
-                Math.Max(0, area.Width - style.MarginLeft - style.MarginRight),
-                Math.Max(0, area.Height - style.MarginTop - style.MarginBottom)
-            );
-        }
-    }
+    public RectangleF BorderArea => LayoutBox;
 
     /// <summary>
     /// As per the CSS Box Model the padding area includes padding and content.
@@ -416,18 +424,39 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public void EnsureLayoutIsUpToDate()
     {
-        if (_layoutValid)
-        {
-            return;
-        }
-
-        UpdateLayout(new LayoutContext());
+        // We cannot be laid out if we're not attached to the UI
+        UiManager?.EnsureLayoutUpdated(this);
     }
 
-    protected internal virtual void UpdateLayout(LayoutContext context)
+    protected internal void UpdateLayout()
     {
-        _layoutValid = true;
-        ApplyAutomaticSizing(context);
+        // Assumes that our own layout rect is valid
+        if (!HasValidLayout)
+        {
+            throw new InvalidOperationException("Cannot run layout if the layout box is invalid");
+        }
+
+        // Layout cannot be run if not attached to the tree
+        if (UiManager == null)
+        {
+            throw new InvalidOperationException("Cannot run layout without being attached to the tree");
+        }
+
+        // Clear validity of layout rects first
+        foreach (var child in Children)
+        {
+            child.ClearLayout();
+        }
+
+        LayoutChildren();
+
+        // Give children a chance to update layout of their own children
+        foreach (var child in Children)
+        {
+            child.UpdateLayout();
+        }
+
+        ApplyAutomaticSizing();
 
         var contentArea = GetContentArea();
 
@@ -448,65 +477,92 @@ public partial class WidgetBase : Styleable, IDisposable
                 Width = Dimension.Pixels(LegacyRound(contentArea.Width + style.MarginLeft + style.MarginRight + 2 * style.BorderWidth + style.PaddingLeft + style.PaddingRight));
                 Height = Dimension.Pixels(LegacyRound(contentArea.Height + style.MarginTop + style.MarginBottom + 2 * style.BorderWidth + style.PaddingTop + style.PaddingBottom));
 
-                ApplyAutomaticSizing(context);
+                ApplyAutomaticSizing();
                 contentArea = GetContentArea();
             }
         }
 
-        foreach (var content in Content)
+        OnAfterLayout();
+    }
+
+    protected virtual void LayoutChildren()
+    {
+        Debug.Assert(UiManager != null);
+
+        var availableWidth = _layoutBox.Width;
+        var availableHeight = _layoutBox.Height;
+
+        // We use pooled storage for this set - only if its needed
+        (WidgetBase? Child, RectangleF LayoutBox)[]? anchorPassOpenSet = null;
+        int anchorPassOpenSetCount = 0;
+
+        try
         {
-            if (!content.Visible)
+            foreach (var child in Children)
             {
-                continue;
-            }
+                // TODO: Would need to lay out X/Y first and subtract (?)
+                var preferredSize = child.ComputePreferredBorderAreaSize(availableWidth, availableHeight);
 
-            var contentBounds = contentArea;
-            // Shift according to the content item positioning
-            if (content.X != 0)
-            {
-                contentBounds.X += content.X;
-                contentBounds.Width -= content.X;
-                if (contentBounds.Width < 0)
+                var childX = child.X;
+                var childY = child.Y;
+                var childWidth = child.Width.Evaluate(availableWidth, UiManager.DevicePixelsPerUiPixel, preferredSize.Width);
+                var childHeight = child.Width.Evaluate(availableHeight, UiManager.DevicePixelsPerUiPixel, preferredSize.Height);
+                var childLayoutBox = new RectangleF(
+                    childX,
+                    childY,
+                    childWidth,
+                    childHeight
+                );
+
+                if (!child.Anchors.Apply(ref childLayoutBox))
                 {
-                    contentBounds.Width = 0;
+                    // Anchors could not be applied because they rely on another sibling that has not been laid out yet
+                    if (anchorPassOpenSet == null)
+                    {
+                        anchorPassOpenSet = ArrayPool<(WidgetBase, RectangleF)>.Shared.Rent(Children.Count);
+                        anchorPassOpenSetCount = 0;
+                    }
+
+                    anchorPassOpenSet[anchorPassOpenSetCount++] = (child, childLayoutBox);
+                    continue;
                 }
+
+                child.SetLayout(childLayoutBox);
             }
 
-            if (content.Y != 0)
+            if (anchorPassOpenSet != null)
             {
-                contentBounds.Y += content.Y;
-                contentBounds.Height -= content.Y;
-                if (contentBounds.Height < 0)
+                // We work on the open set until no more progress is being made
+                bool progressMade;
+                bool hasRemainingItems;
+                do
                 {
-                    contentBounds.Height = 0;
-                }
+                    progressMade = false;
+                    hasRemainingItems = false;
+                    for (var i = anchorPassOpenSetCount - 1; i >= 0; i--)
+                    {
+                        var (child, layoutBox) = anchorPassOpenSet[i];
+                        if (child != null)
+                        {
+                            hasRemainingItems = true;
+                        }
+                        
+                        // Try to apply the anchors
+                        if (child != null && child.Anchors.Apply(ref layoutBox))
+                        {
+                            child.SetLayout(layoutBox);
+                            anchorPassOpenSet[i] = (null, RectangleF.Empty);
+                            progressMade = true;
+                        }
+                    }
+                } while (progressMade && hasRemainingItems);
             }
-
-            // If fixed width and height are used, the content area's width/height are overridden
-            if (content.FixedWidth != 0)
+        }
+        finally
+        {
+            if (anchorPassOpenSet != null)
             {
-                contentBounds.Width = content.FixedWidth;
-            }
-
-            if (content.FixedHeight != 0)
-            {
-                contentBounds.Height = content.FixedHeight;
-            }
-
-            // Shift according to scroll offset for content
-            if (ContentOffset != Point.Empty)
-            {
-                contentBounds.Offset(-ContentOffset.X, -ContentOffset.Y);
-                // Cull the item when it's no longer visible at all
-                if (!contentBounds.IntersectsWith(contentArea))
-                {
-                    contentBounds = RectangleF.Empty;
-                }
-            }
-
-            if (content.GetBounds() != contentBounds)
-            {
-                content.SetBounds(contentBounds);
+                ArrayPool<(WidgetBase, RectangleF)>.Shared.Return(anchorPassOpenSet);
             }
         }
     }
@@ -518,7 +574,7 @@ public partial class WidgetBase : Styleable, IDisposable
         return (int) v;
     }
 
-    protected virtual void ApplyAutomaticSizing(LayoutContext context)
+    protected virtual void ApplyAutomaticSizing()
     {
 // TODO        if (_sizeToParent)
 // TODO        {
@@ -661,30 +717,32 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public SizeF GetSize() => BorderArea.Size;
 
-    public void SetSizeToParent(bool enable)
+    /// <summary>
+    /// Gets the <see cref="PaddingArea"/> of this widget relative to the current viewport and optionally clipped
+    /// to all parents padding areas.
+    /// </summary>
+    public RectangleF GetViewportPaddingArea(bool clipped = false)
     {
-        _sizeToParent = enable;
-        if (enable)
-        {
-            AutoSizeHeight = false;
-            AutoSizeWidth = false;
-        }
+        var parentPaddingArea = Parent?.GetViewportPaddingArea(clipped) ?? LayoutBox;
+        var result = PaddingArea;
+        result.Offset(parentPaddingArea.Location);
+        return result;
     }
 
     /// <summary>
-    /// Get the border area of the widget, accounting for its position in the parent.
+    /// Gets the <see cref="BorderArea"/> transformed to the current viewport, but not clipped.
     /// </summary>
-    private static RectangleF GetBorderArea(WidgetBase widget)
+    public RectangleF GetViewportBorderArea(bool clipped = false)
     {
         // We use the border-sizing model, which means the widgets outer size includes border+padding
-        var bounds = new RectangleF(widget.Pos, widget.ComputePreferredBorderAreaSize());
+        var bounds = LayoutBox;
 
         // The content of an advanced widget container may be moved
-        var parent = widget.Parent;
+        var parent = Parent;
         if (parent != null)
         {
             // Children are positioned relative to their parent content area
-            var parentContentArea = parent.ContentArea;
+            var parentContentArea = parent.GetViewportBorderArea();
 
             var scrollOffsetY = parent.GetScrollOffsetY();
 
@@ -714,7 +772,7 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     public RectangleF GetContentArea(bool includingMargins = false)
     {
-        return GetBorderArea(this);
+        return GetViewportPaddingArea();
     }
 
     public RectangleF GetVisibleArea()
@@ -772,8 +830,66 @@ public partial class WidgetBase : Styleable, IDisposable
         }
     }
 
-    protected virtual void OnSizeChanged()
+    protected virtual void OnAfterLayout()
     {
+        var contentArea = ContentArea;
+
+        foreach (var content in Content)
+        {
+            if (!content.Visible)
+            {
+                continue;
+            }
+
+            var contentBounds = contentArea;
+            // Shift according to the content item positioning
+            if (content.X != 0)
+            {
+                contentBounds.X += content.X;
+                contentBounds.Width -= content.X;
+                if (contentBounds.Width < 0)
+                {
+                    contentBounds.Width = 0;
+                }
+            }
+
+            if (content.Y != 0)
+            {
+                contentBounds.Y += content.Y;
+                contentBounds.Height -= content.Y;
+                if (contentBounds.Height < 0)
+                {
+                    contentBounds.Height = 0;
+                }
+            }
+
+            // If fixed width and height are used, the content area's width/height are overridden
+            if (content.FixedWidth != 0)
+            {
+                contentBounds.Width = content.FixedWidth;
+            }
+
+            if (content.FixedHeight != 0)
+            {
+                contentBounds.Height = content.FixedHeight;
+            }
+
+            // Shift according to scroll offset for content
+            if (ContentOffset != Point.Empty)
+            {
+                contentBounds.Offset(-ContentOffset.X, -ContentOffset.Y);
+                // Cull the item when it's no longer visible at all
+                if (!contentBounds.IntersectsWith(contentArea))
+                {
+                    contentBounds = RectangleF.Empty;
+                }
+            }
+
+            if (content.GetBounds() != contentBounds)
+            {
+                content.SetBounds(contentBounds);
+            }
+        }
     }
 
     protected virtual void InvokeOnBeforeRender()
@@ -981,6 +1097,8 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public virtual WidgetBase? LastChild => null;
 
+    public virtual IReadOnlyList<WidgetBase> Children => Array.Empty<WidgetBase>();
+
     public WidgetBase? PreviousSibling
     {
         get
@@ -1150,23 +1268,37 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     public void InvalidateLayout()
     {
-        _layoutValid = false;
+        _layoutBox = RectangleF.Empty;
+        UiManager?.InvalidateLayout();
     }
 
     /// <summary>
-    /// Calculates the preferred size for this widgets <see cref="ContentArea"/> using the given available horizontal and vertical space,
+    /// Calculates the preferred size for this widgets <see cref="PaddingArea"/> using the given available horizontal and vertical space,
     /// which can be <see cref="float.PositiveInfinity"/>.
     /// </summary>
-    protected virtual SizeF ComputePreferredContentAreaSize(float availableWidth, float availableHeight)
+    protected virtual SizeF ComputePreferredPaddingAreaSize(float availableWidth, float availableHeight)
     {
-        return Size.Empty;
+        var area = SizeF.Empty;
+        foreach (var content in Content)
+        {
+            var contentSize = content.GetPreferredSize();
+            area.Width = Math.Max(area.Width, contentSize.Width);
+            area.Height = Math.Max(area.Height, contentSize.Height);
+        }
+
+        // Content is affected by padding, so include that
+        var styles = ComputedStyles;
+        area.Width += styles.PaddingLeft + styles.PaddingRight;
+        area.Height += styles.PaddingTop + styles.PaddingBottom;
+
+        return area;
     }
 
     /// <summary>
     /// Calculates the preferred size for this widgets <see cref="BorderArea"/> using the given available horizontal and vertical space,
     /// which can be <see cref="float.PositiveInfinity"/>.
     /// </summary>
-    public virtual SizeF ComputePreferredBorderAreaSize(float availableWidth = float.PositiveInfinity, float availableHeight = float.PositiveInfinity)
+    public SizeF ComputePreferredBorderAreaSize(float availableWidth = float.PositiveInfinity, float availableHeight = float.PositiveInfinity)
     {
         if (availableWidth is < 0 or float.NaN)
         {
@@ -1177,21 +1309,38 @@ public partial class WidgetBase : Styleable, IDisposable
         {
             throw new ArgumentOutOfRangeException(nameof(availableHeight));
         }
-        
-        var horizontalBorder = 2 * ComputedStyles.BorderWidth - ComputedStyles.PaddingLeft - ComputedStyles.PaddingRight;
-        var verticalBorder = 2 * ComputedStyles.BorderWidth - ComputedStyles.PaddingTop - ComputedStyles.PaddingBottom;
 
-        var contentAreaSize = ComputePreferredContentAreaSize(
+        var horizontalBorder = 2 * ComputedStyles.BorderWidth;
+        var verticalBorder = 2 * ComputedStyles.BorderWidth;
+
+        var contentAreaSize = ComputePreferredPaddingAreaSize(
             availableWidth - horizontalBorder,
             availableHeight - verticalBorder
         );
 
         var preferredWidth = contentAreaSize.Width + horizontalBorder;
-        var preferredHeight =  contentAreaSize.Width + horizontalBorder;
-        
+        var preferredHeight = contentAreaSize.Width + horizontalBorder;
+
         return new SizeF(
             Width.Evaluate(availableWidth, 1, preferredWidth),
             Height.Evaluate(availableHeight, 1, preferredHeight)
         );
+    }
+
+    public void SetLayout(RectangleF box)
+    {
+        _layoutBox = box;
+        HasValidLayout = true;
+    }
+
+    private void ClearLayout()
+    {
+        HasValidLayout = false;
+
+        // Recursively clear layout box
+        foreach (var child in Children)
+        {
+            child.ClearLayout();
+        }
     }
 }

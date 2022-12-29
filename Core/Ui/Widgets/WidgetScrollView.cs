@@ -67,9 +67,9 @@ public class WidgetScrollView : WidgetContainer
         e.StopPropagation();
     }
 
-    protected internal override void UpdateLayout(LayoutContext context)
+    protected override void LayoutChildren()        
     {
-        base.UpdateLayout(context);
+        base.LayoutChildren();
         
         if (_layoutInvalid)
         {
@@ -89,8 +89,8 @@ public class WidgetScrollView : WidgetContainer
             y += (int) ComputedStyles.PaddingBottom;
 
             var scrollbarWidth = _scrollBar.ComputePreferredBorderAreaSize().Width;
-            _scrollBar.X = context.AvailableWidth - scrollbarWidth;
-            _scrollBar.Height = Dimension.Pixels(context.AvailableHeight);
+            _scrollBar.X = LayoutBox.Width - scrollbarWidth;
+            _scrollBar.Height = Dimension.Pixels(LayoutBox.Height);
         
             _scrollBar.Max = Math.Max(0, (int) (y - GetInnerHeight()));
             if (_container.Children.Count > 0)

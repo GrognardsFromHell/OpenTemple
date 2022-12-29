@@ -6,13 +6,13 @@ public readonly record struct Dimension(DimensionUnit Type, float Value)
 {
     public static readonly Dimension Auto = new(DimensionUnit.Auto, 0);
 
-    public float Evaluate(float availableSpace, float uiScale, float preferredSize)
+    public float Evaluate(float availableSpace, float devicePixelsPerPixel, float preferredSize)
     {
         return Type switch
         {
             DimensionUnit.Auto => preferredSize,
             DimensionUnit.Pixels => Value,
-            DimensionUnit.ScreenPixels => uiScale * Value,
+            DimensionUnit.DevicePixels => devicePixelsPerPixel * Value,
             DimensionUnit.Percent when !float.IsFinite(availableSpace) => preferredSize,
             DimensionUnit.Percent => Value * availableSpace / 100,
             _ => throw new ArgumentOutOfRangeException()
@@ -26,7 +26,7 @@ public readonly record struct Dimension(DimensionUnit Type, float Value)
 
     public static Dimension ScreenPixels(float value)
     {
-        return new Dimension(DimensionUnit.ScreenPixels, value);
+        return new Dimension(DimensionUnit.DevicePixels, value);
     }
 
     public static Dimension Percent(float value)
@@ -40,7 +40,7 @@ public readonly record struct Dimension(DimensionUnit Type, float Value)
         {
             DimensionUnit.Auto => "auto",
             DimensionUnit.Pixels => Value + "px",
-            DimensionUnit.ScreenPixels => Value + "spx",
+            DimensionUnit.DevicePixels => Value + "spx",
             DimensionUnit.Percent => Value + "%",
             _ => throw new ArgumentOutOfRangeException()
         };
@@ -62,7 +62,7 @@ public enum DimensionUnit : byte
     /// <summary>
     /// The unit is pixels as measured by the screen.
     /// </summary>
-    ScreenPixels,
+    DevicePixels,
 
     /// <summary>
     /// A dimension expressed in percent of the same dimension content area of the parent. 

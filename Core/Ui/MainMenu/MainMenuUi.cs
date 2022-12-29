@@ -15,9 +15,7 @@ using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
-using OpenTemple.Core.Ui.Widgets.TextField;
 
 namespace OpenTemple.Core.Ui.MainMenu;
 
@@ -32,6 +30,19 @@ public enum MainMenuPage
 
 public class MainMenuUi : IDisposable
 {
+    private MainMenuPage _currentPage = MainMenuPage.MainMenu;
+
+    private ViewCinematicsDialog _viewCinematicsDialog;
+    private SetPiecesDialog _setPiecesDialog;
+
+    private readonly WidgetContainer _mainWidget;
+
+    private readonly Dictionary<MainMenuPage, WidgetContainer>
+        _pageWidgets = new();
+
+    // The widget that contains all pages
+    private readonly WidgetContainer _pagesWidget;
+    
     public MainMenuUi()
     {
         var mmLocalization = Tig.FS.ReadMesFile("mes/mainmenu.mes");
@@ -49,8 +60,8 @@ public class MainMenuUi : IDisposable
         });
         _mainWidget = widgetDoc.GetRootContainer();
 
-        mViewCinematicsDialog = new ViewCinematicsDialog(this, mmLocalization);
-        mSetPiecesDialog = new SetPiecesDialog(this);
+        _viewCinematicsDialog = new ViewCinematicsDialog(this, mmLocalization);
+        _setPiecesDialog = new SetPiecesDialog(this);
 
         _mainWidget.PreventsInGameInteraction = true;
         
@@ -138,7 +149,7 @@ public class MainMenuUi : IDisposable
             Hide();
             UiSystems.UtilityBar.Hide();
             // TODO ui_mm_msg_ui4();
-            mViewCinematicsDialog.Show();
+            _viewCinematicsDialog.Show();
         });
         Action handler = () =>
         {
@@ -178,7 +189,7 @@ public class MainMenuUi : IDisposable
 
     public void Dispose()
     {
-        // TODO
+        Stub.TODO();
     }
 
     // NOTE: This was part of the old main menu UI, not the new one.
@@ -196,7 +207,7 @@ public class MainMenuUi : IDisposable
         if (Globals.GameLib.LoadGame(saveGame))
         {
             Globals.GameLib.ModuleName = saveGame.ModuleName;
-            Stub.TODO("Calls to old MM UI were here"); // TODO
+            Stub.TODO(); // TODO "Calls to old MM UI were here"
             return true;
         }
         else
@@ -283,19 +294,6 @@ public class MainMenuUi : IDisposable
         //if (UiSystems.UtilityBar.IsVisible())
         //	UiSystems.DungeonMaster.Show();
     }
-
-    private MainMenuPage _currentPage = MainMenuPage.MainMenu;
-
-    private ViewCinematicsDialog mViewCinematicsDialog;
-    private SetPiecesDialog mSetPiecesDialog;
-
-    private readonly WidgetContainer _mainWidget;
-
-    private readonly Dictionary<MainMenuPage, WidgetContainer>
-        _pageWidgets = new();
-
-    // The widget that contains all pages
-    private readonly WidgetContainer _pagesWidget;
 
     private void RepositionWidgets(Size size)
     {

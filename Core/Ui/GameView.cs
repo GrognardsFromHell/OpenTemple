@@ -69,6 +69,10 @@ public class GameView : WidgetContainer, IGameViewport
 
     public GameView(IMainWindow mainWindow, RenderingDevice device, RenderingConfig config)
     {
+        // Usually game views are fully sized to their parent
+        Width = Dimension.Percent(100);
+        Height = Dimension.Percent(100);
+
         _device = device;
         _gameRenderer = new GameRenderer(_device, this);
         HitTesting = HitTestingMode.Area; // The entire area represents the in-game UI
@@ -79,7 +83,8 @@ public class GameView : WidgetContainer, IGameViewport
 
         GameViews.Add(this);
 
-        SetSizeToParent(true);
+        Width = Dimension.Percent(100);
+        Height = Dimension.Percent(100);
 
         _scrollingController = new GameViewScrollingController(this, this);
 
@@ -106,7 +111,7 @@ public class GameView : WidgetContainer, IGameViewport
             config.MSAASamples,
             config.MSAAQuality
         );
-        OnSizeChanged();
+        OnAfterLayout();
     }
 
     public void RenderScene()
@@ -156,7 +161,7 @@ public class GameView : WidgetContainer, IGameViewport
         }
 
         Tig.ShapeRenderer2d.DrawRectangle(
-            GetContentArea(),
+            GetViewportPaddingArea(),
             sceneTexture,
             PackedLinearColorA.White,
             samplerType
@@ -171,22 +176,32 @@ public class GameView : WidgetContainer, IGameViewport
         GameViews.Remove(this);
     }
 
-    protected override void OnSizeChanged()
+    private void UpdateSceneSize()
     {
-        // We're trying to render at native resolutions by default, hence we apply
-        // the UI scale to determine the render target size here.
-        _gameRenderer.RenderSize = new Size(
+        var renderSize = new Size(
             (int) (ContentArea.Width * _mainWindow.UiScale * _renderScale),
             (int) (ContentArea.Height * _mainWindow.UiScale * _renderScale)
         );
-        Logger.Debug("Rendering @ {0}x{1} ({2}%), MSAA: {3}",
-            _gameRenderer.RenderSize.Width,
-            _gameRenderer.RenderSize.Height,
-            (int) (_renderScale * 100),
-            _gameRenderer.MultiSampleSettings
-        );
 
-        UpdateCamera();
+        if (renderSize != _gameRenderer.RenderSize)
+        {
+            // We're trying to render at native resolutions by default, hence we apply
+            // the UI scale to determine the render target size here.
+            _gameRenderer.RenderSize = renderSize;
+            Logger.Debug("Rendering @ {0}x{1} ({2}%), MSAA: {3}",
+                _gameRenderer.RenderSize.Width,
+                _gameRenderer.RenderSize.Height,
+                (int) (_renderScale * 100),
+                _gameRenderer.MultiSampleSettings
+            );
+            UpdateCamera();
+        }
+    }
+
+    protected override void OnAfterLayout()
+    {
+        base.OnAfterLayout();
+        UpdateSceneSize();
     }
 
     public void TakeScreenshot(string path, Size size = default)
