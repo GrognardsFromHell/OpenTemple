@@ -166,17 +166,17 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
             var quantityText = quantity.ToString(CultureInfo.InvariantCulture);
             _quantityLabel.Text = quantityText;
 
-            var contentArea = GetContentArea();
+            var paddingArea = GetViewportPaddingArea();
 
             // Position the label in the lower right corner
             var textSize = _quantityLabel.GetPreferredSize();
             _quantityLabel.SetBounds(new RectangleF(
-                contentArea.Right - 2 - textSize.Width,
-                contentArea.Bottom - 2 - textSize.Height,
+                paddingArea.Width - 2 - textSize.Width,
+                paddingArea.Height - 2 - textSize.Height,
                 textSize.Width,
                 textSize.Height
             ));
-            _quantityLabel.Render();
+            _quantityLabel.Render(paddingArea.Location);
         }
     }
 

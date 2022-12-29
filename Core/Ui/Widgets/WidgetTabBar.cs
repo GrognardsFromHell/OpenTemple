@@ -176,7 +176,7 @@ public class WidgetTabButton : WidgetButtonBase
         var size = LayoutContent(_normalLeft, _normalBg, _normalRight, _label);
         PixelSize = size;
 
-        UpdateSelectedState();
+        UpdateSelectedState(true);
     }
 
     public override void Render(UiRenderContext context)
@@ -212,8 +212,13 @@ public class WidgetTabButton : WidgetButtonBase
         );
     }
 
-    private void UpdateSelectedState()
+    private void UpdateSelectedState(bool force = false)
     {
+        if (!force && Active == Content.Contains(_selectedLeft))
+        {
+            return;
+        }
+        
         Content.Clear();
         if (Active)
         {

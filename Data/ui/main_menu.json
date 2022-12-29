@@ -4,15 +4,10 @@
   "sizeToParent": true,
   "children": [
     {
-      "type": "container",
+      "type": "image",
       "y": 30,
       "centerHorizontally": true,
-      "content": [
-        {
-          "type": "image",
-          "path": "art/interface/mainmenu_ui/MainMenu_Title.img"
-        }
-      ]
+      "path": "art/interface/mainmenu_ui/MainMenu_Title.img"
     },
     {
       "id": "pages",

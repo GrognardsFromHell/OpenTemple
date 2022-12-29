@@ -32,9 +32,7 @@ public class StatsLabel : WidgetButtonBase
         var statName = GetStatName(uiParams, stat);
 
         _label = new WidgetText(statName, "char-ui-stat-label");
-        OnMouseLeave += _ => {
-                UiSystems.CharSheet.Help.ClearHelpText();
-        };
+        OnMouseLeave += _ => { UiSystems.CharSheet.Help.ClearHelpText(); };
         if (helpTopic != null)
         {
             AddClickListener(() => { GameSystems.Help.ShowTopic(helpTopic); });
@@ -71,6 +69,28 @@ public class StatsLabel : WidgetButtonBase
         }
     }
 
+    protected override void OnAfterLayout()
+    {
+        base.OnAfterLayout();
+
+        _downImage.SetBounds(
+            new RectangleF(
+                0,
+                -1,
+                _downImage.GetPreferredSize().Width,
+                _downImage.GetPreferredSize().Height
+            )
+        );
+        _hoverImage.SetBounds(
+            new RectangleF(
+                0,
+                -1,
+                _hoverImage.GetPreferredSize().Width,
+                _hoverImage.GetPreferredSize().Height
+            )
+        );
+    }
+
     public override void Render(UiRenderContext context)
     {
         WidgetImage renderImage = null;
@@ -83,41 +103,30 @@ public class StatsLabel : WidgetButtonBase
             renderImage = _hoverImage;
         }
 
-        var contentArea = GetContentArea();
+        var paddingArea = GetViewportPaddingArea();
 
-        if (renderImage != null)
-        {
-            renderImage.SetBounds(
-                new RectangleF(
-                    contentArea.X,
-                    contentArea.Y - 1,
-                    renderImage.GetPreferredSize().Width,
-                    renderImage.GetPreferredSize().Height
-                )
-            );
-            renderImage.Render();
-        }
+        renderImage?.Render(paddingArea.Location);
 
         var labelSize = _label.GetPreferredSize();
         // Center horizontally and vertically within the content area
         var labelArea = new RectangleF(
-            contentArea.X + (contentArea.Width - labelSize.Width) / 2,
-            contentArea.Y + (contentArea.Height - labelSize.Height) / 2,
-            contentArea.Width = labelSize.Width,
-            contentArea.Height = labelSize.Height
+            (paddingArea.Width - labelSize.Width) / 2,
+            (paddingArea.Height - labelSize.Height) / 2,
+            labelSize.Width,
+            labelSize.Height
         );
 
         // Special cases for certain labels
         if (_stat == Stat.level)
         {
-            labelArea.X = contentArea.X + 2;
+            labelArea.X = paddingArea.X + 2;
         }
         else if (_stat == Stat.initiative_bonus)
         {
-            labelArea.X = contentArea.X + 1;
+            labelArea.X = paddingArea.X + 1;
         }
 
         _label.SetBounds(labelArea);
-        _label.Render();
+        _label.Render(paddingArea.Location);
     }
 }

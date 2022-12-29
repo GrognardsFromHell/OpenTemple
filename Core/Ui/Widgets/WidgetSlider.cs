@@ -13,6 +13,14 @@ public class WidgetSlider : WidgetContainer
     // Horizontal start and end of the track within the slider background image
     private const int TrackStart = 24;
 
+    private Action<int> _valueChanged;
+
+    private int _value;
+    private int _min;
+    private int _max = 150;
+
+    private WidgetSliderHandle _handleButton;
+
     public WidgetSlider([CallerFilePath]
         string? filePath = null, [CallerLineNumber]
         int lineNumber = -1) : base(filePath, lineNumber)
@@ -43,9 +51,6 @@ public class WidgetSlider : WidgetContainer
         var handle = new WidgetSliderHandle(this);
         handle.Y = 2;
 
-        _leftButton = leftButton;
-        _rightButton = rightButton;
-        _track = track;
         _handleButton = handle;
 
         Add(track);
@@ -55,7 +60,7 @@ public class WidgetSlider : WidgetContainer
         
         track.OnClick += e =>
         {
-            var handleArea = _handleButton.GetContentArea();
+            var handleArea = _handleButton.GetViewportBorderArea();
             if (e.X < handleArea.Left)
             {
                 SetValue(GetValue() - Quantum);
@@ -69,73 +74,73 @@ public class WidgetSlider : WidgetContainer
 
     public int GetMin()
     {
-        return mMin;
+        return _min;
     }
 
     [TempleDllLocation(0x101f9d80)]
     public void SetMin(int value)
     {
-        mMin = value;
-        if (mMin > mMax)
+        _min = value;
+        if (_min > _max)
         {
-            mMin = mMax;
+            _min = _max;
         }
 
-        if (mValue < mMin)
+        if (_value < _min)
         {
-            SetValue(mMin);
+            SetValue(_min);
         }
     }
 
     public int GetMax()
     {
-        return mMax;
+        return _max;
     }
 
     [TempleDllLocation(0x101f9dd0)]
     public void SetMax(int value)
     {
-        mMax = value;
-        if (mMax < mMin)
+        _max = value;
+        if (_max < _min)
         {
-            mMax = mMin;
+            _max = _min;
         }
 
-        if (mValue > mMax)
+        if (_value > _max)
         {
-            SetValue(mMax);
+            SetValue(_max);
         }
     }
 
     public int GetValue()
     {
-        return mValue;
+        return _value;
     }
 
     [TempleDllLocation(0x101f9e20)]
     public void SetValue(int value)
     {
-        if (value < mMin)
+        if (value < _min)
         {
-            value = mMin;
+            value = _min;
         }
 
-        if (value > mMax)
+        if (value > _max)
         {
-            value = mMax;
+            value = _max;
         }
 
-        if (value != mValue)
+        if (value != _value)
         {
-            mValue = value;
-            mValueChanged?.Invoke(mValue);
+            _value = value;
+            _valueChanged?.Invoke(_value);
         }
     }
 
     public override void Render(UiRenderContext context)
     {
         var scrollRange = GetTrackWidth();
-        int handleOffset = (int) (((mValue - mMin) / (float) (mMax - mMin)) * scrollRange);
+        int handleOffset = (int) (((_value - _min) / (float) (_max - _min)) * scrollRange);
         _handleButton.X = TrackStart + handleOffset;
 
         base.Render(context);
@@ -143,19 +148,8 @@ public class WidgetSlider : WidgetContainer
 
     public void SetValueChangeHandler(Action<int> handler)
     {
-        mValueChanged = handler;
+        _valueChanged = handler;
     }
-
-    private Action<int> mValueChanged;
-
-    private int mValue = 0;
-    private int mMin = 0;
-    private int mMax = 150;
-
-    private WidgetButton _leftButton;
-    private WidgetButton _rightButton;
-    private WidgetButton _track;
-    private WidgetSliderHandle _handleButton;
 
     internal int GetTrackWidth()
     {
@@ -191,7 +185,7 @@ public class WidgetSlider : WidgetContainer
         protected override void HandleMouseDown(MouseEvent e)
         {
             SetMouseCapture();
-            _dragGrabPoint = (int) e.X;
+            _dragGrabPoint = e.X;
             _dragX = X;
         }
 
@@ -201,7 +195,7 @@ public class WidgetSlider : WidgetContainer
             {
                 var curX = _dragX + e.X - _dragGrabPoint;
 
-                var hPercent = (curX - TrackStart) / (float) _slider.GetTrackWidth();
+                var hPercent = (curX - TrackStart) / _slider.GetTrackWidth();
                 if (hPercent < 0)
                 {
                     hPercent = 0;
@@ -211,7 +205,7 @@ public class WidgetSlider : WidgetContainer
                     hPercent = 1;
                 }
 
-                var newVal = _slider.mMin + (_slider.mMax - _slider.mMin) * hPercent;
+                var newVal = _slider._min + (_slider._max - _slider._min) * hPercent;
 
                 _slider.SetValue((int) Math.Round(newVal));
             }

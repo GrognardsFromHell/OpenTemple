@@ -118,11 +118,9 @@ internal class PartyPoolPortrait : WidgetButton
         {
             _portrait.Color = IsActive() ? new PackedLinearColorA(0xFF1AC3FF) : PackedLinearColorA.White;
 
-            var contentArea = GetContentArea();
-            contentArea.Offset(4, 4);
-            contentArea.Size = new Size(53, 47);
-            _portrait.SetBounds(contentArea);
-            _portrait.Render();
+            var contentArea = GetViewportPaddingArea();
+            _portrait.SetBounds(new RectangleF(4, 4, 53, 47));
+            _portrait.Render(contentArea.Location);
         }
     }
 

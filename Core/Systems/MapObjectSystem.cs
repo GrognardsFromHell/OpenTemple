@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
@@ -1434,34 +1435,34 @@ public class MapObjectSystem : IGameSystem
     }
 
     [TempleDllLocation(0x10022bc0)]
-    public Rectangle GetObjectRect(IGameViewport viewport, GameObject obj, ObjectRectFlags flags = default)
+    public RectangleF GetObjectRect(IGameViewport viewport, GameObject obj, ObjectRectFlags flags = default)
     {
         // i & 8 seems to force
         if (!flags.HasFlag(ObjectRectFlags.IgnoreHidden) && IsHiddenByFlags(obj))
         {
-            return Rectangle.Empty;
+            return RectangleF.Empty;
         }
 
         var screenPos = GetScreenPosOfObject(viewport, obj);
 
-        var result = new Rectangle((int) screenPos.X, (int) screenPos.Y, 0, 0);
+        var result = new RectangleF(screenPos.X, screenPos.Y, 0, 0);
 
         var radius = obj.GetRadius();
 
         if (flags.HasFlag(ObjectRectFlags.IgnoreHeight))
         {
-            result.X -= (int) radius;
-            result.Y += (int) (-0.7f * radius); // TODO: Again. Manually appplied camera tilt -> blergh
+            result.X -= radius;
+            result.Y += -0.7f * radius; // TODO: Again. Manually appplied camera tilt -> blergh
             result.Width = 2 * (int) radius;
-            result.Height = (int) (radius * 1.4f); // TODO: Again. Manually appplied camera tilt -> blergh
+            result.Height = radius * 1.4f; // TODO: Again. Manually appplied camera tilt -> blergh
         }
         else
         {
             var height = obj.GetRenderHeight() * 0.71414f; // TODO: Again. Manually appplied camera tilt -> blergh
-            result.X -= (int) radius;
-            result.Y -= (int) (radius * 0.7f + height); // TODO: Again. Manually appplied camera tilt -> blergh
-            result.Width = (int) (2 * radius);
-            result.Height = (int) (radius * 1.4f + height); // TODO: Again. Manually appplied camera tilt -> blergh
+            result.X -= radius;
+            result.Y -= radius * 0.7f + height; // TODO: Again. Manually appplied camera tilt -> blergh
+            result.Width = 2 * radius;
+            result.Height = radius * 1.4f + height; // TODO: Again. Manually appplied camera tilt -> blergh
         }
 
         return result;

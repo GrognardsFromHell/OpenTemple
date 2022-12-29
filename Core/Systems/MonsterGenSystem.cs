@@ -278,7 +278,7 @@ public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwa
         return true;
     }
 
-    private bool IsRectOnScreen(Rectangle rect)
+    private bool IsRectOnScreen(RectangleF rect)
     {
         // TODO: This should probably check every game view not just the primary
         var screenRect = new RectangleF(Point.Empty, GameViews.Primary.Size);
@@ -444,12 +444,7 @@ public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwa
                     MapObjectSystem.ObjectRectFlags.IgnoreHidden);
 
                 var spawnedAtInUi = GameViews.Primary.WorldToScreen(tile.ToInches3D());
-                var spawnedExclusionRect = new Rectangle(
-                    (int) spawnedAtInUi.X,
-                    (int) spawnedAtInUi.Y,
-                    spawnerRect.Width,
-                    spawnerRect.Height
-                );
+                var spawnedExclusionRect = spawnerRect with {X = spawnedAtInUi.X, Y = spawnedAtInUi.Y};
 
                 if (IsRectOnScreen(spawnedExclusionRect))
                 {

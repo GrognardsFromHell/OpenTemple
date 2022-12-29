@@ -96,7 +96,7 @@ public sealed class SlideRenderer : IDisposable
                     (int) movieRect.Width,
                     (int) movieRect.Height
                 ));
-                _image.Render();
+                _image.Render(PointF.Empty);
 
                 _subtitleRenderer?.Render(stopwatch.Elapsed.TotalSeconds);
 

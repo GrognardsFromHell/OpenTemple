@@ -20,9 +20,19 @@ public class PulsingButton : WidgetButton
         if (disposing)
         {
             _pulseImage.Dispose();
-            _pulseImage = null;
         }
+
         base.Dispose(disposing);
+    }
+
+    protected override void LayoutChildren()
+    {
+        base.LayoutChildren();
+
+        _pulseImage.SetBounds(new RectangleF(
+            Point.Empty,
+            PaddingArea.Size
+        ));
     }
 
     public override void Render(UiRenderContext context)
@@ -32,8 +42,7 @@ public class PulsingButton : WidgetButton
         if (PulseColor.A != 0)
         {
             _pulseImage.Color = PulseColor;
-            _pulseImage.SetBounds(GetContentArea());
-            _pulseImage.Render();
+            _pulseImage.Render(GetViewportPaddingArea().Location);
         }
     }
 }

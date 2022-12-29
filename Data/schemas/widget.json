@@ -55,6 +55,9 @@
         },
         "sizeToParent": {
           "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
         }
       }
     },
@@ -256,9 +259,44 @@
               "items": {
                 "$ref": "#/"
               }
+            }
+          }
+        }
+      ]
+    },
+    "image": {
+      "$id": "#image",
+      "allOf": [
+        {
+          "$ref": "#widgetContent"
+        },
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "image"
             },
-            "zIndex": {
-              "type": "integer"
+            "path": {
+              "type": "string"
+            },
+            "srcRect": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "integer"
+                },
+                "y": {
+                  "type": "integer"
+                },
+                "width": {
+                  "type": "integer"
+                },
+                "height": {
+                  "type": "integer"
+                }
+              }
             }
           }
         }
@@ -429,6 +467,9 @@
     },
     {
       "$ref": "#textField"
+    },
+    {
+      "$ref": "#image"
     }
   ]
 }

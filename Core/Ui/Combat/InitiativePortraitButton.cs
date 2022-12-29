@@ -193,35 +193,30 @@ public class InitiativePortraitButton : WidgetButtonBase
     [TempleDllLocation(0x10141780)]
     private void RenderFrame()
     {
-        var contentArea = GetContentArea();
+        var contentArea = GetViewportBorderArea();
         // This was previously drawn in the context of the parent container
-        contentArea.Offset(-X, -Y);
-        contentArea.Offset(1, 1);
-        contentArea.Size = _metrics.FrameSize;
-
-        _frame.SetBounds(contentArea);
-        _frame.Render();
+        _frame.SetBounds(new RectangleF(
+            -X + 1, -Y + 1,
+            _metrics.FrameSize.Width, _metrics.FrameSize.Height
+        ));
+        _frame.Render(contentArea.Location);
     }
 
     private void RenderPortrait()
     {
-        var contentArea = GetContentArea();
-
-        var portraitRect = contentArea;
-        portraitRect.Offset(_metrics.PortraitOffset);
-
-        _portrait.SetBounds(portraitRect);
-        _portrait.Render();
+        var paddingArea = GetViewportPaddingArea();
+        _portrait.SetBounds(new RectangleF(
+            _metrics.PortraitOffset,
+            paddingArea.Size
+        ));
+        _portrait.Render(paddingArea.Location);
     }
 
     private void RenderHighlight()
     {
-        var contentArea = GetContentArea();
-        var highlightRect = _metrics.HighlightFrame;
-        highlightRect.Offset(contentArea.Location);
-
-        _highlight.SetBounds(highlightRect);
-        _highlight.Render();
+        var paddingArea = GetViewportPaddingArea();
+        _highlight.SetBounds(_metrics.HighlightFrame);
+        _highlight.Render(paddingArea.Location);
     }
 
     private string GetPortraitPath()

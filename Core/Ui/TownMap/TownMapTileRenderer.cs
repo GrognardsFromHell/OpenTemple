@@ -32,7 +32,7 @@ public class TownMapTileRenderer : WidgetContent
     }
 
     [TempleDllLocation(0x1002c750)]
-    public override void Render()
+    public override void Render(PointF origin)
     {
         if (_smallTileRenderer == null || _bigTileRenderer == null)
         {
@@ -40,6 +40,7 @@ public class TownMapTileRenderer : WidgetContent
         }
 
         var destRect = ContentArea;
+        destRect.Offset(origin);
 
         // This seems to be the origin of the townmap, basically
         var srcRect = SourceRect;

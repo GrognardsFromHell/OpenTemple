@@ -5,6 +5,7 @@ using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Ui.Widgets;
 
+[Obsolete]
 public class WidgetImage : WidgetContent, IDisposable
 {
     private string? _path;
@@ -24,7 +25,7 @@ public class WidgetImage : WidgetContent, IDisposable
 
     public PackedLinearColorA Color { get; set; } = PackedLinearColorA.White;
 
-    public override void Render()
+    public override void Render(PointF origin)
     {
         var texture = _texture.Resource;
         if (texture == null)
@@ -33,11 +34,15 @@ public class WidgetImage : WidgetContent, IDisposable
         }
 
         var renderer = Tig.ShapeRenderer2d;
+        
+        var destRect = ContentArea;
+        destRect.Offset(origin);
+        
         if (SourceRect.HasValue)
         {
             var drawArgs = new Render2dArgs();
             drawArgs.srcRect = SourceRect.Value;
-            drawArgs.destRect = ContentArea;
+            drawArgs.destRect = destRect;
             drawArgs.customTexture = texture;
             drawArgs.flags = Render2dFlag.BUFFERTEXTURE;
             if (Color != PackedLinearColorA.White)
@@ -56,10 +61,7 @@ public class WidgetImage : WidgetContent, IDisposable
         else
         {
             renderer.DrawRectangle(
-                ContentArea.X,
-                ContentArea.Y,
-                ContentArea.Width,
-                ContentArea.Height,
+                destRect,
                 _texture.Resource,
                 Color
             );
@@ -95,4 +97,4 @@ public class WidgetImage : WidgetContent, IDisposable
     {
         _texture.Dispose();
     }
-};
+}

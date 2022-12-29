@@ -16,10 +16,13 @@ class WidgetRectangle : WidgetContent, IDisposable
 
     public PackedLinearColorA Pen { get; set; }
 
-    public override void Render()
+    public override void Render(PointF origin)
     {
         var renderer = Tig.ShapeRenderer2d;
 
+        var contentArea = ContentArea;
+        contentArea.Offset(origin);
+        
         if (Brush.HasValue)
         {
             var brush = Brush.Value;
@@ -40,22 +43,22 @@ class WidgetRectangle : WidgetContent, IDisposable
                 new Vertex2d
                 {
                     diffuse = topColor,
-                    pos = new Vector4(ContentArea.Right, ContentArea.Top, 0, 1)
+                    pos = new Vector4(contentArea.Right, contentArea.Top, 0, 1)
                 },
                 new Vertex2d
                 {
                     diffuse = bottomColor,
-                    pos = new Vector4(ContentArea.Right, ContentArea.Bottom, 0, 1)
+                    pos = new Vector4(contentArea.Right, contentArea.Bottom, 0, 1)
                 },
                 new Vertex2d
                 {
                     diffuse = bottomColor,
-                    pos = new Vector4(ContentArea.Left, ContentArea.Bottom, 0, 1)
+                    pos = new Vector4(contentArea.Left, contentArea.Bottom, 0, 1)
                 },
                 new Vertex2d
                 {
                     diffuse = topColor,
-                    pos = new Vector4(ContentArea.Left, ContentArea.Top, 0, 1)
+                    pos = new Vector4(contentArea.Left, contentArea.Top, 0, 1)
                 },
             };
 
@@ -65,7 +68,7 @@ class WidgetRectangle : WidgetContent, IDisposable
         if (Pen.A != 0)
         {
             renderer.DrawRectangleOutline(
-                ContentArea,
+                contentArea,
                 Pen
             );
         }

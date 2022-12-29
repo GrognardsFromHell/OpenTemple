@@ -163,17 +163,13 @@ class AbilityScoreSystem : IChargenSystem
                 var localX = (int) (e.X - globalContentArea.X);
                 var localY = (int) (e.Y - globalContentArea.Y);
                 _draggedAbilityScoreLabel.Text = widget.Value.ToString();
+                _draggedAbilityScoreLabel.SetBounds(new RectangleF(Point.Empty, widget.GetSize()));
                 widget.IsDragging = true;
 
                 // This will draw the ability score being dragged under the mouse cursor
                 Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
                 {
-                    var point = new Point(x, y);
-                    point.Offset(-localX, -localY);
-                    var contentArea = new RectangleF(point, widget.GetSize());
-
-                    _draggedAbilityScoreLabel.SetBounds(contentArea);
-                    _draggedAbilityScoreLabel.Render();
+                    _draggedAbilityScoreLabel.Render(new PointF(x - localX, y - localY));
                 });
             }
         };

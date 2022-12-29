@@ -16,7 +16,6 @@ public sealed class WidgetScrollBar : WidgetContainer
     private readonly WidgetButton _upButton;
     private readonly WidgetButton _downButton;
     private readonly WidgetScrollBarHandle _handle;
-    private readonly WidgetButton _track;
 
     public int Quantum { get; set; } = 1;
 
@@ -40,25 +39,31 @@ public sealed class WidgetScrollBar : WidgetContainer
         upButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-up"));
         upButton.AddClickListener(() => { SetValue(GetValue() - 1); });
         upButton.IsRepeat = true;
+        upButton.Id = "up";
 
         var downButton = new WidgetButton();
         downButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-down"));
         downButton.AddClickListener(() => { SetValue(GetValue() + 1); });
         downButton.IsRepeat = true;
+        downButton.Anchors.Bottom.ToParent(AnchorEdge.Bottom);
+        downButton.Id = "down";
 
         var track = new WidgetButton();
         track.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-track"));
         track.IsRepeat = true;
+        track.Anchors.Top.ToSibling(upButton, AnchorEdge.Bottom);
+        track.Anchors.Bottom.ToSibling(downButton, AnchorEdge.Top);
+        track.Id = "track";
 
         var handle = new WidgetScrollBarHandle(this);
         handle.Height = Dimension.Pixels(100);
+        handle.Id = "handle";
 
         var upButtonWidth = upButton.ComputePreferredBorderAreaSize().Width;
         var downButtonWidth = downButton.ComputePreferredBorderAreaSize().Width;
 
         Width = Dimension.Pixels(MathF.Max(upButtonWidth, downButtonWidth));
 
-        _track = track;
         _upButton = upButton;
         _downButton = downButton;
         _handle = handle;
@@ -167,15 +172,6 @@ public sealed class WidgetScrollBar : WidgetContainer
 
     public override void Render(UiRenderContext context)
     {
-        _downButton.Y = PaddingArea.Height - _downButton.BorderArea.Height;
-
-        // Update the track position
-        _track.Y = _upButton.BorderArea.Height;
-        _track.PixelSize = new SizeF(
-            PaddingArea.Width,
-            PaddingArea.Height - _upButton.BorderArea.Height - _downButton.BorderArea.Height
-        );
-
         var scrollRange = GetScrollRange();
         int handleOffset = (int) ((_value - _min) / (float) _max * scrollRange);
         _handle.Y = _upButton.BorderArea.Height + handleOffset;
@@ -247,7 +243,7 @@ public sealed class WidgetScrollBar : WidgetContainer
 
         public override void Render(UiRenderContext context)
         {
-            var contentArea = GetContentArea();
+            var paddingArea = GetViewportPaddingArea();
 
             WidgetImage top, handle, bottom;
             if (Globals.UiManager.MouseCaptureWidget == this)
@@ -263,28 +259,26 @@ public sealed class WidgetScrollBar : WidgetContainer
                 bottom = _bottom;
             }
             
-            var topArea = contentArea;
-            topArea.Width = top.GetPreferredSize().Width;
-            topArea.Height = top.GetPreferredSize().Height;
+            var topArea = new RectangleF(PointF.Empty, top.GetPreferredSize());
             top.SetBounds(topArea);
-            top.Render();
+            top.Render(paddingArea.Location);
 
-            var bottomArea = contentArea;
+            var bottomArea = RectangleF.Empty;
             bottomArea.Width = bottom.GetPreferredSize().Width;
             bottomArea.Height = bottom.GetPreferredSize().Height;
-            bottomArea.Y = contentArea.Y + contentArea.Height - bottomArea.Height; // Align to bottom
+            bottomArea.Y = paddingArea.Height - bottomArea.Height; // Align to bottom
             bottom.SetBounds(bottomArea);
-            bottom.Render();
+            bottom.Render(paddingArea.Location);
 
             var inBetween = bottomArea.Y - topArea.Y - topArea.Height;
             if (inBetween > 0)
             {
-                var centerArea = contentArea;
-                centerArea.Y = topArea.Y + topArea.Height;
+                var centerArea = RectangleF.Empty;
+                centerArea.Y = topArea.Height;
                 centerArea.Height = inBetween;
                 centerArea.Width = handle.GetPreferredSize().Width;
                 handle.SetBounds(centerArea);
-                handle.Render();
+                handle.Render(paddingArea.Location);
             }
         }
 

@@ -21,7 +21,7 @@ public abstract class WidgetContent : Styleable
 
     public bool Visible { get; set; } = true;
 
-    public abstract void Render();
+    public abstract void Render(PointF origin);
 
     public void SetBounds(RectangleF contentArea)
     {

@@ -68,7 +68,7 @@ public class MainMenuButton : WidgetButtonBase
 
     public override void Render(UiRenderContext context)
     {
-        var extents = GetContentArea();
+        var extents = GetViewportContentArea();
         var style = _normalStyle;
         if (ContainsPress)
         {

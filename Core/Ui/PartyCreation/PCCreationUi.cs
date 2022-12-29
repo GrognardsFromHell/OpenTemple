@@ -203,9 +203,9 @@ public class PCCreationUi : IDisposable
             // Render the blue outline for the active stage
             if (stageButton.IsActive())
             {
-                var contentArea = stageButton.GetContentArea(true);
-                _activeButtonBorder.SetBounds(contentArea);
-                _activeButtonBorder.Render();
+                var contentArea = stageButton.GetViewportBorderArea();
+                _activeButtonBorder.SetBounds(new RectangleF(PointF.Empty, contentArea.Size));
+                _activeButtonBorder.Render(contentArea.Location);
             }
         };
         stageButton.AddClickListener(() => ShowStage(system.Stage));

@@ -80,7 +80,6 @@ public class WidgetScrollView : WidgetContainer
             {
                 child.X = x;
                 child.Y = y;
-                child.AutoSizeWidth = false;
                 child.Width = Dimension.Pixels(innerWidth);
                 var prefChildSize = child.ComputePreferredBorderAreaSize(innerWidth);
                 y += prefChildSize.Height + Gap;

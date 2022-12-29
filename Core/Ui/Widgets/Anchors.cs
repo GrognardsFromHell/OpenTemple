@@ -66,20 +66,9 @@ public sealed class Anchors
 
     private bool ApplyHorizontal(ref RectangleF layoutBox)
     {
-        WidgetBase? leftWidget = null;
-        WidgetBase? rightWidget = null;
-        WidgetBase? hCenterWidget = null;
-        if (Left.IsValid && !ResolveWithValidLayout(out leftWidget))
-        {
-            return false;
-        }
-
-        if (Right.IsValid && !ResolveWithValidLayout(out rightWidget))
-        {
-            return false;
-        }
-
-        if (HorizontalCenter.IsValid && !ResolveWithValidLayout(out hCenterWidget))
+        if (!ResolveWithValidLayout(in Left, out var leftWidget)
+            || !ResolveWithValidLayout(in Right, out var rightWidget)
+            || !ResolveWithValidLayout(in HorizontalCenter, out var hCenterWidget))
         {
             return false;
         }
@@ -87,11 +76,11 @@ public sealed class Anchors
         // Prioritize left edge
         if (leftWidget != null)
         {
-            layoutBox.X = GetEdgePosition(leftWidget, Left.Edge);
+            layoutBox.X = GetEdgePosition(leftWidget, Left.Edge, Left.Offset);
             // Should it be stretched?
             if (rightWidget != null)
             {
-                var rightEdge = GetEdgePosition(rightWidget, Right.Edge);
+                var rightEdge = GetEdgePosition(rightWidget, Right.Edge, Right.Offset);
                 layoutBox.Width = rightEdge - layoutBox.X;
             }
 
@@ -103,7 +92,7 @@ public sealed class Anchors
         else if (rightWidget != null)
         {
             // We're sure at this point that left is null
-            layoutBox.X = GetEdgePosition(rightWidget, Right.Edge) - layoutBox.Width;
+            layoutBox.X = GetEdgePosition(rightWidget, Right.Edge, Right.Offset) - layoutBox.Width;
 
             if (hCenterWidget != null)
             {
@@ -113,7 +102,7 @@ public sealed class Anchors
         else if (hCenterWidget != null)
         {
             // Center horizontally
-            var hCenter = GetEdgePosition(hCenterWidget, HorizontalCenter.Edge);
+            var hCenter = GetEdgePosition(hCenterWidget, HorizontalCenter.Edge, HorizontalCenter.Offset);
             layoutBox.X = hCenter - layoutBox.Width / 2;
         }
 
@@ -122,20 +111,9 @@ public sealed class Anchors
 
     private bool ApplyVertical(ref RectangleF layoutBox)
     {
-        WidgetBase? topWidget = null;
-        WidgetBase? bottomWidget = null;
-        WidgetBase? vCenterWidget = null;
-        if (Top.IsValid && !ResolveWithValidLayout(out topWidget))
-        {
-            return false;
-        }
-
-        if (Bottom.IsValid && !ResolveWithValidLayout(out bottomWidget))
-        {
-            return false;
-        }
-
-        if (VerticalCenter.IsValid && !ResolveWithValidLayout(out vCenterWidget))
+        if (!ResolveWithValidLayout(in Top, out var topWidget)
+            || !ResolveWithValidLayout(in Bottom, out var bottomWidget)
+            || !ResolveWithValidLayout(in VerticalCenter, out var vCenterWidget))
         {
             return false;
         }
@@ -143,11 +121,11 @@ public sealed class Anchors
         // Prioritize top edge
         if (topWidget != null)
         {
-            layoutBox.Y = GetEdgePosition(topWidget, Top.Edge);
+            layoutBox.Y = GetEdgePosition(topWidget, Top.Edge, Top.Offset);
             // Should it be stretched?
             if (bottomWidget != null)
             {
-                var bottomEdge = GetEdgePosition(bottomWidget, Bottom.Edge);
+                var bottomEdge = GetEdgePosition(bottomWidget, Bottom.Edge, Bottom.Offset);
                 layoutBox.Height = bottomEdge - layoutBox.Y;
             }
 
@@ -159,7 +137,7 @@ public sealed class Anchors
         else if (bottomWidget != null)
         {
             // We're sure at this point that top is null
-            layoutBox.Y = GetEdgePosition(bottomWidget, Bottom.Edge) - layoutBox.Height;
+            layoutBox.Y = GetEdgePosition(bottomWidget, Bottom.Edge, Bottom.Offset) - layoutBox.Height;
 
             if (vCenterWidget != null)
             {
@@ -169,31 +147,53 @@ public sealed class Anchors
         else if (vCenterWidget != null)
         {
             // Move the widget's vertical center to the referenced edge position
-            var vCenter = GetEdgePosition(vCenterWidget, VerticalCenter.Edge);
+            var vCenter = GetEdgePosition(vCenterWidget, VerticalCenter.Edge, VerticalCenter.Offset);
             layoutBox.Y = vCenter - layoutBox.Height / 2;
         }
-        
+
         return true;
     }
 
-    private static float GetEdgePosition(WidgetBase widget, AnchorEdge edge)
+    private float GetEdgePosition(WidgetBase widget, AnchorEdge edge, float offset)
     {
         Debug.Assert(widget.HasValidLayout);
-        return edge switch
+        if (widget == _owner.Parent)
         {
-            AnchorEdge.Left => widget.LayoutBox.X,
-            AnchorEdge.HorizontalCenter => widget.LayoutBox.X + widget.LayoutBox.Width / 2,
-            AnchorEdge.Right => widget.LayoutBox.Right,
-            AnchorEdge.Top => widget.LayoutBox.Y,
-            AnchorEdge.VerticalCenter => widget.LayoutBox.Y + widget.LayoutBox.Height / 2,
-            AnchorEdge.Bottom => widget.LayoutBox.Bottom,
-            _ => throw new ArgumentOutOfRangeException(nameof(edge), edge, null)
-        };
+            return edge switch
+            {
+                AnchorEdge.Left => offset,
+                AnchorEdge.HorizontalCenter => widget.LayoutBox.Width / 2 + offset,
+                AnchorEdge.Right => widget.LayoutBox.Width - offset,
+                AnchorEdge.Top => offset,
+                AnchorEdge.VerticalCenter => widget.LayoutBox.Height / 2 + offset,
+                AnchorEdge.Bottom => widget.LayoutBox.Height - offset,
+                _ => throw new ArgumentOutOfRangeException(nameof(edge), edge, null)
+            };
+        }
+        else
+        {
+            return edge switch
+            {
+                AnchorEdge.Left => widget.LayoutBox.X + offset,
+                AnchorEdge.HorizontalCenter => widget.LayoutBox.X + widget.LayoutBox.Width / 2 + offset,
+                AnchorEdge.Right => widget.LayoutBox.Right - offset,
+                AnchorEdge.Top => widget.LayoutBox.Y + offset,
+                AnchorEdge.VerticalCenter => widget.LayoutBox.Y + widget.LayoutBox.Height / 2 + offset,
+                AnchorEdge.Bottom => widget.LayoutBox.Bottom - offset,
+                _ => throw new ArgumentOutOfRangeException(nameof(edge), edge, null)
+            };
+        }
     }
 
-    private bool ResolveWithValidLayout([MaybeNullWhen(false)] out WidgetBase widget)
+    private bool ResolveWithValidLayout(in AnchorReference reference, out WidgetBase? widget)
     {
-        return Resolve(in Left, out widget) && widget.HasValidLayout;
+        if (!reference.IsValid)
+        {
+            widget = null;
+            return true;
+        }
+
+        return Resolve(in reference, out widget) && widget.HasValidLayout;
     }
 
     private bool Resolve(in AnchorReference reference, [MaybeNullWhen(false)] out WidgetBase widget)
@@ -259,9 +259,9 @@ public enum AnchorEdge
 /// <param name="Sibling">If not null, specifies the widget being referenced. If both this and <see cref="SiblingId"/> are null, the parent is being referenced.</param>
 /// <param name="SiblingId">If not null, specifies the <see cref="WidgetBase.Id"/> of the referenced sibling. If both this and <see cref="Sibling"/> are null, the parent is being referenced.</param>
 /// <param name="Edge">The edge of the widget that is being referenced.</param>
-public readonly record struct AnchorReference(WidgetBase? Sibling, string? SiblingId, AnchorEdge Edge)
+public readonly record struct AnchorReference(WidgetBase? Sibling, string? SiblingId, AnchorEdge Edge, float Offset)
 {
-    public static AnchorReference Parent(AnchorEdge edge) => new AnchorReference(null, null, edge);
+    public static AnchorReference Parent(AnchorEdge edge, float offset = 0) => new AnchorReference(null, null, edge, offset);
 
     public bool IsSiblingReference => IsValid && (Sibling != null || SiblingId != null);
 
@@ -272,9 +272,19 @@ public readonly record struct AnchorReference(WidgetBase? Sibling, string? Sibli
 
 public static class AnchorReferenceExtensions
 {
-    public static void ToParent(this ref AnchorReference reference, AnchorEdge toEdge)
+    public static void ToParent(this ref AnchorReference reference, AnchorEdge toEdge, float offset = 0)
     {
-        reference = AnchorReference.Parent(toEdge);
+        reference = AnchorReference.Parent(toEdge, offset);
+    }
+
+    public static void ToSibling(this ref AnchorReference reference, WidgetBase sibling, AnchorEdge toEdge, float offset = 0)
+    {
+        reference = new AnchorReference(sibling, null, toEdge, offset);
+    }
+
+    public static void ToSibling(this ref AnchorReference reference, string siblingId, AnchorEdge toEdge, float offset = 0)
+    {
+        reference = new AnchorReference(null, siblingId, toEdge, offset);
     }
 
     public static void Unbind(this ref AnchorReference reference)

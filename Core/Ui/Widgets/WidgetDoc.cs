@@ -203,20 +203,15 @@ internal class WidgetDocLoader
             StyleJsonDeserializer.DeserializeProperties(localStylesNode, widget.LocalStyles);
         }
 
-        var size = widget.GetSize();
         if (jsonObj.TryGetProperty("width", out var widthNode))
         {
-            size.Width = widthNode.GetInt32();
-            widget.AutoSizeWidth = false;
+            widget.Width = Dimension.Pixels(widthNode.GetSingle());
         }
 
         if (jsonObj.TryGetProperty("height", out var heightNode))
         {
-            size.Height = heightNode.GetInt32();
-            widget.AutoSizeHeight = false;
+            widget.Height = Dimension.Pixels(heightNode.GetSingle());
         }
-
-        widget.PixelSize = size;
 
         if (jsonObj.TryGetProperty("centerHorizontally", out var centerHorizontallyNode))
         {
@@ -312,13 +307,7 @@ internal class WidgetDocLoader
 
     private WidgetBase LoadWidgetTabBar(JsonElement jsonObj)
     {
-        var width = jsonObj.GetInt32Prop("width", 0);
-        var height = jsonObj.GetInt32Prop("height", 0);
-
-        var result = new WidgetTabBar
-        {
-            PixelSize = new SizeF(width, height)
-        };
+        var result = new WidgetTabBar();
 
         LoadWidgetBaseWithContent(jsonObj, result);
 
@@ -352,6 +341,31 @@ internal class WidgetDocLoader
             result.Spacing = spacingJson.GetInt32();
         }
 
+        return result;
+    }
+
+    private WidgetBase LoadWidgetImage(JsonElement jsonObj)
+    {
+        var result = new WidgetImageNew();
+
+        LoadWidgetBase(jsonObj, result);
+
+        var path = jsonObj.GetStringProp("path", null);
+        if (path != null)
+        {
+            result.TexturePath = path;
+        }
+
+        if (jsonObj.TryGetProperty("srcRect", out var srcRect))
+        {
+            result.SourceRect = new Rectangle(
+                srcRect.GetInt32Prop("x", 0),
+                srcRect.GetInt32Prop("y", 0),
+                srcRect.GetInt32Prop("width", 0),
+                srcRect.GetInt32Prop("height", 0)
+            );
+        }
+        
         return result;
     }
 
@@ -465,6 +479,9 @@ internal class WidgetDocLoader
                 break;
             case "textField":
                 widget = LoadWidgetTextField(jsonObj);
+                break;
+            case "image":
+                widget = LoadWidgetImage(jsonObj);
                 break;
             case "custom":
                 if (CustomFactory == null)

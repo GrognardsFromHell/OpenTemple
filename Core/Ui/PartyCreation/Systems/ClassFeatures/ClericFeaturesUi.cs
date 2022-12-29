@@ -187,17 +187,13 @@ internal class ClericFeaturesUi : IChargenSystem
                 var localX = (int) (e.X - globalContentArea.X);
                 var localY = (int) (e.Y - globalContentArea.Y);
                 _draggedDomainLabel.Text = button.Text;
+                _draggedDomainLabel.SetBounds(new RectangleF(new PointF(-localX, -localY), button.BorderArea.Size));                
                 button.Visible = false;
 
                 // This will draw the ability score being dragged under the mouse cursor
-                Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
+                Tig.Mouse.SetCursorDrawCallback((x, y, _) =>
                 {
-                    var point = new Point(x, y);
-                    point.Offset(-localX, -localY);
-                    var contentArea = new RectangleF(point, button.GetSize());
-
-                    _draggedDomainLabel.SetBounds(contentArea);
-                    _draggedDomainLabel.Render();
+                    _draggedDomainLabel.Render(new PointF(x, y));
                 });
             }
         };

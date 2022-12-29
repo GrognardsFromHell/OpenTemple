@@ -20,7 +20,7 @@ public class WidgetContainer : WidgetBase
     private readonly List<WidgetBase> _zOrderChildren = new();
 
     public override IReadOnlyList<WidgetBase> Children => _children;
-    
+
     public IReadOnlyList<WidgetBase> ZOrderChildren => _zOrderChildren;
 
     /// <summary>
@@ -36,12 +36,12 @@ public class WidgetContainer : WidgetBase
         // Containers are usually empty and should be click through where there is no content
         HitTesting = HitTestingMode.Content;
     }
-    
+
     [Obsolete]
     public WidgetContainer(float x, float y, float width, float height) : this(new RectangleF(x, y, width, height))
     {
     }
-    
+
     public WidgetContainer(RectangleF rect)
     {
         Pos = rect.Location;
@@ -63,7 +63,8 @@ public class WidgetContainer : WidgetBase
         childWidget.AttachToTree(UiManager);
         _children.Add(childWidget);
         SortChildren();
-        UiManager?.InvalidateLayout();
+        
+        NotifyLayoutChange(LayoutChangeFlag.Content);
     }
 
     public bool Remove(WidgetBase childWidget)
@@ -79,7 +80,9 @@ public class WidgetContainer : WidgetBase
         _children.Remove(childWidget);
         _zOrderChildren.Remove(childWidget);
         childWidget.AttachToTree(null);
-        UiManager?.InvalidateLayout();
+
+        NotifyLayoutChange(LayoutChangeFlag.Content);
+        
         return true;
     }
 
@@ -111,27 +114,15 @@ public class WidgetContainer : WidgetBase
         {
             var child = _zOrderChildren[i];
 
-            if (!child.Visible)
+            if (child.Visible && child.BorderArea.Contains(x, y))
             {
-                continue;
-            }
-
-            var localX = x - child.X;
-            var localY = y - child.Y + _scrollOffsetY;
-            if (localY < 0 || localY >= child.BorderArea.Height)
-            {
-                continue;
-            }
-
-            if (localX < 0 || localX >= child.BorderArea.Width)
-            {
-                continue;
-            }
-
-            var result = child.PickWidget(localX, localY);
-            if (result != null)
-            {
-                return result;
+                var localX = x - child.BorderArea.X;
+                var localY = y - child.BorderArea.Y;
+                var result = child.PickWidget(localX, localY);
+                if (result != null)
+                {
+                    return result;
+                }
             }
         }
 
@@ -163,8 +154,6 @@ public class WidgetContainer : WidgetBase
 
         base.Render(context);
 
-        var visArea = GetVisibleArea();
-
         var clipAreaSet = false;
 
         foreach (var child in _zOrderChildren)
@@ -173,7 +162,7 @@ public class WidgetContainer : WidgetBase
             {
                 if (ClipChildren && !clipAreaSet)
                 {
-                    Tig.RenderingDevice.SetUiScissorRect(visArea.X, visArea.Y, visArea.Width, visArea.Height);
+                    context.PushScissorRect(GetViewportPaddingArea(true));
                     clipAreaSet = true;
                 }
 
@@ -183,7 +172,7 @@ public class WidgetContainer : WidgetBase
 
         if (clipAreaSet)
         {
-            Tig.RenderingDevice.ResetScissorRect();
+            context.PopScissorRect();
         }
     }
 
@@ -233,7 +222,7 @@ public class WidgetContainer : WidgetBase
     public override WidgetBase? FirstChild => _children.Count > 0 ? _children[0] : null;
 
     public override WidgetBase? LastChild => _children.Count > 0 ? _children[^1] : null;
-    
+
     protected override SizeF ComputePreferredPaddingAreaSize(float availableWidth, float availableHeight)
     {
         var area = base.ComputePreferredPaddingAreaSize(availableWidth, availableHeight);
@@ -244,7 +233,7 @@ public class WidgetContainer : WidgetBase
             area.Width = Math.Max(area.Width, childSize.Width);
             area.Height = Math.Max(area.Height, childSize.Height);
         }
-        
+
         return area;
     }
 
@@ -345,4 +334,30 @@ public class WidgetContainer : WidgetBase
 
         yield return context;
     }
+
+    public void TransformClientToViewport(ref RectangleF bounds, bool clip)
+    {
+        // Take our own padding box and transform it to the viewport using our parent
+        // All layout of children is relative to the padding area.
+        var ourViewportBox = PaddingArea;
+        Parent?.TransformClientToViewport(ref ourViewportBox, clip);
+
+        // Layout is relative to the parent padding area
+        var scrollOffsetY = GetScrollOffsetY();
+
+        bounds.X += ourViewportBox.X;
+        bounds.Y += ourViewportBox.Y - scrollOffsetY;
+
+        if (clip)
+        {
+            bounds = RectangleF.Intersect(ourViewportBox, bounds);
+        }
+    }
+
+    /// <summary>
+    /// Returns whether the size of this element depends on its content.
+    /// </summary>
+    public bool SizeDependsOnContent =>
+        (!Anchors.Left.IsValid || !Anchors.Right.IsValid) && Width == Dimension.Auto
+        || (!Anchors.Top.IsValid || !Anchors.Bottom.IsValid) && Height == Dimension.Auto;
 }

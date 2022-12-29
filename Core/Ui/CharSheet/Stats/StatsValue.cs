@@ -44,7 +44,7 @@ public class StatsValue : WidgetButtonBase
         OnMouseLeave += _ => {
             UiSystems.CharSheet.Help.ClearHelpText();
         };
-
+        
         TooltipText = UiSystems.Tooltip.GetString(6044);
     }
 
@@ -56,6 +56,28 @@ public class StatsValue : WidgetButtonBase
             _downImage.Dispose();
             _hoverImage.Dispose();
         }
+    }
+
+    protected override void OnAfterLayout()
+    {
+        base.OnAfterLayout();
+
+        _downImage.SetBounds(
+            new RectangleF(
+                0,
+                - 1,
+                _downImage.GetPreferredSize().Width,
+                _downImage.GetPreferredSize().Height
+            )
+        );
+        _hoverImage.SetBounds(
+            new RectangleF(
+                0,
+                - 1,
+                _hoverImage.GetPreferredSize().Width,
+                _hoverImage.GetPreferredSize().Height
+            )
+        );        
     }
 
     public override void Render(UiRenderContext context)
@@ -70,20 +92,8 @@ public class StatsValue : WidgetButtonBase
             renderImage = _hoverImage;
         }
 
-        var contentArea = GetContentArea();
-
-        if (renderImage != null)
-        {
-            renderImage.SetBounds(
-                new RectangleF(
-                    contentArea.X,
-                    contentArea.Y - 1,
-                    renderImage.GetPreferredSize().Width,
-                    renderImage.GetPreferredSize().Height
-                )
-            );
-            renderImage.Render();
-        }
+        var paddingArea = GetViewportPaddingArea(true);
+        renderImage?.Render(paddingArea.Location);
 
         var critter = UiSystems.CharSheet.CurrentCritter;
         _label.Content = critter != null ? _valueSupplier(critter) : null;
@@ -91,13 +101,13 @@ public class StatsValue : WidgetButtonBase
         var labelSize = _label.GetPreferredSize();
         // Center horizontally and vertically within the content area
         var labelArea = new RectangleF(
-            contentArea.X + (contentArea.Width - labelSize.Width) / 2,
-            contentArea.Y + (contentArea.Height - labelSize.Height) / 2,
-            contentArea.Width = labelSize.Width,
-            contentArea.Height = labelSize.Height
+            (paddingArea.Width - labelSize.Width) / 2,
+            (paddingArea.Height - labelSize.Height) / 2,
+            labelSize.Width,
+            labelSize.Height
         );
 
         _label.SetBounds(labelArea);
-        _label.Render();
+        _label.Render(PaddingArea.Location);
     }
 }

@@ -56,8 +56,14 @@ public class UiManagerDebug
                 var content = widget.PickContent(mousePos.X, mousePos.Y);
                 if (content != null)
                 {
+                    // Transform content bounds to parents viewport rect
+                    var parentBounds = widget.GetViewportBorderArea(true);
+                    var contentBounds = content.GetBounds();
+                    contentBounds.Offset(parentBounds.Location);
+                    contentBounds = RectangleF.Intersect(contentBounds, parentBounds);
+                    
                     Tig.ShapeRenderer2d.DrawDashedRectangle(
-                        content.GetBounds(),
+                        contentBounds,
                         ContentOutlinePattern.Scale(Tig.MainWindow.UiScale)
                     );
                 }
@@ -115,6 +121,10 @@ public class UiManagerDebug
             {
                 _pickingWidget = true;
             }
+            
+            ImGui.SameLine();
+            var uiMousePos = GetMouseUiPos();
+            ImGui.Text($"({uiMousePos.X}, {uiMousePos.Y})");
 
             ImGui.Checkbox("Show Invisible", ref _showInvisible);
 
@@ -274,6 +284,10 @@ public class UiManagerDebug
                 _debugAtTarget = widget;
             }
 
+            ImGui.SameLine();
+            var layoutBox = widget.LayoutBox;
+            ImGui.Text("Layout: " + layoutBox);
+            
             if (widget is WidgetContainer container)
             {
                 foreach (var child in container.Children)

@@ -70,7 +70,7 @@ public class WidgetTooltipRenderer
         }
     }
 
-    public void Render(int x, int y)
+    public void Render(float x, float y)
     {
         if (_tooltipLabel != null)
         {
@@ -80,8 +80,8 @@ public class WidgetTooltipRenderer
 
             var preferredSize = _tooltipLabel.GetPreferredSize();
             var contentArea = new RectangleF(
-                x,
-                y - preferredSize.Height,
+                0,
+                - preferredSize.Height,
                 preferredSize.Width,
                 preferredSize.Height
             );
@@ -91,7 +91,7 @@ public class WidgetTooltipRenderer
             }
             UiSystems.Tooltip.ClampTooltipToScreen(ref contentArea);
             _tooltipLabel.SetBounds(contentArea);
-            _tooltipLabel.Render();
+            _tooltipLabel.Render(new PointF(x, y));
         }
     }
 }

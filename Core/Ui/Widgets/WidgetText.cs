@@ -124,7 +124,7 @@ public class WidgetText : WidgetContent, IFlowContentHost, IDisposable
         LocalStyles.ParagraphAlignment = isCentered ? ParagraphAlign.Center : null;
     }
 
-    public override void Render()
+    public override void Render(PointF origin)
     {
         if (_paragraph.IsEmpty)
         {
@@ -132,8 +132,8 @@ public class WidgetText : WidgetContent, IFlowContentHost, IDisposable
         }
 
         var styles = ComputedStyles;
-        var x = ContentArea.X + styles.MarginLeft;
-        var y = ContentArea.Y + styles.MarginTop;
+        var x = origin.X + ContentArea.X + styles.MarginLeft;
+        var y = origin.Y + ContentArea.Y + styles.MarginTop;
         var width = ContentArea.Width - styles.MarginLeft - styles.MarginRight;
         var height = ContentArea.Height - styles.MarginTop - styles.MarginBottom;
 

@@ -106,7 +106,7 @@ public class LoadingScreen : IDisposable, ILoadingProgress
 
         _device.BeginFrame();
         _device.BeginDraw();
-        _imageFile.Render();
+        _imageFile.Render(PointF.Empty);
         _barBorder.Render();
         _barUnfilled.Render();
         _barFilled.Render();

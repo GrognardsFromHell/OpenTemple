@@ -27,8 +27,7 @@ public class SliderOption : Option
         _slider = new WidgetSlider
         {
             X = 178,
-            Y = 2,
-            PixelSize = new SizeF(399, 9)
+            Y = 2
         };
         _slider.SetMin(minValue);
         _slider.SetMax(maxValue);

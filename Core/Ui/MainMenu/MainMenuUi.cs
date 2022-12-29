@@ -448,7 +448,6 @@ class ViewCinematicsDialog
             button.Id = _movieNames[movieInd];
             var innerWidth = _listBox.GetInnerWidth();
             button.Width = Dimension.Pixels(innerWidth);
-            button.AutoSizeWidth = false;
             button.SetStyle("mm-cinematics-list-button");
             button.Y = y;
             //var pBtn = button.get();
@@ -523,7 +522,6 @@ class SetPiecesDialog
             button.Id = "Arena";
             var innerWidth = _listBox.GetInnerWidth();
             button.Width = Dimension.Pixels(innerWidth);
-            button.AutoSizeWidth = false;
             button.SetStyle("mm-setpieces-list-button");
             button.Y = y;
             btnIds.Add(button);

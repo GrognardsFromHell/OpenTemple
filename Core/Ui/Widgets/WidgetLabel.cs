@@ -12,24 +12,6 @@ public class WidgetLabel : WidgetBase
         AddContent(_text);
     }
 
-    protected override void ApplyAutomaticSizing()
-    {
-        base.ApplyAutomaticSizing();
-        
-        if (AutoSizeWidth || AutoSizeHeight)
-        {
-            var preferredSize = _text.GetPreferredSize();
-            if (AutoSizeWidth)
-            {
-                Width = Dimension.Pixels(preferredSize.Width);
-            }
-            if (AutoSizeHeight)
-            {
-                Height = Dimension.Pixels(preferredSize.Height);
-            }
-        }
-    }
-
     public new InlineElement? Content
     {
         set { _text.Content = value; }

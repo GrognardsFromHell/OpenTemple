@@ -504,7 +504,7 @@ public class TooltipUi : IDisposable
             UiSystems.Tooltip.ClampTooltipToScreen(ref extents);
 
             tooltipLabel.SetBounds(extents);
-            tooltipLabel.Render();
+            tooltipLabel.Render(PointF.Empty);
         }
     }
 }

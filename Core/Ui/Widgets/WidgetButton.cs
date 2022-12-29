@@ -13,7 +13,7 @@ public class WidgetButton : WidgetButtonBase
     private WidgetImage? _frameImage;
     private WidgetImage? _hoverImage;
 
-    protected WidgetImage? _normalImage;
+    private WidgetImage? _normalImage;
     private WidgetImage? _pressedImage;
 
     private WidgetButtonStyle _style;
@@ -75,9 +75,7 @@ public class WidgetButton : WidgetButtonBase
 
         base.Render(context);
 
-        var area = PaddingArea;
-
-        string? labelStyle = null;
+        string? labelStyle;
 
         if (Disabled)
         {
@@ -144,22 +142,13 @@ public class WidgetButton : WidgetButtonBase
 
         _label.StyleIds = labelStyle != null ? ImmutableList.Create(labelStyle) : ImmutableList<string>.Empty;
 
+        var paddingArea = GetViewportPaddingArea();
+
         var frame = _frameImage;
         var image = GetCurrentImage();
-        if (frame != null)
-        {
-            frame.SetBounds(BorderArea);
-            frame.Render();
-        }
-
-        if (image != null)
-        {
-            image.SetBounds(area);
-            image.Render();
-        }
-
-        _label.SetBounds(area);
-        _label.Render();
+        frame?.Render(paddingArea.Location);
+        image?.Render(paddingArea.Location);
+        _label.Render(paddingArea.Location);
     }
 
     protected virtual WidgetImage? GetCurrentImage()
@@ -223,7 +212,7 @@ public class WidgetButton : WidgetButtonBase
         set
         {
             _label.Text = value;
-            UpdateAutoSize();
+            NotifyLayoutChange(LayoutChangeFlag.OwnSize);
         }
     }
 
@@ -298,48 +287,53 @@ public class WidgetButton : WidgetButtonBase
             _label.AddStyle(_style.TextStyleId);
         }
 
-        UpdateAutoSize();
+        NotifyLayoutChange(LayoutChangeFlag.Content);
     }
 
-    private void UpdateAutoSize()
+    protected override void OnAfterLayout()
     {
-        // Try to var-size
-        if (AutoSizeWidth || AutoSizeHeight)
+        PositionContent();
+    }
+
+    private void PositionContent()
+    {
+        var innerRect = new RectangleF(PointF.Empty, PaddingArea.Size);
+        if (_frameImage != null)
         {
-            SizeF prefSize;
-            if (_normalImage != null)
-            {
-                prefSize = _normalImage.GetPreferredSize();
-            }
-            else
-            {
-                prefSize = _label.GetPreferredSize();
-            }
+            var innerSize = _normalImage?.GetPreferredSize() ?? _label.GetPreferredSize();
+            var frameSize = _frameImage.GetPreferredSize();
+            _frameImage?.SetBounds(innerRect);
 
-            if (_frameImage != null)
-            {
-                var frameSize = _frameImage.GetPreferredSize();
-
-                var borderH = Math.Max(0, (frameSize.Width - prefSize.Width) / 2);
-                var borderV = Math.Max(0, (frameSize.Height - prefSize.Height) / 2);
-                LocalStyles.BorderWidth = Math.Max(borderH, borderV);
-
-                prefSize = frameSize;
-            }
-
-            if (AutoSizeWidth && AutoSizeHeight)
-            {
-                PixelSize = prefSize;
-            }
-            else if (AutoSizeWidth)
-            {
-                Width = Dimension.Pixels(prefSize.Width);
-            }
-            else if (AutoSizeHeight)
-            {
-                Height = Dimension.Pixels(prefSize.Height);
-            }
+            var borderH = Math.Max(0, (frameSize.Width - innerSize.Width) / 2);
+            var borderV = Math.Max(0, (frameSize.Height - innerSize.Height) / 2);
+            innerRect.X += borderH;
+            innerRect.Y += borderH;
+            innerRect.Width -= 2 * borderH;
+            innerRect.Height -= 2 * borderV;
         }
+
+        _normalImage?.SetBounds(innerRect);
+        _hoverImage?.SetBounds(innerRect);
+        _activatedImage?.SetBounds(innerRect);
+        _disabledImage?.SetBounds(innerRect);
+        _pressedImage?.SetBounds(innerRect);
+
+        _label.SetBounds(innerRect);
+    }
+
+    protected override SizeF ComputePreferredPaddingAreaSize(float availableWidth, float availableHeight)
+    {
+        if (_frameImage != null)
+        {
+            return _frameImage.GetPreferredSize();
+        }
+        
+        if (_normalImage != null)
+        {
+            return _normalImage.GetPreferredSize();
+        }
+
+        return _label.GetPreferredSize();
     }
 
     public override bool HitTest(float x, float y)

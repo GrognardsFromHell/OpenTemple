@@ -248,16 +248,15 @@ public class TextFieldWidget : WidgetBase
         UpdateIfNeeded();
 
         var textAreaRect = _innerTextAreaRect;
-        var contentArea = GetContentArea();
-        textAreaRect.Offset(contentArea.Location);
+        var paddingArea = GetViewportPaddingArea();
+        textAreaRect.Offset(paddingArea.Location);
 
         // We use the full content rectangle vertically because the baseline / caret doesn't include the descend below the baseline
         context.PushScissorRect(textAreaRect);
 
         if (!HasFocus && _buffer.Length == 0)
         {
-            _placeholderLabel.SetBounds(textAreaRect);
-            _placeholderLabel.Render();
+            _placeholderLabel.Render(PointF.Empty);
         }
         else
         {
@@ -433,6 +432,8 @@ public class TextFieldWidget : WidgetBase
         var lineYOffset = (int) MathF.Floor((_innerTextAreaRect.Height - _caretRect.Height) / 2);
         _innerTextAreaRect.Inflate(0, - lineYOffset);
 
+        _placeholderLabel.SetBounds(_innerTextAreaRect);
+        
         _needsCaretUpdate = false;
     }
 
