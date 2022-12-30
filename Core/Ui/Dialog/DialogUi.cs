@@ -115,7 +115,10 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
         _mainWindow.OnKeyUp += SelectResponseByKey;
 
         // This renders the NPC's dialog lines
-        _dialogLinesContainer = new WidgetContainer(14, 0, ContentWidth, 0);
+        _dialogLinesContainer = new WidgetContainer
+        {
+            X = 14, Y = 0, Width = Dimension.Pixels(ContentWidth)            
+        };
         _dialogLinesContainer.OnBeforeRender += RenderDialogLines;
         _mainWindow.Add(_dialogLinesContainer);
 

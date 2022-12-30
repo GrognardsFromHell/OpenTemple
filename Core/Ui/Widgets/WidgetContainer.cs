@@ -36,13 +36,8 @@ public class WidgetContainer : WidgetBase
         // Containers are usually empty and should be click through where there is no content
         HitTesting = HitTestingMode.Content;
     }
-
-    [Obsolete]
-    public WidgetContainer(float x, float y, float width, float height) : this(new RectangleF(x, y, width, height))
-    {
-    }
-
-    public WidgetContainer(RectangleF rect)
+    
+    public WidgetContainer(RectangleF rect, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = -1) : this(filePath, lineNumber)
     {
         Pos = rect.Location;
         PixelSize = rect.Size;

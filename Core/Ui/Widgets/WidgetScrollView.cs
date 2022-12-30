@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using OpenTemple.Core.Ui.Events;
 
 namespace OpenTemple.Core.Ui.Widgets;
@@ -51,6 +52,8 @@ public class WidgetScrollView : WidgetContainer
         InvalidateLayout();
     }
 
+    public SizeF InnerSize => new(GetInnerWidth(), GetInnerHeight());
+    
     public float GetInnerWidth()
     {
         return MathF.Max(0, PaddingArea.Width - _scrollBar.BorderArea.Width - 2 * ContainerPadding);

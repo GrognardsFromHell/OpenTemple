@@ -32,7 +32,7 @@ public class LootingSlotWidget : WidgetContainer
 
     private readonly ItemSlotBehavior _behavior;
 
-    public LootingSlotWidget(int index, Point position) : base(position.X, position.Y, SlotSize.Width, SlotSize.Height)
+    public LootingSlotWidget(int index, Point position) : base(new RectangleF(position, SlotSize))
     {
         Index = index;
         Reset();

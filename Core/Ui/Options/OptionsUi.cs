@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -246,7 +247,11 @@ public class OptionsUi
 
             var option = page.Options[index];
             // Create a separate container for each option so that layouting inside of that is easier
-            var optionContainer = new WidgetContainer(0, y, 448, OptionHeight);
+            var optionContainer = new WidgetContainer
+            {
+                Y = y,
+                PixelSize = new SizeF(448, OptionHeight)
+            };
             y += OptionHeight + OptionPadding;
 
             var text = new WidgetText(option.Label, "options-label");

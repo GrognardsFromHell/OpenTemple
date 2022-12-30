@@ -120,12 +120,13 @@ public class TextLayouter : IDisposable
 
         if (style.flags.HasFlag(TigTextStyleFlag.Border))
         {
-            var topLeft = new Vector2(left - 1, top - 1);
-            var bottomRight = new Vector2(right + 1, bottom + 1);
-
             _shapeRenderer.DrawRectangleOutline(
-                topLeft,
-                bottomRight,
+                RectangleF.FromLTRB(
+                    left - 1,
+                    top - 1,
+                    right + 1,
+                    bottom + 1
+                ),
                 PackedLinearColorA.Black
             );
         }
@@ -624,5 +625,4 @@ public class TextLayouter : IDisposable
 
         return lines;
     }
-
 }

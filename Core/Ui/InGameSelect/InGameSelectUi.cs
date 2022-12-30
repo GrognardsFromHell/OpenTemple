@@ -169,8 +169,11 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     [TempleDllLocation(0x101387c0)]
     private void InitConfirmSelectionButton()
     {
-        _confirmSelectionButtonContainer = new WidgetContainer(0, 0, 30, 30);
-        _confirmSelectionButtonContainer.ZIndex = 999999;
+        _confirmSelectionButtonContainer = new WidgetContainer
+        {
+            PixelSize = new SizeF(30, 30),
+            ZIndex = 999999
+        };
 
         var confirmSelectionButton = new WidgetButton(new Rectangle(0, 0, 30, 30));
         confirmSelectionButton.SetStyle(new WidgetButtonStyle
@@ -443,8 +446,12 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
         if (uiIntgameBoxSelectOn)
         {
             Tig.ShapeRenderer2d.DrawRectangleOutline(
-                uiIntgameBoxSelectUL,
-                uiIntgameBoxSelectBR,
+                RectangleF.FromLTRB(
+                    uiIntgameBoxSelectUL.X,
+                    uiIntgameBoxSelectUL.Y,
+                    uiIntgameBoxSelectBR.X,
+                    uiIntgameBoxSelectBR.Y
+                ),
                 _boxSelectColor
             );
         }
@@ -1102,7 +1109,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
     {
         ActivePicker?.Behavior.CancelPicker();
     }
-    
+
     [TempleDllLocation(0x101375e0)]
     [TemplePlusLocation("ui_picker.cpp:144")]
     [TempleDllLocation(0x10135f00)]
@@ -1116,16 +1123,17 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
                 if (picker != null)
                 {
                     e.StopImmediatePropagation();
-                
+
                     // update x/y position
                     picker.MouseX = (int) e.X;
                     picker.MouseY = (int) e.Y;
-                
+
                     var pickerSpec = picker.Behavior;
                     pickerHandler(pickerSpec, e);
                 }
             };
         }
+
         WidgetBase.EventHandler<KeyboardEvent> MakeKeyHandler(Action<PickerBehavior, KeyboardEvent> pickerHandler)
         {
             return e =>
@@ -1134,7 +1142,7 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
                 if (picker != null)
                 {
                     e.StopImmediatePropagation();
-                
+
                     var pickerSpec = picker.Behavior;
                     pickerHandler(pickerSpec, e);
                 }
@@ -1171,22 +1179,10 @@ public class InGameSelectUi : IResetAwareSystem, IDisposable
                     break;
             }
         });
-        viewport.OnMouseMove += MakeHandler((behavior, e) =>
-        {
-            behavior.MouseMoved(viewport, e);
-        });
-        viewport.OnMouseWheel += MakeHandler((behavior, e) =>
-        {
-            behavior.MouseWheelScrolled(viewport, e);
-        });
-        viewport.OnKeyDown += MakeKeyHandler((behavior, e) =>
-        {
-            behavior.KeyDown(viewport, e);
-        });
-        viewport.OnKeyUp += MakeKeyHandler((behavior, e) =>
-        {
-            behavior.KeyUp(viewport, e);
-        });
+        viewport.OnMouseMove += MakeHandler((behavior, e) => { behavior.MouseMoved(viewport, e); });
+        viewport.OnMouseWheel += MakeHandler((behavior, e) => { behavior.MouseWheelScrolled(viewport, e); });
+        viewport.OnKeyDown += MakeKeyHandler((behavior, e) => { behavior.KeyDown(viewport, e); });
+        viewport.OnKeyUp += MakeKeyHandler((behavior, e) => { behavior.KeyUp(viewport, e); });
     }
 }
 

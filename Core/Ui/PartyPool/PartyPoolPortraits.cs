@@ -34,7 +34,7 @@ internal class PartyPoolPortraits
 
     public PartyPoolPortraits()
     {
-        Container = new WidgetContainer(0, 0, 0, 0);
+        Container = new WidgetContainer();
 
         // Create as many portraits as the maximum number of players in the party
         _portraits = new PartyPoolPortrait[Globals.Config.MaxPCs];

@@ -1,3 +1,4 @@
+using System.Drawing;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Ui.FlowModel;
 using OpenTemple.Core.Ui.Widgets;
@@ -6,22 +7,22 @@ namespace OpenTemple.Core.Ui.CharSheet.HelpInventory;
 
 public class CharSheetHelpUi
 {
-    private WidgetScrollView _scrollView;
+    private readonly WidgetScrollView _scrollView;
 
-    private WidgetContainer _textContainer;
-
-    private WidgetText _textLabel;
+    private readonly WidgetText _textLabel;
 
     public CharSheetHelpUi()
     {
         var widgetDoc = WidgetDoc.Load("ui/char_help.json");
         _scrollView = (WidgetScrollView) widgetDoc.TakeRootWidget();
 
-        _textContainer = new WidgetContainer(0, 0,
-            _scrollView.GetInnerWidth(), _scrollView.GetInnerHeight());
+        var textContainer = new WidgetContainer
+        {
+            PixelSize = _scrollView.InnerSize
+        };
         _textLabel = new WidgetText();
-        _textContainer.AddContent(_textLabel);
-        _scrollView.Add(_textContainer);
+        textContainer.AddContent(_textLabel);
+        _scrollView.Add(textContainer);
         _scrollView.AddStyle("char-help-text");
     }
 

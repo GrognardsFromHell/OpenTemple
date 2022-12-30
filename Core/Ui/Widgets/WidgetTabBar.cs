@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
@@ -219,7 +220,7 @@ public class WidgetTabButton : WidgetButtonBase
             return;
         }
         
-        Content.Clear();
+        ClearContent();
         if (Active)
         {
             AddContent(_selectedLeft);

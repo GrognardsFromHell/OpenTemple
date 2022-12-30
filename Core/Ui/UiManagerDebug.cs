@@ -6,7 +6,6 @@ using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Systems.AI;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;
@@ -291,6 +290,8 @@ public class UiManagerDebug
             var layoutBox = widget.LayoutBox;
             ImGui.Text("Layout: " + layoutBox);
 
+            RenderCollapsibleContentList(widget);
+
             if (widget is WidgetContainer container)
             {
                 foreach (var child in container.Children)
@@ -314,6 +315,24 @@ public class UiManagerDebug
         }
 
         ImGui.PopID();
+    }
+
+    private void RenderCollapsibleContentList(WidgetBase widget)
+    {
+        if (widget.Content.Count == 0)
+        {
+            return;
+        }
+
+        if (ImGui.TreeNodeEx($"Content"))
+        {
+            foreach (var content in widget.Content)
+            {
+                var bounds = content.GetBounds();
+                ImGui.Text($"{content} @ {bounds}");
+            }
+            ImGui.TreePop();
+        }
     }
 
     private void RenderActiveHotkeyList(IReadOnlyList<ActiveActionHotkey> activeHotkeys)

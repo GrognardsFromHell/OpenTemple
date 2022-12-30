@@ -37,7 +37,10 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     public string? Id { get; set; }
 
-    protected readonly List<WidgetContent> Content = new();
+    
+    private readonly List<WidgetContent> _content = new();
+    public IReadOnlyList<WidgetContent> Content => _content;
+
     private readonly List<ActionHotkeyRegistration> _actionHotkeys = new();
     private readonly Dictionary<Hotkey, HeldHotkeyState> _heldHotkeys = new();
     public IReadOnlyList<ActionHotkeyRegistration> ActionHotkeys => _actionHotkeys;
@@ -672,20 +675,20 @@ public partial class WidgetBase : Styleable, IDisposable
     public void AddContent(WidgetContent content)
     {
         content.Parent = this;
-        Content.Add(content);
+        _content.Add(content);
 
         NotifyLayoutChange(LayoutChangeFlag.Content);
     }
 
     public void RemoveContent(WidgetContent content)
     {
-        if (Content.Remove(content))
+        if (_content.Remove(content))
         {
             content.Parent = null;
             NotifyLayoutChange(LayoutChangeFlag.Content);
         }
     }
-
+    
     public void ClearContent()
     {
         foreach (var content in Content)
@@ -693,7 +696,7 @@ public partial class WidgetBase : Styleable, IDisposable
             content.Parent = null;
         }
 
-        Content.Clear();
+        _content.Clear();
         NotifyLayoutChange(LayoutChangeFlag.Content);
     }
 
