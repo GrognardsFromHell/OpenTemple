@@ -18,7 +18,6 @@ public class GameViewScrollingController
     private bool _grabMoving;
     private PointF _grabMoveRef;
     private PointF? _lastMousePos;
-    private bool _mouseHasMoved;
     public bool IsMouseScrolling { get; set; } = true;
 
     public GameViewScrollingController(WidgetContainer widget, IGameViewport viewport)
@@ -60,8 +59,6 @@ public class GameViewScrollingController
         {
             return false;
         }
-
-        _mouseHasMoved = true;
 
         var dx = pos.X - _grabMoveRef.X;
         var dy = pos.Y - _grabMoveRef.Y;
@@ -136,7 +133,7 @@ public class GameViewScrollingController
         }
 
         var config = Globals.Config.Window;
-        if (config.Windowed && Tig.Mouse.IsMouseOutsideWindow)
+        if (config.Windowed && _widget.UiManager?.ContainsMouse != true)
         {
             return;
         }

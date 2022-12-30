@@ -403,9 +403,11 @@ public class MainWindow : IMainWindow
 
                 break;
             case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+                Logger.Debug("Main window gained mouse focus.");
                 HandleMouseFocusEvent(true);
                 break;
             case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+                Logger.Debug("Main window lost mouse focus.");
                 HandleMouseFocusEvent(false);
                 break;
             case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:

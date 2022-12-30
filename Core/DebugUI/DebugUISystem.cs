@@ -17,7 +17,7 @@ namespace OpenTemple.Core.DebugUI;
 public class DebugUiSystem : IDebugUI, IDisposable
 {
     public const int ReservedVerticalSpace = 30;
-    
+
     private readonly ImGuiBackend? _backend;
 
     private readonly ImGuiRenderer _renderer;
@@ -36,6 +36,8 @@ public class DebugUiSystem : IDebugUI, IDisposable
 
     // Used to keep the main menu visible even when the mouse is out of range, used if the mouse is on a submenu
     private bool _forceMainMenu;
+
+    private bool _sentMouseLeaveToUi;
 
     public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device)
     {
@@ -65,11 +67,20 @@ public class DebugUiSystem : IDebugUI, IDisposable
                 // Disable/Enable interaction with the main UI when the cursor is captured by imgui
                 if (_backend.HasMouseCapture)
                 {
-                    mainWindow.UiRoot?.MouseLeave();
+                    if (mainWindow.UiRoot is UiManager {ContainsMouse: true} uiManager)
+                    {
+                        uiManager.MouseLeave();
+                        _sentMouseLeaveToUi = true;
+                    }
                 }
                 else
                 {
-                    mainWindow.UiRoot?.MouseEnter();
+                    // Only send mouse-enter if we actually sent the leave here
+                    if (_sentMouseLeaveToUi)
+                    {
+                        mainWindow.UiRoot?.MouseEnter();
+                    }
+                    _sentMouseLeaveToUi = false;
                 }
 
                 return processed;
@@ -101,7 +112,7 @@ public class DebugUiSystem : IDebugUI, IDisposable
     public void NewFrame()
     {
         _backend?.NewFrame();
-        
+
         var size = _device.GetBackBufferSize();
         _renderer.NewFrame(size.Width, size.Height);
         ImGui.PushFont(_normalFont);

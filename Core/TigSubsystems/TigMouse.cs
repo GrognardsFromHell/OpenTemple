@@ -68,8 +68,6 @@ public class TigMouse
         CursorDrawCallbackArg = arg;
     }
 
-    public bool IsMouseOutsideWindow { get; set; } = true;
-
     [TempleDllLocation(0x101dd330, true)]
     public void DrawTooltip(PointF pos)
     {

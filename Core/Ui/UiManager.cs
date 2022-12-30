@@ -21,10 +21,7 @@ public class UiManager : IUiRoot
     private static readonly TimeSpan TooltipDelay = TimeSpan.FromMilliseconds(250);
 
     public RootWidget Root { get; }
-
-    // Is the mouse currently in the main window?
-    private bool _mouseOverUi;
-
+    
     //  Last reported mouse position
     private PointF _mousePos = PointF.Empty;
 
@@ -52,6 +49,12 @@ public class UiManager : IUiRoot
     /// Tracking information about the last click event to facilitate double click events.
     /// </summary>
     private ClickState? _clickState;
+    
+    /// <summary>
+    /// Indicates whether the mouse is currently over the user interface at all, or potentially
+    /// outside of the window.
+    /// </summary>
+    public bool ContainsMouse { get; private set; }
 
     public event Action<Size>? OnCanvasSizeChanged;
 
@@ -239,7 +242,7 @@ public class UiManager : IUiRoot
 
     private void UpdateCursor()
     {
-        if (!_mouseOverUi)
+        if (!ContainsMouse)
         {
             return;
         }
@@ -346,18 +349,16 @@ public class UiManager : IUiRoot
     public void MouseEnter()
     {
         ProcessPendingMouseCapture();
-        Tig.Mouse.IsMouseOutsideWindow = false;
-
-        _mouseOverUi = true;
+        
+        ContainsMouse = true;
         UpdateMouseOver();
     }
 
     public void MouseLeave()
     {
         ProcessPendingMouseCapture();
-        Tig.Mouse.IsMouseOutsideWindow = true;
 
-        _mouseOverUi = false;
+        ContainsMouse = false;
         UpdateMouseOver();
     }
 
@@ -383,7 +384,7 @@ public class UiManager : IUiRoot
         }
         else
         {
-            mouseOver = _mouseOverUi ? PickWidget(_mousePos.X, _mousePos.Y) : null;
+            mouseOver = ContainsMouse ? PickWidget(_mousePos.X, _mousePos.Y) : null;
         }
 
         var prevMouseOver = CurrentMouseOverWidget;
