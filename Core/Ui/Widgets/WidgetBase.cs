@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ImGuiNET;
@@ -218,6 +219,10 @@ public partial class WidgetBase : Styleable, IDisposable
         get => _width;
         set
         {
+            if (value.Value < 0 || !float.IsFinite(value.Value))
+            {
+                throw new ArgumentException("Must be positive/finite: " + value);
+            }
             if (_width != value)
             {
                 _width = value;
@@ -235,6 +240,10 @@ public partial class WidgetBase : Styleable, IDisposable
         get => _height;
         set
         {
+            if (value.Value < 0 || !float.IsFinite(value.Value))
+            {
+                throw new ArgumentException("Must be positive/finite: " + value);
+            }
             if (_height != value)
             {
                 _height = value;
@@ -409,7 +418,7 @@ public partial class WidgetBase : Styleable, IDisposable
     /// </summary>
     protected virtual void RenderDecorations(ComputedStyles style)
     {
-        var area = BorderArea;
+        var area = GetViewportBorderArea();
 
         if (style.BackgroundColor.A > 0)
         {
@@ -417,6 +426,13 @@ public partial class WidgetBase : Styleable, IDisposable
                 area,
                 null,
                 style.BackgroundColor
+            );
+        }
+        if (style.BorderWidth > 0 && style.BorderColor.A > 0)
+        {
+            Tig.ShapeRenderer2d.DrawRectangleOutline(
+                area,
+                style.BorderColor
             );
         }
     }
@@ -948,17 +964,6 @@ public partial class WidgetBase : Styleable, IDisposable
         public bool Held { get; set; }
     }
 
-    public IEnumerable<WidgetBase> EnumerateSelfAndAncestors()
-    {
-        var current = this;
-
-        while (current != null)
-        {
-            yield return current;
-            current = current.Parent;
-        }
-    }
-
     public ImmutableList<DeclaredInterval> Intervals { get; private set; } = ImmutableList<DeclaredInterval>.Empty;
 
     /// <summary>
@@ -1170,6 +1175,36 @@ public partial class WidgetBase : Styleable, IDisposable
         return current;
     }
 
+    public IEnumerable<WidgetBase> EnumerateSelfAndAncestors()
+    {
+        var current = this;
+
+        while (current != null)
+        {
+            yield return current;
+            current = current.Parent;
+        }
+    }
+    
+    public IEnumerable<WidgetBase> EnumerateDescendantsInTreeOrder()
+    {
+        var current = FirstChild;
+
+        while (current != null)
+        {
+            // We do this now since the child could be detached outside the enumerator
+            var next = current.NextSibling;
+            
+            yield return current;
+            foreach (var grandchild in current.EnumerateDescendantsInTreeOrder())
+            {
+                yield return grandchild;
+            }
+
+            current = next;
+        }
+    }
+    
     #endregion
 
     public override string ToString()
@@ -1293,6 +1328,11 @@ public partial class WidgetBase : Styleable, IDisposable
 
     public void SetLayout(RectangleF box)
     {
+        if (box.Width < 0 || box.Height < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(box), box, "Layout box size is negative");
+        }
+
         _layoutBox = box;
         HasValidLayout = true;
     }

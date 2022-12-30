@@ -53,12 +53,12 @@ public class WidgetScrollView : WidgetContainer
 
     public float GetInnerWidth()
     {
-        return PaddingArea.Width - _scrollBar.BorderArea.Width - 2 * ContainerPadding;
+        return MathF.Max(0, PaddingArea.Width - _scrollBar.BorderArea.Width - 2 * ContainerPadding);
     }
 
     public float GetInnerHeight()
     {
-        return PaddingArea.Height - 2 * ContainerPadding;
+        return MathF.Max(0, PaddingArea.Height - 2 * ContainerPadding);
     }
 
     protected override void HandleMouseWheel(WheelEvent e)

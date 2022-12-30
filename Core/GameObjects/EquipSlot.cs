@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace OpenTemple.Core.GameObjects;
@@ -48,4 +49,24 @@ public static class EquipSlots
         EquipSlot.BardicItem,
         EquipSlot.Lockpicks
     );
+
+    public static readonly IImmutableDictionary<string, EquipSlot> SlotsById = new Dictionary<string, EquipSlot>
+    {
+        {"helmet", EquipSlot.Helmet},
+        {"necklace", EquipSlot.Necklace},
+        {"gloves", EquipSlot.Gloves},
+        {"main_hand", EquipSlot.WeaponPrimary},
+        {"off_hand", EquipSlot.WeaponSecondary},
+        {"armor", EquipSlot.Armor},
+        {"ring1", EquipSlot.RingPrimary},
+        {"ring2", EquipSlot.RingSecondary},
+        {"boots", EquipSlot.Boots},
+        {"ammo", EquipSlot.Ammo},
+        {"cloak", EquipSlot.Cloak},
+        {"shield", EquipSlot.Shield},
+        {"robes", EquipSlot.Robes},
+        {"bracers", EquipSlot.Bracers},
+        {"bardic_instrument", EquipSlot.BardicItem},
+        {"lockpicks", EquipSlot.Lockpicks},
+    }.ToImmutableDictionary();
 }

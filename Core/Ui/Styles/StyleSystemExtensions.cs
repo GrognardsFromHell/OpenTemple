@@ -25,4 +25,28 @@ public static class StyleSystemExtensions
         styleDefinition.MarginRight = margin;
         styleDefinition.MarginBottom = margin;
     }
+    
+    public static void SetPadding(this StyleDefinition styleDefinition, float left, float top, float right, float bottom)
+    {
+        styleDefinition.PaddingLeft = left;
+        styleDefinition.PaddingTop = top;
+        styleDefinition.PaddingRight = right;
+        styleDefinition.PaddingBottom = bottom;
+    }
+
+    public static void SetPadding(this StyleDefinition styleDefinition, float horizontal, float vertical)
+    {
+        styleDefinition.PaddingLeft = horizontal;
+        styleDefinition.PaddingTop = vertical;
+        styleDefinition.PaddingRight = horizontal;
+        styleDefinition.PaddingBottom = vertical;
+    }
+
+    public static void SetPadding(this StyleDefinition styleDefinition, float padding)
+    {
+        styleDefinition.PaddingLeft = padding;
+        styleDefinition.PaddingTop = padding;
+        styleDefinition.PaddingRight = padding;
+        styleDefinition.PaddingBottom = padding;
+    }
 }

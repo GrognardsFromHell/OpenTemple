@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -15,8 +16,6 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait;
 
 public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
 {
-    private readonly EquipSlot _slot;
-
     private readonly PackedLinearColorA _slotHoverColor;
 
     private readonly PackedLinearColorA _slotPressedColor;
@@ -25,13 +24,15 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
 
     private readonly List<ResourceRef<ITexture>> _weaponSlotHighlights;
 
+    public EquipSlot Slot { get; }
+
     public GameObject? CurrentItem
     {
         get
         {
             if (Critter != null)
             {
-                return GameSystems.Item.ItemWornAt(Critter, _slot);
+                return GameSystems.Item.ItemWornAt(Critter, Slot);
             }
 
             return null;
@@ -47,26 +48,25 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         _weaponSlotHighlights.DisposeAndClear();
     }
 
-    public PaperdollSlotWidget(PortraitUiParams uiParams, EquipSlot slot)
+    public PaperdollSlotWidget(EquipSlot slot)
     {
-        _slot = slot;
+        Slot = slot;
 
-        _slotHoverColor = uiParams.InnerBorderColorHover;
-        _slotPressedColor = uiParams.InnerBorderColorPressed;
+        _slotHoverColor = PackedLinearColorA.FromHex("#0d6be3");
+        _slotPressedColor = PackedLinearColorA.FromHex("#ff1010");
 
         _weaponSlotHighlights = new List<ResourceRef<ITexture>>();
 
-        void LoadWeaponSlotHighlight(PortraitUiTexture texture)
+        void LoadWeaponSlotHighlight(string texturePath)
         {
-            var path = uiParams.TexturePaths[texture];
-            _weaponSlotHighlights.Add(Tig.Textures.Resolve(path, false));
+            _weaponSlotHighlights.Add(Tig.Textures.Resolve(texturePath, false));
         }
 
-        LoadWeaponSlotHighlight(PortraitUiTexture.WeaponHighlightBlue);
-        LoadWeaponSlotHighlight(PortraitUiTexture.WeaponHighlightGreen);
-        LoadWeaponSlotHighlight(PortraitUiTexture.WeaponHighlightPurple);
-        LoadWeaponSlotHighlight(PortraitUiTexture.WeaponHighlightRed);
-        LoadWeaponSlotHighlight(PortraitUiTexture.WeaponHighlightYellow);
+        LoadWeaponSlotHighlight("art/interface/char_ui/char_portrait_ui/WeaponHighlight_Blue.tga");
+        LoadWeaponSlotHighlight("art/interface/char_ui/char_portrait_ui/WeaponHighlight_Green.tga");
+        LoadWeaponSlotHighlight("art/interface/char_ui/char_portrait_ui/WeaponHighlight_Purple.tga");
+        LoadWeaponSlotHighlight("art/interface/char_ui/char_portrait_ui/WeaponHighlight_Red.tga");
+        LoadWeaponSlotHighlight("art/interface/char_ui/char_portrait_ui/WeaponHighlight_Yellow.tga");
 
         _quantityLabel = CreateQuantityLabel();
 
@@ -86,13 +86,13 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         {
             RenderItemInSlot(itemInSlot, PackedLinearColorA.White);
         }
-        else if (_slot == EquipSlot.WeaponSecondary)
+        else if (Slot == EquipSlot.WeaponSecondary)
         {
             RenderImplicitOffHandItem();
         }
 
         // Render the weapon-set color
-        if (Critter != null && Critter.IsPC() && GameSystems.Item.IsSlotPartOfWeaponSet(_slot))
+        if (Critter != null && Critter.IsPC() && GameSystems.Item.IsSlotPartOfWeaponSet(Slot))
         {
             RenderWeaponSetColor();
         }
@@ -141,7 +141,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         var arg = new Render2dArgs();
         arg.flags = Render2dFlag.VERTEXCOLORS | Render2dFlag.DISABLEBLENDING | Render2dFlag.BUFFERTEXTURE;
         // WeaponPrimary (flips the icon)
-        if (_slot == EquipSlot.WeaponPrimary)
+        if (Slot == EquipSlot.WeaponPrimary)
         {
             arg.flags |= Render2dFlag.FLIPH;
         }
@@ -149,7 +149,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         arg.customTexture = texture.Resource;
 
         arg.srcRect = new Rectangle(Point.Empty, texture.Resource.GetSize());
-        var destRect = GetContentArea();
+        var destRect = GetViewportContentArea();
         destRect.Inflate(-3, -3);
         arg.destRect = destRect;
         arg.vertexColors = new[] {itemTint, itemTint, itemTint, itemTint};
@@ -158,9 +158,9 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         RenderItemQuantity(item);
 
         // Render the mouse hover/mouse down rectangle
-        if (!GameSystems.Item.IsSlotPartOfWeaponSet(_slot))
+        if (!GameSystems.Item.IsSlotPartOfWeaponSet(Slot))
         {
-            var area = GetContentArea();
+            var area = GetViewportPaddingArea();
             area.Inflate(-1, -1);
 
             if (ContainsPress)
@@ -220,7 +220,7 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         arg.customTexture = _weaponSlotHighlights[idx].Resource;
         arg.flags = Render2dFlag.BUFFERTEXTURE;
 
-        switch (_slot)
+        switch (Slot)
         {
             case EquipSlot.WeaponSecondary:
                 arg.flags |= Render2dFlag.FLIPH;
@@ -261,5 +261,5 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
         }
     }
 
-    public int InventoryIndex => GameSystems.Item.InvIdxForSlot(_slot);
+    public int InventoryIndex => GameSystems.Item.InvIdxForSlot(Slot);
 }

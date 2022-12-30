@@ -50,6 +50,8 @@ public class PortraitUiParams
         foreach (var textureId in (PortraitUiTexture[]) Enum.GetValues(typeof(PortraitUiTexture)))
         {
             TexturePaths[textureId] = "art/interface/char_ui/char_portrait_ui/" + texturePaths[(int) textureId];
+
+            Console.WriteLine(textureId + " = " + TexturePaths[textureId]);
         }
 
         Rectangle LoadRectangle(int baseId, bool makeRelative = true)

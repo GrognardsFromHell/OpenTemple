@@ -15,6 +15,7 @@ using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet.Inventory;
 using OpenTemple.Core.Ui.CharSheet.Looting;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Portrait;
@@ -62,7 +63,7 @@ public class CharSheetPortraitUi : IDisposable
     {
         var textures = Tig.FS.ReadMesFile("art/interface/CHAR_UI/CHAR_PORTRAIT_UI/2_char_portrait_ui_textures.mes");
         var rules = Tig.FS.ReadMesFile("art/interface/CHAR_UI/CHAR_PORTRAIT_UI/2_char_portrait_ui.mes");
-        var uiParams = new PortraitUiParams( rules, textures);
+        var uiParams = new PortraitUiParams(rules, textures);
 
         Container = new WidgetContainer
         {
@@ -77,7 +78,7 @@ public class CharSheetPortraitUi : IDisposable
 
         CreateMiniatureContainer(uiParams);
 
-        CreatePaperdollContainer(uiParams);
+        CreatePaperdollContainer();
 
         Container.Add(new WidgetContainer(uiParams.TabNavWindow));
 
@@ -182,51 +183,41 @@ public class CharSheetPortraitUi : IDisposable
         Container.Add(_paperdollButton);
     }
 
-    /// <summary>
-    /// IDs of the containers we'll put the slot widgets in. Found in char_paperdoll.json
-    /// </summary>
-    private static readonly Dictionary<EquipSlot, string> SlotWidgetIds = new()
+    private void CreatePaperdollContainer()
     {
-        {EquipSlot.Gloves, "slot_gloves"},
-        {EquipSlot.WeaponPrimary, "slot_weapon_primary"},
-        {EquipSlot.Ammo, "slot_ammo"},
-        {EquipSlot.RingPrimary, "slot_ring_primary"},
-        {EquipSlot.Helmet, "slot_helmet"},
-        {EquipSlot.Armor, "slot_armor"},
-        {EquipSlot.Boots, "slot_boots"},
-        {EquipSlot.Necklace, "slot_necklace"},
-        {EquipSlot.Cloak, "slot_cloak"},
-        {EquipSlot.WeaponSecondary, "slot_weapon_secondary"},
-        {EquipSlot.Shield, "slot_shield"},
-        {EquipSlot.RingSecondary, "slot_ring_secondary"},
-        {EquipSlot.Robes, "slot_robes"},
-        {EquipSlot.Bracers, "slot_bracers"},
-        {EquipSlot.BardicItem, "slot_bardic_item"},
-        {EquipSlot.Lockpicks, "slot_lockpicks"}
-    };
+        var widgetDoc = WidgetDoc.Load("ui/char_paperdoll.json", (type, definition) =>
+        {
+            if (type == "slot")
+            {
+                var slotName = definition.GetStringProp("slot");
+                if (!EquipSlots.SlotsById.TryGetValue(slotName, out var slot))
+                {
+                    throw new ArgumentException("Invalid slot id: " + slotName);
+                }
 
-    private void CreatePaperdollContainer(PortraitUiParams uiParams)
-    {
-        var widgetDoc = WidgetDoc.Load("ui/char_paperdoll.json");
+                return new PaperdollSlotWidget(slot);
+            }
+
+            return null;
+        });
         _paperdollContainer = widgetDoc.GetRootContainer();
 
         // Create an equipslot widget for each slot that has a defined rectangle
-        _slotWidgets = SlotWidgetIds.ToDictionary(
-            kp => kp.Key,
-            kp =>
+        _slotWidgets = new Dictionary<EquipSlot, PaperdollSlotWidget>(EquipSlots.SlotsById.Count);
+        foreach (var descendant in _paperdollContainer.EnumerateDescendantsInTreeOrder())
+        {
+            if (descendant is PaperdollSlotWidget slotWidget)
             {
-                var parent = widgetDoc.GetContainer(kp.Value);
-                var slotWidget = new PaperdollSlotWidget(uiParams, kp.Key)
+                if (!_slotWidgets.TryAdd(slotWidget.Slot, slotWidget))
                 {
-                    PixelSize = parent.GetSize()
-                };
+                    throw new InvalidOperationException($"Two widgets in the paperdoll use the same slot: {slotWidget.Slot}");
+                }
+
                 new ItemSlotBehavior(slotWidget,
                     () => slotWidget.CurrentItem,
                     () => slotWidget.Critter);
-                parent.Add(slotWidget);
-                return slotWidget;
             }
-        );
+        }
 
         Container.Add(_paperdollContainer);
     }

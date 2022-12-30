@@ -11,6 +11,28 @@ public static class ErrorReporting
 
     public static bool DisableErrorReporting { get; set; }
 
+    public static void RunSafe(Action action)
+    {
+        if (Debugger.IsAttached)
+        {
+            action();
+        }
+        else
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                if (!ReportException(e))
+                {
+                    throw;
+                }
+            }
+        }
+    }
+    
     [MustUseReturnValue]
     public static bool ReportException(Exception e)
     {

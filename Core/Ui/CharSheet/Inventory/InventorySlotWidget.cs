@@ -6,6 +6,7 @@ using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Events;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Inventory;
@@ -26,8 +27,6 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
     private readonly WidgetText _quantityLabel;
 
-    private readonly WidgetRectangle _background;
-
     public GameObject? Inventory { get; set; }
 
     public int InventoryIndex { get; }
@@ -47,6 +46,7 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
     public InventorySlotWidget(int inventoryIdx)
     {
+        HitTesting = HitTestingMode.Area;
         InventoryIndex = inventoryIdx;
 
         _slotHoverColor = new PackedLinearColorA(13, 107, 227, 255);
@@ -54,10 +54,9 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
         _quantityLabel = CreateQuantityLabel();
 
-        _background = new WidgetRectangle();
-        _background.Brush = new Brush(SlotBackground);
-        _background.Pen = SlotNormalOutline;
-        AddContent(_background);
+        LocalStyles.BorderWidth = 1;
+        LocalStyles.BackgroundColor = SlotBackground;
+        LocalStyles.SetPadding(2);
     }
 
     public static WidgetText CreateQuantityLabel()
@@ -67,7 +66,7 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
 
     public override void Render(UiRenderContext context)
     {
-        _background.Pen = GetOutlineColor();
+        LocalStyles.BorderColor = GetOutlineColor();
 
         base.Render(context);
 
@@ -95,8 +94,7 @@ public class InventorySlotWidget : WidgetContainer, IItemDropTarget
         arg.customTexture = texture.Resource;
 
         arg.srcRect = new Rectangle(Point.Empty, texture.Resource.GetSize());
-        var destRect = GetContentArea();
-        destRect.Inflate(-3, -3);
+        var destRect = GetViewportContentArea();
         arg.destRect = destRect;
         arg.vertexColors = new[] {itemTint, itemTint, itemTint, itemTint};
         Tig.ShapeRenderer2d.DrawRectangle(ref arg);

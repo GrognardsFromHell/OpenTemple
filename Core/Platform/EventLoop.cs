@@ -22,41 +22,9 @@ public class EventLoop
 
     public void Tick()
     {
-        try
-        {
-            _keyboard.Update();
-        }
-        catch (Exception e)
-        {
-            if (!ErrorReporting.ReportException(e))
-            {
-                throw;
-            }
-        }
-
-        try
-        {
-            _mainWindow.ProcessEvents();
-        }
-        catch (Exception e)
-        {
-            if (!ErrorReporting.ReportException(e))
-            {
-                throw;
-            }
-        }
-
-        try
-        {
-            _sound.ProcessEvents();
-        }
-        catch (Exception e)
-        {
-            if (!ErrorReporting.ReportException(e))
-            {
-                throw;
-            }
-        }
+        ErrorReporting.RunSafe(_keyboard.Update);
+        ErrorReporting.RunSafe(_mainWindow.ProcessEvents);
+        ErrorReporting.RunSafe(_sound.ProcessEvents);
     }
 
     private void InvokeOnQuit()

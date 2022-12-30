@@ -61,7 +61,7 @@ public class UiManagerDebug
                     var contentBounds = content.GetBounds();
                     contentBounds.Offset(parentBounds.Location);
                     contentBounds = RectangleF.Intersect(contentBounds, parentBounds);
-                    
+
                     Tig.ShapeRenderer2d.DrawDashedRectangle(
                         contentBounds,
                         ContentOutlinePattern.Scale(Tig.MainWindow.UiScale)
@@ -81,13 +81,13 @@ public class UiManagerDebug
         Tig.ShapeRenderer2d.DrawDashedRectangle(
             paddingArea,
             WidgetOutlinePattern.Scale(Tig.MainWindow.UiScale)
-        );  
+        );
         if (borderArea != paddingArea)
         {
             Tig.ShapeRenderer2d.DrawDashedRectangle(
                 borderArea,
                 WidgetOutlinePattern.Scale(Tig.MainWindow.UiScale)
-            );  
+            );
         }
     }
 
@@ -121,7 +121,7 @@ public class UiManagerDebug
             {
                 _pickingWidget = true;
             }
-            
+
             ImGui.SameLine();
             var uiMousePos = GetMouseUiPos();
             ImGui.Text($"({uiMousePos.X}, {uiMousePos.Y})");
@@ -129,12 +129,7 @@ public class UiManagerDebug
             ImGui.Checkbox("Show Invisible", ref _showInvisible);
 
             var currentMouseOver = _uiManager.CurrentMouseOverWidget;
-            ImGui.Text("Mouse Over");
-            if (currentMouseOver != null)
-            {
-                ImGui.Text("Source URI: " + currentMouseOver.SourceURI);
-                ImGui.Text("ID: " + currentMouseOver.Id);
-            }
+            ImGui.Text("Mouse Over: " + (currentMouseOver != null ? currentMouseOver.ToString() : "-"));
 
             var mouseCapture = _uiManager.MouseCaptureWidget;
             if (mouseCapture != null)
@@ -244,32 +239,40 @@ public class UiManagerDebug
         }
 
         ImGuiTreeNodeFlags flags = default;
-        if (_uiManager.CurrentMouseOverWidget == widget)
-        {
-            flags = ImGuiTreeNodeFlags.Framed;
-        }
 
         if (widget.FirstChild == null)
         {
             flags |= ImGuiTreeNodeFlags.Leaf;
         }
 
-        if (!widget.Visible)
+        bool colorPushed = false;
+        if (_uiManager.CurrentMouseOverWidget == widget)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFFE880);
+            colorPushed = true;
+        }
+        else if (!widget.Visible)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, 0xFF999999);
+            colorPushed = true;
         }
 
-        var open = ImGui.TreeNodeEx($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.Id} ({widget.SourceURI}){zIndex}", flags);
-        if (!widget.Visible)
+        var open = ImGui.TreeNodeEx($"{widget}{zIndex}", flags);
+        if (colorPushed)
         {
             ImGui.PopStyleColor();
         }
-        
+
+        if (_pickedWidget == widget)
+        {
+            ImGui.SetScrollHereY();
+        }
+
         if (ImGui.IsItemHovered())
         {
             RenderWidgetOutline(widget);
-        }        
-        
+        }
+
         if (open)
         {
             if (ImGui.Button("Debug"))
@@ -287,7 +290,7 @@ public class UiManagerDebug
             ImGui.SameLine();
             var layoutBox = widget.LayoutBox;
             ImGui.Text("Layout: " + layoutBox);
-            
+
             if (widget is WidgetContainer container)
             {
                 foreach (var child in container.Children)
