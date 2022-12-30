@@ -92,7 +92,7 @@ public class StatsValue : WidgetButtonBase
             renderImage = _hoverImage;
         }
 
-        var paddingArea = GetViewportPaddingArea(true);
+        var paddingArea = GetViewportPaddingArea();
         renderImage?.Render(paddingArea.Location);
 
         var critter = UiSystems.CharSheet.CurrentCritter;
@@ -108,6 +108,6 @@ public class StatsValue : WidgetButtonBase
         );
 
         _label.SetBounds(labelArea);
-        _label.Render(PaddingArea.Location);
+        _label.Render(paddingArea.Location);
     }
 }

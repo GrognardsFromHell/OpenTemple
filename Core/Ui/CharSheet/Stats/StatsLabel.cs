@@ -1,6 +1,5 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;
@@ -89,11 +88,32 @@ public class StatsLabel : WidgetButtonBase
                 _hoverImage.GetPreferredSize().Height
             )
         );
+
+        var labelSize = _label.GetPreferredSize();
+        // Center horizontally and vertically within the content area
+        var labelArea = new RectangleF(
+            (PaddingArea.Width - labelSize.Width) / 2,
+            (PaddingArea.Height - labelSize.Height) / 2,
+            labelSize.Width,
+            labelSize.Height
+        );
+
+        // Special cases for certain labels
+        if (_stat == Stat.level)
+        {
+            labelArea.X += 2;
+        }
+        else if (_stat == Stat.initiative_bonus)
+        {
+            labelArea.X += 1;
+        }
+
+        _label.SetBounds(labelArea);
     }
 
     public override void Render(UiRenderContext context)
     {
-        WidgetImage renderImage = null;
+        WidgetImage? renderImage = null;
         if (ContainsPress)
         {
             renderImage = _downImage;
@@ -107,26 +127,6 @@ public class StatsLabel : WidgetButtonBase
 
         renderImage?.Render(paddingArea.Location);
 
-        var labelSize = _label.GetPreferredSize();
-        // Center horizontally and vertically within the content area
-        var labelArea = new RectangleF(
-            (paddingArea.Width - labelSize.Width) / 2,
-            (paddingArea.Height - labelSize.Height) / 2,
-            labelSize.Width,
-            labelSize.Height
-        );
-
-        // Special cases for certain labels
-        if (_stat == Stat.level)
-        {
-            labelArea.X = paddingArea.X + 2;
-        }
-        else if (_stat == Stat.initiative_bonus)
-        {
-            labelArea.X = paddingArea.X + 1;
-        }
-
-        _label.SetBounds(labelArea);
         _label.Render(paddingArea.Location);
     }
 }

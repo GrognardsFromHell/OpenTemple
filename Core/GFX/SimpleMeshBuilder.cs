@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.GFX;

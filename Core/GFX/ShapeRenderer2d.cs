@@ -220,7 +220,7 @@ public sealed class ShapeRenderer2d : IDisposable
         }
 
         var builder = SimpleMeshBuilder<Vertex2d>.Quads(100);
-        try
+        using (builder)
         {
             float z = 0;
 
@@ -231,15 +231,16 @@ public sealed class ShapeRenderer2d : IDisposable
             BuildVerticalDashedLine(ref builder, t, bounds.X, bounds.Y, bounds.Bottom, z, pattern, true);
             BuildVerticalDashedLine(ref builder, t, bounds.Right - pattern.Width, bounds.Y, bounds.Bottom, z, pattern, false);
 
-            using var mesh = builder.Build(_untexturedMaterial.VertexShader);
-            _device.SetMaterial(_untexturedMaterial);
-            _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
-            mesh.Render(_device);
+            BuildAndDrawMesh(ref builder, _untexturedMaterial);
         }
-        finally
-        {
-            builder.Dispose();
-        }
+    }
+
+    private void BuildAndDrawMesh(ref SimpleMeshBuilder<Vertex2d> builder, Material material)
+    {
+        using var mesh = builder.Build(material.VertexShader);
+        _device.SetMaterial(material);
+        _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
+        mesh.Render(_device);
     }
 
     private static void BuildHorizontalDashedLine(ref SimpleMeshBuilder<Vertex2d> builder,
@@ -476,20 +477,34 @@ public sealed class ShapeRenderer2d : IDisposable
         }
     }
 
+    /// <summary>
+    /// Draws a rectangle outline *inside* the given rectangle.
+    /// </summary>
     [TempleDllLocation(0x101d8b70)]
-    public void DrawRectangleOutline(RectangleF rectangle, PackedLinearColorA color)
+    public void DrawRectangleOutline(RectangleF rectangle, PackedLinearColorA color, float strokeWidth = 1f)
     {
-        var topLeft = new Vector2(rectangle.Left + 0.5f, rectangle.Top + 0.5f);
-        var topRight = new Vector2(rectangle.Right - 0.5f, rectangle.Top + 0.5f);
-        var bottomRight = new Vector2(rectangle.Right - 0.5f, rectangle.Bottom - 0.5f);
-        var bottomLeft = new Vector2(rectangle.Left + 0.5f, rectangle.Bottom - 0.5f);
+        var horHalfStroke = new Vector2(strokeWidth / 2, 0);
+        var verHalfStroke = new Vector2(0, strokeWidth / 2);
+        var topLeft = new Vector2(rectangle.Left, rectangle.Top);
+        var topRight = new Vector2(rectangle.Right, rectangle.Top);
+        var bottomRight = new Vector2(rectangle.Right, rectangle.Bottom);
+        var bottomLeft = new Vector2(rectangle.Left, rectangle.Bottom);
 
-        Span<Line2d> lines = stackalloc Line2d[4];
-        lines[0] = new Line2d(topLeft, topRight, color);
-        lines[1] = new Line2d(topRight, bottomRight, color);
-        lines[2] = new Line2d(bottomRight, bottomLeft, color);
-        lines[3] = new Line2d(bottomLeft, topLeft, color);
-        DrawLines(lines);
+        // Tessellate the lines
+        var builder = SimpleMeshBuilder<Vertex2d>.Quads(4);
+        using (builder)
+        {
+            // Top Edge
+            builder.TessellateLine(topLeft + verHalfStroke, topRight + verHalfStroke, strokeWidth, color);
+            // Bottom Edge
+            builder.TessellateLine(bottomLeft - verHalfStroke, bottomRight - verHalfStroke, strokeWidth, color);
+            // Left Edge (note the inset on top/bottom to not overlap with the top/bottom edges)
+            builder.TessellateLine(topLeft + horHalfStroke + verHalfStroke, bottomLeft + horHalfStroke - verHalfStroke, strokeWidth, color);
+            // Right Edge (note the inset on top/bottom to not overlap with the top/bottom edges)
+            builder.TessellateLine(topRight - horHalfStroke + verHalfStroke, bottomRight - horHalfStroke - verHalfStroke, strokeWidth, color);
+
+            BuildAndDrawMesh(ref builder, _untexturedMaterial);
+        }
     }
 
     [TempleDllLocation(0x101d8b70)]
@@ -948,10 +963,43 @@ public readonly record struct DashPattern(float Width, float OnLength, float Off
 
 public static class Vertex2dExtensions
 {
-    public static ref Vertex2d Vertex(ref this SimpleMeshBuilder<Vertex2d> builder, float x, float y, float z)
+    public static void TessellateLine(ref this SimpleMeshBuilder<Vertex2d> builder, Vector2 from, Vector2 to, float strokeWidth, PackedLinearColorA color)
+    {
+        Span<PackedLinearColorA> colors = stackalloc PackedLinearColorA[4]
+        {
+            color, color, color, color
+        };
+        TessellateLine(ref builder, from, to, strokeWidth, colors);
+    }
+
+    /// <summary>
+    /// Tessellates a line using "butt" caps. The line starts and ends (in direction from->to) immediately on the given coordinate
+    /// and extends 1/2 strokeWidth to the "left" and "right" (in relation to the from->to direction vector). 
+    /// </summary>
+    public static void TessellateLine(ref this SimpleMeshBuilder<Vertex2d> builder, Vector2 from, Vector2 to, float strokeWidth, scoped ReadOnlySpan<PackedLinearColorA> colors)
+    {
+        var dirNorm = Vector2.Normalize(to - from);
+        var strokeRight = new Vector2(-dirNorm.Y, dirNorm.X) * strokeWidth / 2;
+        var strokeLeft = -strokeRight;
+
+        // Vertices clock-wise
+        builder.Vertex(from + strokeLeft).Color(colors[0]);
+        builder.Vertex(to + strokeLeft).Color(colors[1]);
+        builder.Vertex(to + strokeRight).Color(colors[2]);
+        builder.Vertex(from + strokeRight).Color(colors[3]);
+    }
+
+    public static ref Vertex2d Vertex(ref this SimpleMeshBuilder<Vertex2d> builder, float x, float y, float z = 0)
     {
         ref var vertex = ref builder.Vertex();
         vertex.pos = new Vector4(x, y, z, 1);
+        return ref vertex;
+    }
+
+    public static ref Vertex2d Vertex(ref this SimpleMeshBuilder<Vertex2d> builder, Vector2 pos, float z = 0)
+    {
+        ref var vertex = ref builder.Vertex();
+        vertex.pos = new Vector4(pos.X, pos.Y, z, 1);
         return ref vertex;
     }
 
