@@ -331,8 +331,10 @@ public class GameView : WidgetContainer, IGameViewport
 
     protected override void HandleGetCursor(GetCursorEvent e)
     {
+        var localPos = e.GetLocalPos(this);
+        
         // Mouse-Scrolling
-        if (IsInteractive && _scrollingController.TryGetMouseScrollingDirection(e.Pos, out var direction))
+        if (IsInteractive && _scrollingController.TryGetMouseScrollingDirection(localPos, out var direction))
         {
             e.Cursor = direction switch
             {

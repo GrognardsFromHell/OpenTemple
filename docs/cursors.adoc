@@ -1,0 +1,30 @@
+﻿= Cursors
+
+Cursors now are referred to using an identifier rather than their texture filename.
+
+At startup, the game will read all files matching `art/interface/cursors/*.cursor.json` as cursors. The filename (without the `.cursor.json` suffix) is used as the cursor id.
+
+The cursor with ID `arrow` will be read from `art/interface/cursors/arrow.cursor.json`.
+
+A cursor file has the following format:
+
+[json]
+----
+{
+  "hotspotX": 1,
+  "hotspotY": 21,
+  "texturePath": "art/interface/cursors/scroll_down_left.png"
+}
+----
+
+== Hotspot
+
+The hotspot moves the texture relative to the mouse cursor when it is drawn. A hotspot of 0,0 means that the upper left corner of the texture is aligned with the position of mouse cursor. A hotspot of 1,21 (like in the example above) means the texture will be drawn at -1,-21 relative to the mouse position.
+
+== Default Cursors
+
+For convenience, the class `OpenTemple.Core.Ui.Cursors.CursorIds` contains constants for the default cursors.
+
+== Changing the Current Cursor
+
+The `GetCursor` event is dispatched to the widget under the mouse cursor to determine which cursor should be shown.
