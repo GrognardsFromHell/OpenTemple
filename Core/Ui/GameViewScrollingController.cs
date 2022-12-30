@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -26,9 +27,9 @@ public class GameViewScrollingController
         _viewport = viewport;
 
         widget.AddHeldHotkey(InGameHotKey.ScrollLeft, condition: () => viewport.IsInteractive);
-        widget.AddHeldHotkey(InGameHotKey.ScrollUp, condition:() => viewport.IsInteractive);
-        widget.AddHeldHotkey(InGameHotKey.ScrollRight, condition:() => viewport.IsInteractive);
-        widget.AddHeldHotkey(InGameHotKey.ScrollDown, condition:() => viewport.IsInteractive);
+        widget.AddHeldHotkey(InGameHotKey.ScrollUp, condition: () => viewport.IsInteractive);
+        widget.AddHeldHotkey(InGameHotKey.ScrollRight, condition: () => viewport.IsInteractive);
+        widget.AddHeldHotkey(InGameHotKey.ScrollDown, condition: () => viewport.IsInteractive);
     }
 
     public bool MiddleMouseDown(PointF pos)
@@ -134,13 +135,6 @@ public class GameViewScrollingController
             return;
         }
 
-        var mousePos = _lastMousePos.Value;
-
-        if (!IsMouseScrolling)
-        {
-            return;
-        }
-
         var config = Globals.Config.Window;
         if (config.Windowed && Tig.Mouse.IsMouseOutsideWindow)
         {
@@ -157,12 +151,40 @@ public class GameViewScrollingController
 
         _lastScrolling = time;
 
-        int scrollMarginV = 2;
-        int scrollMarginH = 3;
-        if (config.Windowed)
+        if (TryGetMouseScrollingDirection(_lastMousePos.Value, out var scrollDir))
         {
-            scrollMarginV = 7;
-            scrollMarginH = 7;
+            GameSystems.Scroll.SetScrollDirection(scrollDir);
+        }
+    }
+
+    /// <summary>
+    /// Tries to get the direction the view will be scrolled in when the mouse is at the given position.
+    /// Returns true if there is such a position and false if the mouse is not in a mouse-scrolling zone
+    /// or mouse scrolling is disabled.
+    /// </summary>
+    public bool TryGetMouseScrollingDirection(PointF mousePos, out ScrollDirection direction)
+    {
+        if (!IsMouseScrolling)
+        {
+            direction = default;
+            return false;
+        }
+        
+        int scrollMarginTop = 2;
+        int scrollMarginBottom = 2;
+        int scrollMarginLeft = 3;
+        int scrollMarginRight = 3;
+        if (Globals.Config.Window.Windowed)
+        {
+            scrollMarginTop = 7;
+            scrollMarginBottom = 7;
+            scrollMarginLeft = 7;
+            scrollMarginRight = 7;
+        }
+        if (Globals.Config.EnableDebugUI)
+        {
+            // The debug main menu overlaps the top scroll area
+            scrollMarginTop += DebugUiSystem.ReservedVerticalSpace;
         }
 
         // TODO This should be the size of the game view
@@ -170,36 +192,38 @@ public class GameViewScrollingController
         var renderWidth = size.Width;
         var renderHeight = size.Height;
 
-        ScrollDirection? scrollDir = null;
-        if (mousePos.X <= scrollMarginH) // scroll left
+        if (mousePos.X <= scrollMarginLeft) // scroll left
         {
-            if (mousePos.Y <= scrollMarginV) // scroll upper left
-                scrollDir = ScrollDirection.UP_LEFT;
-            else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll bottom left
-                scrollDir = ScrollDirection.DOWN_LEFT;
+            if (mousePos.Y <= scrollMarginTop) // scroll upper left
+                direction = ScrollDirection.UP_LEFT;
+            else if (mousePos.Y >= renderHeight - scrollMarginBottom) // scroll bottom left
+                direction = ScrollDirection.DOWN_LEFT;
             else
-                scrollDir = ScrollDirection.LEFT;
+                direction = ScrollDirection.LEFT;
         }
-        else if (mousePos.X >= renderWidth - scrollMarginH) // scroll right
+        else if (mousePos.X >= renderWidth - scrollMarginRight) // scroll right
         {
-            if (mousePos.Y <= scrollMarginV) // scroll top right
-                scrollDir = ScrollDirection.UP_RIGHT;
-            else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll bottom right
-                scrollDir = ScrollDirection.DOWN_RIGHT;
+            if (mousePos.Y <= scrollMarginTop) // scroll top right
+                direction = ScrollDirection.UP_RIGHT;
+            else if (mousePos.Y >= renderHeight - scrollMarginBottom) // scroll bottom right
+                direction = ScrollDirection.DOWN_RIGHT;
             else
-                scrollDir = ScrollDirection.RIGHT;
+                direction = ScrollDirection.RIGHT;
         }
-        else // scroll vertical only
+        else if (mousePos.Y <= scrollMarginTop) // scroll up
         {
-            if (mousePos.Y <= scrollMarginV) // scroll up
-                scrollDir = ScrollDirection.UP;
-            else if (mousePos.Y >= renderHeight - scrollMarginV) // scroll down
-                scrollDir = ScrollDirection.DOWN;
+            direction = ScrollDirection.UP;
+        }
+        else if (mousePos.Y >= renderHeight - scrollMarginBottom) // scroll down
+        {
+            direction = ScrollDirection.DOWN;
+        }
+        else
+        {
+            direction = default;
+            return false;
         }
 
-        if (scrollDir.HasValue)
-        {
-            GameSystems.Scroll.SetScrollDirection(scrollDir.Value);
-        }
+        return true;
     }
 }

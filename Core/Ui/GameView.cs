@@ -331,6 +331,24 @@ public class GameView : WidgetContainer, IGameViewport
 
     protected override void HandleGetCursor(GetCursorEvent e)
     {
+        // Mouse-Scrolling
+        if (IsInteractive && _scrollingController.TryGetMouseScrollingDirection(e.Pos, out var direction))
+        {
+            e.Cursor = direction switch
+            {
+                ScrollDirection.UP => CursorIds.ScrollUp,
+                ScrollDirection.UP_RIGHT => CursorIds.ScrollUpRight,
+                ScrollDirection.RIGHT => CursorIds.ScrollRight,
+                ScrollDirection.DOWN_RIGHT => CursorIds.ScrollDownRight,
+                ScrollDirection.DOWN => CursorIds.ScrollDown,
+                ScrollDirection.DOWN_LEFT => CursorIds.ScrollDownLeft,
+                ScrollDirection.LEFT => CursorIds.ScrollLeft,
+                ScrollDirection.UP_LEFT => CursorIds.ScrollUpLeft,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            return;
+        }
+        
         var actionCursor = GameSystems.D20.Actions.CurrentCursor;
         if (actionCursor != ActionCursor.Undefined)
         {

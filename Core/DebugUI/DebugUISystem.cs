@@ -16,6 +16,8 @@ namespace OpenTemple.Core.DebugUI;
 
 public class DebugUiSystem : IDebugUI, IDisposable
 {
+    public const int ReservedVerticalSpace = 30;
+    
     private readonly ImGuiBackend? _backend;
 
     private readonly ImGuiRenderer _renderer;
@@ -158,7 +160,7 @@ public class DebugUiSystem : IDebugUI, IDisposable
         height = 0;
 
         // Only render the main menu bar when the mouse is in the vicinity
-        if (ImGui.GetIO().MousePos.Y > 30 && !_forceMainMenu && !Tig.Console.IsVisible)
+        if (ImGui.GetIO().MousePos.Y > ReservedVerticalSpace && !_forceMainMenu && !Tig.Console.IsVisible)
         {
             return;
         }

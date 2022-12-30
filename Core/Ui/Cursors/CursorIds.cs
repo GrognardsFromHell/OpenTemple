@@ -32,4 +32,12 @@ public static class CursorIds
     public const string UseSpell = "use_spell";
     public const string UseSpellInvalid = "use_spell_invalid";
     public const string Zoom = "zoom";
+    public const string ScrollLeft = "scroll_left";
+    public const string ScrollRight = "scroll_right";
+    public const string ScrollUp = "scroll_up";
+    public const string ScrollDown = "scroll_down";
+    public const string ScrollUpLeft = "scroll_up_left";
+    public const string ScrollUpRight = "scroll_up_right";
+    public const string ScrollDownLeft = "scroll_down_left";
+    public const string ScrollDownRight = "scroll_down_right";
 }
