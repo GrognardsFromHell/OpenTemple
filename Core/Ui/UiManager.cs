@@ -21,7 +21,7 @@ public class UiManager : IUiRoot
     private static readonly TimeSpan TooltipDelay = TimeSpan.FromMilliseconds(250);
 
     public RootWidget Root { get; }
-    
+
     //  Last reported mouse position
     private PointF _mousePos = PointF.Empty;
 
@@ -49,7 +49,7 @@ public class UiManager : IUiRoot
     /// Tracking information about the last click event to facilitate double click events.
     /// </summary>
     private ClickState? _clickState;
-    
+
     /// <summary>
     /// Indicates whether the mouse is currently over the user interface at all, or potentially
     /// outside of the window.
@@ -349,7 +349,7 @@ public class UiManager : IUiRoot
     public void MouseEnter()
     {
         ProcessPendingMouseCapture();
-        
+
         ContainsMouse = true;
         UpdateMouseOver();
     }
@@ -775,7 +775,7 @@ public class UiManager : IUiRoot
         // Clear any held hotkeys matching the key
         foreach (var (_, state) in _heldHotkeys)
         {
-            if (state.Held && HotkeyMatchesEvent(state.Hotkey, e))
+            if (state.Held && HotkeyMatchesEvent(state.Hotkey, e, out _))
             {
                 state.Held = false;
                 state.Callback(false);
@@ -792,28 +792,51 @@ public class UiManager : IUiRoot
             return false;
         }
 
+        // Find the hotkey that matches with the last amount of extra modifier keys held vs its specification 
+        // I.e. if hotkeys "S" and "Ctrl+S" are defined, and "Ctrl+Alt+S" is pressed, "S" will have 2 extra
+        // modifiers and "Ctrl+S" will have 1. "Ctrl+S" will be triggered.
+        bool foundMatch = false;
+        ActiveActionHotkey matchingActionHotkey = default;
+        var matchingActiveHotkeyRank = 0; // LOWEST wins
+
         foreach (var activeHotkey in _actionHotkeys)
         {
-            // If any widget has the keyboard focus, only process hotkeys defined by that widget or one of its children
-            if (!e.InitialTarget.IsInclusiveAncestorOf(activeHotkey.Owner))
-            {
-                continue;
-            }
-
             // "Held" hotkeys are handled differently
             if (activeHotkey.Hotkey.Trigger == HotkeyTrigger.Held)
             {
                 continue;
             }
 
-            if (!HotkeyMatchesEvent(activeHotkey.Hotkey, e) || !activeHotkey.ActiveCondition())
+            // If any widget has the keyboard focus, only process hotkeys defined by that widget or one of its children
+            if (!e.InitialTarget.IsInclusiveAncestorOf(activeHotkey.Owner))
             {
                 continue;
             }
 
-            Logger.Debug("Triggering hotkey {0}", activeHotkey.Hotkey);
-            activeHotkey.Trigger();
-            return true; // Avoids triggering more than one
+            if (!activeHotkey.ActiveCondition())
+            {
+                continue; // The hotkey may match, but it currently is disabled
+            }
+
+            if (!HotkeyMatchesEvent(activeHotkey.Hotkey, e, out var extraModifiers))
+            {
+                continue;
+            }
+
+            if (!foundMatch || extraModifiers < matchingActiveHotkeyRank)
+            {
+                matchingActionHotkey = activeHotkey;
+                matchingActiveHotkeyRank = extraModifiers;
+                
+                foundMatch = true;
+            }
+        }
+
+        if (foundMatch)
+        {
+            Logger.Debug("Triggering hotkey {0}", matchingActionHotkey.Hotkey);
+            matchingActionHotkey.Trigger();
+            return true;
         }
 
         // Look for widgets reacting to "held hotkeys" if the hotkey was not handled by anything else
@@ -821,7 +844,7 @@ public class UiManager : IUiRoot
         {
             foreach (var (_, state) in _heldHotkeys)
             {
-                if (HotkeyMatchesEvent(state.Hotkey, e))
+                if (HotkeyMatchesEvent(state.Hotkey, e, out _))
                 {
                     state.Held = true;
                     state.Callback(true);
@@ -833,8 +856,9 @@ public class UiManager : IUiRoot
         return false;
     }
 
-    private static bool HotkeyMatchesEvent(Hotkey hotkey, KeyboardEvent e)
+    private static bool HotkeyMatchesEvent(Hotkey hotkey, KeyboardEvent e, out int additionalModifiers)
     {
+        additionalModifiers = 0;
         switch (hotkey.Trigger)
         {
             case HotkeyTrigger.Held:
@@ -870,7 +894,7 @@ public class UiManager : IUiRoot
                 throw new ArgumentOutOfRangeException();
         }
 
-        return hotkey.Matches(e.VirtualKey, e.PhysicalKey, e.IsAltHeld, e.IsShiftHeld, e.IsCtrlHeld, e.IsMetaHeld);
+        return hotkey.Matches(e.VirtualKey, e.PhysicalKey, e.HeldModifiers, out additionalModifiers);
     }
 
     private static KeyboardEvent CreateKeyboardEvent(UiEventType type, WidgetBase target, SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier modifiers, bool repeat)
@@ -1040,14 +1064,14 @@ public class UiManager : IUiRoot
         _mouseOverInvalid = false;
         UpdateMouseOver();
     }
-    
+
     public void EnsureLayoutUpdated(WidgetBase? requestedBy = null)
     {
         if (LayoutInProgress)
         {
             throw new ArgumentException("The layout is already being updated! Update requested by: " + requestedBy);
         }
-        
+
         if (!_layoutInvalid)
         {
             return;

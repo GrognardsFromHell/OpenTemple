@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Drawing;
 using System.Linq;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO.MapMarkers;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Location;

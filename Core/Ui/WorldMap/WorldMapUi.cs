@@ -9,6 +9,7 @@ using System.Numerics;
 using JetBrains.Annotations;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.IO.WorldMapPaths;

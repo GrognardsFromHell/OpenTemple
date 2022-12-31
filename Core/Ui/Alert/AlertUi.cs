@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.TigSubsystems;

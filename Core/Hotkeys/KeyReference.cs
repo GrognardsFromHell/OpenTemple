@@ -40,7 +40,7 @@ public readonly struct KeyReference
     public KeyModifier Modifiers { get; init; }
 
     public string Text => ToString();
-    
+
     [Pure]
     public bool Matches(SDL_Keycode virtualKey, SDL_Scancode physicalKey, bool altHeld, bool shiftHeld, bool ctrlHeld, bool metaHeld)
     {
@@ -48,7 +48,7 @@ public readonly struct KeyReference
         {
             return false;
         }
-        
+
         if (PhysicalKey != default && physicalKey != PhysicalKey)
         {
             return false;
@@ -76,7 +76,23 @@ public readonly struct KeyReference
 
         return true;
     }
-    
+
+    [Pure]
+    public bool Matches(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier heldModifiers)
+    {
+        if (VirtualKey != default && virtualKey != VirtualKey)
+        {
+            return false;
+        }
+
+        if (PhysicalKey != default && physicalKey != PhysicalKey)
+        {
+            return false;
+        }
+
+        return (heldModifiers & Modifiers) == Modifiers;
+    }
+
     public bool Equals(KeyReference other)
     {
         return PhysicalKey == other.PhysicalKey && VirtualKey == other.VirtualKey && Modifiers == other.Modifiers;
@@ -128,10 +144,12 @@ public readonly struct KeyReference
         {
             builder.Append("Ctrl+");
         }
+
         if ((Modifiers & KeyModifier.Shift) != 0)
         {
             builder.Append("Shift+");
         }
+
         if ((Modifiers & KeyModifier.Alt) != 0)
         {
             builder.Append("Alt+");
@@ -142,7 +160,7 @@ public readonly struct KeyReference
             builder.Append(SDL_GetScancodeName(PhysicalKey));
             builder.Append("+");
         }
-        
+
         if (VirtualKey != default)
         {
             builder.Append(SDL_GetKeyName(VirtualKey));

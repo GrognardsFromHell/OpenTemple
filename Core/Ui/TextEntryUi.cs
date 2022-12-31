@@ -1,4 +1,5 @@
 using System;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Ui.Widgets.TextField;
 

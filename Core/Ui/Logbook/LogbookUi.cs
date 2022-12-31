@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GameObjects;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;

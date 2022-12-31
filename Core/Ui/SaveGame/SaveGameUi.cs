@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Logging;

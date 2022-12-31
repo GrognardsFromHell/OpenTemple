@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Platform;

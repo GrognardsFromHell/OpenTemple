@@ -1,14 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using JetBrains.Annotations;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.Hotkeys;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20;
@@ -27,17 +23,39 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
 {
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-    private Dictionary<int, string> _translations;
-
     // Is set to the widget that we capture input for during drag-selection.
     private WidgetBase? _capturedInputWidget;
 
     private static readonly TimeSpan DoubleClickWindow = TimeSpan.FromMilliseconds(200);
 
+    [TempleDllLocation(0x10BD3B5C)]
+    private bool _normalLmbClicked;
+
+    [TempleDllLocation(0x10BD3B60)]
+    private bool _uiDragSelectOn;
+
+    [TempleDllLocation(0x10BD3AC8)]
+    private bool uiDragViewport;
+
+    [TempleDllLocation(0x10BD3AD8)]
+    private GameObject? mouseDragTgt;
+
+    [TempleDllLocation(0x10BD3AE0)]
+    private GameObject? qword_10BD3AE0;
+
+    [TempleDllLocation(0x10BD3ACC)]
+    private float uiDragSelectXMax = 0;
+
+    [TempleDllLocation(0x10BD3AD0)]
+    private float uiDragSelectYMax = 0;
+
+    private TimePoint _lastMoveCommandTime;
+
+    private PointF _lastMoveCommandLocation;
+
     [TempleDllLocation(0x10112e70)]
     public InGameUi()
     {
-        _translations = Tig.FS.ReadMesFile("mes/intgame.mes");
     }
 
     [TempleDllLocation(0x10112eb0)]
@@ -48,7 +66,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     [TempleDllLocation(0x10112f10)]
     public void ResetInput()
     {
-        uiDragSelectOn = false;
+        _uiDragSelectOn = false;
         _normalLmbClicked = false;
         ReleaseMouseCapture();
 
@@ -75,13 +93,12 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     public void Reset()
     {
     }
-
+    
     [TempleDllLocation(0x10114EF0)]
     public void HandleKeyDown(IGameViewport viewport, KeyboardEvent e)
     {
         if (UiSystems.Dialog.IsVisible)
         {
-            UiSystems.KeyManager.InputState = 0;
             UiSystems.KeyManager.HandleKeyUp(e);
         }
     }
@@ -91,7 +108,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     {
         if (UiSystems.Dialog.IsVisible)
         {
-            UiSystems.KeyManager.InputState = 0;
             UiSystems.KeyManager.HandleKeyUp(e);
         }
         else if (GameSystems.Combat.IsCombatActive())
@@ -108,7 +124,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     [TempleDllLocation(0x101132b0)]
     private void HandleKeyUpInCombat(IGameViewport viewport, KeyboardEvent e)
     {
-        UiSystems.KeyManager.InputState = 0;
         UiSystems.KeyManager.HandleKeyUp(e);
         if (e.IsPropagationStopped)
         {
@@ -191,7 +206,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             }
         }
 
-        UiSystems.KeyManager.InputState = 0;
         UiSystems.KeyManager.HandleKeyUp(e);
     }
 
@@ -223,12 +237,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         var loc = centerOn.GetLocation();
         GameSystems.Scroll.CenterOnSmooth(loc.locx, loc.locy);
     }
-
-    [TempleDllLocation(0x10BD3B5C)]
-    private bool _normalLmbClicked;
-
-    [TempleDllLocation(0x10BD3B60)]
-    private bool uiDragSelectOn;
 
     [TempleDllLocation(0x10113f30)]
     private GameObject? GetMouseTarget(IGameViewport viewport, float x, float y)
@@ -287,25 +295,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         GameSystems.Formation.PartySelectedFormationMoveToPosition(loc, walkFlag);
     }
 
-    [TempleDllLocation(0x10BD3AC8)]
-    private bool uiDragViewport;
-
-    [TempleDllLocation(0x10BD3AD8)]
-    private GameObject mouseDragTgt;
-
-    [TempleDllLocation(0x10BD3AE0)]
-    private GameObject qword_10BD3AE0;
-
-    [TempleDllLocation(0x10BD3ACC)]
-    private float uiDragSelectXMax = 0;
-
-    [TempleDllLocation(0x10BD3AD0)]
-    private float uiDragSelectYMax = 0;
-
-    private TimePoint _lastMoveCommandTime;
-
-    private PointF _lastMoveCommandLocation;
-
     [TempleDllLocation(0x10114af0)]
     private void HandleNormalLeftMouseReleased(IGameViewport viewport, MouseEvent e)
     {
@@ -319,7 +308,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         if (!_normalLmbClicked)
             return;
         _normalLmbClicked = false;
-        if (uiDragSelectOn)
+        if (_uiDragSelectOn)
         {
             if (!Tig.Keyboard.IsShiftPressed)
             {
@@ -332,7 +321,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             var bottom = Math.Max(uiDragSelectYMax, e.Y);
             var rect = RectangleF.FromLTRB(left, top, right, bottom);
             UiSystems.InGameSelect.SelectInRectangle(viewport, rect);
-            uiDragSelectOn = false;
+            _uiDragSelectOn = false;
             ReleaseMouseCapture();
             return;
         }
@@ -770,12 +759,12 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             {
                 if (GetEstimatedSelectionSize(e.X, e.Y) > 25)
                 {
-                    uiDragSelectOn = true;
+                    _uiDragSelectOn = true;
                     CaptureMouse(viewport);
                 }
             }
 
-            if (uiDragSelectOn)
+            if (_uiDragSelectOn)
             {
                 UiSystems.InGameSelect.FocusClear();
                 UiSystems.InGameSelect.SetFocusToRect(viewport, uiDragSelectXMax, uiDragSelectYMax, e.X, e.Y);

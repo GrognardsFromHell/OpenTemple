@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Platform;
@@ -15,12 +16,6 @@ namespace OpenTemple.Core.Ui
     {
         [TempleDllLocation(0x10BE8CF0)]
         private bool _modalIsOpen;
-
-        // TODO 1.0: This seems to never be set to anything but 0 in Vanilla
-        [field: TempleDllLocation(0x10be8cf4)]
-        [TempleDllLocation(0x101431e0)]
-        [TempleDllLocation(0x101431d0)]
-        public int InputState { get; set; } = 0;
 
         [TempleDllLocation(0x10be7018)]
         private readonly Dictionary<int, string> _translations;
@@ -39,13 +34,61 @@ namespace OpenTemple.Core.Ui
         {
             _modalIsOpen = false;
             _translations = Tig.FS.ReadMesFile("mes/ui_manager.mes");
+
+            var hotkeys = ImmutableList.CreateBuilder<HotkeyAction>();
+        }
+
+        public IEnumerable<HotkeyAction> EnumerateHotkeyActions()
+        {
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection1, () => TogglePartyMemberSelection(0), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection2, () => TogglePartyMemberSelection(1), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection3, () => TogglePartyMemberSelection(2), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection4, () => TogglePartyMemberSelection(3), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection5, () => TogglePartyMemberSelection(4), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection6, () => TogglePartyMemberSelection(5), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection7, () => TogglePartyMemberSelection(6), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection8, () => TogglePartyMemberSelection(7), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.TogglePartySelection9, () => TogglePartyMemberSelection(8), CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.AssignGroup1, () => AssignGroup(0), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.AssignGroup2, () => AssignGroup(1), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.AssignGroup3, () => AssignGroup(2), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.AssignGroup4, () => AssignGroup(3), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.AssignGroup5, () => AssignGroup(4), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.AssignGroup6, () => AssignGroup(5), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.AssignGroup7, () => AssignGroup(6), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.AssignGroup8, () => AssignGroup(7), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.AssignGroup9, () => AssignGroup(8), CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.RecallGroup1, () => SelectGroup(0), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.RecallGroup2, () => SelectGroup(1), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.RecallGroup3, () => SelectGroup(2), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.RecallGroup4, () => SelectGroup(3), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.RecallGroup5, () => SelectGroup(4), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.RecallGroup6, () => SelectGroup(5), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.RecallGroup7, () => SelectGroup(6), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.RecallGroup8, () => SelectGroup(7), CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.RecallGroup9, () => SelectGroup(8), CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.SelectAll, SelectAll, CanTriggerOutOfCombatHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.ToggleConsole, Tig.Console.ToggleVisible);
+        }
+
+        private bool CanTriggerOutOfCombatHotkeys()
+        {
+            return CanTriggerHotkeys() && !GameSystems.Combat.IsCombatActive();
+        }
+
+        private bool CanTriggerHotkeys()
+        {
+            return !uiManagerDoYouWantToQuitActive;
         }
 
         [TempleDllLocation(0x10143190)]
         public void Reset()
         {
             uiManagerDoYouWantToQuitActive = false;
-            InputState = 0;
         }
 
         [TempleDllLocation(0x10143d60)]
@@ -53,7 +96,7 @@ namespace OpenTemple.Core.Ui
         {
             Stub.TODO();
         }
-        
+
         [TempleDllLocation(0x10143d60)]
         public void HandleKeyUp(KeyboardEvent e)
         {
@@ -65,38 +108,8 @@ namespace OpenTemple.Core.Ui
             //
             // switch (action)
             // {
-            //     case InGameHotKey.TogglePartySelection1:
-            //     case InGameHotKey.TogglePartySelection2:
-            //     case InGameHotKey.TogglePartySelection3:
-            //     case InGameHotKey.TogglePartySelection4:
-            //     case InGameHotKey.TogglePartySelection5:
-            //     case InGameHotKey.TogglePartySelection6:
-            //     case InGameHotKey.TogglePartySelection7:
-            //     case InGameHotKey.TogglePartySelection8:
-            //         return TogglePartyMemberSelection(kbMsg, modifier, action);
-            //     case InGameHotKey.AssignGroup1:
-            //     case InGameHotKey.AssignGroup2:
-            //     case InGameHotKey.AssignGroup3:
-            //     case InGameHotKey.AssignGroup4:
-            //     case InGameHotKey.AssignGroup5:
-            //     case InGameHotKey.AssignGroup6:
-            //     case InGameHotKey.AssignGroup7:
-            //     case InGameHotKey.AssignGroup8:
-            //         return AssignGroup(kbMsg, modifier, action);
-            //     case InGameHotKey.RecallGroup1:
-            //     case InGameHotKey.RecallGroup2:
-            //     case InGameHotKey.RecallGroup3:
-            //     case InGameHotKey.RecallGroup4:
-            //     case InGameHotKey.RecallGroup5:
-            //     case InGameHotKey.RecallGroup6:
-            //     case InGameHotKey.RecallGroup7:
-            //     case InGameHotKey.RecallGroup8:
-            //         return SelectGroup(kbMsg, modifier, action);
-            //     case InGameHotKey.SelectAll:
-            //         return SelectAll(kbMsg, modifier, action);
-            //     case InGameHotKey.ToggleConsole:
-            //         Tig.Console.ToggleVisible();
-            //         return true;
+
+
             //     case InGameHotKey.CenterOnChar:
             //         return CenterScreenOnParty(kbMsg, modifier, action);
             //     case InGameHotKey.SelectChar1:
@@ -559,7 +572,7 @@ namespace OpenTemple.Core.Ui
                 index = 8;
             else
                 throw new ArgumentOutOfRangeException(nameof(action));
-            
+
             if (index >= GameSystems.Party.PartySize || GameSystems.Combat.IsCombatActive())
             {
                 return true;
@@ -591,32 +604,10 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10143310)]
-        private bool TogglePartyMemberSelection(Hotkey action)
+        private void TogglePartyMemberSelection(int index)
         {
             if (!uiManagerDoYouWantToQuitActive)
             {
-                int index;
-                if (action == InGameHotKey.TogglePartySelection1)
-                    index = 0;
-                else if (action == InGameHotKey.TogglePartySelection2)
-                    index = 1;
-                else if (action == InGameHotKey.TogglePartySelection3)
-                    index = 2;
-                else if (action == InGameHotKey.TogglePartySelection4)
-                    index = 3;
-                else if (action == InGameHotKey.TogglePartySelection5)
-                    index = 4;
-                else if (action == InGameHotKey.TogglePartySelection6)
-                    index = 5;
-                else if (action == InGameHotKey.TogglePartySelection7)
-                    index = 6;
-                else if (action == InGameHotKey.TogglePartySelection8)
-                    index = 7;
-                else if (action == InGameHotKey.TogglePartySelection9)
-                    index = 8;
-                else
-                    throw new ArgumentOutOfRangeException(nameof(action));
-                
                 if (index < GameSystems.Party.PartySize)
                 {
                     var partyMember = GameSystems.Party.GetPartyGroupMemberN(index);
@@ -633,89 +624,28 @@ namespace OpenTemple.Core.Ui
                     }
                 }
             }
-
-            return true;
         }
 
         [TempleDllLocation(0x10143380)]
-        private bool AssignGroup(Hotkey action)
+        private void AssignGroup(int index)
         {
-            if (!uiManagerDoYouWantToQuitActive)
-            {
-                int index;
-                if (action == InGameHotKey.AssignGroup1)
-                    index = 0;
-                else if (action == InGameHotKey.AssignGroup2)
-                    index = 1;
-                else if (action == InGameHotKey.AssignGroup3)
-                    index = 2;
-                else if (action == InGameHotKey.AssignGroup4)
-                    index = 3;
-                else if (action == InGameHotKey.AssignGroup5)
-                    index = 4;
-                else if (action == InGameHotKey.AssignGroup6)
-                    index = 5;
-                else if (action == InGameHotKey.AssignGroup7)
-                    index = 6;
-                else if (action == InGameHotKey.AssignGroup8)
-                    index = 7;
-                else if (action == InGameHotKey.AssignGroup9)
-                    index = 8;
-                else
-                    throw new ArgumentOutOfRangeException(nameof(action));
-                
-                GameSystems.Party.SaveSelection(index);
-            }
-
-            return true;
+            GameSystems.Party.SaveSelection(index);
         }
 
         [TempleDllLocation(0x101433b0)]
-        private bool SelectGroup(Hotkey action)
+        private void SelectGroup(int index)
         {
-            if (!uiManagerDoYouWantToQuitActive)
-            {
-                int index;
-                if (action == InGameHotKey.RecallGroup1)
-                    index = 0;
-                else if (action == InGameHotKey.RecallGroup2)
-                    index = 1;
-                else if (action == InGameHotKey.RecallGroup3)
-                    index = 2;
-                else if (action == InGameHotKey.RecallGroup4)
-                    index = 3;
-                else if (action == InGameHotKey.RecallGroup5)
-                    index = 4;
-                else if (action == InGameHotKey.RecallGroup6)
-                    index = 5;
-                else if (action == InGameHotKey.RecallGroup7)
-                    index = 6;
-                else if (action == InGameHotKey.RecallGroup8)
-                    index = 7;
-                else if (action == InGameHotKey.RecallGroup9)
-                    index = 8;
-                else
-                    throw new ArgumentOutOfRangeException(nameof(action));
-
-                GameSystems.Party.LoadSelection(index);
-            }
-
-            return true;
+            GameSystems.Party.LoadSelection(index);
         }
 
         [TempleDllLocation(0x101433e0)]
-        private bool SelectAll(Hotkey action)
+        private void SelectAll()
         {
-            if (!uiManagerDoYouWantToQuitActive && !GameSystems.Combat.IsCombatActive())
+            GameSystems.Party.ClearSelection();
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                GameSystems.Party.ClearSelection();
-                foreach (var partyMember in GameSystems.Party.PartyMembers)
-                {
-                    GameSystems.Party.AddToSelection(partyMember);
-                }
+                GameSystems.Party.AddToSelection(partyMember);
             }
-
-            return true;
         }
     }
 }

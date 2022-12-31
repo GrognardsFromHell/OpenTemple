@@ -455,6 +455,7 @@ public static class GameUiBridge
     [TempleDllLocation(0x10b3d78c)]
     public static bool IsRestDisabled()
     {
-        return UiSystems.KeyManager.InputState == 1;
+        // Previously checked the "input state" which was never set to anything but 0
+        return false;
     }
 }

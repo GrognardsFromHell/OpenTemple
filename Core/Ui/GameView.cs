@@ -95,6 +95,12 @@ public class GameView : WidgetContainer, IGameViewport
         UiSystems.TurnBased.AddEventListeners(this);
         UiSystems.InGameSelect.AddEventListeners(this);
         UiSystems.InGame.AddEventListeners(this);
+
+        foreach (var hotkeyAction in UiSystems.KeyManager.EnumerateHotkeyActions())
+        {
+            // Wrap the condition to also check whether the view is interactive
+            AddActionHotkey(hotkeyAction.Hotkey, hotkeyAction.Callback, () => IsInteractive && hotkeyAction.Condition());
+        }
     }
 
     private void OnConfigChange()
@@ -332,7 +338,7 @@ public class GameView : WidgetContainer, IGameViewport
     protected override void HandleGetCursor(GetCursorEvent e)
     {
         var localPos = e.GetLocalPos(this);
-        
+
         // Mouse-Scrolling
         if (IsInteractive && _scrollingController.TryGetMouseScrollingDirection(localPos, out var direction))
         {
@@ -350,7 +356,7 @@ public class GameView : WidgetContainer, IGameViewport
             };
             return;
         }
-        
+
         var actionCursor = GameSystems.D20.Actions.CurrentCursor;
         if (actionCursor != ActionCursor.Undefined)
         {

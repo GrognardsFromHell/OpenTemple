@@ -1,7 +1,6 @@
-﻿using OpenTemple.Core.Hotkeys;
-using SDL2;
+﻿using SDL2;
 
-namespace OpenTemple.Core.Ui;
+namespace OpenTemple.Core.Hotkeys;
 
 /// <summary>
 /// Default UI Hotkeys.
@@ -15,6 +14,7 @@ public static class UiHotkeys
     
     public static readonly Hotkey Confirm = Hotkey.Build("confirm")
         .Primary(SDL.SDL_Scancode.SDL_SCANCODE_RETURN)
+        .Secondary(SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER)
         .Build();
     
     public static readonly Hotkey Delete = Hotkey.Build("delete")

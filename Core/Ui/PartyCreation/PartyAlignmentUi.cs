@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;

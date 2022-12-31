@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using OpenTemple.Core.Platform;
 using static SDL2.SDL;
 
@@ -14,10 +15,24 @@ public class Hotkey
 
     public static HotkeyBuilder Build(string id) => new(id);
 
-    public bool Matches(SDL_Keycode virtualKey, SDL_Scancode physicalKey, bool altHeld, bool shiftHeld, bool ctrlHeld, bool metaHeld)
+    public bool Matches(SDL_Keycode virtualKey, SDL_Scancode physicalKey, KeyModifier heldModifiers, out int extraModifiers)
     {
-        return PrimaryKey != default && PrimaryKey.Matches(virtualKey, physicalKey, altHeld, shiftHeld, ctrlHeld, metaHeld)
-               || SecondaryKey != default && SecondaryKey.Matches(virtualKey, physicalKey, altHeld, shiftHeld, ctrlHeld, metaHeld);
+        var matched = false;
+        extraModifiers = int.MaxValue;
+
+        void MatchKey(KeyReference keyReference, ref int extraModifiers)
+        {
+            if (keyReference != default && keyReference.Matches(virtualKey, physicalKey, heldModifiers))
+            {
+                extraModifiers = Math.Min(extraModifiers, int.PopCount((int) (heldModifiers & ~PrimaryKey.Modifiers)));
+                matched = true;
+            }
+        }
+
+        MatchKey(PrimaryKey, ref extraModifiers);
+        MatchKey(SecondaryKey, ref extraModifiers);
+        
+        return matched;
     }
 
     public override string ToString()

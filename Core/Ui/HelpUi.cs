@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.RollHistory;

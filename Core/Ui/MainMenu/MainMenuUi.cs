@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Location;
