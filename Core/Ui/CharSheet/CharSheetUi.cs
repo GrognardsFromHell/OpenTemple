@@ -79,7 +79,7 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
     private CharUiParams _uiParams;
 
     [TempleDllLocation(0x10BE9968)]
-    private Func<GameObject, bool> _itemPickedCallback;
+    private Func<GameObject, bool>? _itemPickedCallback;
 
     [TempleDllLocation(0x10BE996C)]
     private Action _closeCallback; // TODO: Unused
@@ -371,7 +371,12 @@ public class CharSheetUi : IDisposable, IResetAwareSystem
 
     private void CreateExitButton()
     {
-        var exitButton = new WidgetButton(_uiParams.CharUiMainExitButton);
+        var exitButton = new WidgetButton
+        {
+            X = 608,
+            Y = 402,
+            PixelSize = new SizeF(55, 52)
+        };
         exitButton.SetStyle(new WidgetButtonStyle
         {
             DisabledImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonDisabled],

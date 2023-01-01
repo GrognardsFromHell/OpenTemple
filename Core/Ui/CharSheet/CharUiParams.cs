@@ -24,7 +24,6 @@ public class CharUiParams
             }
         }
 
-        LoadRectangle(out CharUiMainExitButton, 30, true);
         LoadRectangle(out CharUiSelectInventory0Button, 60, true);
         LoadRectangle(out CharUiSelectInventory1Button, 80, true);
         LoadRectangle(out CharUiSelectInventory2Button, 100, true);
@@ -42,9 +41,6 @@ public class CharUiParams
             TexturePaths[texture] = "art/interface/char_ui/" + textures[(int) texture];
         }
     }
-
-    [TempleDllLocation(0x10BE9428)]
-    public Rectangle CharUiMainExitButton;
 
     [TempleDllLocation(0x10BE9458)]
     public Rectangle CharUiSelectInventory0Button;
