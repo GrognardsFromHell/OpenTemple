@@ -29,12 +29,12 @@ public class TownmapFogTile
 
 public class MapFoggingSystem : IGameSystem, IResetAwareSystem
 {
-
     private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
     private readonly RenderingDevice _device;
 
-    [TempleDllLocation(0x10824468)] [TempleDllLocation(0x108EC4C8)]
+    [TempleDllLocation(0x10824468)]
+    [TempleDllLocation(0x108EC4C8)]
     public locXY _fogScreenBufferOrigin;
 
     [TempleDllLocation(0x10820458)]
@@ -50,7 +50,7 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
     /// Contains the combined fog information aligned with the current viewport.
     /// </summary>
     [TempleDllLocation(0x108A5498)]
-    internal byte[] _fogScreenBuffer;
+    internal byte[]? _fogScreenBuffer;
 
     // 8 entries, one for each controllable party member
     // The buffers themselves contain one byte per sub-tile within the creature's line of sight area
@@ -58,7 +58,7 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
     private readonly LineOfSightBuffer[] _lineOfSightBuffers;
 
     [TempleDllLocation(0x11E61560)]
-    private TownmapFogTile[,] _townmapFogData = new TownmapFogTile[2,2];
+    private TownmapFogTile[,] _townmapFogData = new TownmapFogTile[2, 2];
 
     /// <summary>
     /// This flag indicates that all party member line of sight needs to be recalculated.
@@ -69,8 +69,10 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
     /// <summary>
     /// The screen size that was used to calculate the size in tiles of the screen fog buffer.
     /// </summary>
-    [TempleDllLocation(0x108EC6A0)] [TempleDllLocation(0x108EC6A4)]
+    [TempleDllLocation(0x108EC6A0)]
+    [TempleDllLocation(0x108EC6A4)]
     public Size _viewportSize;
+
     public float _viewportZoom;
 
     // TODO This seems to be fully unused
@@ -222,9 +224,9 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
         _explorationData.Clear();
     }
 
-
     // This is lazily populated
-    [TempleDllLocation(0x108EC598)] [TempleDllLocation(0x108EC6B0)]
+    [TempleDllLocation(0x108EC598)]
+    [TempleDllLocation(0x108EC6B0)]
     private readonly Dictionary<SectorLoc, SectorExploration> _explorationData = new();
 
     [TempleDllLocation(0x10031ef0)]
@@ -692,7 +694,8 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
 
             var sourceIndex = srcRect.Left + srcRect.Top * LineOfSightBuffer.Dimension;
             var srcStride = LineOfSightBuffer.Dimension - srcRect.Width;
-            for (var i = 0; i < srcRect.Height; i++) {
+            for (var i = 0; i < srcRect.Height; i++)
+            {
                 // NOTE: Using SIMD here could probably greatly benefit this
                 for (var j = 0; j < srcRect.Width; j++)
                 {
@@ -716,6 +719,12 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
                 && loc.locx < _fogScreenBufferOrigin.locx + _fogScreenBufferWidthSubtiles / 3
                 && loc.locy < _fogScreenBufferOrigin.locy + _fogScreenBufferHeightSubtiles / 3)
             {
+                // Update the buffer synchronously if it's out of date
+                if (_lineOfSightInvalidated)
+                {
+                    PerformFogChecks();
+                }
+                
                 GetSubtileFromOffsets(offsetX, offsetY, out var subtileX, out var subtileY);
 
                 var bufferX = (loc.locx - _fogScreenBufferOrigin.locx) * 3 + subtileX;
