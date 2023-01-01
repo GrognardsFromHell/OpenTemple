@@ -1,4 +1,3 @@
-using OpenTemple.Core;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Tests.TestUtils;

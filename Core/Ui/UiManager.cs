@@ -1005,6 +1005,13 @@ public class UiManager : IUiRoot
         rect.Height = MathF.Round(bottom * scale) / scale - rect.Y;
     }
 
+    public void SnapToPhysicalPixelGrid(ref PointF point)
+    {
+        var scale = _mainWindow.UiScale;
+        point.X = MathF.Round(point.X * scale) / scale;
+        point.Y = MathF.Round(point.Y * scale) / scale;
+    }
+
     public void DrawTooltip(WidgetBase? widget, int x, int y)
     {
         if (widget == null)

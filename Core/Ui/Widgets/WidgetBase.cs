@@ -1360,15 +1360,16 @@ namespace OpenTemple.Core.Ui.Widgets
             // Apply pixel snapping
             if (UiManager != null)
             {
-                var dpp = UiManager.DevicePixelsPerUiPixel;
                 var rootBox = box;
                 if (Parent != null)
                 {
                     rootBox.Offset(Parent.GetViewportBorderArea().Location);
                 }
 
-                var deltaX = rootBox.X - MathF.Round(dpp * rootBox.X) / dpp;
-                var deltaY = rootBox.Y - MathF.Round(dpp * rootBox.Y) / dpp;
+                var pos = rootBox.Location;
+                UiManager?.SnapToPhysicalPixelGrid(ref pos);
+                var deltaX = rootBox.X - pos.X;
+                var deltaY = rootBox.Y - pos.Y;
                 box.Offset(deltaX, deltaY);
             }
 
