@@ -36,7 +36,7 @@ namespace OpenTemple.Core.Ui.Widgets
         /// </summary>
         public string? Id { get; set; }
 
-    
+
         private readonly List<WidgetContent> _content = new();
         public IReadOnlyList<WidgetContent> Content => _content;
 
@@ -49,7 +49,7 @@ namespace OpenTemple.Core.Ui.Widgets
         private bool _pressed;
         private bool _disabled;
         private FocusMode _focusMode = FocusMode.None;
-        
+
         /// <summary>
         /// Indicates that <see cref="LayoutBox"/> has been set by the layout engine and is valid.
         /// </summary>
@@ -225,6 +225,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 {
                     throw new ArgumentException("Must be positive/finite: " + value);
                 }
+
                 if (_width != value)
                 {
                     _width = value;
@@ -246,6 +247,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 {
                     throw new ArgumentException("Must be positive/finite: " + value);
                 }
+
                 if (_height != value)
                 {
                     _height = value;
@@ -430,6 +432,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     style.BackgroundColor
                 );
             }
+
             if (style.BorderWidth > 0 && style.BorderColor.A > 0)
             {
                 Tig.ShapeRenderer2d.DrawRectangleOutline(
@@ -687,7 +690,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 NotifyLayoutChange(LayoutChangeFlag.Content);
             }
         }
-    
+
         public void ClearContent()
         {
             foreach (var content in Content)
@@ -1206,7 +1209,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 current = current.Parent;
             }
         }
-    
+
         public IEnumerable<WidgetBase> EnumerateDescendantsInTreeOrder()
         {
             var current = FirstChild;
@@ -1215,7 +1218,7 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 // We do this now since the child could be detached outside the enumerator
                 var next = current.NextSibling;
-            
+
                 yield return current;
                 foreach (var grandchild in current.EnumerateDescendantsInTreeOrder())
                 {
@@ -1225,7 +1228,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 current = next;
             }
         }
-    
+
         #endregion
 
         public override string ToString()
@@ -1352,6 +1355,21 @@ namespace OpenTemple.Core.Ui.Widgets
             if (box.Width < 0 || box.Height < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(box), box, "Layout box size is negative");
+            }
+
+            // Apply pixel snapping
+            if (UiManager != null)
+            {
+                var dpp = UiManager.DevicePixelsPerUiPixel;
+                var rootBox = box;
+                if (Parent != null)
+                {
+                    rootBox.Offset(Parent.GetViewportBorderArea().Location);
+                }
+
+                var deltaX = rootBox.X - MathF.Round(dpp * rootBox.X) / dpp;
+                var deltaY = rootBox.Y - MathF.Round(dpp * rootBox.Y) / dpp;
+                box.Offset(deltaX, deltaY);
             }
 
             _layoutBox = box;
