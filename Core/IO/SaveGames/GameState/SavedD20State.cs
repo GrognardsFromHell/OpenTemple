@@ -807,6 +807,8 @@ public class SavedHotkeys
                 continue;
             }
 
+            writer.WriteInt32(keyIndex);
+
             // Originally it just read the radial menu entry, but that contains so much
             // stale data it's not even funny.
             // The hotkey system will search the entire radial menu and compare each entry
