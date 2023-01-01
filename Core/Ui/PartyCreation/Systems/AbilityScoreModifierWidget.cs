@@ -14,10 +14,9 @@ public class AbilityScoreModifierWidget : WidgetBase
 
     private readonly WidgetText _label;
 
-    public AbilityScoreModifierWidget(SizeF size, Func<int> assignedValueGetter)
+    public AbilityScoreModifierWidget(Func<int> assignedValueGetter)
     {
         _assignedValueGetter = assignedValueGetter;
-        PixelSize = size;
         AddContent(new WidgetRectangle
         {
             Pen = new PackedLinearColorA(0xFF43586E)

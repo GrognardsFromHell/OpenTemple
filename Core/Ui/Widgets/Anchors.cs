@@ -55,6 +55,26 @@ public sealed class Anchors
         _verticalCenter = default;
     }
 
+    public void FillSibling(WidgetBase sibling, float inset = 0)
+    {
+        _left.ToSibling(sibling, AnchorEdge.Left, inset);
+        _right.ToSibling(sibling, AnchorEdge.Right, inset);
+        _top.ToSibling(sibling, AnchorEdge.Top, inset);
+        _bottom.ToSibling(sibling, AnchorEdge.Bottom, inset);
+        _horizontalCenter = default;
+        _verticalCenter = default;
+    }
+
+    public void FillSibling(string siblingId, float inset = 0)
+    {
+        _left.ToSibling(siblingId, AnchorEdge.Left, inset);
+        _right.ToSibling(siblingId, AnchorEdge.Right, inset);
+        _top.ToSibling(siblingId, AnchorEdge.Top, inset);
+        _bottom.ToSibling(siblingId, AnchorEdge.Bottom, inset);
+        _horizontalCenter = default;
+        _verticalCenter = default;
+    }
+
     /// <summary>
     /// Tries to apply configured anchors to the owning widget.
     /// </summary>

@@ -89,7 +89,7 @@ internal class HairSystem : IChargenSystem
 
     private static WidgetBase CustomElementFactory(string type, JsonElement definition)
     {
-        if (type == "colorButton" || type == "styleButton")
+        if (type is "colorButton" or "styleButton")
         {
             return new HairColorButton();
         }

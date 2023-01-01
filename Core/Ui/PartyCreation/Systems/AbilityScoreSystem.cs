@@ -93,19 +93,17 @@ class AbilityScoreSystem : IChargenSystem
                 () => _pkt.abilityStats[abilityIndex],
                 value => _pkt.abilityStats[abilityIndex] = value,
                 true
-            )
-            {
-                PixelSize = assignedValContainer.GetSize()
-            };
+            );
+            assignedVal.Anchors.FillParent();
             assignedValContainer.Add(assignedVal);
             InstallAbilityScoreBehavior(assignedVal);
 
             // Displays the modifier for the assigned attribute
             var assignedModContainer = doc.GetContainer($"assigned-mod-{AttributeIdSuffixes[i]}");
             var assignedMod = new AbilityScoreModifierWidget(
-                assignedValContainer.GetSize(),
                 () => _pkt.abilityStats[abilityIndex]
             );
+            assignedMod.Anchors.FillParent();
             assignedModContainer.Add(assignedMod);
         }
 
@@ -120,10 +118,8 @@ class AbilityScoreSystem : IChargenSystem
                 () => _charGenRolledStats[index],
                 value => _charGenRolledStats[index] = value,
                 false
-            )
-            {
-                PixelSize = rolledStatContainer.GetSize()
-            };
+            );
+            rolledStatWidget.Anchors.FillParent();
             _charGenRolledStatsWidgets[i] = rolledStatWidget;
             rolledStatContainer.Add(rolledStatWidget);
             InstallAbilityScoreBehavior(rolledStatWidget);
@@ -162,7 +158,7 @@ class AbilityScoreSystem : IChargenSystem
                 var offset = e.GetLocalPos(widget);
                 offset = new PointF(-offset.X, -offset.Y);
                 _draggedAbilityScoreLabel.Text = widget.Value.ToString();
-                _draggedAbilityScoreLabel.SetBounds(new RectangleF(offset, widget.GetSize()));
+                _draggedAbilityScoreLabel.SetBounds(new RectangleF(offset, widget.LayoutSize));
                 widget.IsDragging = true;
 
                 // This will draw the ability score being dragged under the mouse cursor

@@ -86,6 +86,11 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
+        /// <summary>
+        /// The laid out size of the widget. Equivalent to the size of the border box. 
+        /// </summary>
+        public SizeF LayoutSize => LayoutBox.Size;
+
         private RectangleF _layoutBox;
 
         /// <summary>
@@ -267,6 +272,15 @@ namespace OpenTemple.Core.Ui.Widgets
         /// </summary>
         public SizeF PixelSize
         {
+            get
+            {
+                if (_width.Type != DimensionUnit.Pixels || _height.Type != DimensionUnit.Pixels)
+                {
+                    throw new InvalidOperationException("The widget does not have a fixed size");
+                }
+
+                return new SizeF(_width.Value, _height.Value);
+            }
             set
             {
                 var width = Dimension.Pixels(value.Width);
@@ -730,7 +744,6 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public RectangleF Rectangle
         {
-            get => new(Pos, GetSize());
             set
             {
                 Pos = value.Location;
@@ -740,15 +753,12 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public PointF Pos
         {
-            get => new(X, Y);
             set
             {
                 X = value.X;
                 Y = value.Y;
             }
         }
-
-        public SizeF GetSize() => BorderArea.Size;
 
         /// <summary>
         /// Gets the <see cref="PaddingArea"/> of this widget relative to the current viewport and optionally clipped
@@ -798,11 +808,6 @@ namespace OpenTemple.Core.Ui.Widgets
 
             foreach (var content in Content)
             {
-                if (!content.Visible)
-                {
-                    continue;
-                }
-
                 var contentBounds = contentArea;
                 // Shift according to the content item positioning
                 if (content.X != 0)
@@ -1054,9 +1059,9 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             if (Parent != null)
             {
-                var parentSize = Parent.GetSize();
-                X = (parentSize.Width - BorderArea.Width) / 2;
-                Y = (parentSize.Height - BorderArea.Height) / 2;
+                var parentSize = Parent.PaddingArea.Size;
+                X = (parentSize.Width - LayoutSize.Width) / 2;
+                Y = (parentSize.Height - LayoutSize.Height) / 2;
             }
         }
 

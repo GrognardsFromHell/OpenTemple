@@ -190,7 +190,8 @@ public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
             ScrollBarHeight = 333
         };
         var helpContainer = doc.GetContainer("helpContainer");
-        _helpScrollBox = new ScrollBox(new RectangleF(Point.Empty, helpContainer.Rectangle.Size), scrollBoxSettings);
+        _helpScrollBox = new ScrollBox(RectangleF.Empty, scrollBoxSettings);
+        _helpScrollBox.Anchors.FillParent();
         _helpScrollBox.SetHelpContent("TAG_CHARGEN_PARTY_POOL", includeTitle: true);
         _helpScrollBox.OnLinkClicked += GameSystems.Help.OpenLink;
         helpContainer.Add(_helpScrollBox);

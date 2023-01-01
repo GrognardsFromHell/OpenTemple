@@ -33,8 +33,8 @@ internal class DeitySystem : IChargenSystem
             var button = new WidgetButton(new Rectangle(
                 48 + 171 * (buttonIndex / 10),
                 25 + 21 * (buttonIndex % 10),
-                162,
-                12
+                164,
+                14
             ));
             button.SetStyle("deity-button");
             button.Text = GameSystems.Deity.GetName(deityId).ToUpper();

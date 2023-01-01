@@ -176,7 +176,7 @@ public class PCCreationUi : IDisposable
             _mainWindow.Add(system.Container);
 
             var stageButton = CreateStageButton(system);
-            stageButton.Pos = new PointF(y, 0);
+            stageButton.Pos = new PointF(0, y);
             y += stageButton.ComputePreferredBorderAreaSize().Height;
             stateButtonsContainer.Add(stageButton);
         }
@@ -186,7 +186,7 @@ public class PCCreationUi : IDisposable
 
         var modelPreviewContainer = doc.GetContainer("modelPreview");
         _modelPreview = new MiniatureWidget();
-        _modelPreview.PixelSize = modelPreviewContainer.GetSize();
+        _modelPreview.Anchors.FillParent();
         modelPreviewContainer.Add(_modelPreview);
     }
 

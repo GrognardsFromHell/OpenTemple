@@ -57,7 +57,7 @@ internal class HeightSystem : IChargenSystem
 
         _slider = new HeightSlider();
         WidgetContainer tempQualifier = doc.GetContainer("sliderContainer");
-        _slider.Pos = tempQualifier.Pos;
+        _slider.Pos = new PointF(tempQualifier.X, tempQualifier.Y);
         Container.Add(_slider);
         _slider.OnValueChanged += (newValue) => { UpdateModelScale(); };
     }

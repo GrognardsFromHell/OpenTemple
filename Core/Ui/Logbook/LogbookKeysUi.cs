@@ -107,10 +107,11 @@ public class LogbookKeysUi : IDisposable
         listCaption.Y = listContainer.Y - listCaption.GetPreferredSize().Height - 8;
         Container.AddContent(listCaption);
 
+        // TODO: Should just be a style border on the list container
         var listOutline = new WidgetRectangle();
         listOutline.X = listContainer.X;
         listOutline.Y = listContainer.Y;
-        listOutline.FixedSize = listContainer.GetSize();
+        listOutline.FixedSize = listContainer.PixelSize;
         listOutline.Pen = new PackedLinearColorA(0xFF909090);
         Container.AddContent(listOutline);
 
@@ -120,10 +121,11 @@ public class LogbookKeysUi : IDisposable
         detailsCaption.Y = _details.Container.Y - detailsCaption.GetPreferredSize().Height - 8;
         Container.AddContent(detailsCaption);
 
+        // TODO: Should just be a style border on the list container
         var detailsOutline = new WidgetRectangle();
         detailsOutline.X = _details.Container.X;
         detailsOutline.Y = _details.Container.Y;
-        detailsOutline.FixedSize = _details.Container.GetSize();
+        detailsOutline.FixedSize = _details.Container.PixelSize;
         detailsOutline.Pen = new PackedLinearColorA(0xFF909090);
         Container.AddContent(detailsOutline);
     }
