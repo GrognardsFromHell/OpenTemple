@@ -258,7 +258,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     public void TakeScreenshot(string path, Size size = default)
     {
-        throw new NotImplementedException();
+        _gameRenderer.TakeScreenshot(path, size.Width, size.Height);
     }
 
     public MapObjectRenderer GetMapObjectRenderer()

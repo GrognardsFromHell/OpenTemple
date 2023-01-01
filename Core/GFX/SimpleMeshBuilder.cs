@@ -116,7 +116,7 @@ public ref struct SimpleMeshBuilder<T> where T : unmanaged, IVertexFormat
         return ref _vertices![idx];
     }
 
-    public SimpleMesh Build(VertexShader shader)
+    public SimpleMesh Build(RenderingDevice device, VertexShader shader)
     {
         // Check for an unfinished mesh
         if (_vertexCount % VerticesPerPrimitive != 0)
@@ -130,10 +130,10 @@ public ref struct SimpleMeshBuilder<T> where T : unmanaged, IVertexFormat
         }
 
         var vertices = _vertices.AsSpan(0, _vertexCount);
-        using var vertexBuffer = Tig.RenderingDevice.CreateVertexBuffer<T>(vertices, debugName: "MeshBuilder");
+        using var vertexBuffer = device.CreateVertexBuffer<T>(vertices, debugName: "MeshBuilder");
         var indices = _indices.AsSpan(0, _indexCount);
-        using var indexBuffer = Tig.RenderingDevice.CreateIndexBuffer(indices);
-        using var bufferBinding = new BufferBinding(Tig.RenderingDevice, shader).Ref();
+        using var indexBuffer = device.CreateIndexBuffer(indices);
+        using var bufferBinding = new BufferBinding(device, shader).Ref();
         var builder = bufferBinding.Resource.AddBuffer<T>(vertexBuffer, 0);
         T.Describe(ref builder);
 

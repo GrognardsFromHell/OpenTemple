@@ -63,7 +63,7 @@ public class RenderingDevice : IDisposable
         }
     }
 
-    private int _drawDepth = 0;
+    private int _drawDepth;
 
     private readonly Factory1 _dxgiFactory;
 
@@ -88,15 +88,15 @@ public class RenderingDevice : IDisposable
     private readonly Buffer _psConstantBuffer;
 
     private readonly Dictionary<int, ResizeListener> _resizeListeners = new();
-    private int _resizeListenersKey = 0;
+    private int _resizeListenersKey;
 
     private readonly List<IResourceLifecycleListener> _resourcesListeners = new();
-    private bool _resourcesCreated = false;
+    private bool _resourcesCreated;
 
     private TimePoint _lastFrameStart = TimePoint.Now;
     private readonly TimePoint _deviceCreated = TimePoint.Now;
 
-    private int _usedSamplers = 0;
+    private int _usedSamplers;
 
     // Caches for created device states
     private readonly SamplerState[] _currentSamplerState = new SamplerState[4];
@@ -121,6 +121,8 @@ public class RenderingDevice : IDisposable
 
     // Text rendering (Direct2D integration)
     private readonly TextEngine _textEngine;
+
+    private readonly FullQuadRenderer _fullQuadRenderer;
 
     public RenderingDevice(IFileSystem fs, IMainWindow mainWindow, int adapterIdx = 0, bool debugDevice = false)
     {
@@ -182,7 +184,7 @@ public class RenderingDevice : IDisposable
         catch (SharpDXException e)
         {
             // DXGI_ERROR_SDK_COMPONENT_MISSING
-            if (debugDevice && unchecked((uint)e.ResultCode.Code) == 0x887A002D)
+            if (debugDevice && unchecked((uint) e.ResultCode.Code) == 0x887A002D)
             {
                 throw new GfxException("To use the D3D debugging feature, you need to " +
                                        "install the corresponding Windows SDK component.");
@@ -253,6 +255,8 @@ public class RenderingDevice : IDisposable
         mainWindow.Resized += size => ResizeBuffers();
         mainWindow.UiCanvasSizeChanged += () => UiCanvasSize = mainWindow.UiCanvasSize;
         UiCanvasSize = mainWindow.UiCanvasSize;
+
+        _fullQuadRenderer = new FullQuadRenderer(this);
     }
 
     public bool BeginDraw()
@@ -270,11 +274,7 @@ public class RenderingDevice : IDisposable
 
     public bool EndDraw()
     {
-        if (--_drawDepth > 0)
-        {
-            return true;
-        }
-
+        --_drawDepth;
         return true;
     }
 
@@ -735,10 +735,10 @@ public class RenderingDevice : IDisposable
         var hFactor = size.Width / _uiCanvasSize.Width;
         var vFactor = size.Height / _uiCanvasSize.Height;
 
-        var left = (int)(x * hFactor);
-        var top = (int)(y * vFactor);
-        var right = (int)MathF.Ceiling((x + width) * hFactor);
-        var bottom = (int)MathF.Ceiling((y + height) * vFactor);
+        var left = (int) (x * hFactor);
+        var top = (int) (y * vFactor);
+        var right = (int) MathF.Ceiling((x + width) * hFactor);
+        var bottom = (int) MathF.Ceiling((y + height) * vFactor);
 
         _context.Rasterizer.SetScissorRectangle(left, top, right, bottom);
 
@@ -1029,7 +1029,7 @@ public class RenderingDevice : IDisposable
         Buffer buffer;
         fixed (byte* dataPtr = data)
         {
-            buffer = new Buffer(Device, (IntPtr)dataPtr, bufferDesc);
+            buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
         }
 
         if (debugName != null)
@@ -1055,7 +1055,7 @@ public class RenderingDevice : IDisposable
         Buffer buffer;
         fixed (ushort* dataPtr = data)
         {
-            buffer = new Buffer(Device, (IntPtr)dataPtr, bufferDesc);
+            buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
         }
 
         if (debugName != null)
@@ -1081,7 +1081,7 @@ public class RenderingDevice : IDisposable
         Buffer buffer;
         fixed (int* dataPtr = data)
         {
-            buffer = new Buffer(Device, (IntPtr)dataPtr, bufferDesc);
+            buffer = new Buffer(Device, (IntPtr) dataPtr, bufferDesc);
         }
 
         if (debugName != null)
@@ -1219,7 +1219,7 @@ public class RenderingDevice : IDisposable
         // a non-MSAA texture like a normal texture
         if (texture.Type == TextureType.RenderTarget)
         {
-            var rt = (RenderTargetTexture)texture;
+            var rt = (RenderTargetTexture) texture;
 
             if (rt.IsMultiSampled)
             {
@@ -1415,7 +1415,7 @@ public class RenderingDevice : IDisposable
             var srv = new ShaderResourceView(Device, tmpTexture, srvDesc);
 
             // Create our own wrapper so we can use the standard rendering functions
-            var tmpSize = new Size((int)currentTargetDesc.Width, (int)currentTargetDesc.Height);
+            var tmpSize = new Size(currentTargetDesc.Width, currentTargetDesc.Height);
             var tmpTexWrapper = new DynamicTexture(this,
                 tmpTexture,
                 srv,
@@ -1428,9 +1428,8 @@ public class RenderingDevice : IDisposable
                 debugName: "StretchedReadBuffer");
 
             PushRenderTarget(stretchedRt.Resource, null);
-            var renderer = new ShapeRenderer2d(this);
 
-            renderer.DrawRectangle(0, 0, width, height, tmpTexWrapper);
+            _fullQuadRenderer.Render(tmpTexWrapper);
 
             PopRenderTarget();
 
@@ -1463,7 +1462,7 @@ public class RenderingDevice : IDisposable
         {
             unsafe
             {
-                var mappedData = new Span<byte>((void*)mapped.DataPointer, height * mapped.RowPitch);
+                var mappedData = new Span<byte>((void*) mapped.DataPointer, height * mapped.RowPitch);
                 reader(mappedData, mapped.RowPitch, width, height);
             }
         }
@@ -1487,8 +1486,8 @@ public class RenderingDevice : IDisposable
     {
         var vs = GetShaders().LoadVertexShader("mdf_vs", new Dictionary<string, string>
         {
-            { "TEXTURE_STAGES", "1" }, // Necessary so the input struct gets the UVs
-            { "PER_VERTEX_COLOR",  perVertexColor ? "1" : "0" } // Enable per-vertex color if necessary
+            {"TEXTURE_STAGES", "1"}, // Necessary so the input struct gets the UVs
+            {"PER_VERTEX_COLOR", perVertexColor ? "1" : "0"} // Enable per-vertex color if necessary
         });
 
         return new BufferBinding(this, vs);
@@ -1567,7 +1566,7 @@ public class RenderingDevice : IDisposable
         var mapped = _context.MapSubresource(texture._texture, 0, 0, mapMode, 0, out _);
 
         var size = texture.GetSize().Height * mapped.RowPitch;
-        var data = new Span<byte>((void*)mapped.DataPointer, size);
+        var data = new Span<byte>((void*) mapped.DataPointer, size);
         var rowPitch = mapped.RowPitch;
 
         return new MappedBuffer<byte>(texture._texture, _context, data, rowPitch);
@@ -1637,7 +1636,7 @@ public class RenderingDevice : IDisposable
         viewport.Height = size.Height;
         viewport.MinDepth = 0.0f;
         viewport.MaxDepth = 1.0f;
-        _context.Rasterizer.SetViewports(new[] { viewport }, 1);
+        _context.Rasterizer.SetViewports(new[] {viewport}, 1);
 
         _renderTargetStack.Push(new RenderTarget(colorBuffer, depthStencilBuffer));
 
@@ -1686,7 +1685,7 @@ public class RenderingDevice : IDisposable
             MinDepth = 0.0f,
             MaxDepth = 1.0f
         };
-        _context.Rasterizer.SetViewports(new[] { viewport }, 1);
+        _context.Rasterizer.SetViewports(new[] {viewport}, 1);
 
         ResetScissorRect();
         SetGpuRasterizerState();
@@ -1790,7 +1789,7 @@ public class RenderingDevice : IDisposable
 
         try
         {
-            var dest = new Span<byte>((void*)mapped.DataPointer, (int)stream.Length);
+            var dest = new Span<byte>((void*) mapped.DataPointer, (int) stream.Length);
             data.CopyTo(dest);
         }
         finally
@@ -1816,7 +1815,7 @@ public class RenderingDevice : IDisposable
         {
             fixed (byte* rawDataPtr = rawData)
             {
-                return new Buffer(Device, (IntPtr)rawDataPtr, bufferDesc);
+                return new Buffer(Device, (IntPtr) rawDataPtr, bufferDesc);
             }
         }
     }
@@ -1851,7 +1850,7 @@ public class RenderingDevice : IDisposable
 
         var mapped = _context.MapSubresource(buffer, 0, mapMode, 0);
 
-        return new Span<byte>((void*)mapped.DataPointer, bufferSize);
+        return new Span<byte>((void*) mapped.DataPointer, bufferSize);
     }
 
     // Ported from XMMatrixOrthographicOffCenterLH
@@ -1905,13 +1904,15 @@ public class RenderingDevice : IDisposable
                 swapChainDesc.OutputHandle = WindowHandle;
                 swapChainDesc.SampleDescription.Count = 1;
                 swapChainDesc.IsWindowed = true; // As per the recommendation, we always create windowed
-                
+
                 _swapChain = new SwapChain(device._dxgiFactory, device.Device, swapChainDesc);
-                
+
                 // Disable Alt+Enter handling in DXGI itself. We need to handle this in our Main Window
                 // to properly save the associated settings change.
                 device._dxgiFactory.MakeWindowAssociation(WindowHandle, WindowAssociationFlags.IgnoreAltEnter);
-            } else { 
+            }
+            else
+            {
                 _swapChain.ResizeBuffers(0, 0, 0, Format.Unknown, 0);
             }
 
@@ -1971,12 +1972,13 @@ public class RenderingDevice : IDisposable
             device.Context.Flush();
         }
     }
-    
+
     struct RenderTarget
     {
         public OptionalResourceRef<RenderTargetTexture> ColorBuffer;
         public OptionalResourceRef<RenderTargetDepthStencil> DepthStencilBuffer;
         public bool IsMultiSampled { get; }
+
         public Size Size
         {
             get

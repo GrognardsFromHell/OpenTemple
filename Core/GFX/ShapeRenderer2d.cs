@@ -237,7 +237,7 @@ public sealed class ShapeRenderer2d : IDisposable
 
     private void BuildAndDrawMesh(ref SimpleMeshBuilder<Vertex2d> builder, Material material)
     {
-        using var mesh = builder.Build(material.VertexShader);
+        using var mesh = builder.Build(_device, material.VertexShader);
         _device.SetMaterial(material);
         _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
         mesh.Render(_device);
