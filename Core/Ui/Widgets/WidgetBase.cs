@@ -63,7 +63,13 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             get
             {
-                if (UiManager is {LayoutInProgress: true})
+                // We can only update the layout anyway if we're attached to the tree. Otherwise we always return empty.
+                if (UiManager == null)
+                {
+                    return HasValidLayout ? _layoutBox : RectangleF.Empty;
+                }
+
+                if (UiManager.LayoutInProgress)
                 {
                     if (!HasValidLayout)
                     {
@@ -1027,6 +1033,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
             UiManager = manager;
 
+            HasValidLayout = false;
             UiManager?.OnAddedToTree(this);
         }
 

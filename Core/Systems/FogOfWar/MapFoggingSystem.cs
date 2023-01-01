@@ -719,12 +719,6 @@ public class MapFoggingSystem : IGameSystem, IResetAwareSystem
                 && loc.locx < _fogScreenBufferOrigin.locx + _fogScreenBufferWidthSubtiles / 3
                 && loc.locy < _fogScreenBufferOrigin.locy + _fogScreenBufferHeightSubtiles / 3)
             {
-                // Update the buffer synchronously if it's out of date
-                if (_lineOfSightInvalidated)
-                {
-                    PerformFogChecks();
-                }
-                
                 GetSubtileFromOffsets(offsetX, offsetY, out var subtileX, out var subtileY);
 
                 var bufferX = (loc.locx - _fogScreenBufferOrigin.locx) * 3 + subtileX;

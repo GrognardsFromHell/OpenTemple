@@ -185,10 +185,7 @@ public class ClippingSystem : IGameSystem
         globals.viewProj = camera.GetViewProj();
 
         // For clipping purposes
-        var screenCenterWorld = camera.ScreenToWorld(
-            camera.GetViewportWidth() * 0.5f,
-            camera.GetViewportHeight() * 0.5f
-        );
+        var screenCenterWorld = camera.CenteredOn;
 
         foreach (var mesh in _clippingMeshes)
         {

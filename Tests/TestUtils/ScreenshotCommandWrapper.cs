@@ -32,7 +32,7 @@ public class ScreenshotCommandWrapper : TestCommand
 
     public override TestResult Execute(TestExecutionContext context)
     {
-        if (!(context.TestObject is HeadlessGameTest headlessGameTest))
+        if (context.TestObject is not HeadlessGameTest headlessGameTest)
         {
             return _delegate.Execute(context);
         }

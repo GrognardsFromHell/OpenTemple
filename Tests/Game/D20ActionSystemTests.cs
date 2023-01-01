@@ -107,6 +107,7 @@ public class D20ActionSystemTests : HeadlessGameTest
     private GameObject CreatePlayer(int x = 500, int y = 477)
     {
         var player = GameSystems.MapObject.CreateObject(TestProtos.HumanMalePlayer, new locXY(x, y));
+        GameSystems.Location.CenterOn(x, y);
         GameSystems.Party.AddToPCGroup(player);
         Game.RenderFrame(); // Have to render once to uncover fog of war
         return player;

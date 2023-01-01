@@ -36,8 +36,6 @@ public class WidgetScrollView : WidgetContainer
         base.Add(scrollView);
 
         scrollBar.SetValueChangeHandler(newValue => { _container.SetScrollOffsetY(newValue); });
-
-        UpdateInnerContainer();
     }
 
     public override void Add(WidgetBase childWidget)

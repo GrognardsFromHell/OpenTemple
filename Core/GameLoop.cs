@@ -104,6 +104,8 @@ public sealed class GameLoop
         {
             if (gameView is GameView renderableGameView)
             {
+                // Update of game view must be up-to-date...
+                renderableGameView.EnsureLayoutIsUpToDate();
                 renderableGameView.RenderScene();
             }
         }

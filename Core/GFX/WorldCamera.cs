@@ -25,7 +25,7 @@ public class WorldCamera
     private Matrix4x4 _view;
     private Matrix4x4 _viewProjection;
     private Matrix4x4 _invViewProjection;
-    
+
     public bool IsBoxOnScreen(Vector2 screenCenter,
         float left, float top, float right, float bottom)
     {
@@ -263,8 +263,8 @@ public class WorldCamera
 
     public LocAndOffsets ScreenToTile(float screenX, float screenY)
     {
-        var tmpX = (int)((screenX - _xTranslation) / 2);
-        var tmpY = (int)(((screenY - _yTranslation) / 2) / 0.7f);
+        var tmpX = (int) ((screenX - _xTranslation) / 2);
+        var tmpY = (int) (((screenY - _yTranslation) / 2) / 0.7f);
 
         var unrotatedX = tmpY - tmpX;
         var unrotatedY = tmpY + tmpX;
@@ -280,6 +280,10 @@ public class WorldCamera
 
         return result;
     }
+
+    public Vector3 CenteredOn => ScreenToWorld(_viewportWidth / 2, _viewportHeight / 2);
+    
+    public void CenterOn(Vector3 pos) => CenterOn(pos.X, pos.Y, pos.Z); 
 
     public void CenterOn(float x, float y, float z)
     {

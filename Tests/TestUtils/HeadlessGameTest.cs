@@ -1,22 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Microsoft.CodeAnalysis;
 using NUnit.Framework;
 using OpenTemple.Core;
 using OpenTemple.Core.GameObjects;
-using OpenTemple.Core.Platform;
+using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.RollHistory;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 using SixLabors.ImageSharp;
+using PointF = System.Drawing.PointF;
 
 namespace OpenTemple.Tests.TestUtils;
 
@@ -24,9 +26,16 @@ namespace OpenTemple.Tests.TestUtils;
 [NonParallelizable]
 public abstract class HeadlessGameTest
 {
-    private static HeadlessGameHelper _game;
+    private static HeadlessGameHelper? _game;
 
-    public HeadlessGameHelper Game => _game;
+    public HeadlessGameHelper Game
+    {
+        get
+        {
+            Debug.Assert(_game != null);
+            return _game;
+        }
+    }
 
     protected List<D20Action> ActionLog { get; } = new();
 
@@ -123,6 +132,7 @@ public abstract class HeadlessGameTest
     {
         Debug.Assert(GameViews.Primary != null);
         var pos = GameSystems.MapObject.GetScreenPosOfObject(GameViews.Primary, obj);
+        Game.AnnotateScreenPos(new PointF(pos), "ClickOn " + obj);
         Game.ClickUi(pos.X, pos.Y);
     }
 }

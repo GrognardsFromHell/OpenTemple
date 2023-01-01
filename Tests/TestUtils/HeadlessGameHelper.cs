@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using FluentAssertions;
 using OpenTemple.Core;
@@ -11,10 +14,13 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Ui.Events;
+using OpenTemple.Core.Ui.Styles;
 using SDL2;
 using SixLabors.ImageSharp.Advanced;
 using Point = System.Drawing.Point;
 using PointF = System.Drawing.PointF;
+using RectangleF = System.Drawing.RectangleF;
+using SizeF = System.Drawing.SizeF;
 
 namespace OpenTemple.Tests.TestUtils;
 
@@ -25,15 +31,20 @@ public class HeadlessGameHelper : IDisposable
 {
     private readonly TempDirectory _userData = new();
 
-    private static HeadlessGameHelper _activeInstance;
+    private static HeadlessGameHelper? _activeInstance;
 
     private TimePoint _currentTime = new(0);
+
+    /// <summary>
+    /// Text annotations for the current/next frame that will be part of screenshots / videos.
+    /// </summary>
+    private readonly List<(TimePoint, PointF, string)> _annotations = new();
 
     private HeadlessGame Game { get; }
 
     public HeadlessMainWindow Window { get; }
 
-    public event Action OnRenderFrame;
+    public event Action? OnRenderFrame;
 
     public HeadlessGameHelper(bool withGameSystems = true, bool withUserInterface = true)
     {
@@ -66,7 +77,7 @@ public class HeadlessGameHelper : IDisposable
 
         Game = HeadlessGame.Start(options);
 
-        Window = (HeadlessMainWindow)Tig.MainWindow;
+        Window = (HeadlessMainWindow) Tig.MainWindow;
 
         Globals.GameLoop = new GameLoop(
             Tig.EventLoop,
@@ -92,6 +103,19 @@ public class HeadlessGameHelper : IDisposable
     public void RenderFrame()
     {
         Globals.GameLoop.RenderFrame();
+        var now = TimePoint.Now;
+        foreach (var (when, where, what) in _annotations)
+        {
+            if (now - when <= TimeSpan.FromSeconds(1))
+            {
+                Tig.RenderingDevice.TextEngine.RenderText(
+                    new RectangleF(where, SizeF.Empty),
+                    Globals.UiStyles.StyleResolver.DefaultStyle,
+                    what
+                );
+            }
+        }
+
         OnRenderFrame?.Invoke();
     }
 
@@ -188,13 +212,13 @@ public class HeadlessGameHelper : IDisposable
     }
 
     public PointF ToUiCanvas(Point screenPoint) => new Point(
-        (int)(screenPoint.X / Window.UiScale),
-        (int)(screenPoint.Y / Window.UiScale)
+        (int) (screenPoint.X / Window.UiScale),
+        (int) (screenPoint.Y / Window.UiScale)
     );
 
     public Point FromUiCanvas(PointF uiPoint) => new Point(
-        (int)(uiPoint.X * Window.UiScale),
-        (int)(uiPoint.Y * Window.UiScale)
+        (int) (uiPoint.X * Window.UiScale),
+        (int) (uiPoint.Y * Window.UiScale)
     );
 
     public void SendMouseDown(Point screenPoint, MouseButton button)
@@ -224,5 +248,16 @@ public class HeadlessGameHelper : IDisposable
     public void ClickUi(float x, float y, MouseButton button = MouseButton.Left)
     {
         Click(FromUiCanvas(new PointF(x, y)), button);
+    }
+
+    public void AnnotateScreenPos(PointF screenPos, string text)
+    {
+        _annotations.Add((TimePoint.Now, screenPos, text));
+    }
+
+    public void AnnotateWorldPos(Vector3 worldPos, string text)
+    {
+        var screenPos = GameViews.Primary.WorldToScreen(worldPos);
+        AnnotateScreenPos(new PointF(screenPos), text);
     }
 }

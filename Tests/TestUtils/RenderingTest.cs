@@ -41,7 +41,7 @@ public abstract class RenderingTest : RealGameFiles
 
         var camera = new WorldCamera();
         camera.ViewportSize = Device.UiCanvasSize.ToSize();
-        camera.CenterOn(CameraCenter.X, CameraCenter.Y, CameraCenter.Z);
+        camera.CenterOn(CameraCenter);
         Viewport = new MockViewport(camera, Window);
 
         Globals.UiStyles = new UiStyles(FS);

@@ -42,7 +42,20 @@ public class GameView : WidgetContainer, IGameViewport
         set => _scrollingController.IsMouseScrolling = value;
     }
 
-    public WorldCamera Camera { get; } = new();
+    WorldCamera IGameViewport.Camera
+    {
+        get
+        {
+            // We need to ensure pending layout is performed before accessing the camera
+            // otherwise the cameras viewport size may be out of date
+            if (!HasValidLayout)
+            {
+                EnsureLayoutIsUpToDate();
+            }
+
+            return _camera;
+        }
+    }
 
     [Obsolete]
     public GameRenderer GameRenderer => _gameRenderer;
@@ -55,7 +68,7 @@ public class GameView : WidgetContainer, IGameViewport
 
     public float Zoom => _zoom;
 
-    SizeF IGameViewport.Size => GetSize();
+    SizeF IGameViewport.Size => ContentArea.Size;
 
     public bool IsInteractive => true;
 
@@ -68,6 +81,7 @@ public class GameView : WidgetContainer, IGameViewport
     private readonly IMainWindow _mainWindow;
 
     private bool _isUpscaleLinearFiltering;
+    private readonly WorldCamera _camera = new();
 
     public GameView(IMainWindow mainWindow, RenderingDevice device, RenderingConfig config)
     {
@@ -123,7 +137,7 @@ public class GameView : WidgetContainer, IGameViewport
                 () => IsInteractive && !UiSystems.RadialMenu.IsOpen && GameSystems.Combat.IsCombatActive() && hotkeyAction.Condition()
             );
         }
-        
+
         // Hotkeys from the radial menu on the other hand are only available while it's open
         foreach (var hotkeyAction in UiSystems.RadialMenu.EnumerateHotkeyActions())
         {
@@ -246,8 +260,9 @@ public class GameView : WidgetContainer, IGameViewport
                 (int) (_renderScale * 100),
                 _gameRenderer.MultiSampleSettings
             );
-            UpdateCamera();
         }
+
+        UpdateCamera();
     }
 
     protected override void OnAfterLayout()
@@ -303,21 +318,20 @@ public class GameView : WidgetContainer, IGameViewport
             ContentArea.Height / _zoom
         );
 
-        if (size != Camera.ViewportSize)
+        if (size != _camera.ViewportSize)
         {
             // Using IGameViewport.CenteredOn will be wrong here if the zoom just changed
-            var currentCenter = Camera.ScreenToTile(Camera.GetViewportWidth() / 2, Camera.GetViewportHeight() / 2);
+            var previousCenter = _camera.CenteredOn;
 
-            Camera.ViewportSize = size;
+            _camera.ViewportSize = size;
 
             // See also @ 0x10028db0
-            var restoreCenter = currentCenter.ToInches3D();
-            Camera.CenterOn(restoreCenter.X, restoreCenter.Y, restoreCenter.Z);
+            _camera.CenterOn(previousCenter);
 
             // Ensure the primary translation is updated, otherwise the next scroll event will undo what we just did
             if (GameViews.Primary == this)
             {
-                var dt = Camera.Get2dTranslation();
+                var dt = _camera.Get2dTranslation();
                 GameSystems.Location.LocationTranslationX = (int) dt.X;
                 GameSystems.Location.LocationTranslationY = (int) dt.Y;
                 // This clamps the translation to the scroll limit

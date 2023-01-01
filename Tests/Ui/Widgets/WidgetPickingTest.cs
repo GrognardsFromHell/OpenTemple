@@ -14,23 +14,24 @@ public class WidgetPickingTest : BaseWidgetTest
     {
         _widget = new WidgetContainer();
         _widget.HitTesting = HitTestingMode.Area;
+        // Border insets the padding area and will shift the relative offset for children
+        _widget.LocalStyles.BorderWidth = 1;
+
+        _childWidget = new WidgetBase();
+        _widget.Add(_childWidget);
+        
         _widget.SetLayout(RectangleF.FromLTRB(
             50,
             150,
             80,
             200
         ));
-        // Border insets the padding area and will shift the relative offset for children
-        _widget.LocalStyles.BorderWidth = 1;
-
-        _childWidget = new WidgetBase();
         _childWidget.SetLayout(RectangleF.FromLTRB(
             10,
             20,
             11,
             22
         ));
-        _widget.Add(_childWidget);
     }
 
     [TestCase(-0.1f, -0.1f, ExpectedResult = false, TestName = "Just outside top-left corner")]

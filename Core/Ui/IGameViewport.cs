@@ -11,7 +11,7 @@ public interface IGameViewport
 {
     void TakeScreenshot(string path, Size size = default);
 
-    LocAndOffsets CenteredOn => ScreenToTile(Size.Width / 2, Size.Height / 2);
+    LocAndOffsets CenteredOn => LocAndOffsets.FromInches(Camera.CenteredOn);
 
     WorldCamera Camera { get; }
 
