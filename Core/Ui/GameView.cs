@@ -268,16 +268,14 @@ public class GameView : WidgetContainer, IGameViewport
 
     protected override void HandleMouseMove(MouseEvent e)
     {
-        var mousePos = new PointF(e.X, e.Y);
-        _scrollingController.MouseMoved(GetRelativeMousePos(mousePos));
+        _scrollingController.MouseMoved(e.GetLocalPos(this));
     }
 
     protected override void HandleMouseDown(MouseEvent e)
     {
         if (e.Button == MouseButton.Middle)
         {
-            var mousePos = new PointF(e.X, e.Y);
-            if (_scrollingController.MiddleMouseDown(GetRelativeMousePos(mousePos)))
+            if (_scrollingController.MiddleMouseDown(e.GetLocalPos(this)))
             {
                 e.StopImmediatePropagation();
             }
@@ -334,14 +332,6 @@ public class GameView : WidgetContainer, IGameViewport
     {
         base.OnUpdateTime(now);
         _scrollingController.UpdateTime(now);
-    }
-
-    private PointF GetRelativeMousePos(PointF mousePos)
-    {
-        var contentArea = GetContentArea();
-        mousePos.X -= contentArea.X;
-        mousePos.Y -= contentArea.Y;
-        return mousePos;
     }
 
     private static readonly Dictionary<ActionCursor, string> CursorPaths = new()

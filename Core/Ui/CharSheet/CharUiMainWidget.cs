@@ -77,7 +77,7 @@ public class CharUiMainWidget : WidgetContainer
         _attributeRollCountLabel.Text = rollCountText;
         _attributeRollCountLabel.Y = 11;
         // Right-align
-        _attributeRollCountLabel.X = GetContentArea().Width - _attributeRollCountLabel.GetPreferredSize().Width - 28;
+        _attributeRollCountLabel.X = LayoutBox.Width - _attributeRollCountLabel.GetPreferredSize().Width - 28;
 
         _attributeRollModeLabel.Y = 11;
         // Right-align

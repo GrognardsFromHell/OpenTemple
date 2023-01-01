@@ -183,11 +183,10 @@ internal class ClericFeaturesUi : IChargenSystem
             else if (e.Button == MouseButton.Left && button.SetMouseCapture())
             {
                 // Figure out where in the widget we got clicked so we can draw the dragged text with the proper offset
-                var globalContentArea = button.GetContentArea(true);
-                var localX = (int) (e.X - globalContentArea.X);
-                var localY = (int) (e.Y - globalContentArea.Y);
+                var offset = e.GetLocalPos(button);
+                offset = new PointF(-offset.X, -offset.Y);
                 _draggedDomainLabel.Text = button.Text;
-                _draggedDomainLabel.SetBounds(new RectangleF(new PointF(-localX, -localY), button.BorderArea.Size));                
+                _draggedDomainLabel.SetBounds(new RectangleF(offset, button.BorderArea.Size));                
                 button.Visible = false;
 
                 // This will draw the ability score being dragged under the mouse cursor

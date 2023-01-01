@@ -419,7 +419,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
         var portrait = _portraits.Find(p => p.PartyMember == caster);
         if (portrait != null)
         {
-            rectangle = portrait.Widget.GetContentArea();
+            rectangle = portrait.Widget.GetViewportBorderArea();
             return true;
         }
 

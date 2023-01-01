@@ -159,17 +159,16 @@ class AbilityScoreSystem : IChargenSystem
             else if (e.Button == MouseButton.Left && widget.SetMouseCapture())
             {
                 // Figure out where in the widget we got clicked so we can draw the dragged text with the proper offset
-                var globalContentArea = widget.GetContentArea(true);
-                var localX = (int) (e.X - globalContentArea.X);
-                var localY = (int) (e.Y - globalContentArea.Y);
+                var offset = e.GetLocalPos(widget);
+                offset = new PointF(-offset.X, -offset.Y);
                 _draggedAbilityScoreLabel.Text = widget.Value.ToString();
-                _draggedAbilityScoreLabel.SetBounds(new RectangleF(Point.Empty, widget.GetSize()));
+                _draggedAbilityScoreLabel.SetBounds(new RectangleF(offset, widget.GetSize()));
                 widget.IsDragging = true;
 
                 // This will draw the ability score being dragged under the mouse cursor
                 Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
                 {
-                    _draggedAbilityScoreLabel.Render(new PointF(x - localX, y - localY));
+                    _draggedAbilityScoreLabel.Render(new PointF(x, y));
                 });
             }
         };

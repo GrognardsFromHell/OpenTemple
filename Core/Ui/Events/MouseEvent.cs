@@ -34,7 +34,7 @@ public class MouseEvent : UiEvent
     /// </summary>
     public PointF GetLocalPos(WidgetBase widget)
     {
-        var contentRect = widget.GetContentArea();
+        var contentRect = widget.GetViewportBorderArea();
         return new PointF(Pos.X - contentRect.X, Pos.Y - contentRect.Y);
     }
 }

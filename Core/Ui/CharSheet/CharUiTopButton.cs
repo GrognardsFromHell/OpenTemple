@@ -65,9 +65,9 @@ public class CharUiTopButton : WidgetButton
     [TempleDllLocation(0x10145560)]
     public override void Render(UiRenderContext context)
     {
-        var contentArea = GetContentArea();
+        var contentArea = GetViewportBorderArea();
 
-        var destRect = GetContentArea();
+        var destRect = contentArea;
         var srcRect = destRect with {X = 0, Y = 0};
         destRect.Y -= 2;
 

@@ -303,7 +303,7 @@ public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     [TempleDllLocation(0x1014bbb0)]
     private void RenderDialogLines()
     {
-        var rect = _dialogLinesContainer.GetContentArea();
+        var rect = _dialogLinesContainer.GetViewportBorderArea();
         rect.Y += rect.Height - 4;
 
         var scrollMax = _historyScollbar.Max;

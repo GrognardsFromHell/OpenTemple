@@ -131,7 +131,7 @@ public class MemorizedSpellsList : WidgetContainer
         var pos = UiManager.MousePos;
         if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < now)
         {
-            var contentArea = GetContentArea();
+            var contentArea = GetViewportBorderArea();
             // Scroll if the cursor is within the scroll-sensitive band
             if (pos.Y >= contentArea.Y && pos.Y < contentArea.Y + ScrollBandHeight)
             {

@@ -196,7 +196,7 @@ public class ActionBarUi
     private void UiCombatActionBarRender(WidgetContainer container)
     {
         // Get the on-screen content rect
-        var contentRect = container.GetContentArea();
+        var contentRect = container.GetViewportBorderArea();
 
         var v21 = true;
         var tbStatus = GameSystems.D20.Actions.curSeqGetTurnBasedStatus()?.Copy();

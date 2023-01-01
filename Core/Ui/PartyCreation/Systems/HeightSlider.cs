@@ -63,10 +63,10 @@ public class HeightSlider : WidgetButtonBase
         SetMouseCapture();
         
         // Smoothly animate moving towards the clicked location
-        var localY = (int) (e.Y - GetContentArea().Y);
-        if (localY < _thumbImage.Y || localY >= _thumbImage.Y + _thumbHeight)
+        var localPos = e.GetLocalPos(this);
+        if (localPos.Y < _thumbImage.Y || localPos.Y >= _thumbImage.Y + _thumbHeight)
         {
-            _targetValue = GetValueFromTrackPos(localY);
+            _targetValue = GetValueFromTrackPos(localPos.Y);
             _lastAnimationTime = TimePoint.Now;
         }
     }
@@ -76,13 +76,13 @@ public class HeightSlider : WidgetButtonBase
         // Reposition the thumb immediately while dragging
         if (HasMouseCapture)
         {
-            var localY = (int) (e.Y - GetContentArea().Y);
-            Value = GetValueFromTrackPos(localY);
+            var localPos = e.GetLocalPos(this);
+            Value = GetValueFromTrackPos(localPos.Y);
             OnValueChanged?.Invoke(Value);
         }
     }
 
-    private float GetValueFromTrackPos(int trackPos)
+    private float GetValueFromTrackPos(float trackPos)
     {
         // MinThumbY / MaxThumbY are for the top of the slider image,
         // but for the user, the actual slider's center is relevant...

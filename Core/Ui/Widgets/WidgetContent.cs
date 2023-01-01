@@ -39,9 +39,25 @@ public abstract class WidgetContent : Styleable
         return PreferredSize;
     }
 
-    public float X { get; set; }
+    public float X
+    {
+        get => _x;
+        set
+        {
+            _x = value;
+            Parent?.NotifyLayoutChange(LayoutChangeFlag.Content);
+        }
+    }
 
-    public float Y { get; set; }
+    public float Y
+    {
+        get => _y;
+        set
+        {
+            _y = value;
+            Parent?.NotifyLayoutChange(LayoutChangeFlag.Content);
+        }
+    }
 
     public SizeF FixedSize
     {
@@ -51,6 +67,7 @@ public abstract class WidgetContent : Styleable
             _fixedWidth = value.Width;
             _fixedHeight = value.Height;
             OnUpdateFixedSize();
+            Parent?.NotifyLayoutChange(LayoutChangeFlag.Content);
         }
     }
 
@@ -61,6 +78,7 @@ public abstract class WidgetContent : Styleable
         {
             _fixedWidth = value;
             OnUpdateFixedSize();
+            Parent?.NotifyLayoutChange(LayoutChangeFlag.Content);
         }
     }
 
@@ -71,6 +89,7 @@ public abstract class WidgetContent : Styleable
         {
             _fixedHeight = value;
             OnUpdateFixedSize();
+            Parent?.NotifyLayoutChange(LayoutChangeFlag.Content);
         }
     }
 
@@ -80,6 +99,8 @@ public abstract class WidgetContent : Styleable
     private float _fixedWidth;
     private float _fixedHeight;
     private WidgetBase? _parent;
+    private float _x;
+    private float _y;
 
     public override Styleable? StyleParent => Parent;
 

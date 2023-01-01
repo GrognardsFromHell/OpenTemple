@@ -82,7 +82,7 @@ public sealed class WidgetScrollBar : WidgetContainer
                     StopInterval(_repeatedScrolling);
                     _repeatedScrolling = null;
                 }
-                var handleArea = _handle.GetContentArea();
+                var handleArea = _handle.GetViewportBorderArea();
                 if (e.Y < handleArea.Top)
                 {
                     SetValue(GetValue() - 5);

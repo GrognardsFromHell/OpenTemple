@@ -58,7 +58,7 @@ public class UtilityBarTimeBar : WidgetContainer
         a1.customTexture = _timeBarTexture.Resource;
         a1.flags = Render2dFlag.WRAP|Render2dFlag.BUFFERTEXTURE;
         a1.srcRect = sourceRect;
-        a1.destRect = GetContentArea();
+        a1.destRect = GetViewportPaddingArea();
         Tig.ShapeRenderer2d.DrawRectangle(ref a1);
 
         base.Render(context);

@@ -66,7 +66,7 @@ public class CharInventoryButton : WidgetButton
             return;
         }
 
-        var contentArea = GetContentArea();
+        var contentArea = GetViewportBorderArea();
 
         // This draws the blue selection border around the inventory button
         if (UiSystems.CharSheet.CurrentPage == _inventoryIdx)

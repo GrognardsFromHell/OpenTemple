@@ -277,7 +277,7 @@ public class ScrollBox : WidgetContainer
     private RectangleF GetTextContentRect()
     {
         var actualTextRect = _settings.TextArea;
-        var contentArea = GetContentArea();
+        var contentArea = GetViewportPaddingArea(true);
         actualTextRect.Offset(contentArea.Location);
         actualTextRect.Intersect(contentArea);
         return actualTextRect;

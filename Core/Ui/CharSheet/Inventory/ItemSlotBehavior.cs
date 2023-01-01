@@ -88,12 +88,11 @@ public class ItemSlotBehavior
             }
 
             // Determine where inside the widget the user clicked.
-            var contentArea = _slotWidget.GetContentArea();
-            var relPos = new PointF(e.X - contentArea.X, e.Y - contentArea.Y);
+            var relPos = e.GetLocalPos(_slotWidget);
 
             UiSystems.CharSheet.Inventory.DraggedObject = currentItem;
             var texturePath = currentItem.GetInventoryIconPath();
-            var iconSize = _slotWidget.GetSize();
+            var iconSize = _slotWidget.LayoutBox.Size;
             iconSize.Height -= 4;
             iconSize.Width -= 4;
             Tig.Mouse.SetDraggedIcon(texturePath, new PointF(-relPos.X + 4, -relPos.Y + 4), iconSize);

@@ -773,14 +773,6 @@ namespace OpenTemple.Core.Ui.Widgets
             return bounds;
         }
 
-        /// <summary>
-        /// Returns the {x,y,w,h} rect, but regards modification from parent and subtracts the margins.
-        /// </summary>
-        public RectangleF GetContentArea(bool includingMargins = false)
-        {
-            return GetViewportPaddingArea();
-        }
-
         public virtual void OnUpdateTime(TimePoint now)
         {
             foreach (var interval in Intervals)
@@ -1388,7 +1380,7 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        protected void NotifyLayoutChange(LayoutChangeFlag flags)
+        internal void NotifyLayoutChange(LayoutChangeFlag flags)
         {
             UiManager?.InvalidateLayout();
         }

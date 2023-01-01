@@ -128,7 +128,7 @@ public class SkillButton : WidgetButtonBase
 
         if (hovered)
         {
-            var bounds = GetContentArea();
+            var bounds = GetViewportBorderArea();
             Tig.ShapeRenderer2d.DrawRectangle(bounds, null, new PackedLinearColorA(255, 255, 255, 32));
         }
 

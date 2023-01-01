@@ -119,7 +119,7 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x102f8970)]
     private float _zoomStartY;
 
-    public TownMapContent(RectangleF rect) : base(rect)
+    public TownMapContent()
     {
         _tileRenderer = new TownMapTileRenderer();
         AddContent(_tileRenderer);
@@ -199,9 +199,9 @@ public class TownMapContent : WidgetButtonBase
 
                     // Ensures the point on the map that we started zooming on stays under the mouse
                     var zoomDelta = 1.0f / oldZoom - 1.0f / Zoom;
-                    var contentArea = GetContentArea();
-                    XTranslation = (_zoomStartX - contentArea.X) * zoomDelta + XTranslation;
-                    YTranslation = (_zoomStartY - contentArea.Y) * zoomDelta + YTranslation;
+                    var layoutBox = GetViewportPaddingArea();
+                    XTranslation = (_zoomStartX - layoutBox.X) * zoomDelta + XTranslation;
+                    YTranslation = (_zoomStartY - layoutBox.Y) * zoomDelta + YTranslation;
                 }
                 else
                 {
@@ -269,7 +269,7 @@ public class TownMapContent : WidgetButtonBase
             }
 
             // The mouse message x,y coordinates need to be mapped into the widget's coordinates
-            var contentArea = GetContentArea();
+            var contentArea = GetViewportPaddingArea();
             var worldLoc = ProjectViewToWorld(new PointF(
                 e.X - contentArea.X,
                 e.Y - contentArea.Y
@@ -335,7 +335,7 @@ public class TownMapContent : WidgetButtonBase
     {
         // Translate the position of the flag into on-screen coordinates to place the dialog
         var screenPos = ProjectWorldToView(marker.Position);
-        var contentRect = GetContentArea();
+        var contentRect = GetViewportPaddingArea();
         var screenX = contentRect.X + screenPos.X;
         var screenY = contentRect.Y + screenPos.Y;
 
@@ -406,7 +406,7 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x1012ba10)]
     private TownMapMarker? GetMarkerAt(float x, float y)
     {
-        var contentArea = GetContentArea();
+        var contentArea = GetViewportPaddingArea();
         x -= contentArea.X;
         y -= contentArea.Y;
 
@@ -428,7 +428,7 @@ public class TownMapContent : WidgetButtonBase
     [TempleDllLocation(0x1012c040)]
     protected override void LayoutChildren()
     {
-        var contentRect = GetContentArea();
+        var contentRect = GetViewportPaddingArea();
 
         if (XTranslation < 0.0f)
         {

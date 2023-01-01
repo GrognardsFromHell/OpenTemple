@@ -205,14 +205,9 @@ public class PaperdollSlotWidget : WidgetContainer, IItemDropTarget
     private void RenderWeaponSetColor()
     {
         var srcRect = new Rectangle(0, 0, 44, 44);
-        var contentArea = GetContentArea();
+        var contentArea = GetViewportPaddingArea();
 
-        var destRect = new RectangleF(
-            contentArea.X,
-            contentArea.Y,
-            44,
-            44
-        );
+        var destRect = new RectangleF(contentArea.Location, srcRect.Size);
 
         var arg = new Render2dArgs();
         var idx = GameSystems.Item.GetWeaponSlotsIndex(Critter);

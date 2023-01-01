@@ -223,7 +223,7 @@ public class TextFieldWidget : WidgetBase
         // Draw border
         if (!_undecorated)
         {
-            var decorationRect = GetContentArea();
+            var decorationRect = GetViewportBorderArea();
             PackedLinearColorA outlineColor;
             if (HasFocus || ContainsMouse)
             {

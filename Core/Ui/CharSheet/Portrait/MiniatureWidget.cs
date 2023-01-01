@@ -29,7 +29,7 @@ public class MiniatureWidget : WidgetButtonBase
             return;
         }
 
-        var contentArea = GetContentArea();
+        var contentArea = GetViewportPaddingArea();
         var centerX = contentArea.X + contentArea.Width / 2;
         var centerY = contentArea.Y + contentArea.Height / 2;
 
