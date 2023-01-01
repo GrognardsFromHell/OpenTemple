@@ -740,7 +740,7 @@ public partial class RadialMenuSystem
 
         if (radEntry.d20ActionType == D20ActionType.CAST_SPELL)
             GameSystems.D20.Actions.ActSeqSpellReset();
-        else if (radEntry.d20ActionType == D20ActionType.USE_ITEM && radEntry.d20SpellData.spellEnumOrg != 0)
+        else if (radEntry is {d20ActionType: D20ActionType.USE_ITEM, d20SpellData: { }})
         {
             GameSystems.D20.Actions.ActSeqSpellReset();
         }
@@ -829,22 +829,22 @@ public partial class RadialMenuSystem
 
         if (actionType == D20ActionType.USE_ITEM)
         {
-            if (first.d20SpellData.spellEnumOrg != second.d20SpellData.spellEnumOrg)
+            if (first.d20SpellData?.spellEnumOrg != second.d20SpellData?.spellEnumOrg)
                 return false;
 
-            if (first.d20SpellData.metaMagicData != second.d20SpellData.metaMagicData)
+            if (first.d20SpellData?.metaMagicData != second.d20SpellData?.metaMagicData)
                 return false;
-            //return first.textHash == second.textHash;
-            return first.d20SpellData.spellSlotLevel == second.d20SpellData.spellSlotLevel;
+            
+            return first.d20SpellData?.spellSlotLevel == second.d20SpellData?.spellSlotLevel;
         }
 
         if (first.d20ActionData1 != second.d20ActionData1)
             return false;
 
-        if (first.d20SpellData.spellEnumOrg != second.d20SpellData.spellEnumOrg)
+        if (first.d20SpellData?.spellEnumOrg != second.d20SpellData?.spellEnumOrg)
             return false;
 
-        if (first.d20SpellData.metaMagicData != second.d20SpellData.metaMagicData)
+        if (first.d20SpellData?.metaMagicData != second.d20SpellData?.metaMagicData)
             return false;
 
         if (first.d20ActionType == D20ActionType.NONE && first.text != second.text)
@@ -865,7 +865,6 @@ public partial class RadialMenuSystem
         {
             ActiveMenuWorldPosition = worldPosition;
             activeRadialMenuNode = 0;
-            AlternateActionMode = false;
         }
     }
 

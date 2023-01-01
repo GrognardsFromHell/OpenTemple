@@ -113,7 +113,7 @@ public class UiManager : IUiRoot
     private readonly CursorRegistry _cursorRegistry;
 
     private readonly List<ActiveActionHotkey> _actionHotkeys = new();
-    private readonly List<(WidgetBase Owner, WidgetBase.HeldHotkeyState State)> _heldHotkeys = new();
+    private readonly List<(WidgetBase Owner, HeldHotkeyState State)> _heldHotkeys = new();
 
     public IReadOnlyList<ActiveActionHotkey> ActiveHotkeys => _actionHotkeys;
 
@@ -175,41 +175,13 @@ public class UiManager : IUiRoot
 
     public void OnAddedToTree(WidgetBase widget)
     {
-        foreach (var hotkey in widget.ActionHotkeys)
-        {
-            _actionHotkeys.Add(new ActiveActionHotkey(
-                hotkey.Hotkey,
-                hotkey.Callback,
-                hotkey.Condition,
-                widget
-            ));
-        }
-
-        foreach (var state in widget.HeldHotkeys)
-        {
-            _heldHotkeys.Add((widget, state));
-        }
-
+        InvalidateHotkeys(widget);
         InvalidateLayout();
     }
 
     public void OnRemovedFromTree(WidgetBase widget)
     {
-        _actionHotkeys.RemoveAll(h => ReferenceEquals(h.Owner, widget));
-        for (var i = _heldHotkeys.Count - 1; i >= 0; i--)
-        {
-            var (owner, state) = _heldHotkeys[i];
-            if (owner == widget)
-            {
-                if (state.Held)
-                {
-                    state.Held = false;
-                    state.Callback(false);
-                }
-
-                _heldHotkeys.RemoveAt(i);
-            }
-        }
+        RemoveHotkeys(widget);
 
         if (KeyboardFocus != null && widget.IsInclusiveAncestorOf(KeyboardFocus))
         {
@@ -827,7 +799,7 @@ public class UiManager : IUiRoot
             {
                 matchingActionHotkey = activeHotkey;
                 matchingActiveHotkeyRank = extraModifiers;
-                
+
                 foundMatch = true;
             }
         }
@@ -835,7 +807,7 @@ public class UiManager : IUiRoot
         if (foundMatch)
         {
             Logger.Debug("Triggering hotkey {0}", matchingActionHotkey.Hotkey);
-            matchingActionHotkey.Trigger();
+            matchingActionHotkey.Trigger(e);
             return true;
         }
 
@@ -1088,6 +1060,57 @@ public class UiManager : IUiRoot
         finally
         {
             LayoutInProgress = false;
+        }
+    }
+
+    /// <summary>
+    /// Notifies the UI Manager that the hotkeys the given widget listens to have changed.
+    /// </summary>
+    public void InvalidateHotkeys(WidgetBase widget)
+    {
+        if (widget.UiManager != this)
+        {
+            throw new ArgumentException("The given widget does not belong to this UI manager.");
+        }
+
+        RemoveHotkeys(widget);
+        AddHotkeys(widget);
+    }
+
+    private void AddHotkeys(WidgetBase widget)
+    {
+        foreach (var hotkey in widget.ActionHotkeys)
+        {
+            _actionHotkeys.Add(new ActiveActionHotkey(
+                hotkey.Hotkey,
+                hotkey.Callback,
+                hotkey.Condition,
+                widget
+            ));
+        }
+
+        foreach (var state in widget.HeldHotkeys)
+        {
+            _heldHotkeys.Add((widget, state));
+        }
+    }
+
+    private void RemoveHotkeys(WidgetBase widget)
+    {
+        _actionHotkeys.RemoveAll(h => ReferenceEquals(h.Owner, widget));
+        for (var i = _heldHotkeys.Count - 1; i >= 0; i--)
+        {
+            var (owner, state) = _heldHotkeys[i];
+            if (owner == widget)
+            {
+                if (state.Held)
+                {
+                    state.Held = false;
+                    state.Callback(false);
+                }
+
+                _heldHotkeys.RemoveAt(i);
+            }
         }
     }
 }

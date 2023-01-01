@@ -2528,4 +2528,17 @@ public static class CritterExtensions
             : WeaponType.unarmed_strike_medium_sized_being;
     }
 
+    public static void PlayVoiceConfirmationSound(this GameObject critter)
+    {
+        if (!critter.IsDeadOrUnconscious())
+        {
+            var listener = GameSystems.Dialog.GetListeningPartyMember(critter);
+            if (GameSystems.Dialog.TryGetOkayVoiceLine(critter, listener, out var voicelineText,
+                    out var soundId))
+            {
+                GameSystems.Dialog.PlayCritterVoiceLine(critter, listener, voicelineText, soundId);
+            }
+        }
+    }
+
 }

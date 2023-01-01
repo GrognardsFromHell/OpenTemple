@@ -31,7 +31,7 @@ public class Hotkey
 
         MatchKey(PrimaryKey, ref extraModifiers);
         MatchKey(SecondaryKey, ref extraModifiers);
-        
+
         return matched;
     }
 
@@ -95,6 +95,16 @@ public class HotkeyBuilder
         return this;
     }
 
+    public HotkeyBuilder Primary(SDL_Keycode virtualKey, KeyModifier modifiers = default)
+    {
+        _primaryKey = new KeyReference
+        {
+            VirtualKey = virtualKey,
+            Modifiers = modifiers
+        };
+        return this;
+    }
+
     public HotkeyBuilder Primary(KeyModifier modifiers = default)
     {
         _primaryKey = new KeyReference
@@ -109,6 +119,16 @@ public class HotkeyBuilder
         _secondaryKey = new KeyReference
         {
             PhysicalKey = scancode,
+            Modifiers = modifiers
+        };
+        return this;
+    }
+
+    public HotkeyBuilder Secondary(SDL_Keycode virtualKey, KeyModifier modifiers = default)
+    {
+        _secondaryKey = new KeyReference
+        {
+            VirtualKey = virtualKey,
             Modifiers = modifiers
         };
         return this;

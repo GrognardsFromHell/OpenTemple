@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using OpenTemple.Core.GameObjects;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Hotkeys;
@@ -137,7 +139,7 @@ public class TurnBasedUi : IResetAwareSystem
     [TempleDllLocation(0x10C04118)]
     private GameObject? intgameActor;
 
-    private int _panicKeys = 0;
+    private int _panicKeys;
 
     private bool ShouldHandleEvent(IGameViewport viewport)
     {
@@ -172,19 +174,19 @@ public class TurnBasedUi : IResetAwareSystem
     {
         screenXfromMouseEvent = e.X;
         screenYfromMouseEvent = e.Y;
-        
+
         if (ShouldHandleEvent(viewport))
         {
             IntgameValidateMouseSelection(viewport, e.X, e.Y);
         }
     }
-    
+
     [TempleDllLocation(0x10174A30)]
     private void HandleMouseDown(IGameViewport viewport, MouseEvent e)
     {
         screenXfromMouseEvent = e.X;
         screenYfromMouseEvent = e.Y;
-        
+
         if (ShouldHandleEvent(viewport))
         {
             var initialSeq = GameSystems.D20.Actions.CurrentSequence;
@@ -193,13 +195,13 @@ public class TurnBasedUi : IResetAwareSystem
             {
                 if (ToggleAcquisition(viewport, e))
                     e.StopImmediatePropagation();
-            } 
+            }
             else if (e.Button == MouseButton.Right)
             {
                 if (HandleRightMousePressed(viewport, e))
                     e.StopImmediatePropagation();
             }
-            
+
             if (GameSystems.D20.Actions.CurrentSequence != initialSeq)
             {
                 Logger.Info("Turn-Based UI switched sequence to {0} via mousedown-handler",
@@ -207,28 +209,28 @@ public class TurnBasedUi : IResetAwareSystem
             }
         }
     }
-    
+
     [TempleDllLocation(0x10174A30)]
     private void HandleMouseUp(IGameViewport viewport, MouseEvent e)
     {
         screenXfromMouseEvent = e.X;
         screenYfromMouseEvent = e.Y;
-        
+
         if (ShouldHandleEvent(viewport))
         {
             var initialSeq = GameSystems.D20.Actions.CurrentSequence;
-            
+
             if (e.Button == MouseButton.Left)
             {
                 if (UiIntgamePathSequenceHandler(viewport, e.X, e.Y))
                     e.StopImmediatePropagation();
-            } 
+            }
             else if (e.Button == MouseButton.Right)
             {
                 if (ResetViaRmb(viewport, e))
                     e.StopImmediatePropagation();
             }
-            
+
             if (GameSystems.D20.Actions.CurrentSequence != initialSeq)
             {
                 Logger.Info("Turn-Based UI switched sequence to {0} via mouseup-handler",
@@ -243,10 +245,10 @@ public class TurnBasedUi : IResetAwareSystem
         {
             WidgetEnteredForGameplay = true;
         }
-        
+
         uiIntgameWidgetEnteredForRender = true;
     }
-    
+
     private void HandleMouseLeave(IGameViewport viewport, MouseEvent e)
     {
         if (ShouldHandleEvent(viewport))
@@ -256,86 +258,8 @@ public class TurnBasedUi : IResetAwareSystem
             intgameTargetFromRaycast = null;
             WidgetEnteredForGameplay = false;
         }
-        
+
         uiIntgameWidgetEnteredForRender = false;
-    }
-
-    private bool HandleKeyUp(IGameViewport viewport, KeyboardEvent e)
-    {
-        // TODO: DM System
-
-        var initialSeq = GameSystems.D20.Actions.CurrentSequence;
-        var result = false;
-
-        if (ShouldHandleEvent(viewport))
-        {
-            // widget or keyboard msg
-            Logger.Debug("TurnBasedUi.HandleKeyUp key={0}", e.VirtualKey);
-            var leader = GameSystems.Party.GetConsciousLeader();
-            if (GameSystems.D20.Actions.IsCurrentlyPerforming(leader))
-            {
-                if (e.VirtualKey == SDL.SDL_Keycode.SDLK_t)
-                {
-                    _panicKeys++;
-                }
-
-                if (_panicKeys >= 4)
-                {
-                    GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_HIGHEST, true);
-                    GameSystems.Anim.Interrupt(leader, AnimGoalPriority.AGP_1, true);
-                    GameSystems.D20.Actions.CurrentSequence.IsPerforming = false;
-                }
-
-                return true;
-            }
-            else
-            {
-                _panicKeys = 0;
-            }
-
-            var potentialHotkey = KeyReference.Physical(e.PhysicalKey);
-
-            // bind hotkey
-            if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey) && Tig.Keyboard.IsCtrlPressed)
-            {
-                UiSystems.RadialMenu.SpawnFromKeyboard(viewport, leader, e);
-                return true;
-            }
-
-            GameSystems.D20.Actions.TurnBasedStatusInit(leader);
-            if (uiIntgameWaypointMode)
-            {
-                UiIntgameRestoreSeqBackup();
-            }
-            else
-            {
-                Logger.Info("Intgame: Resetting sequence.");
-                GameSystems.D20.Actions.CurSeqReset(leader);
-            }
-
-            GameSystems.D20.Actions.GlobD20ActnInit();
-            if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(leader, potentialHotkey))
-            {
-                GameSystems.D20.Actions.ActionAddToSeq();
-                GameSystems.D20.Actions.sequencePerform();
-
-                var comrade = GameSystems.Dialog.GetListeningPartyMember(leader);
-                if (GameSystems.Dialog.TryGetOkayVoiceLine(intgameActor, comrade, out var text, out var soundId))
-                {
-                    GameSystems.Dialog.PlayCritterVoiceLine(intgameActor, comrade, text, soundId);
-                }
-
-                result = true;
-            }
-        }
-
-        if (GameSystems.D20.Actions.CurrentSequence != initialSeq)
-        {
-            Logger.Info("Turn-Based UI switched sequence to {0} via key-handler",
-                GameSystems.D20.Actions.CurrentSequence);
-        }
-
-        return result;
     }
 
     [TempleDllLocation(0x10174930)]
@@ -945,7 +869,7 @@ public class TurnBasedUi : IResetAwareSystem
     {
         uiIntgameTargetObjFromPortraits = null;
     }
-    
+
     public void AddEventListeners<T>(T viewport) where T : WidgetBase, IGameViewport
     {
         viewport.OnMouseDown += e => HandleMouseDown(viewport, e);
@@ -953,12 +877,80 @@ public class TurnBasedUi : IResetAwareSystem
         viewport.OnMouseEnter += e => HandleMouseEntered(viewport, e);
         viewport.OnMouseLeave += e => HandleMouseLeave(viewport, e);
         viewport.OnMouseMove += e => HandleMouseMove(viewport, e);
-        viewport.OnKeyUp += e =>
+    }
+
+    private void PanicCancelAction()
+    {
+        if (++_panicKeys >= 4)
         {
-            if (HandleKeyUp(viewport, e))
+            _panicKeys = 0;
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+            GameSystems.Anim.Interrupt(actor, AnimGoalPriority.AGP_HIGHEST, true);
+            GameSystems.Anim.Interrupt(actor, AnimGoalPriority.AGP_1, true);
+            GameSystems.D20.Actions.CurrentSequence.IsPerforming = false;
+        }
+    }
+
+    public IEnumerable<HotkeyAction> EnumerateHotkeyActions()
+    {
+        // Hotkeys for turn-based combat are only active during turn-based combat,
+        // while it's a party members turn.
+        bool Condition()
+        {
+            if (!GameSystems.Combat.IsCombatActive())
             {
-                e.StopImmediatePropagation();
+                return false;
             }
-        };
+
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+            return GameSystems.Party.IsPlayerControlled(actor);
+        }
+
+        yield return new HotkeyAction(InGameHotKey.PanicCancelAction, PanicCancelAction, () =>
+        {
+            // Panic button is available to cancel out of an action a party member is performing
+            var leader = GameSystems.Party.GetConsciousLeader();
+            return Condition() && GameSystems.D20.Actions.IsCurrentlyPerforming(leader);
+        });
+
+        // Add all user-assignable hotkeys
+        foreach (var userHotkey in InGameHotKey.UserAssignableHotkeys)
+        {
+            yield return new HotkeyAction(
+                userHotkey,
+                e => TriggerUserHotkey(userHotkey, e),
+                Condition
+            );
+        }
+    }
+
+    private void TriggerUserHotkey(Hotkey hotkey, KeyboardEvent e)
+    {
+        // assign hotkey
+        var leader = GameSystems.Party.GetConsciousLeader();
+        var viewport = GameViews.Primary;
+        if (leader == null || viewport == null)
+        {
+            return;
+        }
+
+        if (e.IsCtrlHeld)
+        {
+            UiSystems.RadialMenu.SpawnAndStartHotkeyAssignment(viewport, leader, hotkey);
+        }
+        else if (GameSystems.D20.Hotkeys.IsAssigned(hotkey))
+        {
+            GameSystems.D20.Actions.TurnBasedStatusInit(leader);
+            if (uiIntgameWaypointMode)
+            {
+                UiIntgameRestoreSeqBackup();
+            }
+            else
+            {
+                GameSystems.D20.Actions.CurSeqReset(leader);
+            }
+
+            GameSystems.D20.Hotkeys.AddHotkeyActionToSequence(hotkey);
+        }
     }
 }

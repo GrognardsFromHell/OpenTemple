@@ -3,17 +3,21 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.MainMenu;
+using SDL2;
 
 namespace OpenTemple.Core.Ui
 {
     public class KeyManagerUi : IResetAwareSystem
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         [TempleDllLocation(0x10BE8CF0)]
         private bool _modalIsOpen;
 
@@ -34,12 +38,26 @@ namespace OpenTemple.Core.Ui
         {
             _modalIsOpen = false;
             _translations = Tig.FS.ReadMesFile("mes/ui_manager.mes");
-
-            var hotkeys = ImmutableList.CreateBuilder<HotkeyAction>();
         }
 
+        // The cited DLL locations refer to the old key-handler methods splattered across in-game ui
+        [TempleDllLocation(0x10114eb0)]
+        [TempleDllLocation(0x101132b0)]
+        [TempleDllLocation(0x10114e30)]
+        [TempleDllLocation(0x101130b0)]
+        [TempleDllLocation(0x10114ef0)]
         public IEnumerable<HotkeyAction> EnumerateHotkeyActions()
         {
+            yield return new HotkeyAction(InGameHotKey.SelectChar1, () => SelectPartyMember(0), CanTriggerOutOfCombatHotkeys);
+            yield return new HotkeyAction(InGameHotKey.SelectChar2, () => SelectPartyMember(1), CanTriggerOutOfCombatHotkeys);
+            yield return new HotkeyAction(InGameHotKey.SelectChar3, () => SelectPartyMember(2), CanTriggerOutOfCombatHotkeys);
+            yield return new HotkeyAction(InGameHotKey.SelectChar4, () => SelectPartyMember(3), CanTriggerOutOfCombatHotkeys);
+            yield return new HotkeyAction(InGameHotKey.SelectChar5, () => SelectPartyMember(4), CanTriggerOutOfCombatHotkeys);
+            yield return new HotkeyAction(InGameHotKey.SelectChar6, () => SelectPartyMember(5), CanTriggerOutOfCombatHotkeys);
+            yield return new HotkeyAction(InGameHotKey.SelectChar7, () => SelectPartyMember(6), CanTriggerOutOfCombatHotkeys);
+            yield return new HotkeyAction(InGameHotKey.SelectChar8, () => SelectPartyMember(7), CanTriggerOutOfCombatHotkeys);
+            yield return new HotkeyAction(InGameHotKey.SelectChar9, () => SelectPartyMember(8), CanTriggerOutOfCombatHotkeys);
+
             yield return new HotkeyAction(InGameHotKey.TogglePartySelection1, () => TogglePartyMemberSelection(0), CanTriggerHotkeys);
             yield return new HotkeyAction(InGameHotKey.TogglePartySelection2, () => TogglePartyMemberSelection(1), CanTriggerHotkeys);
             yield return new HotkeyAction(InGameHotKey.TogglePartySelection3, () => TogglePartyMemberSelection(2), CanTriggerHotkeys);
@@ -73,11 +91,76 @@ namespace OpenTemple.Core.Ui
             yield return new HotkeyAction(InGameHotKey.SelectAll, SelectAll, CanTriggerOutOfCombatHotkeys);
 
             yield return new HotkeyAction(InGameHotKey.ToggleConsole, Tig.Console.ToggleVisible);
+
+            yield return new HotkeyAction(InGameHotKey.CenterOnChar, CenterScreenOnParty, CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.ToggleMainMenu, ToggleMainMenu, CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.QuickLoad, QuickLoad, CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.QuickSave, QuickSave, CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.Quit, QuitGame, CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.ShowInventory, ToggleInventory, CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.ShowLogbook, ToggleLogbook, CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.ShowMap, ToggleMap, CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.ShowFormation, ToggleFormation, CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.Rest, ToggleRest, CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.ShowHelp, UiSystems.HelpManager.ClickForHelpToggle, CanTriggerHotkeys);
+            yield return new HotkeyAction(InGameHotKey.ShowOptions, ToggleOptions, CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.ToggleCombat, ToggleCombat, CanTriggerHotkeys);
+
+            yield return new HotkeyAction(InGameHotKey.EndTurn, EndTurn, CanTriggerTurnBasedPartyHotkey);
+
+            // Add all user-assignable hotkeys for out-of-combat. In-combat is handled in the turn-based UI
+            foreach (var userHotkey in InGameHotKey.UserAssignableHotkeys)
+            {
+                yield return new HotkeyAction(
+                    userHotkey,
+                    e => TriggerUserHotkey(userHotkey, e),
+                    CanTriggerOutOfCombatHotkeys
+                );
+            }
+        }
+
+        private void TriggerUserHotkey(Hotkey hotkey, KeyboardEvent e)
+        {
+            if (e.IsCtrlHeld)
+            {
+                // assign hotkey
+                var leader = GameSystems.Party.GetConsciousLeader();
+                var viewport = GameViews.Primary;
+                if (leader != null && viewport != null)
+                {
+                    UiSystems.RadialMenu.SpawnAndStartHotkeyAssignment(viewport, leader, hotkey);
+                }
+            }
+            else if (GameSystems.D20.Hotkeys.IsAssigned(hotkey))
+            {
+                GameSystems.D20.Hotkeys.AddHotkeyActionToSequence(hotkey);
+            }
         }
 
         private bool CanTriggerOutOfCombatHotkeys()
         {
             return CanTriggerHotkeys() && !GameSystems.Combat.IsCombatActive();
+        }
+
+        /// <summary>
+        /// Condition for hotkeys that affect the current party-member in turn-based combat.
+        /// </summary>
+        private bool CanTriggerTurnBasedPartyHotkey()
+        {
+            if (!CanTriggerHotkeys() || !GameSystems.Combat.IsCombatActive())
+            {
+                return false;
+            }
+
+            var currentActor = GameSystems.D20.Initiative.CurrentActor;
+            return currentActor != null
+                   && GameSystems.Party.IsInParty(currentActor)
+                   && !GameSystems.D20.Actions.IsCurrentlyPerforming(currentActor);
         }
 
         private bool CanTriggerHotkeys()
@@ -91,101 +174,37 @@ namespace OpenTemple.Core.Ui
             uiManagerDoYouWantToQuitActive = false;
         }
 
-        [TempleDllLocation(0x10143d60)]
-        public void HandleKeyDown(KeyboardEvent e)
+        // End turn for current actor
+        private void EndTurn()
         {
-            Stub.TODO();
-        }
+            // TODO: This should really not be needed here.
+            UiSystems.CharSheet.CurrentPage = 0;
+            UiSystems.CharSheet.Hide(UiSystems.CharSheet.State);
 
-        [TempleDllLocation(0x10143d60)]
-        public void HandleKeyUp(KeyboardEvent e)
-        {
-            Stub.TODO();
-
-            // var modifier = GetKeyEventFromModifier();
-            // var evt = GetKeyEvent(kbMsg, modifier);
-            // var action = evt;
-            //
-            // switch (action)
-            // {
-
-
-            //     case InGameHotKey.CenterOnChar:
-            //         return CenterScreenOnParty(kbMsg, modifier, action);
-            //     case InGameHotKey.SelectChar1:
-            //     case InGameHotKey.SelectChar2:
-            //     case InGameHotKey.SelectChar3:
-            //     case InGameHotKey.SelectChar4:
-            //     case InGameHotKey.SelectChar5:
-            //     case InGameHotKey.SelectChar6:
-            //     case InGameHotKey.SelectChar7:
-            //     case InGameHotKey.SelectChar8:
-            //         return SelectPartyMember(kbMsg, modifier, action);
-            //     case InGameHotKey.ToggleMainMenu:
-            //         return ToggleMainMenu();
-            //     case InGameHotKey.QuickLoad:
-            //         return QuickLoad();
-            //     case InGameHotKey.QuickSave:
-            //         return QuickSave();
-            //     case InGameHotKey.Quit:
-            //         return QuitGame();
-            //     case InGameHotKey.ShowInventory:
-            //         return ToggleInventory();
-            //     case InGameHotKey.ShowLogbook:
-            //         return ToggleLogbook();
-            //     case InGameHotKey.ShowMap:
-            //         return ToggleMap();
-            //     case InGameHotKey.ShowFormation:
-            //         return ToggleFormation();
-            //     case InGameHotKey.Rest:
-            //         return ToggleRest();
-            //     case InGameHotKey.ShowHelp:
-            //         if (!uiManagerDoYouWantToQuitActive)
-            //         {
-            //             UiSystems.HelpManager.ClickForHelpToggle();
-            //         }
-            //
-            //         return true;
-            //     // case InGameHotKey.0:
-            //     // case InGameHotKey.1:
-            //     case InGameHotKey.Screenshot:
-            //     case InGameHotKey.ObjectHighlight:
-            //         return true;
-            //     case InGameHotKey.ShowOptions:
-            //         return ToggleOptions();
-            //     case InGameHotKey.ToggleCombat:
-            //         return ToggleCombat();
-            //     case InGameHotKey.EndTurn:
-            //     case InGameHotKey.EndTurnNonParty:
-            //         return true;
-            //     default:
-            //         return false;
-            // }            
+            // TODO: These conditions should prevent hotkey processing elsewhere!
+            if (!UiSystems.InGameSelect.IsPicking && !UiSystems.RadialMenu.IsOpen)
+            {
+                var currentActor = GameSystems.D20.Initiative.CurrentActor;
+                GameSystems.Combat.AdvanceTurn(currentActor);
+                Logger.Info("Advancing turn for {0}", currentActor);
+            }
         }
 
         [TempleDllLocation(0x101435b0)]
-        public bool ToggleCombat()
+        public void ToggleCombat()
         {
-            if (uiManagerDoYouWantToQuitActive)
-            {
-                return true;
-            }
-
             var leader = GameSystems.Party.GetConsciousLeader();
             if (!GameSystems.Combat.IsCombatActive())
             {
                 GameSystems.Combat.EnterCombat(leader);
                 GameSystems.Combat.StartCombat(leader, true);
-                return true;
+                return;
             }
 
             if (GameSystems.Combat.AllCombatantsFarFromParty())
             {
                 GameSystems.Combat.CritterLeaveCombat(leader);
-                return true;
             }
-
-            return false;
         }
 
         [TempleDllLocation(0x101436c0)]
@@ -240,17 +259,12 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10143b40)]
-        private bool ToggleOptions()
+        private void ToggleOptions()
         {
-            if (uiManagerDoYouWantToQuitActive)
-            {
-                return true;
-            }
-
             if (UiSystems.Options.IsVisible)
             {
                 UiSystems.Options.Hide();
-                return true;
+                return;
             }
 
             if (UiSystems.Dialog.IsVisible
@@ -262,28 +276,22 @@ namespace OpenTemple.Core.Ui
                 || UiSystems.PCCreation.IsVisible)
             {
                 // TODO: UI event was blocked, notify user with sound
-                return false;
+                return;
             }
             else
             {
                 HideAll();
                 UiSystems.Options.Show(false);
-                return true;
             }
         }
 
         [TempleDllLocation(0x10143ac0)]
-        private bool ToggleRest()
+        private void ToggleRest()
         {
-            if (uiManagerDoYouWantToQuitActive)
-            {
-                return true;
-            }
-
             if (UiSystems.Camping.IsVisible)
             {
                 UiSystems.Camping.Hide();
-                return true;
+                return;
             }
 
             if (UiSystems.Dialog.IsVisible
@@ -295,28 +303,22 @@ namespace OpenTemple.Core.Ui
                 || GameSystems.RandomEncounter.SleepStatus == SleepStatus.Impossible)
             {
                 // TODO: UI event was blocked, notify user with sound
-                return false;
+                return;
             }
             else
             {
                 HideAll();
                 UiSystems.Camping.Show();
-                return true;
             }
         }
 
         [TempleDllLocation(0x10143a40)]
-        private bool ToggleFormation()
+        private void ToggleFormation()
         {
-            if (uiManagerDoYouWantToQuitActive)
-            {
-                return true;
-            }
-
             if (UiSystems.Formation.IsVisible)
             {
                 UiSystems.Formation.Hide();
-                return true;
+                return;
             }
 
             if (UiSystems.Dialog.IsVisible
@@ -327,36 +329,30 @@ namespace OpenTemple.Core.Ui
                 || UiSystems.Options.IsVisible)
             {
                 // TODO: UI event was blocked, notify user with sound
-                return false;
+                return;
             }
             else
             {
                 HideAll();
                 UiSystems.Formation.Show();
-                return true;
             }
         }
 
         [TempleDllLocation(0x10143940)]
-        private bool ToggleMap()
+        private void ToggleMap()
         {
-            if (uiManagerDoYouWantToQuitActive)
-            {
-                return true;
-            }
-
             if (UiSystems.TownMap.IsVisible || UiSystems.WorldMap.IsVisible)
             {
                 if (UiSystems.TownMap.IsVisible)
                 {
                     UiSystems.TownMap.Hide();
-                    return true;
+                    return;
                 }
 
                 if (UiSystems.WorldMap.IsVisible)
                 {
                     UiSystems.WorldMap.Hide();
-                    return true;
+                    return;
                 }
             }
             else if (!UiSystems.Dialog.IsVisible
@@ -375,25 +371,19 @@ namespace OpenTemple.Core.Ui
             {
                 HideAll();
                 UiSystems.TownMap.Show();
-                return true;
+                return;
             }
 
             // TODO: UI event was blocked, notify user with sound
-            return false;
         }
 
         [TempleDllLocation(0x101438c0)]
-        private bool ToggleLogbook()
+        private void ToggleLogbook()
         {
-            if (uiManagerDoYouWantToQuitActive)
-            {
-                return true;
-            }
-
             if (UiSystems.Logbook.IsVisible)
             {
                 UiSystems.Logbook.Hide();
-                return true;
+                return;
             }
 
             if (UiSystems.Dialog.IsVisible
@@ -404,35 +394,29 @@ namespace OpenTemple.Core.Ui
                 || UiSystems.Options.IsVisible)
             {
                 // TODO: UI event was blocked, notify user with sound
-                return false;
+                return;
             }
             else
             {
                 HideAll();
                 UiSystems.Logbook.Show();
-                return true;
             }
         }
 
         [TempleDllLocation(0x10143820)]
-        private bool ToggleInventory()
+        private void ToggleInventory()
         {
-            if (uiManagerDoYouWantToQuitActive)
-            {
-                return true;
-            }
-
             var leader = GameSystems.Party.GetConsciousLeader();
             if (GameSystems.Party.IsAiFollower(leader))
             {
-                return true;
+                return;
             }
 
             if (UiSystems.CharSheet.HasCurrentCritter)
             {
                 UiSystems.CharSheet.CurrentPage = 0;
                 UiSystems.CharSheet.Hide(CharInventoryState.Closed);
-                return true;
+                return;
             }
 
             if (UiSystems.Dialog.IsVisible
@@ -443,32 +427,26 @@ namespace OpenTemple.Core.Ui
                 || UiSystems.Options.IsVisible)
             {
                 // TODO: UI event was blocked, notify user with sound
-                return false;
+                return;
             }
             else
             {
                 HideAll();
                 UiSystems.CharSheet.Show(leader);
-                return true;
             }
         }
 
         [TempleDllLocation(0x101437d0)]
-        private bool QuitGame()
+        private void QuitGame()
         {
-            if (!uiManagerDoYouWantToQuitActive)
-            {
-                uiManagerDoYouWantToQuitActive = true;
-                GameSystems.TimeEvent.PauseGameTime();
-                GameSystems.D20.Actions.ResetCursor();
-                UiSystems.Popup.ConfirmBox(
-                    QuitGameMessage,
-                    QuitGameTitle,
-                    true,
-                    QuitGameConfirm);
-            }
-
-            return true;
+            uiManagerDoYouWantToQuitActive = true;
+            GameSystems.TimeEvent.PauseGameTime();
+            GameSystems.D20.Actions.ResetCursor();
+            UiSystems.Popup.ConfirmBox(
+                QuitGameMessage,
+                QuitGameTitle,
+                true,
+                QuitGameConfirm);
         }
 
         [TempleDllLocation(0x10143580)]
@@ -485,122 +463,79 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10143560)]
-        private bool QuickSave()
+        private void QuickSave()
         {
-            if (!uiManagerDoYouWantToQuitActive && !UiSystems.Dialog.IsVisible)
+            if (!UiSystems.Dialog.IsVisible)
             {
                 Globals.GameLib.QuickSave();
             }
-
-            return true;
         }
 
         [TempleDllLocation(0x10143530)]
-        private bool QuickLoad()
+        private void QuickLoad()
         {
-            if (!uiManagerDoYouWantToQuitActive && !Globals.GameLib.IsIronmanGame)
+            if (!Globals.GameLib.IsIronmanGame)
             {
                 Globals.GameLib.QuickLoad();
                 UiSystems.Party.UpdateAndShowMaybe();
                 UiSystems.InGame.CenterOnParty();
             }
-
-            return true;
         }
 
         [TempleDllLocation(0x101434e0)]
-        private bool ToggleMainMenu()
+        private void ToggleMainMenu()
         {
-            if (!uiManagerDoYouWantToQuitActive)
+            if (UiSystems.MainMenu.IsVisible())
             {
-                if (UiSystems.MainMenu.IsVisible())
-                {
-                    UiSystems.MainMenu.Hide();
-                    return true;
-                }
-
-                if (Globals.GameLib.IsIronmanGame)
-                {
-                    GameSystems.D20.Actions.ResetCursor();
-                    UiSystems.MainMenu.Show(MainMenuPage.InGameIronman);
-                    return true;
-                }
-
-                GameSystems.D20.Actions.ResetCursor();
-                UiSystems.MainMenu.Show(MainMenuPage.InGameNormal);
+                UiSystems.MainMenu.Hide();
+                return;
             }
 
-            return true;
+            if (Globals.GameLib.IsIronmanGame)
+            {
+                GameSystems.D20.Actions.ResetCursor();
+                UiSystems.MainMenu.Show(MainMenuPage.InGameIronman);
+                return;
+            }
+
+            GameSystems.D20.Actions.ResetCursor();
+            UiSystems.MainMenu.Show(MainMenuPage.InGameNormal);
         }
 
         [TempleDllLocation(0x10143430)]
-        private bool CenterScreenOnParty(Hotkey action)
+        private void CenterScreenOnParty()
         {
-            if (!uiManagerDoYouWantToQuitActive)
-            {
-                UiSystems.InGame.CenterOnParty();
-            }
-
-            return true;
+            UiSystems.InGame.CenterOnParty();
         }
 
         [TempleDllLocation(0x10143450)]
         [TemplePlusLocation("ui_legacysystems.cpp:1596")]
-        private bool SelectPartyMember(Hotkey action)
+        private void SelectPartyMember(int index)
         {
-            if (uiManagerDoYouWantToQuitActive)
-                return true;
-
-            int index;
-            if (action == InGameHotKey.SelectChar1)
-                index = 0;
-            else if (action == InGameHotKey.SelectChar2)
-                index = 1;
-            else if (action == InGameHotKey.SelectChar3)
-                index = 2;
-            else if (action == InGameHotKey.SelectChar4)
-                index = 3;
-            else if (action == InGameHotKey.SelectChar5)
-                index = 4;
-            else if (action == InGameHotKey.SelectChar6)
-                index = 5;
-            else if (action == InGameHotKey.SelectChar7)
-                index = 6;
-            else if (action == InGameHotKey.SelectChar8)
-                index = 7;
-            else if (action == InGameHotKey.SelectChar9)
-                index = 8;
-            else
-                throw new ArgumentOutOfRangeException(nameof(action));
-
-            if (index >= GameSystems.Party.PartySize || GameSystems.Combat.IsCombatActive())
+            if (index >= GameSystems.Party.PartySize)
             {
-                return true;
+                return;
             }
 
-            if (UiSystems.Dialog.IsConversationOngoing)
-                return true;
+            if (UiSystems.Dialog.IsConversationOngoing) return;
 
             var critter = GameSystems.Party.GetPartyGroupMemberN(index);
-            if (GameSystems.Party.IsAiFollower(critter))
-                return true;
+            if (GameSystems.Party.IsAiFollower(critter)) return;
 
             var uiCharState = UiSystems.CharSheet.State;
             if (uiCharState == CharInventoryState.LevelUp)
             {
-                return true;
+                return;
             }
-
 
             if (UiSystems.CharSheet.CurrentCritter != null)
             {
                 UiSystems.CharSheet.ShowInState(uiCharState, critter);
-                return true;
+                return;
             }
 
             GameSystems.Party.ClearSelection();
             GameSystems.Party.AddToSelection(critter);
-            return true;
         }
 
         [TempleDllLocation(0x10143310)]

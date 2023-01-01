@@ -4,6 +4,7 @@ using System.Data.SqlTypes;
 using System.Drawing;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -12,6 +13,7 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Cursors;
 using OpenTemple.Core.Ui.Events;
+using OpenTemple.Core.Ui.InGame;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -96,10 +98,54 @@ public class GameView : WidgetContainer, IGameViewport
         UiSystems.InGameSelect.AddEventListeners(this);
         UiSystems.InGame.AddEventListeners(this);
 
+        RegisterHotkeys();
+    }
+
+    private void RegisterHotkeys()
+    {
+        // Hotkeys from the Key-Manager are only relevant when the Radial Menu isn't open
         foreach (var hotkeyAction in UiSystems.KeyManager.EnumerateHotkeyActions())
         {
-            // Wrap the condition to also check whether the view is interactive
-            AddActionHotkey(hotkeyAction.Hotkey, hotkeyAction.Callback, () => IsInteractive && hotkeyAction.Condition());
+            AddActionHotkey(
+                hotkeyAction.Hotkey,
+                hotkeyAction.Callback,
+                () => IsInteractive && !UiSystems.RadialMenu.IsOpen && hotkeyAction.Condition()
+            );
+        }
+
+        // Hotkeys for turn-based combat also only work while the radial menu is closed,
+        // and while turn-based combat is active
+        foreach (var hotkeyAction in UiSystems.TurnBased.EnumerateHotkeyActions())
+        {
+            AddActionHotkey(
+                hotkeyAction.Hotkey,
+                hotkeyAction.Callback,
+                () => IsInteractive && !UiSystems.RadialMenu.IsOpen && GameSystems.Combat.IsCombatActive() && hotkeyAction.Condition()
+            );
+        }
+        
+        // Hotkeys from the radial menu on the other hand are only available while it's open
+        foreach (var hotkeyAction in UiSystems.RadialMenu.EnumerateHotkeyActions())
+        {
+            AddActionHotkey(
+                hotkeyAction.Hotkey,
+                hotkeyAction.Callback,
+                () => IsInteractive && UiSystems.RadialMenu.IsOpen && hotkeyAction.Condition()
+            );
+        }
+
+        foreach (var heldHotkey in UiSystems.RadialMenu.EnumerateHeldHotkeys())
+        {
+            // Wrap the condition to check that the radial menu is open
+            AddHeldHotkey(
+                heldHotkey.Hotkey,
+                state =>
+                {
+                    heldHotkey.Held = state;
+                    heldHotkey.Callback(state);
+                },
+                () => IsInteractive && UiSystems.RadialMenu.IsOpen && heldHotkey.Condition()
+            );
         }
     }
 
@@ -370,28 +416,4 @@ public class GameView : WidgetContainer, IGameViewport
             }
         }
     }
-
-    public override void AttachToTree(UiManager? manager)
-    {
-        // Uninstall / Install fallback key handlers to capture in-game keyboard shortcuts
-        var oldRoot = UiManager?.Root;
-        if (oldRoot != null)
-        {
-            oldRoot.OnKeyDown -= HandleGlobalKeyDown;
-            oldRoot.OnKeyUp -= HandleGlobalKeyUp;
-        }
-
-        var newRoot = manager?.Root;
-        if (newRoot != null)
-        {
-            newRoot.OnKeyDown += HandleGlobalKeyDown;
-            newRoot.OnKeyUp += HandleGlobalKeyUp;
-        }
-
-        base.AttachToTree(manager);
-    }
-
-    private void HandleGlobalKeyDown(KeyboardEvent e) => DispatchKeyDown(e, true);
-
-    private void HandleGlobalKeyUp(KeyboardEvent e) => DispatchKeyUp(e, true);
 }

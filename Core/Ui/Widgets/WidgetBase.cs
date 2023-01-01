@@ -10,6 +10,7 @@ using System.Text;
 using OpenTemple.Core.Hotkeys;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.Widgets
@@ -48,7 +49,7 @@ namespace OpenTemple.Core.Ui.Widgets
         private bool _pressed;
         private bool _disabled;
         private FocusMode _focusMode = FocusMode.None;
-
+        
         /// <summary>
         /// Indicates that <see cref="LayoutBox"/> has been set by the layout engine and is valid.
         /// </summary>
@@ -910,6 +911,15 @@ namespace OpenTemple.Core.Ui.Widgets
         /// </summary>
         public void AddActionHotkey(Hotkey hotkey, Action callback, Func<bool>? condition = null)
         {
+            AddActionHotkey(hotkey, _ => callback(), condition);
+        }
+
+        /// <summary>
+        /// Associates a hotkey with an action to be triggered when the hotkey is triggered.
+        /// An additional condition may be specified that needs to be true in order for the action to be triggered.
+        /// </summary>
+        public void AddActionHotkey(Hotkey hotkey, Action<KeyboardEvent> callback, Func<bool>? condition = null)
+        {
             if (hotkey.Trigger == HotkeyTrigger.Held)
             {
                 throw new ArgumentException("Cannot register a hotkey that is triggered by holding as an action hotkey.");
@@ -939,6 +949,17 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 throw new ArgumentException("Held hotkey " + hotkey + " is already registered");
             }
+
+            UiManager?.InvalidateHotkeys(this);
+        }
+
+        /// <summary>
+        /// Removes all registered hotkeys from this widget.
+        /// </summary>
+        public void ClearActionHotkeys()
+        {
+            _actionHotkeys.Clear();
+            UiManager?.InvalidateHotkeys(this);
         }
 
         /// <summary>
@@ -956,11 +977,12 @@ namespace OpenTemple.Core.Ui.Widgets
         }
 
         /// <summary>
-        /// Registration for a hotkey that causes the widget to be notified when the hotkey is being held.
+        /// Removes all registered held hotkeys from this widget.
         /// </summary>
-        public record HeldHotkeyState(Hotkey Hotkey, Action<bool> Callback, Func<bool> Condition)
+        public void ClearHeldHotkeys()
         {
-            public bool Held { get; set; }
+            _heldHotkeys.Clear();
+            UiManager?.InvalidateHotkeys(this);
         }
 
         public ImmutableList<DeclaredInterval> Intervals { get; private set; } = ImmutableList<DeclaredInterval>.Empty;

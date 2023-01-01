@@ -1,4 +1,5 @@
-﻿
+﻿using System.Collections.Immutable;
+using System.Linq;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup.Discovery;
 using static SDL2.SDL;
@@ -64,16 +65,91 @@ public static class InGameHotKey
     public static readonly Hotkey ScrollRight = Hotkey.Build("scroll_right").Primary(SDL_Scancode.SDL_SCANCODE_RIGHT).Held().Build();
     public static readonly Hotkey ObjectHighlight = Hotkey.Build("object_highlight").Primary(SDL_Scancode.SDL_SCANCODE_TAB).Held().Build();
 
-    public static readonly Hotkey ShowInventory = Hotkey.Build("show_inventory").Primary(SDL_Scancode.SDL_SCANCODE_I).Build();
-    public static readonly Hotkey ShowLogbook = Hotkey.Build("show_logbook").Primary(SDL_Scancode.SDL_SCANCODE_L).Build();
-    public static readonly Hotkey ShowMap = Hotkey.Build("show_map").Primary(SDL_Scancode.SDL_SCANCODE_M).Build();
-    public static readonly Hotkey ShowFormation = Hotkey.Build("show_formation").Primary(SDL_Scancode.SDL_SCANCODE_F).Build();
-    public static readonly Hotkey Rest = Hotkey.Build("rest").Primary(SDL_Scancode.SDL_SCANCODE_R).Build();
-    public static readonly Hotkey ShowHelp = Hotkey.Build("show_help").Primary(SDL_Scancode.SDL_SCANCODE_H).Build();
-    public static readonly Hotkey ShowOptions = Hotkey.Build("show_options").Primary(SDL_Scancode.SDL_SCANCODE_O).Build();
-    public static readonly Hotkey ToggleCombat = Hotkey.Build("toggle_combat").Primary(SDL_Scancode.SDL_SCANCODE_C).Build();
+    public static readonly Hotkey ShowInventory = Hotkey.Build("show_inventory").Primary(SDL_Keycode.SDLK_i).Build();
+    public static readonly Hotkey ShowLogbook = Hotkey.Build("show_logbook").Primary(SDL_Keycode.SDLK_l).Build();
+    public static readonly Hotkey ShowMap = Hotkey.Build("show_map").Primary(SDL_Keycode.SDLK_m).Build();
+    public static readonly Hotkey ShowFormation = Hotkey.Build("show_formation").Primary(SDL_Keycode.SDLK_f).Build();
+    public static readonly Hotkey Rest = Hotkey.Build("rest").Primary(SDL_Keycode.SDLK_r).Build();
+    public static readonly Hotkey ShowHelp = Hotkey.Build("show_help").Primary(SDL_Keycode.SDLK_h).Build();
+    public static readonly Hotkey ShowOptions = Hotkey.Build("show_options").Primary(SDL_Keycode.SDLK_o).Build();
+    public static readonly Hotkey ToggleCombat = Hotkey.Build("toggle_combat").Primary(SDL_Keycode.SDLK_c).Build();
     public static readonly Hotkey EndTurn = Hotkey.Build("end_turn").Primary(SDL_Scancode.SDL_SCANCODE_SPACE).Secondary(SDL_Scancode.SDL_SCANCODE_RETURN).Build();
     public static readonly Hotkey EndTurnNonParty = Hotkey.Build("end_turn_non_party").Primary(SDL_Scancode.SDL_SCANCODE_RETURN, KeyModifier.Shift).Build();
 
+    public static readonly Hotkey PanicCancelAction = Hotkey.Build("panic_cancel_action")
+        .Primary(SDL_Keycode.SDLK_t)
+        .Build();
+
+    public static readonly Hotkey AlternateRadialMenuMode = Hotkey.Build("alternate_radial_menu_mode")
+        .Primary(SDL_Scancode.SDL_SCANCODE_LSHIFT)
+        .Secondary(SDL_Scancode.SDL_SCANCODE_RSHIFT)
+        .Held()
+        .Build();
+
     public static readonly Hotkey ToggleRun = Hotkey.Build("toggle_run").Primary(KeyModifier.Ctrl).Build();
+
+    public static readonly IImmutableList<Hotkey> UserAssignableHotkeys = CreateUserAssignableHotkeys();
+
+    public static string GetUserAssignableHotkeyId(int index) => $"user_{index + 1}";
+
+    public static bool IsUserAssignableHotkey(Hotkey hotkey) => UserAssignableHotkeys.Contains(hotkey);
+
+    private static IImmutableList<Hotkey> CreateUserAssignableHotkeys()
+    {
+        SDL_Scancode[] userAssignableScancodes =
+        {
+            SDL_Scancode.SDL_SCANCODE_Q,
+            SDL_Scancode.SDL_SCANCODE_W,
+            SDL_Scancode.SDL_SCANCODE_E,
+            SDL_Scancode.SDL_SCANCODE_R,
+            SDL_Scancode.SDL_SCANCODE_T,
+            SDL_Scancode.SDL_SCANCODE_Y,
+            SDL_Scancode.SDL_SCANCODE_U,
+            SDL_Scancode.SDL_SCANCODE_I,
+            SDL_Scancode.SDL_SCANCODE_O,
+            SDL_Scancode.SDL_SCANCODE_P,
+            SDL_Scancode.SDL_SCANCODE_LEFTBRACKET,
+            SDL_Scancode.SDL_SCANCODE_RIGHTBRACKET,
+            SDL_Scancode.SDL_SCANCODE_A,
+            SDL_Scancode.SDL_SCANCODE_S,
+            SDL_Scancode.SDL_SCANCODE_D,
+            SDL_Scancode.SDL_SCANCODE_F,
+            SDL_Scancode.SDL_SCANCODE_G,
+            SDL_Scancode.SDL_SCANCODE_H,
+            SDL_Scancode.SDL_SCANCODE_J,
+            SDL_Scancode.SDL_SCANCODE_K,
+            SDL_Scancode.SDL_SCANCODE_L,
+            SDL_Scancode.SDL_SCANCODE_SEMICOLON,
+            SDL_Scancode.SDL_SCANCODE_APOSTROPHE,
+            SDL_Scancode.SDL_SCANCODE_BACKSLASH,
+            SDL_Scancode.SDL_SCANCODE_Z,
+            SDL_Scancode.SDL_SCANCODE_X,
+            SDL_Scancode.SDL_SCANCODE_C,
+            SDL_Scancode.SDL_SCANCODE_V,
+            SDL_Scancode.SDL_SCANCODE_B,
+            SDL_Scancode.SDL_SCANCODE_N,
+            SDL_Scancode.SDL_SCANCODE_M,
+            SDL_Scancode.SDL_SCANCODE_COMMA,
+            SDL_Scancode.SDL_SCANCODE_PERIOD,
+            SDL_Scancode.SDL_SCANCODE_SLASH,
+            SDL_Scancode.SDL_SCANCODE_F11,
+            SDL_Scancode.SDL_SCANCODE_F12,
+            SDL_Scancode.SDL_SCANCODE_F13,
+            SDL_Scancode.SDL_SCANCODE_F14,
+            SDL_Scancode.SDL_SCANCODE_F15
+        };
+
+        var builder = ImmutableList.CreateBuilder<Hotkey>();
+
+        for (var i = 0; i < userAssignableScancodes.Length; i++)
+        {
+            var hotkey = Hotkey.Build(GetUserAssignableHotkeyId(i))
+                .EnglishName($"User-Assignable Key {i + 1}")
+                .Primary(userAssignableScancodes[i])
+                .Build();
+            builder.Add(hotkey);
+        }
+
+        return builder.ToImmutable();
+    }
 }

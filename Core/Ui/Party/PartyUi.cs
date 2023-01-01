@@ -320,7 +320,7 @@ public class PartyUi : IResetAwareSystem, IDisposable
             if (UiSystems.RadialMenu.IsOpen)
                 return;
 
-            if (Tig.Keyboard.IsShiftPressed)
+            if (e.IsShiftHeld)
             {
                 // Multi-select
                 if (GameSystems.Party.IsSelected(partyMember))

@@ -24,7 +24,7 @@ public struct RadialMenuEntry
     public D20ActionType d20ActionType;
     public int d20ActionData1;
     public D20CAF d20Caf;
-    public D20SpellData d20SpellData;
+    public D20SpellData? d20SpellData;
 
     public D20DispatcherKey
         dispKey; // example: DestructionDomainRadialMenu (the only one I've encountered so far), using this for python actions too now

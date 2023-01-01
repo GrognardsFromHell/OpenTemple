@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -705,7 +706,7 @@ public class SavedD20ActionSequence
 
 public class SavedHotkey
 {
-    public KeyReference Key { get; set; }
+    public string Id { get; set; }
 
     // ELF32 hash of the radial menu entry's text that is triggered by this hotkey
     public int TextHash { get; set; }
@@ -714,7 +715,7 @@ public class SavedHotkey
 
     public int ActionData { get; set; }
 
-    public D20SpellData SpellData { get; set; }
+    public D20SpellData? SpellData { get; set; }
 
     // The original text of the hotkey entry, but somehow this doesn't always match the ELF32 hash above
     public string Text { get; set; }
@@ -755,6 +756,12 @@ public class SavedHotkeys
             hotkey.ActionData = reader.ReadInt32();
             reader.ReadInt32(); // Action CAF
             hotkey.SpellData = SavedD20Action.ReadSpellData(reader);
+            // We null out the spell data if there is none and need to reproduce this
+            // in case an empty spelldata was saved
+            if (hotkey.SpellData.spellEnumOrg == 0)
+            {
+                hotkey.SpellData = null;
+            }
             reader.ReadInt32(); // Dispatcher key
             reader.ReadInt32(); // Callback pointer
             reader.ReadInt32(); // Flags
@@ -768,8 +775,8 @@ public class SavedHotkeys
                 throw new CorruptSaveException($"Hotkey table contains key which is outside range: {keyIndex}");
             }
 
-            // Remap to scancode
-            hotkey.Key = AssignableKeys[keyIndex];
+            // Remap to hotkey id
+            hotkey.Id = AssignableKeys[keyIndex];
 
             if (hotkeyActionType == -2)
             {
@@ -778,9 +785,9 @@ public class SavedHotkeys
 
             hotkey.ActionType = (D20ActionType) hotkeyActionType;
 
-            if (hotkeys.Hotkeys.Any(hk => hk.Key == hotkey.Key))
+            if (hotkeys.Hotkeys.Any(hk => hk.Id == hotkey.Id))
             {
-                throw new CorruptSaveException($"Duplicate assignment to key {hotkey.Key}");
+                throw new CorruptSaveException($"Duplicate assignment to key {hotkey.Id}");
             }
 
             hotkeys.Hotkeys.Add(hotkey);
@@ -793,10 +800,10 @@ public class SavedHotkeys
     {
         foreach (var hotkey in Hotkeys)
         {
-            var keyIndex = Array.IndexOf(AssignableKeys, hotkey.Key);
+            var keyIndex = AssignableKeys.IndexOf(hotkey.Id);
             if (keyIndex == -1)
             {
-                Logger.Error("Cannot save hotkey assigned to {0} because the save format doesn't support it.", hotkey.Key);
+                Logger.Error("Cannot save hotkey assigned to {0} because the save format doesn't support it.", hotkey.Id);
                 continue;
             }
 
@@ -820,7 +827,15 @@ public class SavedHotkeys
             writer.WriteInt32((int) hotkey.ActionType);
             writer.WriteInt32(hotkey.ActionData);
             writer.WriteInt32(0); // Action CAF
-            SavedD20Action.WriteSpellData(writer, hotkey.SpellData);
+            // write a dummy spell data entry with enum=0 if none is associated with the radial menu
+            if (hotkey.SpellData == null)
+            {
+                SavedD20Action.WriteSpellData(writer, new D20SpellData());
+            }
+            else
+            {
+                SavedD20Action.WriteSpellData(writer, hotkey.SpellData);
+            }
             writer.WriteInt32(0); // Dispatcher key
             writer.WriteInt32(0); // Callback pointer
             writer.WriteInt32(0); // Flags
@@ -835,49 +850,12 @@ public class SavedHotkeys
 
     /// <summary>
     /// ToEE maintains an internal list of the re-bindable keys. The index of a key in this table matches
-    /// the index of the assigned action in the hotkey table.
+    /// the index of the assigned action in the hotkey table. Since the new system uses string based IDs
+    /// for hotkeys, we map between these two.
+    /// There were 39 assignable keys in Vanilla.
     /// </summary>
     [TempleDllLocation(0x102E8B78)]
-    private static readonly KeyReference[] AssignableKeys =
-    {
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_Q),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_W),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_E),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_R),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_T),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_Y),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_U),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_I),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_O),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_P),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_LEFTBRACKET),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_RIGHTBRACKET),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_A),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_S),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_D),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_G),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_H),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_J),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_K),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_L),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_SEMICOLON),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_APOSTROPHE),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_BACKSLASH),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_Z),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_X),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_C),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_V),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_B),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_N),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_M),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_COMMA),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_PERIOD),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_SLASH),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F11),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F12),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F13),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F14),
-        KeyReference.Physical(SDL_Scancode.SDL_SCANCODE_F15),
-    };
+    private static readonly ImmutableArray<string> AssignableKeys = Enumerable.Range(0, 39)
+        .Select(InGameHotKey.GetUserAssignableHotkeyId)
+        .ToImmutableArray();
 }

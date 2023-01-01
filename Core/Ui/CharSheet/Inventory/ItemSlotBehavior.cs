@@ -149,7 +149,7 @@ public class ItemSlotBehavior
                 {
                     // Shift+Click will show extra info about an item
                     if (AllowShowInfo
-                        && (Tig.Keyboard.IsShiftPressed)
+                        && e.IsShiftHeld
                         && GameSystems.MapObject.HasLongDescription(currentItem))
                     {
                         UiSystems.CharSheet.ShowItemDetailsPopup(currentItem, ActingCritter);

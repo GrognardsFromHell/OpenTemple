@@ -317,7 +317,7 @@ public class D20ActionSystem : IDisposable
     }
 
     [TempleDllLocation(0x1008a450)]
-    public void GlobD20ActnSetSpellData(D20SpellData d20SpellData)
+    public void GlobD20ActnSetSpellData(D20SpellData? d20SpellData)
     {
         globD20Action.d20SpellData = d20SpellData;
     }
@@ -4687,7 +4687,7 @@ public class D20ActionSystem : IDisposable
     [TempleDllLocation(0x10094910)]
     [TemplePlusLocation("action_sequence.cpp:3770")]
     public HourglassState GetNewHourglassState(GameObject performer, D20ActionType d20ActionType, int d20Data1,
-        int radMenuActualArg, D20SpellData d20SpellData)
+        int radMenuActualArg, D20SpellData? d20SpellData)
     {
         if (CurrentSequence == null)
         {

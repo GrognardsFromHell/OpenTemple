@@ -1,5 +1,6 @@
 ﻿using System;
 using OpenTemple.Core.Hotkeys;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui;
@@ -10,7 +11,7 @@ namespace OpenTemple.Core.Ui;
 /// </summary>
 public readonly record struct ActiveActionHotkey(
     Hotkey Hotkey,
-    Action Trigger,
+    Action<KeyboardEvent> Trigger,
     Func<bool> ActiveCondition,
     WidgetBase Owner
 );

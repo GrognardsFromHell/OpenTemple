@@ -94,63 +94,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     {
     }
     
-    [TempleDllLocation(0x10114EF0)]
-    public void HandleKeyDown(IGameViewport viewport, KeyboardEvent e)
-    {
-        if (UiSystems.Dialog.IsVisible)
-        {
-            UiSystems.KeyManager.HandleKeyUp(e);
-        }
-    }
-    
-    [TempleDllLocation(0x10114EF0)]
-    public void HandleKeyUp(IGameViewport viewport, KeyboardEvent e)
-    {
-        if (UiSystems.Dialog.IsVisible)
-        {
-            UiSystems.KeyManager.HandleKeyUp(e);
-        }
-        else if (GameSystems.Combat.IsCombatActive())
-        {
-            HandleKeyUpInCombat(viewport, e);
-        }
-        else
-        {
-            HandleKeyUpOutOfCombat(viewport, e);
-        }
-    }
-    
-    [TempleDllLocation(0x10114eb0)]
-    [TempleDllLocation(0x101132b0)]
-    private void HandleKeyUpInCombat(IGameViewport viewport, KeyboardEvent e)
-    {
-        UiSystems.KeyManager.HandleKeyUp(e);
-        if (e.IsPropagationStopped)
-        {
-            return; // TODO: This is new, previously it fell through here
-        }
-
-        // End turn for current player
-        if (e.VirtualKey is SDL_Keycode.SDLK_RETURN or SDL_Keycode.SDLK_SPACE)
-        {
-            var currentActor = GameSystems.D20.Initiative.CurrentActor;
-            UiSystems.CharSheet.CurrentPage = 0;
-            UiSystems.CharSheet.Hide(UiSystems.CharSheet.State);
-
-            if (GameSystems.Party.IsInParty(currentActor))
-            {
-                if (!GameSystems.D20.Actions.IsCurrentlyPerforming(currentActor))
-                {
-                    if (!UiSystems.InGameSelect.IsPicking && !UiSystems.RadialMenu.IsOpen)
-                    {
-                        GameSystems.Combat.AdvanceTurn(currentActor);
-                        Logger.Info("Advancing turn for {0}", currentActor);
-                    }
-                }
-            }
-        }
-    }
-
     [TempleDllLocation(0x10113ce0)]
     public void CenterOnPartyLeader()
     {
@@ -160,53 +103,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             var location = leader.GetLocation();
             GameSystems.Location.CenterOn(location.locx, location.locy);
         }
-    }
-
-    [TempleDllLocation(0x10114e30)]
-    [TempleDllLocation(0x101130B0)]
-    private void HandleKeyUpOutOfCombat(IGameViewport viewport, KeyboardEvent e)
-    {
-        var potentialHotkey = KeyReference.Physical(e.PhysicalKey);
-
-        var leader = GameSystems.Party.GetConsciousLeader();
-        if (leader != null)
-        {
-            if (GameSystems.D20.Hotkeys.IsReservedHotkey(potentialHotkey))
-            {
-                if (e.IsCtrlHeld)
-                {
-                    // trying to assign hotkey to reserved hotkey
-                    GameSystems.D20.Hotkeys.HotkeyReservedPopup(potentialHotkey);
-                    return;
-                }
-            }
-            else if (GameSystems.D20.Hotkeys.IsNormalNonreservedHotkey(potentialHotkey))
-            {
-                if (e.IsCtrlHeld)
-                {
-                    // assign hotkey
-                    UiSystems.RadialMenu.SpawnFromKeyboard(viewport, leader, e);
-                    return;
-                }
-
-                GameSystems.D20.Actions.TurnBasedStatusInit(leader);
-                leader = GameSystems.Party.GetConsciousLeader(); // in case the leader changes somehow...
-                Logger.Info("Intgame: Resetting sequence.");
-                GameSystems.D20.Actions.CurSeqReset(leader);
-
-                GameSystems.D20.Actions.GlobD20ActnInit();
-                if (GameSystems.D20.Hotkeys.ActivateHotkeyEntry(GameSystems.Party.GetConsciousLeader(), potentialHotkey))
-                {
-                    GameSystems.D20.Actions.ActionAddToSeq();
-                    GameSystems.D20.Actions.sequencePerform();
-                    PlayVoiceConfirmationSound(leader);
-                    GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
-                    return;
-                }
-            }
-        }
-
-        UiSystems.KeyManager.HandleKeyUp(e);
     }
 
     [TempleDllLocation(0x10113370)]
@@ -310,7 +206,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         _normalLmbClicked = false;
         if (_uiDragSelectOn)
         {
-            if (!Tig.Keyboard.IsShiftPressed)
+            if (!e.IsShiftHeld)
             {
                 GameSystems.Party.ClearSelection();
             }
@@ -347,7 +243,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
             _lastMoveCommandTime = TimePoint.Now;
             _lastMoveCommandLocation = e.Pos;
 
-            if (!Tig.Keyboard.IsShiftPressed)
+            if (!e.IsShiftHeld)
             {
                 var alwaysRun = Globals.Config.AlwaysRun;
                 PartySelectedStandUpAndMoveToPosition(worldPos, !alwaysRun);
@@ -371,7 +267,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
                 UiSystems.CharSheet.ShowInState(state, mouseTgt);
             }
 
-            if (Tig.Keyboard.IsShiftPressed)
+            if (e.IsShiftHeld)
             {
                 if (GameSystems.Party.IsSelected(mouseTgt))
                 {
@@ -569,7 +465,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
 
         if (playVoiceConfirmation)
         {
-            PlayVoiceConfirmationSound(closestPartyMember);
+            closestPartyMember.PlayVoiceConfirmationSound();
         }
     }
 
@@ -587,7 +483,7 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         GameSystems.D20.Actions.ActionAddToSeq();
         GameSystems.D20.Actions.sequencePerform();
         GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
-        PlayVoiceConfirmationSound(critter);
+        critter.PlayVoiceConfirmationSound();
     }
 
     // This function seems borked and previously checked for object type
@@ -721,19 +617,6 @@ public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
         if (a11)
         {
             GameSystems.Anim.TurnOn4000(slotId);
-        }
-    }
-
-    private static void PlayVoiceConfirmationSound(GameObject critter)
-    {
-        if (!critter.IsDeadOrUnconscious())
-        {
-            var listener = GameSystems.Dialog.GetListeningPartyMember(critter);
-            if (GameSystems.Dialog.TryGetOkayVoiceLine(critter, listener, out var voicelineText,
-                    out var soundId))
-            {
-                GameSystems.Dialog.PlayCritterVoiceLine(critter, listener, voicelineText, soundId);
-            }
         }
     }
 

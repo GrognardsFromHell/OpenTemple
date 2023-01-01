@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Events;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui;
@@ -331,28 +333,62 @@ public class UiManagerDebug
                 var bounds = content.GetBounds();
                 ImGui.Text($"{content} @ {bounds}");
             }
+
             ImGui.TreePop();
         }
     }
 
     private void RenderActiveHotkeyList(IReadOnlyList<ActiveActionHotkey> activeHotkeys)
     {
-        for (var i = 0; i < activeHotkeys.Count; i++)
+        foreach (var group in activeHotkeys.GroupBy(k => k.Hotkey.Id))
         {
-            ImGui.PushID($"hotkey${i}");
-            var activeHotkey = activeHotkeys[i];
+            var id = group.Key;
+            var groupCount = group.Count();
+            
+            ImGui.PushID($"hotkey:{id}");
 
-            ImGui.Text(activeHotkey.Hotkey.ToString());
-            ImGui.SameLine();
-            if (ImGui.SmallButton("Trigger"))
-            {
-                activeHotkey.Trigger();
-            }
-
-            if (!activeHotkey.ActiveCondition())
+            ImGui.Text(id);
+            // If there's just a single associated widget, same-line it
+            if (groupCount == 1)
             {
                 ImGui.SameLine();
-                ImGui.TextColored(new Vector4(1, 0, 0, 1), "[disabled]");
+            }
+
+            foreach (var activeHotkey in group)
+            {
+                if (groupCount != 1)
+                {
+                    ImGui.Indent();
+                    ImGui.Text(activeHotkey.Owner.ToString());
+                    ImGui.SameLine();
+                }
+                
+                if (ImGui.SmallButton("Trigger"))
+                {
+                    // Build a fake keyboard event
+                    var e = new KeyboardEvent
+                    {
+                        Type = UiEventType.KeyUp,
+                        PhysicalKey = activeHotkey.Hotkey.PrimaryKey.PhysicalKey,
+                        VirtualKey = activeHotkey.Hotkey.PrimaryKey.VirtualKey,
+                        IsAltHeld = ImGui.GetIO().KeyAlt,
+                        IsShiftHeld = ImGui.GetIO().KeyShift,
+                        IsCtrlHeld = ImGui.GetIO().KeyCtrl,
+                        IsMetaHeld = ImGui.GetIO().KeySuper,
+                    };
+                    activeHotkey.Trigger(e);
+                }
+
+                if (!activeHotkey.ActiveCondition())
+                {
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(1, 0, 0, 1), "[disabled]");
+                }
+                
+                if (groupCount != 1)
+                {
+                    ImGui.Unindent();
+                }
             }
 
             ImGui.PopID();
