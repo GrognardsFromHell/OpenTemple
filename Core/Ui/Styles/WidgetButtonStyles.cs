@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
@@ -18,8 +19,11 @@ public sealed class WidgetButtonStyles
 
     private readonly Dictionary<string, WidgetButtonStyle> _styles = new();
 
-    public WidgetButtonStyles()
+    private readonly IFileSystem _fileSystem;
+
+    public WidgetButtonStyles(IFileSystem fileSystem)
     {
+        _fileSystem = fileSystem;
         Reload();
     }
 
@@ -49,7 +53,7 @@ public sealed class WidgetButtonStyles
 
     public void LoadStylesFile(string path)
     {
-        var jsonContent = Tig.FS.ReadBinaryFile(path);
+        var jsonContent = _fileSystem.ReadBinaryFile(path);
 
         JsonDocument doc;
         try
@@ -195,7 +199,7 @@ public sealed class WidgetButtonStyles
 
     private void Reload()
     {
-        if (Tig.FS.FileExists(DefaultFile))
+        if (_fileSystem.FileExists(DefaultFile))
         {
             LoadStylesFile(DefaultFile);
         }

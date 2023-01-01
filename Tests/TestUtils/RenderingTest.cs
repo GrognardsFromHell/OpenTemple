@@ -44,7 +44,7 @@ public abstract class RenderingTest : RealGameFiles
         camera.CenterOn(CameraCenter.X, CameraCenter.Y, CameraCenter.Z);
         Viewport = new MockViewport(camera, Window);
 
-        Globals.UiStyles = new UiStyles();
+        Globals.UiStyles = new UiStyles(FS);
     }
 
     public override void Dispose()

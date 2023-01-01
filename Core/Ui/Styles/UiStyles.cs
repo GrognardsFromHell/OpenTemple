@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
+using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Ui.Styles;
 
@@ -26,11 +26,14 @@ public sealed class UiStyles
     private readonly Dictionary<string, IStyleDefinition> _styles = new();
 
     private readonly Dictionary<string, List<(StylingState, IStyleDefinition)>> _pseudoClassRules = new();
+    
+    private readonly IFileSystem _fileSystem;
 
     public StyleResolver StyleResolver { get; private set; }
 
-    public UiStyles()
+    public UiStyles(IFileSystem fileSystem)
     {
+        _fileSystem = fileSystem;
         Reload();
     }
 
@@ -120,7 +123,7 @@ public sealed class UiStyles
 
     public void LoadStylesFile(string path)
     {
-        var jsonContent = Tig.FS.ReadBinaryFile(path);
+        var jsonContent = _fileSystem.ReadBinaryFile(path);
 
         JsonDocument doc;
         try

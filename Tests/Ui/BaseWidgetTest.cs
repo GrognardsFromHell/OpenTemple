@@ -4,14 +4,17 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using NUnit.Framework;
+using OpenTemple.Core;
 using OpenTemple.Core.IO.TroikaArchives;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Tests.TestUtils;
 
 namespace OpenTemple.Tests.Ui;
 
-public abstract class BaseWidgetTest
+public abstract class BaseWidgetTest : RealGameFiles
 {
     protected List<WidgetContainer> Widgets => UiManager.Root.Children.Cast<WidgetContainer>().ToList();
     protected Dictionary<string, WidgetContainer> WidgetsById;
@@ -20,8 +23,15 @@ public abstract class BaseWidgetTest
     [SetUp]
     public void SetUpWidgets()
     {
-        UiManager = new UiManager(new HeadlessMainWindow(), new TroikaVfs());
+        Globals.UiStyles = new UiStyles(FS);
+        UiManager = new UiManager(new HeadlessMainWindow(), FS);
         WidgetsById = new Dictionary<string, WidgetContainer>();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        Globals.UiStyles = null;
     }
 
     protected WidgetBase TreeNode(string id, string? parent = null, bool visible = true,

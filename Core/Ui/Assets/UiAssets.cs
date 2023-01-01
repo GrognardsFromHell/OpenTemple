@@ -44,23 +44,23 @@ public class UiAssets
     
     private readonly Dictionary<string, Dictionary<int, string>> _translationFiles = new();
     
-    public UiAssets()
+    public UiAssets(IFileSystem fileSystem)
     {
-        _translationFiles["main_menu"] = Tig.FS.ReadMesFile("mes/mainmenu.mes");
-        _translationFiles["pc_creation"] = Tig.FS.ReadMesFile("mes/pc_creation.mes");
-        _translationFiles["party_pool"] = Tig.FS.ReadMesFile("mes/party_pool.mes");
-        _translationFiles["stat"] = Tig.FS.ReadMesFile("mes/stat.mes");
-        _translationFiles["options"] = Tig.FS.ReadMesFile("mes/options_text.mes");
-        _translationFiles["char_ui_inventory"] = Tig.FS.ReadMesFile("mes/5_char_inventory_ui_text.mes");
-        _translationFiles["char_ui_spells"] = Tig.FS.ReadMesFile("mes/14_char_spells_ui_text.mes");
-        _translationFiles["char_ui_skills"] = Tig.FS.ReadMesFile("mes/15_char_skills_ui_text.mes");
-        _translationFiles["loadgame"] = Tig.FS.ReadMesFile("mes/loadgame_ui.mes");
-        _translationFiles["savegame"] = Tig.FS.ReadMesFile("mes/savegame_ui.mes");
-        _translationFiles["townmap"] = Tig.FS.ReadMesFile("mes/townmap_ui_text.mes");
-        _translationFiles["worldmap_locations"] = Tig.FS.ReadMesFile("mes/worldmap_location_names_text.mes");
-        _translationFiles["townmap_markers"] = Tig.FS.ReadMesFile("mes/townmap_ui_placed_flag_text.mes");
-        _translationFiles["map_names"] = Tig.FS.ReadMesFile("mes/map_names.mes");
-        _translationFiles["logbook_keys"] = Tig.FS.ReadMesFile("mes/logbook_ui_keys_text.mes");
+        _translationFiles["main_menu"] = fileSystem.ReadMesFile("mes/mainmenu.mes");
+        _translationFiles["pc_creation"] = fileSystem.ReadMesFile("mes/pc_creation.mes");
+        _translationFiles["party_pool"] = fileSystem.ReadMesFile("mes/party_pool.mes");
+        _translationFiles["stat"] = fileSystem.ReadMesFile("mes/stat.mes");
+        _translationFiles["options"] = fileSystem.ReadMesFile("mes/options_text.mes");
+        _translationFiles["char_ui_inventory"] = fileSystem.ReadMesFile("mes/5_char_inventory_ui_text.mes");
+        _translationFiles["char_ui_spells"] = fileSystem.ReadMesFile("mes/14_char_spells_ui_text.mes");
+        _translationFiles["char_ui_skills"] = fileSystem.ReadMesFile("mes/15_char_skills_ui_text.mes");
+        _translationFiles["loadgame"] = fileSystem.ReadMesFile("mes/loadgame_ui.mes");
+        _translationFiles["savegame"] = fileSystem.ReadMesFile("mes/savegame_ui.mes");
+        _translationFiles["townmap"] = fileSystem.ReadMesFile("mes/townmap_ui_text.mes");
+        _translationFiles["worldmap_locations"] = fileSystem.ReadMesFile("mes/worldmap_location_names_text.mes");
+        _translationFiles["townmap_markers"] = fileSystem.ReadMesFile("mes/townmap_ui_placed_flag_text.mes");
+        _translationFiles["map_names"] = fileSystem.ReadMesFile("mes/map_names.mes");
+        _translationFiles["logbook_keys"] = fileSystem.ReadMesFile("mes/logbook_ui_keys_text.mes");
     }
 
     /**
