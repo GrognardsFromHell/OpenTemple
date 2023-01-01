@@ -164,7 +164,9 @@ public sealed class TigFonts : IDisposable
             return false;
         }
 
-        Tig.TextLayouter.LayoutAndDraw(text, font, ref extents, style);
+        Globals.UiManager.SnapToPhysicalPixelGrid(ref extents);
+        var snappedExtents = Rectangle.Truncate(extents);
+        Tig.TextLayouter.LayoutAndDraw(text, font, ref snappedExtents, style);
         return true;
     }
 

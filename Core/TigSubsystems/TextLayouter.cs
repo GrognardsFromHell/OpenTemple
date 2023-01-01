@@ -32,7 +32,7 @@ public class TextLayouter : IDisposable
         _renderer.Dispose();
     }
 
-    public void LayoutAndDraw(ReadOnlySpan<char> text, TigFont font, ref RectangleF extents, TigTextStyle style)
+    public void LayoutAndDraw(ReadOnlySpan<char> text, TigFont font, ref Rectangle extents, TigTextStyle style)
     {
         if (text.Length == 0)
         {
@@ -84,7 +84,7 @@ public class TextLayouter : IDisposable
         return endOfLine;
     }
 
-    private void DrawBackgroundOrOutline(RectangleF rect, TigTextStyle style)
+    private void DrawBackgroundOrOutline(Rectangle rect, TigTextStyle style)
     {
         float left = rect.X;
         float top = rect.Y;
@@ -138,7 +138,7 @@ public class TextLayouter : IDisposable
         bool lastLine,
         TigFont font,
         TigTextStyle style,
-        float remainingSpace)
+        int remainingSpace)
     {
         var result = new ScanWordResult();
         result.firstIdx = firstIdx;
@@ -209,10 +209,10 @@ public class TextLayouter : IDisposable
 
     internal static Tuple<int, int> MeasureCharRun(ReadOnlySpan<char> text,
         TigTextStyle style,
-        RectangleF extents,
-        float extentsWidth,
+        Rectangle extents,
+        int extentsWidth,
         TigFont font,
-        float linePadding,
+        int linePadding,
         bool lastLine)
     {
         var lineWidth = 0;
@@ -353,7 +353,7 @@ public class TextLayouter : IDisposable
     private void LayoutAndDrawVanilla(
         Span<char> text,
         TigFont font,
-        ref RectangleF extents,
+        ref Rectangle extents,
         TigTextStyle style)
     {
         var extentsWidth = extents.Width;
@@ -365,15 +365,15 @@ public class TextLayouter : IDisposable
             metrics.height = extents.Height;
             Tig.Fonts.Measure(style, text, ref metrics);
 
-            extents.Width = metrics.width;
-            extents.Height = metrics.height;
-            extentsWidth = metrics.width;
-            extentsHeight = metrics.height;
+            extents.Width = (int) metrics.width;
+            extents.Height = (int) metrics.height;
+            extentsWidth = (int) metrics.width;
+            extentsHeight = (int) metrics.height;
         }
 
         if ((style.flags & (TigTextStyleFlag.Background | TigTextStyleFlag.Border)) != 0)
         {
-            var rect = new RectangleF(
+            var rect = new Rectangle(
                 extents.X,
                 extents.Y,
                 Math.Max(extentsWidth, extents.Width),
@@ -432,8 +432,8 @@ public class TextLayouter : IDisposable
         metrics.lines = 1; // Default
         if (metrics.height != 0)
         {
-            var maxLines = (int) metrics.height / largestHeight;
-            if (!style.flags.HasFlag(TigTextStyleFlag.Truncate))
+            var maxLines = metrics.height / largestHeight;
+            if (!(style.flags.HasFlag(TigTextStyleFlag.Truncate)))
             {
                 maxLines++;
             }
@@ -527,7 +527,7 @@ public class TextLayouter : IDisposable
         return maxLineLen;
     }
 
-    private int CountLinesVanilla(float maxWidth, int maxLines, ReadOnlySpan<char> text, TigFont font,
+    private int CountLinesVanilla(int maxWidth, int maxLines, ReadOnlySpan<char> text, TigFont font,
         TigTextStyle style)
     {
         var length = text.Length;
@@ -625,4 +625,5 @@ public class TextLayouter : IDisposable
 
         return lines;
     }
+
 }
